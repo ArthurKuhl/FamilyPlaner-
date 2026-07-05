@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planer</title>
+<!-- PWA -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#4f6f45">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Planer">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+  :root {
+    --soil: #3a2e1f; --moss: #4f6f45; --sage: #7fa476; --leaf: #bcd196;
+    --cream: #faf6ec; --bark: #7d6339; --terracotta: #c46b41;
+    --navbg: #2a2016;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%; font-family: 'Inter', system-ui, sans-serif;
+    background: var(--cream); overflow: hidden;
+  }
+  :focus-visible { outline: 2px solid var(--terracotta); outline-offset: 2px; border-radius: 4px; }
+
+  .shell { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
+
+  /* Hauptnavigation: gleichrangige Bereiche, horizontal scrollbar auf schmalen Screens */
+  nav.modul-nav {
+    background: var(--navbg); display: flex; gap: 4px; padding: 6px 8px;
+    overflow-x: auto; -webkit-overflow-scrolling: touch; flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    scrollbar-width: none;
+  }
+  nav.modul-nav::-webkit-scrollbar { display: none; }
+  .modul-btn {
+    flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 2px;
+    background: transparent; border: none; color: var(--sage);
+    font-family: 'Inter', sans-serif; font-size: 0.62rem; font-weight: 600;
+    padding: 6px 12px; border-radius: 10px; cursor: pointer; transition: all 0.15s;
+    letter-spacing: 0.01em; min-width: 64px;
+  }
+  .modul-btn .em { font-size: 1.25rem; line-height: 1; }
+  .modul-btn:hover { background: #3b2f1e; }
+  .modul-btn.active { background: var(--moss); color: var(--leaf); }
+
+  .modul-frame-wrap { flex: 1; position: relative; min-height: 0; }
+  iframe.modul-frame {
+    width: 100%; height: 100%; border: none; display: block; background: var(--cream);
+  }
+
+  .offline-hinweis {
+    position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%) translateY(120%);
+    background: var(--soil); color: var(--leaf); font-size: 0.75rem; padding: 8px 16px;
+    border-radius: 20px; box-shadow: 0 4px 14px rgba(0,0,0,0.25); transition: transform 0.25s;
+    z-index: 50; pointer-events: none;
+  }
+  .offline-hinweis.zeigen { transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+  <div class="shell">
+    <nav class="modul-nav" id="modulNav" aria-label="Bereiche">
+      <!-- Buttons werden per JS erzeugt -->
+    </nav>
+    <div class="modul-frame-wrap">
+      <iframe class="modul-frame" id="modulFrame" title="Aktueller Bereich"></iframe>
+    </div>
+  </div>
+  <div class="offline-hinweis" id="offlineHinweis">Offline – letzte gespeicherte Version wird angezeigt</div>
+
+  <script>
+    // Zentrale Liste aller Bereiche. Neue Bereiche später einfach hier ergänzen:
+    // src auf die fertige Modul-Datei zeigen lassen, sobald sie existiert.
+    const MODULE = [
+      { id: 'garten',      label: 'Garten',    emoji: '🌱', src: 'garten.html' },
+      { id: 'termine',     label: 'Termine',   emoji: '🗓️', src: 'termine.html' },
+      { id: 'gesundheit',  label: 'Gesundheit',emoji: '🏃', src: 'placeholder.html?name=Gesundheit%20%26%20Sport&icon=🏃' },
+      { id: 'einkauf',     label: 'Einkauf',   emoji: '🛒', src: 'placeholder.html?name=Einkauf&icon=🛒' },
+      { id: 'kochen',      label: 'Kochen',    emoji: '🍳', src: 'placeholder.html?name=Kochen%20%26%20Backen&icon=🍳' },
+      { id: 'gaming',      label: 'Gaming',    emoji: '🎮', src: 'placeholder.html?name=Gaming&icon=🎮' },
+    ];
+    const STORAGE_KEY = 'planer_aktiverBereich';
+
+    const nav = document.getElementById('modulNav');
+    const frame = document.getElementById('modulFrame');
+
+    function bereichLaden(id, { schreiben = true } = {}) {
+      const mod = MODULE.find(m => m.id === id) || MODULE[0];
+      frame.src = mod.src;
+      nav.querySelectorAll('.modul-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.id === mod.id);
+        btn.setAttribute('aria-current', btn.dataset.id === mod.id ? 'page' : 'false');
+      });
+      if (schreiben) {
+        try { localStorage.setItem(STORAGE_KEY, mod.id); } catch (e) {}
+      }
+    }
+
+    MODULE.forEach(mod => {
+      const btn = document.createElement('button');
+      btn.className = 'modul-btn';
+      btn.dataset.id = mod.id;
+      btn.innerHTML = `<span class="em" aria-hidden="true">${mod.emoji}</span><span>${mod.label}</span>`;
+      btn.addEventListener('click', () => bereichLaden(mod.id));
+      nav.appendChild(btn);
+    });
+
+    let start = 'garten';
+    try {
+      const gespeichert = localStorage.getItem(STORAGE_KEY);
+      if (gespeichert && MODULE.some(m => m.id === gespeichert)) start = gespeichert;
+    } catch (e) {}
+    bereichLaden(start, { schreiben: false });
+
+    // Offline-/Online-Hinweis
+    const hinweis = document.getElementById('offlineHinweis');
+    let hinweisTimer;
+    function zeigeHinweis() {
+      if (!navigator.onLine) {
+        hinweis.classList.add('zeigen');
+        clearTimeout(hinweisTimer);
+        hinweisTimer = setTimeout(() => hinweis.classList.remove('zeigen'), 3500);
+      }
+    }
+    window.addEventListener('offline', zeigeHinweis);
+    window.addEventListener('load', () => { if (!navigator.onLine) zeigeHinweis(); });
+
+    // Service Worker registrieren (nur die Shell macht das, nicht die einzelnen Module)
+    // Funktioniert nur über http(s):// oder localhost, nicht über file://
+    if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js').catch(err => {
+          console.warn('Service Worker Registrierung fehlgeschlagen:', err);
+        });
+      });
+    }
+  </script>
+</body>
+</html>
