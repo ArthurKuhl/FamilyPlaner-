@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bald verfügbar</title>
+<style>
+  :root {
+    --soil: #3a2e1f; --moss: #4f6f45; --sage: #7fa476; --leaf: #bcd196;
+    --cream: #faf6ec; --bark: #7d6339;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%; font-family: 'Inter', system-ui, sans-serif;
+    background: var(--cream); color: var(--soil);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .wrap { text-align: center; padding: 32px; max-width: 360px; }
+  .icon { font-size: 3rem; margin-bottom: 12px; display: block; }
+  h1 { font-size: 1.3rem; margin-bottom: 8px; color: var(--moss); }
+  p { font-size: 0.95rem; color: var(--bark); line-height: 1.5; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <span class="icon" id="icon">🌱</span>
+    <h1 id="title">Bereich in Arbeit</h1>
+    <p>Dieser Bereich ist als Nächstes an der Reihe. Sobald er fertig ist, erscheint er hier automatisch.</p>
+  </div>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const name = params.get('name');
+    const icon = params.get('icon');
+    if (name) document.getElementById('title').textContent = name + ' – bald verfügbar';
+    if (icon) document.getElementById('icon').textContent = icon;
+  </script>
+</body>
+</html>
