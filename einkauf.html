@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Einkauf</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap');
+  :root {
+    --soil: #3a2e1f; --moss: #4f6f45; --sage: #7fa476; --leaf: #bcd196;
+    --cream: #faf6ec; --parchment: #ece0c7; --bark: #7d6339;
+    --terracotta: #c46b41; --terracotta-text: #a8532e; --sky: #5b8bb5;
+    --white: #fffdf8; --navbg: #2a2016;
+    --radius-sm: 8px; --radius-md: 12px; --radius-lg: 18px; --radius-pill: 22px;
+    --shadow-soft: 0 2px 10px rgba(59,47,30,0.08); --shadow-md: 0 8px 26px rgba(59,47,30,0.2);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--cream); color: var(--soil); min-height: 100vh; padding-bottom: 40px; }
+  button, input, select { font-family: inherit; -webkit-tap-highlight-color: transparent; }
+  :focus-visible { outline: 2px solid var(--terracotta); outline-offset: 2px; border-radius: 4px; }
+
+  header.top { background: var(--navbg); color: var(--leaf); padding: 10px 12px 0; }
+  header.top .titel-zeile { display: flex; align-items: center; justify-content: space-between; padding: 4px 4px 8px; }
+  header.top h1 { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; }
+  .listen-icon-btn { background: none; border: none; color: var(--sage); font-size: 1.1rem; cursor: pointer; padding: 4px 8px; }
+
+  .listen-tabs { display: flex; gap: 4px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 8px; scrollbar-width: none; }
+  .listen-tabs::-webkit-scrollbar { display: none; }
+  .listen-tab {
+    flex: 0 0 auto; background: transparent; border: 1px solid #4a3a28; color: var(--sage);
+    font-size: 0.78rem; font-weight: 600; padding: 6px 14px; border-radius: var(--radius-pill); cursor: pointer;
+    display: flex; align-items: center; gap: 6px; white-space: nowrap;
+  }
+  .listen-tab.active { background: var(--moss); color: var(--leaf); border-color: var(--moss); }
+  .listen-tab .anzahl { font-size: 0.65rem; opacity: 0.85; }
+  .listen-tab-neu { flex: 0 0 auto; background: transparent; border: 1px dashed #4a3a28; color: var(--sage); border-radius: var(--radius-pill); padding: 6px 12px; cursor: pointer; font-size: 0.9rem; }
+
+  main { padding: 12px 14px; max-width: 640px; margin: 0 auto; }
+
+  .quick-add { display: flex; gap: 8px; margin-bottom: 10px; }
+  .quick-add input {
+    flex: 1; padding: 11px 13px; border: 1px solid var(--parchment); border-radius: var(--radius-pill);
+    font-size: 0.9rem; background: var(--white); color: var(--soil);
+  }
+  .quick-add button {
+    background: var(--terracotta); color: var(--white); border: none; border-radius: var(--radius-pill);
+    padding: 0 18px; font-weight: 700; font-size: 0.85rem; cursor: pointer;
+  }
+
+  .favoriten-reihe { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+  .favorit-chip {
+    background: var(--white); border: 1px solid var(--parchment); color: var(--bark); font-size: 0.72rem;
+    font-weight: 600; padding: 5px 12px; border-radius: var(--radius-pill); cursor: pointer;
+  }
+  .favorit-chip:hover { border-color: var(--sage); }
+
+  .kategorie-gruppe { margin-bottom: 16px; }
+  .kategorie-titel {
+    display: flex; align-items: center; gap: 6px; font-size: 0.72rem; font-weight: 700; color: var(--bark);
+    text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 6px; padding-left: 2px;
+  }
+  .kategorie-titel .count { font-weight: 500; opacity: 0.7; text-transform: none; }
+
+  .item-zeile {
+    display: flex; align-items: center; gap: 10px; background: var(--white); border-radius: var(--radius-md);
+    padding: 10px 12px; margin-bottom: 6px; box-shadow: var(--shadow-soft); cursor: pointer;
+  }
+  .item-checkbox {
+    width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--sage); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 0.85rem; color: var(--white);
+  }
+  .item-zeile.erledigt .item-checkbox { background: var(--sage); border-color: var(--sage); }
+  .item-name { flex: 1; font-size: 0.9rem; font-weight: 500; min-width: 0; overflow-wrap: anywhere; }
+  .item-zeile.erledigt .item-name { text-decoration: line-through; color: var(--bark); opacity: 0.65; }
+  .item-menge { font-size: 0.75rem; color: var(--bark); font-weight: 600; white-space: nowrap; }
+  .item-loeschen { background: none; border: none; color: var(--parchment); font-size: 1rem; padding: 2px 4px; cursor: pointer; }
+  .item-loeschen:hover { color: var(--terracotta-text); }
+
+  .erledigt-section { margin-top: 18px; border-top: 1px solid var(--parchment); padding-top: 12px; }
+  .erledigt-kopf { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .erledigt-kopf button.aufklappen {
+    background: none; border: none; color: var(--bark); font-size: 0.78rem; font-weight: 700; cursor: pointer;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .erledigt-loeschen-btn {
+    background: none; border: 1px solid var(--terracotta); color: var(--terracotta-text); border-radius: var(--radius-pill);
+    font-size: 0.7rem; font-weight: 700; padding: 4px 12px; cursor: pointer;
+  }
+
+  .leer-hinweis { text-align: center; color: var(--bark); font-size: 0.85rem; padding: 46px 16px; opacity: 0.75; }
+  .leer-hinweis .em { font-size: 2.2rem; display: block; margin-bottom: 8px; }
+
+  .modal-bg { position: fixed; inset: 0; background: rgba(42,32,22,0.45); display: none; align-items: flex-end; justify-content: center; z-index: 100; }
+  .modal-bg.zeigen { display: flex; }
+  .modal { background: var(--cream); border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding: 18px 18px 24px; width: 100%; max-width: 460px; max-height: 88vh; overflow-y: auto; box-shadow: var(--shadow-md); }
+  @media (min-width: 540px) { .modal-bg { align-items: center; } .modal { border-radius: var(--radius-lg); } }
+  .modal h2 { font-family: 'Playfair Display', serif; font-size: 1.1rem; margin-bottom: 14px; }
+  .feld { margin-bottom: 12px; }
+  .feld label { display: block; font-size: 0.7rem; font-weight: 700; color: var(--bark); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.03em; }
+  .feld input, .feld select { width: 100%; padding: 9px 11px; border: 1px solid var(--parchment); border-radius: var(--radius-sm); font-size: 0.9rem; background: var(--white); color: var(--soil); }
+  .zeile { display: flex; gap: 10px; }
+  .zeile .feld { flex: 1; }
+  .kategorie-reihe { display: flex; gap: 6px; flex-wrap: wrap; }
+  .kategorie-opt {
+    padding: 6px 12px; border-radius: var(--radius-pill); font-size: 0.72rem; font-weight: 600;
+    border: 1px solid var(--parchment); background: var(--white); color: var(--bark); cursor: pointer;
+  }
+  .kategorie-opt.aktiv { color: var(--white); border-color: transparent; }
+  .modal-btns { display: flex; gap: 8px; margin-top: 16px; }
+  .btn { flex: 1; padding: 11px; border-radius: var(--radius-pill); border: none; font-weight: 700; font-size: 0.85rem; cursor: pointer; }
+  .btn-primary { background: var(--moss); color: var(--leaf); }
+  .btn-secondary { background: var(--white); color: var(--bark); border: 1px solid var(--parchment); }
+  .btn-danger { background: transparent; color: var(--terracotta-text); border: 1px solid var(--terracotta); }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="titel-zeile">
+    <h1>🛒 Einkauf</h1>
+    <button class="listen-icon-btn" id="btnListeVerwalten" title="Liste umbenennen/löschen">⚙️</button>
+  </div>
+  <div class="listen-tabs" id="listenTabs"></div>
+</header>
+
+<main>
+  <div class="quick-add">
+    <input type="text" id="fSchnellEingabe" placeholder="z.B. 500g Mehl, 3 Äpfel, Zahnpasta ..." autocomplete="off">
+    <button id="btnHinzufuegen">＋</button>
+  </div>
+  <div class="favoriten-reihe" id="favoritenReihe"></div>
+  <div id="offeneItems"></div>
+  <div id="erledigtSection" class="erledigt-section" style="display:none;">
+    <div class="erledigt-kopf">
+      <button class="aufklappen" id="btnErledigtToggle">▸ Erledigt (<span id="erledigtAnzahl">0</span>)</button>
+      <button class="erledigt-loeschen-btn" id="btnErledigtLoeschen">Entfernen</button>
+    </div>
+    <div id="erledigtItems" style="display:none;"></div>
+  </div>
+  <div class="leer-hinweis" id="leerHinweis" style="display:none;">
+    <span class="em">🛒</span>Diese Liste ist leer.<br>Tippe oben ein Produkt ein und drücke „＋“.
+  </div>
+</main>
+
+<!-- Item bearbeiten -->
+<div class="modal-bg" id="modalItem">
+  <div class="modal">
+    <h2>Produkt bearbeiten</h2>
+    <div class="feld">
+      <label for="fItemName">Name</label>
+      <input type="text" id="fItemName">
+    </div>
+    <div class="zeile">
+      <div class="feld">
+        <label for="fItemMenge">Menge</label>
+        <input type="text" id="fItemMenge" placeholder="z.B. 500">
+      </div>
+      <div class="feld">
+        <label for="fItemEinheit">Einheit</label>
+        <input type="text" id="fItemEinheit" list="einheitenListe" placeholder="g, kg, Stück ...">
+        <datalist id="einheitenListe">
+          <option value="Stück"><option value="g"><option value="kg"><option value="ml"><option value="l">
+          <option value="Packung"><option value="Dose"><option value="Flasche"><option value="Bund">
+        </datalist>
+      </div>
+    </div>
+    <div class="feld">
+      <label>Kategorie</label>
+      <div class="kategorie-reihe" id="itemKategorieReihe"></div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnItemAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnItemSpeichern">Speichern</button>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-danger" id="btnItemLoeschen">Löschen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Liste verwalten -->
+<div class="modal-bg" id="modalListe">
+  <div class="modal">
+    <h2>Liste verwalten</h2>
+    <div class="feld">
+      <label for="fListeName">Name der Liste</label>
+      <input type="text" id="fListeName">
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnListeAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnListeUmbenennen">Umbenennen</button>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-danger" id="btnListeLoeschen">Diese Liste löschen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Neue Liste -->
+<div class="modal-bg" id="modalNeueListe">
+  <div class="modal">
+    <h2>Neue Liste</h2>
+    <div class="feld">
+      <label for="fNeueListeName">Name</label>
+      <input type="text" id="fNeueListeName" placeholder="z.B. Wocheneinkauf, Baumarkt ...">
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnNeueListeAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnNeueListeAnlegen">Anlegen</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  const KEY_LISTEN = 'einkauf_listen';
+  const KEY_AKTIV = 'einkauf_aktiveListe';
+  const KEY_FAVORITEN = 'einkauf_favoriten';
+
+  const KATEGORIEN = [
+    { id: 'obst_gemuese',  label: 'Obst & Gemüse',          icon: '🥦', farbe: '#4f6f45' },
+    { id: 'brot',          label: 'Brot & Backwaren',       icon: '🍞', farbe: '#7d6339' },
+    { id: 'milchprodukte', label: 'Milchprodukte',          icon: '🧀', farbe: '#5b8bb5' },
+    { id: 'fleisch_fisch', label: 'Fleisch & Fisch',        icon: '🥩', farbe: '#c46b41' },
+    { id: 'tiefkuehl',     label: 'Tiefkühl',               icon: '❄️', farbe: '#5b8bb5' },
+    { id: 'trockenwaren',  label: 'Trockenwaren & Konserven', icon: '🥫', farbe: '#7d6339' },
+    { id: 'getraenke',     label: 'Getränke',               icon: '🥤', farbe: '#7fa476' },
+    { id: 'drogerie',      label: 'Drogerie & Haushalt',    icon: '🧴', farbe: '#a8532e' },
+    { id: 'sonstiges',     label: 'Sonstiges',              icon: '📦', farbe: '#7d6339' },
+  ];
+  const EINHEIT_MUSTER = /^(stück|stk|packung(?:en)?|pack|dose(?:n)?|flasche(?:n)?|bund|kg|g|l|ml)$/i;
+
+  function kategorieInfo(id) { return KATEGORIEN.find(k => k.id === id) || KATEGORIEN[KATEGORIEN.length-1]; }
+  function neueId(prefix) { return prefix + Date.now() + Math.random().toString(36).slice(2,7); }
+  function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  function laden(key, fallback) {
+    try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; }
+    catch (e) { console.warn('Einkauf: Laden fehlgeschlagen', key, e); return fallback; }
+  }
+  function speichern(key, wert) {
+    try { localStorage.setItem(key, JSON.stringify(wert)); }
+    catch (e) { console.warn('Einkauf: Speichern fehlgeschlagen', key, e); alert('Speichern fehlgeschlagen – ist der Speicher voll?'); }
+  }
+
+  let listen = laden(KEY_LISTEN, null);
+  if (!listen || !listen.length) {
+    listen = [{ id: neueId('l'), name: 'Wocheneinkauf', items: [] }];
+    speichern(KEY_LISTEN, listen);
+  }
+  let aktiveListeId = localStorage.getItem(KEY_AKTIV);
+  if (!aktiveListeId || !listen.some(l => l.id === aktiveListeId)) aktiveListeId = listen[0].id;
+  let favoriten = laden(KEY_FAVORITEN, {});
+  let erledigtOffen = false;
+
+  function aktiveListe() { return listen.find(l => l.id === aktiveListeId) || listen[0]; }
+  function speichernListen() { speichern(KEY_LISTEN, listen); }
+  function speichernFavoriten() { speichern(KEY_FAVORITEN, favoriten); }
+
+  // --- Listen-Tabs ---
+  function renderTabs() {
+    const box = document.getElementById('listenTabs');
+    box.innerHTML = '';
+    listen.forEach(l => {
+      const offen = l.items.filter(i => !i.erledigt).length;
+      const tab = document.createElement('button');
+      tab.className = 'listen-tab' + (l.id === aktiveListeId ? ' active' : '');
+      tab.innerHTML = escapeHtml(l.name) + (offen ? ' <span class="anzahl">(' + offen + ')</span>' : '');
+      tab.addEventListener('click', () => { aktiveListeId = l.id; localStorage.setItem(KEY_AKTIV, aktiveListeId); erledigtOffen = false; renderAlles(); });
+      box.appendChild(tab);
+    });
+    const neu = document.createElement('button');
+    neu.className = 'listen-tab-neu';
+    neu.textContent = '＋';
+    neu.title = 'Neue Liste';
+    neu.addEventListener('click', () => {
+      document.getElementById('fNeueListeName').value = '';
+      document.getElementById('modalNeueListe').classList.add('zeigen');
+      document.getElementById('fNeueListeName').focus();
+    });
+    box.appendChild(neu);
+  }
+
+  // --- Favoriten-Chips ---
+  function renderFavoriten() {
+    const box = document.getElementById('favoritenReihe');
+    box.innerHTML = '';
+    const liste = aktiveListe();
+    const vorhandenNamen = new Set(liste.items.filter(i => !i.erledigt).map(i => i.name.toLowerCase()));
+    const top = Object.values(favoriten)
+      .filter(f => !vorhandenNamen.has(f.name.toLowerCase()))
+      .sort((a,b) => b.anzahl - a.anzahl)
+      .slice(0, 8);
+    top.forEach(f => {
+      const chip = document.createElement('button');
+      chip.className = 'favorit-chip';
+      chip.textContent = '＋ ' + f.name;
+      chip.addEventListener('click', () => { itemHinzufuegenAusFavorit(f); });
+      box.appendChild(chip);
+    });
+  }
+
+  function itemHinzufuegenAusFavorit(f) {
+    const liste = aktiveListe();
+    liste.items.push({ id: neueId('i'), name: f.name, menge: '', einheit: '', kategorie: f.kategorie, erledigt: false });
+    speichernListen();
+    renderAlles();
+  }
+
+  // --- Schnelleingabe mit einfachem Mengen-Parsing ---
+  function parseSchnellEingabe(text) {
+    const t = text.trim();
+    // Muster: "3 Äpfel", "500g Mehl", "2 kg Kartoffeln", "1 Packung Nudeln"
+    const match = t.match(/^(\d+(?:[.,]\d+)?)\s*([a-zäöüß]+)?\s+(.+)$/i);
+    if (match) {
+      const menge = match[1].replace(',', '.');
+      let einheit = match[2] || '';
+      let name = match[3];
+      if (einheit && !EINHEIT_MUSTER.test(einheit)) {
+        // Kein bekanntes Einheitswort -> gehört wahrscheinlich zum Produktnamen
+        name = einheit + ' ' + name;
+        einheit = '';
+      }
+      return { menge, einheit, name: name.trim() };
+    }
+    return { menge: '', einheit: '', name: t };
+  }
+
+  function schaetzeKategorie(name) {
+    // Sehr einfache Zuordnung anhand des zuletzt verwendeten Favoriten mit ähnlichem Namen
+    const treffer = favoriten[name.toLowerCase()];
+    return treffer ? treffer.kategorie : 'sonstiges';
+  }
+
+  function itemHinzufuegen() {
+    const eingabe = document.getElementById('fSchnellEingabe');
+    const text = eingabe.value.trim();
+    if (!text) return;
+    const { menge, einheit, name } = parseSchnellEingabe(text);
+    const kategorie = schaetzeKategorie(name);
+    const item = { id: neueId('i'), name, menge, einheit, kategorie, erledigt: false };
+    aktiveListe().items.push(item);
+    const key = name.toLowerCase();
+    favoriten[key] = { name, kategorie, anzahl: (favoriten[key]?.anzahl || 0) + 1 };
+    speichernListen();
+    speichernFavoriten();
+    eingabe.value = '';
+    renderAlles();
+    eingabe.focus();
+  }
+  document.getElementById('btnHinzufuegen').addEventListener('click', itemHinzufuegen);
+  document.getElementById('fSchnellEingabe').addEventListener('keydown', (e) => { if (e.key === 'Enter') itemHinzufuegen(); });
+
+  // --- Item-Zeilen rendern ---
+  function itemZeile(item) {
+    const zeile = document.createElement('div');
+    zeile.className = 'item-zeile' + (item.erledigt ? ' erledigt' : '');
+    const mengeText = [item.menge, item.einheit].filter(Boolean).join(' ');
+    zeile.innerHTML =
+      '<span class="item-checkbox">' + (item.erledigt ? '✓' : '') + '</span>' +
+      '<span class="item-name">' + escapeHtml(item.name) + '</span>' +
+      (mengeText ? '<span class="item-menge">' + escapeHtml(mengeText) + '</span>' : '') +
+      '<button class="item-loeschen" aria-label="Löschen">✕</button>';
+    zeile.querySelector('.item-checkbox').addEventListener('click', (e) => {
+      e.stopPropagation();
+      item.erledigt = !item.erledigt;
+      speichernListen();
+      renderAlles();
+    });
+    zeile.querySelector('.item-loeschen').addEventListener('click', (e) => {
+      e.stopPropagation();
+      const liste = aktiveListe();
+      liste.items = liste.items.filter(i => i.id !== item.id);
+      speichernListen();
+      renderAlles();
+    });
+    zeile.addEventListener('click', () => itemModalOeffnen(item));
+    return zeile;
+  }
+
+  function renderOffeneItems() {
+    const box = document.getElementById('offeneItems');
+    box.innerHTML = '';
+    const liste = aktiveListe();
+    const offene = liste.items.filter(i => !i.erledigt);
+    document.getElementById('leerHinweis').style.display = liste.items.length === 0 ? '' : 'none';
+    KATEGORIEN.forEach(kat => {
+      const gruppe = offene.filter(i => i.kategorie === kat.id);
+      if (!gruppe.length) return;
+      const wrap = document.createElement('div');
+      wrap.className = 'kategorie-gruppe';
+      wrap.innerHTML = '<div class="kategorie-titel" style="color:' + kat.farbe + ';">' + kat.icon + ' ' + kat.label + ' <span class="count">(' + gruppe.length + ')</span></div>';
+      gruppe.forEach(item => wrap.appendChild(itemZeile(item)));
+      box.appendChild(wrap);
+    });
+  }
+
+  function renderErledigt() {
+    const liste = aktiveListe();
+    const erledigt = liste.items.filter(i => i.erledigt);
+    const section = document.getElementById('erledigtSection');
+    section.style.display = erledigt.length ? '' : 'none';
+    document.getElementById('btnErledigtToggle').innerHTML = (erledigtOffen ? '▾' : '▸') + ' Erledigt (<span id="erledigtAnzahl">' + erledigt.length + '</span>)';
+    const box = document.getElementById('erledigtItems');
+    box.style.display = erledigtOffen ? '' : 'none';
+    box.innerHTML = '';
+    erledigt.forEach(item => box.appendChild(itemZeile(item)));
+  }
+  document.getElementById('btnErledigtToggle').addEventListener('click', () => { erledigtOffen = !erledigtOffen; renderErledigt(); });
+  document.getElementById('btnErledigtLoeschen').addEventListener('click', () => {
+    const liste = aktiveListe();
+    const anzahl = liste.items.filter(i => i.erledigt).length;
+    if (!anzahl) return;
+    if (!confirm(anzahl + ' erledigte Produkt(e) aus dieser Liste entfernen?')) return;
+    liste.items = liste.items.filter(i => !i.erledigt);
+    speichernListen();
+    renderAlles();
+  });
+
+  // --- Item bearbeiten ---
+  let bearbeitetesItemId = null;
+  function itemKategorieReiheRendern(ausgewaehlt) {
+    const reihe = document.getElementById('itemKategorieReihe');
+    reihe.innerHTML = '';
+    KATEGORIEN.forEach(k => {
+      const opt = document.createElement('button');
+      opt.type = 'button';
+      opt.className = 'kategorie-opt' + (k.id === ausgewaehlt ? ' aktiv' : '');
+      opt.textContent = k.icon + ' ' + k.label;
+      opt.dataset.id = k.id;
+      if (k.id === ausgewaehlt) opt.style.background = k.farbe;
+      opt.addEventListener('click', () => {
+        reihe.querySelectorAll('.kategorie-opt').forEach(o => { o.classList.remove('aktiv'); o.style.background = ''; });
+        opt.classList.add('aktiv');
+        opt.style.background = k.farbe;
+      });
+      reihe.appendChild(opt);
+    });
+  }
+  function itemModalOeffnen(item) {
+    bearbeitetesItemId = item.id;
+    document.getElementById('fItemName').value = item.name;
+    document.getElementById('fItemMenge').value = item.menge || '';
+    document.getElementById('fItemEinheit').value = item.einheit || '';
+    itemKategorieReiheRendern(item.kategorie);
+    document.getElementById('modalItem').classList.add('zeigen');
+  }
+  document.getElementById('btnItemAbbrechen').addEventListener('click', () => document.getElementById('modalItem').classList.remove('zeigen'));
+  document.getElementById('modalItem').addEventListener('click', (e) => { if (e.target.id === 'modalItem') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnItemSpeichern').addEventListener('click', () => {
+    const liste = aktiveListe();
+    const item = liste.items.find(i => i.id === bearbeitetesItemId);
+    if (!item) return;
+    const name = document.getElementById('fItemName').value.trim();
+    if (!name) { alert('Bitte einen Namen eingeben.'); return; }
+    const gewaehlt = document.querySelector('#itemKategorieReihe .kategorie-opt.aktiv');
+    item.name = name;
+    item.menge = document.getElementById('fItemMenge').value.trim();
+    item.einheit = document.getElementById('fItemEinheit').value.trim();
+    item.kategorie = gewaehlt ? gewaehlt.dataset.id : 'sonstiges';
+    const key = name.toLowerCase();
+    favoriten[key] = { name, kategorie: item.kategorie, anzahl: (favoriten[key]?.anzahl || 0) + 1 };
+    speichernListen();
+    speichernFavoriten();
+    document.getElementById('modalItem').classList.remove('zeigen');
+    renderAlles();
+  });
+  document.getElementById('btnItemLoeschen').addEventListener('click', () => {
+    const liste = aktiveListe();
+    liste.items = liste.items.filter(i => i.id !== bearbeitetesItemId);
+    speichernListen();
+    document.getElementById('modalItem').classList.remove('zeigen');
+    renderAlles();
+  });
+
+  // --- Liste verwalten (umbenennen/löschen) ---
+  document.getElementById('btnListeVerwalten').addEventListener('click', () => {
+    document.getElementById('fListeName').value = aktiveListe().name;
+    document.getElementById('modalListe').classList.add('zeigen');
+  });
+  document.getElementById('btnListeAbbrechen').addEventListener('click', () => document.getElementById('modalListe').classList.remove('zeigen'));
+  document.getElementById('modalListe').addEventListener('click', (e) => { if (e.target.id === 'modalListe') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnListeUmbenennen').addEventListener('click', () => {
+    const neuerName = document.getElementById('fListeName').value.trim();
+    if (!neuerName) { alert('Bitte einen Namen eingeben.'); return; }
+    aktiveListe().name = neuerName;
+    speichernListen();
+    document.getElementById('modalListe').classList.remove('zeigen');
+    renderAlles();
+  });
+  document.getElementById('btnListeLoeschen').addEventListener('click', () => {
+    if (listen.length <= 1) { alert('Die letzte verbleibende Liste kann nicht gelöscht werden.'); return; }
+    if (!confirm('Liste „' + aktiveListe().name + '“ wirklich komplett löschen?')) return;
+    listen = listen.filter(l => l.id !== aktiveListeId);
+    aktiveListeId = listen[0].id;
+    localStorage.setItem(KEY_AKTIV, aktiveListeId);
+    speichernListen();
+    document.getElementById('modalListe').classList.remove('zeigen');
+    renderAlles();
+  });
+
+  // --- Neue Liste anlegen ---
+  document.getElementById('btnNeueListeAbbrechen').addEventListener('click', () => document.getElementById('modalNeueListe').classList.remove('zeigen'));
+  document.getElementById('modalNeueListe').addEventListener('click', (e) => { if (e.target.id === 'modalNeueListe') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnNeueListeAnlegen').addEventListener('click', () => {
+    const name = document.getElementById('fNeueListeName').value.trim();
+    if (!name) { alert('Bitte einen Namen eingeben.'); return; }
+    const neu = { id: neueId('l'), name, items: [] };
+    listen.push(neu);
+    aktiveListeId = neu.id;
+    localStorage.setItem(KEY_AKTIV, aktiveListeId);
+    speichernListen();
+    document.getElementById('modalNeueListe').classList.remove('zeigen');
+    erledigtOffen = false;
+    renderAlles();
+  });
+
+  function renderAlles() {
+    renderTabs();
+    renderFavoriten();
+    renderOffeneItems();
+    renderErledigt();
+  }
+
+  renderAlles();
+})();
+</script>
+</body>
+</html>
