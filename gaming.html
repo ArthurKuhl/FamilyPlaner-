@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gaming</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap');
+  :root {
+    --soil: #3a2e1f; --moss: #4f6f45; --sage: #7fa476; --leaf: #bcd196;
+    --cream: #faf6ec; --parchment: #ece0c7; --bark: #7d6339;
+    --terracotta: #c46b41; --terracotta-text: #a8532e; --sky: #5b8bb5;
+    --white: #fffdf8; --navbg: #2a2016; --gold: #c99a3a;
+    --radius-sm: 8px; --radius-md: 12px; --radius-lg: 18px; --radius-pill: 22px;
+    --shadow-soft: 0 2px 10px rgba(59,47,30,0.08); --shadow-md: 0 8px 26px rgba(59,47,30,0.2);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--cream); color: var(--soil); min-height: 100vh; padding-bottom: 40px; }
+  button, input, select, textarea { font-family: inherit; -webkit-tap-highlight-color: transparent; }
+  :focus-visible { outline: 2px solid var(--terracotta); outline-offset: 2px; border-radius: 4px; }
+
+  header.top { background: var(--navbg); color: var(--leaf); padding: 10px 12px; }
+  header.top .titel-zeile { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  header.top h1 { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; }
+  .add-btn { background: var(--terracotta); color: var(--white); border: none; border-radius: var(--radius-pill); font-size: 0.82rem; font-weight: 700; padding: 7px 15px; cursor: pointer; }
+  .suchzeile { display: flex; gap: 8px; margin-bottom: 8px; }
+  .suchzeile input { flex: 1; padding: 9px 12px; border-radius: var(--radius-pill); border: none; font-size: 0.85rem; background: #1e160f; color: var(--leaf); }
+  .suchzeile input::placeholder { color: #6b7a63; }
+  .filter-reihe { display: flex; gap: 5px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 6px; scrollbar-width: none; }
+  .filter-reihe::-webkit-scrollbar { display: none; }
+  .filter-chip { flex: 0 0 auto; background: transparent; border: 1px solid #4a3a28; color: var(--sage); font-size: 0.72rem; font-weight: 600; padding: 5px 12px; border-radius: var(--radius-pill); cursor: pointer; white-space: nowrap; }
+  .filter-chip.active { background: var(--moss); color: var(--leaf); border-color: var(--moss); }
+
+  main { padding: 12px 14px; max-width: 680px; margin: 0 auto; }
+
+  .stat-reihe { display: flex; gap: 8px; margin-bottom: 12px; }
+  .stat-box { flex: 1; background: var(--white); border-radius: var(--radius-md); padding: 10px; text-align: center; box-shadow: var(--shadow-soft); }
+  .stat-box .wert { font-size: 1.1rem; font-weight: 700; color: var(--moss); }
+  .stat-box .label { font-size: 0.62rem; color: var(--bark); text-transform: uppercase; letter-spacing: 0.02em; margin-top: 2px; }
+
+  .spiel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 10px; }
+  .spiel-karte { background: var(--white); border-radius: var(--radius-md); padding: 12px; box-shadow: var(--shadow-soft); cursor: pointer; display: flex; flex-direction: column; gap: 6px; border-top: 3px solid var(--moss); }
+  .spiel-titel { font-size: 0.88rem; font-weight: 700; line-height: 1.25; }
+  .spiel-chips { display: flex; gap: 4px; flex-wrap: wrap; }
+  .mini-chip { font-size: 0.6rem; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-pill); white-space: nowrap; }
+  .sterne-reihe { display: flex; gap: 1px; margin-top: 2px; }
+  .sterne-reihe .stern { font-size: 0.85rem; color: var(--parchment); }
+  .sterne-reihe .stern.aktiv { color: var(--gold); }
+  .spiel-zeit { font-size: 0.66rem; color: var(--bark); }
+
+  .leer-hinweis { text-align: center; color: var(--bark); font-size: 0.85rem; padding: 46px 16px; opacity: 0.75; }
+  .leer-hinweis .em { font-size: 2.2rem; display: block; margin-bottom: 8px; }
+
+  .modal-bg { position: fixed; inset: 0; background: rgba(42,32,22,0.45); display: none; align-items: flex-end; justify-content: center; z-index: 100; }
+  .modal-bg.zeigen { display: flex; }
+  .modal { background: var(--cream); border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding: 18px 18px 24px; width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-md); }
+  @media (min-width: 560px) { .modal-bg { align-items: center; } .modal { border-radius: var(--radius-lg); } }
+  .modal h2 { font-family: 'Playfair Display', serif; font-size: 1.1rem; margin-bottom: 14px; }
+  .feld { margin-bottom: 12px; }
+  .feld label { display: block; font-size: 0.7rem; font-weight: 700; color: var(--bark); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.03em; }
+  .feld input, .feld select, .feld textarea { width: 100%; padding: 9px 11px; border: 1px solid var(--parchment); border-radius: var(--radius-sm); font-size: 0.9rem; background: var(--white); color: var(--soil); }
+  .zeile { display: flex; gap: 10px; }
+  .zeile .feld { flex: 1; }
+  .opt-reihe { display: flex; gap: 6px; flex-wrap: wrap; }
+  .opt { padding: 6px 12px; border-radius: var(--radius-pill); font-size: 0.75rem; font-weight: 600; border: 1px solid var(--parchment); background: var(--white); color: var(--bark); cursor: pointer; }
+  .opt.aktiv { color: var(--white); border-color: transparent; }
+  .sterne-eingabe { display: flex; gap: 4px; }
+  .sterne-eingabe button { background: none; border: none; font-size: 1.6rem; color: var(--parchment); cursor: pointer; padding: 0 2px; }
+  .sterne-eingabe button.aktiv { color: var(--gold); }
+  .modal-btns { display: flex; gap: 8px; margin-top: 16px; }
+  .btn { flex: 1; padding: 11px; border-radius: var(--radius-pill); border: none; font-weight: 700; font-size: 0.85rem; cursor: pointer; }
+  .btn-primary { background: var(--moss); color: var(--leaf); }
+  .btn-secondary { background: var(--white); color: var(--bark); border: 1px solid var(--parchment); }
+  .btn-danger { background: transparent; color: var(--terracotta-text); border: 1px solid var(--terracotta); }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="titel-zeile">
+    <h1>🎮 Gaming</h1>
+    <button class="add-btn" id="btnNeu">＋ Neu</button>
+  </div>
+  <div class="suchzeile"><input type="text" id="fSuche" placeholder="Spiel suchen ..."></div>
+  <div class="filter-reihe" id="personFilterReihe"></div>
+  <div class="filter-reihe" id="statusFilterReihe" style="margin-top:5px;"></div>
+</header>
+
+<main>
+  <div class="stat-reihe" id="statReihe"></div>
+  <div class="spiel-grid" id="spielGrid"></div>
+  <div class="leer-hinweis" id="leerHinweis" style="display:none;">
+    <span class="em">🎮</span><span id="leerText">Noch keine Spiele erfasst. Tippe auf „＋ Neu“.</span>
+  </div>
+</main>
+
+<div class="modal-bg" id="modalEdit">
+  <div class="modal">
+    <h2 id="editKopf">Neues Spiel</h2>
+    <div class="feld">
+      <label for="fTitel">Titel</label>
+      <input type="text" id="fTitel" placeholder="z.B. Zelda: Tears of the Kingdom">
+    </div>
+    <div class="feld">
+      <label>Person</label>
+      <div class="opt-reihe" id="editPersonReihe"></div>
+    </div>
+    <div class="feld">
+      <label>Plattform</label>
+      <div class="opt-reihe" id="editPlattformReihe"></div>
+    </div>
+    <div class="feld">
+      <label>Status</label>
+      <div class="opt-reihe" id="editStatusReihe"></div>
+    </div>
+    <div class="zeile">
+      <div class="feld">
+        <label for="fSpielzeit">Spielzeit (Std., optional)</label>
+        <input type="number" id="fSpielzeit" min="0" step="0.5" placeholder="z.B. 12">
+      </div>
+      <div class="feld">
+        <label>Bewertung</label>
+        <div class="sterne-eingabe" id="sterneEingabe"></div>
+      </div>
+    </div>
+    <div class="feld">
+      <label for="fNotiz">Notiz (optional)</label>
+      <textarea id="fNotiz" placeholder="z.B. Geschenkidee, Fortschritt, Eindruck ..."></textarea>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnSpeichern">Speichern</button>
+    </div>
+    <div class="modal-btns" id="loeschZeile" style="display:none;">
+      <button class="btn btn-danger" id="btnLoeschen">Löschen</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  const KEY_SPIELE = 'gaming_spiele';
+  const KEY_AKTIVE_PERSON = 'gaming_personFilter';
+
+  const PERSONEN = [
+    { id: 'alle',    label: 'Alle' },
+    { id: 'mama',    label: 'Mama' },
+    { id: 'papa',    label: 'Papa' },
+    { id: 'familie', label: 'Familie' },
+  ];
+  const PLATTFORMEN = [
+    { id: 'pc',          label: 'PC',          icon: '🖥️', farbe: '#5b8bb5' },
+    { id: 'playstation', label: 'PlayStation',  icon: '🎮', farbe: '#4f6f45' },
+    { id: 'switch',      label: 'Switch',       icon: '🕹️', farbe: '#c46b41' },
+    { id: 'xbox',        label: 'Xbox',         icon: '🎯', farbe: '#7fa476' },
+    { id: 'mobile',      label: 'Mobile',       icon: '📱', farbe: '#a8532e' },
+    { id: 'brettspiel',  label: 'Brettspiel',   icon: '🎲', farbe: '#7d6339' },
+    { id: 'sonstiges',   label: 'Sonstiges',    icon: '📦', farbe: '#7d6339' },
+  ];
+  const STATUSSE = [
+    { id: 'wunschliste',   label: 'Wunschliste',     icon: '💭', farbe: '#5b8bb5' },
+    { id: 'spiele_ich',    label: 'Spiele ich',      icon: '▶️', farbe: '#4f6f45' },
+    { id: 'pausiert',      label: 'Pausiert',        icon: '⏸️', farbe: '#c99a3a' },
+    { id: 'durchgespielt', label: 'Durchgespielt',   icon: '🏆', farbe: '#7fa476' },
+    { id: 'abgebrochen',   label: 'Abgebrochen',     icon: '⏹️', farbe: '#a8532e' },
+  ];
+
+  function plattformInfo(id) { return PLATTFORMEN.find(p => p.id === id) || PLATTFORMEN[PLATTFORMEN.length-1]; }
+  function statusInfo(id) { return STATUSSE.find(s => s.id === id) || STATUSSE[0]; }
+  function neueId(prefix) { return prefix + Date.now() + Math.random().toString(36).slice(2,7); }
+  function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  function laden(key, fallback) {
+    try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; }
+    catch (e) { console.warn('Gaming: Laden fehlgeschlagen', key, e); return fallback; }
+  }
+  function speichern(key, wert) {
+    try { localStorage.setItem(key, JSON.stringify(wert)); }
+    catch (e) { console.warn('Gaming: Speichern fehlgeschlagen', key, e); alert('Speichern fehlgeschlagen – ist der Speicher voll?'); }
+  }
+
+  let spiele = laden(KEY_SPIELE, []);
+  let personFilter = localStorage.getItem(KEY_AKTIVE_PERSON) || 'alle';
+  let statusFilter = 'alle';
+  let suchtext = '';
+  let bearbeiteId = null;
+
+  function speichernSpiele() { speichern(KEY_SPIELE, spiele); }
+
+  // --- FILTER ---
+  function renderPersonFilter() {
+    const box = document.getElementById('personFilterReihe');
+    box.innerHTML = '';
+    PERSONEN.forEach(p => {
+      const chip = document.createElement('button');
+      chip.className = 'filter-chip' + (p.id === personFilter ? ' active' : '');
+      chip.textContent = p.label;
+      chip.addEventListener('click', () => {
+        personFilter = p.id;
+        localStorage.setItem(KEY_AKTIVE_PERSON, personFilter);
+        renderPersonFilter(); renderAlles();
+      });
+      box.appendChild(chip);
+    });
+  }
+  function renderStatusFilter() {
+    const box = document.getElementById('statusFilterReihe');
+    box.innerHTML = '';
+    const alleChip = document.createElement('button');
+    alleChip.className = 'filter-chip' + (statusFilter === 'alle' ? ' active' : '');
+    alleChip.textContent = 'Alle Status';
+    alleChip.addEventListener('click', () => { statusFilter = 'alle'; renderStatusFilter(); renderAlles(); });
+    box.appendChild(alleChip);
+    STATUSSE.forEach(s => {
+      const chip = document.createElement('button');
+      chip.className = 'filter-chip' + (statusFilter === s.id ? ' active' : '');
+      chip.textContent = s.icon + ' ' + s.label;
+      chip.addEventListener('click', () => { statusFilter = s.id; renderStatusFilter(); renderAlles(); });
+      box.appendChild(chip);
+    });
+  }
+  document.getElementById('fSuche').addEventListener('input', (e) => { suchtext = e.target.value.trim().toLowerCase(); renderAlles(); });
+
+  function gefilterteSpiele() {
+    return spiele.filter(s => {
+      if (personFilter !== 'alle' && s.person !== personFilter) return false;
+      if (statusFilter !== 'alle' && s.status !== statusFilter) return false;
+      if (suchtext && !s.titel.toLowerCase().includes(suchtext)) return false;
+      return true;
+    });
+  }
+
+  // --- STATS ---
+  function renderStats() {
+    const box = document.getElementById('statReihe');
+    box.innerHTML = '';
+    const basis = spiele.filter(s => personFilter === 'alle' || s.person === personFilter);
+    const aktuell = basis.filter(s => s.status === 'spiele_ich').length;
+    const durch = basis.filter(s => s.status === 'durchgespielt').length;
+    const gesamtStunden = basis.reduce((sum, s) => sum + (parseFloat(s.spielzeit) || 0), 0);
+    [
+      { wert: aktuell, label: 'Aktuell aktiv' },
+      { wert: durch, label: 'Durchgespielt' },
+      { wert: Math.round(gesamtStunden), label: 'Std. gesamt' },
+    ].forEach(s => {
+      const el = document.createElement('div');
+      el.className = 'stat-box';
+      el.innerHTML = '<div class="wert">' + s.wert + '</div><div class="label">' + s.label + '</div>';
+      box.appendChild(el);
+    });
+  }
+
+  // --- GRID ---
+  function sterneAnzeige(bewertung) {
+    let html = '<div class="sterne-reihe">';
+    for (let i = 1; i <= 5; i++) html += '<span class="stern' + (i <= bewertung ? ' aktiv' : '') + '">★</span>';
+    return html + '</div>';
+  }
+
+  function spielKarte(s) {
+    const plat = plattformInfo(s.plattform);
+    const stat = statusInfo(s.status);
+    const karte = document.createElement('div');
+    karte.className = 'spiel-karte';
+    karte.style.borderTopColor = stat.farbe;
+    karte.innerHTML =
+      '<div class="spiel-titel">' + escapeHtml(s.titel) + '</div>' +
+      '<div class="spiel-chips">' +
+        '<span class="mini-chip" style="background:' + plat.farbe + '22; color:' + plat.farbe + ';">' + plat.icon + ' ' + plat.label + '</span>' +
+        '<span class="mini-chip" style="background:' + stat.farbe + '22; color:' + stat.farbe + ';">' + stat.icon + ' ' + stat.label + '</span>' +
+      '</div>' +
+      sterneAnzeige(s.bewertung || 0) +
+      (s.spielzeit ? '<div class="spiel-zeit">⏱ ' + s.spielzeit + ' Std.</div>' : '');
+    karte.addEventListener('click', () => editModalOeffnen(s));
+    return karte;
+  }
+
+  function renderGrid() {
+    const box = document.getElementById('spielGrid');
+    box.innerHTML = '';
+    const liste = gefilterteSpiele();
+    document.getElementById('leerHinweis').style.display = liste.length ? 'none' : '';
+    document.getElementById('leerText').textContent = spiele.length
+      ? 'Keine Spiele gefunden. Filter oder Suche anpassen.'
+      : 'Noch keine Spiele erfasst. Tippe auf „＋ Neu“.';
+    liste.forEach(s => box.appendChild(spielKarte(s)));
+  }
+
+  // --- BEARBEITEN / NEU ---
+  let editPerson = 'mama', editPlattform = 'pc', editStatus = 'wunschliste', editBewertung = 0;
+
+  function optReiheRendern(containerId, optionen, ausgewaehlt, onWahl) {
+    const box = document.getElementById(containerId);
+    box.innerHTML = '';
+    optionen.forEach(o => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'opt' + (o.id === ausgewaehlt ? ' aktiv' : '');
+      btn.textContent = (o.icon ? o.icon + ' ' : '') + o.label;
+      if (o.id === ausgewaehlt && o.farbe) btn.style.background = o.farbe;
+      btn.addEventListener('click', () => onWahl(o.id));
+      box.appendChild(btn);
+    });
+  }
+  function renderEditPersonReihe() {
+    optReiheRendern('editPersonReihe', PERSONEN.filter(p => p.id !== 'alle'), editPerson, (id) => { editPerson = id; renderEditPersonReihe(); });
+  }
+  function renderEditPlattformReihe() {
+    optReiheRendern('editPlattformReihe', PLATTFORMEN, editPlattform, (id) => { editPlattform = id; renderEditPlattformReihe(); });
+  }
+  function renderEditStatusReihe() {
+    optReiheRendern('editStatusReihe', STATUSSE, editStatus, (id) => { editStatus = id; renderEditStatusReihe(); });
+  }
+  function renderSterneEingabe() {
+    const box = document.getElementById('sterneEingabe');
+    box.innerHTML = '';
+    for (let i = 1; i <= 5; i++) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = i <= editBewertung ? 'aktiv' : '';
+      btn.textContent = '★';
+      btn.addEventListener('click', () => { editBewertung = (editBewertung === i) ? 0 : i; renderSterneEingabe(); });
+      box.appendChild(btn);
+    }
+  }
+
+  function editModalOeffnen(s) {
+    bearbeiteId = s ? s.id : null;
+    document.getElementById('editKopf').textContent = s ? 'Spiel bearbeiten' : 'Neues Spiel';
+    document.getElementById('fTitel').value = s ? s.titel : '';
+    document.getElementById('fSpielzeit').value = s ? (s.spielzeit || '') : '';
+    document.getElementById('fNotiz').value = s ? (s.notiz || '') : '';
+    editPerson = s ? s.person : (personFilter !== 'alle' ? personFilter : 'mama');
+    editPlattform = s ? s.plattform : 'pc';
+    editStatus = s ? s.status : 'wunschliste';
+    editBewertung = s ? (s.bewertung || 0) : 0;
+    renderEditPersonReihe(); renderEditPlattformReihe(); renderEditStatusReihe(); renderSterneEingabe();
+    document.getElementById('loeschZeile').style.display = s ? '' : 'none';
+    document.getElementById('modalEdit').classList.add('zeigen');
+    document.getElementById('fTitel').focus();
+  }
+  document.getElementById('btnNeu').addEventListener('click', () => editModalOeffnen(null));
+  document.getElementById('btnAbbrechen').addEventListener('click', () => document.getElementById('modalEdit').classList.remove('zeigen'));
+  document.getElementById('modalEdit').addEventListener('click', (e) => { if (e.target.id === 'modalEdit') e.currentTarget.classList.remove('zeigen'); });
+
+  document.getElementById('btnSpeichern').addEventListener('click', () => {
+    const titel = document.getElementById('fTitel').value.trim();
+    if (!titel) { alert('Bitte einen Titel eingeben.'); return; }
+    const neu = {
+      id: bearbeiteId || neueId('g'),
+      titel, person: editPerson, plattform: editPlattform, status: editStatus,
+      spielzeit: document.getElementById('fSpielzeit').value.trim(),
+      bewertung: editBewertung,
+      notiz: document.getElementById('fNotiz').value.trim(),
+    };
+    if (bearbeiteId) spiele = spiele.map(s => s.id === bearbeiteId ? neu : s);
+    else spiele.push(neu);
+    speichernSpiele();
+    document.getElementById('modalEdit').classList.remove('zeigen');
+    renderAlles();
+  });
+  document.getElementById('btnLoeschen').addEventListener('click', () => {
+    if (!bearbeiteId) return;
+    if (!confirm('Dieses Spiel wirklich löschen?')) return;
+    spiele = spiele.filter(s => s.id !== bearbeiteId);
+    speichernSpiele();
+    document.getElementById('modalEdit').classList.remove('zeigen');
+    renderAlles();
+  });
+
+  function renderAlles() {
+    renderStats();
+    renderGrid();
+  }
+
+  renderPersonFilter();
+  renderStatusFilter();
+  renderAlles();
+})();
+</script>
+</body>
+</html>
