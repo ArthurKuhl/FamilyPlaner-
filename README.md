@@ -1,6 +1,6 @@
 # 🌱 Planer
 
-Eine feature-reiche, offline-fähige Familien-/Lebensplaner-App als Progressive Web App (PWA) – läuft direkt im Browser oder installiert auf dem Smartphone-Homescreen. Garten, Termine, Einkauf und Kochen & Backen sind bereits vollständig ausgebaute Bereiche; weitere Bereiche (Gesundheit & Sport, Gaming, ...) folgen als eigenständige Module in derselben App-Hülle.
+Eine feature-reiche, offline-fähige Familien-/Lebensplaner-App als Progressive Web App (PWA) – läuft direkt im Browser oder installiert auf dem Smartphone-Homescreen. Garten, Termine, Einkauf, Kochen & Backen sowie Gesundheit & Sport sind bereits vollständig ausgebaute Bereiche; Gaming folgt als eigenständiges Modul in derselben App-Hülle.
 
 ## Architektur
 
@@ -11,6 +11,7 @@ Die App besteht aus einer schlanken **Shell** (`index.html`) mit der Hauptnaviga
 - `termine.html` – Termine-Modul: Kalender- und Agendaansicht, Wiederholungen, Filter nach Person (Familie/Mama/Papa)
 - `einkauf.html` – Einkauf-Modul: mehrere Einkaufslisten, Kategorien-Gruppierung, Mengen-Parsing bei der Schnelleingabe (z.B. „500g Mehl“), Favoriten-Vorschläge
 - `kochen.html` – Kochen & Backen-Modul: Rezeptsammlung mit Portionsskalierung, Favoriten, Kategorie-Filter. Button „Zum Einkauf“ überträgt die (skalierten) Zutaten direkt in die aktive Einkaufsliste (funktioniert, weil beide Module denselben Browser-Speicher nutzen)
+- `gesundheit.html` – Gesundheit & Sport-Modul: Tages-Tracking (Gewicht, Schlaf, Wasser, Stimmung) pro Person, Sport-Log mit Kategorien, Gewichtsverlauf als Mini-Chart, Wochenstatistik
 - `placeholder.html` – Platzhalter für noch nicht gebaute Bereiche
 - `manifest.webmanifest`, `service-worker.js`, `icon-*.png` – PWA-Infrastruktur
 

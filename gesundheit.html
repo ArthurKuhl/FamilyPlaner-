@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gesundheit & Sport</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap');
+  :root {
+    --soil: #3a2e1f; --moss: #4f6f45; --sage: #7fa476; --leaf: #bcd196;
+    --cream: #faf6ec; --parchment: #ece0c7; --bark: #7d6339;
+    --terracotta: #c46b41; --terracotta-text: #a8532e; --sky: #5b8bb5;
+    --white: #fffdf8; --navbg: #2a2016;
+    --radius-sm: 8px; --radius-md: 12px; --radius-lg: 18px; --radius-pill: 22px;
+    --shadow-soft: 0 2px 10px rgba(59,47,30,0.08); --shadow-md: 0 8px 26px rgba(59,47,30,0.2);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--cream); color: var(--soil); min-height: 100vh; padding-bottom: 40px; }
+  button, input, select, textarea { font-family: inherit; -webkit-tap-highlight-color: transparent; }
+  :focus-visible { outline: 2px solid var(--terracotta); outline-offset: 2px; border-radius: 4px; }
+
+  header.top { background: var(--navbg); color: var(--leaf); padding: 10px 12px; }
+  header.top h1 { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; }
+  .person-reihe, .view-toggle { display: flex; gap: 5px; }
+  .person-reihe { margin-bottom: 8px; }
+  .person-chip {
+    background: transparent; border: 1px solid #4a3a28; color: var(--sage); font-size: 0.76rem; font-weight: 600;
+    padding: 6px 13px; border-radius: var(--radius-pill); cursor: pointer;
+  }
+  .person-chip.active { background: var(--moss); color: var(--leaf); border-color: var(--moss); }
+  .view-toggle { background: #1e160f; border-radius: var(--radius-pill); padding: 3px; width: fit-content; }
+  .view-toggle button {
+    border: none; background: transparent; color: var(--sage); font-size: 0.75rem; font-weight: 600;
+    padding: 6px 14px; border-radius: var(--radius-pill); cursor: pointer;
+  }
+  .view-toggle button.active { background: var(--moss); color: var(--leaf); }
+
+  main { padding: 12px 14px; max-width: 640px; margin: 0 auto; }
+
+  .karte { background: var(--white); border-radius: var(--radius-md); padding: 14px; margin-bottom: 12px; box-shadow: var(--shadow-soft); }
+  .karte h3 { font-family: 'Playfair Display', serif; font-size: 0.95rem; margin-bottom: 10px; color: var(--soil); }
+  .datum-label { font-size: 0.72rem; color: var(--bark); font-weight: 600; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.02em; }
+
+  .metrik-zeile { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--parchment); gap: 10px; }
+  .metrik-zeile:last-child { border-bottom: none; }
+  .metrik-label { font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 6px; flex: 1; }
+  .metrik-input-zahl {
+    width: 72px; padding: 7px 8px; border: 1px solid var(--parchment); border-radius: var(--radius-sm);
+    font-size: 0.85rem; text-align: center; background: var(--cream);
+  }
+  .stepper { display: flex; align-items: center; gap: 8px; }
+  .stepper button { width: 28px; height: 28px; border-radius: 50%; border: none; background: var(--parchment); color: var(--soil); font-size: 0.95rem; cursor: pointer; }
+  .stepper .stepper-wert { min-width: 26px; text-align: center; font-weight: 700; font-size: 0.85rem; }
+  .stimmung-reihe { display: flex; gap: 4px; }
+  .stimmung-btn { background: none; border: 2px solid transparent; border-radius: 50%; font-size: 1.3rem; padding: 2px; cursor: pointer; opacity: 0.45; }
+  .stimmung-btn.aktiv { opacity: 1; border-color: var(--sage); background: var(--cream); }
+
+  .sport-liste .sport-zeile {
+    display: flex; align-items: center; gap: 10px; background: var(--white); border-radius: var(--radius-md);
+    padding: 10px 12px; margin-bottom: 6px; box-shadow: var(--shadow-soft);
+  }
+  .sport-icon { font-size: 1.3rem; }
+  .sport-info { flex: 1; min-width: 0; }
+  .sport-titel { font-size: 0.88rem; font-weight: 600; }
+  .sport-meta { font-size: 0.7rem; color: var(--bark); margin-top: 1px; }
+  .sport-loeschen { background: none; border: none; color: var(--parchment); font-size: 1rem; cursor: pointer; padding: 2px 4px; }
+  .sport-loeschen:hover { color: var(--terracotta-text); }
+
+  .add-sport-btn {
+    width: 100%; background: var(--white); border: 1px dashed var(--sage); color: var(--moss);
+    border-radius: var(--radius-md); padding: 10px; font-size: 0.85rem; font-weight: 700; cursor: pointer; margin-bottom: 12px;
+  }
+
+  .verlauf-datum-gruppe { margin-bottom: 14px; }
+  .verlauf-datum-titel { font-size: 0.72rem; font-weight: 700; color: var(--bark); text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 6px; padding-left: 2px; }
+
+  .stat-reihe { display: flex; gap: 8px; margin-bottom: 12px; }
+  .stat-box { flex: 1; background: var(--white); border-radius: var(--radius-md); padding: 10px; text-align: center; box-shadow: var(--shadow-soft); }
+  .stat-box .wert { font-size: 1.15rem; font-weight: 700; color: var(--moss); }
+  .stat-box .label { font-size: 0.65rem; color: var(--bark); text-transform: uppercase; letter-spacing: 0.02em; margin-top: 2px; }
+
+  .chart-leer { font-size: 0.78rem; color: var(--bark); opacity: 0.7; padding: 10px 0; }
+  .chart-trend { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; font-size: 0.75rem; color: var(--bark); }
+
+  .leer-hinweis { text-align: center; color: var(--bark); font-size: 0.85rem; padding: 30px 16px; opacity: 0.75; }
+
+  .modal-bg { position: fixed; inset: 0; background: rgba(42,32,22,0.45); display: none; align-items: flex-end; justify-content: center; z-index: 100; }
+  .modal-bg.zeigen { display: flex; }
+  .modal { background: var(--cream); border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding: 18px 18px 24px; width: 100%; max-width: 460px; max-height: 88vh; overflow-y: auto; box-shadow: var(--shadow-md); }
+  @media (min-width: 540px) { .modal-bg { align-items: center; } .modal { border-radius: var(--radius-lg); } }
+  .modal h2 { font-family: 'Playfair Display', serif; font-size: 1.1rem; margin-bottom: 14px; }
+  .feld { margin-bottom: 12px; }
+  .feld label { display: block; font-size: 0.7rem; font-weight: 700; color: var(--bark); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.03em; }
+  .feld input, .feld select, .feld textarea { width: 100%; padding: 9px 11px; border: 1px solid var(--parchment); border-radius: var(--radius-sm); font-size: 0.9rem; background: var(--white); color: var(--soil); }
+  .zeile { display: flex; gap: 10px; }
+  .zeile .feld { flex: 1; }
+  .typ-reihe { display: flex; gap: 6px; flex-wrap: wrap; }
+  .typ-opt { padding: 6px 12px; border-radius: var(--radius-pill); font-size: 0.78rem; font-weight: 600; border: 1px solid var(--parchment); background: var(--white); color: var(--bark); cursor: pointer; }
+  .typ-opt.aktiv { background: var(--moss); color: var(--leaf); border-color: var(--moss); }
+  .modal-btns { display: flex; gap: 8px; margin-top: 16px; }
+  .btn { flex: 1; padding: 11px; border-radius: var(--radius-pill); border: none; font-weight: 700; font-size: 0.85rem; cursor: pointer; }
+  .btn-primary { background: var(--moss); color: var(--leaf); }
+  .btn-secondary { background: var(--white); color: var(--bark); border: 1px solid var(--parchment); }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <h1>🏃 Gesundheit &amp; Sport</h1>
+  <div class="person-reihe" id="personReihe"></div>
+  <div class="view-toggle" role="tablist">
+    <button id="btnViewHeute" role="tab" aria-selected="true">Heute</button>
+    <button id="btnViewVerlauf" role="tab" aria-selected="false">Verlauf</button>
+  </div>
+</header>
+
+<main>
+  <section id="ansichtHeute">
+    <div class="karte">
+      <div class="datum-label" id="heuteDatumLabel"></div>
+      <div class="metrik-zeile">
+        <span class="metrik-label">⚖️ Gewicht (kg)</span>
+        <input type="number" step="0.1" class="metrik-input-zahl" id="fGewicht" placeholder="–">
+      </div>
+      <div class="metrik-zeile">
+        <span class="metrik-label">😴 Schlaf (Std.)</span>
+        <input type="number" step="0.5" class="metrik-input-zahl" id="fSchlaf" placeholder="–">
+      </div>
+      <div class="metrik-zeile">
+        <span class="metrik-label">💧 Wasser (Gläser)</span>
+        <div class="stepper">
+          <button id="btnWasserMinus" type="button">−</button>
+          <span class="stepper-wert" id="wasserWert">0</span>
+          <button id="btnWasserPlus" type="button">+</button>
+        </div>
+      </div>
+      <div class="metrik-zeile">
+        <span class="metrik-label">Stimmung</span>
+        <div class="stimmung-reihe" id="stimmungReihe"></div>
+      </div>
+    </div>
+
+    <button class="add-sport-btn" id="btnSportHinzufuegen">＋ Sport-Einheit erfassen</button>
+
+    <div class="sport-liste" id="sportHeuteListe"></div>
+  </section>
+
+  <section id="ansichtVerlauf" style="display:none;">
+    <div class="stat-reihe" id="statReihe"></div>
+    <div class="karte">
+      <h3>⚖️ Gewichtsverlauf</h3>
+      <div id="gewichtChart"></div>
+    </div>
+    <div id="verlaufListe"></div>
+    <div class="leer-hinweis" id="verlaufLeer" style="display:none;">Noch keine Einträge für diese Auswahl.</div>
+  </section>
+</main>
+
+<div class="modal-bg" id="modalSport">
+  <div class="modal">
+    <h2>Sport-Einheit</h2>
+    <div class="feld">
+      <label>Art</label>
+      <div class="typ-reihe" id="typReihe"></div>
+    </div>
+    <div class="zeile">
+      <div class="feld">
+        <label for="fSportDatum">Datum</label>
+        <input type="date" id="fSportDatum">
+      </div>
+      <div class="feld">
+        <label for="fSportDauer">Dauer (Min.)</label>
+        <input type="number" id="fSportDauer" min="1" value="30">
+      </div>
+    </div>
+    <div class="feld">
+      <label for="fSportNotiz">Notiz (optional)</label>
+      <input type="text" id="fSportNotiz" placeholder="z.B. 5 km, lockerer Lauf">
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnSportAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnSportSpeichern">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  const KEY_TAGESWERTE = 'gesundheit_tageswerte';
+  const KEY_SPORT = 'gesundheit_sport';
+  const KEY_AKTIVE_PERSON = 'gesundheit_aktivePerson';
+
+  const PERSONEN = [
+    { id: 'mama', label: 'Mama' },
+    { id: 'papa', label: 'Papa' },
+    { id: 'familie', label: 'Familie' },
+  ];
+  const SPORT_TYPEN = [
+    { id: 'laufen',     label: 'Laufen',      icon: '🏃' },
+    { id: 'radfahren',  label: 'Radfahren',   icon: '🚴' },
+    { id: 'kraft',      label: 'Krafttraining', icon: '🏋️' },
+    { id: 'yoga',       label: 'Yoga',        icon: '🧘' },
+    { id: 'schwimmen',  label: 'Schwimmen',   icon: '🏊' },
+    { id: 'wandern',    label: 'Wandern',     icon: '🥾' },
+    { id: 'sonstiges',  label: 'Sonstiges',   icon: '🤸' },
+  ];
+  const STIMMUNGEN = ['😞','😕','😐','🙂','😄'];
+
+  function neueId(prefix) { return prefix + Date.now() + Math.random().toString(36).slice(2,7); }
+  function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function toISODatum(d) { return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+  function heuteISO() { return toISODatum(new Date()); }
+  function ausISO(iso) { const [j,m,t] = iso.split('-').map(Number); return new Date(j, m-1, t); }
+  function typInfo(id) { return SPORT_TYPEN.find(t => t.id === id) || SPORT_TYPEN[SPORT_TYPEN.length-1]; }
+
+  function laden(key, fallback) {
+    try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; }
+    catch (e) { console.warn('Gesundheit: Laden fehlgeschlagen', key, e); return fallback; }
+  }
+  function speichern(key, wert) {
+    try { localStorage.setItem(key, JSON.stringify(wert)); }
+    catch (e) { console.warn('Gesundheit: Speichern fehlgeschlagen', key, e); alert('Speichern fehlgeschlagen – ist der Speicher voll?'); }
+  }
+
+  let tageswerte = laden(KEY_TAGESWERTE, []); // [{id, datum, person, gewicht, schlaf, wasser, stimmung}]
+  let sportEinheiten = laden(KEY_SPORT, []); // [{id, datum, person, typ, dauer, notiz}]
+  let aktivePerson = localStorage.getItem(KEY_AKTIVE_PERSON) || 'mama';
+  let aktiveAnsicht = 'heute';
+
+  function findeOderErstelleTageswert(person, datum) {
+    let eintrag = tageswerte.find(t => t.person === person && t.datum === datum);
+    if (!eintrag) {
+      eintrag = { id: neueId('tw'), datum, person, gewicht: '', schlaf: '', wasser: 0, stimmung: 0 };
+      tageswerte.push(eintrag);
+    }
+    return eintrag;
+  }
+
+  // --- PERSONEN-CHIPS ---
+  function renderPersonen() {
+    const box = document.getElementById('personReihe');
+    box.innerHTML = '';
+    PERSONEN.forEach(p => {
+      const chip = document.createElement('button');
+      chip.className = 'person-chip' + (p.id === aktivePerson ? ' active' : '');
+      chip.textContent = p.label;
+      chip.addEventListener('click', () => {
+        aktivePerson = p.id;
+        localStorage.setItem(KEY_AKTIVE_PERSON, aktivePerson);
+        renderPersonen();
+        renderAlles();
+      });
+      box.appendChild(chip);
+    });
+  }
+
+  // --- ANSICHT HEUTE ---
+  function renderHeute() {
+    document.getElementById('heuteDatumLabel').textContent = ausISO(heuteISO()).toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' });
+    const eintrag = findeOderErstelleTageswert(aktivePerson, heuteISO());
+    document.getElementById('fGewicht').value = eintrag.gewicht || '';
+    document.getElementById('fSchlaf').value = eintrag.schlaf || '';
+    document.getElementById('wasserWert').textContent = eintrag.wasser || 0;
+    renderStimmungReihe(eintrag.stimmung);
+    renderSportHeuteListe();
+  }
+
+  function renderStimmungReihe(ausgewaehlt) {
+    const box = document.getElementById('stimmungReihe');
+    box.innerHTML = '';
+    STIMMUNGEN.forEach((emoji, i) => {
+      const stufe = i + 1;
+      const btn = document.createElement('button');
+      btn.className = 'stimmung-btn' + (stufe === ausgewaehlt ? ' aktiv' : '');
+      btn.textContent = emoji;
+      btn.addEventListener('click', () => {
+        const eintrag = findeOderErstelleTageswert(aktivePerson, heuteISO());
+        eintrag.stimmung = (eintrag.stimmung === stufe) ? 0 : stufe;
+        speichern(KEY_TAGESWERTE, tageswerte);
+        renderStimmungReihe(eintrag.stimmung);
+      });
+      box.appendChild(btn);
+    });
+  }
+
+  document.getElementById('fGewicht').addEventListener('change', (e) => {
+    const eintrag = findeOderErstelleTageswert(aktivePerson, heuteISO());
+    eintrag.gewicht = e.target.value;
+    speichern(KEY_TAGESWERTE, tageswerte);
+  });
+  document.getElementById('fSchlaf').addEventListener('change', (e) => {
+    const eintrag = findeOderErstelleTageswert(aktivePerson, heuteISO());
+    eintrag.schlaf = e.target.value;
+    speichern(KEY_TAGESWERTE, tageswerte);
+  });
+  document.getElementById('btnWasserMinus').addEventListener('click', () => {
+    const eintrag = findeOderErstelleTageswert(aktivePerson, heuteISO());
+    eintrag.wasser = Math.max(0, (eintrag.wasser || 0) - 1);
+    speichern(KEY_TAGESWERTE, tageswerte);
+    document.getElementById('wasserWert').textContent = eintrag.wasser;
+  });
+  document.getElementById('btnWasserPlus').addEventListener('click', () => {
+    const eintrag = findeOderErstelleTageswert(aktivePerson, heuteISO());
+    eintrag.wasser = (eintrag.wasser || 0) + 1;
+    speichern(KEY_TAGESWERTE, tageswerte);
+    document.getElementById('wasserWert').textContent = eintrag.wasser;
+  });
+
+  function sportZeile(s) {
+    const t = typInfo(s.typ);
+    const zeile = document.createElement('div');
+    zeile.className = 'sport-zeile';
+    zeile.innerHTML =
+      '<span class="sport-icon">' + t.icon + '</span>' +
+      '<div class="sport-info"><div class="sport-titel">' + t.label + ' · ' + s.dauer + ' Min.</div>' +
+      '<div class="sport-meta">' + (s.notiz ? escapeHtml(s.notiz) : '') + '</div></div>' +
+      '<button class="sport-loeschen" aria-label="Löschen">✕</button>';
+    zeile.querySelector('.sport-loeschen').addEventListener('click', () => {
+      sportEinheiten = sportEinheiten.filter(x => x.id !== s.id);
+      speichern(KEY_SPORT, sportEinheiten);
+      renderAlles();
+    });
+    return zeile;
+  }
+
+  function renderSportHeuteListe() {
+    const box = document.getElementById('sportHeuteListe');
+    box.innerHTML = '';
+    const heutige = sportEinheiten.filter(s => s.person === aktivePerson && s.datum === heuteISO());
+    heutige.forEach(s => box.appendChild(sportZeile(s)));
+  }
+
+  // --- SPORT-MODAL ---
+  let ausgewaehlterTyp = 'laufen';
+  function renderTypReihe() {
+    const box = document.getElementById('typReihe');
+    box.innerHTML = '';
+    SPORT_TYPEN.forEach(t => {
+      const opt = document.createElement('button');
+      opt.type = 'button';
+      opt.className = 'typ-opt' + (t.id === ausgewaehlterTyp ? ' aktiv' : '');
+      opt.textContent = t.icon + ' ' + t.label;
+      opt.addEventListener('click', () => { ausgewaehlterTyp = t.id; renderTypReihe(); });
+      box.appendChild(opt);
+    });
+  }
+  document.getElementById('btnSportHinzufuegen').addEventListener('click', () => {
+    ausgewaehlterTyp = 'laufen';
+    renderTypReihe();
+    document.getElementById('fSportDatum').value = heuteISO();
+    document.getElementById('fSportDauer').value = 30;
+    document.getElementById('fSportNotiz').value = '';
+    document.getElementById('modalSport').classList.add('zeigen');
+  });
+  document.getElementById('btnSportAbbrechen').addEventListener('click', () => document.getElementById('modalSport').classList.remove('zeigen'));
+  document.getElementById('modalSport').addEventListener('click', (e) => { if (e.target.id === 'modalSport') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnSportSpeichern').addEventListener('click', () => {
+    const datum = document.getElementById('fSportDatum').value;
+    if (!datum) { alert('Bitte ein Datum wählen.'); return; }
+    const dauer = Math.max(1, parseInt(document.getElementById('fSportDauer').value, 10) || 30);
+    sportEinheiten.push({
+      id: neueId('s'), datum, person: aktivePerson, typ: ausgewaehlterTyp, dauer,
+      notiz: document.getElementById('fSportNotiz').value.trim(),
+    });
+    speichern(KEY_SPORT, sportEinheiten);
+    document.getElementById('modalSport').classList.remove('zeigen');
+    renderAlles();
+  });
+
+  // --- VERLAUF ---
+  function letzteNTage(n) {
+    const heute = ausISO(heuteISO());
+    const tage = [];
+    for (let i = n-1; i >= 0; i--) {
+      const d = new Date(heute); d.setDate(d.getDate() - i);
+      tage.push(toISODatum(d));
+    }
+    return tage;
+  }
+
+  function erstelleSparkline(werte, farbe) {
+    const gueltig = werte.map((v,i) => ({ i, v: parseFloat(v) })).filter(p => !isNaN(p.v));
+    if (gueltig.length < 2) return '<div class="chart-leer">Noch nicht genug Einträge für einen Trend (mind. 2 Gewichtswerte nötig)</div>';
+    const w = 280, h = 70, pad = 6;
+    const ys = gueltig.map(p => p.v);
+    const min = Math.min(...ys), max = Math.max(...ys);
+    const spanne = (max - min) || 1;
+    const punkte = gueltig.map((p, idx) => {
+      const x = pad + (idx/(gueltig.length-1)) * (w - 2*pad);
+      const y = h - pad - ((p.v - min)/spanne) * (h - 2*pad);
+      return x.toFixed(1) + ',' + y.toFixed(1);
+    }).join(' ');
+    const erster = ys[0], letzter = ys[ys.length-1];
+    const diff = letzter - erster;
+    const pfeil = diff > 0.05 ? '↑' : (diff < -0.05 ? '↓' : '→');
+    return '<svg viewBox="0 0 ' + w + ' ' + h + '" width="100%" height="70" preserveAspectRatio="none">' +
+      '<polyline points="' + punkte + '" fill="none" stroke="' + farbe + '" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>' +
+      '</svg><div class="chart-trend"><span>' + formatZahl1(erster) + ' kg</span><span>' + pfeil + ' ' + formatZahl1(Math.abs(diff)) + ' kg</span><span>' + formatZahl1(letzter) + ' kg</span></div>';
+  }
+  function formatZahl1(n) { return n.toLocaleString('de-DE', { maximumFractionDigits: 1 }); }
+
+  function renderStats() {
+    const box = document.getElementById('statReihe');
+    box.innerHTML = '';
+    const letzte7 = letzteNTage(7);
+    const gefiltert = sportEinheiten.filter(s => letzte7.includes(s.datum) && s.person === aktivePerson);
+    const anzahl = gefiltert.length;
+    const minuten = gefiltert.reduce((sum, s) => sum + s.dauer, 0);
+    const schlafWerte = tageswerte.filter(t => letzte7.includes(t.datum) && t.person === aktivePerson && t.schlaf).map(t => parseFloat(t.schlaf));
+    const schlafSchnitt = schlafWerte.length ? (schlafWerte.reduce((a,b)=>a+b,0) / schlafWerte.length) : null;
+
+    [
+      { wert: anzahl, label: 'Einheiten (7 Tage)' },
+      { wert: minuten, label: 'Minuten aktiv' },
+      { wert: schlafSchnitt !== null ? formatZahl1(schlafSchnitt) : '–', label: 'Ø Schlaf (Std.)' },
+    ].forEach(s => {
+      const el = document.createElement('div');
+      el.className = 'stat-box';
+      el.innerHTML = '<div class="wert">' + s.wert + '</div><div class="label">' + s.label + '</div>';
+      box.appendChild(el);
+    });
+  }
+
+  function renderGewichtChart() {
+    const letzte30 = letzteNTage(30);
+    const werte = letzte30.map(datum => {
+      const e = tageswerte.find(t => t.datum === datum && t.person === aktivePerson);
+      return e ? e.gewicht : '';
+    });
+    document.getElementById('gewichtChart').innerHTML = erstelleSparkline(werte, '#4f6f45');
+  }
+
+  function renderVerlaufListe() {
+    const box = document.getElementById('verlaufListe');
+    box.innerHTML = '';
+    const gefiltert = sportEinheiten
+      .filter(s => aktivePerson === 'familie' ? true : s.person === aktivePerson)
+      .sort((a,b) => a.datum < b.datum ? 1 : -1)
+      .slice(0, 60);
+    document.getElementById('verlaufLeer').style.display = gefiltert.length ? 'none' : '';
+    const gruppen = {};
+    gefiltert.forEach(s => { (gruppen[s.datum] = gruppen[s.datum] || []).push(s); });
+    Object.keys(gruppen).sort((a,b) => a < b ? 1 : -1).forEach(datum => {
+      const wrap = document.createElement('div');
+      wrap.className = 'verlauf-datum-gruppe';
+      wrap.innerHTML = '<div class="verlauf-datum-titel">' + ausISO(datum).toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'long' }) + '</div>';
+      gruppen[datum].forEach(s => wrap.appendChild(sportZeile(s)));
+      box.appendChild(wrap);
+    });
+  }
+
+  function renderVerlauf() {
+    renderStats();
+    renderGewichtChart();
+    renderVerlaufListe();
+  }
+
+  // --- ANSICHTS-TOGGLE ---
+  const btnHeute = document.getElementById('btnViewHeute');
+  const btnVerlauf = document.getElementById('btnViewVerlauf');
+  function zeigeAnsicht(name) {
+    aktiveAnsicht = name;
+    document.getElementById('ansichtHeute').style.display = name === 'heute' ? '' : 'none';
+    document.getElementById('ansichtVerlauf').style.display = name === 'verlauf' ? '' : 'none';
+    btnHeute.classList.toggle('active', name === 'heute');
+    btnVerlauf.classList.toggle('active', name === 'verlauf');
+    btnHeute.setAttribute('aria-selected', name === 'heute');
+    btnVerlauf.setAttribute('aria-selected', name === 'verlauf');
+    if (name === 'verlauf') renderVerlauf();
+  }
+  btnHeute.addEventListener('click', () => zeigeAnsicht('heute'));
+  btnVerlauf.addEventListener('click', () => zeigeAnsicht('verlauf'));
+
+  function renderAlles() {
+    renderHeute();
+    if (aktiveAnsicht === 'verlauf') renderVerlauf();
+  }
+
+  renderPersonen();
+  renderAlles();
+})();
+</script>
+</body>
+</html>
