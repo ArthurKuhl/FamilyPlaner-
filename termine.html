@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Termine</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Inter:wght@300;400;500;600&display=swap');
+  :root {
+    --soil: #3a2e1f; --moss: #4f6f45; --sage: #7fa476; --leaf: #bcd196;
+    --cream: #faf6ec; --parchment: #ece0c7; --bark: #7d6339;
+    --terracotta: #c46b41; --sky: #5b8bb5; --white: #fffdf8;
+    --shadow-soft: 0 2px 10px rgba(59,47,30,0.08); --shadow-md: 0 6px 20px rgba(59,47,30,0.14);
+    --radius-sm: 8px; --radius-md: 12px; --radius-lg: 18px; --radius-pill: 22px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--cream); color: var(--soil); min-height: 100vh; padding-bottom: 24px; }
+  :focus-visible { outline: 2px solid var(--terracotta); outline-offset: 2px; border-radius: 4px; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+
+  header.top { background: #2a2016; color: var(--leaf); padding: 14px 16px 12px; }
+  header.top h1 { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 600; }
+  .view-toggle { display: flex; gap: 6px; margin-top: 10px; }
+  .view-toggle button {
+    flex: 1; padding: 7px; border-radius: var(--radius-pill); border: 1px solid #4a3a28;
+    background: transparent; color: var(--sage); font-size: 0.75rem; font-weight: 600;
+    font-family: 'Inter', sans-serif; cursor: pointer; transition: all .15s;
+  }
+  .view-toggle button.active { background: var(--moss); color: var(--leaf); border-color: var(--moss); }
+
+  .filter-row { display: flex; gap: 6px; padding: 10px 14px 0; flex-wrap: wrap; }
+  .filter-chip {
+    padding: 5px 12px; border-radius: var(--radius-pill); font-size: 0.72rem; font-weight: 600;
+    border: 1px solid var(--parchment); background: var(--white); color: var(--bark); cursor: pointer;
+  }
+  .filter-chip.active { color: var(--white); border-color: transparent; }
+
+  main { padding: 12px 14px 90px; }
+
+  /* Kalender */
+  .cal-nav { display: flex; align-items: center; justify-content: space-between; padding: 10px 2px; }
+  .cal-nav button { background: none; border: 1px solid var(--parchment); border-radius: var(--radius-pill); width: 34px; height: 34px; font-size: 1rem; color: var(--moss); cursor: pointer; }
+  .cal-nav .monat-label { font-family: 'Playfair Display', serif; font-size: 1.05rem; color: var(--moss); font-weight: 600; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .cal-wd { text-align: center; font-size: 0.62rem; font-weight: 700; color: var(--bark); text-transform: uppercase; padding-bottom: 4px; }
+  .cal-day {
+    aspect-ratio: 1; background: var(--white); border-radius: var(--radius-sm); border: 1px solid var(--parchment);
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 4px 2px;
+    cursor: pointer; position: relative; font-size: 0.78rem; color: var(--soil); transition: all .12s;
+  }
+  .cal-day.andermonat { opacity: 0.35; }
+  .cal-day.heute { border: 2px solid var(--terracotta); font-weight: 700; }
+  .cal-day:hover { box-shadow: var(--shadow-soft); }
+  .cal-dots { display: flex; gap: 2px; margin-top: 3px; flex-wrap: wrap; justify-content: center; }
+  .cal-dot { width: 6px; height: 6px; border-radius: 50%; }
+
+  /* Liste */
+  .tag-gruppe { margin-bottom: 14px; }
+  .tag-titel { font-size: 0.72rem; font-weight: 700; color: var(--bark); text-transform: uppercase; letter-spacing: .03em; margin-bottom: 6px; padding-left: 2px; }
+  .termin-card {
+    background: var(--white); border-radius: var(--radius-md); padding: 11px 13px; margin-bottom: 8px;
+    box-shadow: var(--shadow-soft); border-left: 4px solid var(--moss); display: flex; gap: 10px; align-items: flex-start;
+    cursor: pointer;
+  }
+  .termin-zeit { font-size: 0.72rem; font-weight: 700; color: var(--bark); min-width: 44px; padding-top: 1px; }
+  .termin-info { flex: 1; }
+  .termin-titel { font-size: 0.88rem; font-weight: 600; margin-bottom: 2px; }
+  .termin-meta { font-size: 0.72rem; color: var(--bark); display: flex; gap: 8px; flex-wrap: wrap; }
+  .wer-badge { display: inline-block; font-size: 0.62rem; font-weight: 700; padding: 1px 8px; border-radius: var(--radius-pill); color: var(--white); }
+
+  .empty-state { text-align: center; padding: 50px 20px; color: var(--bark); }
+  .empty-state .em { font-size: 2.4rem; display: block; margin-bottom: 10px; }
+
+  /* FAB */
+  .fab {
+    position: fixed; bottom: 20px; right: 18px; width: 54px; height: 54px; border-radius: 50%;
+    background: var(--terracotta); color: var(--white); font-size: 1.6rem; border: none;
+    box-shadow: var(--shadow-md); cursor: pointer; z-index: 40; display: flex; align-items: center; justify-content: center;
+  }
+
+  /* Modal */
+  .modal-bg { position: fixed; inset: 0; background: rgba(30,23,14,0.5); z-index: 200; display: none; align-items: center; justify-content: center; padding: 16px; }
+  .modal-bg.zeigen { display: flex; }
+  .modal { background: var(--white); border-radius: var(--radius-lg); padding: 22px; width: min(400px, 100%); max-height: 88vh; overflow-y: auto; box-shadow: 0 12px 40px rgba(0,0,0,0.22); }
+  .modal h2 { font-family: 'Playfair Display', serif; color: var(--moss); margin-bottom: 14px; font-size: 1.05rem; }
+  .form-row { margin-bottom: 12px; }
+  .form-row label { display: block; font-size: 0.72rem; font-weight: 600; color: var(--bark); margin-bottom: 4px; }
+  .form-row input, .form-row select, .form-row textarea {
+    border: 1px solid var(--parchment); border-radius: var(--radius-sm); padding: 8px 10px; font-size: 0.85rem;
+    font-family: 'Inter', sans-serif; color: var(--soil); background: var(--cream); width: 100%;
+  }
+  .form-row textarea { resize: vertical; min-height: 50px; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .chip-select { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip-select .opt {
+    padding: 6px 13px; border-radius: var(--radius-pill); font-size: 0.75rem; font-weight: 600;
+    border: 1px solid var(--parchment); background: var(--cream); color: var(--bark); cursor: pointer;
+  }
+  .chip-select .opt.active { color: var(--white); border-color: transparent; }
+  .check-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .check-row input { width: auto; }
+  .btn-primary { background: var(--moss); color: var(--white); border: none; border-radius: var(--radius-sm); padding: 10px; font-size: 0.85rem; font-weight: 600; cursor: pointer; width: 100%; font-family: 'Inter', sans-serif; }
+  .btn-secondary { background: transparent; color: var(--moss); border: 1px solid var(--moss); border-radius: var(--radius-sm); padding: 8px; font-size: 0.8rem; font-weight: 500; cursor: pointer; width: 100%; margin-top: 8px; font-family: 'Inter', sans-serif; }
+  .btn-delete { background: transparent; color: var(--terracotta); border: 1px solid var(--terracotta); border-radius: var(--radius-sm); padding: 8px; font-size: 0.8rem; font-weight: 500; cursor: pointer; width: 100%; margin-top: 8px; font-family: 'Inter', sans-serif; }
+  .modal-actions { display: flex; gap: 8px; margin-top: 4px; }
+</style>
+</head>
+<body>
+  <header class="top">
+    <h1>🗓️ Termine</h1>
+    <div class="view-toggle" role="tablist">
+      <button id="btnViewKalender" class="active" role="tab" aria-selected="true">Kalender</button>
+      <button id="btnViewListe" role="tab" aria-selected="false">Liste</button>
+    </div>
+  </header>
+
+  <div class="filter-row" id="filterRow"></div>
+
+  <main>
+    <section id="kalenderView">
+      <div class="cal-nav">
+        <button id="calPrev" aria-label="Vorheriger Monat">‹</button>
+        <span class="monat-label" id="monatLabel"></span>
+        <button id="calNext" aria-label="Nächster Monat">›</button>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+    </section>
+
+    <section id="listeView" style="display:none;">
+      <div id="listeInhalt"></div>
+    </section>
+  </main>
+
+  <button class="fab" id="fabAdd" aria-label="Neuen Termin hinzufügen">+</button>
+
+  <!-- Tagesdetail (Kalenderklick) -->
+  <div class="modal-bg" id="modalTag">
+    <div class="modal">
+      <h2 id="tagModalTitel">Termine</h2>
+      <div id="tagModalListe"></div>
+      <button class="btn-primary" id="btnTagNeuerTermin" style="margin-top:12px;">+ Termin an diesem Tag</button>
+      <button class="btn-secondary" data-close="modalTag">Schließen</button>
+    </div>
+  </div>
+
+  <!-- Termin bearbeiten/anlegen -->
+  <div class="modal-bg" id="modalTermin">
+    <div class="modal">
+      <h2 id="terminModalTitel">Neuer Termin</h2>
+      <form id="terminForm">
+        <div class="form-row">
+          <label for="fTitel">Titel</label>
+          <input type="text" id="fTitel" required placeholder="z.B. Zahnarzt, Fußballtraining">
+        </div>
+        <div class="form-row">
+          <label for="fDatum">Datum</label>
+          <input type="date" id="fDatum" required>
+        </div>
+        <div class="check-row">
+          <input type="checkbox" id="fGanztags">
+          <label for="fGanztags" style="margin:0;">Ganztägig</label>
+        </div>
+        <div class="two-col" id="zeitRow">
+          <div class="form-row">
+            <label for="fStart">Startzeit</label>
+            <input type="time" id="fStart" value="09:00">
+          </div>
+          <div class="form-row">
+            <label for="fEnde">Endzeit (optional)</label>
+            <input type="time" id="fEnde">
+          </div>
+        </div>
+        <div class="form-row">
+          <label>Wer</label>
+          <div class="chip-select" id="werSelect"></div>
+        </div>
+        <div class="form-row">
+          <label for="fOrt">Ort (optional)</label>
+          <input type="text" id="fOrt" placeholder="z.B. Praxis Dr. Müller">
+        </div>
+        <div class="form-row">
+          <label for="fWiederholung">Wiederholung</label>
+          <select id="fWiederholung">
+            <option value="keine">Keine</option>
+            <option value="woechentlich">Wöchentlich</option>
+            <option value="monatlich">Monatlich</option>
+          </select>
+        </div>
+        <div class="form-row" id="wiederholungBisRow" style="display:none;">
+          <label for="fWiederholungBis">Wiederholen bis (optional)</label>
+          <input type="date" id="fWiederholungBis">
+        </div>
+        <div class="form-row">
+          <label for="fNotizen">Notizen (optional)</label>
+          <textarea id="fNotizen"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" data-close="modalTermin">Abbrechen</button>
+          <button type="submit" class="btn-primary">Speichern</button>
+        </div>
+        <button type="button" class="btn-delete" id="btnTerminLoeschen" style="display:none;">Termin löschen</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+  (function(){
+    const STORAGE_KEY = 'termine_events_v1';
+    const WER_OPTIONEN = [
+      { id: 'familie', label: 'Familie', farbe: '#4f6f45' },
+      { id: 'mama',    label: 'Mama',    farbe: '#c46b41' },
+      { id: 'papa',    label: 'Papa',    farbe: '#5b8bb5' },
+    ];
+    const WOCHENTAGE = ['Mo','Di','Mi','Do','Fr','Sa','So'];
+
+    function heute() { const d = new Date(); d.setHours(0,0,0,0); return d; }
+    function toISO(d) {
+      // Wichtig: NICHT toISOString() verwenden – das rechnet in UTC um und
+      // verschiebt das Datum in der deutschen Zeitzone (UTC+1/+2) um einen Tag.
+      return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    }
+    function farbeFuer(wer) { return (WER_OPTIONEN.find(w => w.id === wer) || WER_OPTIONEN[0]).farbe; }
+    function labelFuer(wer) { return (WER_OPTIONEN.find(w => w.id === wer) || WER_OPTIONEN[0]).label; }
+
+    function ladenAlle() {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+      catch(e) { return []; }
+    }
+    function speichernAlle(arr) {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); }
+      catch(e) { console.warn('Speichern fehlgeschlagen', e); }
+    }
+
+    let events = ladenAlle();
+    let aktiverFilter = 'alle';
+    let kalenderMonat = heute().getMonth();
+    let kalenderJahr = heute().getFullYear();
+
+    // --- Wiederkehrende Termine: Vorkommen in einem Datumsbereich berechnen ---
+    function vorkommenImBereich(ev, vonISO, bisISO) {
+      const treffer = [];
+      const von = new Date(vonISO), bis = new Date(bisISO);
+      let d = new Date(ev.date);
+      const bisWiederholung = ev.recurrence && ev.recurrence.until ? new Date(ev.recurrence.until) : null;
+      const freq = ev.recurrence ? ev.recurrence.freq : 'keine';
+      let sicherheitszaehler = 0;
+      while (d <= bis && sicherheitszaehler < 500) {
+        sicherheitszaehler++;
+        if (bisWiederholung && d > bisWiederholung) break;
+        if (d >= von && d <= bis) treffer.push(toISO(d));
+        if (freq === 'keine') break;
+        if (freq === 'woechentlich') d = new Date(d.getFullYear(), d.getMonth(), d.getDate()+7);
+        else if (freq === 'monatlich') d = new Date(d.getFullYear(), d.getMonth()+1, d.getDate());
+        else break;
+      }
+      return treffer;
+    }
+
+    function alleVorkommen(vonISO, bisISO) {
+      const liste = [];
+      events.forEach(ev => {
+        if (aktiverFilter !== 'alle' && ev.wer !== aktiverFilter) return;
+        vorkommenImBereich(ev, vonISO, bisISO).forEach(datum => liste.push({ ev, datum }));
+      });
+      liste.sort((a,b) => (a.datum + (a.ev.startTime||'')).localeCompare(b.datum + (b.ev.startTime||'')));
+      return liste;
+    }
+
+    // --- Filter-Chips ---
+    const filterRow = document.getElementById('filterRow');
+    function renderFilter() {
+      filterRow.innerHTML = '';
+      const alle = document.createElement('button');
+      alle.className = 'filter-chip' + (aktiverFilter==='alle' ? ' active' : '');
+      alle.textContent = 'Alle';
+      alle.style.background = aktiverFilter==='alle' ? 'var(--soil)' : '';
+      alle.addEventListener('click', () => { aktiverFilter='alle'; renderFilter(); renderAktuelleAnsicht(); });
+      filterRow.appendChild(alle);
+      WER_OPTIONEN.forEach(w => {
+        const chip = document.createElement('button');
+        chip.className = 'filter-chip' + (aktiverFilter===w.id ? ' active' : '');
+        chip.textContent = w.label;
+        if (aktiverFilter===w.id) chip.style.background = w.farbe;
+        chip.addEventListener('click', () => { aktiverFilter=w.id; renderFilter(); renderAktuelleAnsicht(); });
+        filterRow.appendChild(chip);
+      });
+    }
+
+    // --- Kalenderansicht ---
+    const calGrid = document.getElementById('calGrid');
+    const monatLabel = document.getElementById('monatLabel');
+    const MONATSNAMEN = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+
+    function renderKalender() {
+      monatLabel.textContent = MONATSNAMEN[kalenderMonat] + ' ' + kalenderJahr;
+      calGrid.innerHTML = '';
+      WOCHENTAGE.forEach(wd => {
+        const el = document.createElement('div'); el.className='cal-wd'; el.textContent = wd; calGrid.appendChild(el);
+      });
+      const ersterTag = new Date(kalenderJahr, kalenderMonat, 1);
+      let startOffset = ersterTag.getDay() - 1; if (startOffset < 0) startOffset = 6;
+      const start = new Date(kalenderJahr, kalenderMonat, 1 - startOffset);
+      const heuteISO = toISO(heute());
+
+      for (let i=0; i<42; i++) {
+        const tag = new Date(start.getFullYear(), start.getMonth(), start.getDate()+i);
+        const tagISO = toISO(tag);
+        const zelle = document.createElement('div');
+        zelle.className = 'cal-day' + (tag.getMonth()!==kalenderMonat ? ' andermonat':'') + (tagISO===heuteISO ? ' heute':'');
+        zelle.innerHTML = `<span>${tag.getDate()}</span>`;
+        const treffer = alleVorkommen(tagISO, tagISO);
+        if (treffer.length) {
+          const dots = document.createElement('div'); dots.className='cal-dots';
+          treffer.slice(0,4).forEach(t => {
+            const dot = document.createElement('span'); dot.className='cal-dot'; dot.style.background = farbeFuer(t.ev.wer);
+            dots.appendChild(dot);
+          });
+          zelle.appendChild(dots);
+        }
+        zelle.addEventListener('click', () => tagDetailOeffnen(tagISO));
+        calGrid.appendChild(zelle);
+      }
+    }
+    document.getElementById('calPrev').addEventListener('click', () => {
+      kalenderMonat--; if (kalenderMonat<0){kalenderMonat=11;kalenderJahr--;} renderKalender();
+    });
+    document.getElementById('calNext').addEventListener('click', () => {
+      kalenderMonat++; if (kalenderMonat>11){kalenderMonat=0;kalenderJahr++;} renderKalender();
+    });
+
+    // --- Listenansicht (kommende 60 Tage) ---
+    function renderListe() {
+      const inhalt = document.getElementById('listeInhalt');
+      const von = heute();
+      const bis = new Date(von.getFullYear(), von.getMonth(), von.getDate()+60);
+      const treffer = alleVorkommen(toISO(von), toISO(bis));
+      if (!treffer.length) {
+        inhalt.innerHTML = `<div class="empty-state"><span class="em">📭</span>Keine anstehenden Termine.<br>Tippe auf + um einen anzulegen.</div>`;
+        return;
+      }
+      const gruppen = {};
+      treffer.forEach(t => { (gruppen[t.datum] = gruppen[t.datum] || []).push(t); });
+      inhalt.innerHTML = '';
+      Object.keys(gruppen).sort().forEach(datum => {
+        const gruppe = document.createElement('div'); gruppe.className='tag-gruppe';
+        const d = new Date(datum);
+        const titel = document.createElement('div'); titel.className='tag-titel';
+        titel.textContent = d.toLocaleDateString('de-DE', { weekday:'long', day:'numeric', month:'long' });
+        gruppe.appendChild(titel);
+        gruppen[datum].forEach(t => gruppe.appendChild(terminCard(t.ev, t.datum)));
+        inhalt.appendChild(gruppe);
+      });
+    }
+
+    function terminCard(ev, datumISO) {
+      const card = document.createElement('div');
+      card.className = 'termin-card';
+      card.style.borderLeftColor = farbeFuer(ev.wer);
+      card.innerHTML = `
+        <div class="termin-zeit">${ev.allDay ? 'Ganztags' : (ev.startTime||'')}</div>
+        <div class="termin-info">
+          <div class="termin-titel">${escapeHtml(ev.title)}</div>
+          <div class="termin-meta">
+            <span class="wer-badge" style="background:${farbeFuer(ev.wer)}">${labelFuer(ev.wer)}</span>
+            ${ev.location ? '<span>📍 '+escapeHtml(ev.location)+'</span>' : ''}
+            ${ev.recurrence && ev.recurrence.freq !== 'keine' ? '<span>🔁</span>' : ''}
+          </div>
+        </div>`;
+      card.addEventListener('click', () => terminModalOeffnen(ev, datumISO));
+      return card;
+    }
+
+    function escapeHtml(s) {
+      const d = document.createElement('div'); d.textContent = s||''; return d.innerHTML;
+    }
+
+    function renderAktuelleAnsicht() {
+      renderKalender();
+      renderListe();
+    }
+
+    // --- View-Umschalter ---
+    const btnViewKalender = document.getElementById('btnViewKalender');
+    const btnViewListe = document.getElementById('btnViewListe');
+    btnViewKalender.addEventListener('click', () => {
+      btnViewKalender.classList.add('active'); btnViewKalender.setAttribute('aria-selected','true');
+      btnViewListe.classList.remove('active'); btnViewListe.setAttribute('aria-selected','false');
+      document.getElementById('kalenderView').style.display=''; document.getElementById('listeView').style.display='none';
+    });
+    btnViewListe.addEventListener('click', () => {
+      btnViewListe.classList.add('active'); btnViewListe.setAttribute('aria-selected','true');
+      btnViewKalender.classList.remove('active'); btnViewKalender.setAttribute('aria-selected','false');
+      document.getElementById('listeView').style.display=''; document.getElementById('kalenderView').style.display='none';
+    });
+
+    // --- Tagesdetail-Modal ---
+    let tagDetailDatum = null;
+    function tagDetailOeffnen(tagISO) {
+      tagDetailDatum = tagISO;
+      const treffer = alleVorkommen(tagISO, tagISO);
+      document.getElementById('tagModalTitel').textContent = new Date(tagISO).toLocaleDateString('de-DE', { weekday:'long', day:'numeric', month:'long' });
+      const liste = document.getElementById('tagModalListe');
+      liste.innerHTML = '';
+      if (!treffer.length) {
+        liste.innerHTML = '<p style="font-size:0.82rem;color:var(--bark);">Keine Termine an diesem Tag.</p>';
+      } else {
+        treffer.forEach(t => liste.appendChild(terminCard(t.ev, t.datum)));
+      }
+      document.getElementById('modalTag').classList.add('zeigen');
+    }
+    document.getElementById('btnTagNeuerTermin').addEventListener('click', () => {
+      document.getElementById('modalTag').classList.remove('zeigen');
+      terminModalOeffnen(null, tagDetailDatum);
+    });
+
+    // --- Termin-Modal (Anlegen/Bearbeiten) ---
+    const werSelect = document.getElementById('werSelect');
+    WER_OPTIONEN.forEach(w => {
+      const opt = document.createElement('button');
+      opt.type = 'button'; opt.className = 'opt'; opt.textContent = w.label; opt.dataset.wer = w.id;
+      opt.addEventListener('click', () => {
+        werSelect.querySelectorAll('.opt').forEach(o => { o.classList.remove('active'); o.style.background=''; });
+        opt.classList.add('active'); opt.style.background = w.farbe;
+      });
+      werSelect.appendChild(opt);
+    });
+
+    let bearbeiteId = null;
+
+    function terminModalOeffnen(ev, vorausgewaehltesDatum) {
+      const form = document.getElementById('terminForm');
+      form.reset();
+      bearbeiteId = ev ? ev.id : null;
+      document.getElementById('terminModalTitel').textContent = ev ? 'Termin bearbeiten' : 'Neuer Termin';
+      document.getElementById('btnTerminLoeschen').style.display = ev ? '' : 'none';
+
+      document.getElementById('fTitel').value = ev ? ev.title : '';
+      document.getElementById('fDatum').value = ev ? ev.date : (vorausgewaehltesDatum || toISO(heute()));
+      document.getElementById('fGanztags').checked = ev ? !!ev.allDay : false;
+      document.getElementById('fStart').value = ev ? (ev.startTime||'09:00') : '09:00';
+      document.getElementById('fEnde').value = ev ? (ev.endTime||'') : '';
+      document.getElementById('fOrt').value = ev ? (ev.location||'') : '';
+      document.getElementById('fNotizen').value = ev ? (ev.notes||'') : '';
+      document.getElementById('fWiederholung').value = ev && ev.recurrence ? ev.recurrence.freq : 'keine';
+      document.getElementById('fWiederholungBis').value = ev && ev.recurrence ? (ev.recurrence.until||'') : '';
+
+      const wer = ev ? ev.wer : 'familie';
+      werSelect.querySelectorAll('.opt').forEach(o => {
+        const aktiv = o.dataset.wer === wer;
+        o.classList.toggle('active', aktiv);
+        o.style.background = aktiv ? farbeFuer(wer) : '';
+      });
+
+      zeitRowAktualisieren();
+      wiederholungBisAktualisieren();
+      document.getElementById('modalTermin').classList.add('zeigen');
+    }
+
+    function zeitRowAktualisieren() {
+      document.getElementById('zeitRow').style.display = document.getElementById('fGanztags').checked ? 'none' : '';
+    }
+    document.getElementById('fGanztags').addEventListener('change', zeitRowAktualisieren);
+
+    function wiederholungBisAktualisieren() {
+      document.getElementById('wiederholungBisRow').style.display = document.getElementById('fWiederholung').value === 'keine' ? 'none' : '';
+    }
+    document.getElementById('fWiederholung').addEventListener('change', wiederholungBisAktualisieren);
+
+    document.getElementById('terminForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const werBtn = werSelect.querySelector('.opt.active');
+      const neuerEintrag = {
+        id: bearbeiteId || ('t_' + Date.now() + '_' + Math.random().toString(36).slice(2,7)),
+        title: document.getElementById('fTitel').value.trim(),
+        date: document.getElementById('fDatum').value,
+        allDay: document.getElementById('fGanztags').checked,
+        startTime: document.getElementById('fGanztags').checked ? '' : document.getElementById('fStart').value,
+        endTime: document.getElementById('fGanztags').checked ? '' : document.getElementById('fEnde').value,
+        wer: werBtn ? werBtn.dataset.wer : 'familie',
+        location: document.getElementById('fOrt').value.trim(),
+        notes: document.getElementById('fNotizen').value.trim(),
+        recurrence: {
+          freq: document.getElementById('fWiederholung').value,
+          until: document.getElementById('fWiederholungBis').value || null
+        }
+      };
+      if (bearbeiteId) {
+        events = events.map(ev => ev.id === bearbeiteId ? neuerEintrag : ev);
+      } else {
+        events.push(neuerEintrag);
+      }
+      speichernAlle(events);
+      document.getElementById('modalTermin').classList.remove('zeigen');
+      renderAktuelleAnsicht();
+    });
+
+    document.getElementById('btnTerminLoeschen').addEventListener('click', () => {
+      if (!bearbeiteId) return;
+      if (!confirm('Diesen Termin (bzw. die ganze Serie) wirklich löschen?')) return;
+      events = events.filter(ev => ev.id !== bearbeiteId);
+      speichernAlle(events);
+      document.getElementById('modalTermin').classList.remove('zeigen');
+      renderAktuelleAnsicht();
+    });
+
+    document.getElementById('fabAdd').addEventListener('click', () => terminModalOeffnen(null, null));
+
+    document.querySelectorAll('[data-close]').forEach(btn => {
+      btn.addEventListener('click', () => document.getElementById(btn.dataset.close).classList.remove('zeigen'));
+    });
+    document.querySelectorAll('.modal-bg').forEach(bg => {
+      bg.addEventListener('click', (e) => { if (e.target === bg) bg.classList.remove('zeigen'); });
+    });
+
+    renderFilter();
+    renderAktuelleAnsicht();
+  })();
+  </script>
+</body>
+</html>
