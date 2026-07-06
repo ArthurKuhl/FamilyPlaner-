@@ -28,7 +28,8 @@
     padding: 6px 13px; border-radius: var(--radius-pill); cursor: pointer;
   }
   .person-chip.active { background: var(--moss); color: var(--leaf); border-color: var(--moss); }
-  .view-toggle { background: #1e160f; border-radius: var(--radius-pill); padding: 3px; width: fit-content; }
+  .view-toggle { background: #1e160f; border-radius: var(--radius-pill); padding: 3px; display: flex; gap: 2px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; max-width: 100%; }
+  .view-toggle::-webkit-scrollbar { display: none; }
   .view-toggle button {
     border: none; background: transparent; color: var(--sage); font-size: 0.75rem; font-weight: 600;
     padding: 6px 14px; border-radius: var(--radius-pill); cursor: pointer;
@@ -84,6 +85,39 @@
 
   .leer-hinweis { text-align: center; color: var(--bark); font-size: 0.85rem; padding: 30px 16px; opacity: 0.75; }
 
+  /* RECHNER */
+  .rechner-zeile { display: flex; gap: 10px; margin-bottom: 10px; }
+  .rechner-feld { flex: 1; }
+  .rechner-feld label { display: block; font-size: 0.7rem; font-weight: 700; color: var(--bark); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.03em; }
+  .rechner-feld input, .rechner-feld select { width: 100%; padding: 9px 10px; border: 1px solid var(--parchment); border-radius: var(--radius-sm); font-size: 0.9rem; background: var(--cream); color: var(--soil); }
+  .geschlecht-reihe { display: flex; gap: 6px; }
+  .geschlecht-opt { flex: 1; padding: 9px; border-radius: var(--radius-sm); border: 1px solid var(--parchment); background: var(--cream); color: var(--bark); font-size: 0.85rem; font-weight: 600; cursor: pointer; text-align: center; }
+  .geschlecht-opt.aktiv { background: var(--moss); color: var(--leaf); border-color: var(--moss); }
+  .ergebnis-zeile { display: flex; justify-content: space-between; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--parchment); }
+  .ergebnis-zeile:last-child { border-bottom: none; }
+  .ergebnis-zeile .e-label { font-size: 0.85rem; font-weight: 600; }
+  .ergebnis-zeile .e-wert { font-size: 0.95rem; font-weight: 700; color: var(--moss); }
+  .makro-balken { display: flex; height: 10px; border-radius: 6px; overflow: hidden; margin: 8px 0 4px; }
+  .makro-legende { display: flex; gap: 12px; font-size: 0.68rem; color: var(--bark); flex-wrap: wrap; }
+  .makro-legende span { display: flex; align-items: center; gap: 4px; }
+  .makro-punkt { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .mikro-tabelle { width: 100%; font-size: 0.82rem; }
+  .mikro-tabelle tr { border-bottom: 1px solid var(--parchment); }
+  .mikro-tabelle td { padding: 6px 2px; }
+  .mikro-tabelle td:last-child { text-align: right; font-weight: 700; color: var(--moss); }
+  .disclaimer-box { background: var(--parchment); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 0.75rem; color: var(--bark); margin-top: 12px; line-height: 1.4; }
+
+  /* KRAFTTRAINING */
+  .muskel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+  .muskel-karte { background: var(--white); border-radius: var(--radius-md); padding: 12px; box-shadow: var(--shadow-soft); cursor: pointer; }
+  .muskel-karte .icon { font-size: 1.6rem; }
+  .muskel-karte .name { font-size: 0.88rem; font-weight: 700; margin-top: 4px; }
+  .muskel-karte .anzahl { font-size: 0.68rem; color: var(--bark); margin-top: 2px; }
+  .uebungs-liste { list-style: none; margin-top: 6px; }
+  .uebungs-liste li { padding: 8px 10px; background: var(--cream); border-radius: var(--radius-sm); margin-bottom: 6px; font-size: 0.85rem; }
+  .uebungs-liste li .ue-name { font-weight: 700; }
+  .uebungs-liste li .ue-hinweis { font-size: 0.72rem; color: var(--bark); margin-top: 2px; }
+
   .modal-bg { position: fixed; inset: 0; background: rgba(42,32,22,0.45); display: none; align-items: flex-end; justify-content: center; z-index: 100; }
   .modal-bg.zeigen { display: flex; }
   .modal { background: var(--cream); border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding: 18px 18px 24px; width: 100%; max-width: 460px; max-height: 88vh; overflow-y: auto; box-shadow: var(--shadow-md); }
@@ -115,6 +149,8 @@
   <div class="view-toggle" role="tablist">
     <button id="btnViewHeute" role="tab" aria-selected="true">Heute</button>
     <button id="btnViewVerlauf" role="tab" aria-selected="false">Verlauf</button>
+    <button id="btnViewRechner" role="tab" aria-selected="false">🧮 Rechner</button>
+    <button id="btnViewKraft" role="tab" aria-selected="false">💪 Kraft</button>
   </div>
 </header>
 
@@ -158,7 +194,70 @@
     <div id="verlaufListe"></div>
     <div class="leer-hinweis" id="verlaufLeer" style="display:none;">Noch keine Einträge für diese Auswahl.</div>
   </section>
+
+  <section id="ansichtRechner" style="display:none;">
+    <div class="karte">
+      <h3>🧮 Täglicher Nährstoffbedarf</h3>
+      <div class="rechner-zeile">
+        <div class="rechner-feld"><label for="rAlter">Alter (Jahre)</label><input type="number" id="rAlter" min="10" max="110" placeholder="z.B. 42"></div>
+        <div class="rechner-feld"><label for="rGroesse">Größe (cm)</label><input type="number" id="rGroesse" min="100" max="230" placeholder="z.B. 178"></div>
+      </div>
+      <div class="rechner-zeile">
+        <div class="rechner-feld"><label for="rGewicht">Gewicht (kg)</label><input type="number" step="0.1" id="rGewicht" min="30" max="300" placeholder="z.B. 82"></div>
+        <div class="rechner-feld">
+          <label>Aktivitätslevel</label>
+          <select id="rAktivitaet">
+            <option value="1.2">Sitzend (kaum Bewegung)</option>
+            <option value="1.375">Leicht aktiv (1–2x Sport/Woche)</option>
+            <option value="1.55" selected>Mäßig aktiv (3–4x Sport/Woche)</option>
+            <option value="1.725">Sehr aktiv (5–6x Sport/Woche)</option>
+            <option value="1.9">Extrem aktiv (körperliche Arbeit + Sport)</option>
+          </select>
+        </div>
+      </div>
+      <div class="rechner-feld" style="margin-bottom:12px;">
+        <label>Geschlecht</label>
+        <div class="geschlecht-reihe" id="geschlechtReihe">
+          <div class="geschlecht-opt" data-wert="mann">Männlich</div>
+          <div class="geschlecht-opt" data-wert="frau">Weiblich</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="karte" id="ergebnisKarte" style="display:none;">
+      <h3>Geschätzter Tagesbedarf</h3>
+      <div class="ergebnis-zeile"><span class="e-label">Grundumsatz (BMR)</span><span class="e-wert" id="ergBMR">–</span></div>
+      <div class="ergebnis-zeile"><span class="e-label">Gesamtumsatz (TDEE)</span><span class="e-wert" id="ergTDEE">–</span></div>
+      <div class="ergebnis-zeile"><span class="e-label">💧 Trinkmenge</span><span class="e-wert" id="ergWasser">–</span></div>
+
+      <div class="unterliste-titel" style="margin-top:14px;">Makronährstoffe</div>
+      <div class="makro-balken" id="makroBalken"></div>
+      <div class="makro-legende" id="makroLegende"></div>
+
+      <div class="unterliste-titel" style="margin-top:16px;">Wichtige Mikronährstoffe (grobe Richtwerte für Erwachsene)</div>
+      <table class="mikro-tabelle" id="mikroTabelle"></table>
+
+      <div class="disclaimer-box">
+        ℹ️ Diese Werte sind grobe, allgemeine Richtwerte auf Basis gängiger Faustformeln (Mifflin-St-Jeor) und ersetzen keine individuelle Ernährungsberatung. Bei besonderen gesundheitlichen Bedürfnissen, Vorerkrankungen, Schwangerschaft oder gezielten Ernährungsfragen wende dich bitte an eine Ärztin/einen Arzt oder eine Ernährungsfachkraft.
+      </div>
+    </div>
+  </section>
+
+  <section id="ansichtKraft" style="display:none;">
+    <div class="muskel-grid" id="muskelGrid"></div>
+  </section>
 </main>
+
+<div class="modal-bg" id="modalMuskel">
+  <div class="modal">
+    <h2 id="muskelTitel"></h2>
+    <ul class="uebungs-liste" id="muskelUebungen"></ul>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnMuskelSchliessen">Schließen</button>
+    </div>
+  </div>
+</div>
+
 
 <div class="modal-bg" id="modalSport">
   <div class="modal">
@@ -464,35 +563,219 @@
   // --- ANSICHTS-TOGGLE ---
   const btnHeute = document.getElementById('btnViewHeute');
   const btnVerlauf = document.getElementById('btnViewVerlauf');
+  const btnRechner = document.getElementById('btnViewRechner');
+  const btnKraft = document.getElementById('btnViewKraft');
+  const alleTabs = { heute: btnHeute, verlauf: btnVerlauf, rechner: btnRechner, kraft: btnKraft };
   function zeigeAnsicht(name) {
     aktiveAnsicht = name;
     document.getElementById('ansichtHeute').style.display = name === 'heute' ? '' : 'none';
     document.getElementById('ansichtVerlauf').style.display = name === 'verlauf' ? '' : 'none';
-    btnHeute.classList.toggle('active', name === 'heute');
-    btnVerlauf.classList.toggle('active', name === 'verlauf');
-    btnHeute.setAttribute('aria-selected', name === 'heute');
-    btnVerlauf.setAttribute('aria-selected', name === 'verlauf');
+    document.getElementById('ansichtRechner').style.display = name === 'rechner' ? '' : 'none';
+    document.getElementById('ansichtKraft').style.display = name === 'kraft' ? '' : 'none';
+    Object.keys(alleTabs).forEach((k) => {
+      alleTabs[k].classList.toggle('active', k === name);
+      alleTabs[k].setAttribute('aria-selected', k === name);
+    });
     if (name === 'verlauf') renderVerlauf();
+    if (name === 'kraft') renderMuskelGrid();
   }
   btnHeute.addEventListener('click', () => zeigeAnsicht('heute'));
   btnVerlauf.addEventListener('click', () => zeigeAnsicht('verlauf'));
+  btnRechner.addEventListener('click', () => zeigeAnsicht('rechner'));
+  btnKraft.addEventListener('click', () => zeigeAnsicht('kraft'));
+
+  // ============================================================
+  // NÄHRSTOFF-RECHNER
+  // ============================================================
+  const KEY_RECHNER = 'gesundheit_rechner';
+  let rechnerDaten = laden(KEY_RECHNER, {}); // { mama: {alter,groesse,gewicht,geschlecht,aktivitaet}, papa: {...} }
+  let rechnerGeschlecht = 'mann';
+
+  const MAKRO_FARBEN = { protein: '#4f6f45', fett: '#c99a3a', kohlenhydrate: '#5b8bb5' };
+  const PROTEIN_PRO_KG = { '1.2': 0.8, '1.375': 1.0, '1.55': 1.2, '1.725': 1.6, '1.9': 1.8 };
+
+  // Grobe DACH-Richtwerte für Erwachsene (vereinfacht, geschlechtsdifferenziert wo relevant)
+  function mikronaehrstoffe(geschlecht) {
+    return [
+      { name: 'Vitamin C', wert: geschlecht === 'frau' ? '95 mg' : '110 mg' },
+      { name: 'Vitamin D', wert: '20 µg' },
+      { name: 'Calcium', wert: '1000 mg' },
+      { name: 'Eisen', wert: geschlecht === 'frau' ? '15 mg' : '10 mg' },
+      { name: 'Magnesium', wert: geschlecht === 'frau' ? '300 mg' : '350 mg' },
+      { name: 'Zink', wert: geschlecht === 'frau' ? '7 mg' : '11 mg' },
+      { name: 'Folat', wert: '300 µg' },
+      { name: 'Vitamin B12', wert: '4 µg' },
+    ];
+  }
+
+  function renderGeschlechtReihe() {
+    document.querySelectorAll('#geschlechtReihe .geschlecht-opt').forEach((el) => {
+      el.classList.toggle('aktiv', el.dataset.wert === rechnerGeschlecht);
+      el.addEventListener('click', () => { rechnerGeschlecht = el.dataset.wert; renderGeschlechtReihe(); rechnerBerechnen(); });
+    });
+  }
+
+  function rechnerFelderLaden() {
+    const d = rechnerDaten[aktivePerson] || {};
+    document.getElementById('rAlter').value = d.alter || '';
+    document.getElementById('rGroesse').value = d.groesse || '';
+    // Aktuelles Gewicht aus dem heutigen Tageswert vorschlagen, falls noch nichts gespeichert ist
+    const heutigerEintrag = tageswerte.find(t => t.person === aktivePerson && t.datum === heuteISO());
+    document.getElementById('rGewicht').value = d.gewicht || (heutigerEintrag && heutigerEintrag.gewicht) || '';
+    document.getElementById('rAktivitaet').value = d.aktivitaet || '1.55';
+    rechnerGeschlecht = d.geschlecht || 'mann';
+    renderGeschlechtReihe();
+    rechnerBerechnen();
+  }
+
+  function rechnerSpeichernUndBerechnen() {
+    rechnerDaten[aktivePerson] = {
+      alter: document.getElementById('rAlter').value,
+      groesse: document.getElementById('rGroesse').value,
+      gewicht: document.getElementById('rGewicht').value,
+      geschlecht: rechnerGeschlecht,
+      aktivitaet: document.getElementById('rAktivitaet').value,
+    };
+    speichern(KEY_RECHNER, rechnerDaten);
+    rechnerBerechnen();
+  }
+  ['rAlter', 'rGroesse', 'rGewicht', 'rAktivitaet'].forEach((id) => {
+    document.getElementById(id).addEventListener('input', rechnerSpeichernUndBerechnen);
+    document.getElementById(id).addEventListener('change', rechnerSpeichernUndBerechnen);
+  });
+
+  function rechnerBerechnen() {
+    const alter = parseFloat(document.getElementById('rAlter').value);
+    const groesse = parseFloat(document.getElementById('rGroesse').value);
+    const gewicht = parseFloat(document.getElementById('rGewicht').value);
+    const aktivFaktor = parseFloat(document.getElementById('rAktivitaet').value);
+    const ergKarte = document.getElementById('ergebnisKarte');
+    if (!alter || !groesse || !gewicht) { ergKarte.style.display = 'none'; return; }
+    ergKarte.style.display = '';
+
+    // Mifflin-St-Jeor-Formel für den Grundumsatz
+    let bmr = 10 * gewicht + 6.25 * groesse - 5 * alter;
+    bmr += rechnerGeschlecht === 'mann' ? 5 : -161;
+    const tdee = bmr * aktivFaktor;
+
+    document.getElementById('ergBMR').textContent = Math.round(bmr) + ' kcal';
+    document.getElementById('ergTDEE').textContent = Math.round(tdee) + ' kcal';
+    document.getElementById('ergWasser').textContent = (Math.round(gewicht * 32) / 1000).toLocaleString('de-DE', { maximumFractionDigits: 1 }) + ' Liter';
+
+    const proteinGpKg = PROTEIN_PRO_KG[String(aktivFaktor)] || 1.2;
+    const proteinG = gewicht * proteinGpKg;
+    const proteinKcal = proteinG * 4;
+    const fettKcal = tdee * 0.3;
+    const fettG = fettKcal / 9;
+    const kohlenhydrateKcal = Math.max(0, tdee - proteinKcal - fettKcal);
+    const kohlenhydrateG = kohlenhydrateKcal / 4;
+
+    const gesamtKcal = proteinKcal + fettKcal + kohlenhydrateKcal;
+    const balken = document.getElementById('makroBalken');
+    balken.innerHTML =
+      '<div style="width:' + (proteinKcal / gesamtKcal * 100).toFixed(1) + '%; background:' + MAKRO_FARBEN.protein + ';"></div>' +
+      '<div style="width:' + (fettKcal / gesamtKcal * 100).toFixed(1) + '%; background:' + MAKRO_FARBEN.fett + ';"></div>' +
+      '<div style="width:' + (kohlenhydrateKcal / gesamtKcal * 100).toFixed(1) + '%; background:' + MAKRO_FARBEN.kohlenhydrate + ';"></div>';
+    document.getElementById('makroLegende').innerHTML =
+      '<span><span class="makro-punkt" style="background:' + MAKRO_FARBEN.protein + ';"></span>Protein: ' + Math.round(proteinG) + ' g</span>' +
+      '<span><span class="makro-punkt" style="background:' + MAKRO_FARBEN.fett + ';"></span>Fett: ' + Math.round(fettG) + ' g</span>' +
+      '<span><span class="makro-punkt" style="background:' + MAKRO_FARBEN.kohlenhydrate + ';"></span>Kohlenhydrate: ' + Math.round(kohlenhydrateG) + ' g</span>';
+
+    document.getElementById('mikroTabelle').innerHTML = mikronaehrstoffe(rechnerGeschlecht)
+      .map(m => '<tr><td>' + m.name + '</td><td>' + m.wert + '</td></tr>').join('');
+  }
+
+  // ============================================================
+  // KRAFTTRAINING-ÜBERSICHT
+  // ============================================================
+  const MUSKELGRUPPEN = [
+    { id: 'brust', name: 'Brust', icon: '🫁', uebungen: [
+      { name: 'Bankdrücken', hinweis: 'Langhantel oder Kurzhanteln, Grundübung für die gesamte Brustmuskulatur' },
+      { name: 'Liegestütze', hinweis: 'Ohne Geräte überall durchführbar' },
+      { name: 'Kabelzug über Kreuz (Cable Crossover)', hinweis: 'Gut für die Definition des äußeren Brustbereichs' },
+      { name: 'Butterfly / Fliegende', hinweis: 'Isolationsübung, schont die Schultern' },
+    ]},
+    { id: 'ruecken', name: 'Rücken', icon: '🔺', uebungen: [
+      { name: 'Klimmzüge', hinweis: 'Sehr effektiv für den oberen Rücken und die Lat-Muskulatur' },
+      { name: 'Rudern (Langhantel/Kurzhantel)', hinweis: 'Kräftigt die mittlere Rückenmuskulatur' },
+      { name: 'Kreuzheben', hinweis: 'Ganzkörper-Grundübung, besonders für unteren Rücken – auf sauberer Technik achten' },
+      { name: 'Latzug am Kabelzug', hinweis: 'Gute Alternative, wenn Klimmzüge noch schwerfallen' },
+    ]},
+    { id: 'schultern', name: 'Schultern', icon: '🔵', uebungen: [
+      { name: 'Schulterdrücken', hinweis: 'Kurzhantel oder Langhantel, für die gesamte Schulterpartie' },
+      { name: 'Seitheben', hinweis: 'Isoliert den seitlichen Schultermuskel' },
+      { name: 'Frontheben', hinweis: 'Für den vorderen Schulterbereich' },
+      { name: 'Reverse Flys', hinweis: 'Für die hintere Schulter, oft vernachlässigt' },
+    ]},
+    { id: 'bizeps', name: 'Bizeps', icon: '💪', uebungen: [
+      { name: 'Bizepscurls', hinweis: 'Kurzhantel oder Langhantel, klassische Übung' },
+      { name: 'Klimmzüge (Untergriff)', hinweis: 'Trainiert Bizeps und Rücken gleichzeitig' },
+      { name: 'Konzentrationscurls', hinweis: 'Sitzend, für gezielte Isolation' },
+    ]},
+    { id: 'trizeps', name: 'Trizeps', icon: '🦾', uebungen: [
+      { name: 'Trizepsdrücken am Kabel', hinweis: 'Gut kontrollierbar, gelenkschonend' },
+      { name: 'Dips', hinweis: 'An Barren oder Bank, auch mit Körpergewicht möglich' },
+      { name: 'French Press', hinweis: 'Langhantel oder Kurzhantel liegend/stehend' },
+    ]},
+    { id: 'bauch', name: 'Bauch / Core', icon: '⭕', uebungen: [
+      { name: 'Plank (Unterarmstütz)', hinweis: 'Statische Übung, kräftigt die gesamte Rumpfmuskulatur' },
+      { name: 'Crunches', hinweis: 'Klassische Übung für die geraden Bauchmuskeln' },
+      { name: 'Beinheben (hängend oder liegend)', hinweis: 'Für den unteren Bauchbereich' },
+      { name: 'Russian Twists', hinweis: 'Für die seitliche Bauchmuskulatur (schräge Bauchmuskeln)' },
+    ]},
+    { id: 'gesaess', name: 'Gesäß', icon: '🍑', uebungen: [
+      { name: 'Kniebeugen', hinweis: 'Grundübung, trainiert Gesäß und Beine gemeinsam' },
+      { name: 'Hip Thrust', hinweis: 'Sehr gezielt für den großen Gesäßmuskel' },
+      { name: 'Ausfallschritte (Lunges)', hinweis: 'Auch gut einseitig für die Balance' },
+    ]},
+    { id: 'beine', name: 'Beine', icon: '🦵', uebungen: [
+      { name: 'Kniebeugen', hinweis: 'Trainiert vor allem den vorderen Oberschenkel (Quadrizeps)' },
+      { name: 'Beinpresse', hinweis: 'Geräte-gestützt, gut für Einsteiger geeignet' },
+      { name: 'Beincurls (liegend/sitzend)', hinweis: 'Für die Beinbeuger (Rückseite Oberschenkel)' },
+      { name: 'Wadenheben', hinweis: 'Für die Wadenmuskulatur, stehend oder sitzend' },
+    ]},
+  ];
+
+  function renderMuskelGrid() {
+    const box = document.getElementById('muskelGrid');
+    box.innerHTML = '';
+    MUSKELGRUPPEN.forEach((m) => {
+      const karte = document.createElement('div');
+      karte.className = 'muskel-karte';
+      karte.innerHTML = '<div class="icon">' + m.icon + '</div><div class="name">' + m.name + '</div><div class="anzahl">' + m.uebungen.length + ' Übungen</div>';
+      karte.addEventListener('click', () => muskelModalOeffnen(m));
+      box.appendChild(karte);
+    });
+  }
+  function muskelModalOeffnen(m) {
+    document.getElementById('muskelTitel').textContent = m.icon + ' ' + m.name;
+    document.getElementById('muskelUebungen').innerHTML = m.uebungen
+      .map(u => '<li><div class="ue-name">' + u.name + '</div><div class="ue-hinweis">' + u.hinweis + '</div></li>').join('');
+    document.getElementById('modalMuskel').classList.add('zeigen');
+  }
+  document.getElementById('btnMuskelSchliessen').addEventListener('click', () => document.getElementById('modalMuskel').classList.remove('zeigen'));
+  document.getElementById('modalMuskel').addEventListener('click', (e) => { if (e.target.id === 'modalMuskel') e.currentTarget.classList.remove('zeigen'); });
 
   function renderAlles() {
     renderHeute();
     if (aktiveAnsicht === 'verlauf') renderVerlauf();
+    if (aktiveAnsicht === 'rechner') rechnerFelderLaden();
   }
 
   renderPersonen();
   renderAlles();
+  rechnerFelderLaden();
 
   if (window.PlanerSync) {
     window._sync = window.PlanerSync.starteSync({
       modul: 'gesundheit',
-      keys: [KEY_TAGESWERTE, KEY_SPORT],
+      keys: [KEY_TAGESWERTE, KEY_SPORT, KEY_RECHNER],
       onRemoteChange: function () {
         tageswerte = laden(KEY_TAGESWERTE, tageswerte);
         sportEinheiten = laden(KEY_SPORT, sportEinheiten);
+        rechnerDaten = laden(KEY_RECHNER, rechnerDaten);
         renderAlles();
+        if (aktiveAnsicht === 'rechner') rechnerFelderLaden();
       },
     });
   }

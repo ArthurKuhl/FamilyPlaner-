@@ -34,7 +34,7 @@ Die App besteht aus einer schlanken **Shell** (`index.html`) mit der Hauptnaviga
 - `termine.html` – Termine-Modul: Kalender- und Agendaansicht, Wiederholungen, Filter nach Person (Familie/Mama/Papa)
 - `einkauf.html` – Einkauf-Modul: mehrere Einkaufslisten, Kategorien-Gruppierung, Mengen-Parsing bei der Schnelleingabe (z.B. „500g Mehl“), Favoriten-Vorschläge
 - `kochen.html` – Kochen & Backen-Modul: Rezeptsammlung mit Portionsskalierung, Favoriten, Kategorie-Filter. Button „Zum Einkauf“ überträgt die (skalierten) Zutaten direkt in die aktive Einkaufsliste (funktioniert, weil beide Module denselben Browser-Speicher nutzen)
-- `gesundheit.html` – Gesundheit & Sport-Modul: Tages-Tracking (Gewicht, Schlaf, Wasser, Stimmung) pro Person, Sport-Log mit Kategorien, Gewichtsverlauf als Mini-Chart, Wochenstatistik
+- `gesundheit.html` – Gesundheit & Sport-Modul: Tages-Tracking (Gewicht, Schlaf, Wasser, Stimmung) pro Person, Sport-Log mit Kategorien, Gewichtsverlauf als Mini-Chart, Wochenstatistik, Nährstoffbedarf-Rechner (Grundumsatz/Gesamtumsatz nach Mifflin-St-Jeor, Makro- und grobe Mikronährstoff-Richtwerte) und eine Krafttraining-Referenz mit Muskelgruppen und Übungsvorschlägen
 - `gaming.html` – Gaming-Modul: Spielebibliothek mit Status (Wunschliste/Spiele ich/Pausiert/Durchgespielt/Abgebrochen), Plattform, Sterne-Bewertung, Spielzeit, Filter nach Person und Status
 - `placeholder.html` – Platzhalter für noch nicht gebaute Bereiche
 - `manifest.webmanifest`, `service-worker.js`, `icon-*.png` – PWA-Infrastruktur
