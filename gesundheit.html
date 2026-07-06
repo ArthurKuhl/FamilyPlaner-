@@ -151,6 +151,7 @@
     <button id="btnViewVerlauf" role="tab" aria-selected="false">Verlauf</button>
     <button id="btnViewRechner" role="tab" aria-selected="false">🧮 Rechner</button>
     <button id="btnViewKraft" role="tab" aria-selected="false">💪 Kraft</button>
+    <button id="btnViewDehnen" role="tab" aria-selected="false">🧘 Dehnen</button>
   </div>
 </header>
 
@@ -245,6 +246,13 @@
 
   <section id="ansichtKraft" style="display:none;">
     <div class="muskel-grid" id="muskelGrid"></div>
+  </section>
+
+  <section id="ansichtDehnen" style="display:none;">
+    <div class="muskel-grid" id="dehnGrid"></div>
+    <div class="disclaimer-box">
+      ℹ️ Dehnungen immer sanft und ohne Schmerzen ausführen, nie wippen oder ruckartig dehnen. Bei anhaltenden Verspannungen, Rückenschmerzen oder Haltungsproblemen lohnt sich zusätzlich der Rat einer Ärztin/eines Arztes oder einer Physiotherapie – diese Übersicht ersetzt keine individuelle Behandlung.
+    </div>
   </section>
 </main>
 
@@ -565,24 +573,28 @@
   const btnVerlauf = document.getElementById('btnViewVerlauf');
   const btnRechner = document.getElementById('btnViewRechner');
   const btnKraft = document.getElementById('btnViewKraft');
-  const alleTabs = { heute: btnHeute, verlauf: btnVerlauf, rechner: btnRechner, kraft: btnKraft };
+  const btnDehnen = document.getElementById('btnViewDehnen');
+  const alleTabs = { heute: btnHeute, verlauf: btnVerlauf, rechner: btnRechner, kraft: btnKraft, dehnen: btnDehnen };
   function zeigeAnsicht(name) {
     aktiveAnsicht = name;
     document.getElementById('ansichtHeute').style.display = name === 'heute' ? '' : 'none';
     document.getElementById('ansichtVerlauf').style.display = name === 'verlauf' ? '' : 'none';
     document.getElementById('ansichtRechner').style.display = name === 'rechner' ? '' : 'none';
     document.getElementById('ansichtKraft').style.display = name === 'kraft' ? '' : 'none';
+    document.getElementById('ansichtDehnen').style.display = name === 'dehnen' ? '' : 'none';
     Object.keys(alleTabs).forEach((k) => {
       alleTabs[k].classList.toggle('active', k === name);
       alleTabs[k].setAttribute('aria-selected', k === name);
     });
     if (name === 'verlauf') renderVerlauf();
     if (name === 'kraft') renderMuskelGrid();
+    if (name === 'dehnen') renderDehnGrid();
   }
   btnHeute.addEventListener('click', () => zeigeAnsicht('heute'));
   btnVerlauf.addEventListener('click', () => zeigeAnsicht('verlauf'));
   btnRechner.addEventListener('click', () => zeigeAnsicht('rechner'));
   btnKraft.addEventListener('click', () => zeigeAnsicht('kraft'));
+  btnDehnen.addEventListener('click', () => zeigeAnsicht('dehnen'));
 
   // ============================================================
   // NÄHRSTOFF-RECHNER
@@ -755,6 +767,49 @@
   }
   document.getElementById('btnMuskelSchliessen').addEventListener('click', () => document.getElementById('modalMuskel').classList.remove('zeigen'));
   document.getElementById('modalMuskel').addEventListener('click', (e) => { if (e.target.id === 'modalMuskel') e.currentTarget.classList.remove('zeigen'); });
+
+  // ============================================================
+  // DEHNÜBUNGEN – gegen Verspannungen, Hohlkreuz und schlechte Haltung
+  // ============================================================
+  const DEHNGRUPPEN = [
+    { id: 'nacken', name: 'Nacken & Schultern', icon: '🙆', uebungen: [
+      { name: 'Seitliche Nackendehnung', hinweis: 'Kopf sanft zur Schulter neigen, Gegenschulter nach unten drücken. 20–30 Sek. je Seite halten.' },
+      { name: 'Nacken-Vorwärtsdehnung', hinweis: 'Kinn Richtung Brust, Hände auf Hinterkopf für leichten Zug. Hilft bei Verspannungen durch Bildschirmarbeit.' },
+      { name: 'Schulterkreisen', hinweis: '10x große Kreise vorwärts, 10x rückwärts – lockert die gesamte Schulterpartie.' },
+      { name: 'Trapezdehnung (Arm über Kopf)', hinweis: 'Einen Arm über den Kopf zur Gegenseite ziehen, Kopf leicht mitneigen. 20–30 Sek. je Seite.' },
+    ]},
+    { id: 'ruecken_hohlkreuz', name: 'Rücken & Hohlkreuz', icon: '🧎', uebungen: [
+      { name: 'Hüftbeuger-Dehnung (kniend)', hinweis: 'In den Ausfallschritt knien, Becken nach vorne schieben. Sehr wirksam gegen Hohlkreuz, da verkürzte Hüftbeuger eine Hauptursache sind. 30 Sek. je Seite.' },
+      { name: 'Knie-zur-Brust', hinweis: 'Rückenlage, ein oder beide Knie zur Brust ziehen. Entlastet die untere Wirbelsäule. 20–30 Sek.' },
+      { name: 'Katze-Kuh (Cat-Cow)', hinweis: 'Vierfüßlerstand, Rücken abwechselnd runden und durchhängen lassen. 8–10 Wiederholungen, mobilisiert die gesamte Wirbelsäule.' },
+      { name: 'Kindhaltung (Kindpose)', hinweis: 'Aus dem Fersensitz nach vorne ablegen, Arme lang ausstrecken. 30–60 Sek., entspannt den unteren Rücken.' },
+      { name: 'Piriformis-Dehnung', hinweis: 'Rückenlage, einen Fuß über das gegenüberliegende Knie legen und sanft heranziehen. Hilft bei Verspannungen im Gesäß, die oft mit Rückenproblemen zusammenhängen.' },
+    ]},
+    { id: 'brust_haltung', name: 'Brust & Haltung', icon: '🧍', uebungen: [
+      { name: 'Türrahmen-Brustdehnung', hinweis: 'Unterarme an einen Türrahmen legen, leicht nach vorne lehnen. Wirkt der nach vorne gebeugten Haltung durch Schreibtischarbeit entgegen. 20–30 Sek.' },
+      { name: 'Schulterblätter zusammenziehen', hinweis: 'Im Sitzen oder Stehen die Schulterblätter für 5 Sek. zusammenziehen, dann lösen. 10 Wiederholungen, kräftigt die haltungsstabilisierende Muskulatur.' },
+      { name: 'Brustwirbelsäulen-Rotation', hinweis: 'Vierfüßlerstand, eine Hand hinter den Kopf, Oberkörper zur Seite rotieren. Je 8–10x pro Seite.' },
+      { name: 'Wandengel', hinweis: 'Rücken und Arme an die Wand, Arme langsam auf und ab führen wie ein Schneeengel. Fördert eine aufrechte Haltung.' },
+    ]},
+    { id: 'huefte_beine', name: 'Hüfte & Beine', icon: '🦵', uebungen: [
+      { name: 'Sitzende Vorbeuge', hinweis: 'Im Sitzen mit gestreckten Beinen langsam nach vorne beugen. Dehnt die rückseitige Oberschenkelmuskulatur. 30 Sek.' },
+      { name: 'Schmetterlingsdehnung', hinweis: 'Fußsohlen aneinander, Knie sanft nach unten drücken. Dehnt die Innenseite der Oberschenkel.' },
+      { name: 'Ausfallschritt-Dehnung', hinweis: 'Tiefer Ausfallschritt, hinteres Knie sinkt Richtung Boden. Kombiniert Hüftbeuger- und Oberschenkeldehnung.' },
+      { name: 'Wadendehnung an der Wand', hinweis: 'Hände an die Wand, ein Bein zurückstellen, Ferse am Boden. 20–30 Sek. je Seite.' },
+    ]},
+  ];
+
+  function renderDehnGrid() {
+    const box = document.getElementById('dehnGrid');
+    box.innerHTML = '';
+    DEHNGRUPPEN.forEach((m) => {
+      const karte = document.createElement('div');
+      karte.className = 'muskel-karte';
+      karte.innerHTML = '<div class="icon">' + m.icon + '</div><div class="name">' + m.name + '</div><div class="anzahl">' + m.uebungen.length + ' Übungen</div>';
+      karte.addEventListener('click', () => muskelModalOeffnen(m));
+      box.appendChild(karte);
+    });
+  }
 
   function renderAlles() {
     renderHeute();
