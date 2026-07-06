@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Übersicht</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap');
+  :root {
+    --soil: #3a2e1f; --moss: #4f6f45; --sage: #7fa476; --leaf: #bcd196;
+    --cream: #faf6ec; --parchment: #ece0c7; --bark: #7d6339;
+    --terracotta: #c46b41; --terracotta-text: #a8532e; --sky: #5b8bb5;
+    --white: #fffdf8; --navbg: #2a2016;
+    --radius-sm: 8px; --radius-md: 12px; --radius-lg: 18px; --radius-pill: 22px;
+    --shadow-soft: 0 2px 10px rgba(59,47,30,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--cream); color: var(--soil); min-height: 100vh; padding-bottom: 40px; }
+  button { font-family: inherit; -webkit-tap-highlight-color: transparent; }
+
+  header.top { background: var(--navbg); color: var(--leaf); padding: 18px 16px 16px; }
+  header.top .gruss { font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 700; }
+  header.top .datum { font-size: 0.8rem; color: var(--sage); margin-top: 2px; text-transform: capitalize; }
+
+  main { padding: 14px; max-width: 640px; margin: 0 auto; }
+
+  .kachel {
+    background: var(--white); border-radius: var(--radius-md); padding: 14px; margin-bottom: 12px;
+    box-shadow: var(--shadow-soft); cursor: pointer; transition: transform 0.1s;
+  }
+  .kachel:hover { transform: translateY(-1px); }
+  .kachel-kopf { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .kachel-titel { display: flex; align-items: center; gap: 8px; font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1rem; }
+  .kachel-badge {
+    background: var(--moss); color: var(--leaf); font-size: 0.72rem; font-weight: 700;
+    padding: 2px 10px; border-radius: var(--radius-pill); min-width: 20px; text-align: center;
+  }
+  .kachel-badge.leer { background: var(--parchment); color: var(--bark); }
+  .kachel-pfeil { color: var(--bark); opacity: 0.5; font-size: 0.9rem; }
+
+  .mini-zeile { display: flex; align-items: center; gap: 8px; padding: 5px 0; font-size: 0.85rem; border-top: 1px solid var(--parchment); }
+  .mini-zeile:first-of-type { border-top: none; }
+  .mini-zeit { font-size: 0.72rem; font-weight: 700; color: var(--bark); min-width: 46px; }
+  .mini-farbpunkt { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .mini-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mini-leer { font-size: 0.8rem; color: var(--bark); opacity: 0.7; padding: 4px 0; }
+
+  .garten-kachel { border-top: 3px solid var(--moss); }
+  .garten-hinweis { font-size: 0.8rem; color: var(--bark); line-height: 1.4; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="gruss" id="grussText">Hallo!</div>
+  <div class="datum" id="datumText"></div>
+</header>
+
+<main>
+  <div class="kachel" id="kachelTermine">
+    <div class="kachel-kopf">
+      <div class="kachel-titel">🗓️ Termine heute</div>
+      <span class="kachel-badge" id="badgeTermine">0</span>
+    </div>
+    <div id="listeTermine"></div>
+  </div>
+
+  <div class="kachel" id="kachelEinkauf">
+    <div class="kachel-kopf">
+      <div class="kachel-titel">🛒 Einkauf offen</div>
+      <span class="kachel-badge" id="badgeEinkauf">0</span>
+    </div>
+    <div id="listeEinkauf"></div>
+  </div>
+
+  <div class="kachel" id="kachelSport">
+    <div class="kachel-kopf">
+      <div class="kachel-titel">🏃 Sport heute</div>
+      <span class="kachel-badge" id="badgeSport">0</span>
+    </div>
+    <div id="listeSport"></div>
+  </div>
+
+  <div class="kachel garten-kachel" id="kachelGarten">
+    <div class="kachel-kopf">
+      <div class="kachel-titel">🌱 Garten</div>
+      <span class="kachel-pfeil">→</span>
+    </div>
+    <div class="garten-hinweis">Pflegeplan & Tagesüberblick ansehen (Gieß-/Pflegeaufgaben, Wetterwarnungen)</div>
+  </div>
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  function heute() { const d = new Date(); d.setHours(0, 0, 0, 0); return d; }
+  function toISODatum(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+  function ausISO(iso) { const [j, m, t] = iso.split('-').map(Number); return new Date(j, m - 1, t); }
+  function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+  function laden(key, fallback) {
+    try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; }
+    catch (e) { return fallback; }
+  }
+  function navigiere(modul) {
+    try { window.parent.postMessage({ type: 'navigiere', modul: modul }, window.location.origin); } catch (e) {}
+  }
+
+  // --- Begrüßung ---
+  const stunde = new Date().getHours();
+  const gruss = stunde < 11 ? 'Guten Morgen!' : (stunde < 18 ? 'Guten Tag!' : 'Guten Abend!');
+  document.getElementById('grussText').textContent = gruss;
+  document.getElementById('datumText').textContent = new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' });
+
+  // ============================================================
+  // TERMINE HEUTE
+  // ============================================================
+  const WER_OPTIONEN = [
+    { id: 'familie', label: 'Familie', farbe: '#4f6f45' },
+    { id: 'mama',    label: 'Mama',    farbe: '#c46b41' },
+    { id: 'papa',    label: 'Papa',    farbe: '#5b8bb5' },
+  ];
+  function farbeFuerWer(wer) { return (WER_OPTIONEN.find(w => w.id === wer) || WER_OPTIONEN[0]).farbe; }
+
+  function vorkommenHeute(ev, heuteISO) {
+    let d = new Date(ev.date);
+    const bisWiederholung = ev.recurrence && ev.recurrence.until ? new Date(ev.recurrence.until) : null;
+    const freq = ev.recurrence ? ev.recurrence.freq : 'keine';
+    const heuteDatum = ausISO(heuteISO);
+    let sicherheitszaehler = 0;
+    while (d <= heuteDatum && sicherheitszaehler < 500) {
+      sicherheitszaehler++;
+      if (bisWiederholung && d > bisWiederholung) return false;
+      if (toISODatum(d) === heuteISO) return true;
+      if (freq === 'keine') return false;
+      if (freq === 'woechentlich') d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 7);
+      else if (freq === 'monatlich') d = new Date(d.getFullYear(), d.getMonth() + 1, d.getDate());
+      else return false;
+    }
+    return false;
+  }
+
+  function renderTermine() {
+    const events = laden('termine_events_v1', []);
+    const heuteISO = toISODatum(heute());
+    const heutige = events.filter(ev => vorkommenHeute(ev, heuteISO))
+      .sort((a, b) => (a.allDay ? '' : (a.startTime || '')).localeCompare(b.allDay ? '' : (b.startTime || '')));
+
+    document.getElementById('badgeTermine').textContent = heutige.length;
+    document.getElementById('badgeTermine').classList.toggle('leer', heutige.length === 0);
+    const box = document.getElementById('listeTermine');
+    if (!heutige.length) { box.innerHTML = '<div class="mini-leer">Keine Termine heute 🎉</div>'; return; }
+    box.innerHTML = heutige.slice(0, 5).map(ev =>
+      '<div class="mini-zeile"><span class="mini-zeit">' + (ev.allDay ? 'Ganztags' : (ev.startTime || '')) + '</span>' +
+      '<span class="mini-farbpunkt" style="background:' + farbeFuerWer(ev.wer) + ';"></span>' +
+      '<span class="mini-name">' + escapeHtml(ev.title) + '</span></div>'
+    ).join('') + (heutige.length > 5 ? '<div class="mini-leer">+ ' + (heutige.length - 5) + ' weitere</div>' : '');
+  }
+  document.getElementById('kachelTermine').addEventListener('click', () => navigiere('termine'));
+
+  // ============================================================
+  // EINKAUF OFFEN
+  // ============================================================
+  function renderEinkauf() {
+    const listen = laden('einkauf_listen', []);
+    let gesamtOffen = 0;
+    const zeilen = [];
+    listen.forEach(l => {
+      const offen = (l.items || []).filter(i => !i.erledigt).length;
+      gesamtOffen += offen;
+      if (offen > 0) zeilen.push({ name: l.name, offen: offen });
+    });
+    document.getElementById('badgeEinkauf').textContent = gesamtOffen;
+    document.getElementById('badgeEinkauf').classList.toggle('leer', gesamtOffen === 0);
+    const box = document.getElementById('listeEinkauf');
+    if (!gesamtOffen) { box.innerHTML = '<div class="mini-leer">Alles erledigt 🎉</div>'; return; }
+    box.innerHTML = zeilen.map(z =>
+      '<div class="mini-zeile"><span class="mini-name">' + escapeHtml(z.name) + '</span>' +
+      '<span class="mini-zeit">' + z.offen + ' offen</span></div>'
+    ).join('');
+  }
+  document.getElementById('kachelEinkauf').addEventListener('click', () => navigiere('einkauf'));
+
+  // ============================================================
+  // SPORT HEUTE
+  // ============================================================
+  const SPORT_TYPEN = [
+    { id: 'laufen', label: 'Laufen', icon: '🏃' }, { id: 'radfahren', label: 'Radfahren', icon: '🚴' },
+    { id: 'kraft', label: 'Krafttraining', icon: '🏋️' }, { id: 'yoga', label: 'Yoga', icon: '🧘' },
+    { id: 'schwimmen', label: 'Schwimmen', icon: '🏊' }, { id: 'wandern', label: 'Wandern', icon: '🥾' },
+    { id: 'sonstiges', label: 'Sonstiges', icon: '🤸' },
+  ];
+  const PERSONEN_LABEL = { mama: 'Mama', papa: 'Papa', familie: 'Familie' };
+  function typInfo(id) { return SPORT_TYPEN.find(t => t.id === id) || SPORT_TYPEN[SPORT_TYPEN.length - 1]; }
+
+  function renderSport() {
+    const alle = laden('gesundheit_sport', []);
+    const heuteISO = toISODatum(heute());
+    const heutige = alle.filter(s => s.datum === heuteISO);
+    document.getElementById('badgeSport').textContent = heutige.length;
+    document.getElementById('badgeSport').classList.toggle('leer', heutige.length === 0);
+    const box = document.getElementById('listeSport');
+    if (!heutige.length) { box.innerHTML = '<div class="mini-leer">Noch keine Sport-Einheit heute</div>'; return; }
+    box.innerHTML = heutige.map(s => {
+      const t = typInfo(s.typ);
+      return '<div class="mini-zeile"><span class="mini-zeit">' + t.icon + '</span>' +
+        '<span class="mini-name">' + t.label + ' · ' + (PERSONEN_LABEL[s.person] || s.person) + '</span>' +
+        '<span class="mini-zeit">' + s.dauer + ' Min.</span></div>';
+    }).join('');
+  }
+  document.getElementById('kachelSport').addEventListener('click', () => navigiere('gesundheit'));
+
+  // ============================================================
+  // GARTEN (bewusst ohne genaue Aufgabenzahl – die Berechnung ist eng mit
+  // Wetterdaten und Beetplänen verzahnt und lebt nur im Garten-Modul selbst)
+  // ============================================================
+  document.getElementById('kachelGarten').addEventListener('click', () => navigiere('garten'));
+
+  renderTermine();
+  renderEinkauf();
+  renderSport();
+
+  // Bei Rückkehr auf die Startseite (z.B. nach Bearbeitung in einem anderen Modul) neu laden
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) { renderTermine(); renderEinkauf(); renderSport(); }
+  });
+})();
+</script>
+</body>
+</html>

@@ -29,7 +29,8 @@ Diese Regeln erlauben Lesen/Schreiben für jeden angemeldeten Nutzer (auch anony
 
 Die App besteht aus einer schlanken **Shell** (`index.html`) mit der Hauptnavigation, die pro Bereich die passende Modul-Datei in einem Iframe lädt:
 
-- `index.html` – Shell mit Navigation, Service-Worker-Registrierung, merkt sich den zuletzt geöffneten Bereich
+- `index.html` – Shell mit Navigation, Service-Worker-Registrierung, merkt sich den zuletzt geöffneten Bereich, leitet Kachel-Klicks von der Startseite an den passenden Bereich weiter
+- `home.html` – Startseite/Dashboard: zeigt auf einen Blick die heutigen Termine, offene Einkaufslisten-Posten und die heutigen Sport-Einheiten (liest direkt aus dem gemeinsamen Speicher, da alle Module denselben Ursprung teilen); Kacheln sind antippbar und wechseln direkt in den jeweiligen Bereich. Die Garten-Kachel verlinkt bewusst ohne genaue Aufgabenzahl, da diese Berechnung eng mit den Live-Wetterdaten im Garten-Modul verzahnt ist
 - `garten.html` – Gartenplaner-Modul (das ursprüngliche, vollständige Feature-Set)
 - `termine.html` – Termine-Modul: Kalender- und Agendaansicht, Wiederholungen, Filter nach Person (Familie/Mama/Papa)
 - `einkauf.html` – Einkauf-Modul: mehrere Einkaufslisten, Kategorien-Gruppierung, Mengen-Parsing bei der Schnelleingabe (z.B. „500g Mehl“), Favoriten-Vorschläge

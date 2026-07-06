@@ -81,6 +81,7 @@
     // Zentrale Liste aller Bereiche. Neue Bereiche später einfach hier ergänzen:
     // src auf die fertige Modul-Datei zeigen lassen, sobald sie existiert.
     const MODULE = [
+      { id: 'home',        label: 'Übersicht', emoji: '🏠', src: 'home.html' },
       { id: 'garten',      label: 'Garten',    emoji: '🌱', src: 'garten.html' },
       { id: 'termine',     label: 'Termine',   emoji: '🗓️', src: 'termine.html' },
       { id: 'gesundheit',  label: 'Gesundheit',emoji: '🏃', src: 'gesundheit.html' },
@@ -114,12 +115,18 @@
       nav.appendChild(btn);
     });
 
-    let start = 'garten';
+    let start = 'home';
     try {
       const gespeichert = localStorage.getItem(STORAGE_KEY);
       if (gespeichert && MODULE.some(m => m.id === gespeichert)) start = gespeichert;
     } catch (e) {}
     bereichLaden(start, { schreiben: false });
+
+    // Erlaubt Modulen (z.B. der Startseite), per Kachel-Klick zu einem anderen Bereich zu wechseln
+    window.addEventListener('message', (e) => {
+      if (e.origin !== window.location.origin) return;
+      if (e.data && e.data.type === 'navigiere' && e.data.modul) bereichLaden(e.data.modul);
+    });
 
     // Offline-/Online-Hinweis
     const hinweis = document.getElementById('offlineHinweis');
