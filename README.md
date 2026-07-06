@@ -1,6 +1,29 @@
 # 🌱 Planer
 
-Eine feature-reiche, offline-fähige Familien-/Lebensplaner-App als Progressive Web App (PWA) – läuft direkt im Browser oder installiert auf dem Smartphone-Homescreen. Alle sechs ursprünglich geplanten Bereiche sind fertig: Garten, Termine, Einkauf, Kochen & Backen, Gesundheit & Sport und Gaming. Weitere Bereiche lassen sich jederzeit als zusätzliche Module ergänzen (siehe Architektur unten).
+Eine feature-reiche, offline-fähige Familien-/Lebensplaner-App als Progressive Web App (PWA) – läuft direkt im Browser oder installiert auf dem Smartphone-Homescreen. Alle sechs ursprünglich geplanten Bereiche sind fertig: Garten, Termine, Einkauf, Kochen & Backen, Gesundheit & Sport und Gaming. Zusätzlich ist eine automatische Cloud-Synchronisierung zwischen mehreren Geräten (z.B. zwischen den Handys beider Partner) eingebaut. Weitere Bereiche lassen sich jederzeit als zusätzliche Module ergänzen (siehe Architektur unten).
+
+## Cloud-Synchronisierung
+
+Die App synchronisiert sich automatisch über ein Firebase-Firestore-Projekt (kostenlos). Jedes Modul lädt Änderungen wenige Sekunden nach dem Speichern hoch; auf allen anderen geöffneten Geräten erscheinen sie automatisch, auch ohne Neuladen.
+
+- `sync.js` enthält die komplette Sync-Logik und die Zugangsdaten des gemeinsamen Firebase-Projekts
+- Jedes Modul synchronisiert nur seine eigenen Daten (eigenes Firestore-Dokument), Geräte-lokale Anzeige-Einstellungen (z.B. welche Einkaufsliste gerade offen ist) bleiben bewusst unsynchronisiert
+- **Fotos im Garten-Tagebuch werden NICHT synchronisiert** (Firestore erlaubt max. 1 MB pro Dokument – Fotos als Bilddaten würden das schnell überschreiten). Alle anderen Garten-Daten (Beete, Pflanzen, Pflegeplan, Erntebuch, Kosten, Vorrat, Sortendatenbank, Saatgut) synchronisieren normal
+- Ohne Internetverbindung funktioniert die App weiterhin normal lokal; Änderungen werden automatisch synchronisiert, sobald wieder eine Verbindung besteht
+- Der kleine Indikator oben rechts in der Navigation zeigt den Sync-Status: ⏳ verbindet, ☁️ synchronisiert, ⚠️ Fehler (Daten bleiben lokal gespeichert), 📵 Sync nicht verfügbar
+
+**Firestore-Sicherheitsregeln** (unter Firebase Console → Firestore Database → Regeln):
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /planerDaten/{docId} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
+```
+Diese Regeln erlauben Lesen/Schreiben für jeden angemeldeten Nutzer (auch anonym) – ausreichend für die private Nutzung im Familienkreis, da niemand außerhalb des Kreises die Firebase-Konfiguration kennt.
 
 ## Architektur
 

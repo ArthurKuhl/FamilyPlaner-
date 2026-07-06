@@ -108,6 +108,10 @@
   }
   .notiz-box { background: var(--parchment); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 0.82rem; margin-top: 14px; color: var(--bark); }
 </style>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
+<script src="sync.js"></script>
 </head>
 <body>
 
@@ -232,6 +236,7 @@
   function speichern(key, wert) {
     try { localStorage.setItem(key, JSON.stringify(wert)); }
     catch (e) { console.warn('Kochen: Speichern fehlgeschlagen', key, e); alert('Speichern fehlgeschlagen – ist der Speicher voll?'); }
+    if (window._sync) window._sync.melde();
   }
 
   let rezepte = laden(KEY_REZEPTE, []);
@@ -522,6 +527,14 @@
 
   renderFilter();
   renderGrid();
+
+  if (window.PlanerSync) {
+    window._sync = window.PlanerSync.starteSync({
+      modul: 'kochen',
+      keys: [KEY_REZEPTE],
+      onRemoteChange: function () { rezepte = laden(KEY_REZEPTE, rezepte); renderFilter(); renderGrid(); },
+    });
+  }
 })();
 </script>
 </body>

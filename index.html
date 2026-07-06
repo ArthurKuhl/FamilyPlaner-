@@ -31,12 +31,15 @@
 
   /* Hauptnavigation: gleichrangige Bereiche, horizontal scrollbar auf schmalen Screens */
   nav.modul-nav {
-    background: var(--navbg); display: flex; gap: 4px; padding: 6px 8px;
+    background: var(--navbg); display: flex; align-items: center; gap: 4px; padding: 6px 8px;
     overflow-x: auto; -webkit-overflow-scrolling: touch; flex-shrink: 0;
     box-shadow: 0 2px 6px rgba(0,0,0,0.15);
     scrollbar-width: none;
   }
   nav.modul-nav::-webkit-scrollbar { display: none; }
+  .sync-status {
+    flex: 0 0 auto; font-size: 0.95rem; padding: 4px 6px; opacity: 0.85; margin-left: auto; order: 99;
+  }
   .modul-btn {
     flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 2px;
     background: transparent; border: none; color: var(--sage);
@@ -66,6 +69,7 @@
   <div class="shell">
     <nav class="modul-nav" id="modulNav" aria-label="Bereiche">
       <!-- Buttons werden per JS erzeugt -->
+      <span class="sync-status" id="syncStatus" title="Sync-Status">⏳</span>
     </nav>
     <div class="modul-frame-wrap">
       <iframe class="modul-frame" id="modulFrame" title="Aktueller Bereich"></iframe>
@@ -129,6 +133,25 @@
     }
     window.addEventListener('offline', zeigeHinweis);
     window.addEventListener('load', () => { if (!navigator.onLine) zeigeHinweis(); });
+
+    // Sync-Status: die Module schreiben ihren Stand in einen gemeinsamen localStorage-Schlüssel,
+    // die Shell liest ihn regelmäßig aus (Module laufen in eigenen Iframes, daher kein direkter Zugriff)
+    const syncSymbole = {
+      verbindet: '⏳', online: '☁️', fehler: '⚠️', nicht_verfuegbar: '📵', unbekannt: '⏳',
+    };
+    const syncTitel = {
+      verbindet: 'Verbinde mit der Cloud …', online: 'Synchronisiert', fehler: 'Sync-Fehler – Änderungen bleiben lokal gespeichert',
+      nicht_verfuegbar: 'Cloud-Sync nicht verfügbar', unbekannt: 'Sync-Status unbekannt',
+    };
+    function syncStatusAktualisieren() {
+      let status = 'unbekannt';
+      try { status = localStorage.getItem('planer_syncStatus') || 'unbekannt'; } catch (e) {}
+      const el = document.getElementById('syncStatus');
+      el.textContent = syncSymbole[status] || '⏳';
+      el.title = syncTitel[status] || 'Sync-Status: ' + status;
+    }
+    syncStatusAktualisieren();
+    setInterval(syncStatusAktualisieren, 2000);
 
     // Service Worker registrieren (nur die Shell macht das, nicht die einzelnen Module)
     // Funktioniert nur über http(s):// oder localhost, nicht über file://

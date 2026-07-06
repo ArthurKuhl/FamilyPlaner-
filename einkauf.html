@@ -112,6 +112,10 @@
   .btn-secondary { background: var(--white); color: var(--bark); border: 1px solid var(--parchment); }
   .btn-danger { background: transparent; color: var(--terracotta-text); border: 1px solid var(--terracotta); }
 </style>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
+<script src="sync.js"></script>
 </head>
 <body>
 
@@ -242,6 +246,7 @@
   function speichern(key, wert) {
     try { localStorage.setItem(key, JSON.stringify(wert)); }
     catch (e) { console.warn('Einkauf: Speichern fehlgeschlagen', key, e); alert('Speichern fehlgeschlagen – ist der Speicher voll?'); }
+    if (window._sync) window._sync.melde();
   }
 
   let listen = laden(KEY_LISTEN, null);
@@ -524,6 +529,19 @@
   }
 
   renderAlles();
+
+  if (window.PlanerSync) {
+    window._sync = window.PlanerSync.starteSync({
+      modul: 'einkauf',
+      keys: [KEY_LISTEN, KEY_FAVORITEN],
+      onRemoteChange: function () {
+        listen = laden(KEY_LISTEN, listen);
+        favoriten = laden(KEY_FAVORITEN, favoriten);
+        if (!listen.some(l => l.id === aktiveListeId)) aktiveListeId = listen[0].id;
+        renderAlles();
+      },
+    });
+  }
 })();
 </script>
 </body>

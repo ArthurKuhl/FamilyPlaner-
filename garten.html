@@ -274,6 +274,10 @@
   .shop-entry.pantry-consumed { opacity: 0.5; border-left-color: var(--parchment); }
   .pantry-tabs { display: flex; gap: 6px; margin-bottom: 12px; }
 </style>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
+<script src="sync.js"></script>
 </head>
 <body>
 
@@ -3559,6 +3563,7 @@ function saveData() {
     const prevRaw = localStorage.getItem('gartenplaner_v3');
     if (prevRaw) maybeUpdateRollingBackup(prevRaw);
     localStorage.setItem('gartenplaner_v3', JSON.stringify({ gardens, currentGardenId }));
+    if (window._sync) window._sync.melde();
   } catch(e) {
     showTempStatus('⚠ Speichern fehlgeschlagen – Speicherplatz im Browser ist evtl. voll. Bitte exportieren (📁 Datei → ⬇ Export) und ggf. große Fotos entfernen.', 10);
   }
@@ -5839,6 +5844,23 @@ function renderPreserveList() {
   }).join('');
 }
 
+// ==================== SYNC: Änderungen an synchronisierten Schlüsseln melden ====================
+// Statt jede einzelne Speicherfunktion anzupassen, wird localStorage.setItem zentral
+// überwacht: Schreibt eine der 9 synchronisierten Schlüssel, wird die Cloud-Synchronisierung
+// angestoßen (leicht verzögert/gesammelt über PlanerSync).
+const GARTEN_SYNC_SCHLUESSEL = [
+  'gartenplaner_v3', 'gartenplaner_varieties', 'gartenplaner_bedTemplates',
+  'gartenplaner_recentPlants', 'gartenplaner_seedInventory', 'gartenplaner_costs',
+  'gartenplaner_pantry', 'gartenplaner_shops', 'gartenplaner_careDone',
+];
+(function () {
+  const originalSetItem = localStorage.setItem.bind(localStorage);
+  localStorage.setItem = function (key, value) {
+    originalSetItem(key, value);
+    if (GARTEN_SYNC_SCHLUESSEL.indexOf(key) !== -1 && window._sync) window._sync.melde();
+  };
+})();
+
 // ==================== INIT ====================
 loadAllData();
 loadVarieties();
@@ -5863,6 +5885,26 @@ applyBgColor();
 { const loc=getWeatherSettings(); if (loc) fetchWeather(loc, false); }
 checkBackupReminder();
 renderHomeOverview();
+
+// ==================== SYNC: Cloud-Synchronisierung starten ====================
+// Fotos werden bewusst NICHT synchronisiert (Firestore-Größenlimit: 1 MB pro Dokument).
+// Sie bleiben lokal auf dem jeweiligen Gerät gespeichert.
+if (window.PlanerSync) {
+  window._sync = window.PlanerSync.starteSync({
+    modul: 'garten',
+    keys: GARTEN_SYNC_SCHLUESSEL,
+    transform: function (werte) {
+      if (werte.gartenplaner_v3) werte.gartenplaner_v3 = window.PlanerSync.entferneFotosTief(werte.gartenplaner_v3);
+      return werte;
+    },
+    onRemoteChange: function () {
+      // Der Gartenplaner hat viele interne, spezialisierte Render-Funktionen ohne
+      // zentrales "renderAlles". Bei eingehenden Änderungen wird die Seite deshalb
+      // einfach neu geladen – lädt automatisch alle Daten frisch aus localStorage.
+      location.reload();
+    },
+  });
+}
 
 // ==================== BARRIEREFREIHEIT: FOKUS-MANAGEMENT FÜR MODALS ====================
 (function(){

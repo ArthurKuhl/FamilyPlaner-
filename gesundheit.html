@@ -102,6 +102,10 @@
   .btn-primary { background: var(--moss); color: var(--leaf); }
   .btn-secondary { background: var(--white); color: var(--bark); border: 1px solid var(--parchment); }
 </style>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
+<script src="sync.js"></script>
 </head>
 <body>
 
@@ -221,6 +225,7 @@
   function speichern(key, wert) {
     try { localStorage.setItem(key, JSON.stringify(wert)); }
     catch (e) { console.warn('Gesundheit: Speichern fehlgeschlagen', key, e); alert('Speichern fehlgeschlagen – ist der Speicher voll?'); }
+    if (window._sync) window._sync.melde();
   }
 
   let tageswerte = laden(KEY_TAGESWERTE, []); // [{id, datum, person, gewicht, schlaf, wasser, stimmung}]
@@ -479,6 +484,18 @@
 
   renderPersonen();
   renderAlles();
+
+  if (window.PlanerSync) {
+    window._sync = window.PlanerSync.starteSync({
+      modul: 'gesundheit',
+      keys: [KEY_TAGESWERTE, KEY_SPORT],
+      onRemoteChange: function () {
+        tageswerte = laden(KEY_TAGESWERTE, tageswerte);
+        sportEinheiten = laden(KEY_SPORT, sportEinheiten);
+        renderAlles();
+      },
+    });
+  }
 })();
 </script>
 </body>

@@ -104,6 +104,10 @@
   .btn-delete { background: transparent; color: var(--terracotta); border: 1px solid var(--terracotta); border-radius: var(--radius-sm); padding: 8px; font-size: 0.8rem; font-weight: 500; cursor: pointer; width: 100%; margin-top: 8px; font-family: 'Inter', sans-serif; }
   .modal-actions { display: flex; gap: 8px; margin-top: 4px; }
 </style>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
+<script src="sync.js"></script>
 </head>
 <body>
   <header class="top">
@@ -229,6 +233,7 @@
     function speichernAlle(arr) {
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); }
       catch(e) { console.warn('Speichern fehlgeschlagen', e); }
+      if (window._sync) window._sync.melde();
     }
 
     let events = ladenAlle();
@@ -514,6 +519,14 @@
 
     renderFilter();
     renderAktuelleAnsicht();
+
+    if (window.PlanerSync) {
+      window._sync = window.PlanerSync.starteSync({
+        modul: 'termine',
+        keys: [STORAGE_KEY],
+        onRemoteChange: function () { events = ladenAlle(); renderFilter(); renderAktuelleAnsicht(); },
+      });
+    }
   })();
   </script>
 </body>
