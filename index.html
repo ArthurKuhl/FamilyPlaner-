@@ -13,6 +13,10 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Planer">
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
+<script src="sync.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
   :root {
@@ -40,6 +44,29 @@
   .sync-status {
     flex: 0 0 auto; font-size: 0.95rem; padding: 4px 6px; opacity: 0.85; margin-left: auto; order: 99;
   }
+  .backup-btn {
+    flex: 0 0 auto; background: none; border: none; color: var(--sage); font-size: 0.95rem;
+    padding: 4px 6px; opacity: 0.85; cursor: pointer; order: 98;
+  }
+  .modal-bg {
+    position: fixed; inset: 0; background: rgba(42,32,22,0.5); display: none;
+    align-items: center; justify-content: center; z-index: 200; padding: 20px;
+  }
+  .modal-bg.zeigen { display: flex; }
+  .modal {
+    background: var(--cream); border-radius: 18px; padding: 20px; width: 100%; max-width: 420px;
+    max-height: 85vh; overflow-y: auto; box-shadow: 0 8px 30px rgba(0,0,0,0.3); color: var(--soil);
+  }
+  .modal h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 6px; }
+  .modal p { font-size: 0.82rem; color: var(--bark); line-height: 1.5; margin-bottom: 14px; }
+  .modal .btn {
+    display: block; width: 100%; padding: 12px; border-radius: 22px; border: none; font-weight: 700;
+    font-size: 0.88rem; cursor: pointer; margin-bottom: 10px; text-align: center;
+  }
+  .modal .btn-primary { background: var(--moss); color: var(--leaf); }
+  .modal .btn-secondary { background: #fff; color: var(--bark); border: 1px solid #ddd; }
+  .modal .status-text { font-size: 0.8rem; margin-top: 4px; min-height: 18px; }
+  .modal input[type="file"] { display: none; }
   .modul-btn {
     flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 2px;
     background: transparent; border: none; color: var(--sage);
@@ -69,6 +96,7 @@
   <div class="shell">
     <nav class="modul-nav" id="modulNav" aria-label="Bereiche">
       <!-- Buttons werden per JS erzeugt -->
+      <button class="backup-btn" id="btnBackup" title="Sichern & Wiederherstellen">💾</button>
       <span class="sync-status" id="syncStatus" title="Sync-Status">⏳</span>
     </nav>
     <div class="modul-frame-wrap">
@@ -77,17 +105,31 @@
   </div>
   <div class="offline-hinweis" id="offlineHinweis">Offline – letzte gespeicherte Version wird angezeigt</div>
 
+  <div class="modal-bg" id="modalBackup">
+    <div class="modal">
+      <h2>💾 Sichern &amp; Wiederherstellen</h2>
+      <p>Exportiert alle Daten aus allen Bereichen (Garten, Termine, Einkauf, Kochen, Gesundheit, Gaming) als Datei – zusätzlich zur Cloud-Synchronisierung, als extra Sicherheitsnetz.</p>
+      <button class="btn btn-primary" id="btnExport">⬇ Alle Daten exportieren</button>
+      <button class="btn btn-secondary" id="btnImportOeffnen">⬆ Aus Datei wiederherstellen</button>
+      <input type="file" id="fileImport" accept="application/json">
+      <div class="status-text" id="backupStatus"></div>
+      <button class="btn btn-secondary" id="btnBackupSchliessen" style="margin-top:6px;">Schließen</button>
+    </div>
+  </div>
+
   <script>
     // Zentrale Liste aller Bereiche. Neue Bereiche später einfach hier ergänzen:
     // src auf die fertige Modul-Datei zeigen lassen, sobald sie existiert.
     const MODULE = [
       { id: 'home',        label: 'Übersicht', emoji: '🏠', src: 'home.html' },
-      { id: 'garten',      label: 'Garten',    emoji: '🌱', src: 'garten.html' },
-      { id: 'termine',     label: 'Termine',   emoji: '🗓️', src: 'termine.html' },
-      { id: 'gesundheit',  label: 'Gesundheit',emoji: '🏃', src: 'gesundheit.html' },
-      { id: 'einkauf',     label: 'Einkauf',   emoji: '🛒', src: 'einkauf.html' },
-      { id: 'kochen',      label: 'Kochen',    emoji: '🍳', src: 'kochen.html' },
-      { id: 'gaming',      label: 'Gaming',    emoji: '🎮', src: 'gaming.html' },
+      { id: 'garten',      label: 'Garten',    emoji: '🌱', src: 'garten.html',
+        syncKeys: ['gartenplaner_v3','gartenplaner_varieties','gartenplaner_bedTemplates','gartenplaner_recentPlants','gartenplaner_seedInventory','gartenplaner_costs','gartenplaner_pantry','gartenplaner_shops','gartenplaner_careDone'],
+        syncTransform: (werte) => { if (werte.gartenplaner_v3 && window.PlanerSync) werte.gartenplaner_v3 = window.PlanerSync.entferneFotosTief(werte.gartenplaner_v3); return werte; } },
+      { id: 'termine',     label: 'Termine',   emoji: '🗓️', src: 'termine.html', syncKeys: ['termine_events_v1'] },
+      { id: 'gesundheit',  label: 'Gesundheit',emoji: '🏃', src: 'gesundheit.html', syncKeys: ['gesundheit_tageswerte','gesundheit_sport','gesundheit_rechner'] },
+      { id: 'einkauf',     label: 'Einkauf',   emoji: '🛒', src: 'einkauf.html', syncKeys: ['einkauf_listen','einkauf_favoriten'] },
+      { id: 'kochen',      label: 'Kochen',    emoji: '🍳', src: 'kochen.html', syncKeys: ['kochen_rezepte'] },
+      { id: 'gaming',      label: 'Gaming',    emoji: '🎮', src: 'gaming.html', syncKeys: ['gaming_spiele'] },
     ];
     const STORAGE_KEY = 'planer_aktiverBereich';
 
@@ -159,6 +201,100 @@
     }
     syncStatusAktualisieren();
     setInterval(syncStatusAktualisieren, 2000);
+
+    // ============================================================
+    // GESAMT-BACKUP: Export/Import aller App-Daten
+    // ============================================================
+    // Schlüssel, die bewusst NICHT exportiert/importiert werden: geräte-/sitzungsspezifisch,
+    // würden auf einem anderen Gerät keinen Sinn ergeben oder sich automatisch neu bilden.
+    const BACKUP_AUSSCHLUSS = ['planer_geraeteId', 'planer_syncStatus'];
+
+    function alleBackupSchluessel() {
+      const keys = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && BACKUP_AUSSCHLUSS.indexOf(k) === -1) keys.push(k);
+      }
+      return keys;
+    }
+
+    function backupExportieren() {
+      const daten = {};
+      alleBackupSchluessel().forEach((k) => { daten[k] = localStorage.getItem(k); });
+      const paket = { app: 'Familienplaner', version: 1, erstelltAm: new Date().toISOString(), daten: daten };
+      const blob = new Blob([JSON.stringify(paket, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const zeitstempel = new Date().toISOString().replace(/[:T]/g, '-').slice(0, 16);
+      a.href = url;
+      a.download = 'planer-backup-' + zeitstempel + '.json';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+      document.getElementById('backupStatus').textContent = '✅ Exportiert: ' + alleBackupSchluessel().length + ' Schlüssel.';
+    }
+
+    function backupWiederherstellen(datei) {
+      const status = document.getElementById('backupStatus');
+      status.textContent = 'Lese Datei …';
+      const reader = new FileReader();
+      reader.onerror = () => { status.textContent = '⚠️ Datei konnte nicht gelesen werden.'; };
+      reader.onload = () => {
+        let paket;
+        try { paket = JSON.parse(reader.result); }
+        catch (e) { status.textContent = '⚠️ Das ist keine gültige Backup-Datei.'; return; }
+        if (!paket || typeof paket.daten !== 'object') { status.textContent = '⚠️ Das ist keine gültige Backup-Datei.'; return; }
+
+        const anzahl = Object.keys(paket.daten).length;
+        const datum = paket.erstelltAm ? new Date(paket.erstelltAm).toLocaleString('de-DE') : 'unbekannt';
+        const bestaetigt = confirm(
+          'Backup vom ' + datum + ' mit ' + anzahl + ' Einträgen wiederherstellen?\n\n' +
+          'ACHTUNG: Dies überschreibt die aktuellen Daten auf ALLEN synchronisierten Geräten mit dem Stand aus dieser Datei. ' +
+          'Neuere Änderungen (z.B. von deiner Frau), die nach dem Erstellen dieses Backups gemacht wurden, gehen dabei verloren.\n\n' +
+          'Fortfahren?'
+        );
+        if (!bestaetigt) { status.textContent = 'Abgebrochen.'; return; }
+
+        Object.keys(paket.daten).forEach((k) => {
+          if (BACKUP_AUSSCHLUSS.indexOf(k) !== -1) return;
+          try { localStorage.setItem(k, paket.daten[k]); } catch (e) {}
+        });
+
+        status.textContent = '✅ ' + anzahl + ' Einträge wiederhergestellt. Synchronisiere mit der Cloud …';
+
+        // Wiederhergestellte Daten aktiv in die Cloud zurückschreiben, statt zu warten,
+        // bis jeder Bereich einzeln geöffnet wird (sonst könnte der alte Cloud-Stand
+        // die gerade wiederhergestellten Daten wieder überschreiben).
+        if (window.PlanerSync) {
+          const pushes = MODULE.filter(m => m.syncKeys).map(m => window.PlanerSync.pushWerte(m.id, m.syncKeys, m.syncTransform));
+          Promise.all(pushes).then(() => {
+            status.textContent = '✅ Wiederhergestellt und mit der Cloud synchronisiert.';
+            frame.src = frame.src; // aktuellen Bereich neu laden, damit er die neuen Daten zeigt
+          }).catch(() => {
+            status.textContent = '✅ Lokal wiederhergestellt, aber Cloud-Sync teilweise fehlgeschlagen. Bitte Internetverbindung prüfen.';
+            frame.src = frame.src;
+          });
+        } else {
+          frame.src = frame.src;
+        }
+      };
+      reader.readAsText(datei);
+    }
+
+    const modalBackup = document.getElementById('modalBackup');
+    document.getElementById('btnBackup').addEventListener('click', () => {
+      document.getElementById('backupStatus').textContent = '';
+      modalBackup.classList.add('zeigen');
+    });
+    document.getElementById('btnBackupSchliessen').addEventListener('click', () => modalBackup.classList.remove('zeigen'));
+    modalBackup.addEventListener('click', (e) => { if (e.target.id === 'modalBackup') modalBackup.classList.remove('zeigen'); });
+    document.getElementById('btnExport').addEventListener('click', backupExportieren);
+    document.getElementById('btnImportOeffnen').addEventListener('click', () => document.getElementById('fileImport').click());
+    document.getElementById('fileImport').addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) backupWiederherstellen(e.target.files[0]);
+      e.target.value = '';
+    });
 
     // Service Worker registrieren (nur die Shell macht das, nicht die einzelnen Module)
     // Funktioniert nur über http(s):// oder localhost, nicht über file://

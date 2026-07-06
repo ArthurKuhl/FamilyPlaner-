@@ -2,6 +2,14 @@
 
 Eine feature-reiche, offline-fähige Familien-/Lebensplaner-App als Progressive Web App (PWA) – läuft direkt im Browser oder installiert auf dem Smartphone-Homescreen. Alle sechs ursprünglich geplanten Bereiche sind fertig: Garten, Termine, Einkauf, Kochen & Backen, Gesundheit & Sport und Gaming. Zusätzlich ist eine automatische Cloud-Synchronisierung zwischen mehreren Geräten (z.B. zwischen den Handys beider Partner) eingebaut. Weitere Bereiche lassen sich jederzeit als zusätzliche Module ergänzen (siehe Architektur unten).
 
+## Gesamt-Backup (zusätzlich zum Cloud-Sync)
+
+Über das 💾-Symbol oben in der Navigation lässt sich jederzeit eine Sicherungsdatei mit allen Daten aus allen Bereichen exportieren – ein zusätzliches Sicherheitsnetz neben der automatischen Cloud-Synchronisierung, z.B. für den Fall eines gelöschten Firebase-Projekts oder um vor größeren Änderungen einen Wiederherstellungspunkt zu haben.
+
+- **Export**: lädt eine JSON-Datei mit Zeitstempel herunter (`planer-backup-JJJJ-MM-TT-HHmm.json`)
+- **Import**: stellt alle Schlüssel aus der Datei wieder her und überträgt sie aktiv in die Cloud, damit auch das andere Gerät den wiederhergestellten Stand erhält. Da dies bestehende (auch neuere) Daten überschreiben kann, wird vorher eine deutliche Bestätigung eingeblendet
+- Geräte-/sitzungsspezifische Werte (Geräte-ID, aktueller Sync-Status) werden bewusst nicht mit exportiert/importiert
+
 ## Cloud-Synchronisierung
 
 Die App synchronisiert sich automatisch über ein Firebase-Firestore-Projekt (kostenlos). Jedes Modul lädt Änderungen wenige Sekunden nach dem Speichern hoch; auf allen anderen geöffneten Geräten erscheinen sie automatisch, auch ohne Neuladen.
@@ -29,7 +37,7 @@ Diese Regeln erlauben Lesen/Schreiben für jeden angemeldeten Nutzer (auch anony
 
 Die App besteht aus einer schlanken **Shell** (`index.html`) mit der Hauptnavigation, die pro Bereich die passende Modul-Datei in einem Iframe lädt:
 
-- `index.html` – Shell mit Navigation, Service-Worker-Registrierung, merkt sich den zuletzt geöffneten Bereich, leitet Kachel-Klicks von der Startseite an den passenden Bereich weiter
+- `index.html` – Shell mit Navigation, Service-Worker-Registrierung, merkt sich den zuletzt geöffneten Bereich, leitet Kachel-Klicks von der Startseite an den passenden Bereich weiter, Gesamt-Backup (Export/Import aller Bereiche als Datei, Symbol 💾)
 - `home.html` – Startseite/Dashboard: zeigt auf einen Blick die heutigen Termine, offene Einkaufslisten-Posten und die heutigen Sport-Einheiten (liest direkt aus dem gemeinsamen Speicher, da alle Module denselben Ursprung teilen); Kacheln sind antippbar und wechseln direkt in den jeweiligen Bereich. Die Garten-Kachel verlinkt bewusst ohne genaue Aufgabenzahl, da diese Berechnung eng mit den Live-Wetterdaten im Garten-Modul verzahnt ist
 - `garten.html` – Gartenplaner-Modul (das ursprüngliche, vollständige Feature-Set)
 - `termine.html` – Termine-Modul: Kalender- und Agendaansicht, Wiederholungen, Filter nach Person (Familie/Mama/Papa)

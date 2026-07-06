@@ -159,9 +159,32 @@ window.PlanerSync = (function () {
     return { melde: melde, entferneFotosTief: entferneFotosTief };
   }
 
+  function pushWerte(modul, keys, transform) {
+    if (!verfuegbar) return Promise.resolve();
+    initFirebase();
+    if (!verfuegbar) return Promise.resolve();
+    return (authReady || Promise.resolve()).then(() => {
+      let werte = {};
+      keys.forEach((k) => {
+        try { const raw = localStorage.getItem(k); werte[k] = raw ? JSON.parse(raw) : null; }
+        catch (e) { werte[k] = null; }
+      });
+      if (transform) { try { werte = transform(werte); } catch (e) { console.warn('PlanerSync transform Fehler', e); } }
+      return db.collection('planerDaten').doc(modul).set({
+        werte: werte,
+        _aktualisiertVon: geraeteId,
+        _aktualisiertAm: firebase.firestore.FieldValue.serverTimestamp(),
+      }, { merge: true }).then(() => setzeStatus('online')).catch((err) => {
+        console.warn('PlanerSync: erzwungener Push fehlgeschlagen für', modul, err);
+        setzeStatus('fehler');
+      });
+    });
+  }
+
   return {
     starteSync: starteSync,
     entferneFotosTief: entferneFotosTief,
+    pushWerte: pushWerte,
     status: function () { try { return localStorage.getItem(STATUS_KEY) || 'unbekannt'; } catch (e) { return 'unbekannt'; } },
     geraeteId: geraeteId,
   };
