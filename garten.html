@@ -196,7 +196,9 @@
   /* ==== VIEWS / NAVIGATION ==== */
   .view { display: none; flex: 1; flex-direction: column; min-height: 0; }
   .view.active { display: flex; }
-  .main-nav { display: flex; gap: 6px; padding: 9px 16px; background: var(--white); border-bottom: 1px solid var(--parchment); flex-wrap: wrap; }
+  .main-nav { display: flex; gap: 6px; padding: 9px 16px; background: var(--white); border-bottom: 1px solid var(--parchment); overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .main-nav::-webkit-scrollbar { display: none; }
+  .main-nav .nav-btn { flex: 0 0 auto; white-space: nowrap; }
   .nav-btn { background: transparent; border: 1px solid var(--parchment); color: var(--bark); border-radius: var(--radius-pill); padding: 7px 14px; font-size: 0.78rem; font-weight: 600; font-family: 'Inter', sans-serif; cursor: pointer; transition: all 0.15s; }
   .nav-btn:hover { background: var(--sky); border-color: var(--sage); }
   .nav-btn.active { background: var(--moss); color: var(--white); border-color: var(--moss); box-shadow: var(--shadow-soft); }
@@ -2047,10 +2049,10 @@ function getWeatherSettings() {
 }
 function requestWeatherLocation() {
   if (!navigator.geolocation) {
-    document.getElementById('weatherSettingsBox').innerHTML = '⚠ Standortfreigabe wird von diesem Browser nicht unterstützt.';
+    const wsb1 = document.getElementById('weatherSettingsBox'); if (wsb1) wsb1.innerHTML = '⚠ Standortfreigabe wird von diesem Browser nicht unterstützt.';
     return;
   }
-  document.getElementById('weatherSettingsBox').textContent = 'Standort wird abgefragt…';
+  const wsb2 = document.getElementById('weatherSettingsBox'); if (wsb2) wsb2.textContent = 'Standort wird abgefragt…';
   navigator.geolocation.getCurrentPosition(
     (pos) => {
       const loc = { lat: pos.coords.latitude, lon: pos.coords.longitude };
@@ -2064,7 +2066,7 @@ function requestWeatherLocation() {
       fetchWeather(loc, true);
     },
     (err) => {
-      document.getElementById('weatherSettingsBox').innerHTML = '⚠ Standort konnte nicht ermittelt werden. Bitte Standortfreigabe im Browser erlauben.';
+      const wsb3 = document.getElementById('weatherSettingsBox'); if (wsb3) wsb3.innerHTML = '⚠ Standort konnte nicht ermittelt werden. Bitte Standortfreigabe im Browser erlauben.';
     },
     { timeout: 10000 }
   );
@@ -2087,7 +2089,7 @@ async function fetchWeather(loc, forceRefresh) {
     renderWeatherUI(weatherCache);
     return weatherCache;
   } catch (e) {
-    document.getElementById('weatherSettingsBox').innerHTML = '⚠ Wetterdaten konnten nicht geladen werden (keine Internetverbindung?).';
+    const wsb4 = document.getElementById('weatherSettingsBox'); if (wsb4) wsb4.innerHTML = '⚠ Wetterdaten konnten nicht geladen werden (keine Internetverbindung?).';
     return null;
   }
 }
@@ -3715,7 +3717,7 @@ function refreshSettingsUI() {
   }
   const loc = getWeatherSettings();
   if (loc) { if (weatherCache) renderWeatherUI(weatherCache); else fetchWeather(loc, false); }
-  else { document.getElementById('weatherSettingsBox').textContent = 'Noch kein Standort hinterlegt.'; }
+  else { const wsb5 = document.getElementById('weatherSettingsBox'); if (wsb5) wsb5.textContent = 'Noch kein Standort hinterlegt.'; }
   const zone = getClimateZone();
   const zoneSel = document.getElementById('climateZoneSelect');
   if (zoneSel) zoneSel.value = zone;
@@ -5022,15 +5024,23 @@ function updateStatus(){
 // ==================== ROBUSTHEIT: GLOBALES FEHLER-NETZ ====================
 let lastErrorNotice = 0;
 window.addEventListener('error', (e) => {
-  console.error('Gartenplaner-Fehler:', e.error || e.message);
+  const details = (e.error && e.error.message) || e.message || 'Unbekannter Fehler';
+  const ort = e.filename ? ' (' + e.filename.split('/').pop() + ':' + e.lineno + ')' : '';
+  console.error('Gartenplaner-Fehler:', e.error || e.message, ort);
   const now = Date.now();
   if (now - lastErrorNotice > 15000) {
     lastErrorNotice = now;
-    showTempStatus('⚠ Es ist ein unerwarteter Fehler aufgetreten. Deine Daten wurden zuletzt automatisch gespeichert.', 8);
+    showTempStatus('⚠ Fehler: ' + details.slice(0, 90) + ' – Daten wurden zuletzt automatisch gespeichert.', 10);
   }
 });
 window.addEventListener('unhandledrejection', (e) => {
   console.error('Gartenplaner-Fehler (Promise):', e.reason);
+  const now = Date.now();
+  if (now - lastErrorNotice > 15000) {
+    lastErrorNotice = now;
+    const msg = (e.reason && e.reason.message) ? e.reason.message : String(e.reason);
+    showTempStatus('⚠ Fehler (async): ' + msg.slice(0, 90), 10);
+  }
 });
 
 // ==================== BACKUP-ERINNERUNG ====================
@@ -5897,10 +5907,32 @@ if (window.PlanerSync) {
       if (werte.gartenplaner_v3) werte.gartenplaner_v3 = window.PlanerSync.entferneFotosTief(werte.gartenplaner_v3);
       return werte;
     },
-    onRemoteChange: function () {
+    vorAnwendungTransform: function (remoteWerte, lokaleWerte) {
+      // Eingehende Daten von einem anderen Gerät enthalten nie Fotos (siehe transform oben).
+      // Damit dadurch keine lokal gespeicherten Fotos verloren gehen, werden sie hier aus
+      // dem aktuellen lokalen Stand wieder eingefügt, bevor sie gespeichert werden.
+      if (remoteWerte.gartenplaner_v3 && lokaleWerte.gartenplaner_v3) {
+        remoteWerte.gartenplaner_v3 = window.PlanerSync.fotosWiederEinfuegen(remoteWerte.gartenplaner_v3, lokaleWerte.gartenplaner_v3);
+      }
+      return remoteWerte;
+    },
+    onRemoteChange: function (istErstmaligerAbgleich) {
       // Der Gartenplaner hat viele interne, spezialisierte Render-Funktionen ohne
-      // zentrales "renderAlles". Bei eingehenden Änderungen wird die Seite deshalb
-      // einfach neu geladen – lädt automatisch alle Daten frisch aus localStorage.
+      // zentrales "renderAlles". Bei echten eingehenden Änderungen wird die Seite deshalb
+      // neu geladen – lädt automatisch alle Daten frisch aus localStorage.
+      //
+      // WICHTIG: Beim ERSTEN Verbindungsaufbau feuert Firestore immer sofort mit dem
+      // aktuellen Stand (auch wenn er unverändert ist) – das ist bei Mehrgeräte-Nutzung
+      // der Normalfall, nicht die Ausnahme. Ein ungebremster Reload hier würde bei jedem
+      // Öffnen, dessen letzte Änderung vom anderen Gerät stammt, eine Lade-Schleife
+      // auslösen. Deshalb: pro Browser-Sitzung höchstens EIN automatischer Reload direkt
+      // nach dem ersten Abgleich (um trotzdem aktuelle Daten zu zeigen), danach nicht mehr.
+      if (istErstmaligerAbgleich) {
+        let bereitsNeuGeladen = false;
+        try { bereitsNeuGeladen = sessionStorage.getItem('garten_syncReload') === '1'; } catch (e) {}
+        if (bereitsNeuGeladen) return;
+        try { sessionStorage.setItem('garten_syncReload', '1'); } catch (e) {}
+      }
       location.reload();
     },
   });

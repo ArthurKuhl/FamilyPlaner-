@@ -84,7 +84,27 @@ window.PlanerSync = (function () {
     return objekt;
   }
 
-  function starteSync({ modul, keys, onRemoteChange, transform }) {
+  // Fügt lokal vorhandene "photo"-Felder wieder in eingehende (foto-lose) Remote-Daten ein,
+  // damit ein eingehender Sync von einem anderen Gerät niemals lokal gespeicherte Fotos löscht.
+  // Geht davon aus, dass Remote- und Lokal-Struktur an derselben Stelle dieselbe Form haben
+  // (funktioniert zuverlässig, solange nicht gleichzeitig auf beiden Geräten dieselbe Stelle
+  // strukturell verändert wird, z.B. Beete in unterschiedlicher Reihenfolge neu angelegt).
+  function fotosWiederEinfuegen(remote, lokal) {
+    if (Array.isArray(remote)) {
+      if (!Array.isArray(lokal)) return remote;
+      return remote.map((item, i) => fotosWiederEinfuegen(item, lokal[i]));
+    }
+    if (remote && typeof remote === 'object') {
+      if (!lokal || typeof lokal !== 'object') return remote;
+      const ergebnis = Object.assign({}, remote);
+      Object.keys(ergebnis).forEach((k) => { ergebnis[k] = fotosWiederEinfuegen(ergebnis[k], lokal[k]); });
+      if (lokal.photo && !ergebnis.photo) ergebnis.photo = lokal.photo;
+      return ergebnis;
+    }
+    return remote;
+  }
+
+  function starteSync({ modul, keys, onRemoteChange, transform, vorAnwendungTransform }) {
     if (!verfuegbar) return { melde: function () {} };
     initFirebase();
     if (!verfuegbar) return { melde: function () {} };
@@ -106,8 +126,11 @@ window.PlanerSync = (function () {
       return out;
     }
 
-    function remoteAnwenden(werte) {
+    function remoteAnwenden(werte, istErstmaligerAbgleich) {
       if (!werte) return;
+      if (vorAnwendungTransform) {
+        try { werte = vorAnwendungTransform(werte, localSnapshot()); } catch (e) { console.warn('PlanerSync vorAnwendungTransform Fehler', e); }
+      }
       wendeGeradeRemoteAn = true;
       keys.forEach((k) => {
         if (Object.prototype.hasOwnProperty.call(werte, k) && werte[k] !== undefined) {
@@ -115,7 +138,7 @@ window.PlanerSync = (function () {
         }
       });
       wendeGeradeRemoteAn = false;
-      if (onRemoteChange) { try { onRemoteChange(); } catch (e) { console.warn('PlanerSync onRemoteChange Fehler', e); } }
+      if (onRemoteChange) { try { onRemoteChange(istErstmaligerAbgleich); } catch (e) { console.warn('PlanerSync onRemoteChange Fehler', e); } }
     }
 
     function push() {
@@ -135,6 +158,13 @@ window.PlanerSync = (function () {
       });
     }
 
+    // Firestores onSnapshot feuert beim Verbindungsaufbau IMMER sofort mit dem aktuellen
+    // Stand (oft sogar zweimal: einmal aus dem lokalen Cache, einmal vom Server bestätigt) –
+    // das ist keine "neue" Änderung. Ohne Abgleich würde jedes Öffnen eines Bereichs, dessen
+    // letzte Änderung von einem ANDEREN Gerät stammt, fälschlich als frische Änderung gelten.
+    // Deshalb wird über einen Zeitstempel-Fingerabdruck erkannt, ob sich seit dem letzten
+    // verarbeiteten Stand wirklich etwas geändert hat.
+    let letzterVerarbeiteterStempel = null;
     authReady = authReady || Promise.resolve();
     authReady.then(() => {
       abbestellen = docRef().onSnapshot((snap) => {
@@ -143,7 +173,13 @@ window.PlanerSync = (function () {
         const data = snap.data();
         if (!data) return;
         if (data._aktualisiertVon === geraeteId) return; // eigene Änderung, nicht erneut anwenden
-        remoteAnwenden(data.werte);
+        let stempelZeit = '';
+        try { stempelZeit = data._aktualisiertAm && data._aktualisiertAm.toMillis ? String(data._aktualisiertAm.toMillis()) : ''; } catch (e) {}
+        const stempel = data._aktualisiertVon + '|' + stempelZeit;
+        if (stempel === letzterVerarbeiteterStempel) return; // gleicher Stand wie zuvor, keine echte neue Änderung
+        const istErstmaligerAbgleich = letzterVerarbeiteterStempel === null;
+        letzterVerarbeiteterStempel = stempel;
+        remoteAnwenden(data.werte, istErstmaligerAbgleich);
       }, (err) => {
         console.warn('PlanerSync: Verbindung fehlgeschlagen für', modul, err);
         setzeStatus('fehler');
@@ -184,6 +220,7 @@ window.PlanerSync = (function () {
   return {
     starteSync: starteSync,
     entferneFotosTief: entferneFotosTief,
+    fotosWiederEinfuegen: fotosWiederEinfuegen,
     pushWerte: pushWerte,
     status: function () { try { return localStorage.getItem(STATUS_KEY) || 'unbekannt'; } catch (e) { return 'unbekannt'; } },
     geraeteId: geraeteId,
