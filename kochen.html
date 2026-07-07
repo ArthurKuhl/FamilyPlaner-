@@ -380,6 +380,29 @@
   document.getElementById('modalDetail').addEventListener('click', (e) => { if (e.target.id === 'modalDetail') e.currentTarget.classList.remove('zeigen'); });
 
   // --- Zutaten in Einkaufsliste übernehmen (gleiche Origin -> gemeinsamer localStorage) ---
+  // --- Mengen zusammenführen: gleiche (noch offene) Produkte in der Zielliste addieren ---
+  function zahlOderNull(s) {
+    if (s === '' || s === undefined || s === null) return null;
+    const n = parseFloat(String(s).replace(',', '.'));
+    return isNaN(n) ? null : n;
+  }
+  function versucheMengeZusammenfuehren(kandidat, neueMenge, neueEinheit) {
+    const kEinheit = (kandidat.einheit || '').trim().toLowerCase();
+    const nEinheit = (neueEinheit || '').trim().toLowerCase();
+    if (kEinheit !== nEinheit) return false;
+    if (kEinheit === '') {
+      const kZahl = zahlOderNull(kandidat.menge) ?? 1;
+      const nZahl = zahlOderNull(neueMenge) ?? 1;
+      kandidat.menge = String(kZahl + nZahl);
+      return true;
+    }
+    const kZahl = zahlOderNull(kandidat.menge);
+    const nZahl = zahlOderNull(neueMenge);
+    if (kZahl === null || nZahl === null) return false;
+    kandidat.menge = String(Math.round((kZahl + nZahl) * 100) / 100);
+    return true;
+  }
+
   document.getElementById('btnZumEinkauf').addEventListener('click', () => {
     const r = rezepte.find(x => x.id === detailId);
     if (!r) return;
@@ -390,13 +413,23 @@
     }
     let aktivId = localStorage.getItem(KEY_EINKAUF_AKTIV);
     let aktiv = listen.find(l => l.id === aktivId) || listen[0];
+    const herkunft = 'rezept:' + r.titel;
+    let zusammengefuehrt = 0;
     r.zutaten.forEach(z => {
       const menge = z.menge ? formatZahl(parseFloat(z.menge.toString().replace(',','.')) * faktor) : '';
-      aktiv.items.push({ id: neueId('i'), name: z.name, menge: menge, einheit: z.einheit || '', kategorie: 'sonstiges', erledigt: false });
+      const kandidat = aktiv.items.find(i => !i.erledigt && i.name.trim().toLowerCase() === z.name.trim().toLowerCase());
+      if (kandidat && versucheMengeZusammenfuehren(kandidat, menge, z.einheit || '')) {
+        kandidat.hinzugefuegtVon = herkunft;
+        zusammengefuehrt++;
+      } else {
+        aktiv.items.push({ id: neueId('i'), name: z.name, menge: menge, einheit: z.einheit || '', kategorie: 'sonstiges', erledigt: false, hinzugefuegtVon: herkunft });
+      }
     });
     speichern(KEY_EINKAUF_LISTEN, listen);
     if (!aktivId) localStorage.setItem(KEY_EINKAUF_AKTIV, aktiv.id);
-    alert(r.zutaten.length + ' Zutat(en) wurden zu „' + aktiv.name + '“ in Einkauf hinzugefügt.');
+    let meldung = r.zutaten.length + ' Zutat(en) wurden zu „' + aktiv.name + '“ in Einkauf hinzugefügt.';
+    if (zusammengefuehrt) meldung += ' (' + zusammengefuehrt + ' davon mit bereits vorhandenen Posten zusammengeführt.)';
+    alert(meldung);
   });
 
   // --- BEARBEITEN / NEU ---

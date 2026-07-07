@@ -26,6 +26,15 @@
 
   .listen-tabs { display: flex; gap: 4px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 8px; scrollbar-width: none; }
   .listen-tabs::-webkit-scrollbar { display: none; }
+  .ich-bin-reihe { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding-bottom: 4px; }
+  .ich-bin-label { font-size: 0.68rem; color: var(--sage); font-weight: 600; opacity: 0.8; }
+  .ich-bin-chip {
+    background: transparent; border: 1px solid #4a3a28; color: var(--sage); font-size: 0.7rem; font-weight: 600;
+    padding: 4px 11px; border-radius: var(--radius-pill); cursor: pointer;
+  }
+  .ich-bin-chip.active { color: var(--white); border-color: transparent; }
+  .hinzu-badge { font-size: 0.62rem; font-weight: 700; padding: 1px 7px; border-radius: var(--radius-pill); white-space: nowrap; }
+  .item-unterzeile { display: flex; align-items: center; gap: 6px; margin-top: 2px; }
   .listen-tab {
     flex: 0 0 auto; background: transparent; border: 1px solid #4a3a28; color: var(--sage);
     font-size: 0.78rem; font-weight: 600; padding: 6px 14px; border-radius: var(--radius-pill); cursor: pointer;
@@ -70,7 +79,8 @@
     display: flex; align-items: center; justify-content: center; font-size: 0.85rem; color: var(--white);
   }
   .item-zeile.erledigt .item-checkbox { background: var(--sage); border-color: var(--sage); }
-  .item-name { flex: 1; font-size: 0.9rem; font-weight: 500; min-width: 0; overflow-wrap: anywhere; }
+  .item-info { flex: 1; min-width: 0; }
+  .item-name { font-size: 0.9rem; font-weight: 500; min-width: 0; overflow-wrap: anywhere; }
   .item-zeile.erledigt .item-name { text-decoration: line-through; color: var(--bark); opacity: 0.65; }
   .item-menge { font-size: 0.75rem; color: var(--bark); font-weight: 600; white-space: nowrap; }
   .item-loeschen { background: none; border: none; color: var(--parchment); font-size: 1rem; padding: 2px 4px; cursor: pointer; }
@@ -115,6 +125,7 @@
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
+<script src="personen.js"></script>
 <script src="sync.js"></script>
 </head>
 <body>
@@ -125,6 +136,7 @@
     <button class="listen-icon-btn" id="btnListeVerwalten" title="Liste umbenennen/löschen">⚙️</button>
   </div>
   <div class="listen-tabs" id="listenTabs"></div>
+  <div class="ich-bin-reihe" id="ichBinReihe"></div>
 </header>
 
 <main>
@@ -171,6 +183,10 @@
     <div class="feld">
       <label>Kategorie</label>
       <div class="kategorie-reihe" id="itemKategorieReihe"></div>
+    </div>
+    <div class="feld">
+      <label>Hinzugefügt von</label>
+      <div class="kategorie-reihe" id="itemWerReihe"></div>
     </div>
     <div class="modal-btns">
       <button class="btn btn-secondary" id="btnItemAbbrechen">Abbrechen</button>
@@ -234,6 +250,16 @@
     { id: 'sonstiges',     label: 'Sonstiges',              icon: '📦', farbe: '#7d6339' },
   ];
   const EINHEIT_MUSTER = /^(stück|stk|packung(?:en)?|pack|dose(?:n)?|flasche(?:n)?|bund|kg|g|l|ml)$/i;
+  const PERSONEN = window.PLANER_PERSONEN || [
+    { id: 'mama', label: 'Mama', farbe: '#c46b41' },
+    { id: 'papa', label: 'Papa', farbe: '#5b8bb5' },
+  ];
+  const KEY_AKTUELLE_PERSON = 'einkauf_aktuellePerson';
+  function personInfo(id) {
+    if (!id) return null;
+    if (String(id).indexOf('rezept:') === 0) return { label: '🍳 ' + id.slice(7), farbe: '#7d6339' };
+    return PERSONEN.find(p => p.id === id) || null;
+  }
 
   function kategorieInfo(id) { return KATEGORIEN.find(k => k.id === id) || KATEGORIEN[KATEGORIEN.length-1]; }
   function neueId(prefix) { return prefix + Date.now() + Math.random().toString(36).slice(2,7); }
@@ -258,10 +284,31 @@
   if (!aktiveListeId || !listen.some(l => l.id === aktiveListeId)) aktiveListeId = listen[0].id;
   let favoriten = laden(KEY_FAVORITEN, {});
   let erledigtOffen = false;
+  let aktuellePerson = localStorage.getItem(KEY_AKTUELLE_PERSON);
+  if (!aktuellePerson || !PERSONEN.some(p => p.id === aktuellePerson)) {
+    aktuellePerson = (PERSONEN.find(p => p.id !== 'familie') || PERSONEN[0]).id;
+  }
 
   function aktiveListe() { return listen.find(l => l.id === aktiveListeId) || listen[0]; }
   function speichernListen() { speichern(KEY_LISTEN, listen); }
   function speichernFavoriten() { speichern(KEY_FAVORITEN, favoriten); }
+
+  function renderIchBinReihe() {
+    const box = document.getElementById('ichBinReihe');
+    box.innerHTML = '<span class="ich-bin-label">Ich bin:</span>';
+    PERSONEN.forEach(p => {
+      const chip = document.createElement('button');
+      chip.className = 'ich-bin-chip' + (p.id === aktuellePerson ? ' active' : '');
+      chip.textContent = p.label;
+      if (p.id === aktuellePerson) chip.style.background = p.farbe;
+      chip.addEventListener('click', () => {
+        aktuellePerson = p.id;
+        try { localStorage.setItem(KEY_AKTUELLE_PERSON, aktuellePerson); } catch (e) {}
+        renderIchBinReihe();
+      });
+      box.appendChild(chip);
+    });
+  }
 
   // --- Listen-Tabs ---
   function renderTabs() {
@@ -308,7 +355,12 @@
 
   function itemHinzufuegenAusFavorit(f) {
     const liste = aktiveListe();
-    liste.items.push({ id: neueId('i'), name: f.name, menge: '', einheit: '', kategorie: f.kategorie, erledigt: false });
+    const kandidat = findeZusammenfuehrbaresItem(liste, f.name);
+    if (kandidat && versucheMengeZusammenfuehren(kandidat, '', '')) {
+      kandidat.hinzugefuegtVon = aktuellePerson;
+    } else {
+      liste.items.push({ id: neueId('i'), name: f.name, menge: '', einheit: '', kategorie: f.kategorie, erledigt: false, hinzugefuegtVon: aktuellePerson });
+    }
     speichernListen();
     renderAlles();
   }
@@ -338,16 +390,50 @@
     return treffer ? treffer.kategorie : 'sonstiges';
   }
 
+  // --- Mengen zusammenführen: gleiche (noch offene) Produkte in derselben Liste addieren ---
+  function zahlOderNull(s) {
+    if (s === '' || s === undefined || s === null) return null;
+    const n = parseFloat(String(s).replace(',', '.'));
+    return isNaN(n) ? null : n;
+  }
+  function findeZusammenfuehrbaresItem(liste, name) {
+    const normName = name.trim().toLowerCase();
+    return liste.items.find(i => !i.erledigt && i.name.trim().toLowerCase() === normName);
+  }
+  function versucheMengeZusammenfuehren(kandidat, neueMenge, neueEinheit) {
+    const kEinheit = (kandidat.einheit || '').trim().toLowerCase();
+    const nEinheit = (neueEinheit || '').trim().toLowerCase();
+    if (kEinheit !== nEinheit) return false; // unterschiedliche Einheiten -> nicht eindeutig zusammenführbar
+    if (kEinheit === '') {
+      // Keine Einheit angegeben: Menge als reine Stückzahl behandeln (leer = 1 Stück)
+      const kZahl = zahlOderNull(kandidat.menge) ?? 1;
+      const nZahl = zahlOderNull(neueMenge) ?? 1;
+      kandidat.menge = String(kZahl + nZahl);
+      return true;
+    }
+    const kZahl = zahlOderNull(kandidat.menge);
+    const nZahl = zahlOderNull(neueMenge);
+    if (kZahl === null || nZahl === null) return false;
+    kandidat.menge = String(Math.round((kZahl + nZahl) * 100) / 100);
+    return true;
+  }
+
   function itemHinzufuegen() {
     const eingabe = document.getElementById('fSchnellEingabe');
     const text = eingabe.value.trim();
     if (!text) return;
     const { menge, einheit, name } = parseSchnellEingabe(text);
-    const kategorie = schaetzeKategorie(name);
-    const item = { id: neueId('i'), name, menge, einheit, kategorie, erledigt: false };
-    aktiveListe().items.push(item);
+    const liste = aktiveListe();
+    const kandidat = findeZusammenfuehrbaresItem(liste, name);
+    if (kandidat && versucheMengeZusammenfuehren(kandidat, menge, einheit)) {
+      kandidat.hinzugefuegtVon = aktuellePerson;
+    } else {
+      const kategorie = schaetzeKategorie(name);
+      liste.items.push({ id: neueId('i'), name, menge, einheit, kategorie, erledigt: false, hinzugefuegtVon: aktuellePerson });
+    }
     const key = name.toLowerCase();
-    favoriten[key] = { name, kategorie, anzahl: (favoriten[key]?.anzahl || 0) + 1 };
+    const kategorieFuerFavorit = kandidat ? kandidat.kategorie : schaetzeKategorie(name);
+    favoriten[key] = { name, kategorie: kategorieFuerFavorit, anzahl: (favoriten[key]?.anzahl || 0) + 1 };
     speichernListen();
     speichernFavoriten();
     eingabe.value = '';
@@ -362,9 +448,12 @@
     const zeile = document.createElement('div');
     zeile.className = 'item-zeile' + (item.erledigt ? ' erledigt' : '');
     const mengeText = [item.menge, item.einheit].filter(Boolean).join(' ');
+    const person = personInfo(item.hinzugefuegtVon);
+    const badge = person ? '<span class="hinzu-badge" style="background:' + person.farbe + '22; color:' + person.farbe + ';">' + escapeHtml(person.label) + '</span>' : '';
     zeile.innerHTML =
       '<span class="item-checkbox">' + (item.erledigt ? '✓' : '') + '</span>' +
-      '<span class="item-name">' + escapeHtml(item.name) + '</span>' +
+      '<div class="item-info"><span class="item-name">' + escapeHtml(item.name) + '</span>' +
+      (badge ? '<div class="item-unterzeile">' + badge + '</div>' : '') + '</div>' +
       (mengeText ? '<span class="item-menge">' + escapeHtml(mengeText) + '</span>' : '') +
       '<button class="item-loeschen" aria-label="Löschen">✕</button>';
     zeile.querySelector('.item-checkbox').addEventListener('click', (e) => {
@@ -443,12 +532,30 @@
       reihe.appendChild(opt);
     });
   }
+  function itemWerReiheRendern(ausgewaehlt) {
+    const reihe = document.getElementById('itemWerReihe');
+    reihe.innerHTML = '';
+    PERSONEN.forEach(p => {
+      const opt = document.createElement('div');
+      opt.className = 'kategorie-opt' + (p.id === ausgewaehlt ? ' aktiv' : '');
+      opt.textContent = p.label;
+      opt.dataset.id = p.id;
+      if (p.id === ausgewaehlt) opt.style.background = p.farbe;
+      opt.addEventListener('click', () => {
+        reihe.querySelectorAll('.kategorie-opt').forEach(o => { o.classList.remove('aktiv'); o.style.background = ''; });
+        opt.classList.add('aktiv');
+        opt.style.background = p.farbe;
+      });
+      reihe.appendChild(opt);
+    });
+  }
   function itemModalOeffnen(item) {
     bearbeitetesItemId = item.id;
     document.getElementById('fItemName').value = item.name;
     document.getElementById('fItemMenge').value = item.menge || '';
     document.getElementById('fItemEinheit').value = item.einheit || '';
     itemKategorieReiheRendern(item.kategorie);
+    itemWerReiheRendern(item.hinzugefuegtVon && item.hinzugefuegtVon.indexOf('rezept:') !== 0 ? item.hinzugefuegtVon : null);
     document.getElementById('modalItem').classList.add('zeigen');
   }
   document.getElementById('btnItemAbbrechen').addEventListener('click', () => document.getElementById('modalItem').classList.remove('zeigen'));
@@ -460,10 +567,12 @@
     const name = document.getElementById('fItemName').value.trim();
     if (!name) { alert('Bitte einen Namen eingeben.'); return; }
     const gewaehlt = document.querySelector('#itemKategorieReihe .kategorie-opt.aktiv');
+    const gewaehltWer = document.querySelector('#itemWerReihe .kategorie-opt.aktiv');
     item.name = name;
     item.menge = document.getElementById('fItemMenge').value.trim();
     item.einheit = document.getElementById('fItemEinheit').value.trim();
     item.kategorie = gewaehlt ? gewaehlt.dataset.id : 'sonstiges';
+    if (gewaehltWer) item.hinzugefuegtVon = gewaehltWer.dataset.id;
     const key = name.toLowerCase();
     favoriten[key] = { name, kategorie: item.kategorie, anzahl: (favoriten[key]?.anzahl || 0) + 1 };
     speichernListen();
@@ -528,6 +637,7 @@
     renderErledigt();
   }
 
+  renderIchBinReihe();
   renderAlles();
 
   if (window.PlanerSync) {
