@@ -85,6 +85,43 @@
 
   .leer-hinweis { text-align: center; color: var(--bark); font-size: 0.85rem; padding: 30px 16px; opacity: 0.75; }
 
+  /* SCHALTER (Toggle) */
+  .schalter { position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0; }
+  .schalter input { opacity: 0; width: 0; height: 0; }
+  .schalter-kugel { position: absolute; inset: 0; background: var(--parchment); border-radius: 24px; cursor: pointer; transition: background 0.15s; }
+  .schalter-kugel::before { content: ''; position: absolute; width: 18px; height: 18px; left: 3px; top: 3px; background: var(--white); border-radius: 50%; transition: transform 0.15s; }
+  .schalter input:checked + .schalter-kugel { background: var(--moss); }
+  .schalter input:checked + .schalter-kugel::before { transform: translateX(20px); }
+
+  /* MEDIKAMENTE */
+  .med-zeile {
+    display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--parchment);
+  }
+  .med-zeile:last-child { border-bottom: none; }
+  .med-checkbox {
+    width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--sage); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 0.85rem; color: var(--white); cursor: pointer;
+  }
+  .med-zeile.erledigt .med-checkbox { background: var(--sage); border-color: var(--sage); }
+  .med-info { flex: 1; min-width: 0; cursor: pointer; }
+  .med-name { font-size: 0.88rem; font-weight: 600; }
+  .med-zeile.erledigt .med-name { text-decoration: line-through; color: var(--bark); opacity: 0.65; }
+  .med-hinweis { font-size: 0.7rem; color: var(--bark); margin-top: 1px; }
+  .med-loeschen { background: none; border: none; color: var(--parchment); font-size: 1rem; cursor: pointer; padding: 2px 4px; }
+  .med-loeschen:hover { color: var(--terracotta-text); }
+
+  /* WASSER-ERINNERUNG ZEITEN */
+  .zeiten-reihe { display: flex; gap: 6px; flex-wrap: wrap; margin: 10px 0; }
+  .zeit-chip {
+    background: var(--cream); border: 1px solid var(--parchment); border-radius: var(--radius-pill);
+    font-size: 0.78rem; font-weight: 600; padding: 5px 8px 5px 12px; display: flex; align-items: center; gap: 6px;
+  }
+  .zeit-chip button { background: none; border: none; color: var(--bark); font-size: 0.85rem; cursor: pointer; padding: 0; }
+  .zeiten-hinzufuegen { display: flex; gap: 8px; }
+  .zeiten-hinzufuegen input { flex: 1; padding: 8px 10px; border: 1px solid var(--parchment); border-radius: var(--radius-sm); font-size: 0.85rem; }
+  .zeiten-hinzufuegen button { background: var(--moss); color: var(--leaf); border: none; border-radius: var(--radius-sm); padding: 0 14px; font-size: 0.78rem; font-weight: 700; cursor: pointer; }
+  .hinweis-klein { font-size: 0.72rem; color: var(--bark); opacity: 0.8; margin-top: 10px; line-height: 1.4; }
+
   /* RECHNER */
   .rechner-zeile { display: flex; gap: 10px; margin-bottom: 10px; }
   .rechner-feld { flex: 1; }
@@ -117,6 +154,33 @@
   .uebungs-liste li { padding: 8px 10px; background: var(--cream); border-radius: var(--radius-sm); margin-bottom: 6px; font-size: 0.85rem; }
   .uebungs-liste li .ue-name { font-weight: 700; }
   .uebungs-liste li .ue-hinweis { font-size: 0.72rem; color: var(--bark); margin-top: 2px; }
+
+  /* ERINNERUNGEN */
+  .benachrichtigung-status { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .benachrichtigung-status .text { font-size: 0.82rem; color: var(--bark); flex: 1; }
+  .erinnerungs-liste .item-zeile2 {
+    display: flex; align-items: center; gap: 10px; background: var(--white); border-radius: var(--radius-md);
+    padding: 10px 12px; margin-bottom: 6px; box-shadow: var(--shadow-soft);
+  }
+  .erinnerungs-checkbox {
+    width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--sage); flex-shrink: 0; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; font-size: 0.9rem; color: var(--white);
+  }
+  .erinnerungs-checkbox.erledigt { background: var(--sage); border-color: var(--sage); }
+  .erinnerungs-info { flex: 1; min-width: 0; cursor: pointer; }
+  .erinnerungs-info .name { font-size: 0.88rem; font-weight: 600; }
+  .erinnerungs-info.erledigt .name { text-decoration: line-through; opacity: 0.6; }
+  .erinnerungs-info .meta { font-size: 0.7rem; color: var(--bark); margin-top: 1px; }
+  .add-eintrag-btn {
+    width: 100%; background: var(--white); border: 1px dashed var(--sage); color: var(--moss);
+    border-radius: var(--radius-md); padding: 10px; font-size: 0.85rem; font-weight: 700; cursor: pointer; margin: 12px 0;
+  }
+  .modus-reihe { display: flex; gap: 6px; margin-bottom: 10px; }
+  .modus-opt { flex: 1; padding: 8px; text-align: center; border-radius: var(--radius-sm); border: 1px solid var(--parchment); background: var(--white); color: var(--bark); font-size: 0.8rem; font-weight: 600; cursor: pointer; }
+  .modus-opt.aktiv { background: var(--moss); color: var(--leaf); border-color: var(--moss); }
+  .zeiten-liste-eingabe { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
+  .zeit-chip { background: var(--parchment); border-radius: var(--radius-pill); padding: 4px 8px 4px 12px; font-size: 0.8rem; display: flex; align-items: center; gap: 6px; }
+  .zeit-chip button { background: none; border: none; color: var(--bark); cursor: pointer; font-size: 0.8rem; }
 
   .modal-bg { position: fixed; inset: 0; background: rgba(42,32,22,0.45); display: none; align-items: flex-end; justify-content: center; z-index: 100; }
   .modal-bg.zeigen { display: flex; }
@@ -152,6 +216,7 @@
     <button id="btnViewRechner" role="tab" aria-selected="false">🧮 Rechner</button>
     <button id="btnViewKraft" role="tab" aria-selected="false">💪 Kraft</button>
     <button id="btnViewDehnen" role="tab" aria-selected="false">🧘 Dehnen</button>
+    <button id="btnViewErinnerungen" role="tab" aria-selected="false">💊 Erinnerungen</button>
   </div>
 </header>
 
@@ -184,6 +249,29 @@
     <button class="add-sport-btn" id="btnSportHinzufuegen">＋ Sport-Einheit erfassen</button>
 
     <div class="sport-liste" id="sportHeuteListe"></div>
+
+    <div class="karte">
+      <h3>💊 Medikamente &amp; Vitamine</h3>
+      <div id="medListeHeute"></div>
+      <button class="add-sport-btn" id="btnMedHinzufuegen" style="margin-top:8px;">＋ Medikament/Vitamin hinzufügen</button>
+    </div>
+
+    <div class="karte">
+      <h3>🔔 Wasser-Erinnerung</h3>
+      <div class="metrik-zeile">
+        <span class="metrik-label">Erinnerungen aktiv</span>
+        <label class="schalter">
+          <input type="checkbox" id="fWasserErinnerungAktiv">
+          <span class="schalter-kugel"></span>
+        </label>
+      </div>
+      <div class="zeiten-reihe" id="wasserZeitenReihe"></div>
+      <div class="zeiten-hinzufuegen">
+        <input type="time" id="fNeueWasserzeit" value="12:00">
+        <button type="button" id="btnWasserzeitHinzufuegen">＋ Uhrzeit</button>
+      </div>
+      <div class="hinweis-klein">Funktioniert, solange die App im Hintergrund geöffnet ist (Tab oder installierte App). Bei vollständig geschlossener App/Browser hängt es vom Handy ab, ob die Erinnerung noch ankommt – auf eigenem Gerät kurz ausprobieren.</div>
+    </div>
   </section>
 
   <section id="ansichtVerlauf" style="display:none;">
@@ -254,7 +342,66 @@
       ℹ️ Dehnungen immer sanft und ohne Schmerzen ausführen, nie wippen oder ruckartig dehnen. Bei anhaltenden Verspannungen, Rückenschmerzen oder Haltungsproblemen lohnt sich zusätzlich der Rat einer Ärztin/eines Arztes oder einer Physiotherapie – diese Übersicht ersetzt keine individuelle Behandlung.
     </div>
   </section>
+
+  <section id="ansichtErinnerungen" style="display:none;">
+    <div class="karte">
+      <div class="benachrichtigung-status">
+        <span class="text" id="benachrichtigungText">Benachrichtigungen sind noch nicht aktiviert.</span>
+        <button class="btn btn-primary" id="btnBenachrichtigungAktivieren" style="flex:0 0 auto; padding:8px 14px;">Aktivieren</button>
+      </div>
+    </div>
+
+    <div class="unterliste-titel">Heutige Checkliste</div>
+    <div class="erinnerungs-liste" id="erinnerungsListe"></div>
+    <button class="add-eintrag-btn" id="btnErinnerungHinzufuegen">＋ Erinnerung hinzufügen</button>
+
+    <div class="disclaimer-box">
+      ℹ️ Benachrichtigungen funktionieren zuverlässig, solange die App geöffnet ist bzw. kürzlich geöffnet war. Für garantierte Erinnerungen auch bei komplett geschlossener App eignen sich zusätzlich die Wecker-/Erinnerungsfunktion deines Handys.
+    </div>
+  </section>
 </main>
+
+<div class="modal-bg" id="modalErinnerung">
+  <div class="modal">
+    <h2 id="erinnerungModalTitel">Neue Erinnerung</h2>
+    <div class="feld">
+      <label for="fErinnerungName">Name</label>
+      <input type="text" id="fErinnerungName" placeholder="z.B. Vitamin D, Blutdrucktablette, Wasser trinken">
+    </div>
+    <div class="feld">
+      <label>Art</label>
+      <div class="typ-reihe" id="erinnerungTypReihe"></div>
+    </div>
+    <div class="feld">
+      <label>Zeitplan</label>
+      <div class="modus-reihe">
+        <div class="modus-opt" data-modus="zeiten">Feste Uhrzeiten</div>
+        <div class="modus-opt" data-modus="intervall">Alle X Stunden</div>
+      </div>
+    </div>
+    <div id="modusZeitenBlock">
+      <div class="zeiten-liste-eingabe" id="zeitenListeEingabe"></div>
+      <div class="zeile">
+        <div class="feld"><input type="time" id="fNeueZeit" value="08:00"></div>
+        <button type="button" class="btn btn-secondary" id="btnZeitHinzufuegen" style="flex:0 0 auto; padding:9px 14px;">+ Uhrzeit</button>
+      </div>
+    </div>
+    <div id="modusIntervallBlock" style="display:none;">
+      <div class="zeile">
+        <div class="rechner-feld"><label for="fIntervallStunden">Alle X Stunden</label><input type="number" id="fIntervallStunden" min="1" max="12" value="2"></div>
+        <div class="rechner-feld"><label for="fIntervallStart">Von</label><input type="time" id="fIntervallStart" value="08:00"></div>
+        <div class="rechner-feld"><label for="fIntervallEnde">Bis</label><input type="time" id="fIntervallEnde" value="20:00"></div>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnErinnerungAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnErinnerungSpeichern">Speichern</button>
+    </div>
+    <div class="modal-btns" id="erinnerungLoeschZeile" style="display:none;">
+      <button class="btn btn-danger" id="btnErinnerungLoeschen">Erinnerung löschen</button>
+    </div>
+  </div>
+</div>
 
 <div class="modal-bg" id="modalMuskel">
   <div class="modal">
@@ -291,6 +438,24 @@
     <div class="modal-btns">
       <button class="btn btn-secondary" id="btnSportAbbrechen">Abbrechen</button>
       <button class="btn btn-primary" id="btnSportSpeichern">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalMed">
+  <div class="modal">
+    <h2>Medikament/Vitamin</h2>
+    <div class="feld">
+      <label for="fMedName">Name</label>
+      <input type="text" id="fMedName" placeholder="z.B. Vitamin D, Blutdrucktablette">
+    </div>
+    <div class="feld">
+      <label for="fMedHinweis">Hinweis (optional)</label>
+      <input type="text" id="fMedHinweis" placeholder="z.B. 1 Tablette, morgens">
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnMedAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnMedSpeichern">Speichern</button>
     </div>
   </div>
 </div>
@@ -376,6 +541,8 @@
     document.getElementById('wasserWert').textContent = eintrag.wasser || 0;
     renderStimmungReihe(eintrag.stimmung);
     renderSportHeuteListe();
+    renderMedListeHeute();
+    renderWasserErinnerungUI();
   }
 
   function renderStimmungReihe(ausgewaehlt) {
@@ -442,6 +609,128 @@
     const heutige = sportEinheiten.filter(s => s.person === aktivePerson && s.datum === heuteISO());
     heutige.forEach(s => box.appendChild(sportZeile(s)));
   }
+
+  // ============================================================
+  // MEDIKAMENTE & VITAMINE (tägliche Checkliste)
+  // ============================================================
+  const KEY_MEDIKAMENTE = 'gesundheit_medikamente';
+  const KEY_MED_ERLEDIGT = 'gesundheit_medErledigt';
+  let medikamente = laden(KEY_MEDIKAMENTE, []); // [{id, person, name, hinweis}]
+  let medErledigt = laden(KEY_MED_ERLEDIGT, {}); // { "datum|person|medId": true }
+
+  function medSchluessel(medId) { return heuteISO() + '|' + aktivePerson + '|' + medId; }
+
+  function renderMedListeHeute() {
+    const box = document.getElementById('medListeHeute');
+    box.innerHTML = '';
+    const eigene = medikamente.filter(m => m.person === aktivePerson);
+    if (!eigene.length) { box.innerHTML = '<div class="chart-leer">Noch keine Einträge – z.B. tägliche Vitamine oder Medikamente hinzufügen.</div>'; return; }
+    eigene.forEach((m) => {
+      const erledigt = !!medErledigt[medSchluessel(m.id)];
+      const zeile = document.createElement('div');
+      zeile.className = 'med-zeile' + (erledigt ? ' erledigt' : '');
+      zeile.innerHTML =
+        '<span class="med-checkbox">' + (erledigt ? '✓' : '') + '</span>' +
+        '<div class="med-info"><div class="med-name">' + escapeHtml(m.name) + '</div>' +
+        (m.hinweis ? '<div class="med-hinweis">' + escapeHtml(m.hinweis) + '</div>' : '') + '</div>' +
+        '<button class="med-loeschen" aria-label="Löschen">✕</button>';
+      zeile.querySelector('.med-info').addEventListener('click', () => medToggle(m.id));
+      zeile.querySelector('.med-checkbox').addEventListener('click', () => medToggle(m.id));
+      zeile.querySelector('.med-loeschen').addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!confirm('„' + m.name + '" wirklich dauerhaft entfernen?')) return;
+        medikamente = medikamente.filter(x => x.id !== m.id);
+        speichern(KEY_MEDIKAMENTE, medikamente);
+        renderMedListeHeute();
+      });
+      box.appendChild(zeile);
+    });
+  }
+  function medToggle(medId) {
+    const key = medSchluessel(medId);
+    medErledigt[key] = !medErledigt[key];
+    speichern(KEY_MED_ERLEDIGT, medErledigt);
+    renderMedListeHeute();
+  }
+
+  document.getElementById('btnMedHinzufuegen').addEventListener('click', () => {
+    document.getElementById('fMedName').value = '';
+    document.getElementById('fMedHinweis').value = '';
+    document.getElementById('modalMed').classList.add('zeigen');
+    document.getElementById('fMedName').focus();
+  });
+  document.getElementById('btnMedAbbrechen').addEventListener('click', () => document.getElementById('modalMed').classList.remove('zeigen'));
+  document.getElementById('modalMed').addEventListener('click', (e) => { if (e.target.id === 'modalMed') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnMedSpeichern').addEventListener('click', () => {
+    const name = document.getElementById('fMedName').value.trim();
+    if (!name) { alert('Bitte einen Namen eingeben.'); return; }
+    medikamente.push({ id: neueId('med'), person: aktivePerson, name: name, hinweis: document.getElementById('fMedHinweis').value.trim() });
+    speichern(KEY_MEDIKAMENTE, medikamente);
+    document.getElementById('modalMed').classList.remove('zeigen');
+    renderMedListeHeute();
+  });
+
+  // ============================================================
+  // WASSER-ERINNERUNG (Browser-Benachrichtigungen, geräte-lokal – wird NICHT synchronisiert,
+  // da jedes Gerät seine eigenen Erinnerungszeiten hat)
+  // ============================================================
+  const KEY_WASSER_ERINNERUNG = 'gesundheit_wasserErinnerung';
+  function ladeWasserErinnerung() {
+    return laden(KEY_WASSER_ERINNERUNG, { aktiv: false, zeiten: ['10:00', '12:30', '15:00', '17:30'] });
+  }
+  function speichereWasserErinnerung(einst) {
+    try { localStorage.setItem(KEY_WASSER_ERINNERUNG, JSON.stringify(einst)); } catch (e) {}
+  }
+
+  function renderWasserErinnerungUI() {
+    const einst = ladeWasserErinnerung();
+    document.getElementById('fWasserErinnerungAktiv').checked = !!einst.aktiv;
+    const box = document.getElementById('wasserZeitenReihe');
+    box.innerHTML = '';
+    einst.zeiten.slice().sort().forEach((zeit) => {
+      const chip = document.createElement('span');
+      chip.className = 'zeit-chip';
+      chip.innerHTML = '🕐 ' + zeit + ' <button type="button" aria-label="Entfernen">✕</button>';
+      chip.querySelector('button').addEventListener('click', () => {
+        const e2 = ladeWasserErinnerung();
+        e2.zeiten = e2.zeiten.filter(z => z !== zeit);
+        speichereWasserErinnerung(e2);
+        renderWasserErinnerungUI();
+      });
+      box.appendChild(chip);
+    });
+  }
+
+  document.getElementById('fWasserErinnerungAktiv').addEventListener('change', (e) => {
+    const einst = ladeWasserErinnerung();
+    if (e.target.checked && (!('Notification' in window))) {
+      alert('Dein Browser unterstützt leider keine Benachrichtigungen.');
+      e.target.checked = false;
+      return;
+    }
+    if (e.target.checked && Notification.permission !== 'granted') {
+      Notification.requestPermission().then((erlaubnis) => {
+        if (erlaubnis !== 'granted') {
+          alert('Ohne Erlaubnis für Benachrichtigungen kann die Erinnerung nicht funktionieren.');
+          e.target.checked = false;
+        }
+        einst.aktiv = e.target.checked;
+        speichereWasserErinnerung(einst);
+      });
+      return;
+    }
+    einst.aktiv = e.target.checked;
+    speichereWasserErinnerung(einst);
+  });
+
+  document.getElementById('btnWasserzeitHinzufuegen').addEventListener('click', () => {
+    const zeit = document.getElementById('fNeueWasserzeit').value;
+    if (!zeit) return;
+    const einst = ladeWasserErinnerung();
+    if (einst.zeiten.indexOf(zeit) === -1) einst.zeiten.push(zeit);
+    speichereWasserErinnerung(einst);
+    renderWasserErinnerungUI();
+  });
 
   // --- SPORT-MODAL ---
   let ausgewaehlterTyp = 'laufen';
@@ -824,11 +1113,13 @@
   if (window.PlanerSync) {
     window._sync = window.PlanerSync.starteSync({
       modul: 'gesundheit',
-      keys: [KEY_TAGESWERTE, KEY_SPORT, KEY_RECHNER],
+      keys: [KEY_TAGESWERTE, KEY_SPORT, KEY_RECHNER, KEY_MEDIKAMENTE, KEY_MED_ERLEDIGT],
       onRemoteChange: function () {
         tageswerte = laden(KEY_TAGESWERTE, tageswerte);
         sportEinheiten = laden(KEY_SPORT, sportEinheiten);
         rechnerDaten = laden(KEY_RECHNER, rechnerDaten);
+        medikamente = laden(KEY_MEDIKAMENTE, medikamente);
+        medErledigt = laden(KEY_MED_ERLEDIGT, medErledigt);
         renderAlles();
         if (aktiveAnsicht === 'rechner') rechnerFelderLaden();
       },

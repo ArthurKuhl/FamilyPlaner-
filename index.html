@@ -296,6 +296,49 @@
       e.target.value = '';
     });
 
+    // ============================================================
+    // WASSER-ERINNERUNG: periodische Prüfung (läuft dauerhaft in der Shell,
+    // unabhängig davon welcher Bereich gerade angezeigt wird)
+    // ============================================================
+    const KEY_WASSER_ERINNERUNG = 'gesundheit_wasserErinnerung';
+    const KEY_WASSER_LETZTE = 'gesundheit_wasserLetzteAusloesung';
+
+    function pruefeWasserErinnerung() {
+      let einstellung;
+      try { einstellung = JSON.parse(localStorage.getItem(KEY_WASSER_ERINNERUNG) || 'null'); } catch (e) { einstellung = null; }
+      if (!einstellung || !einstellung.aktiv || !Array.isArray(einstellung.zeiten) || !einstellung.zeiten.length) return;
+      if (!('Notification' in window) || Notification.permission !== 'granted') return;
+
+      const jetzt = new Date();
+      const heuteISO = jetzt.getFullYear() + '-' + String(jetzt.getMonth() + 1).padStart(2, '0') + '-' + String(jetzt.getDate()).padStart(2, '0');
+      const aktuelleZeit = String(jetzt.getHours()).padStart(2, '0') + ':' + String(jetzt.getMinutes()).padStart(2, '0');
+
+      let letzte;
+      try { letzte = JSON.parse(localStorage.getItem(KEY_WASSER_LETZTE) || 'null'); } catch (e) { letzte = null; }
+      if (!letzte || letzte.datum !== heuteISO) letzte = { datum: heuteISO, ausgeloest: [] };
+
+      let geaendert = false;
+      einstellung.zeiten.forEach((zeit) => {
+        if (zeit === aktuelleZeit && letzte.ausgeloest.indexOf(zeit) === -1) {
+          letzte.ausgeloest.push(zeit);
+          geaendert = true;
+          const anzeigen = (reg) => reg.showNotification('💧 Zeit zu trinken!', {
+            body: 'Denk an ein Glas Wasser.', icon: 'icon-192.png', badge: 'icon-192.png', tag: 'wasser-erinnerung-' + zeit,
+          });
+          if (navigator.serviceWorker && navigator.serviceWorker.ready) {
+            navigator.serviceWorker.ready.then(anzeigen).catch(() => {
+              try { new Notification('💧 Zeit zu trinken!', { body: 'Denk an ein Glas Wasser.', icon: 'icon-192.png' }); } catch (e2) {}
+            });
+          } else {
+            try { new Notification('💧 Zeit zu trinken!', { body: 'Denk an ein Glas Wasser.', icon: 'icon-192.png' }); } catch (e2) {}
+          }
+        }
+      });
+      if (geaendert) { try { localStorage.setItem(KEY_WASSER_LETZTE, JSON.stringify(letzte)); } catch (e) {} }
+    }
+    setInterval(pruefeWasserErinnerung, 30000);
+    pruefeWasserErinnerung();
+
     // Service Worker registrieren (nur die Shell macht das, nicht die einzelnen Module)
     // Funktioniert nur über http(s):// oder localhost, nicht über file://
     if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
