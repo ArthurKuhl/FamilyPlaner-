@@ -107,6 +107,7 @@
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
+<script src="personen.js"></script>
 <script src="sync.js"></script>
 </head>
 <body>
@@ -210,7 +211,7 @@
   <script>
   (function(){
     const STORAGE_KEY = 'termine_events_v1';
-    const WER_OPTIONEN = [
+    const WER_OPTIONEN = window.PLANER_PERSONEN || [
       { id: 'familie', label: 'Familie', farbe: '#4f6f45' },
       { id: 'mama',    label: 'Mama',    farbe: '#c46b41' },
       { id: 'papa',    label: 'Papa',    farbe: '#5b8bb5' },

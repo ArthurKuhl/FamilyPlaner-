@@ -76,6 +76,7 @@
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
+<script src="personen.js"></script>
 <script src="sync.js"></script>
 </head>
 <body>
@@ -147,12 +148,11 @@
   const KEY_SPIELE = 'gaming_spiele';
   const KEY_AKTIVE_PERSON = 'gaming_personFilter';
 
-  const PERSONEN = [
-    { id: 'alle',    label: 'Alle' },
+  const PERSONEN = [{ id: 'alle', label: 'Alle' }].concat(window.PLANER_PERSONEN || [
     { id: 'mama',    label: 'Mama' },
     { id: 'papa',    label: 'Papa' },
     { id: 'familie', label: 'Familie' },
-  ];
+  ]);
   const PLATTFORMEN = [
     { id: 'pc',          label: 'PC',          icon: '🖥️', farbe: '#5b8bb5' },
     { id: 'playstation', label: 'PlayStation',  icon: '🎮', farbe: '#4f6f45' },

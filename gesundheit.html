@@ -203,6 +203,7 @@
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
+<script src="personen.js"></script>
 <script src="sync.js"></script>
 </head>
 <body>
@@ -467,7 +468,7 @@
   const KEY_SPORT = 'gesundheit_sport';
   const KEY_AKTIVE_PERSON = 'gesundheit_aktivePerson';
 
-  const PERSONEN = [
+  const PERSONEN = window.PLANER_PERSONEN || [
     { id: 'mama', label: 'Mama' },
     { id: 'papa', label: 'Papa' },
     { id: 'familie', label: 'Familie' },

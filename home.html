@@ -48,6 +48,7 @@
   .garten-kachel { border-top: 3px solid var(--moss); }
   .garten-hinweis { font-size: 0.8rem; color: var(--bark); line-height: 1.4; }
 </style>
+<script src="personen.js"></script>
 </head>
 <body>
 
@@ -115,7 +116,7 @@
   // ============================================================
   // TERMINE HEUTE
   // ============================================================
-  const WER_OPTIONEN = [
+  const WER_OPTIONEN = window.PLANER_PERSONEN || [
     { id: 'familie', label: 'Familie', farbe: '#4f6f45' },
     { id: 'mama',    label: 'Mama',    farbe: '#c46b41' },
     { id: 'papa',    label: 'Papa',    farbe: '#5b8bb5' },
@@ -190,7 +191,9 @@
     { id: 'schwimmen', label: 'Schwimmen', icon: '🏊' }, { id: 'wandern', label: 'Wandern', icon: '🥾' },
     { id: 'sonstiges', label: 'Sonstiges', icon: '🤸' },
   ];
-  const PERSONEN_LABEL = { mama: 'Mama', papa: 'Papa', familie: 'Familie' };
+  const PERSONEN_LABEL = {};
+  (window.PLANER_PERSONEN || []).forEach(p => { PERSONEN_LABEL[p.id] = p.label; });
+  if (!Object.keys(PERSONEN_LABEL).length) Object.assign(PERSONEN_LABEL, { mama: 'Mama', papa: 'Papa', familie: 'Familie' });
   function typInfo(id) { return SPORT_TYPEN.find(t => t.id === id) || SPORT_TYPEN[SPORT_TYPEN.length - 1]; }
 
   function renderSport() {
