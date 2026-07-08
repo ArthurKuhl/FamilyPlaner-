@@ -1932,7 +1932,7 @@ function renderSowingHint(plantName) {
 // ==================== SORTENDATENBANK ====================
 let varietyDB = {}; // { plantName: [ {id,name,rating,source,harvest,notes} ] }
 function loadVarieties() {
-  try { varietyDB = JSON.parse(localStorage.getItem('gartenplaner_varieties') || '{}'); } catch(e) { varietyDB = {}; }
+  try { varietyDB = JSON.parse(localStorage.getItem('gartenplaner_varieties') || '{}') || {}; } catch(e) { varietyDB = {}; }
 }
 function saveVarieties() {
   try { localStorage.setItem('gartenplaner_varieties', JSON.stringify(varietyDB)); }
@@ -2721,7 +2721,7 @@ function openLightbox(src) {
 // ==================== BEET-VORLAGEN (TEMPLATES) ====================
 let bedTemplates = [];
 function loadBedTemplates() {
-  try { bedTemplates = JSON.parse(localStorage.getItem('gartenplaner_bedTemplates') || '[]'); }
+  try { bedTemplates = JSON.parse(localStorage.getItem('gartenplaner_bedTemplates') || '[]') || []; }
   catch(e) { bedTemplates = []; }
 }
 function saveBedTemplatesStorage() {
@@ -3489,10 +3489,12 @@ function importData(e) {
 function loadAllData() {
   try {
     const raw = localStorage.getItem('gartenplaner_v3');
-    if (raw) {
+    if (raw && raw !== 'null') {
       const parsed = JSON.parse(raw);
-      gardens = parsed.gardens || {};
-      currentGardenId = parsed.currentGardenId || null;
+      if (parsed && typeof parsed === 'object') {
+        gardens = parsed.gardens || {};
+        currentGardenId = parsed.currentGardenId || null;
+      }
     }
   } catch(e) {}
   // Migrate from v2
@@ -5072,7 +5074,7 @@ function dismissBackupBanner(exported) {
 // ==================== SAATGUTINVENTAR ====================
 let seedInventory = [];
 function loadSeedInventory() {
-  try { seedInventory = JSON.parse(localStorage.getItem('gartenplaner_seedInventory') || '[]'); }
+  try { seedInventory = JSON.parse(localStorage.getItem('gartenplaner_seedInventory') || '[]') || []; }
   catch(e) { seedInventory = []; }
 }
 function saveSeedInventoryData() {
@@ -5199,7 +5201,7 @@ function deleteSeedEntry(id) {
 let costEntries = [];
 let costYear = 'all';
 function loadCosts() {
-  try { costEntries = JSON.parse(localStorage.getItem('gartenplaner_costs') || '[]'); }
+  try { costEntries = JSON.parse(localStorage.getItem('gartenplaner_costs') || '[]') || []; }
   catch(e) { costEntries = []; }
 }
 // Aggregiert Erntemengen (aktueller Garten) für ein Jahr ('all' = alle Jahre) auf kg,
@@ -5357,7 +5359,7 @@ function deleteCostEntry(id) {
 let pantryEntries = [];
 let pantryFilter = 'vorhanden';
 function loadPantry() {
-  try { pantryEntries = JSON.parse(localStorage.getItem('gartenplaner_pantry') || '[]'); }
+  try { pantryEntries = JSON.parse(localStorage.getItem('gartenplaner_pantry') || '[]') || []; }
   catch(e) { pantryEntries = []; }
 }
 function savePantry() {
@@ -5651,7 +5653,7 @@ const SHOP_CATEGORIES = [
 ];
 let shopEntries = [];
 function loadShops() {
-  try { shopEntries = JSON.parse(localStorage.getItem('gartenplaner_shops') || '[]'); }
+  try { shopEntries = JSON.parse(localStorage.getItem('gartenplaner_shops') || '[]') || []; }
   catch(e) { shopEntries = []; }
 }
 function saveShops() {

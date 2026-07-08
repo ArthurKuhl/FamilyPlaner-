@@ -230,8 +230,14 @@
   function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
   function laden(key, fallback) {
-    try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; }
-    catch (e) { console.warn('Kochen: Laden fehlgeschlagen', key, e); return fallback; }
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) return fallback;
+      const geparst = JSON.parse(raw);
+      // Schutz: ein frueherer Sync-Fehler konnte hier den Text "null" ablegen, was ohne
+      // diese Pruefung faelschlich als gueltiger (leerer) Wert statt als "nichts vorhanden" gelten wuerde.
+      return (geparst === null || geparst === undefined) ? fallback : geparst;
+    } catch (e) { console.warn('Kochen: Laden fehlgeschlagen', key, e); return fallback; }
   }
   function speichern(key, wert) {
     try { localStorage.setItem(key, JSON.stringify(wert)); }

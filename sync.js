@@ -120,8 +120,13 @@ window.PlanerSync = (function () {
       keys.forEach((k) => {
         try {
           const raw = localStorage.getItem(k);
-          out[k] = raw ? JSON.parse(raw) : null;
-        } catch (e) { out[k] = null; }
+          // Wichtig: fehlt der Schlüssel auf DIESEM Gerät (raw === null), wird er hier bewusst
+          // NICHT mit aufgenommen. Sonst würde beim Hochladen ein "null" an die Cloud gesendet,
+          // das andere Geräte dann fälschlich als "bitte leeren" interpretieren und damit
+          // eventuell vorhandene, gute Daten dort überschreiben.
+          if (raw === null || raw === undefined) return;
+          out[k] = JSON.parse(raw);
+        } catch (e) { /* Schlüssel bei Parse-Fehler überspringen statt null zu senden */ }
       });
       return out;
     }
@@ -133,9 +138,9 @@ window.PlanerSync = (function () {
       }
       wendeGeradeRemoteAn = true;
       keys.forEach((k) => {
-        if (Object.prototype.hasOwnProperty.call(werte, k) && werte[k] !== undefined) {
-          try { localStorage.setItem(k, JSON.stringify(werte[k])); } catch (e) {}
-        }
+        if (!Object.prototype.hasOwnProperty.call(werte, k)) return;
+        if (werte[k] === undefined || werte[k] === null) return; // schützt auch vor älteren, fehlerhaften Cloud-Einträgen
+        try { localStorage.setItem(k, JSON.stringify(werte[k])); } catch (e) {}
       });
       wendeGeradeRemoteAn = false;
       if (onRemoteChange) { try { onRemoteChange(istErstmaligerAbgleich); } catch (e) { console.warn('PlanerSync onRemoteChange Fehler', e); } }
@@ -202,8 +207,11 @@ window.PlanerSync = (function () {
     return (authReady || Promise.resolve()).then(() => {
       let werte = {};
       keys.forEach((k) => {
-        try { const raw = localStorage.getItem(k); werte[k] = raw ? JSON.parse(raw) : null; }
-        catch (e) { werte[k] = null; }
+        try {
+          const raw = localStorage.getItem(k);
+          if (raw === null || raw === undefined) return;
+          werte[k] = JSON.parse(raw);
+        } catch (e) { /* Schlüssel bei Parse-Fehler überspringen statt null zu senden */ }
       });
       if (transform) { try { werte = transform(werte); } catch (e) { console.warn('PlanerSync transform Fehler', e); } }
       return db.collection('planerDaten').doc(modul).set({
