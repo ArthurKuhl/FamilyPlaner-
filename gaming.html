@@ -38,6 +38,33 @@
   .stat-box .wert { font-size: 1.1rem; font-weight: 700; color: var(--moss); }
   .stat-box .label { font-size: 0.62rem; color: var(--bark); text-transform: uppercase; letter-spacing: 0.02em; margin-top: 2px; }
 
+  .view-toggle { display: flex; gap: 4px; background: #1e160f; border-radius: var(--radius-pill); padding: 3px; width: fit-content; }
+  .view-toggle button { border: none; background: transparent; color: var(--sage); font-size: 0.75rem; font-weight: 600; padding: 6px 14px; border-radius: var(--radius-pill); cursor: pointer; }
+  .view-toggle button.active { background: var(--moss); color: var(--leaf); }
+
+  .karte { background: var(--white); border-radius: var(--radius-md); padding: 14px; margin-bottom: 12px; box-shadow: var(--shadow-soft); }
+  .karte h3 { font-family: 'Playfair Display', serif; font-size: 0.95rem; margin-bottom: 10px; color: var(--soil); }
+
+  .add-sport-btn { width: 100%; background: var(--white); border: 1px dashed var(--sage); color: var(--moss); border-radius: var(--radius-md); padding: 10px; font-size: 0.85rem; font-weight: 700; cursor: pointer; margin-bottom: 12px; }
+
+  .chart-balken-reihe { display: flex; align-items: flex-end; gap: 4px; height: 90px; margin-bottom: 6px; }
+  .chart-balken-spalte { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 3px; }
+  .chart-balken { width: 100%; background: var(--moss); border-radius: 3px 3px 0 0; min-height: 2px; }
+  .chart-balken-label { font-size: 0.58rem; color: var(--bark); white-space: nowrap; }
+  .chart-leer { font-size: 0.78rem; color: var(--bark); opacity: 0.7; padding: 10px 0; }
+
+  .top-spiel-zeile { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--parchment); }
+  .top-spiel-zeile:last-child { border-bottom: none; }
+  .top-spiel-rang { font-weight: 700; color: var(--bark); font-size: 0.85rem; min-width: 18px; }
+  .top-spiel-name { flex: 1; font-size: 0.85rem; font-weight: 600; }
+  .top-spiel-zeit { font-size: 0.75rem; color: var(--moss); font-weight: 700; }
+
+  .verlauf-zeile { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--parchment); font-size: 0.82rem; }
+  .verlauf-zeile:last-child { border-bottom: none; }
+  .verlauf-datum { font-size: 0.68rem; color: var(--bark); min-width: 64px; }
+  .verlauf-loeschen { background: none; border: none; color: var(--parchment); font-size: 0.95rem; cursor: pointer; }
+  .verlauf-loeschen:hover { color: var(--terracotta-text); }
+
   .spiel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 10px; }
   .spiel-karte { background: var(--white); border-radius: var(--radius-md); padding: 12px; box-shadow: var(--shadow-soft); cursor: pointer; display: flex; flex-direction: column; gap: 6px; border-top: 3px solid var(--moss); }
   .spiel-titel { font-size: 0.88rem; font-weight: 700; line-height: 1.25; }
@@ -89,15 +116,62 @@
   <div class="suchzeile"><input type="text" id="fSuche" placeholder="Spiel suchen ..."></div>
   <div class="filter-reihe" id="personFilterReihe"></div>
   <div class="filter-reihe" id="statusFilterReihe" style="margin-top:5px;"></div>
+  <div class="view-toggle" role="tablist" style="margin-top:8px;">
+    <button id="btnViewBibliothek" role="tab" aria-selected="true">Bibliothek</button>
+    <button id="btnViewStatistik" role="tab" aria-selected="false">📊 Statistik</button>
+  </div>
 </header>
 
 <main>
-  <div class="stat-reihe" id="statReihe"></div>
-  <div class="spiel-grid" id="spielGrid"></div>
-  <div class="leer-hinweis" id="leerHinweis" style="display:none;">
-    <span class="em">🎮</span><span id="leerText">Noch keine Spiele erfasst. Tippe auf „＋ Neu“.</span>
-  </div>
+  <section id="ansichtBibliothek">
+    <div class="stat-reihe" id="statReihe"></div>
+    <button class="add-sport-btn" id="btnSitzungHinzufuegen">▶ Spielsitzung erfassen</button>
+    <div class="spiel-grid" id="spielGrid"></div>
+    <div class="leer-hinweis" id="leerHinweis" style="display:none;">
+      <span class="em">🎮</span><span id="leerText">Noch keine Spiele erfasst. Tippe auf „＋ Neu“.</span>
+    </div>
+  </section>
+
+  <section id="ansichtStatistik" style="display:none;">
+    <div class="stat-reihe" id="statistikStatReihe"></div>
+    <div class="karte">
+      <h3>⏱ Spielzeit (letzte 14 Tage)</h3>
+      <div id="spielzeitChart"></div>
+    </div>
+    <div class="karte">
+      <h3>🏆 Meistgespielt</h3>
+      <div id="meistgespieltListe"></div>
+    </div>
+    <div class="karte">
+      <h3>📜 Verlauf</h3>
+      <div id="sitzungsVerlauf"></div>
+    </div>
+  </section>
 </main>
+
+<div class="modal-bg" id="modalSitzung">
+  <div class="modal">
+    <h2>Spielsitzung erfassen</h2>
+    <div class="feld">
+      <label for="fSitzungSpiel">Spiel</label>
+      <select id="fSitzungSpiel"></select>
+    </div>
+    <div class="zeile">
+      <div class="feld">
+        <label for="fSitzungDatum">Datum</label>
+        <input type="date" id="fSitzungDatum">
+      </div>
+      <div class="feld">
+        <label for="fSitzungDauer">Dauer (Min.)</label>
+        <input type="number" id="fSitzungDauer" min="1" value="30">
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnSitzungAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnSitzungSpeichern">Speichern</button>
+    </div>
+  </div>
+</div>
 
 <div class="modal-bg" id="modalEdit">
   <div class="modal">
@@ -186,12 +260,17 @@
   }
 
   let spiele = laden(KEY_SPIELE, []);
+  const KEY_SITZUNGEN = 'gaming_sessions';
+  let sitzungen = laden(KEY_SITZUNGEN, []); // [{id, spielId, datum, minuten}]
   let personFilter = localStorage.getItem(KEY_AKTIVE_PERSON) || 'alle';
   let statusFilter = 'alle';
   let suchtext = '';
   let bearbeiteId = null;
+  let aktiveAnsicht = 'bibliothek';
 
   function speichernSpiele() { speichern(KEY_SPIELE, spiele); }
+  function speichernSitzungen() { speichern(KEY_SITZUNGEN, sitzungen); }
+  function heuteISOGaming() { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
 
   // --- FILTER ---
   function renderPersonFilter() {
@@ -374,9 +453,148 @@
     renderAlles();
   });
 
+  // ============================================================
+  // SPIELSITZUNGEN ERFASSEN
+  // ============================================================
+  function spielFilterFuerPerson() {
+    return personFilter === 'alle' ? spiele : spiele.filter(s => s.person === personFilter);
+  }
+  document.getElementById('btnSitzungHinzufuegen').addEventListener('click', () => {
+    if (!spiele.length) { alert('Lege zuerst ein Spiel in der Bibliothek an.'); return; }
+    const select = document.getElementById('fSitzungSpiel');
+    select.innerHTML = spiele.map(s => '<option value="' + s.id + '">' + escapeHtml(s.titel) + '</option>').join('');
+    document.getElementById('fSitzungDatum').value = heuteISOGaming();
+    document.getElementById('fSitzungDauer').value = 30;
+    document.getElementById('modalSitzung').classList.add('zeigen');
+  });
+  document.getElementById('btnSitzungAbbrechen').addEventListener('click', () => document.getElementById('modalSitzung').classList.remove('zeigen'));
+  document.getElementById('modalSitzung').addEventListener('click', (e) => { if (e.target.id === 'modalSitzung') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnSitzungSpeichern').addEventListener('click', () => {
+    const spielId = document.getElementById('fSitzungSpiel').value;
+    const datum = document.getElementById('fSitzungDatum').value;
+    const minuten = Math.max(1, parseInt(document.getElementById('fSitzungDauer').value, 10) || 30);
+    if (!spielId || !datum) return;
+    sitzungen.push({ id: neueId('sz'), spielId, datum, minuten });
+    speichernSitzungen();
+    document.getElementById('modalSitzung').classList.remove('zeigen');
+    if (aktiveAnsicht === 'statistik') renderStatistik();
+    alert('Spielsitzung gespeichert (' + minuten + ' Min.).');
+  });
+
+  // ============================================================
+  // STATISTIK-ANSICHT
+  // ============================================================
+  function letzteNTageGaming(n) {
+    const heute = new Date(); heute.setHours(0,0,0,0);
+    const tage = [];
+    for (let i = n-1; i >= 0; i--) {
+      const d = new Date(heute); d.setDate(d.getDate() - i);
+      tage.push(d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'));
+    }
+    return tage;
+  }
+  function spielTitel(spielId) { const s = spiele.find(x => x.id === spielId); return s ? s.titel : '(gelöschtes Spiel)'; }
+
+  function renderSpielzeitChart() {
+    const relevanteSpielIds = new Set(spielFilterFuerPerson().map(s => s.id));
+    const relevant = sitzungen.filter(sz => relevanteSpielIds.has(sz.spielId));
+    const tage = letzteNTageGaming(14);
+    const minutenProTag = tage.map(tag => relevant.filter(sz => sz.datum === tag).reduce((sum, sz) => sum + sz.minuten, 0));
+    const max = Math.max(...minutenProTag, 1);
+    const box = document.getElementById('spielzeitChart');
+    if (!relevant.length) { box.innerHTML = '<div class="chart-leer">Noch keine Sitzungen erfasst – tippe auf „▶ Spielsitzung erfassen“.</div>'; return; }
+    let html = '<div class="chart-balken-reihe">';
+    tage.forEach((tag, i) => {
+      const hoehe = Math.round((minutenProTag[i] / max) * 100);
+      const tagKurz = new Date(tag).toLocaleDateString('de-DE', { day: 'numeric', month: 'numeric' });
+      html += '<div class="chart-balken-spalte" title="' + tagKurz + ': ' + minutenProTag[i] + ' Min."><div class="chart-balken" style="height:' + Math.max(hoehe, 2) + '%;"></div><span class="chart-balken-label">' + tagKurz + '</span></div>';
+    });
+    html += '</div>';
+    box.innerHTML = html;
+  }
+
+  function renderMeistgespielt() {
+    const relevanteSpielIds = new Set(spielFilterFuerPerson().map(s => s.id));
+    const summen = {};
+    sitzungen.filter(sz => relevanteSpielIds.has(sz.spielId)).forEach(sz => {
+      summen[sz.spielId] = (summen[sz.spielId] || 0) + sz.minuten;
+    });
+    const box = document.getElementById('meistgespieltListe');
+    const sortiert = Object.entries(summen).sort((a,b) => b[1]-a[1]).slice(0, 5);
+    if (!sortiert.length) { box.innerHTML = '<div class="chart-leer">Noch keine Daten.</div>'; return; }
+    box.innerHTML = sortiert.map(([spielId, minuten], i) =>
+      '<div class="top-spiel-zeile"><span class="top-spiel-rang">' + (i+1) + '.</span>' +
+      '<span class="top-spiel-name">' + escapeHtml(spielTitel(spielId)) + '</span>' +
+      '<span class="top-spiel-zeit">' + (minuten >= 60 ? (Math.round(minuten/6)/10) + ' Std.' : minuten + ' Min.') + '</span></div>'
+    ).join('');
+  }
+
+  function renderSitzungsVerlauf() {
+    const relevanteSpielIds = new Set(spielFilterFuerPerson().map(s => s.id));
+    const relevant = sitzungen.filter(sz => relevanteSpielIds.has(sz.spielId)).sort((a,b) => b.datum < a.datum ? -1 : 1).slice(0, 20);
+    const box = document.getElementById('sitzungsVerlauf');
+    if (!relevant.length) { box.innerHTML = '<div class="chart-leer">Noch keine Sitzungen erfasst.</div>'; return; }
+    box.innerHTML = '';
+    relevant.forEach(sz => {
+      const zeile = document.createElement('div');
+      zeile.className = 'verlauf-zeile';
+      const datumKurz = new Date(sz.datum).toLocaleDateString('de-DE', { day: 'numeric', month: 'short' });
+      zeile.innerHTML = '<span class="verlauf-datum">' + datumKurz + '</span><span style="flex:1;">' + escapeHtml(spielTitel(sz.spielId)) + '</span><span>' + sz.minuten + ' Min.</span><button class="verlauf-loeschen" aria-label="Löschen">✕</button>';
+      zeile.querySelector('.verlauf-loeschen').addEventListener('click', () => {
+        sitzungen = sitzungen.filter(x => x.id !== sz.id);
+        speichernSitzungen();
+        renderStatistik();
+      });
+      box.appendChild(zeile);
+    });
+  }
+
+  function renderStatistikStats() {
+    const relevant = spielFilterFuerPerson();
+    const relevanteSpielIds = new Set(relevant.map(s => s.id));
+    const gesamtMinuten = sitzungen.filter(sz => relevanteSpielIds.has(sz.spielId)).reduce((sum, sz) => sum + sz.minuten, 0);
+    const letzte7 = letzteNTageGaming(7);
+    const minutenLetzte7 = sitzungen.filter(sz => relevanteSpielIds.has(sz.spielId) && letzte7.includes(sz.datum)).reduce((sum, sz) => sum + sz.minuten, 0);
+    const box = document.getElementById('statistikStatReihe');
+    box.innerHTML = '';
+    [
+      { wert: Math.round(gesamtMinuten/6)/10, label: 'Std. gesamt' },
+      { wert: Math.round(minutenLetzte7/6)/10, label: 'Std. (7 Tage)' },
+      { wert: sitzungen.filter(sz => relevanteSpielIds.has(sz.spielId)).length, label: 'Sitzungen' },
+    ].forEach(s => {
+      const el = document.createElement('div');
+      el.className = 'stat-box';
+      el.innerHTML = '<div class="wert">' + s.wert + '</div><div class="label">' + s.label + '</div>';
+      box.appendChild(el);
+    });
+  }
+
+  function renderStatistik() {
+    renderStatistikStats();
+    renderSpielzeitChart();
+    renderMeistgespielt();
+    renderSitzungsVerlauf();
+  }
+
+  const btnViewBibliothek = document.getElementById('btnViewBibliothek');
+  const btnViewStatistik = document.getElementById('btnViewStatistik');
+  function zeigeAnsicht(name) {
+    aktiveAnsicht = name;
+    document.getElementById('ansichtBibliothek').style.display = name === 'bibliothek' ? '' : 'none';
+    document.getElementById('ansichtStatistik').style.display = name === 'statistik' ? '' : 'none';
+    btnViewBibliothek.classList.toggle('active', name === 'bibliothek');
+    btnViewStatistik.classList.toggle('active', name === 'statistik');
+    btnViewBibliothek.setAttribute('aria-selected', name === 'bibliothek');
+    btnViewStatistik.setAttribute('aria-selected', name === 'statistik');
+    if (name === 'statistik') renderStatistik();
+  }
+  btnViewBibliothek.addEventListener('click', () => zeigeAnsicht('bibliothek'));
+  btnViewStatistik.addEventListener('click', () => zeigeAnsicht('statistik'));
+
   function renderAlles() {
     renderStats();
     renderGrid();
+    if (aktiveAnsicht === 'statistik') renderStatistik();
   }
 
   renderPersonFilter();
@@ -386,8 +604,13 @@
   if (window.PlanerSync) {
     window._sync = window.PlanerSync.starteSync({
       modul: 'gaming',
-      keys: [KEY_SPIELE],
-      onRemoteChange: function () { spiele = laden(KEY_SPIELE, spiele); renderAlles(); },
+      keys: [KEY_SPIELE, KEY_SITZUNGEN],
+      onRemoteChange: function () {
+        spiele = laden(KEY_SPIELE, spiele);
+        sitzungen = laden(KEY_SITZUNGEN, sitzungen);
+        renderAlles();
+        if (aktiveAnsicht === 'statistik') renderStatistik();
+      },
     });
   }
 })();
