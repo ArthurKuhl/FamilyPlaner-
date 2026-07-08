@@ -339,6 +339,80 @@
     setInterval(pruefeWasserErinnerung, 30000);
     pruefeWasserErinnerung();
 
+    // ============================================================
+    // TERMIN-ERINNERUNGEN: periodische Prüfung (läuft dauerhaft in der Shell)
+    // ============================================================
+    const KEY_TERMINE = 'termine_events_v1';
+    const KEY_TERMINE_GEFEUERT = 'termine_erinnerungenGefeuert';
+
+    function toISODatumT(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+
+    function terminFaelltAufTag(ev, tagISO) {
+      let d = new Date(ev.date);
+      const bisWiederholung = ev.recurrence && ev.recurrence.until ? new Date(ev.recurrence.until) : null;
+      const freq = ev.recurrence ? ev.recurrence.freq : 'keine';
+      const tagDatum = new Date(tagISO);
+      let z = 0;
+      while (d <= tagDatum && z < 500) {
+        z++;
+        if (bisWiederholung && d > bisWiederholung) return false;
+        if (toISODatumT(d) === tagISO) return true;
+        if (freq === 'keine') return false;
+        if (freq === 'woechentlich') d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 7);
+        else if (freq === 'monatlich') d = new Date(d.getFullYear(), d.getMonth() + 1, d.getDate());
+        else return false;
+      }
+      return false;
+    }
+
+    function pruefeTerminErinnerungen() {
+      if (!('Notification' in window) || Notification.permission !== 'granted') return;
+      let events;
+      try { events = JSON.parse(localStorage.getItem(KEY_TERMINE) || '[]'); } catch (e) { events = []; }
+      if (!events || !events.length) return;
+
+      const jetzt = new Date();
+      const heuteISO = toISODatumT(jetzt);
+      const morgen = new Date(jetzt); morgen.setDate(morgen.getDate() + 1);
+      const morgenISO = toISODatumT(morgen);
+
+      let gefeuert;
+      try { gefeuert = JSON.parse(localStorage.getItem(KEY_TERMINE_GEFEUERT) || 'null'); } catch (e) { gefeuert = null; }
+      if (!gefeuert || gefeuert.datum !== heuteISO) gefeuert = { datum: heuteISO, ausgeloest: [] };
+
+      let geaendert = false;
+      events.forEach((ev) => {
+        if (!ev.erinnerung) return;
+        [heuteISO, morgenISO].forEach((tagISO) => {
+          if (!terminFaelltAufTag(ev, tagISO)) return;
+          const startZeit = ev.allDay ? '08:00' : (ev.startTime || '09:00');
+          const [sh, sm] = startZeit.split(':').map(Number);
+          const startDatum = new Date(tagISO + 'T00:00:00');
+          startDatum.setHours(sh, sm, 0, 0);
+          const triggerDatum = new Date(startDatum.getTime() - ev.erinnerung * 60000);
+          const marker = ev.id + '|' + tagISO;
+          const gleicheMinute = Math.abs(jetzt.getTime() - triggerDatum.getTime()) < 30000;
+          if (gleicheMinute && gefeuert.ausgeloest.indexOf(marker) === -1) {
+            gefeuert.ausgeloest.push(marker);
+            geaendert = true;
+            const titel = '🗓️ ' + ev.title;
+            const body = ev.allDay ? 'Heute' : ('Beginnt um ' + startZeit + ' Uhr') + (ev.location ? ' · ' + ev.location : '');
+            const anzeigen = (reg) => reg.showNotification(titel, { body: body, icon: 'icon-192.png', badge: 'icon-192.png', tag: 'termin-' + marker });
+            if (navigator.serviceWorker && navigator.serviceWorker.ready) {
+              navigator.serviceWorker.ready.then(anzeigen).catch(() => {
+                try { new Notification(titel, { body: body, icon: 'icon-192.png' }); } catch (e2) {}
+              });
+            } else {
+              try { new Notification(titel, { body: body, icon: 'icon-192.png' }); } catch (e2) {}
+            }
+          }
+        });
+      });
+      if (geaendert) { try { localStorage.setItem(KEY_TERMINE_GEFEUERT, JSON.stringify(gefeuert)); } catch (e) {} }
+    }
+    setInterval(pruefeTerminErinnerungen, 30000);
+    pruefeTerminErinnerungen();
+
     // Service Worker registrieren (nur die Shell macht das, nicht die einzelnen Module)
     // Funktioniert nur über http(s):// oder localhost, nicht über file://
     if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {

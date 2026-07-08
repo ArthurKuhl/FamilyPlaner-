@@ -19,7 +19,9 @@
   .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
 
   header.top { background: #2a2016; color: var(--leaf); padding: 14px 16px 12px; }
+  .top-titel-zeile { display: flex; align-items: center; justify-content: space-between; }
   header.top h1 { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 600; }
+  .ics-btn { background: none; border: 1px solid #4a3a28; color: var(--sage); border-radius: var(--radius-pill); font-size: 0.72rem; font-weight: 600; padding: 5px 12px; cursor: pointer; }
   .view-toggle { display: flex; gap: 6px; margin-top: 10px; }
   .view-toggle button {
     flex: 1; padding: 7px; border-radius: var(--radius-pill); border: 1px solid #4a3a28;
@@ -112,7 +114,10 @@
 </head>
 <body>
   <header class="top">
-    <h1>🗓️ Termine</h1>
+    <div class="top-titel-zeile">
+      <h1>🗓️ Termine</h1>
+      <button class="ics-btn" id="btnIcsExport">⬇ .ics exportieren</button>
+    </div>
     <div class="view-toggle" role="tablist">
       <button id="btnViewKalender" class="active" role="tab" aria-selected="true">Kalender</button>
       <button id="btnViewListe" role="tab" aria-selected="false">Liste</button>
@@ -194,6 +199,17 @@
         <div class="form-row" id="wiederholungBisRow" style="display:none;">
           <label for="fWiederholungBis">Wiederholen bis (optional)</label>
           <input type="date" id="fWiederholungBis">
+        </div>
+        <div class="form-row">
+          <label for="fErinnerung">Erinnerung</label>
+          <select id="fErinnerung">
+            <option value="0">Keine</option>
+            <option value="15">15 Minuten vorher</option>
+            <option value="30">30 Minuten vorher</option>
+            <option value="60">1 Stunde vorher</option>
+            <option value="120">2 Stunden vorher</option>
+            <option value="1440">1 Tag vorher</option>
+          </select>
         </div>
         <div class="form-row">
           <label for="fNotizen">Notizen (optional)</label>
@@ -449,6 +465,7 @@
       document.getElementById('fNotizen').value = ev ? (ev.notes||'') : '';
       document.getElementById('fWiederholung').value = ev && ev.recurrence ? ev.recurrence.freq : 'keine';
       document.getElementById('fWiederholungBis').value = ev && ev.recurrence ? (ev.recurrence.until||'') : '';
+      document.getElementById('fErinnerung').value = ev ? String(ev.erinnerung || 0) : '0';
 
       const wer = ev ? ev.wer : 'familie';
       werSelect.querySelectorAll('.opt').forEach(o => {
@@ -472,6 +489,12 @@
     }
     document.getElementById('fWiederholung').addEventListener('change', wiederholungBisAktualisieren);
 
+    document.getElementById('fErinnerung').addEventListener('change', (e) => {
+      if (e.target.value !== '0' && 'Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+      }
+    });
+
     document.getElementById('terminForm').addEventListener('submit', (e) => {
       e.preventDefault();
       const werBtn = werSelect.querySelector('.opt.active');
@@ -485,6 +508,7 @@
         wer: werBtn ? werBtn.dataset.wer : 'familie',
         location: document.getElementById('fOrt').value.trim(),
         notes: document.getElementById('fNotizen').value.trim(),
+        erinnerung: Number(document.getElementById('fErinnerung').value) || 0,
         recurrence: {
           freq: document.getElementById('fWiederholung').value,
           until: document.getElementById('fWiederholungBis').value || null
@@ -520,6 +544,72 @@
 
     renderFilter();
     renderAktuelleAnsicht();
+
+    // ============================================================
+    // .ICS-EXPORT (für Google Kalender, Apple Kalender usw.)
+    // ============================================================
+    function icsEscape(text) {
+      return String(text || '').replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
+    }
+    function icsDatumUhrzeit(datumISO, zeitHHMM) {
+      // Ergibt z.B. 20260706T090000 (lokale "floating time", ohne Zeitzonen-Suffix)
+      return datumISO.replace(/-/g, '') + 'T' + (zeitHHMM || '00:00').replace(':', '') + '00';
+    }
+    function icsDatumTag(datumISO, plusTage) {
+      const d = new Date(datumISO);
+      if (plusTage) d.setDate(d.getDate() + plusTage);
+      return toISO(d).replace(/-/g, '');
+    }
+    function icsRRULE(ev) {
+      if (!ev.recurrence || ev.recurrence.freq === 'keine') return '';
+      const freqMap = { woechentlich: 'WEEKLY', monatlich: 'MONTHLY' };
+      let rrule = 'RRULE:FREQ=' + freqMap[ev.recurrence.freq];
+      if (ev.recurrence.until) rrule += ';UNTIL=' + icsDatumTag(ev.recurrence.until) + 'T235959Z';
+      return rrule;
+    }
+    function icsErstellen(liste) {
+      const zeilen = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Familienplaner//Termine//DE', 'CALSCALE:GREGORIAN'];
+      liste.forEach((ev) => {
+        zeilen.push('BEGIN:VEVENT');
+        zeilen.push('UID:' + ev.id + '@familienplaner');
+        zeilen.push('DTSTAMP:' + icsDatumTag(toISO(heute())) + 'T000000Z');
+        if (ev.allDay) {
+          zeilen.push('DTSTART;VALUE=DATE:' + icsDatumTag(ev.date));
+          zeilen.push('DTEND;VALUE=DATE:' + icsDatumTag(ev.date, 1));
+        } else {
+          zeilen.push('DTSTART:' + icsDatumUhrzeit(ev.date, ev.startTime));
+          zeilen.push('DTEND:' + icsDatumUhrzeit(ev.date, ev.endTime || ev.startTime));
+        }
+        const rrule = icsRRULE(ev);
+        if (rrule) zeilen.push(rrule);
+        zeilen.push('SUMMARY:' + icsEscape(ev.title));
+        if (ev.location) zeilen.push('LOCATION:' + icsEscape(ev.location));
+        if (ev.notes) zeilen.push('DESCRIPTION:' + icsEscape(ev.notes));
+        if (ev.erinnerung) {
+          zeilen.push('BEGIN:VALARM');
+          zeilen.push('ACTION:DISPLAY');
+          zeilen.push('DESCRIPTION:' + icsEscape(ev.title));
+          zeilen.push('TRIGGER:-PT' + ev.erinnerung + 'M');
+          zeilen.push('END:VALARM');
+        }
+        zeilen.push('END:VEVENT');
+      });
+      zeilen.push('END:VCALENDAR');
+      return zeilen.join('\r\n');
+    }
+    document.getElementById('btnIcsExport').addEventListener('click', () => {
+      if (!events.length) { alert('Es gibt noch keine Termine zum Exportieren.'); return; }
+      const inhalt = icsErstellen(events);
+      const blob = new Blob([inhalt], { type: 'text/calendar;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'termine-' + toISO(heute()) + '.ics';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+    });
 
     if (window.PlanerSync) {
       window._sync = window.PlanerSync.starteSync({
