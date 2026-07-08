@@ -4521,7 +4521,7 @@ function deleteBedIdx(e,i){
 // ==================== PLANT CATALOGUE ====================
 // ==================== ZULETZT VERWENDETE PFLANZEN ====================
 let recentPlants = [];
-try { recentPlants = JSON.parse(localStorage.getItem('gartenplaner_recentPlants') || '[]'); } catch(e) { recentPlants = []; }
+try { recentPlants = JSON.parse(localStorage.getItem('gartenplaner_recentPlants') || '[]') || []; } catch(e) { recentPlants = []; }
 function addRecentPlant(sym, name) {
   recentPlants = recentPlants.filter(p => p.name !== name);
   recentPlants.unshift({ sym, name });
