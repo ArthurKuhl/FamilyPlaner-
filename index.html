@@ -360,6 +360,7 @@
         if (freq === 'keine') return false;
         if (freq === 'woechentlich') d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 7);
         else if (freq === 'monatlich') d = new Date(d.getFullYear(), d.getMonth() + 1, d.getDate());
+        else if (freq === 'jaehrlich') d = new Date(d.getFullYear() + 1, d.getMonth(), d.getDate());
         else return false;
       }
       return false;

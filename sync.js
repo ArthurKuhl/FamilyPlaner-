@@ -13,6 +13,47 @@
 // Voraussetzung: firebase-app-compat.js, firebase-auth-compat.js und
 // firebase-firestore-compat.js müssen VOR dieser Datei per <script> geladen sein.
 // ============================================================================
+// ============================================================================
+// GLOBALES FEHLER-NETZ: zeigt in JEDEM Modul, das diese Datei lädt, eine kurze,
+// sichtbare Meldung bei unerwarteten Fehlern (statt dass eine Aktion wie
+// "Speichern" wortlos fehlschlägt). Erstellt sein eigenes kleines Banner,
+// unabhängig vom CSS des jeweiligen Moduls.
+// ============================================================================
+(function () {
+  let letzteFehlerAnzeigeZeit = 0;
+  function zeigeFehlerBanner(text) {
+    const jetzt = Date.now();
+    if (jetzt - letzteFehlerAnzeigeZeit < 8000) return; // nicht mit mehreren Bannern überfluten
+    letzteFehlerAnzeigeZeit = jetzt;
+    try {
+      let el = document.getElementById('__planerFehlerBanner');
+      if (!el) {
+        el = document.createElement('div');
+        el.id = '__planerFehlerBanner';
+        el.style.cssText = 'position:fixed;left:12px;right:12px;bottom:14px;z-index:99999;' +
+          'background:#3a2e1f;color:#fdece0;padding:11px 14px;border-radius:12px;' +
+          'font:600 12.5px/1.4 -apple-system,Inter,sans-serif;box-shadow:0 6px 20px rgba(0,0,0,0.35);' +
+          'display:flex;align-items:flex-start;gap:8px;';
+        document.body.appendChild(el);
+      }
+      el.innerHTML = '<span style="flex:1;">⚠ ' + text.replace(/[<>]/g, '') + '</span>' +
+        '<button style="background:none;border:none;color:#fdece0;font-size:14px;cursor:pointer;padding:0 2px;" onclick="this.parentElement.remove()">✕</button>';
+      clearTimeout(el._timer);
+      el._timer = setTimeout(() => { if (el && el.parentElement) el.remove(); }, 12000);
+    } catch (e) { /* Banner-Anzeige darf selbst nie einen Folgefehler auslösen */ }
+  }
+  window.addEventListener('error', (e) => {
+    const details = (e.error && e.error.message) || e.message || 'Unbekannter Fehler';
+    console.error('Planer-Fehler:', e.error || e.message, e.filename, e.lineno);
+    zeigeFehlerBanner('Fehler: ' + String(details).slice(0, 100));
+  });
+  window.addEventListener('unhandledrejection', (e) => {
+    const details = (e.reason && e.reason.message) ? e.reason.message : String(e.reason);
+    console.error('Planer-Fehler (async):', e.reason);
+    zeigeFehlerBanner('Fehler (async): ' + String(details).slice(0, 100));
+  });
+})();
+
 window.PlanerSync = (function () {
   'use strict';
 
