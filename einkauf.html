@@ -35,6 +35,23 @@
   .ich-bin-chip.active { color: var(--white); border-color: transparent; }
   .hinzu-badge { font-size: 0.62rem; font-weight: 700; padding: 1px 7px; border-radius: var(--radius-pill); white-space: nowrap; }
   .item-unterzeile { display: flex; align-items: center; gap: 6px; margin-top: 2px; }
+  .vorlage-zeile {
+    display: flex; align-items: center; gap: 10px; background: var(--white); border-radius: var(--radius-md);
+    padding: 10px 12px; margin-bottom: 6px; box-shadow: var(--shadow-soft);
+  }
+  .vorlage-info { flex: 1; min-width: 0; }
+  .vorlage-name { font-size: 0.9rem; font-weight: 700; }
+  .vorlage-anzahl { font-size: 0.72rem; color: var(--bark); margin-top: 1px; }
+  .vorlage-anwenden-btn {
+    background: var(--moss); color: var(--leaf); border: none; border-radius: var(--radius-pill);
+    font-size: 0.72rem; font-weight: 700; padding: 6px 12px; cursor: pointer; flex-shrink: 0;
+  }
+  .vorlage-loeschen { background: none; border: none; color: var(--parchment); font-size: 1rem; cursor: pointer; padding: 4px 4px; flex-shrink: 0; }
+  .vorlage-loeschen:hover { color: var(--terracotta-text); }
+  .zeile-hinzufuegen {
+    display: block; width: 100%; background: var(--white); border: 1px dashed var(--sage); color: var(--moss);
+    border-radius: var(--radius-sm); padding: 9px 10px; font-size: 0.8rem; font-weight: 600; cursor: pointer;
+  }
   .listen-tab {
     flex: 0 0 auto; background: transparent; border: 1px solid #4a3a28; color: var(--sage);
     font-size: 0.78rem; font-weight: 600; padding: 6px 14px; border-radius: var(--radius-pill); cursor: pointer;
@@ -133,7 +150,10 @@
 <header class="top">
   <div class="titel-zeile">
     <h1>🛒 Einkauf</h1>
-    <button class="listen-icon-btn" id="btnListeVerwalten" title="Liste umbenennen/löschen">⚙️</button>
+    <div style="display:flex; gap:4px;">
+      <button class="listen-icon-btn" id="btnVorlagen" title="Vorlagen">📋</button>
+      <button class="listen-icon-btn" id="btnListeVerwalten" title="Liste umbenennen/löschen">⚙️</button>
+    </div>
   </div>
   <div class="listen-tabs" id="listenTabs"></div>
   <div class="ich-bin-reihe" id="ichBinReihe"></div>
@@ -227,6 +247,36 @@
     <div class="modal-btns">
       <button class="btn btn-secondary" id="btnNeueListeAbbrechen">Abbrechen</button>
       <button class="btn btn-primary" id="btnNeueListeAnlegen">Anlegen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Vorlagen -->
+<div class="modal-bg" id="modalVorlagen">
+  <div class="modal">
+    <h2>📋 Vorlagen</h2>
+    <p style="font-size:0.8rem; color:var(--bark); margin-bottom:12px; line-height:1.4;">
+      Eine Vorlage enthält eine feste Liste an Produkten (z.B. dein Standard-Wocheneinkauf). Mit "Anwenden" werden alle Produkte der Vorlage zur aktuell offenen Liste hinzugefügt.
+    </p>
+    <div id="vorlagenListe"></div>
+    <button class="zeile-hinzufuegen" id="btnVorlageAusListe" style="margin-top:10px;">＋ Neue Vorlage aus aktueller Liste</button>
+    <div class="modal-btns" style="margin-top:14px;">
+      <button class="btn btn-secondary" id="btnVorlagenSchliessen">Schließen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Vorlage benennen -->
+<div class="modal-bg" id="modalVorlageName">
+  <div class="modal">
+    <h2>Vorlage benennen</h2>
+    <div class="feld">
+      <label for="fVorlageName">Name</label>
+      <input type="text" id="fVorlageName" placeholder="z.B. Standard-Wocheneinkauf">
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnVorlageNameAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnVorlageNameSpeichern">Speichern</button>
     </div>
   </div>
 </div>
@@ -643,16 +693,100 @@
     renderErledigt();
   }
 
+  // ============================================================
+  // VORLAGEN (wiederkehrende Einkäufe)
+  // ============================================================
+  const KEY_VORLAGEN = 'einkauf_vorlagen';
+  let vorlagen = laden(KEY_VORLAGEN, []); // [{id, name, items: [{name, menge, einheit, kategorie}]}]
+  function speichernVorlagen() { speichern(KEY_VORLAGEN, vorlagen); }
+
+  function renderVorlagenListe() {
+    const box = document.getElementById('vorlagenListe');
+    box.innerHTML = '';
+    if (!vorlagen.length) {
+      box.innerHTML = '<div class="leer-hinweis" style="padding:20px 4px;">Noch keine Vorlagen. Speichere deine aktuelle Liste als Vorlage, um wiederkehrende Einkäufe künftig mit einem Klick neu zu befüllen.</div>';
+      return;
+    }
+    vorlagen.forEach(v => {
+      const zeile = document.createElement('div');
+      zeile.className = 'vorlage-zeile';
+      zeile.innerHTML =
+        '<div class="vorlage-info"><div class="vorlage-name">' + escapeHtml(v.name) + '</div>' +
+        '<div class="vorlage-anzahl">' + v.items.length + ' Produkt(e)</div></div>' +
+        '<button class="vorlage-anwenden-btn">Anwenden</button>' +
+        '<button class="vorlage-loeschen" aria-label="Löschen">✕</button>';
+      zeile.querySelector('.vorlage-anwenden-btn').addEventListener('click', () => vorlageAnwenden(v));
+      zeile.querySelector('.vorlage-loeschen').addEventListener('click', () => {
+        if (!confirm('Vorlage „' + v.name + '“ wirklich löschen?')) return;
+        vorlagen = vorlagen.filter(x => x.id !== v.id);
+        speichernVorlagen();
+        renderVorlagenListe();
+      });
+      box.appendChild(zeile);
+    });
+  }
+
+  function vorlageAnwenden(v) {
+    const liste = aktiveListe();
+    let anzahlZusammengefuehrt = 0;
+    v.items.forEach(vi => {
+      const kandidat = findeZusammenfuehrbaresItem(liste, vi.name);
+      if (kandidat && versucheMengeZusammenfuehren(kandidat, vi.menge || '', vi.einheit || '')) {
+        kandidat.hinzugefuegtVon = aktuellePerson;
+        anzahlZusammengefuehrt++;
+      } else {
+        liste.items.push({ id: neueId('i'), name: vi.name, menge: vi.menge || '', einheit: vi.einheit || '', kategorie: vi.kategorie || 'sonstiges', erledigt: false, hinzugefuegtVon: aktuellePerson });
+      }
+    });
+    speichernListen();
+    document.getElementById('modalVorlagen').classList.remove('zeigen');
+    renderAlles();
+    let meldung = v.items.length + ' Produkt(e) aus „' + v.name + '“ zu „' + liste.name + '“ hinzugefügt.';
+    if (anzahlZusammengefuehrt) meldung += ' (' + anzahlZusammengefuehrt + ' davon zusammengeführt.)';
+    alert(meldung);
+  }
+
+  document.getElementById('btnVorlagen').addEventListener('click', () => {
+    renderVorlagenListe();
+    document.getElementById('modalVorlagen').classList.add('zeigen');
+  });
+  document.getElementById('btnVorlagenSchliessen').addEventListener('click', () => document.getElementById('modalVorlagen').classList.remove('zeigen'));
+  document.getElementById('modalVorlagen').addEventListener('click', (e) => { if (e.target.id === 'modalVorlagen') e.currentTarget.classList.remove('zeigen'); });
+
+  document.getElementById('btnVorlageAusListe').addEventListener('click', () => {
+    const liste = aktiveListe();
+    if (!liste.items.length) { alert('Diese Liste ist leer – erst Produkte hinzufügen, dann als Vorlage speichern.'); return; }
+    document.getElementById('fVorlageName').value = liste.name;
+    document.getElementById('modalVorlageName').classList.add('zeigen');
+  });
+  document.getElementById('btnVorlageNameAbbrechen').addEventListener('click', () => document.getElementById('modalVorlageName').classList.remove('zeigen'));
+  document.getElementById('modalVorlageName').addEventListener('click', (e) => { if (e.target.id === 'modalVorlageName') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnVorlageNameSpeichern').addEventListener('click', () => {
+    const name = document.getElementById('fVorlageName').value.trim();
+    if (!name) { alert('Bitte einen Namen eingeben.'); return; }
+    const liste = aktiveListe();
+    const neueVorlage = {
+      id: neueId('v'),
+      name: name,
+      items: liste.items.map(i => ({ name: i.name, menge: i.menge || '', einheit: i.einheit || '', kategorie: i.kategorie || 'sonstiges' })),
+    };
+    vorlagen.push(neueVorlage);
+    speichernVorlagen();
+    document.getElementById('modalVorlageName').classList.remove('zeigen');
+    renderVorlagenListe();
+  });
+
   renderIchBinReihe();
   renderAlles();
 
   if (window.PlanerSync) {
     window._sync = window.PlanerSync.starteSync({
       modul: 'einkauf',
-      keys: [KEY_LISTEN, KEY_FAVORITEN],
+      keys: [KEY_LISTEN, KEY_FAVORITEN, KEY_VORLAGEN],
       onRemoteChange: function () {
         listen = laden(KEY_LISTEN, listen);
         favoriten = laden(KEY_FAVORITEN, favoriten);
+        vorlagen = laden(KEY_VORLAGEN, vorlagen);
         if (!listen.some(l => l.id === aktiveListeId)) aktiveListeId = listen[0].id;
         renderAlles();
       },
