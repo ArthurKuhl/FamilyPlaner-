@@ -34,6 +34,35 @@
   .suchzeile input::placeholder { color: #6b7a63; }
   .filter-reihe { display: flex; gap: 5px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px; scrollbar-width: none; }
   .filter-reihe::-webkit-scrollbar { display: none; }
+
+  .view-toggle { display: flex; gap: 4px; background: #1e160f; border-radius: var(--radius-pill); padding: 3px; margin-bottom: 8px; width: fit-content; }
+  .view-toggle button {
+    border: none; background: transparent; color: var(--sage); font-size: 0.75rem; font-weight: 600;
+    padding: 6px 13px; border-radius: var(--radius-pill); cursor: pointer; font-family: 'Inter', sans-serif;
+  }
+  .view-toggle button.active { background: var(--moss); color: var(--leaf); }
+
+  .wochen-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .wochen-nav button { background: var(--white); border: 1px solid var(--parchment); border-radius: var(--radius-md); width: 36px; height: 36px; font-size: 1rem; color: var(--moss); cursor: pointer; }
+  .wochen-label { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1rem; }
+
+  .wochentag-karte { background: var(--white); border-radius: var(--radius-md); padding: 10px 12px; margin-bottom: 8px; box-shadow: var(--shadow-soft); display: flex; align-items: center; gap: 10px; cursor: pointer; }
+  .wochentag-karte.heute { border-left: 3px solid var(--terracotta); }
+  .wochentag-info { flex: 0 0 64px; }
+  .wochentag-name { font-size: 0.78rem; font-weight: 700; }
+  .wochentag-datum { font-size: 0.66rem; color: var(--bark); }
+  .wochentag-rezept { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; }
+  .wochentag-rezept .icon { font-size: 1.3rem; }
+  .wochentag-rezept .titel { font-size: 0.85rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .wochentag-leer { font-size: 0.8rem; color: var(--bark); opacity: 0.6; font-style: italic; }
+  .wochentag-entfernen { background: none; border: none; color: var(--parchment); font-size: 1rem; cursor: pointer; padding: 4px 6px; flex-shrink: 0; }
+  .wochentag-entfernen:hover { color: var(--terracotta-text); }
+
+  .rezept-waehlen-liste { max-height: 50vh; overflow-y: auto; }
+  .rezept-waehlen-zeile { display: flex; align-items: center; gap: 10px; padding: 9px 4px; border-bottom: 1px solid var(--parchment); cursor: pointer; }
+  .rezept-waehlen-zeile:hover { background: var(--cream); }
+  .rezept-waehlen-zeile .icon { font-size: 1.2rem; }
+  .rezept-waehlen-zeile .titel { flex: 1; font-size: 0.88rem; font-weight: 600; }
   .filter-chip {
     flex: 0 0 auto; background: transparent; border: 1px solid #4a3a28; color: var(--sage); font-size: 0.72rem;
     font-weight: 600; padding: 5px 12px; border-radius: var(--radius-pill); cursor: pointer; white-space: nowrap;
@@ -120,17 +149,33 @@
     <h1>🍳 Kochen &amp; Backen</h1>
     <button class="add-btn" id="btnNeu">＋ Neu</button>
   </div>
-  <div class="suchzeile">
+  <div class="view-toggle" role="tablist">
+    <button id="btnViewRezepte" class="active" role="tab" aria-selected="true">📖 Rezepte</button>
+    <button id="btnViewWochenplan" role="tab" aria-selected="false">📅 Wochenplan</button>
+  </div>
+  <div class="suchzeile" id="suchzeileBox">
     <input type="text" id="fSuche" placeholder="Rezept suchen ...">
   </div>
   <div class="filter-reihe" id="filterReihe"></div>
 </header>
 
 <main>
-  <div class="rezept-grid" id="rezeptGrid"></div>
-  <div class="leer-hinweis" id="leerHinweis" style="display:none;">
-    <span class="em">🍲</span><span id="leerText">Noch keine Rezepte. Tippe auf „＋ Neu“, um eins anzulegen.</span>
-  </div>
+  <section id="ansichtRezepte">
+    <div class="rezept-grid" id="rezeptGrid"></div>
+    <div class="leer-hinweis" id="leerHinweis" style="display:none;">
+      <span class="em">🍲</span><span id="leerText">Noch keine Rezepte. Tippe auf „＋ Neu“, um eins anzulegen.</span>
+    </div>
+  </section>
+
+  <section id="ansichtWochenplan" style="display:none;">
+    <div class="wochen-nav">
+      <button id="btnWocheZurueck" aria-label="Vorherige Woche">‹</button>
+      <span class="wochen-label" id="wochenLabel"></span>
+      <button id="btnWocheVor" aria-label="Nächste Woche">›</button>
+    </div>
+    <div id="wochenplanListe"></div>
+    <button class="btn btn-primary" id="btnWochenplanZuEinkauf" style="width:100%; margin-top:14px;">🛒 Alle Zutaten dieser Woche in den Einkauf</button>
+  </section>
 </main>
 
 <!-- Detailansicht -->
@@ -163,6 +208,16 @@
 </div>
 
 <!-- Bearbeiten / Neu -->
+<div class="modal-bg" id="modalRezeptWaehlen">
+  <div class="modal">
+    <h2 id="rezeptWaehlenTitel">Rezept für diesen Tag wählen</h2>
+    <div class="rezept-waehlen-liste" id="rezeptWaehlenListe"></div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnRezeptWaehlenAbbrechen">Abbrechen</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="modalEdit">
   <div class="modal">
     <h2 id="editTitelKopf">Neues Rezept</h2>
@@ -564,14 +619,168 @@
     renderGrid();
   });
 
+  // ============================================================
+  // WOCHENPLAN
+  // ============================================================
+  const KEY_WOCHENPLAN = 'kochen_wochenplan'; // { "2026-07-06": rezeptId, ... }
+  let wochenplan = laden(KEY_WOCHENPLAN, {});
+  let wochenAnkerDatum = montagDerWoche(new Date());
+  let ausgewaehlterTagFuerModal = null;
+
+  function montagDerWoche(d) {
+    const kopie = new Date(d); kopie.setHours(0,0,0,0);
+    const wochentag = (kopie.getDay() + 6) % 7; // Montag = 0
+    kopie.setDate(kopie.getDate() - wochentag);
+    return kopie;
+  }
+  function toISODatumKochen(d) { return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+  const WOCHENTAGE_NAMEN = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag','Sonntag'];
+
+  function speichernWochenplan() { speichern(KEY_WOCHENPLAN, wochenplan); }
+
+  function renderWochenplan() {
+    const heuteISO = toISODatumKochen(new Date());
+    const wocheEnde = new Date(wochenAnkerDatum); wocheEnde.setDate(wocheEnde.getDate() + 6);
+    document.getElementById('wochenLabel').textContent =
+      wochenAnkerDatum.toLocaleDateString('de-DE', { day: 'numeric', month: 'short' }) + ' – ' +
+      wocheEnde.toLocaleDateString('de-DE', { day: 'numeric', month: 'short' });
+
+    const box = document.getElementById('wochenplanListe');
+    box.innerHTML = '';
+    for (let i = 0; i < 7; i++) {
+      const tag = new Date(wochenAnkerDatum); tag.setDate(tag.getDate() + i);
+      const tagISO = toISODatumKochen(tag);
+      const rezeptId = wochenplan[tagISO];
+      const rezept = rezeptId ? rezepte.find(r => r.id === rezeptId) : null;
+
+      const karte = document.createElement('div');
+      karte.className = 'wochentag-karte' + (tagISO === heuteISO ? ' heute' : '');
+      const kat = rezept ? kategorieInfo(rezept.kategorie) : null;
+      karte.innerHTML =
+        '<div class="wochentag-info"><div class="wochentag-name">' + WOCHENTAGE_NAMEN[i] + '</div><div class="wochentag-datum">' + tag.toLocaleDateString('de-DE', {day:'numeric', month:'numeric'}) + '</div></div>' +
+        '<div class="wochentag-rezept">' +
+          (rezept
+            ? '<span class="icon">' + kat.icon + '</span><span class="titel">' + escapeHtml(rezept.titel) + '</span>'
+            : '<span class="wochentag-leer">Kein Rezept geplant – antippen zum Auswählen</span>') +
+        '</div>' +
+        (rezept ? '<button class="wochentag-entfernen" aria-label="Entfernen">✕</button>' : '');
+
+      karte.querySelector('.wochentag-rezept').addEventListener('click', () => rezeptWaehlenModalOeffnen(tagISO, i));
+      const entfernenBtn = karte.querySelector('.wochentag-entfernen');
+      if (entfernenBtn) entfernenBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        delete wochenplan[tagISO];
+        speichernWochenplan();
+        renderWochenplan();
+      });
+      box.appendChild(karte);
+    }
+  }
+
+  function rezeptWaehlenModalOeffnen(tagISO, tagIndex) {
+    ausgewaehlterTagFuerModal = tagISO;
+    document.getElementById('rezeptWaehlenTitel').textContent = WOCHENTAGE_NAMEN[tagIndex] + ' – Rezept wählen';
+    const box = document.getElementById('rezeptWaehlenListe');
+    box.innerHTML = '';
+    if (!rezepte.length) {
+      box.innerHTML = '<div class="leer-hinweis" style="padding:20px 4px;">Noch keine Rezepte vorhanden. Lege zuerst eins unter „📖 Rezepte“ an.</div>';
+    } else {
+      rezepte.forEach(r => {
+        const kat = kategorieInfo(r.kategorie);
+        const zeile = document.createElement('div');
+        zeile.className = 'rezept-waehlen-zeile';
+        zeile.innerHTML = '<span class="icon">' + kat.icon + '</span><span class="titel">' + escapeHtml(r.titel) + '</span>';
+        zeile.addEventListener('click', () => {
+          wochenplan[ausgewaehlterTagFuerModal] = r.id;
+          speichernWochenplan();
+          document.getElementById('modalRezeptWaehlen').classList.remove('zeigen');
+          renderWochenplan();
+        });
+        box.appendChild(zeile);
+      });
+    }
+    document.getElementById('modalRezeptWaehlen').classList.add('zeigen');
+  }
+  document.getElementById('btnRezeptWaehlenAbbrechen').addEventListener('click', () => document.getElementById('modalRezeptWaehlen').classList.remove('zeigen'));
+  document.getElementById('modalRezeptWaehlen').addEventListener('click', (e) => { if (e.target.id === 'modalRezeptWaehlen') e.currentTarget.classList.remove('zeigen'); });
+
+  document.getElementById('btnWocheZurueck').addEventListener('click', () => {
+    wochenAnkerDatum.setDate(wochenAnkerDatum.getDate() - 7);
+    renderWochenplan();
+  });
+  document.getElementById('btnWocheVor').addEventListener('click', () => {
+    wochenAnkerDatum.setDate(wochenAnkerDatum.getDate() + 7);
+    renderWochenplan();
+  });
+
+  // --- Alle Zutaten der angezeigten Woche gesammelt in den Einkauf übertragen ---
+  document.getElementById('btnWochenplanZuEinkauf').addEventListener('click', () => {
+    const geplanteRezeptIds = [];
+    for (let i = 0; i < 7; i++) {
+      const tag = new Date(wochenAnkerDatum); tag.setDate(tag.getDate() + i);
+      const rezeptId = wochenplan[toISODatumKochen(tag)];
+      if (rezeptId) geplanteRezeptIds.push(rezeptId);
+    }
+    if (!geplanteRezeptIds.length) { alert('Für diese Woche ist noch kein Rezept geplant.'); return; }
+
+    let listen = laden(KEY_EINKAUF_LISTEN, null);
+    if (!listen || !listen.length) listen = [{ id: neueId('l'), name: 'Wocheneinkauf', items: [] }];
+    let aktivId = localStorage.getItem(KEY_EINKAUF_AKTIV);
+    let aktiv = listen.find(l => l.id === aktivId) || listen[0];
+
+    let anzahlZutaten = 0, anzahlZusammengefuehrt = 0, anzahlUnbekannt = 0;
+    geplanteRezeptIds.forEach(rezeptId => {
+      const r = rezepte.find(x => x.id === rezeptId);
+      if (!r) { anzahlUnbekannt++; return; }
+      const herkunft = 'rezept:' + r.titel;
+      r.zutaten.forEach(z => {
+        anzahlZutaten++;
+        const kandidat = aktiv.items.find(i => !i.erledigt && i.name.trim().toLowerCase() === z.name.trim().toLowerCase());
+        if (kandidat && versucheMengeZusammenfuehren(kandidat, z.menge || '', z.einheit || '')) {
+          kandidat.hinzugefuegtVon = herkunft;
+          anzahlZusammengefuehrt++;
+        } else {
+          aktiv.items.push({ id: neueId('i'), name: z.name, menge: z.menge || '', einheit: z.einheit || '', kategorie: 'sonstiges', erledigt: false, hinzugefuegtVon: herkunft });
+        }
+      });
+    });
+    speichern(KEY_EINKAUF_LISTEN, listen);
+    if (!aktivId) localStorage.setItem(KEY_EINKAUF_AKTIV, aktiv.id);
+    let meldung = anzahlZutaten + ' Zutat(en) aus ' + geplanteRezeptIds.length + ' Rezept(en) wurden zu „' + aktiv.name + '“ hinzugefügt.';
+    if (anzahlZusammengefuehrt) meldung += ' (' + anzahlZusammengefuehrt + ' davon zusammengeführt.)';
+    alert(meldung);
+  });
+
+  // --- Ansichts-Umschaltung Rezepte / Wochenplan ---
+  const btnViewRezepte = document.getElementById('btnViewRezepte');
+  const btnViewWochenplan = document.getElementById('btnViewWochenplan');
+  function zeigeKochenAnsicht(name) {
+    document.getElementById('ansichtRezepte').style.display = name === 'rezepte' ? '' : 'none';
+    document.getElementById('ansichtWochenplan').style.display = name === 'wochenplan' ? '' : 'none';
+    document.getElementById('suchzeileBox').style.display = name === 'rezepte' ? '' : 'none';
+    document.getElementById('filterReihe').style.display = name === 'rezepte' ? '' : 'none';
+    btnViewRezepte.classList.toggle('active', name === 'rezepte');
+    btnViewWochenplan.classList.toggle('active', name === 'wochenplan');
+    btnViewRezepte.setAttribute('aria-selected', name === 'rezepte');
+    btnViewWochenplan.setAttribute('aria-selected', name === 'wochenplan');
+    if (name === 'wochenplan') renderWochenplan();
+  }
+  btnViewRezepte.addEventListener('click', () => zeigeKochenAnsicht('rezepte'));
+  btnViewWochenplan.addEventListener('click', () => zeigeKochenAnsicht('wochenplan'));
+
   renderFilter();
   renderGrid();
 
   if (window.PlanerSync) {
     window._sync = window.PlanerSync.starteSync({
       modul: 'kochen',
-      keys: [KEY_REZEPTE],
-      onRemoteChange: function () { rezepte = laden(KEY_REZEPTE, rezepte); renderFilter(); renderGrid(); },
+      keys: [KEY_REZEPTE, KEY_WOCHENPLAN],
+      onRemoteChange: function () {
+        rezepte = laden(KEY_REZEPTE, rezepte);
+        wochenplan = laden(KEY_WOCHENPLAN, wochenplan);
+        renderFilter(); renderGrid();
+        if (document.getElementById('ansichtWochenplan').style.display !== 'none') renderWochenplan();
+      },
     });
   }
 })();
