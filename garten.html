@@ -2078,6 +2078,7 @@ async function fetchWeather(loc, forceRefresh) {
   const now = Date.now();
   if (!forceRefresh && weatherCache && weatherCache.lat===loc.lat && weatherCache.lon===loc.lon && (now - weatherCache.fetchedAt) < 60*60*1000) {
     renderWeatherUI(weatherCache);
+    persistiereWetterHinweise();
     return weatherCache;
   }
   try {
@@ -2087,11 +2088,27 @@ async function fetchWeather(loc, forceRefresh) {
     const data = await res.json();
     weatherCache = { lat: loc.lat, lon: loc.lon, fetchedAt: now, current: data.current, daily: data.daily };
     renderWeatherUI(weatherCache);
+    persistiereWetterHinweise();
     return weatherCache;
   } catch (e) {
     const wsb4 = document.getElementById('weatherSettingsBox'); if (wsb4) wsb4.innerHTML = '⚠ Wetterdaten konnten nicht geladen werden (keine Internetverbindung?).';
     return null;
   }
+}
+// Speichert eine kompakte Zusammenfassung der aktuellen Wetterwarnungen, damit die
+// Übersicht-Startseite sie anzeigen kann, ohne selbst einen Wetterabruf durchführen zu
+// müssen. Bewusst NICHT synchronisiert (geräte-/standortspezifisch, schnell veraltet).
+function persistiereWetterHinweise() {
+  try {
+    const hinweise = {
+      aktualisiertAm: new Date().toISOString(),
+      frost: !!getUpcomingFrostWarning(),
+      hitze: !!getUpcomingHeatWarning(),
+      starkregen: !!getUpcomingHeavyRainWarning(),
+      hagel: !!getUpcomingHailWarning(),
+    };
+    localStorage.setItem('gartenplaner_wetterHinweise', JSON.stringify(hinweise));
+  } catch (e) {}
 }
 function weatherIcon(code) {
   if (code === 0) return '☀️';

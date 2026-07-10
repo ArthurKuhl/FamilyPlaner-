@@ -47,6 +47,13 @@
 
   .garten-kachel { border-top: 3px solid var(--moss); }
   .garten-hinweis { font-size: 0.8rem; color: var(--bark); line-height: 1.4; }
+  .warnung-chip {
+    display: inline-flex; align-items: center; gap: 5px; font-size: 0.72rem; font-weight: 700;
+    padding: 4px 10px; border-radius: var(--radius-pill); margin: 6px 6px 0 0;
+    background: #fdf0da; color: #a8532e;
+  }
+  .kochen-rezept-info { display: flex; align-items: center; gap: 8px; font-size: 0.88rem; font-weight: 600; }
+  .kochen-rezept-info .icon { font-size: 1.3rem; }
 </style>
 <script src="personen.js"></script>
 <script src="sync.js"></script>
@@ -83,12 +90,21 @@
     <div id="listeSport"></div>
   </div>
 
+  <div class="kachel" id="kachelKochen" style="display:none;">
+    <div class="kachel-kopf">
+      <div class="kachel-titel">🍳 Heute kochen</div>
+      <span class="kachel-pfeil">→</span>
+    </div>
+    <div id="kochenHeuteInfo"></div>
+  </div>
+
   <div class="kachel garten-kachel" id="kachelGarten">
     <div class="kachel-kopf">
       <div class="kachel-titel">🌱 Garten</div>
       <span class="kachel-pfeil">→</span>
     </div>
-    <div class="garten-hinweis">Pflegeplan & Tagesüberblick ansehen (Gieß-/Pflegeaufgaben, Wetterwarnungen)</div>
+    <div class="garten-hinweis" id="gartenHinweisText">Pflegeplan &amp; Tagesüberblick ansehen (Gieß-/Pflegeaufgaben, Wetterwarnungen)</div>
+    <div id="gartenWarnungen"></div>
   </div>
 </main>
 
@@ -216,18 +232,58 @@
   document.getElementById('kachelSport').addEventListener('click', () => navigiere('gesundheit'));
 
   // ============================================================
-  // GARTEN (bewusst ohne genaue Aufgabenzahl – die Berechnung ist eng mit
-  // Wetterdaten und Beetplänen verzahnt und lebt nur im Garten-Modul selbst)
+  // GARTEN – Wetterwarnungen (aus dem letzten Abruf im Garten-Modul auf diesem Gerät;
+  // die genaue Gießaufgaben-Zahl bleibt bewusst aus, siehe Kommentar oben ursprünglich)
   // ============================================================
   document.getElementById('kachelGarten').addEventListener('click', () => navigiere('garten'));
+
+  function renderGartenWarnungen() {
+    const hinweise = laden('gartenplaner_wetterHinweise', null);
+    const box = document.getElementById('gartenWarnungen');
+    box.innerHTML = '';
+    if (!hinweise) return;
+    // Warnungen älter als 6 Stunden nicht mehr als aktuell anzeigen
+    const alterMs = Date.now() - new Date(hinweise.aktualisiertAm).getTime();
+    if (alterMs > 6 * 60 * 60 * 1000) return;
+    const chips = [];
+    if (hinweise.frost) chips.push({ icon: '❄️', text: 'Frostwarnung' });
+    if (hinweise.hitze) chips.push({ icon: '🌡️', text: 'Hitzewarnung' });
+    if (hinweise.starkregen) chips.push({ icon: '🌧️', text: 'Starkregen' });
+    if (hinweise.hagel) chips.push({ icon: '⛈️', text: 'Hagelwarnung' });
+    box.innerHTML = chips.map(c => '<span class="warnung-chip">' + c.icon + ' ' + c.text + '</span>').join('');
+  }
+
+  // ============================================================
+  // KOCHEN – heutiges Rezept aus dem Wochenplan
+  // ============================================================
+  const KOCHEN_KATEGORIE_ICONS = {
+    fruehstueck: '🍳', hauptspeise: '🍲', beilage: '🥗', dessert: '🍰',
+    gebaeck: '🥐', getraenke: '🥤', sonstiges: '📦',
+  };
+  function renderKochenHeute() {
+    const wochenplan = laden('kochen_wochenplan', {});
+    const rezepte = laden('kochen_rezepte', []);
+    const heuteISO = toISODatum(heute());
+    const rezeptId = wochenplan[heuteISO];
+    const rezept = rezeptId ? rezepte.find(r => r.id === rezeptId) : null;
+    const kachel = document.getElementById('kachelKochen');
+    if (!rezept) { kachel.style.display = 'none'; return; }
+    kachel.style.display = '';
+    const icon = KOCHEN_KATEGORIE_ICONS[rezept.kategorie] || '🍽️';
+    document.getElementById('kochenHeuteInfo').innerHTML =
+      '<div class="kochen-rezept-info"><span class="icon">' + icon + '</span><span>' + escapeHtml(rezept.titel) + '</span></div>';
+  }
+  document.getElementById('kachelKochen').addEventListener('click', () => navigiere('kochen'));
 
   renderTermine();
   renderEinkauf();
   renderSport();
+  renderGartenWarnungen();
+  renderKochenHeute();
 
   // Bei Rückkehr auf die Startseite (z.B. nach Bearbeitung in einem anderen Modul) neu laden
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) { renderTermine(); renderEinkauf(); renderSport(); }
+    if (!document.hidden) { renderTermine(); renderEinkauf(); renderSport(); renderGartenWarnungen(); renderKochenHeute(); }
   });
 })();
 </script>
