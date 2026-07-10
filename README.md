@@ -10,6 +10,8 @@ Eine feature-reiche, offline-fähige Familien-/Lebensplaner-App als Progressive 
 - **Import**: stellt alle Schlüssel aus der Datei wieder her und überträgt sie aktiv in die Cloud, damit auch das andere Gerät den wiederhergestellten Stand erhält. Da dies bestehende (auch neuere) Daten überschreiben kann, wird vorher eine deutliche Bestätigung eingeblendet
 - Geräte-/sitzungsspezifische Werte (Geräte-ID, aktueller Sync-Status) werden bewusst nicht mit exportiert/importiert
 
+- **Fotos im Garten-Tagebuch**: Der Gartenplaner hat einen eigenen Export (📁 Datei → ⬇ Export) sowie eine automatische Erinnerung, falls lange kein Backup gemacht wurde – **beide enthalten die Fotos vollständig** (im Gegensatz zur Cloud-Synchronisierung, die Fotos bewusst ausschließt). Das Gesamt-Backup der Shell (💾-Symbol) enthält ebenfalls alle Fotos. Ein separates Foto-only-Backup gibt es bewusst nicht, da Fotos eng mit den jeweiligen Beeten/Einträgen verknüpft sind und ein gemeinsames Backup die Wiederherstellung zuverlässiger macht.
+
 ## Cloud-Synchronisierung
 
 Die App synchronisiert sich automatisch über ein Firebase-Firestore-Projekt (kostenlos). Jedes Modul lädt Änderungen wenige Sekunden nach dem Speichern hoch; auf allen anderen geöffneten Geräten erscheinen sie automatisch, auch ohne Neuladen.

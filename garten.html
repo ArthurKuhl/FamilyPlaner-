@@ -3448,7 +3448,7 @@ function exportData() {
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
   try { localStorage.setItem('gartenplaner_lastExport', String(Date.now())); } catch(e) {}
-  showTempStatus('✓ Backup heruntergeladen', 3);
+  showTempStatus('✓ Backup heruntergeladen (inkl. Fotos)', 3);
 }
 function importData(e) {
   const file = e.target.files[0];
@@ -5076,8 +5076,8 @@ function checkBackupReminder() {
   const daysSince = lastExport ? Math.floor((now - lastExport) / 86400000) : null;
   if (daysSince !== null && daysSince < BACKUP_REMIND_DAYS) return;
   const text = daysSince === null
-    ? 'Du hast noch kein Backup exportiert. Deine Gärten liegen nur in diesem Browser.'
-    : `Du hast seit ${daysSince} Tagen kein Backup mehr exportiert.`;
+    ? 'Du hast noch kein Foto-Backup exportiert. Alle anderen Gartendaten synchronisieren sich automatisch mit der Cloud – deine Fotos im Tagebuch liegen aber ausschließlich in diesem Browser.'
+    : `Du hast seit ${daysSince} Tagen kein Backup mehr exportiert. Deine Fotos im Garten-Tagebuch liegen ausschließlich in diesem Browser (werden bewusst nicht mit der Cloud synchronisiert).`;
   document.getElementById('backupBannerText').textContent = text;
   document.getElementById('backupBanner').style.display = 'flex';
 }
