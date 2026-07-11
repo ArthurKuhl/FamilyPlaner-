@@ -381,6 +381,7 @@
         <button class="tool-btn" onclick="openCarePlan();closeDropdowns()" title="Gieß- und Pflegetermine">📅 Pflegeplan</button>
         <button class="tool-btn" onclick="openHarvestJournal();closeDropdowns()" title="Alle Ernten chronologisch, nach Jahr">🧺 Erntebuch</button>
         <button class="tool-btn" onclick="openSowingCalendar();closeDropdowns()" title="Wann welche Pflanze aussäen">🗓 Aussaat</button>
+        <button class="tool-btn" onclick="openNowOverview();closeDropdowns()" title="Was kann ich diesen Monat pflanzen und ernten?">🌾 Jetzt pflanzen &amp; ernten</button>
         <button class="tool-btn" onclick="openVarietyDB();closeDropdowns()" title="Eigene Sortenerfahrungen">🌾 Sorten</button>
         <button class="tool-btn" onclick="openSeedInventory();closeDropdowns()" title="Vorrätiges Saatgut verwalten">🌰 Saatgutinventar</button>
         <button class="tool-btn" onclick="openCostTracker();closeDropdowns()" title="Ausgaben für den Garten">🧾 Kostenübersicht</button>
@@ -861,6 +862,18 @@
     <div id="sowingCalendarContent"></div>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="document.getElementById('sowingModal').style.display='none'">Schließen</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Jetzt pflanzen & ernten -->
+<div class="modal-bg" id="nowModal" style="display:none">
+  <div class="modal" style="width:min(560px,96vw);max-height:88vh;overflow-y:auto">
+    <h2>🌾 Jetzt pflanzen &amp; ernten</h2>
+    <p style="font-size:0.72rem;color:var(--bark);margin-bottom:12px">Basierend auf dem aktuellen Monat und deiner Klimazone-Einstellung (Aussaatkalender). Richtwerte für Mitteleuropa, keine Garantie – Wetter und Sorte spielen auch eine Rolle.</p>
+    <div id="nowOverviewContent"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="document.getElementById('nowModal').style.display='none'">Schließen</button>
     </div>
   </div>
 </div>
@@ -1742,6 +1755,27 @@ const SOWING = {
   'Petunie':       { vorziehen:[2,3],  direktsaat:null,  auspflanzen:[5,6]  },
   'Stiefmütterchen':{ vorziehen:[6,7], direktsaat:null,  auspflanzen:[9,10] },
 };
+// Typische Erntemonate für Mitteleuropa (grobe Richtwerte, wie beim Aussaatkalender).
+// Bei Bereichen, die übers Jahresende hinausgehen (z.B. Winterlauch), ist der Startmonat
+// größer als der Endmonat – isInHarvestWindow() behandelt das als Jahreswechsel-Bereich.
+const HARVEST_WINDOW = {
+  'Tomate': [7,10], 'Paprika': [7,10], 'Aubergine': [7,10], 'Gurke': [6,9], 'Zucchini': [6,10],
+  'Kürbis': [9,10], 'Karotte': [6,10], 'Salat': [5,10], 'Radieschen': [4,10], 'Rettich': [6,10],
+  'Spinat': [4,6], 'Mangold': [6,10], 'Rucola': [5,10], 'Feldsalat': [10,3], 'Brokkoli': [6,10],
+  'Blumenkohl': [6,10], 'Weißkohl': [8,11], 'Rotkohl': [8,11], 'Kohlrabi': [5,10], 'Bohnen': [7,9],
+  'Erbsen': [6,7], 'Mais': [8,9], 'Kartoffel': [7,9], 'Rote Bete': [7,10], 'Zwiebel': [7,9],
+  'Lauch (Porree)': [9,2], 'Knoblauch': [6,7], 'Sellerie': [9,10], 'Fenchel': [8,10], 'Spargel': [4,6],
+  'Süßkartoffel': [9,10], 'Kräuter': [5,9], 'Basilikum': [6,9], 'Petersilie': [5,10], 'Schnittlauch': [4,9],
+  'Dill': [6,9], 'Thymian': [5,9], 'Rosmarin': [1,12], 'Salbei': [4,10], 'Oregano': [6,9],
+  'Minze': [5,9], 'Majoran': [6,9], 'Zitronenmelisse': [5,9], 'Liebstöckel': [5,9], 'Bohnenkraut': [6,9],
+  'Lavendel': [6,8], 'Borretsch': [6,9], 'Kerbel': [5,8], 'Estragon': [6,9], 'Erdbeere': [6,7],
+  'Ringelblume': [6,9], 'Kapuzinerkresse': [6,9], 'Sonnenblume': [9,10],
+};
+function isInHarvestWindow(r, month) {
+  if (!r) return false;
+  if (r[0] <= r[1]) return month >= r[0] && month <= r[1];
+  return month >= r[0] || month <= r[1]; // Bereich geht übers Jahresende (z.B. [10,3])
+}
 const MONTH_NAMES = ['','Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
 const CLIMATE_OFFSET = { mild: -1, normal: 0, rau: 1 };
 const CLIMATE_LABEL = { mild: '🌸 Mild', normal: '🌿 Normal', rau: '❄️ Rau' };
@@ -1829,6 +1863,46 @@ function openSowingCalendar() {
   document.getElementById('sowingSearch').value='';
   renderSowingCalendar('');
   document.getElementById('sowingModal').style.display='flex';
+}
+function openNowOverview() {
+  const currentMonth = new Date().getMonth()+1;
+
+  // Pflanzbar: nutzt dieselben Aussaat-Daten und Klimazone-Anpassung wie der Aussaatkalender.
+  // Zählt als "pflanzbar", wenn Direktsaat ODER Auspflanzen (nicht nur Vorziehen drinnen) passt,
+  // da es hier um "was kann jetzt tatsächlich ins Beet" geht.
+  const pflanzbar = Object.entries(SOWING)
+    .filter(([name, s]) => {
+      const direkt = adjustRange(s.direktsaat);
+      const aus = adjustRange(s.auspflanzen);
+      return isInWindow(direkt, currentMonth) || isInWindow(aus, currentMonth);
+    })
+    .map(([name]) => name)
+    .sort((a,b)=>a.localeCompare(b));
+
+  const erntbar = Object.entries(HARVEST_WINDOW)
+    .filter(([name, r]) => isInHarvestWindow(r, currentMonth))
+    .map(([name]) => name)
+    .sort((a,b)=>a.localeCompare(b));
+
+  function symFor(name) { const p = PLANTS.find(pl=>pl.name===name); return p ? p.sym : '🌿'; }
+  function listeHtml(namen, leerText) {
+    if (!namen.length) return `<p class="empty-state" style="padding:10px 0">${leerText}</p>`;
+    return `<div style="display:flex;flex-wrap:wrap;gap:6px">${namen.map(n =>
+      `<span style="display:inline-flex;align-items:center;gap:4px;background:var(--cream);border:1px solid var(--parchment);border-radius:20px;padding:5px 12px;font-size:0.8rem">${symFor(n)} ${n}</span>`
+    ).join('')}</div>`;
+  }
+
+  document.getElementById('nowOverviewContent').innerHTML = `
+    <div style="margin-bottom:16px">
+      <h3 style="font-size:0.88rem;margin-bottom:8px;color:var(--moss)">🌱 Jetzt pflanzbar (${MONTH_NAMES[currentMonth]})</h3>
+      ${listeHtml(pflanzbar, 'Aktuell ist für keine der bekannten Pflanzen Direktsaat oder Auspflanzen dran.')}
+    </div>
+    <div>
+      <h3 style="font-size:0.88rem;margin-bottom:8px;color:#a8621a">🧺 Jetzt erntbar (${MONTH_NAMES[currentMonth]})</h3>
+      ${listeHtml(erntbar, 'Für diesen Monat sind aktuell keine Ernten hinterlegt.')}
+    </div>
+  `;
+  document.getElementById('nowModal').style.display='flex';
 }
 function sowingBadgeCell(r, currentMonth, plantName, phaseKey) {
   if (!r) return '<span style="color:var(--parchment)">–</span>';
