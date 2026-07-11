@@ -352,21 +352,9 @@
 <div class="app">
   <div class="toolbar">
     <div class="tool-dropdown">
-      <button class="tool-btn dropdown-toggle" onclick="toggleDropdown(this)" title="Neues Beet zeichnen">🌱 Beet <span class="caret">▾</span></button>
-      <div class="dropdown-menu">
-        <button class="tool-btn" id="btnCircle" onclick="setMode('circle');closeDropdowns()" title="Rundes Beet zeichnen">⬤ Kreis</button>
-        <button class="tool-btn" id="btnRect" onclick="setMode('rect');closeDropdowns()" title="Rechteckiges Beet zeichnen">▬ Rechteck</button>
-        <button class="tool-btn" id="btnTri" onclick="setMode('tri');closeDropdowns()" title="Dreieckiges Beet zeichnen">▲ Dreieck</button>
-        <button class="tool-btn" id="btnLshape" onclick="setMode('lshape');closeDropdowns()" title="L-förmiges Beet zeichnen (z.B. um eine Ecke oder ein Hindernis)">◺ L-Form</button>
-        <button class="tool-btn" id="btnFreehand" onclick="setMode('freehand');closeDropdowns()" title="Beliebige Form durch Anklicken von Eckpunkten zeichnen">✏️ Freihand</button>
-      </div>
-    </div>
-    <div class="tool-sep"></div>
-    <div class="tool-dropdown">
-      <button class="tool-btn dropdown-toggle" onclick="toggleDropdown(this)" title="Auswählen, Pflanzen setzen oder löschen">🛠 Aktion <span class="caret">▾</span></button>
+      <button class="tool-btn dropdown-toggle" onclick="toggleDropdown(this)" title="Auswählen oder löschen">🛠 Aktion <span class="caret">▾</span></button>
       <div class="dropdown-menu">
         <button class="tool-btn" id="btnSelect" onclick="setMode('select');closeDropdowns()" title="Beete anklicken, verschieben, bearbeiten">↖ Auswählen</button>
-        <button class="tool-btn" id="btnPlant" onclick="setMode('plant');closeDropdowns()" title="Pflanzen in ein Beet setzen">🌱 Pflanze</button>
         <button class="tool-btn danger" onclick="deleteSelected();closeDropdowns()" title="Ausgewähltes Beet löschen">🗑 Löschen</button>
       </div>
     </div>
@@ -1000,7 +988,7 @@
   <div class="modal" style="width:min(440px,94vw);max-height:84vh;overflow-y:auto">
     <h2>🌿 Kurzanleitung</h2>
     <div style="font-size:0.8rem;line-height:1.55;color:var(--soil)">
-      <p style="margin-bottom:10px"><strong>1. Beet zeichnen</strong><br><span style="color:var(--bark)">Oben links Form wählen (🌱 Beet) oder unten im Tab „Neu" – dann auf die Fläche klicken.</span></p>
+      <p style="margin-bottom:10px"><strong>1. Beet zeichnen</strong><br><span style="color:var(--bark)">Unten im Tab „➕ Neu" Form und Größe wählen – dann auf die Fläche klicken.</span></p>
       <p style="margin-bottom:10px"><strong>2. Pflanzen platzieren</strong><br><span style="color:var(--bark)">Tab „Pflanzen" → Pflanze wählen → im Beet anklicken. Details öffnen sich per Klick auf die Pflanze.</span></p>
       <p style="margin-bottom:10px"><strong>3. Beet bearbeiten</strong><br><span style="color:var(--bark)">Mit ↖ Auswählen ein Beet anklicken – Größe, Rotation, Farbe & Fotos im Seitenpanel anpassen.</span></p>
       <p style="margin-bottom:10px"><strong>4. Planen & exportieren</strong><br><span style="color:var(--bark)">Unter 🧰 Werkzeuge findest du Pflegeplan, Aussaatkalender, Sortendatenbank, Statistik, Vorlagen und Fruchtfolge. Unter 📁 Datei kannst du speichern, als PDF drucken oder Pflanzschilder exportieren.</span></p>
@@ -1867,29 +1855,45 @@ function renderSowingCalendar(filter) {
     document.getElementById('sowingCalendarContent').innerHTML='<div class="empty-state">Keine Treffer.</div>';
     return;
   }
-  const header = `<div style="display:grid;grid-template-columns:1fr auto auto auto;gap:6px;align-items:center;font-size:0.7rem;font-weight:600;color:var(--bark);padding:4px 8px;border-bottom:1px solid var(--parchment);margin-bottom:6px">
-    <span>Pflanze</span><span>🏠 Vorziehen</span><span>🌍 Direktsaat</span><span>🌱 Auspflanzen</span>
+  // Alle Zeilen teilen sich EIN gemeinsames Grid (statt je Zeile ein eigenes), damit die
+  // Spaltenbreiten über die gesamte Liste hinweg konsistent ausgerichtet sind.
+  let gridCells = `<div style="display:contents;font-size:0.7rem;font-weight:600;color:var(--bark)">
+    <span style="padding:4px 8px;border-bottom:1px solid var(--parchment);margin-bottom:6px">Pflanze</span>
+    <span style="padding:4px 8px;border-bottom:1px solid var(--parchment);margin-bottom:6px">🏠 Vorziehen</span>
+    <span style="padding:4px 8px;border-bottom:1px solid var(--parchment);margin-bottom:6px">🌍 Direktsaat</span>
+    <span style="padding:4px 8px;border-bottom:1px solid var(--parchment);margin-bottom:6px">🌱 Auspflanzen</span>
   </div>`;
-  const rows = entries.map(([name, s])=>{
+  entries.forEach(([name, s])=>{
     const plant = PLANTS.find(p=>p.name===name);
     const sym = plant ? plant.sym : '🌿';
     const urgency = getSowingUrgency([s.vorziehen, s.direktsaat, s.auspflanzen]);
     const inStock = hasSeedInStock(name);
-    const needsSeed = (urgency.active || urgency.soonDays !== null) && !inStock;
-    const seedNote = needsSeed
-      ? `<div style="grid-column:1/-1;font-size:0.68rem;color:#a8621a;display:flex;align-items:center;gap:6px;padding:2px 0 4px 26px">⚠️ ${urgency.active ? 'Kein Saatgut auf Lager' : `Saatzeit in ${urgency.soonDays} Tag(en) – noch kein Saatgut auf Lager`} <button onclick="openSeedForm(null,${jsAttrStr(name)})" style="background:none;border:1px solid #a8621a;color:#a8621a;border-radius:5px;padding:1px 7px;font-size:0.66rem;cursor:pointer">+ erfassen</button></div>`
-      : '';
+    const istZeitkritisch = urgency.active || urgency.soonDays !== null;
     const rowBg = urgency.active ? '#f0f8ec' : (urgency.soonDays !== null ? '#fdf6e3' : 'transparent');
-    return `<div style="display:grid;grid-template-columns:1fr auto auto auto;gap:6px;align-items:center;padding:5px 8px;border-radius:7px;background:${rowBg};margin-bottom:2px">
-      <span style="font-size:0.82rem">${sym} ${name}${inStock?' <span title="Saatgut vorhanden" style="font-size:0.7rem">🌰</span>':''}</span>
-      <span>${sowingBadgeCell(s.vorziehen,currentMonth,name,'vorziehen')}</span>
-      <span>${sowingBadgeCell(s.direktsaat,currentMonth,name,'direktsaat')}</span>
-      <span>${sowingBadgeCell(s.auspflanzen,currentMonth,name,'auspflanzen')}</span>
+
+    // Saatgut-Status wird für JEDE Pflanze ohne Vorrat konsistent angezeigt (kleines Symbol
+    // neben dem Namen), damit nicht mal ein "+ erfassen" da ist und mal nicht. Nur bei
+    // zeitkritischen Pflanzen (Fenster aktiv/bald) gibt es zusätzlich den auffälligen,
+    // vollbreiten Warnhinweis mit Erklärtext.
+    const saatgutSymbol = inStock
+      ? ' <span title="Saatgut vorhanden" style="font-size:0.7rem">🌰</span>'
+      : ` <button onclick="openSeedForm(null,${jsAttrStr(name)})" title="Kein Saatgut auf Lager – zum Erfassen antippen" style="background:none;border:1px solid var(--parchment);color:var(--bark);border-radius:5px;padding:0px 5px;font-size:0.64rem;cursor:pointer;vertical-align:middle">+ Saatgut</button>`;
+
+    const seedNote = (istZeitkritisch && !inStock)
+      ? `<div style="grid-column:1/-1;font-size:0.68rem;color:#a8621a;display:flex;align-items:center;gap:6px;padding:2px 0 4px 26px">⚠️ ${urgency.active ? 'Saatzeit aktuell – noch kein Saatgut auf Lager' : `Saatzeit in ${urgency.soonDays} Tag(en) – noch kein Saatgut auf Lager`}</div>`
+      : '';
+
+    gridCells += `<div style="display:contents">
+      <span style="font-size:0.82rem;padding:5px 8px;border-radius:7px 0 0 7px;background:${rowBg}">${sym} ${name}${saatgutSymbol}</span>
+      <span style="padding:5px 8px;background:${rowBg}">${sowingBadgeCell(s.vorziehen,currentMonth,name,'vorziehen')}</span>
+      <span style="padding:5px 8px;background:${rowBg}">${sowingBadgeCell(s.direktsaat,currentMonth,name,'direktsaat')}</span>
+      <span style="padding:5px 8px;border-radius:0 7px 7px 0;background:${rowBg}">${sowingBadgeCell(s.auspflanzen,currentMonth,name,'auspflanzen')}</span>
       ${seedNote}
     </div>`;
-  }).join('');
+  });
   document.getElementById('sowingCalendarContent').innerHTML =
-    `<p style="font-size:0.68rem;color:var(--bark);margin-bottom:8px">Grün hinterlegt = aktuell passender Zeitraum (${MONTH_NAMES[currentMonth]})${getClimateZone()!=='normal'?` · Zeiten an ${CLIMATE_LABEL[getClimateZone()]}-Klima angepasst`:''}</p>${header}${rows}`;
+    `<p style="font-size:0.68rem;color:var(--bark);margin-bottom:8px">Grün hinterlegt = aktuell passender Zeitraum (${MONTH_NAMES[currentMonth]})${getClimateZone()!=='normal'?` · Zeiten an ${CLIMATE_LABEL[getClimateZone()]}-Klima angepasst`:''}</p>
+    <div style="display:grid;grid-template-columns:1fr auto auto auto;gap:6px;align-items:center;row-gap:2px">${gridCells}</div>`;
 }
 
 function renderSowingHint(plantName) {
