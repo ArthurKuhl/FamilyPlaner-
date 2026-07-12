@@ -1,4 +1,4 @@
-# 🌱 Planer
+# 🏠 Familienplaner
 
 Eine feature-reiche, offline-fähige Familien-/Lebensplaner-App als Progressive Web App (PWA) – läuft direkt im Browser oder installiert auf dem Smartphone-Homescreen. Alle sieben Bereiche sind fertig: Garten, Termine, Einkauf, Kochen & Backen, Gesundheit & Sport, Gaming und Handwerk. Zusätzlich ist eine automatische Cloud-Synchronisierung zwischen mehreren Geräten (z.B. zwischen den Handys beider Partner) eingebaut. Weitere Bereiche lassen sich jederzeit als zusätzliche Module ergänzen (siehe Architektur unten).
 
@@ -11,6 +11,10 @@ Eine feature-reiche, offline-fähige Familien-/Lebensplaner-App als Progressive 
 - Geräte-/sitzungsspezifische Werte (Geräte-ID, aktueller Sync-Status) werden bewusst nicht mit exportiert/importiert
 
 - **Fotos im Garten-Tagebuch**: Der Gartenplaner hat einen eigenen Export (📁 Datei → ⬇ Export) sowie eine automatische Erinnerung, falls lange kein Backup gemacht wurde – **beide enthalten die Fotos vollständig** (im Gegensatz zur Cloud-Synchronisierung, die Fotos bewusst ausschließt). Das Gesamt-Backup der Shell (💾-Symbol) enthält ebenfalls alle Fotos. Ein separates Foto-only-Backup gibt es bewusst nicht, da Fotos eng mit den jeweiligen Beeten/Einträgen verknüpft sind und ein gemeinsames Backup die Wiederherstellung zuverlässiger macht.
+
+## App-Icon & Name
+
+Passend zur Entwicklung vom reinen Gartenplaner zur vollständigen Familienplaner-App wurde das App-Icon aktualisiert: ein Haus (steht für die ganze Familie/alle Lebensbereiche) mit einem kleinen Sprössling daneben als Nod zum ursprünglichen Gartenplaner. App-Name in Manifest und Titel heißt jetzt "Familienplaner" statt "Gartenplaner"/"Planer". Falls die App bereits auf dem Homescreen installiert war, muss sie nach dem Update ggf. einmal neu installiert werden (entfernen und über "Zum Startbildschirm hinzufügen" neu hinzufügen), damit das neue Icon sichtbar wird – ein einfaches Neuladen der Seite reicht bei Icons auf manchen Handys nicht immer aus.
 
 ## Cloud-Synchronisierung
 

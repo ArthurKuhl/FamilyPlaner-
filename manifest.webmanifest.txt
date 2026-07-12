@@ -1,7 +1,7 @@
 {
-  "name": "Gartenplaner",
-  "short_name": "Gartenplaner",
-  "description": "Gartenplanung, Aussaatkalender, Erntebuch, Wetter & mehr",
+  "name": "Familienplaner",
+  "short_name": "Familienplaner",
+  "description": "Garten, Termine, Einkauf, Kochen, Gesundheit, Gaming & Handwerk – alles für die Familie an einem Ort",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
