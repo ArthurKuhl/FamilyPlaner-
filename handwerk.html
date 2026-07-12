@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Handwerk</title>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
+<script src="personen.js"></script>
+<script src="sync.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap');
+  :root {
+    --soil: #3a2e1f; --moss: #4f6f45; --sage: #7fa476; --leaf: #bcd196;
+    --cream: #faf6ec; --parchment: #ece0c7; --bark: #7d6339;
+    --terracotta: #c46b41; --terracotta-text: #a8532e; --sky: #5b8bb5;
+    --white: #fffdf8; --navbg: #2a2016;
+    --radius-sm: 8px; --radius-md: 12px; --radius-lg: 18px; --radius-pill: 22px;
+    --shadow-soft: 0 2px 10px rgba(59,47,30,0.08); --shadow-md: 0 8px 26px rgba(59,47,30,0.2);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--cream); color: var(--soil); min-height: 100vh; padding-bottom: 40px; }
+  button, input, select, textarea { font-family: inherit; -webkit-tap-highlight-color: transparent; }
+  :focus-visible { outline: 2px solid var(--terracotta); outline-offset: 2px; border-radius: 4px; }
+
+  header.top { background: var(--navbg); color: var(--leaf); padding: 10px 12px; }
+  header.top .titel-zeile { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  header.top h1 { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; }
+  .add-btn { background: var(--terracotta); color: var(--white); border: none; border-radius: var(--radius-pill); font-size: 0.82rem; font-weight: 700; padding: 7px 15px; cursor: pointer; }
+  .suchzeile { display: flex; gap: 8px; margin-bottom: 8px; }
+  .suchzeile input { flex: 1; padding: 9px 12px; border-radius: var(--radius-pill); border: none; font-size: 0.85rem; background: #1e160f; color: var(--leaf); }
+  .suchzeile input::placeholder { color: #6b7a63; }
+  .filter-reihe { display: flex; gap: 5px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px; scrollbar-width: none; }
+  .filter-reihe::-webkit-scrollbar { display: none; }
+  .filter-chip { flex: 0 0 auto; background: transparent; border: 1px solid #4a3a28; color: var(--sage); font-size: 0.72rem; font-weight: 600; padding: 5px 12px; border-radius: var(--radius-pill); cursor: pointer; white-space: nowrap; }
+  .filter-chip.active { background: var(--moss); color: var(--leaf); border-color: var(--moss); }
+
+  main { padding: 12px 14px; max-width: 680px; margin: 0 auto; }
+
+  .projekt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 10px; }
+  .projekt-karte { background: var(--white); border-radius: var(--radius-md); padding: 12px; box-shadow: var(--shadow-soft); cursor: pointer; display: flex; flex-direction: column; gap: 6px; border-top: 3px solid var(--moss); }
+  .projekt-titel { font-size: 0.88rem; font-weight: 700; line-height: 1.25; }
+  .projekt-chips { display: flex; gap: 4px; flex-wrap: wrap; }
+  .mini-chip { font-size: 0.6rem; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-pill); white-space: nowrap; }
+  .projekt-meta { font-size: 0.66rem; color: var(--bark); }
+
+  .leer-hinweis { text-align: center; color: var(--bark); font-size: 0.85rem; padding: 46px 16px; opacity: 0.75; }
+  .leer-hinweis .em { font-size: 2.2rem; display: block; margin-bottom: 8px; }
+
+  .modal-bg { position: fixed; inset: 0; background: rgba(42,32,22,0.45); display: none; align-items: flex-end; justify-content: center; z-index: 100; padding-top: 6vh; }
+  .modal-bg.zeigen { display: flex; }
+  .modal { background: var(--cream); border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding: 18px 18px 24px; width: 100%; max-width: 540px; max-height: 92vh; overflow-y: auto; box-shadow: var(--shadow-md); }
+  @media (min-width: 600px) { .modal-bg { align-items: center; } .modal { border-radius: var(--radius-lg); } }
+  .modal h2 { font-family: 'Playfair Display', serif; font-size: 1.15rem; margin-bottom: 12px; }
+
+  .feld { margin-bottom: 12px; }
+  .feld label { display: block; font-size: 0.7rem; font-weight: 700; color: var(--bark); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.03em; }
+  .feld input, .feld select, .feld textarea { width: 100%; padding: 9px 11px; border: 1px solid var(--parchment); border-radius: var(--radius-sm); font-size: 0.9rem; background: var(--white); color: var(--soil); }
+  .feld textarea { resize: vertical; min-height: 46px; }
+  .opt-reihe { display: flex; gap: 6px; flex-wrap: wrap; }
+  .opt { padding: 6px 12px; border-radius: var(--radius-pill); font-size: 0.75rem; font-weight: 600; border: 1px solid var(--parchment); background: var(--white); color: var(--bark); cursor: pointer; }
+  .opt.aktiv { color: var(--white); border-color: transparent; }
+
+  .unterliste-titel { font-size: 0.72rem; font-weight: 700; color: var(--bark); text-transform: uppercase; letter-spacing: 0.03em; margin: 16px 0 6px; }
+  .material-zeile { display: flex; gap: 6px; margin-bottom: 6px; align-items: center; }
+  .material-zeile input.menge { width: 60px; flex: 0 0 60px; }
+  .material-zeile input.einheit { width: 68px; flex: 0 0 68px; }
+  .material-zeile input.name { flex: 1; }
+  .zeile-entfernen { background: none; border: none; color: var(--parchment); font-size: 1.05rem; padding: 4px 6px; cursor: pointer; flex: 0 0 auto; }
+  .zeile-entfernen:hover { color: var(--terracotta-text); }
+  .zeile-hinzufuegen { background: var(--white); border: 1px dashed var(--sage); color: var(--moss); border-radius: var(--radius-sm); padding: 7px 10px; font-size: 0.78rem; font-weight: 600; cursor: pointer; width: 100%; margin-top: 2px; }
+
+  .modal-btns { display: flex; gap: 8px; margin-top: 18px; }
+  .btn { flex: 1; padding: 11px; border-radius: var(--radius-pill); border: none; font-weight: 700; font-size: 0.85rem; cursor: pointer; }
+  .btn-primary { background: var(--moss); color: var(--leaf); }
+  .btn-secondary { background: var(--white); color: var(--bark); border: 1px solid var(--parchment); }
+  .btn-danger { background: transparent; color: var(--terracotta-text); border: 1px solid var(--terracotta); }
+
+  /* Detailansicht */
+  .detail-status-chip { font-size: 0.7rem; font-weight: 700; padding: 3px 10px; border-radius: var(--radius-pill); }
+  .detail-material-liste { list-style: none; margin: 8px 0 4px; }
+  .detail-material-liste li { display: flex; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--parchment); font-size: 0.88rem; }
+  .detail-material-liste .m-menge { font-weight: 700; color: var(--moss); min-width: 64px; }
+  .detail-notiz-box { background: var(--parchment); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 0.82rem; margin-top: 10px; color: var(--bark); white-space: pre-wrap; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="titel-zeile">
+    <h1>🔨 Handwerk</h1>
+    <button class="add-btn" id="btnNeu">＋ Neu</button>
+  </div>
+  <div class="suchzeile"><input type="text" id="fSuche" placeholder="Projekt suchen ..."></div>
+  <div class="filter-reihe" id="filterReihe"></div>
+</header>
+
+<main>
+  <div class="projekt-grid" id="projektGrid"></div>
+  <div class="leer-hinweis" id="leerHinweis" style="display:none;">
+    <span class="em">🔨</span><span id="leerText">Noch keine Projekte. Tippe auf „＋ Neu“, um eins anzulegen.</span>
+  </div>
+</main>
+
+<!-- Detailansicht -->
+<div class="modal-bg" id="modalDetail">
+  <div class="modal">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+      <span class="detail-status-chip" id="detailStatusChip"></span>
+    </div>
+    <h2 id="detailTitel"></h2>
+    <div class="projekt-meta" id="detailMeta" style="margin-bottom:6px;"></div>
+    <div class="unterliste-titel">Material</div>
+    <ul class="detail-material-liste" id="detailMaterial"></ul>
+    <div class="detail-notiz-box" id="detailNotizBox" style="display:none;"></div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnDetailSchliessen">Schließen</button>
+      <button class="btn btn-primary" id="btnZumEinkauf">🛒 Material zum Einkauf</button>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnDetailBearbeiten">Bearbeiten</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bearbeiten / Neu -->
+<div class="modal-bg" id="modalEdit">
+  <div class="modal">
+    <h2 id="editTitelKopf">Neues Projekt</h2>
+    <div class="feld">
+      <label for="fTitel">Titel</label>
+      <input type="text" id="fTitel" placeholder="z.B. Gartenbank bauen">
+    </div>
+    <div class="feld">
+      <label>Status</label>
+      <div class="opt-reihe" id="editStatusReihe"></div>
+    </div>
+    <div class="feld">
+      <label>Wer arbeitet dran (optional)</label>
+      <div class="opt-reihe" id="editPersonReihe"></div>
+    </div>
+
+    <div class="unterliste-titel">Material</div>
+    <div id="editMaterialListe"></div>
+    <button class="zeile-hinzufuegen" id="btnMaterialHinzufuegen">＋ Material hinzufügen</button>
+
+    <div class="feld" style="margin-top:14px;">
+      <label for="fNotiz">Notiz (optional)</label>
+      <textarea id="fNotiz" placeholder="z.B. Maße, Vorgehen, Links ..."></textarea>
+    </div>
+
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnEditAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnEditSpeichern">Speichern</button>
+    </div>
+    <div class="modal-btns" id="editLoeschZeile" style="display:none;">
+      <button class="btn btn-danger" id="btnEditLoeschen">Projekt löschen</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  const KEY_PROJEKTE = 'handwerk_projekte';
+  const KEY_EINKAUF_LISTEN = 'einkauf_listen';
+  const KEY_EINKAUF_AKTIV = 'einkauf_aktiveListe';
+
+  const STATUSSE = [
+    { id: 'idee',     label: 'Idee',      icon: '💡', farbe: '#5b8bb5' },
+    { id: 'geplant',  label: 'Geplant',   icon: '📋', farbe: '#c99a3a' },
+    { id: 'laufend',  label: 'In Arbeit', icon: '🔨', farbe: '#c46b41' },
+    { id: 'fertig',   label: 'Fertig',    icon: '✅', farbe: '#4f6f45' },
+  ];
+  const PERSONEN = window.PLANER_PERSONEN || [
+    { id: 'mama', label: 'Mama', farbe: '#c46b41' },
+    { id: 'papa', label: 'Papa', farbe: '#5b8bb5' },
+  ];
+
+  function statusInfo(id) { return STATUSSE.find(s => s.id === id) || STATUSSE[0]; }
+  function personInfo(id) { return PERSONEN.find(p => p.id === id); }
+  function neueId(prefix) { return prefix + Date.now() + Math.random().toString(36).slice(2,7); }
+  function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  function laden(key, fallback) {
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) return fallback;
+      const geparst = JSON.parse(raw);
+      return (geparst === null || geparst === undefined) ? fallback : geparst;
+    } catch (e) { console.warn('Handwerk: Laden fehlgeschlagen', key, e); return fallback; }
+  }
+  function speichern(key, wert) {
+    try { localStorage.setItem(key, JSON.stringify(wert)); }
+    catch (e) { console.warn('Handwerk: Speichern fehlgeschlagen', key, e); alert('Speichern fehlgeschlagen – ist der Speicher voll?'); }
+    if (window._sync) window._sync.melde();
+  }
+
+  let projekte = laden(KEY_PROJEKTE, []);
+  let aktiverFilter = 'alle';
+  let suchtext = '';
+  let bearbeiteId = null;
+  let detailId = null;
+
+  function speichernProjekte() { speichern(KEY_PROJEKTE, projekte); }
+
+  // --- FILTER ---
+  function renderFilter() {
+    const box = document.getElementById('filterReihe');
+    box.innerHTML = '';
+    const alleChip = document.createElement('button');
+    alleChip.className = 'filter-chip' + (aktiverFilter === 'alle' ? ' active' : '');
+    alleChip.textContent = 'Alle';
+    alleChip.addEventListener('click', () => { aktiverFilter = 'alle'; renderFilter(); renderGrid(); });
+    box.appendChild(alleChip);
+    STATUSSE.forEach(s => {
+      const chip = document.createElement('button');
+      chip.className = 'filter-chip' + (aktiverFilter === s.id ? ' active' : '');
+      chip.textContent = s.icon + ' ' + s.label;
+      chip.addEventListener('click', () => { aktiverFilter = s.id; renderFilter(); renderGrid(); });
+      box.appendChild(chip);
+    });
+  }
+  document.getElementById('fSuche').addEventListener('input', (e) => { suchtext = e.target.value.trim().toLowerCase(); renderGrid(); });
+
+  function gefilterteProjekte() {
+    return projekte.filter(p => {
+      if (aktiverFilter !== 'alle' && p.status !== aktiverFilter) return false;
+      if (suchtext && !p.titel.toLowerCase().includes(suchtext)) return false;
+      return true;
+    });
+  }
+
+  // --- GRID ---
+  function projektKarte(p) {
+    const stat = statusInfo(p.status);
+    const person = personInfo(p.person);
+    const karte = document.createElement('div');
+    karte.className = 'projekt-karte';
+    karte.style.borderTopColor = stat.farbe;
+    karte.innerHTML =
+      '<div class="projekt-titel">' + escapeHtml(p.titel) + '</div>' +
+      '<div class="projekt-chips">' +
+        '<span class="mini-chip" style="background:' + stat.farbe + '22; color:' + stat.farbe + ';">' + stat.icon + ' ' + stat.label + '</span>' +
+        (person ? '<span class="mini-chip" style="background:' + person.farbe + '22; color:' + person.farbe + ';">' + escapeHtml(person.label) + '</span>' : '') +
+      '</div>' +
+      '<div class="projekt-meta">' + (p.material || []).length + ' Material-Posten</div>';
+    karte.addEventListener('click', () => detailOeffnen(p.id));
+    return karte;
+  }
+
+  function renderGrid() {
+    const box = document.getElementById('projektGrid');
+    box.innerHTML = '';
+    const liste = gefilterteProjekte();
+    document.getElementById('leerHinweis').style.display = liste.length ? 'none' : '';
+    document.getElementById('leerText').textContent = projekte.length
+      ? 'Keine Projekte gefunden. Filter oder Suche anpassen.'
+      : 'Noch keine Projekte. Tippe auf „＋ Neu“, um eins anzulegen.';
+    liste.forEach(p => box.appendChild(projektKarte(p)));
+  }
+
+  // --- DETAILANSICHT ---
+  function detailOeffnen(id) {
+    const p = projekte.find(x => x.id === id);
+    if (!p) return;
+    detailId = id;
+    const stat = statusInfo(p.status);
+    document.getElementById('detailStatusChip').textContent = stat.icon + ' ' + stat.label;
+    document.getElementById('detailStatusChip').style.background = stat.farbe + '22';
+    document.getElementById('detailStatusChip').style.color = stat.farbe;
+    document.getElementById('detailTitel').textContent = p.titel;
+    const person = personInfo(p.person);
+    document.getElementById('detailMeta').textContent = person ? 'Wer: ' + person.label : '';
+    document.getElementById('detailNotizBox').style.display = p.notiz ? '' : 'none';
+    document.getElementById('detailNotizBox').textContent = p.notiz || '';
+
+    const matBox = document.getElementById('detailMaterial');
+    matBox.innerHTML = '';
+    if (!p.material || !p.material.length) {
+      matBox.innerHTML = '<li style="color:var(--bark);opacity:0.7;">Noch kein Material eingetragen.</li>';
+    } else {
+      p.material.forEach(m => {
+        const li = document.createElement('li');
+        const mengeText = [m.menge, m.einheit].filter(Boolean).join(' ');
+        li.innerHTML = '<span class="m-menge">' + escapeHtml(mengeText) + '</span><span>' + escapeHtml(m.name) + '</span>';
+        matBox.appendChild(li);
+      });
+    }
+    document.getElementById('modalDetail').classList.add('zeigen');
+  }
+  document.getElementById('btnDetailSchliessen').addEventListener('click', () => document.getElementById('modalDetail').classList.remove('zeigen'));
+  document.getElementById('modalDetail').addEventListener('click', (e) => { if (e.target.id === 'modalDetail') e.currentTarget.classList.remove('zeigen'); });
+
+  // --- Material zu Einkauf übertragen (Mengen-Zusammenführung wie bei Kochen) ---
+  function zahlOderNull(s) {
+    if (s === '' || s === undefined || s === null) return null;
+    const n = parseFloat(String(s).replace(',', '.'));
+    return isNaN(n) ? null : n;
+  }
+  function versucheMengeZusammenfuehren(kandidat, neueMenge, neueEinheit) {
+    const kEinheit = (kandidat.einheit || '').trim().toLowerCase();
+    const nEinheit = (neueEinheit || '').trim().toLowerCase();
+    if (kEinheit !== nEinheit) return false;
+    if (kEinheit === '') {
+      const kZahl = zahlOderNull(kandidat.menge) ?? 1;
+      const nZahl = zahlOderNull(neueMenge) ?? 1;
+      kandidat.menge = String(kZahl + nZahl);
+      return true;
+    }
+    const kZahl = zahlOderNull(kandidat.menge), nZahl = zahlOderNull(neueMenge);
+    if (kZahl === null || nZahl === null) return false;
+    kandidat.menge = String(Math.round((kZahl + nZahl) * 100) / 100);
+    return true;
+  }
+  document.getElementById('btnZumEinkauf').addEventListener('click', () => {
+    const p = projekte.find(x => x.id === detailId);
+    if (!p || !p.material || !p.material.length) { alert('Für dieses Projekt ist noch kein Material eingetragen.'); return; }
+    let listen = laden(KEY_EINKAUF_LISTEN, null);
+    if (!listen || !listen.length) listen = [{ id: neueId('l'), name: 'Wocheneinkauf', items: [] }];
+    let aktivId = localStorage.getItem(KEY_EINKAUF_AKTIV);
+    let aktiv = listen.find(l => l.id === aktivId) || listen[0];
+    const herkunft = 'projekt:' + p.titel;
+    let zusammengefuehrt = 0;
+    p.material.forEach(m => {
+      const kandidat = aktiv.items.find(i => !i.erledigt && i.name.trim().toLowerCase() === m.name.trim().toLowerCase());
+      if (kandidat && versucheMengeZusammenfuehren(kandidat, m.menge || '', m.einheit || '')) {
+        kandidat.hinzugefuegtVon = herkunft;
+        zusammengefuehrt++;
+      } else {
+        aktiv.items.push({ id: neueId('i'), name: m.name, menge: m.menge || '', einheit: m.einheit || '', kategorie: 'sonstiges', erledigt: false, hinzugefuegtVon: herkunft });
+      }
+    });
+    speichern(KEY_EINKAUF_LISTEN, listen);
+    if (!aktivId) localStorage.setItem(KEY_EINKAUF_AKTIV, aktiv.id);
+    let meldung = p.material.length + ' Material-Posten wurden zu „' + aktiv.name + '“ in Einkauf hinzugefügt.';
+    if (zusammengefuehrt) meldung += ' (' + zusammengefuehrt + ' davon mit bereits vorhandenen Posten zusammengeführt.)';
+    alert(meldung);
+  });
+
+  // --- BEARBEITEN / NEU ---
+  let editStatus = 'idee', editPerson = null;
+
+  function optReiheRendern(containerId, optionen, ausgewaehlt, onWahl) {
+    const box = document.getElementById(containerId);
+    box.innerHTML = '';
+    optionen.forEach(o => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'opt' + (o.id === ausgewaehlt ? ' aktiv' : '');
+      btn.textContent = (o.icon ? o.icon + ' ' : '') + o.label;
+      if (o.id === ausgewaehlt && o.farbe) btn.style.background = o.farbe;
+      btn.addEventListener('click', () => onWahl(o.id));
+      box.appendChild(btn);
+    });
+  }
+  function renderEditStatusReihe() {
+    optReiheRendern('editStatusReihe', STATUSSE, editStatus, (id) => { editStatus = id; renderEditStatusReihe(); });
+  }
+  function renderEditPersonReihe() {
+    const optionen = [{ id: null, label: 'Niemand' }].concat(PERSONEN);
+    optReiheRendern('editPersonReihe', optionen, editPerson, (id) => { editPerson = id; renderEditPersonReihe(); });
+  }
+
+  function materialZeileErstellen(m) {
+    m = m || { menge: '', einheit: '', name: '' };
+    const zeile = document.createElement('div');
+    zeile.className = 'material-zeile';
+    zeile.innerHTML =
+      '<input type="text" class="menge" placeholder="Menge" value="' + escapeHtml(m.menge || '') + '">' +
+      '<input type="text" class="einheit" placeholder="Einheit" value="' + escapeHtml(m.einheit || '') + '">' +
+      '<input type="text" class="name" placeholder="Material" value="' + escapeHtml(m.name || '') + '">' +
+      '<button type="button" class="zeile-entfernen" aria-label="Entfernen">✕</button>';
+    zeile.querySelector('.zeile-entfernen').addEventListener('click', () => zeile.remove());
+    return zeile;
+  }
+  document.getElementById('btnMaterialHinzufuegen').addEventListener('click', () => {
+    document.getElementById('editMaterialListe').appendChild(materialZeileErstellen());
+  });
+
+  function editModalOeffnen(p) {
+    bearbeiteId = p ? p.id : null;
+    document.getElementById('editTitelKopf').textContent = p ? 'Projekt bearbeiten' : 'Neues Projekt';
+    document.getElementById('fTitel').value = p ? p.titel : '';
+    document.getElementById('fNotiz').value = p ? (p.notiz || '') : '';
+    editStatus = p ? p.status : 'idee';
+    editPerson = p ? (p.person || null) : null;
+    renderEditStatusReihe();
+    renderEditPersonReihe();
+
+    const matBox = document.getElementById('editMaterialListe');
+    matBox.innerHTML = '';
+    (p && p.material && p.material.length ? p.material : [{menge:'',einheit:'',name:''}]).forEach(m => matBox.appendChild(materialZeileErstellen(m)));
+
+    document.getElementById('editLoeschZeile').style.display = p ? '' : 'none';
+    document.getElementById('modalEdit').classList.add('zeigen');
+    document.getElementById('modalDetail').classList.remove('zeigen');
+    document.getElementById('fTitel').focus();
+  }
+  document.getElementById('btnNeu').addEventListener('click', () => editModalOeffnen(null));
+  document.getElementById('btnDetailBearbeiten').addEventListener('click', () => {
+    const p = projekte.find(x => x.id === detailId);
+    if (p) editModalOeffnen(p);
+  });
+  document.getElementById('btnEditAbbrechen').addEventListener('click', () => document.getElementById('modalEdit').classList.remove('zeigen'));
+  document.getElementById('modalEdit').addEventListener('click', (e) => { if (e.target.id === 'modalEdit') e.currentTarget.classList.remove('zeigen'); });
+
+  document.getElementById('btnEditSpeichern').addEventListener('click', () => {
+    const titel = document.getElementById('fTitel').value.trim();
+    if (!titel) { alert('Bitte einen Titel eingeben.'); return; }
+
+    const material = Array.from(document.querySelectorAll('#editMaterialListe .material-zeile')).map(zeile => ({
+      id: neueId('m'),
+      menge: zeile.querySelector('.menge').value.trim(),
+      einheit: zeile.querySelector('.einheit').value.trim(),
+      name: zeile.querySelector('.name').value.trim(),
+    })).filter(m => m.name);
+
+    const neu = {
+      id: bearbeiteId || neueId('p'),
+      titel, status: editStatus, person: editPerson, material,
+      notiz: document.getElementById('fNotiz').value.trim(),
+      erstelltAm: bearbeiteId ? (projekte.find(x => x.id === bearbeiteId)?.erstelltAm || new Date().toISOString()) : new Date().toISOString(),
+    };
+    if (bearbeiteId) projekte = projekte.map(p => p.id === bearbeiteId ? neu : p);
+    else projekte.push(neu);
+    speichernProjekte();
+    document.getElementById('modalEdit').classList.remove('zeigen');
+    renderGrid();
+  });
+  document.getElementById('btnEditLoeschen').addEventListener('click', () => {
+    if (!bearbeiteId) return;
+    if (!confirm('Dieses Projekt wirklich löschen?')) return;
+    projekte = projekte.filter(p => p.id !== bearbeiteId);
+    speichernProjekte();
+    document.getElementById('modalEdit').classList.remove('zeigen');
+    renderGrid();
+  });
+
+  renderFilter();
+  renderGrid();
+
+  if (window.PlanerSync) {
+    window._sync = window.PlanerSync.starteSync({
+      modul: 'handwerk',
+      keys: [KEY_PROJEKTE],
+      onRemoteChange: function () { projekte = laden(KEY_PROJEKTE, projekte); renderFilter(); renderGrid(); },
+    });
+  }
+})();
+</script>
+</body>
+</html>

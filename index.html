@@ -132,10 +132,11 @@
         syncKeys: ['gartenplaner_v3','gartenplaner_varieties','gartenplaner_bedTemplates','gartenplaner_recentPlants','gartenplaner_seedInventory','gartenplaner_costs','gartenplaner_pantry','gartenplaner_shops','gartenplaner_careDone'],
         syncTransform: (werte) => { if (werte.gartenplaner_v3 && window.PlanerSync) werte.gartenplaner_v3 = window.PlanerSync.entferneFotosTief(werte.gartenplaner_v3); return werte; } },
       { id: 'termine',     label: 'Termine',   emoji: '🗓️', src: 'termine.html', syncKeys: ['termine_events_v1'] },
-      { id: 'gesundheit',  label: 'Gesundheit',emoji: '🏃', src: 'gesundheit.html', syncKeys: ['gesundheit_tageswerte','gesundheit_sport','gesundheit_rechner'] },
-      { id: 'einkauf',     label: 'Einkauf',   emoji: '🛒', src: 'einkauf.html', syncKeys: ['einkauf_listen','einkauf_favoriten'] },
-      { id: 'kochen',      label: 'Kochen',    emoji: '🍳', src: 'kochen.html', syncKeys: ['kochen_rezepte'] },
-      { id: 'gaming',      label: 'Gaming',    emoji: '🎮', src: 'gaming.html', syncKeys: ['gaming_spiele'] },
+      { id: 'gesundheit',  label: 'Gesundheit',emoji: '🏃', src: 'gesundheit.html', syncKeys: ['gesundheit_tageswerte','gesundheit_sport','gesundheit_rechner','gesundheit_medikamente','gesundheit_medErledigt','gesundheit_ziele'] },
+      { id: 'einkauf',     label: 'Einkauf',   emoji: '🛒', src: 'einkauf.html', syncKeys: ['einkauf_listen','einkauf_favoriten','einkauf_vorlagen'] },
+      { id: 'kochen',      label: 'Kochen',    emoji: '🍳', src: 'kochen.html', syncKeys: ['kochen_rezepte','kochen_wochenplan'] },
+      { id: 'gaming',      label: 'Gaming',    emoji: '🎮', src: 'gaming.html', syncKeys: ['gaming_spiele','gaming_sessions'] },
+      { id: 'handwerk',    label: 'Handwerk',  emoji: '🔨', src: 'handwerk.html', syncKeys: ['handwerk_projekte'] },
     ];
     const STORAGE_KEY = 'planer_aktiverBereich';
 
