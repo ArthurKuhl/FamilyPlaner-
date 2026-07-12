@@ -64,6 +64,16 @@
   main { padding: 12px 14px; max-width: 640px; margin: 0 auto; }
 
   .quick-add { display: flex; gap: 8px; margin-bottom: 10px; }
+  .vorlagen-erinnerung {
+    display: flex; align-items: center; gap: 8px; background: var(--parchment); border-radius: var(--radius-md);
+    padding: 10px 12px; margin-bottom: 12px; font-size: 0.82rem; font-weight: 600; color: var(--soil); flex-wrap: wrap;
+  }
+  .vorlagen-erinnerung-btns { display: flex; gap: 6px; flex-wrap: wrap; margin-left: auto; }
+  .vorlagen-erinnerung-btns button {
+    background: var(--moss); color: var(--leaf); border: none; border-radius: var(--radius-pill);
+    font-size: 0.72rem; font-weight: 700; padding: 6px 12px; cursor: pointer;
+  }
+  .vorlagen-erinnerung-schliessen { background: none; border: none; color: var(--bark); font-size: 0.9rem; cursor: pointer; padding: 2px 4px; }
   .quick-add input {
     flex: 1; padding: 11px 13px; border: 1px solid var(--parchment); border-radius: var(--radius-pill);
     font-size: 0.9rem; background: var(--white); color: var(--soil);
@@ -160,6 +170,11 @@
 </header>
 
 <main>
+  <div class="vorlagen-erinnerung" id="vorlagenErinnerung" style="display:none;">
+    <span id="vorlagenErinnerungText">🛒 Zeit für den Wocheneinkauf?</span>
+    <div class="vorlagen-erinnerung-btns" id="vorlagenErinnerungBtns"></div>
+    <button class="vorlagen-erinnerung-schliessen" id="btnVorlagenErinnerungSchliessen" aria-label="Schließen">✕</button>
+  </div>
   <div class="quick-add">
     <input type="text" id="fSchnellEingabe" placeholder="z.B. 500g Mehl, 3 Äpfel, Zahnpasta ..." autocomplete="off">
     <button id="btnHinzufuegen">＋</button>
@@ -753,6 +768,47 @@
   document.getElementById('btnVorlagenSchliessen').addEventListener('click', () => document.getElementById('modalVorlagen').classList.remove('zeigen'));
   document.getElementById('modalVorlagen').addEventListener('click', (e) => { if (e.target.id === 'modalVorlagen') e.currentTarget.classList.remove('zeigen'); });
 
+  // ============================================================
+  // AUTOMATISCHE VORLAGEN-ERINNERUNG (geräte-lokal, standardmäßig sonntags)
+  // ============================================================
+  const KEY_VORLAGEN_ERINNERUNG_TAG = 'einkauf_vorlagenErinnerungTag'; // 0=So ... 6=Sa, Standard: 0
+  const KEY_VORLAGEN_ERINNERUNG_GESEHEN = 'einkauf_vorlagenErinnerungGesehenWoche'; // ISO-Kalenderwoche, zuletzt gesehen/geschlossen
+  function isoKalenderwoche(d) {
+    const datum = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    const tag = datum.getUTCDay() || 7;
+    datum.setUTCDate(datum.getUTCDate() + 4 - tag);
+    const jahresanfang = new Date(Date.UTC(datum.getUTCFullYear(), 0, 1));
+    return datum.getUTCFullYear() + '-W' + String(Math.ceil((((datum - jahresanfang) / 86400000) + 1) / 7)).padStart(2, '0');
+  }
+  function pruefeVorlagenErinnerung() {
+    const box = document.getElementById('vorlagenErinnerung');
+    if (!vorlagen.length) { box.style.display = 'none'; return; }
+    const erinnerungsTag = Number(localStorage.getItem(KEY_VORLAGEN_ERINNERUNG_TAG) ?? 0);
+    const heute = new Date();
+    if (heute.getDay() !== erinnerungsTag) { box.style.display = 'none'; return; }
+    const dieseWoche = isoKalenderwoche(heute);
+    let gesehen; try { gesehen = localStorage.getItem(KEY_VORLAGEN_ERINNERUNG_GESEHEN); } catch (e) { gesehen = null; }
+    if (gesehen === dieseWoche) { box.style.display = 'none'; return; }
+
+    const btnBox = document.getElementById('vorlagenErinnerungBtns');
+    btnBox.innerHTML = '';
+    vorlagen.forEach(v => {
+      const btn = document.createElement('button');
+      btn.textContent = v.name;
+      btn.addEventListener('click', () => {
+        vorlageAnwenden(v);
+        try { localStorage.setItem(KEY_VORLAGEN_ERINNERUNG_GESEHEN, dieseWoche); } catch (e) {}
+        box.style.display = 'none';
+      });
+      btnBox.appendChild(btn);
+    });
+    box.style.display = 'flex';
+  }
+  document.getElementById('btnVorlagenErinnerungSchliessen').addEventListener('click', () => {
+    try { localStorage.setItem(KEY_VORLAGEN_ERINNERUNG_GESEHEN, isoKalenderwoche(new Date())); } catch (e) {}
+    document.getElementById('vorlagenErinnerung').style.display = 'none';
+  });
+
   document.getElementById('btnVorlageAusListe').addEventListener('click', () => {
     const liste = aktiveListe();
     if (!liste.items.length) { alert('Diese Liste ist leer – erst Produkte hinzufügen, dann als Vorlage speichern.'); return; }
@@ -778,6 +834,7 @@
 
   renderIchBinReihe();
   renderAlles();
+  pruefeVorlagenErinnerung();
 
   if (window.PlanerSync) {
     window._sync = window.PlanerSync.starteSync({
@@ -789,6 +846,7 @@
         vorlagen = laden(KEY_VORLAGEN, vorlagen);
         if (!listen.some(l => l.id === aktiveListeId)) aktiveListeId = listen[0].id;
         renderAlles();
+        pruefeVorlagenErinnerung();
       },
     });
   }

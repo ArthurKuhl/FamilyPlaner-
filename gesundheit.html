@@ -44,6 +44,12 @@
 
   .metrik-zeile { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--parchment); gap: 10px; }
   .metrik-zeile:last-child { border-bottom: none; }
+  .ziel-zeile { display: flex; align-items: center; gap: 8px; padding: 4px 0 8px; }
+  .ziel-balken-wrap { flex: 1; height: 7px; background: var(--parchment); border-radius: 5px; overflow: hidden; }
+  .ziel-balken { height: 100%; background: var(--moss); border-radius: 5px; transition: width 0.2s; }
+  .ziel-balken.erreicht { background: var(--sage); }
+  .ziel-text { font-size: 0.68rem; color: var(--bark); font-weight: 600; white-space: nowrap; }
+  .ziel-edit-btn { background: none; border: none; color: var(--bark); opacity: 0.6; font-size: 0.85rem; cursor: pointer; padding: 2px 4px; }
   .metrik-label { font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 6px; flex: 1; }
   .metrik-input-zahl {
     width: 72px; padding: 7px 8px; border: 1px solid var(--parchment); border-radius: var(--radius-sm);
@@ -241,6 +247,11 @@
           <button id="btnWasserPlus" type="button">+</button>
         </div>
       </div>
+      <div class="ziel-zeile">
+        <div class="ziel-balken-wrap"><div class="ziel-balken" id="wasserZielBalken"></div></div>
+        <span class="ziel-text" id="wasserZielText">0 / 8</span>
+        <button class="ziel-edit-btn" id="btnWasserZielBearbeiten" title="Tagesziel anpassen">✎</button>
+      </div>
       <div class="metrik-zeile">
         <span class="metrik-label">Stimmung</span>
         <div class="stimmung-reihe" id="stimmungReihe"></div>
@@ -277,6 +288,14 @@
 
   <section id="ansichtVerlauf" style="display:none;">
     <div class="stat-reihe" id="statReihe"></div>
+    <div class="karte">
+      <h3>🎯 Wochenziel Sport</h3>
+      <div class="ziel-zeile" style="padding:2px 0;">
+        <div class="ziel-balken-wrap"><div class="ziel-balken" id="sportZielBalken"></div></div>
+        <span class="ziel-text" id="sportZielText">0 / 150 Min.</span>
+        <button class="ziel-edit-btn" id="btnSportZielBearbeiten" title="Wochenziel anpassen">✎</button>
+      </div>
+    </div>
     <div class="karte">
       <h3>⚖️ Gewichtsverlauf</h3>
       <div id="gewichtChart"></div>
@@ -415,6 +434,24 @@
 </div>
 
 
+<div class="modal-bg" id="modalZiele">
+  <div class="modal">
+    <h2>🎯 Ziele anpassen</h2>
+    <div class="feld">
+      <label for="fZielWasser">Wasser-Tagesziel (Gläser)</label>
+      <input type="number" id="fZielWasser" min="1" max="20" value="8">
+    </div>
+    <div class="feld">
+      <label for="fZielSport">Sport-Wochenziel (Minuten)</label>
+      <input type="number" id="fZielSport" min="0" step="10" value="150">
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnZieleAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnZieleSpeichern">Speichern</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="modalSport">
   <div class="modal">
     <h2>Sport-Einheit</h2>
@@ -540,12 +577,53 @@
   }
 
   // --- ANSICHT HEUTE ---
+  // ============================================================
+  // ZIELE (Wasser-Tagesziel pro Person, Sport-Wochenziel pro Person)
+  // ============================================================
+  const KEY_ZIELE = 'gesundheit_ziele';
+  let ziele = laden(KEY_ZIELE, {}); // { [person]: { wasser: 8, sportMinuten: 150 } }
+  function zielFuerPerson(person) {
+    return ziele[person] || { wasser: 8, sportMinuten: 150 };
+  }
+  function speichernZiele() { speichern(KEY_ZIELE, ziele); }
+
+  function renderWasserZielBalken(glaeser) {
+    const ziel = zielFuerPerson(aktivePerson).wasser;
+    const anteil = ziel > 0 ? Math.min(100, Math.round((glaeser / ziel) * 100)) : 0;
+    const balken = document.getElementById('wasserZielBalken');
+    balken.style.width = anteil + '%';
+    balken.classList.toggle('erreicht', glaeser >= ziel);
+    document.getElementById('wasserZielText').textContent = glaeser + ' / ' + ziel;
+  }
+
+  document.getElementById('btnWasserZielBearbeiten').addEventListener('click', zieleModalOeffnen);
+  document.getElementById('btnSportZielBearbeiten').addEventListener('click', zieleModalOeffnen);
+  function zieleModalOeffnen() {
+    const z = zielFuerPerson(aktivePerson);
+    document.getElementById('fZielWasser').value = z.wasser;
+    document.getElementById('fZielSport').value = z.sportMinuten;
+    document.getElementById('modalZiele').classList.add('zeigen');
+  }
+  document.getElementById('btnZieleAbbrechen').addEventListener('click', () => document.getElementById('modalZiele').classList.remove('zeigen'));
+  document.getElementById('modalZiele').addEventListener('click', (e) => { if (e.target.id === 'modalZiele') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnZieleSpeichern').addEventListener('click', () => {
+    ziele[aktivePerson] = {
+      wasser: Math.max(1, parseInt(document.getElementById('fZielWasser').value, 10) || 8),
+      sportMinuten: Math.max(0, parseInt(document.getElementById('fZielSport').value, 10) || 0),
+    };
+    speichernZiele();
+    document.getElementById('modalZiele').classList.remove('zeigen');
+    renderHeute();
+    if (aktiveAnsicht === 'verlauf') renderStats();
+  });
+
   function renderHeute() {
     document.getElementById('heuteDatumLabel').textContent = ausISO(heuteISO()).toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' });
     const eintrag = findeOderErstelleTageswert(aktivePerson, heuteISO());
     document.getElementById('fGewicht').value = eintrag.gewicht || '';
     document.getElementById('fSchlaf').value = eintrag.schlaf || '';
     document.getElementById('wasserWert').textContent = eintrag.wasser || 0;
+    renderWasserZielBalken(eintrag.wasser || 0);
     renderStimmungReihe(eintrag.stimmung);
     renderSportHeuteListe();
     renderMedListeHeute();
@@ -585,12 +663,14 @@
     eintrag.wasser = Math.max(0, (eintrag.wasser || 0) - 1);
     speichern(KEY_TAGESWERTE, tageswerte);
     document.getElementById('wasserWert').textContent = eintrag.wasser;
+    renderWasserZielBalken(eintrag.wasser);
   });
   document.getElementById('btnWasserPlus').addEventListener('click', () => {
     const eintrag = findeOderErstelleTageswert(aktivePerson, heuteISO());
     eintrag.wasser = (eintrag.wasser || 0) + 1;
     speichern(KEY_TAGESWERTE, tageswerte);
     document.getElementById('wasserWert').textContent = eintrag.wasser;
+    renderWasserZielBalken(eintrag.wasser);
   });
 
   function sportZeile(s) {
@@ -828,6 +908,13 @@
       el.innerHTML = '<div class="wert">' + s.wert + '</div><div class="label">' + s.label + '</div>';
       box.appendChild(el);
     });
+
+    const sportZiel = zielFuerPerson(aktivePerson).sportMinuten;
+    const sportAnteil = sportZiel > 0 ? Math.min(100, Math.round((minuten / sportZiel) * 100)) : 0;
+    const sportBalken = document.getElementById('sportZielBalken');
+    sportBalken.style.width = sportAnteil + '%';
+    sportBalken.classList.toggle('erreicht', minuten >= sportZiel);
+    document.getElementById('sportZielText').textContent = minuten + ' / ' + sportZiel + ' Min.';
   }
 
   function renderGewichtChart() {
@@ -1120,15 +1207,17 @@
   if (window.PlanerSync) {
     window._sync = window.PlanerSync.starteSync({
       modul: 'gesundheit',
-      keys: [KEY_TAGESWERTE, KEY_SPORT, KEY_RECHNER, KEY_MEDIKAMENTE, KEY_MED_ERLEDIGT],
+      keys: [KEY_TAGESWERTE, KEY_SPORT, KEY_RECHNER, KEY_MEDIKAMENTE, KEY_MED_ERLEDIGT, KEY_ZIELE],
       onRemoteChange: function () {
         tageswerte = laden(KEY_TAGESWERTE, tageswerte);
         sportEinheiten = laden(KEY_SPORT, sportEinheiten);
         rechnerDaten = laden(KEY_RECHNER, rechnerDaten);
         medikamente = laden(KEY_MEDIKAMENTE, medikamente);
         medErledigt = laden(KEY_MED_ERLEDIGT, medErledigt);
+        ziele = laden(KEY_ZIELE, ziele);
         renderAlles();
         if (aktiveAnsicht === 'rechner') rechnerFelderLaden();
+        if (aktiveAnsicht === 'verlauf') renderStats();
       },
     });
   }

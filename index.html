@@ -46,7 +46,11 @@
   }
   .backup-btn {
     flex: 0 0 auto; background: none; border: none; color: var(--sage); font-size: 0.95rem;
-    padding: 4px 6px; opacity: 0.85; cursor: pointer; order: 98;
+    padding: 4px 6px; opacity: 0.85; cursor: pointer; order: 98; position: relative;
+  }
+  .backup-btn.faellig::after {
+    content: ''; position: absolute; top: 2px; right: 2px; width: 8px; height: 8px;
+    border-radius: 50%; background: var(--terracotta); border: 1.5px solid var(--navbg);
   }
   .modal-bg {
     position: fixed; inset: 0; background: rgba(42,32,22,0.5); display: none;
@@ -109,10 +113,12 @@
     <div class="modal">
       <h2>💾 Sichern &amp; Wiederherstellen</h2>
       <p>Exportiert alle Daten aus allen Bereichen (Garten, Termine, Einkauf, Kochen, Gesundheit, Gaming) als Datei – zusätzlich zur Cloud-Synchronisierung, als extra Sicherheitsnetz. Anders als die Cloud-Synchronisierung enthält diese Datei auch die Fotos aus dem Garten-Tagebuch.</p>
+      <div class="status-text" id="backupErinnerungText" style="margin-bottom:10px;"></div>
       <button class="btn btn-primary" id="btnExport">⬇ Alle Daten exportieren</button>
       <button class="btn btn-secondary" id="btnImportOeffnen">⬆ Aus Datei wiederherstellen</button>
       <input type="file" id="fileImport" accept="application/json">
       <div class="status-text" id="backupStatus"></div>
+      <button class="btn btn-secondary" id="btnBackupSpaeter" style="display:none;">In 7 Tagen erneut erinnern</button>
       <button class="btn btn-secondary" id="btnBackupSchliessen" style="margin-top:6px;">Schließen</button>
     </div>
   </div>
@@ -233,6 +239,8 @@
       a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 2000);
       document.getElementById('backupStatus').textContent = '✅ Exportiert: ' + alleBackupSchluessel().length + ' Schlüssel.';
+      try { localStorage.setItem('planer_letztesGesamtBackup', new Date().toISOString()); } catch (e) {}
+      backupErinnerungAktualisieren();
     }
 
     function backupWiederherstellen(datei) {
@@ -285,10 +293,54 @@
     const modalBackup = document.getElementById('modalBackup');
     document.getElementById('btnBackup').addEventListener('click', () => {
       document.getElementById('backupStatus').textContent = '';
+      backupErinnerungImModalAnzeigen();
       modalBackup.classList.add('zeigen');
     });
     document.getElementById('btnBackupSchliessen').addEventListener('click', () => modalBackup.classList.remove('zeigen'));
     modalBackup.addEventListener('click', (e) => { if (e.target.id === 'modalBackup') modalBackup.classList.remove('zeigen'); });
+    // ============================================================
+    // GESAMT-BACKUP-ERINNERUNG (alle 30 Tage, mit 7-Tage-Snooze)
+    // ============================================================
+    const BACKUP_ERINNERUNG_TAGE = 30;
+    const BACKUP_SNOOZE_TAGE = 7;
+
+    function backupTageSeitLetztem() {
+      let letztes;
+      try { letztes = localStorage.getItem('planer_letztesGesamtBackup'); } catch (e) { letztes = null; }
+      if (!letztes) return null;
+      return Math.floor((Date.now() - new Date(letztes).getTime()) / (1000 * 60 * 60 * 24));
+    }
+    function backupIstFaellig() {
+      let snooze;
+      try { snooze = localStorage.getItem('planer_backupSnoozeBis'); } catch (e) { snooze = null; }
+      if (snooze && new Date(snooze).getTime() > Date.now()) return false;
+      const tage = backupTageSeitLetztem();
+      return tage === null || tage >= BACKUP_ERINNERUNG_TAGE;
+    }
+    function backupErinnerungAktualisieren() {
+      document.getElementById('btnBackup').classList.toggle('faellig', backupIstFaellig());
+    }
+    function backupErinnerungImModalAnzeigen() {
+      const tage = backupTageSeitLetztem();
+      const el = document.getElementById('backupErinnerungText');
+      const spaeterBtn = document.getElementById('btnBackupSpaeter');
+      if (tage === null) {
+        el.textContent = 'ℹ️ Du hast noch kein Gesamt-Backup exportiert.';
+      } else if (tage >= BACKUP_ERINNERUNG_TAGE) {
+        el.textContent = '⏰ Letztes Backup vor ' + tage + ' Tagen – ein neues wäre sinnvoll.';
+      } else {
+        el.textContent = '✓ Letztes Backup vor ' + tage + ' Tag(en).';
+      }
+      spaeterBtn.style.display = backupIstFaellig() ? '' : 'none';
+    }
+    document.getElementById('btnBackupSpaeter').addEventListener('click', () => {
+      const bis = new Date(Date.now() + BACKUP_SNOOZE_TAGE * 24 * 60 * 60 * 1000);
+      try { localStorage.setItem('planer_backupSnoozeBis', bis.toISOString()); } catch (e) {}
+      backupErinnerungAktualisieren();
+      modalBackup.classList.remove('zeigen');
+    });
+    backupErinnerungAktualisieren();
+
     document.getElementById('btnExport').addEventListener('click', backupExportieren);
     document.getElementById('btnImportOeffnen').addEventListener('click', () => document.getElementById('fileImport').click());
     document.getElementById('fileImport').addEventListener('change', (e) => {

@@ -83,6 +83,7 @@
   .rezept-kat-icon { font-size: 1.6rem; }
   .rezept-titel { font-size: 0.88rem; font-weight: 700; line-height: 1.25; padding-right: 18px; }
   .rezept-meta { font-size: 0.68rem; color: var(--bark); display: flex; gap: 8px; }
+  .rezept-tags { font-size: 0.65rem; color: var(--sage); margin-top: 2px; }
 
   .leer-hinweis { text-align: center; color: var(--bark); font-size: 0.85rem; padding: 46px 16px; opacity: 0.75; }
   .leer-hinweis .em { font-size: 2.2rem; display: block; margin-bottom: 8px; }
@@ -157,6 +158,7 @@
     <input type="text" id="fSuche" placeholder="Rezept suchen ...">
   </div>
   <div class="filter-reihe" id="filterReihe"></div>
+  <div class="filter-reihe" id="tagFilterReihe" style="margin-top:4px;"></div>
 </header>
 
 <main>
@@ -249,6 +251,10 @@
     <button class="zeile-hinzufuegen" id="btnSchrittHinzufuegen">＋ Schritt hinzufügen</button>
 
     <div class="feld" style="margin-top:14px;">
+      <label for="fTags">Tags (optional, mit Komma trennen)</label>
+      <input type="text" id="fTags" placeholder="z.B. italienisch, schnell, vegetarisch">
+    </div>
+    <div class="feld">
       <label for="fNotiz">Notiz (optional)</label>
       <textarea id="fNotiz" placeholder="z.B. Tipps, Varianten ..."></textarea>
     </div>
@@ -302,6 +308,7 @@
 
   let rezepte = laden(KEY_REZEPTE, []);
   let aktiverFilter = 'alle';
+  let aktiverTagFilter = 'alle';
   let nurFavoriten = false;
   let suchtext = '';
   let bearbeiteId = null;
@@ -333,6 +340,32 @@
     favChip.textContent = '♥ Favoriten';
     favChip.addEventListener('click', () => { nurFavoriten = !nurFavoriten; renderFilter(); renderGrid(); });
     box.appendChild(favChip);
+
+    renderTagFilter();
+  }
+
+  function alleVorhandenenTags() {
+    const set = new Set();
+    rezepte.forEach(r => (r.tags || []).forEach(t => set.add(t)));
+    return Array.from(set).sort((a,b) => a.localeCompare(b));
+  }
+  function renderTagFilter() {
+    const box = document.getElementById('tagFilterReihe');
+    const tags = alleVorhandenenTags();
+    if (!tags.length) { box.innerHTML = ''; return; }
+    box.innerHTML = '';
+    const alleChip = document.createElement('button');
+    alleChip.className = 'filter-chip' + (aktiverTagFilter === 'alle' ? ' active' : '');
+    alleChip.textContent = '🏷️ Alle Tags';
+    alleChip.addEventListener('click', () => { aktiverTagFilter = 'alle'; renderTagFilter(); renderGrid(); });
+    box.appendChild(alleChip);
+    tags.forEach(tag => {
+      const chip = document.createElement('button');
+      chip.className = 'filter-chip' + (aktiverTagFilter === tag ? ' active' : '');
+      chip.textContent = '#' + tag;
+      chip.addEventListener('click', () => { aktiverTagFilter = tag; renderTagFilter(); renderGrid(); });
+      box.appendChild(chip);
+    });
   }
   document.getElementById('fSuche').addEventListener('input', (e) => { suchtext = e.target.value.trim().toLowerCase(); renderGrid(); });
 
@@ -340,6 +373,7 @@
   function gefilterteRezepte() {
     return rezepte.filter(r => {
       if (aktiverFilter !== 'alle' && r.kategorie !== aktiverFilter) return false;
+      if (aktiverTagFilter !== 'alle' && !(r.tags || []).includes(aktiverTagFilter)) return false;
       if (nurFavoriten && !r.favorit) return false;
       if (suchtext && !r.titel.toLowerCase().includes(suchtext)) return false;
       return true;
@@ -361,11 +395,15 @@
     const kat = kategorieInfo(r.kategorie);
     const karte = document.createElement('div');
     karte.className = 'rezept-karte';
+    const tagsHtml = (r.tags && r.tags.length)
+      ? '<div class="rezept-tags">' + r.tags.slice(0,3).map(t => '#' + escapeHtml(t)).join(' ') + '</div>'
+      : '';
     karte.innerHTML =
       '<button class="herz' + (r.favorit ? ' aktiv' : '') + '" data-id="' + r.id + '">' + (r.favorit ? '♥' : '♡') + '</button>' +
       '<div class="rezept-kat-icon">' + kat.icon + '</div>' +
       '<div class="rezept-titel">' + escapeHtml(r.titel) + '</div>' +
-      '<div class="rezept-meta"><span>⏱ ' + r.zeit + ' Min.</span><span>🍽 ' + r.portionenBasis + '</span></div>';
+      '<div class="rezept-meta"><span>⏱ ' + r.zeit + ' Min.</span><span>🍽 ' + r.portionenBasis + '</span></div>' +
+      tagsHtml;
     karte.querySelector('.herz').addEventListener('click', (e) => {
       e.stopPropagation();
       r.favorit = !r.favorit;
@@ -554,6 +592,7 @@
     document.getElementById('fPortionen').value = r ? r.portionenBasis : 4;
     document.getElementById('fZeit').value = r ? r.zeit : 30;
     document.getElementById('fNotiz').value = r ? (r.notiz || '') : '';
+    document.getElementById('fTags').value = r && r.tags ? r.tags.join(', ') : '';
     editKategorieReiheRendern(r ? r.kategorie : 'hauptspeise');
 
     const zutBox = document.getElementById('editZutatenListe');
@@ -596,10 +635,13 @@
     if (!zutaten.length) { alert('Bitte mindestens eine Zutat eingeben.'); return; }
     if (!schritte.length) { alert('Bitte mindestens einen Zubereitungsschritt eingeben.'); return; }
 
+    const tags = document.getElementById('fTags').value.split(',')
+      .map(t => t.trim().toLowerCase()).filter(Boolean);
+
     const neu = {
       id: bearbeiteId || neueId('r'),
       titel, kategorie: gewaehlteKategorie ? gewaehlteKategorie.dataset.id : 'sonstiges',
-      portionenBasis, zeit, zutaten, schritte,
+      portionenBasis, zeit, zutaten, schritte, tags,
       notiz: document.getElementById('fNotiz').value.trim(),
       favorit: bearbeiteId ? (rezepte.find(x => x.id === bearbeiteId)?.favorit || false) : false,
     };
@@ -607,6 +649,7 @@
     else rezepte.push(neu);
     speichernRezepte();
     document.getElementById('modalEdit').classList.remove('zeigen');
+    renderFilter();
     renderGrid();
   });
 
@@ -616,6 +659,7 @@
     rezepte = rezepte.filter(r => r.id !== bearbeiteId);
     speichernRezepte();
     document.getElementById('modalEdit').classList.remove('zeigen');
+    renderFilter();
     renderGrid();
   });
 
@@ -759,6 +803,7 @@
     document.getElementById('ansichtWochenplan').style.display = name === 'wochenplan' ? '' : 'none';
     document.getElementById('suchzeileBox').style.display = name === 'rezepte' ? '' : 'none';
     document.getElementById('filterReihe').style.display = name === 'rezepte' ? '' : 'none';
+    document.getElementById('tagFilterReihe').style.display = name === 'rezepte' ? '' : 'none';
     btnViewRezepte.classList.toggle('active', name === 'rezepte');
     btnViewWochenplan.classList.toggle('active', name === 'wochenplan');
     btnViewRezepte.setAttribute('aria-selected', name === 'rezepte');

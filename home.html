@@ -105,6 +105,7 @@
     </div>
     <div class="garten-hinweis" id="gartenHinweisText">Pflegeplan &amp; Tagesüberblick ansehen (Gieß-/Pflegeaufgaben, Wetterwarnungen)</div>
     <div id="gartenWarnungen"></div>
+    <div class="garten-hinweis" id="gartenPflanzErnte" style="margin-top:6px;"></div>
   </div>
 </main>
 
@@ -237,6 +238,52 @@
   // ============================================================
   document.getElementById('kachelGarten').addEventListener('click', () => navigiere('garten'));
 
+  // Kompakte Kopie der Aussaat-/Erntezeiten-Richtwerte aus garten.html, nur für die
+  // Kurzübersicht auf der Startseite (Zahlen, keine Namen/Symbole -> bewusst schlank gehalten).
+  const SOWING_KURZ = {
+    'Tomate':[null,[5,6]],'Paprika':[null,[5,6]],'Aubergine':[null,[5,6]],'Gurke':[[5,6],[5,6]],
+    'Zucchini':[[5,6],[5,6]],'Kürbis':[[5,6],[5,6]],'Karotte':[[3,7],null],'Salat':[[3,8],[3,9]],
+    'Radieschen':[[3,8],null],'Rettich':[[3,7],null],'Spinat':[[3,4],null],'Mangold':[[4,6],[4,6]],
+    'Rucola':[[3,9],null],'Feldsalat':[[8,9],null],'Brokkoli':[null,[5,6]],'Blumenkohl':[null,[5,6]],
+    'Weißkohl':[null,[5,6]],'Rotkohl':[null,[5,6]],'Kohlrabi':[[4,7],[3,8]],'Bohnen':[[5,7],null],
+    'Erbsen':[[3,5],null],'Mais':[[5,5],[5,6]],'Kartoffel':[null,[4,5]],'Rote Bete':[[4,6],null],
+    'Zwiebel':[[3,4],[4,5]],'Lauch (Porree)':[null,[5,6]],'Knoblauch':[null,[3,4]],'Sellerie':[null,[5,5]],
+    'Fenchel':[[5,6],[5,6]],'Spargel':[null,[3,4]],'Süßkartoffel':[null,[5,6]],'Kräuter':[[4,6],[5,6]],
+    'Basilikum':[null,[5,6]],'Petersilie':[[3,6],[4,6]],'Schnittlauch':[[3,5],[4,5]],'Dill':[[4,7],null],
+    'Erdbeere':[null,[3,4]],
+  };
+  const HARVEST_KURZ = {
+    'Tomate':[7,10],'Paprika':[7,10],'Aubergine':[7,10],'Gurke':[6,9],'Zucchini':[6,10],'Kürbis':[9,10],
+    'Karotte':[6,10],'Salat':[5,10],'Radieschen':[4,10],'Rettich':[6,10],'Spinat':[4,6],'Mangold':[6,10],
+    'Rucola':[5,10],'Feldsalat':[10,3],'Brokkoli':[6,10],'Blumenkohl':[6,10],'Weißkohl':[8,11],'Rotkohl':[8,11],
+    'Kohlrabi':[5,10],'Bohnen':[7,9],'Erbsen':[6,7],'Mais':[8,9],'Kartoffel':[7,9],'Rote Bete':[7,10],
+    'Zwiebel':[7,9],'Lauch (Porree)':[9,2],'Knoblauch':[6,7],'Sellerie':[9,10],'Fenchel':[8,10],'Spargel':[4,6],
+    'Süßkartoffel':[9,10],'Kräuter':[5,9],'Basilikum':[6,9],'Petersilie':[5,10],'Schnittlauch':[4,9],
+    'Dill':[6,9],'Erdbeere':[6,7],
+  };
+  function inFenster(r, monat) {
+    if (!r) return false;
+    if (r[0] <= r[1]) return monat >= r[0] && monat <= r[1];
+    return monat >= r[0] || monat <= r[1];
+  }
+  function renderGartenPflanzErnte() {
+    const box = document.getElementById('gartenPflanzErnte');
+    const gartenDaten = laden('gartenplaner_v3', null);
+    let klimaOffset = 0;
+    if (gartenDaten && gartenDaten.currentGardenId && gartenDaten.gardens) {
+      const zone = gartenDaten.gardens[gartenDaten.currentGardenId]?.climateZone;
+      klimaOffset = zone === 'mild' ? -1 : (zone === 'rau' ? 1 : 0);
+    }
+    function verschieben(r) {
+      if (!r || !klimaOffset) return r;
+      return [Math.min(12,Math.max(1,r[0]+klimaOffset)), Math.min(12,Math.max(1,r[1]+klimaOffset))];
+    }
+    const monat = new Date().getMonth() + 1;
+    const anzahlPflanzbar = Object.values(SOWING_KURZ).filter(([direkt, aus]) => inFenster(verschieben(direkt), monat) || inFenster(verschieben(aus), monat)).length;
+    const anzahlErntbar = Object.values(HARVEST_KURZ).filter(r => inFenster(r, monat)).length;
+    box.textContent = '🌱 ' + anzahlPflanzbar + ' Pflanzen aktuell pflanzbar · 🧺 ' + anzahlErntbar + ' erntbar';
+  }
+
   function renderGartenWarnungen() {
     const hinweise = laden('gartenplaner_wetterHinweise', null);
     const box = document.getElementById('gartenWarnungen');
@@ -279,11 +326,12 @@
   renderEinkauf();
   renderSport();
   renderGartenWarnungen();
+  renderGartenPflanzErnte();
   renderKochenHeute();
 
   // Bei Rückkehr auf die Startseite (z.B. nach Bearbeitung in einem anderen Modul) neu laden
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) { renderTermine(); renderEinkauf(); renderSport(); renderGartenWarnungen(); renderKochenHeute(); }
+    if (!document.hidden) { renderTermine(); renderEinkauf(); renderSport(); renderGartenWarnungen(); renderGartenPflanzErnte(); renderKochenHeute(); }
   });
 })();
 </script>
