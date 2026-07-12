@@ -1,0 +1,32 @@
+{
+  "name": "Familienplaner",
+  "short_name": "Familienplaner",
+  "description": "Garten, Termine, Einkauf, Kochen, Gesundheit, Gaming & Handwerk – alles für die Familie an einem Ort",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#faf6ec",
+  "theme_color": "#4f6f45",
+  "lang": "de",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
