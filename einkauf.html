@@ -33,6 +33,10 @@
     padding: 4px 11px; border-radius: var(--radius-pill); cursor: pointer;
   }
   .ich-bin-chip.active { color: var(--white); border-color: transparent; }
+  .filter-chip {
+    padding: 6px 13px; border-radius: var(--radius-pill); font-size: 0.72rem; font-weight: 600;
+    border: 1px solid var(--parchment); background: var(--white); color: var(--bark); cursor: pointer;
+  }
   .hinzu-badge { font-size: 0.62rem; font-weight: 700; padding: 1px 7px; border-radius: var(--radius-pill); white-space: nowrap; }
   .item-unterzeile { display: flex; align-items: center; gap: 6px; margin-top: 2px; }
   .vorlage-zeile {
@@ -180,6 +184,9 @@
     <button id="btnHinzufuegen">＋</button>
   </div>
   <div class="favoriten-reihe" id="favoritenReihe"></div>
+  <div style="display:flex; justify-content:flex-end; margin-bottom:6px;">
+    <button class="filter-chip" id="btnSortRichtung">🔤 A–Z</button>
+  </div>
   <div id="offeneItems"></div>
   <div id="erledigtSection" class="erledigt-section" style="display:none;">
     <div class="erledigt-kopf">
@@ -544,6 +551,20 @@
     return zeile;
   }
 
+  let sortRichtung = localStorage.getItem('einkauf_sortRichtung') || 'az';
+  function sortiereItems(liste) {
+    return liste.slice().sort((a, b) => sortRichtung === 'za' ? b.name.localeCompare(a.name) : a.name.localeCompare(b.name));
+  }
+  function renderSortButton() {
+    document.getElementById('btnSortRichtung').textContent = sortRichtung === 'za' ? '🔤 Z–A' : '🔤 A–Z';
+  }
+  document.getElementById('btnSortRichtung').addEventListener('click', () => {
+    sortRichtung = sortRichtung === 'za' ? 'az' : 'za';
+    try { localStorage.setItem('einkauf_sortRichtung', sortRichtung); } catch (e) {}
+    renderSortButton();
+    renderAlles();
+  });
+
   function renderOffeneItems() {
     const box = document.getElementById('offeneItems');
     box.innerHTML = '';
@@ -551,7 +572,7 @@
     const offene = liste.items.filter(i => !i.erledigt);
     document.getElementById('leerHinweis').style.display = liste.items.length === 0 ? '' : 'none';
     KATEGORIEN.forEach(kat => {
-      const gruppe = offene.filter(i => i.kategorie === kat.id);
+      const gruppe = sortiereItems(offene.filter(i => i.kategorie === kat.id));
       if (!gruppe.length) return;
       const wrap = document.createElement('div');
       wrap.className = 'kategorie-gruppe';
@@ -570,7 +591,7 @@
     const box = document.getElementById('erledigtItems');
     box.style.display = erledigtOffen ? '' : 'none';
     box.innerHTML = '';
-    erledigt.forEach(item => box.appendChild(itemZeile(item)));
+    sortiereItems(erledigt).forEach(item => box.appendChild(itemZeile(item)));
   }
   document.getElementById('btnErledigtToggle').addEventListener('click', () => { erledigtOffen = !erledigtOffen; renderErledigt(); });
   document.getElementById('btnErledigtLoeschen').addEventListener('click', () => {
@@ -832,6 +853,7 @@
     renderVorlagenListe();
   });
 
+  renderSortButton();
   renderIchBinReihe();
   renderAlles();
   pruefeVorlagenErinnerung();

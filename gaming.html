@@ -113,7 +113,10 @@
     <h1>🎮 Gaming</h1>
     <button class="add-btn" id="btnNeu">＋ Neu</button>
   </div>
-  <div class="suchzeile"><input type="text" id="fSuche" placeholder="Spiel suchen ..."></div>
+  <div class="suchzeile" style="display:flex; align-items:center; gap:6px;">
+    <input type="text" id="fSuche" placeholder="Spiel suchen ..." style="flex:1;">
+    <button class="filter-chip" id="btnSortRichtung" style="flex:0 0 auto;">🔤 A–Z</button>
+  </div>
   <div class="filter-reihe" id="personFilterReihe"></div>
   <div class="filter-reihe" id="statusFilterReihe" style="margin-top:5px;"></div>
   <div class="view-toggle" role="tablist" style="margin-top:8px;">
@@ -312,14 +315,26 @@
   }
   document.getElementById('fSuche').addEventListener('input', (e) => { suchtext = e.target.value.trim().toLowerCase(); renderAlles(); });
 
+  let sortRichtung = localStorage.getItem('gaming_sortRichtung') || 'az';
   function gefilterteSpiele() {
-    return spiele.filter(s => {
+    const gefiltert = spiele.filter(s => {
       if (personFilter !== 'alle' && s.person !== personFilter) return false;
       if (statusFilter !== 'alle' && s.status !== statusFilter) return false;
       if (suchtext && !s.titel.toLowerCase().includes(suchtext)) return false;
       return true;
     });
+    gefiltert.sort((a, b) => sortRichtung === 'za' ? b.titel.localeCompare(a.titel) : a.titel.localeCompare(b.titel));
+    return gefiltert;
   }
+  function renderSortButton() {
+    document.getElementById('btnSortRichtung').textContent = sortRichtung === 'za' ? '🔤 Z–A' : '🔤 A–Z';
+  }
+  document.getElementById('btnSortRichtung').addEventListener('click', () => {
+    sortRichtung = sortRichtung === 'za' ? 'az' : 'za';
+    try { localStorage.setItem('gaming_sortRichtung', sortRichtung); } catch (e) {}
+    renderSortButton();
+    renderGrid();
+  });
 
   // --- STATS ---
   function renderStats() {
@@ -603,6 +618,7 @@
     if (aktiveAnsicht === 'statistik') renderStatistik();
   }
 
+  renderSortButton();
   renderPersonFilter();
   renderStatusFilter();
   renderAlles();

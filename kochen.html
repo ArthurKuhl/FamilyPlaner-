@@ -154,10 +154,13 @@
     <button id="btnViewRezepte" class="active" role="tab" aria-selected="true">📖 Rezepte</button>
     <button id="btnViewWochenplan" role="tab" aria-selected="false">📅 Wochenplan</button>
   </div>
-  <div class="suchzeile" id="suchzeileBox">
-    <input type="text" id="fSuche" placeholder="Rezept suchen ...">
+  <div class="suchzeile-sort-reihe" id="suchzeileBox" style="display:flex; align-items:center; gap:6px;">
+    <div class="suchzeile" style="flex:1; margin-bottom:0;">
+      <input type="text" id="fSuche" placeholder="Rezept suchen ...">
+    </div>
+    <button class="filter-chip" id="btnSortRichtung" style="flex:0 0 auto;">🔤 A–Z</button>
   </div>
-  <div class="filter-reihe" id="filterReihe"></div>
+  <div class="filter-reihe" id="filterReihe" style="margin-top:8px;"></div>
   <div class="filter-reihe" id="tagFilterReihe" style="margin-top:4px;"></div>
 </header>
 
@@ -370,14 +373,29 @@
   document.getElementById('fSuche').addEventListener('input', (e) => { suchtext = e.target.value.trim().toLowerCase(); renderGrid(); });
 
   // --- GRID ---
+  const KEY_SORT_RICHTUNG = 'kochen_sortRichtung';
+  let sortRichtung = localStorage.getItem(KEY_SORT_RICHTUNG) || 'az';
+  function renderSortButton() {
+    const btn = document.getElementById('btnSortRichtung');
+    btn.textContent = sortRichtung === 'az' ? '🔤 A–Z' : '🔤 Z–A';
+  }
+  document.getElementById('btnSortRichtung').addEventListener('click', () => {
+    sortRichtung = sortRichtung === 'az' ? 'za' : 'az';
+    try { localStorage.setItem(KEY_SORT_RICHTUNG, sortRichtung); } catch (e) {}
+    renderSortButton();
+    renderGrid();
+  });
+
   function gefilterteRezepte() {
-    return rezepte.filter(r => {
+    const gefiltert = rezepte.filter(r => {
       if (aktiverFilter !== 'alle' && r.kategorie !== aktiverFilter) return false;
       if (aktiverTagFilter !== 'alle' && !(r.tags || []).includes(aktiverTagFilter)) return false;
       if (nurFavoriten && !r.favorit) return false;
       if (suchtext && !r.titel.toLowerCase().includes(suchtext)) return false;
       return true;
     });
+    gefiltert.sort((a, b) => sortRichtung === 'za' ? b.titel.localeCompare(a.titel) : a.titel.localeCompare(b.titel));
+    return gefiltert;
   }
 
   function renderGrid() {
@@ -813,6 +831,7 @@
   btnViewRezepte.addEventListener('click', () => zeigeKochenAnsicht('rezepte'));
   btnViewWochenplan.addEventListener('click', () => zeigeKochenAnsicht('wochenplan'));
 
+  renderSortButton();
   renderFilter();
   renderGrid();
 

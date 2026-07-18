@@ -92,7 +92,10 @@
     <h1>🔨 Handwerk</h1>
     <button class="add-btn" id="btnNeu">＋ Neu</button>
   </div>
-  <div class="suchzeile"><input type="text" id="fSuche" placeholder="Projekt suchen ..."></div>
+  <div class="suchzeile" style="display:flex; align-items:center; gap:6px;">
+    <input type="text" id="fSuche" placeholder="Projekt suchen ..." style="flex:1;">
+    <button class="filter-chip" id="btnSortRichtung" style="flex:0 0 auto;">🔤 A–Z</button>
+  </div>
   <div class="filter-reihe" id="filterReihe"></div>
 </header>
 
@@ -224,13 +227,25 @@
   }
   document.getElementById('fSuche').addEventListener('input', (e) => { suchtext = e.target.value.trim().toLowerCase(); renderGrid(); });
 
+  let sortRichtung = localStorage.getItem('handwerk_sortRichtung') || 'az';
   function gefilterteProjekte() {
-    return projekte.filter(p => {
+    const gefiltert = projekte.filter(p => {
       if (aktiverFilter !== 'alle' && p.status !== aktiverFilter) return false;
       if (suchtext && !p.titel.toLowerCase().includes(suchtext)) return false;
       return true;
     });
+    gefiltert.sort((a, b) => sortRichtung === 'za' ? b.titel.localeCompare(a.titel) : a.titel.localeCompare(b.titel));
+    return gefiltert;
   }
+  function renderSortButton() {
+    document.getElementById('btnSortRichtung').textContent = sortRichtung === 'za' ? '🔤 Z–A' : '🔤 A–Z';
+  }
+  document.getElementById('btnSortRichtung').addEventListener('click', () => {
+    sortRichtung = sortRichtung === 'za' ? 'az' : 'za';
+    try { localStorage.setItem('handwerk_sortRichtung', sortRichtung); } catch (e) {}
+    renderSortButton();
+    renderGrid();
+  });
 
   // --- GRID ---
   function projektKarte(p) {
@@ -438,6 +453,7 @@
     renderGrid();
   });
 
+  renderSortButton();
   renderFilter();
   renderGrid();
 
