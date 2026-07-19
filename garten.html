@@ -4161,6 +4161,8 @@ function onDown(e) {
     pushUndo();
     getCurrentBeds().push(bed);
     selectedBed=bed; selectedBeds=[bed]; showBedEditor(bed); hideBulkBar(); draw(); renderBedList(); saveData(); updateStatus();
+    setMode('select');
+    showTempStatus('✓ Beet angelegt – zum Zeichnen eines weiteren Beets unten „➕ Neu" erneut öffnen', 5);
   } else if (mode==='freehand') {
     if (!freehandDrawing) {
       freehandDrawing = true;
