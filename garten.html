@@ -4655,7 +4655,9 @@ function selectPlantType(sym,name,el){
   addRecentPlant(sym,name);
   const search=document.getElementById('plantSearch');
   buildPlantGrid(search?search.value:'');
-  if(mode==='plant') document.getElementById('statusMsg').textContent=`Pflanze setzen: ${sym}`;
+  setMode('plant');
+  switchTab('beds');
+  showTempStatus(`🌱 ${name} ausgewählt – jetzt auf ein Beet tippen zum Pflanzen`, 4);
 }
 
 // ==================== SYMPTOM & PEST DROPDOWNS ====================
