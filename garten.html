@@ -223,6 +223,7 @@
   .shop-entry { background: var(--white); border-radius: var(--radius-md); padding: 11px 14px; margin-bottom: 8px; box-shadow: var(--shadow-soft); border-left: 3px solid var(--sage); }
   .shop-entry .se-name { font-weight: 600; color: var(--soil); font-size: 0.85rem; }
   .shop-entry .se-meta { color: var(--bark); font-size: 0.74rem; margin-top: 2px; }
+  .shop-entry .se-link { color: var(--moss); font-weight: 600; text-decoration: underline; word-break: break-all; }
   .shop-entry .se-actions { margin-top: 6px; display: flex; gap: 8px; }
   .shop-entry .se-actions button { background: transparent; border: none; color: var(--bark); font-size: 0.7rem; cursor: pointer; text-decoration: underline; padding: 0; }
   .btn-add-entry { background: transparent; border: 1px dashed var(--sage); color: var(--moss); border-radius: var(--radius-pill); padding: 5px 12px; font-size: 0.72rem; font-weight: 600; cursor: pointer; }
@@ -5758,6 +5759,12 @@ function loadShops() {
 function saveShops() {
   try { localStorage.setItem('gartenplaner_shops', JSON.stringify(shopEntries)); } catch(e) {}
 }
+function normalisiereLink(url) {
+  const trimmed = (url || '').trim();
+  if (!trimmed) return '#';
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  return 'https://' + trimmed;
+}
 function renderShops() {
   const box = document.getElementById('shopsWrap');
   let html = `<div class="home-intro" style="margin-bottom:22px"><h2>🏬 Shops &amp; Dienstleister</h2><p>Deine gesammelten Anlaufstellen rund um Garten und Selbstversorgung. Einträge bleiben nur lokal in diesem Browser gespeichert.</p></div>`;
@@ -5775,7 +5782,7 @@ function renderShops() {
         <div class="shop-entry">
           <div class="se-name">${escapeHtml(e.name)}</div>
           ${e.ort ? `<div class="se-meta">📍 ${escapeHtml(e.ort)}</div>` : ''}
-          ${e.link ? `<div class="se-meta">🔗 ${escapeHtml(e.link)}</div>` : ''}
+          ${e.link ? `<div class="se-meta">🔗 <a href="${escapeHtml(normalisiereLink(e.link))}" target="_blank" rel="noopener noreferrer" class="se-link">${escapeHtml(e.link)}</a></div>` : ''}
           ${e.notiz ? `<div class="se-meta">${escapeHtml(e.notiz)}</div>` : ''}
           <div class="se-actions">
             <button onclick="openShopForm('${cat.id}','${e.id}')">Bearbeiten</button>
