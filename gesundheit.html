@@ -81,8 +81,8 @@
   .verlauf-datum-gruppe { margin-bottom: 14px; }
   .verlauf-datum-titel { font-size: 0.72rem; font-weight: 700; color: var(--bark); text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 6px; padding-left: 2px; }
 
-  .stat-reihe { display: flex; gap: 8px; margin-bottom: 12px; }
-  .stat-box { flex: 1; background: var(--white); border-radius: var(--radius-md); padding: 10px; text-align: center; box-shadow: var(--shadow-soft); }
+  .stat-reihe { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  .stat-box { flex: 1 1 calc(50% - 8px); min-width: 78px; background: var(--white); border-radius: var(--radius-md); padding: 10px; text-align: center; box-shadow: var(--shadow-soft); }
   .stat-box .wert { font-size: 1.15rem; font-weight: 700; color: var(--moss); }
   .stat-box .label { font-size: 0.65rem; color: var(--bark); text-transform: uppercase; letter-spacing: 0.02em; margin-top: 2px; }
 
@@ -223,6 +223,7 @@
     <button id="btnViewRechner" role="tab" aria-selected="false">🧮 Rechner</button>
     <button id="btnViewKraft" role="tab" aria-selected="false">💪 Kraft</button>
     <button id="btnViewDehnen" role="tab" aria-selected="false">🧘 Dehnen</button>
+    <button id="btnViewBalance" role="tab" aria-selected="false">🤸 Balance</button>
     <button id="btnViewErinnerungen" role="tab" aria-selected="false">💊 Erinnerungen</button>
   </div>
 </header>
@@ -240,6 +241,18 @@
         <input type="number" step="0.5" class="metrik-input-zahl" id="fSchlaf" placeholder="–">
       </div>
       <div class="metrik-zeile">
+        <span class="metrik-label">❤️ Blutdruck (mmHg)</span>
+        <div style="display:flex; align-items:center; gap:4px;">
+          <input type="number" step="1" class="metrik-input-zahl" id="fBlutdruckSys" placeholder="Sys" style="width:56px;">
+          <span style="color:var(--bark); font-weight:700;">/</span>
+          <input type="number" step="1" class="metrik-input-zahl" id="fBlutdruckDia" placeholder="Dia" style="width:56px;">
+        </div>
+      </div>
+      <div class="metrik-zeile">
+        <span class="metrik-label">💓 Puls (bpm)</span>
+        <input type="number" step="1" class="metrik-input-zahl" id="fPuls" placeholder="–">
+      </div>
+      <div class="metrik-zeile">
         <span class="metrik-label">💧 Wasser (Gläser)</span>
         <div class="stepper">
           <button id="btnWasserMinus" type="button">−</button>
@@ -255,6 +268,13 @@
       <div class="metrik-zeile">
         <span class="metrik-label">Stimmung</span>
         <div class="stimmung-reihe" id="stimmungReihe"></div>
+      </div>
+      <div class="metrik-zeile">
+        <span class="metrik-label">🛌 Ruhetag heute</span>
+        <label class="schalter">
+          <input type="checkbox" id="fRuhetag">
+          <span class="schalter-kugel"></span>
+        </label>
       </div>
     </div>
 
@@ -299,6 +319,10 @@
     <div class="karte">
       <h3>⚖️ Gewichtsverlauf</h3>
       <div id="gewichtChart"></div>
+    </div>
+    <div class="karte">
+      <h3>❤️ Blutdruck &amp; Puls</h3>
+      <div id="blutdruckChart"></div>
     </div>
     <div id="verlaufListe"></div>
     <div class="leer-hinweis" id="verlaufLeer" style="display:none;">Noch keine Einträge für diese Auswahl.</div>
@@ -353,6 +377,12 @@
   </section>
 
   <section id="ansichtKraft" style="display:none;">
+    <div class="karte">
+      <h3>📈 Trainingslog</h3>
+      <div id="trainingslogListe"></div>
+      <div class="leer-hinweis" id="trainingslogLeer" style="display:none; padding:14px 0;">Noch keine Einträge. Erfasse Gewicht, Sätze und Wiederholungen je Übung, um deinen Fortschritt zu verfolgen.</div>
+      <button class="add-sport-btn" id="btnTrainingslogHinzufuegen" style="margin-top:8px;">＋ Trainingseintrag erfassen</button>
+    </div>
     <div class="muskel-grid" id="muskelGrid"></div>
   </section>
 
@@ -360,6 +390,13 @@
     <div class="muskel-grid" id="dehnGrid"></div>
     <div class="disclaimer-box">
       ℹ️ Dehnungen immer sanft und ohne Schmerzen ausführen, nie wippen oder ruckartig dehnen. Bei anhaltenden Verspannungen, Rückenschmerzen oder Haltungsproblemen lohnt sich zusätzlich der Rat einer Ärztin/eines Arztes oder einer Physiotherapie – diese Übersicht ersetzt keine individuelle Behandlung.
+    </div>
+  </section>
+
+  <section id="ansichtBalance" style="display:none;">
+    <div class="muskel-grid" id="balanceGrid"></div>
+    <div class="disclaimer-box">
+      ℹ️ Balance-Übungen zur Sturzprävention am besten in der Nähe einer Wand oder eines stabilen Stuhls zum Festhalten üben. Bei Schwindel, Gleichgewichtsproblemen oder nach Stürzen vorab ärztlichen Rat einholen – diese Übersicht ersetzt keine individuelle Beratung.
     </div>
   </section>
 
@@ -480,6 +517,44 @@
   </div>
 </div>
 
+<div class="modal-bg" id="modalTrainingslog">
+  <div class="modal">
+    <h2>Trainingseintrag</h2>
+    <div class="feld">
+      <label for="fTlUebung">Übung</label>
+      <input type="text" id="fTlUebung" placeholder="z.B. Bankdrücken, Kniebeugen">
+    </div>
+    <div class="zeile">
+      <div class="feld">
+        <label for="fTlDatum">Datum</label>
+        <input type="date" id="fTlDatum">
+      </div>
+      <div class="feld">
+        <label for="fTlGewicht">Gewicht (kg)</label>
+        <input type="number" step="0.5" id="fTlGewicht" placeholder="z.B. 40">
+      </div>
+    </div>
+    <div class="zeile">
+      <div class="feld">
+        <label for="fTlSaetze">Sätze</label>
+        <input type="number" id="fTlSaetze" min="1" value="3">
+      </div>
+      <div class="feld">
+        <label for="fTlWdh">Wiederholungen</label>
+        <input type="number" id="fTlWdh" min="1" value="10">
+      </div>
+    </div>
+    <div class="feld">
+      <label for="fTlNotiz">Notiz (optional)</label>
+      <input type="text" id="fTlNotiz" placeholder="z.B. sauber ausgeführt, leicht gefallen">
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnTlAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnTlSpeichern">Speichern</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="modalMed">
   <div class="modal">
     <h2>Medikament/Vitamin</h2>
@@ -552,7 +627,7 @@
   function findeOderErstelleTageswert(person, datum) {
     let eintrag = tageswerte.find(t => t.person === person && t.datum === datum);
     if (!eintrag) {
-      eintrag = { id: neueId('tw'), datum, person, gewicht: '', schlaf: '', wasser: 0, stimmung: 0 };
+      eintrag = { id: neueId('tw'), datum, person, gewicht: '', schlaf: '', wasser: 0, stimmung: 0, blutdruckSys: '', blutdruckDia: '', puls: '', ruhetag: false };
       tageswerte.push(eintrag);
     }
     return eintrag;
@@ -622,6 +697,10 @@
     const eintrag = findeOderErstelleTageswert(aktivePerson, heuteISO());
     document.getElementById('fGewicht').value = eintrag.gewicht || '';
     document.getElementById('fSchlaf').value = eintrag.schlaf || '';
+    document.getElementById('fBlutdruckSys').value = eintrag.blutdruckSys || '';
+    document.getElementById('fBlutdruckDia').value = eintrag.blutdruckDia || '';
+    document.getElementById('fPuls').value = eintrag.puls || '';
+    document.getElementById('fRuhetag').checked = !!eintrag.ruhetag;
     document.getElementById('wasserWert').textContent = eintrag.wasser || 0;
     renderWasserZielBalken(eintrag.wasser || 0);
     renderStimmungReihe(eintrag.stimmung);
@@ -656,6 +735,26 @@
   document.getElementById('fSchlaf').addEventListener('change', (e) => {
     const eintrag = findeOderErstelleTageswert(aktivePerson, heuteISO());
     eintrag.schlaf = e.target.value;
+    speichern(KEY_TAGESWERTE, tageswerte);
+  });
+  document.getElementById('fBlutdruckSys').addEventListener('change', (e) => {
+    const eintrag = findeOderErstelleTageswert(aktivePerson, heuteISO());
+    eintrag.blutdruckSys = e.target.value;
+    speichern(KEY_TAGESWERTE, tageswerte);
+  });
+  document.getElementById('fBlutdruckDia').addEventListener('change', (e) => {
+    const eintrag = findeOderErstelleTageswert(aktivePerson, heuteISO());
+    eintrag.blutdruckDia = e.target.value;
+    speichern(KEY_TAGESWERTE, tageswerte);
+  });
+  document.getElementById('fPuls').addEventListener('change', (e) => {
+    const eintrag = findeOderErstelleTageswert(aktivePerson, heuteISO());
+    eintrag.puls = e.target.value;
+    speichern(KEY_TAGESWERTE, tageswerte);
+  });
+  document.getElementById('fRuhetag').addEventListener('change', (e) => {
+    const eintrag = findeOderErstelleTageswert(aktivePerson, heuteISO());
+    eintrag.ruhetag = e.target.checked;
     speichern(KEY_TAGESWERTE, tageswerte);
   });
   document.getElementById('btnWasserMinus').addEventListener('click', () => {
@@ -888,6 +987,31 @@
   }
   function formatZahl1(n) { return n.toLocaleString('de-DE', { maximumFractionDigits: 1 }); }
 
+  function erstelleBlutdruckSparkline(sysWerte, diaWerte, pulsWerte) {
+    const sysPunkte = sysWerte.map((v,i) => ({ i, v: parseFloat(v) })).filter(p => !isNaN(p.v));
+    const diaPunkte = diaWerte.map((v,i) => ({ i, v: parseFloat(v) })).filter(p => !isNaN(p.v));
+    if (sysPunkte.length < 2) return '<div class="chart-leer">Noch nicht genug Einträge für einen Trend (mind. 2 Blutdruckwerte nötig)</div>';
+    const w = 280, h = 70, pad = 6;
+    const alle = sysPunkte.map(p=>p.v).concat(diaPunkte.map(p=>p.v));
+    const min = Math.min(...alle), max = Math.max(...alle);
+    const spanne = (max - min) || 1;
+    function pfad(punkte) {
+      return punkte.map((p, idx) => {
+        const x = pad + (idx/(sysWerte.length-1)) * (w - 2*pad);
+        const y = h - pad - ((p.v - min)/spanne) * (h - 2*pad);
+        return x.toFixed(1) + ',' + y.toFixed(1);
+      }).join(' ');
+    }
+    const letzterSys = sysPunkte[sysPunkte.length-1].v;
+    const letzterDia = diaPunkte.length ? diaPunkte[diaPunkte.length-1].v : null;
+    const gueltigePuls = pulsWerte.map(v => parseFloat(v)).filter(v => !isNaN(v));
+    const letzterPuls = gueltigePuls.length ? gueltigePuls[gueltigePuls.length-1] : null;
+    return '<svg viewBox="0 0 ' + w + ' ' + h + '" width="100%" height="70" preserveAspectRatio="none">' +
+      '<polyline points="' + pfad(sysPunkte) + '" fill="none" stroke="#c46b41" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>' +
+      (diaPunkte.length >= 2 ? '<polyline points="' + pfad(diaPunkte) + '" fill="none" stroke="#5b8bb5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>' : '') +
+      '</svg><div class="chart-trend"><span style="color:#c46b41;">● Sys.</span><span style="color:#5b8bb5;">● Dia.</span><span>Aktuell: ' + Math.round(letzterSys) + (letzterDia !== null ? '/' + Math.round(letzterDia) : '') + ' mmHg' + (letzterPuls !== null ? ' · ' + Math.round(letzterPuls) + ' bpm' : '') + '</span></div>';
+  }
+
   function renderStats() {
     const box = document.getElementById('statReihe');
     box.innerHTML = '';
@@ -897,11 +1021,13 @@
     const minuten = gefiltert.reduce((sum, s) => sum + s.dauer, 0);
     const schlafWerte = tageswerte.filter(t => letzte7.includes(t.datum) && t.person === aktivePerson && t.schlaf).map(t => parseFloat(t.schlaf));
     const schlafSchnitt = schlafWerte.length ? (schlafWerte.reduce((a,b)=>a+b,0) / schlafWerte.length) : null;
+    const ruhetage = tageswerte.filter(t => letzte7.includes(t.datum) && t.person === aktivePerson && t.ruhetag).length;
 
     [
       { wert: anzahl, label: 'Einheiten (7 Tage)' },
       { wert: minuten, label: 'Minuten aktiv' },
       { wert: schlafSchnitt !== null ? formatZahl1(schlafSchnitt) : '–', label: 'Ø Schlaf (Std.)' },
+      { wert: ruhetage, label: 'Ruhetage (7 Tage)' },
     ].forEach(s => {
       const el = document.createElement('div');
       el.className = 'stat-box';
@@ -926,6 +1052,18 @@
     document.getElementById('gewichtChart').innerHTML = erstelleSparkline(werte, '#4f6f45');
   }
 
+  function renderBlutdruckChart() {
+    const letzte30 = letzteNTage(30);
+    const sysWerte = [], diaWerte = [], pulsWerte = [];
+    letzte30.forEach(datum => {
+      const e = tageswerte.find(t => t.datum === datum && t.person === aktivePerson);
+      sysWerte.push(e ? e.blutdruckSys : '');
+      diaWerte.push(e ? e.blutdruckDia : '');
+      pulsWerte.push(e ? e.puls : '');
+    });
+    document.getElementById('blutdruckChart').innerHTML = erstelleBlutdruckSparkline(sysWerte, diaWerte, pulsWerte);
+  }
+
   function renderVerlaufListe() {
     const box = document.getElementById('verlaufListe');
     box.innerHTML = '';
@@ -948,6 +1086,7 @@
   function renderVerlauf() {
     renderStats();
     renderGewichtChart();
+    renderBlutdruckChart();
     renderVerlaufListe();
   }
 
@@ -957,7 +1096,8 @@
   const btnRechner = document.getElementById('btnViewRechner');
   const btnKraft = document.getElementById('btnViewKraft');
   const btnDehnen = document.getElementById('btnViewDehnen');
-  const alleTabs = { heute: btnHeute, verlauf: btnVerlauf, rechner: btnRechner, kraft: btnKraft, dehnen: btnDehnen };
+  const btnBalance = document.getElementById('btnViewBalance');
+  const alleTabs = { heute: btnHeute, verlauf: btnVerlauf, rechner: btnRechner, kraft: btnKraft, dehnen: btnDehnen, balance: btnBalance };
   function zeigeAnsicht(name) {
     aktiveAnsicht = name;
     document.getElementById('ansichtHeute').style.display = name === 'heute' ? '' : 'none';
@@ -965,19 +1105,22 @@
     document.getElementById('ansichtRechner').style.display = name === 'rechner' ? '' : 'none';
     document.getElementById('ansichtKraft').style.display = name === 'kraft' ? '' : 'none';
     document.getElementById('ansichtDehnen').style.display = name === 'dehnen' ? '' : 'none';
+    document.getElementById('ansichtBalance').style.display = name === 'balance' ? '' : 'none';
     Object.keys(alleTabs).forEach((k) => {
       alleTabs[k].classList.toggle('active', k === name);
       alleTabs[k].setAttribute('aria-selected', k === name);
     });
     if (name === 'verlauf') renderVerlauf();
-    if (name === 'kraft') renderMuskelGrid();
+    if (name === 'kraft') { renderMuskelGrid(); renderTrainingslog(); }
     if (name === 'dehnen') renderDehnGrid();
+    if (name === 'balance') renderBalanceGrid();
   }
   btnHeute.addEventListener('click', () => zeigeAnsicht('heute'));
   btnVerlauf.addEventListener('click', () => zeigeAnsicht('verlauf'));
   btnRechner.addEventListener('click', () => zeigeAnsicht('rechner'));
   btnKraft.addEventListener('click', () => zeigeAnsicht('kraft'));
   btnDehnen.addEventListener('click', () => zeigeAnsicht('dehnen'));
+  btnBalance.addEventListener('click', () => zeigeAnsicht('balance'));
 
   // ============================================================
   // NÄHRSTOFF-RECHNER
@@ -1079,6 +1222,81 @@
     document.getElementById('mikroTabelle').innerHTML = mikronaehrstoffe(rechnerGeschlecht)
       .map(m => '<tr><td>' + m.name + '</td><td>' + m.wert + '</td></tr>').join('');
   }
+
+  // ============================================================
+  // TRAININGSLOG (Gewicht/Sätze/Wiederholungen je Übung, für Fortschrittsverfolgung)
+  // ============================================================
+  const KEY_TRAININGSLOG = 'gesundheit_trainingslog';
+  let trainingslog = laden(KEY_TRAININGSLOG, []); // [{id, datum, person, uebung, gewicht, saetze, wiederholungen, notiz}]
+
+  function renderTrainingslog() {
+    const box = document.getElementById('trainingslogListe');
+    const leer = document.getElementById('trainingslogLeer');
+    box.innerHTML = '';
+    const eigene = trainingslog.filter(t => t.person === aktivePerson).sort((a,b) => a.datum < b.datum ? 1 : -1);
+    leer.style.display = eigene.length ? 'none' : '';
+    // Gruppiert nach Übung, damit der Fortschritt je Übung sichtbar ist
+    const gruppen = {};
+    eigene.forEach(t => { (gruppen[t.uebung] = gruppen[t.uebung] || []).push(t); });
+    Object.keys(gruppen).sort().forEach(uebung => {
+      const eintraege = gruppen[uebung].slice(0, 5);
+      const wrap = document.createElement('div');
+      wrap.style.marginBottom = '10px';
+      const erster = eintraege[eintraege.length - 1];
+      const letzter = eintraege[0];
+      let trend = '';
+      if (eintraege.length > 1 && erster.gewicht && letzter.gewicht) {
+        const diff = parseFloat(letzter.gewicht) - parseFloat(erster.gewicht);
+        trend = diff > 0 ? ' ↑ +' + formatZahl1(diff) + ' kg' : (diff < 0 ? ' ↓ ' + formatZahl1(diff) + ' kg' : '');
+      }
+      wrap.innerHTML = '<div class="verlauf-datum-titel">' + escapeHtml(uebung) + trend + '</div>';
+      eintraege.forEach(t => {
+        const zeile = document.createElement('div');
+        zeile.className = 'sport-zeile';
+        zeile.innerHTML =
+          '<span class="sport-icon">🏋️</span>' +
+          '<div class="sport-info"><div class="sport-titel">' + (t.gewicht ? formatZahl1(parseFloat(t.gewicht)) + ' kg · ' : '') + t.saetze + '×' + t.wiederholungen + '</div>' +
+          '<div class="sport-meta">' + ausISO(t.datum).toLocaleDateString('de-DE', { day: 'numeric', month: 'short' }) + (t.notiz ? ' · ' + escapeHtml(t.notiz) : '') + '</div></div>' +
+          '<button class="sport-loeschen" aria-label="Löschen">✕</button>';
+        zeile.querySelector('.sport-loeschen').addEventListener('click', () => {
+          trainingslog = trainingslog.filter(x => x.id !== t.id);
+          speichern(KEY_TRAININGSLOG, trainingslog);
+          renderTrainingslog();
+        });
+        wrap.appendChild(zeile);
+      });
+      box.appendChild(wrap);
+    });
+  }
+
+  document.getElementById('btnTrainingslogHinzufuegen').addEventListener('click', () => {
+    document.getElementById('fTlUebung').value = '';
+    document.getElementById('fTlDatum').value = heuteISO();
+    document.getElementById('fTlGewicht').value = '';
+    document.getElementById('fTlSaetze').value = 3;
+    document.getElementById('fTlWdh').value = 10;
+    document.getElementById('fTlNotiz').value = '';
+    document.getElementById('modalTrainingslog').classList.add('zeigen');
+    document.getElementById('fTlUebung').focus();
+  });
+  document.getElementById('btnTlAbbrechen').addEventListener('click', () => document.getElementById('modalTrainingslog').classList.remove('zeigen'));
+  document.getElementById('modalTrainingslog').addEventListener('click', (e) => { if (e.target.id === 'modalTrainingslog') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnTlSpeichern').addEventListener('click', () => {
+    const uebung = document.getElementById('fTlUebung').value.trim();
+    const datum = document.getElementById('fTlDatum').value;
+    if (!uebung) { alert('Bitte einen Übungsnamen eingeben.'); return; }
+    if (!datum) { alert('Bitte ein Datum wählen.'); return; }
+    trainingslog.push({
+      id: neueId('tl'), datum, person: aktivePerson, uebung,
+      gewicht: document.getElementById('fTlGewicht').value,
+      saetze: Math.max(1, parseInt(document.getElementById('fTlSaetze').value, 10) || 1),
+      wiederholungen: Math.max(1, parseInt(document.getElementById('fTlWdh').value, 10) || 1),
+      notiz: document.getElementById('fTlNotiz').value.trim(),
+    });
+    speichern(KEY_TRAININGSLOG, trainingslog);
+    document.getElementById('modalTrainingslog').classList.remove('zeigen');
+    renderTrainingslog();
+  });
 
   // ============================================================
   // KRAFTTRAINING-ÜBERSICHT
@@ -1194,6 +1412,42 @@
     });
   }
 
+  // ============================================================
+  // BALANCE- & STURZPRÄVENTIONS-ÜBUNGEN
+  // ============================================================
+  const BALANCEGRUPPEN = [
+    { id: 'standfestigkeit', name: 'Standfestigkeit', icon: '🧍', uebungen: [
+      { name: 'Einbeinstand', hinweis: 'Auf einem Bein stehen, in der Nähe einer Wand oder Stuhllehne zum Festhalten. 10–30 Sek. je Seite, mehrmals täglich möglich.' },
+      { name: 'Tandemstand', hinweis: 'Füße hintereinander wie auf einer Linie stellen, 20–30 Sek. halten. Trainiert die seitliche Stabilität.' },
+      { name: 'Fersen-Zehen-Stand', hinweis: 'Abwechselnd auf die Zehenspitzen und auf die Fersen stellen. Kräftigt Waden und Schienbein, verbessert die Knöchelstabilität.' },
+      { name: 'Stehen auf weichem Untergrund', hinweis: 'Z.B. auf einem Kissen oder einer Matte stehen. Fordert das Gleichgewichtssystem zusätzlich.' },
+    ]},
+    { id: 'gehtraining', name: 'Gehtraining', icon: '🚶', uebungen: [
+      { name: 'Tandemgang', hinweis: 'In gerader Linie Ferse-vor-Zehen gehen, wie auf einem Seil. Wand oder Geländer in der Nähe zum Absichern.' },
+      { name: 'Seitliches Gehen', hinweis: 'Seitwärts im Ausfallschritt gehen, kräftigt die Hüftmuskulatur, die für die seitliche Stabilität wichtig ist.' },
+      { name: 'Rückwärtsgehen', hinweis: 'Wenige Schritte rückwärts in einem sicheren, freien Raum. Schult Koordination und Körperwahrnehmung.' },
+      { name: 'Gehen mit Kopfdrehung', hinweis: 'Beim Gehen den Kopf langsam nach links und rechts drehen. Trainiert das Zusammenspiel von Gleichgewicht und Blick.' },
+    ]},
+    { id: 'kraft_stabilitaet', name: 'Kraft für Stabilität', icon: '🦵', uebungen: [
+      { name: 'Aufstehen vom Stuhl', hinweis: 'Ohne Hände Abstützen von einem Stuhl aufstehen und sich wieder setzen, mehrfach wiederholen. Kräftigt die für Stürze wichtige Beinmuskulatur.' },
+      { name: 'Wadenheben am Stuhl', hinweis: 'Mit Halt an der Stuhllehne auf die Zehenspitzen heben und senken. Stärkt Knöchel und Waden.' },
+      { name: 'Seitliches Beinheben', hinweis: 'Im Stehen mit Halt an der Stuhllehne ein Bein seitlich anheben. Kräftigt die hüftstabilisierende Muskulatur.' },
+      { name: 'Kniebeugen an der Wand', hinweis: 'Rücken an die Wand, leicht in die Knie gehen. Baut Beinkraft gelenkschonend auf.' },
+    ]},
+  ];
+
+  function renderBalanceGrid() {
+    const box = document.getElementById('balanceGrid');
+    box.innerHTML = '';
+    BALANCEGRUPPEN.forEach((m) => {
+      const karte = document.createElement('div');
+      karte.className = 'muskel-karte';
+      karte.innerHTML = '<div class="icon">' + m.icon + '</div><div class="name">' + m.name + '</div><div class="anzahl">' + m.uebungen.length + ' Übungen</div>';
+      karte.addEventListener('click', () => muskelModalOeffnen(m));
+      box.appendChild(karte);
+    });
+  }
+
   function renderAlles() {
     renderHeute();
     if (aktiveAnsicht === 'verlauf') renderVerlauf();
@@ -1207,7 +1461,7 @@
   if (window.PlanerSync) {
     window._sync = window.PlanerSync.starteSync({
       modul: 'gesundheit',
-      keys: [KEY_TAGESWERTE, KEY_SPORT, KEY_RECHNER, KEY_MEDIKAMENTE, KEY_MED_ERLEDIGT, KEY_ZIELE],
+      keys: [KEY_TAGESWERTE, KEY_SPORT, KEY_RECHNER, KEY_MEDIKAMENTE, KEY_MED_ERLEDIGT, KEY_ZIELE, KEY_TRAININGSLOG],
       onRemoteChange: function () {
         tageswerte = laden(KEY_TAGESWERTE, tageswerte);
         sportEinheiten = laden(KEY_SPORT, sportEinheiten);
@@ -1215,9 +1469,11 @@
         medikamente = laden(KEY_MEDIKAMENTE, medikamente);
         medErledigt = laden(KEY_MED_ERLEDIGT, medErledigt);
         ziele = laden(KEY_ZIELE, ziele);
+        trainingslog = laden(KEY_TRAININGSLOG, trainingslog);
         renderAlles();
         if (aktiveAnsicht === 'rechner') rechnerFelderLaden();
         if (aktiveAnsicht === 'verlauf') renderStats();
+        if (aktiveAnsicht === 'kraft') renderTrainingslog();
       },
     });
   }
