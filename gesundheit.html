@@ -324,6 +324,14 @@
       <h3>❤️ Blutdruck &amp; Puls</h3>
       <div id="blutdruckChart"></div>
     </div>
+    <div class="karte" id="streckenKarte" style="display:none;">
+      <h3>🏁 Streckenverlauf</h3>
+      <div id="streckenCharts"></div>
+    </div>
+    <div class="karte" id="trainingsfortschrittKarte" style="display:none;">
+      <h3>🏋️ Trainingsfortschritt</h3>
+      <div id="trainingsfortschrittCharts"></div>
+    </div>
     <div id="verlaufListe"></div>
     <div class="leer-hinweis" id="verlaufLeer" style="display:none;">Noch keine Einträge für diese Auswahl.</div>
   </section>
@@ -506,9 +514,13 @@
         <input type="number" id="fSportDauer" min="1" value="30">
       </div>
     </div>
+    <div class="feld" id="fSportStreckeFeld" style="display:none;">
+      <label id="fSportStreckeLabel" for="fSportStrecke">Strecke (km)</label>
+      <input type="number" step="0.1" id="fSportStrecke" min="0" placeholder="z.B. 5">
+    </div>
     <div class="feld">
       <label for="fSportNotiz">Notiz (optional)</label>
-      <input type="text" id="fSportNotiz" placeholder="z.B. 5 km, lockerer Lauf">
+      <input type="text" id="fSportNotiz" placeholder="z.B. lockerer Lauf">
     </div>
     <div class="modal-btns">
       <button class="btn btn-secondary" id="btnSportAbbrechen">Abbrechen</button>
@@ -586,12 +598,12 @@
     { id: 'familie', label: 'Familie' },
   ];
   const SPORT_TYPEN = [
-    { id: 'laufen',     label: 'Laufen',      icon: '🏃' },
-    { id: 'radfahren',  label: 'Radfahren',   icon: '🚴' },
+    { id: 'laufen',     label: 'Laufen',      icon: '🏃', streckeEinheit: 'km' },
+    { id: 'radfahren',  label: 'Radfahren',   icon: '🚴', streckeEinheit: 'km' },
     { id: 'kraft',      label: 'Krafttraining', icon: '🏋️' },
     { id: 'yoga',       label: 'Yoga',        icon: '🧘' },
-    { id: 'schwimmen',  label: 'Schwimmen',   icon: '🏊' },
-    { id: 'wandern',    label: 'Wandern',     icon: '🥾' },
+    { id: 'schwimmen',  label: 'Schwimmen',   icon: '🏊', streckeEinheit: 'm' },
+    { id: 'wandern',    label: 'Wandern',     icon: '🥾', streckeEinheit: 'km' },
     { id: 'sonstiges',  label: 'Sonstiges',   icon: '🤸' },
   ];
   const STIMMUNGEN = ['😞','😕','😐','🙂','😄'];
@@ -776,9 +788,10 @@
     const t = typInfo(s.typ);
     const zeile = document.createElement('div');
     zeile.className = 'sport-zeile';
+    const strecke = (t.streckeEinheit && s.strecke) ? (' · ' + formatZahl1(parseFloat(s.strecke)) + ' ' + t.streckeEinheit) : '';
     zeile.innerHTML =
       '<span class="sport-icon">' + t.icon + '</span>' +
-      '<div class="sport-info"><div class="sport-titel">' + t.label + ' · ' + s.dauer + ' Min.</div>' +
+      '<div class="sport-info"><div class="sport-titel">' + t.label + ' · ' + s.dauer + ' Min.' + strecke + '</div>' +
       '<div class="sport-meta">' + (s.notiz ? escapeHtml(s.notiz) : '') + '</div></div>' +
       '<button class="sport-loeschen" aria-label="Löschen">✕</button>';
     zeile.querySelector('.sport-loeschen').addEventListener('click', () => {
@@ -928,15 +941,27 @@
       opt.type = 'button';
       opt.className = 'typ-opt' + (t.id === ausgewaehlterTyp ? ' aktiv' : '');
       opt.textContent = t.icon + ' ' + t.label;
-      opt.addEventListener('click', () => { ausgewaehlterTyp = t.id; renderTypReihe(); });
+      opt.addEventListener('click', () => { ausgewaehlterTyp = t.id; renderTypReihe(); aktualisiereStreckeFeld(); });
       box.appendChild(opt);
     });
+  }
+  function aktualisiereStreckeFeld() {
+    const t = typInfo(ausgewaehlterTyp);
+    const feld = document.getElementById('fSportStreckeFeld');
+    if (t.streckeEinheit) {
+      feld.style.display = '';
+      document.getElementById('fSportStreckeLabel').textContent = 'Strecke (' + t.streckeEinheit + ')';
+    } else {
+      feld.style.display = 'none';
+    }
   }
   document.getElementById('btnSportHinzufuegen').addEventListener('click', () => {
     ausgewaehlterTyp = 'laufen';
     renderTypReihe();
+    aktualisiereStreckeFeld();
     document.getElementById('fSportDatum').value = heuteISO();
     document.getElementById('fSportDauer').value = 30;
+    document.getElementById('fSportStrecke').value = '';
     document.getElementById('fSportNotiz').value = '';
     document.getElementById('modalSport').classList.add('zeigen');
   });
@@ -946,8 +971,10 @@
     const datum = document.getElementById('fSportDatum').value;
     if (!datum) { alert('Bitte ein Datum wählen.'); return; }
     const dauer = Math.max(1, parseInt(document.getElementById('fSportDauer').value, 10) || 30);
+    const t = typInfo(ausgewaehlterTyp);
     sportEinheiten.push({
       id: neueId('s'), datum, person: aktivePerson, typ: ausgewaehlterTyp, dauer,
+      strecke: t.streckeEinheit ? document.getElementById('fSportStrecke').value : '',
       notiz: document.getElementById('fSportNotiz').value.trim(),
     });
     speichern(KEY_SPORT, sportEinheiten);
@@ -1064,6 +1091,60 @@
     document.getElementById('blutdruckChart').innerHTML = erstelleBlutdruckSparkline(sysWerte, diaWerte, pulsWerte);
   }
 
+  function renderStreckenCharts() {
+    const letzte30 = letzteNTage(30);
+    const box = document.getElementById('streckenCharts');
+    box.innerHTML = '';
+    let irgendwas = false;
+    SPORT_TYPEN.filter(t => t.streckeEinheit).forEach(t => {
+      const werte = letzte30.map(datum => {
+        const einheiten = sportEinheiten.filter(s => s.datum === datum && s.person === aktivePerson && s.typ === t.id && s.strecke);
+        if (!einheiten.length) return '';
+        return einheiten.reduce((sum, s) => sum + parseFloat(s.strecke), 0);
+      });
+      const gueltig = werte.filter(v => v !== '' && !isNaN(parseFloat(v)));
+      if (gueltig.length < 2) return;
+      irgendwas = true;
+      const titel = document.createElement('div');
+      titel.className = 'verlauf-datum-titel';
+      titel.textContent = t.icon + ' ' + t.label;
+      box.appendChild(titel);
+      const chart = document.createElement('div');
+      chart.style.marginBottom = '14px';
+      chart.innerHTML = erstelleSparkline(werte, '#5b8bb5').replace(new RegExp(' kg', 'g'), ' ' + t.streckeEinheit);
+      box.appendChild(chart);
+    });
+    document.getElementById('streckenKarte').style.display = irgendwas ? '' : 'none';
+  }
+
+  function renderTrainingsfortschritt() {
+    const letzte30 = letzteNTage(30);
+    const box = document.getElementById('trainingsfortschrittCharts');
+    box.innerHTML = '';
+    let irgendwas = false;
+    const eigene = trainingslog.filter(t => t.person === aktivePerson);
+    const uebungen = [...new Set(eigene.map(t => t.uebung))];
+    uebungen.forEach(uebung => {
+      const werte = letzte30.map(datum => {
+        const eintraege = eigene.filter(t => t.datum === datum && t.uebung === uebung && t.gewicht);
+        if (!eintraege.length) return '';
+        return Math.max(...eintraege.map(t => parseFloat(t.gewicht)));
+      });
+      const gueltig = werte.filter(v => v !== '' && !isNaN(parseFloat(v)));
+      if (gueltig.length < 2) return;
+      irgendwas = true;
+      const titel = document.createElement('div');
+      titel.className = 'verlauf-datum-titel';
+      titel.textContent = '🏋️ ' + uebung;
+      box.appendChild(titel);
+      const chart = document.createElement('div');
+      chart.style.marginBottom = '14px';
+      chart.innerHTML = erstelleSparkline(werte, '#c99a3a');
+      box.appendChild(chart);
+    });
+    document.getElementById('trainingsfortschrittKarte').style.display = irgendwas ? '' : 'none';
+  }
+
   function renderVerlaufListe() {
     const box = document.getElementById('verlaufListe');
     box.innerHTML = '';
@@ -1087,6 +1168,8 @@
     renderStats();
     renderGewichtChart();
     renderBlutdruckChart();
+    renderStreckenCharts();
+    renderTrainingsfortschritt();
     renderVerlaufListe();
   }
 
