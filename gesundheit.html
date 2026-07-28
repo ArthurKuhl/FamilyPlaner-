@@ -73,6 +73,8 @@
   .sport-loeschen { background: none; border: none; color: var(--parchment); font-size: 1rem; cursor: pointer; padding: 2px 4px; }
   .sport-loeschen:hover { color: var(--terracotta-text); }
 
+  #btnSchriftgroesse.aktiv { background: var(--moss); color: var(--white); border-color: var(--moss); }
+
   .add-sport-btn {
     width: 100%; background: var(--white); border: 1px dashed var(--sage); color: var(--moss);
     border-radius: var(--radius-md); padding: 10px; font-size: 0.85rem; font-weight: 700; cursor: pointer; margin-bottom: 12px;
@@ -215,7 +217,10 @@
 <body>
 
 <header class="top">
-  <h1>🏃 Gesundheit &amp; Sport</h1>
+  <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+    <h1 style="margin:0;">🏃 Gesundheit &amp; Sport</h1>
+    <button id="btnSchriftgroesse" title="Schriftgröße umschalten" style="flex-shrink:0; border:1px solid var(--sand-dark); background:var(--white); border-radius:var(--radius-md); padding:6px 10px; font-weight:700; color:var(--bark); cursor:pointer;">Aa</button>
+  </div>
   <div class="person-reihe" id="personReihe"></div>
   <div class="view-toggle" role="tablist">
     <button id="btnViewHeute" role="tab" aria-selected="true">Heute</button>
@@ -307,6 +312,7 @@
   </section>
 
   <section id="ansichtVerlauf" style="display:none;">
+    <button class="add-sport-btn" id="btnWerteExport" style="margin-bottom:12px;">📋 Werte für Arzttermin exportieren</button>
     <div class="stat-reihe" id="statReihe"></div>
     <div class="karte">
       <h3>🎯 Wochenziel Sport</h3>
@@ -323,6 +329,10 @@
     <div class="karte">
       <h3>❤️ Blutdruck &amp; Puls</h3>
       <div id="blutdruckChart"></div>
+      <div id="blutdruckListe"></div>
+      <div class="disclaimer-box" style="margin-top:10px;">
+        ℹ️ Die Einordnung folgt gängigen öffentlichen Richtwerten und ist keine Diagnose. Bei dauerhaft erhöhten, sehr niedrigen oder stark schwankenden Werten bitte ärztlichen Rat einholen.
+      </div>
     </div>
     <div class="karte" id="streckenKarte" style="display:none;">
       <h3>🏁 Streckenverlauf</h3>
@@ -538,7 +548,8 @@
     <h2>Trainingseintrag</h2>
     <div class="feld">
       <label for="fTlUebung">Übung</label>
-      <input type="text" id="fTlUebung" placeholder="z.B. Bankdrücken, Kniebeugen">
+      <input type="text" id="fTlUebung" list="tlUebungListe" placeholder="z.B. Bankdrücken, Kniebeugen">
+      <datalist id="tlUebungListe"></datalist>
     </div>
     <div class="zeile">
       <div class="feld">
@@ -567,6 +578,18 @@
     <div class="modal-btns">
       <button class="btn btn-secondary" id="btnTlAbbrechen">Abbrechen</button>
       <button class="btn btn-primary" id="btnTlSpeichern">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalExport">
+  <div class="modal">
+    <h2>Werte für Arzttermin</h2>
+    <p style="font-size:0.85rem; color:var(--bark); opacity:0.8; margin:0 0 10px;">Letzte 30 Tage, zum Kopieren oder Teilen.</p>
+    <textarea id="exportText" readonly style="width:100%; min-height:220px; font-family:monospace; font-size:0.8rem; border:1px solid var(--sand-dark); border-radius:var(--radius-md); padding:10px; box-sizing:border-box; background:var(--white);"></textarea>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnExportSchliessen">Schließen</button>
+      <button class="btn btn-primary" id="btnExportKopieren">Kopieren</button>
     </div>
   </div>
 </div>
@@ -1037,6 +1060,14 @@
   }
   function formatZahl1(n) { return n.toLocaleString('de-DE', { maximumFractionDigits: 1 }); }
 
+  function blutdruckKategorie(sys, dia) {
+    if (sys < 90 || dia < 60) return { label: 'Niedrig', farbe: '#5b8bb5' };
+    if (sys < 120 && dia < 80) return { label: 'Optimal', farbe: '#4f6f45' };
+    if (sys < 130 && dia < 80) return { label: 'Normal', farbe: '#7a9b6e' };
+    if (sys < 140 && dia < 90) return { label: 'Hoch-normal', farbe: '#c99a3a' };
+    return { label: 'Erhöht', farbe: '#c46b41' };
+  }
+
   function erstelleBlutdruckSparkline(sysWerte, diaWerte, pulsWerte) {
     const sysPunkte = sysWerte.map((v,i) => ({ i, v: parseFloat(v) })).filter(p => !isNaN(p.v));
     const diaPunkte = diaWerte.map((v,i) => ({ i, v: parseFloat(v) })).filter(p => !isNaN(p.v));
@@ -1056,10 +1087,15 @@
     const letzterDia = diaPunkte.length ? diaPunkte[diaPunkte.length-1].v : null;
     const gueltigePuls = pulsWerte.map(v => parseFloat(v)).filter(v => !isNaN(v));
     const letzterPuls = gueltigePuls.length ? gueltigePuls[gueltigePuls.length-1] : null;
+    let kategorieHtml = '';
+    if (letzterDia !== null) {
+      const k = blutdruckKategorie(letzterSys, letzterDia);
+      kategorieHtml = ' <span style="color:' + k.farbe + '; font-weight:700;">· ' + k.label + '</span>';
+    }
     return '<svg viewBox="0 0 ' + w + ' ' + h + '" width="100%" height="70" preserveAspectRatio="none">' +
       '<polyline points="' + pfad(sysPunkte) + '" fill="none" stroke="#c46b41" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>' +
       (diaPunkte.length >= 2 ? '<polyline points="' + pfad(diaPunkte) + '" fill="none" stroke="#5b8bb5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>' : '') +
-      '</svg><div class="chart-trend"><span style="color:#c46b41;">● Sys.</span><span style="color:#5b8bb5;">● Dia.</span><span>Aktuell: ' + Math.round(letzterSys) + (letzterDia !== null ? '/' + Math.round(letzterDia) : '') + ' mmHg' + (letzterPuls !== null ? ' · ' + Math.round(letzterPuls) + ' bpm' : '') + '</span></div>';
+      '</svg><div class="chart-trend"><span style="color:#c46b41;">● Sys.</span><span style="color:#5b8bb5;">● Dia.</span><span>Aktuell: ' + Math.round(letzterSys) + (letzterDia !== null ? '/' + Math.round(letzterDia) : '') + ' mmHg' + (letzterPuls !== null ? ' · ' + Math.round(letzterPuls) + ' bpm' : '') + kategorieHtml + '</span></div>';
   }
 
   function renderStats() {
@@ -1112,6 +1148,23 @@
       pulsWerte.push(e ? e.puls : '');
     });
     document.getElementById('blutdruckChart').innerHTML = erstelleBlutdruckSparkline(sysWerte, diaWerte, pulsWerte);
+    renderBlutdruckListe();
+  }
+
+  function renderBlutdruckListe() {
+    const eintraege = tageswerte
+      .filter(t => t.person === aktivePerson && t.blutdruckSys && t.blutdruckDia)
+      .sort((a,b) => a.datum < b.datum ? 1 : -1)
+      .slice(0, 7);
+    const box = document.getElementById('blutdruckListe');
+    if (!eintraege.length) { box.innerHTML = ''; return; }
+    box.innerHTML = '<div class="verlauf-datum-titel">Letzte Messungen</div>' + eintraege.map(t => {
+      const sys = parseFloat(t.blutdruckSys), dia = parseFloat(t.blutdruckDia);
+      const k = blutdruckKategorie(sys, dia);
+      return '<div class="sport-zeile"><span class="sport-icon">❤️</span>' +
+        '<div class="sport-info"><div class="sport-titel">' + Math.round(sys) + '/' + Math.round(dia) + ' mmHg' + (t.puls ? ' · ' + Math.round(parseFloat(t.puls)) + ' bpm' : '') + '</div>' +
+        '<div class="sport-meta">' + ausISO(t.datum).toLocaleDateString('de-DE', { day: 'numeric', month: 'short' }) + ' · <span style="color:' + k.farbe + '; font-weight:700;">' + k.label + '</span></div></div></div>';
+    }).join('');
   }
 
   function renderStreckenCharts() {
@@ -1186,6 +1239,48 @@
       box.appendChild(wrap);
     });
   }
+
+  document.getElementById('btnWerteExport').addEventListener('click', () => {
+    const letzte30 = letzteNTage(30).slice().reverse(); // älteste zuerst
+    const person = PERSONEN.find(p => p.id === aktivePerson);
+    const zeilen = [];
+    zeilen.push('Gesundheitswerte – ' + (person ? person.label : aktivePerson));
+    zeilen.push('Zeitraum: ' + ausISO(letzte30[0]).toLocaleDateString('de-DE') + ' – ' + ausISO(letzte30[letzte30.length-1]).toLocaleDateString('de-DE'));
+    zeilen.push('');
+    let irgendwas = false;
+    letzte30.forEach(datum => {
+      const t = tageswerte.find(x => x.datum === datum && x.person === aktivePerson);
+      if (!t) return;
+      const teile = [];
+      if (t.blutdruckSys && t.blutdruckDia) teile.push('RR ' + Math.round(parseFloat(t.blutdruckSys)) + '/' + Math.round(parseFloat(t.blutdruckDia)) + ' mmHg');
+      if (t.puls) teile.push('Puls ' + Math.round(parseFloat(t.puls)) + ' bpm');
+      if (t.gewicht) teile.push('Gewicht ' + formatZahl1(parseFloat(t.gewicht)) + ' kg');
+      if (!teile.length) return;
+      irgendwas = true;
+      zeilen.push(ausISO(datum).toLocaleDateString('de-DE') + ': ' + teile.join(' · '));
+    });
+    if (!irgendwas) zeilen.push('Keine Blutdruck-, Puls- oder Gewichtswerte im gewählten Zeitraum erfasst.');
+    document.getElementById('exportText').value = zeilen.join('\n');
+    document.getElementById('modalExport').classList.add('zeigen');
+  });
+  document.getElementById('btnExportSchliessen').addEventListener('click', () => document.getElementById('modalExport').classList.remove('zeigen'));
+  document.getElementById('modalExport').addEventListener('click', (e) => { if (e.target.id === 'modalExport') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnExportKopieren').addEventListener('click', () => {
+    const feld = document.getElementById('exportText');
+    feld.select();
+    feld.setSelectionRange(0, feld.value.length);
+    let erfolg = false;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(feld.value).then(() => {}).catch(() => {});
+      erfolg = true;
+    } else {
+      try { erfolg = document.execCommand('copy'); } catch (e) { erfolg = false; }
+    }
+    const btn = document.getElementById('btnExportKopieren');
+    const original = btn.textContent;
+    btn.textContent = erfolg ? '✓ Kopiert' : 'Bitte manuell markieren';
+    setTimeout(() => { btn.textContent = original; }, 1800);
+  });
 
   function renderVerlauf() {
     renderStats();
@@ -1335,17 +1430,22 @@
   const KEY_TRAININGSLOG = 'gesundheit_trainingslog';
   let trainingslog = laden(KEY_TRAININGSLOG, []); // [{id, datum, person, uebung, gewicht, saetze, wiederholungen, notiz}]
 
+  function normUebung(s) { return (s || '').trim().toLowerCase(); }
+
   function renderTrainingslog() {
     const box = document.getElementById('trainingslogListe');
     const leer = document.getElementById('trainingslogLeer');
     box.innerHTML = '';
     const eigene = trainingslog.filter(t => t.person === aktivePerson).sort((a,b) => a.datum < b.datum ? 1 : -1);
     leer.style.display = eigene.length ? 'none' : '';
-    // Gruppiert nach Übung, damit der Fortschritt je Übung sichtbar ist
+    // Gruppiert nach normalisiertem Übungsnamen (Groß-/Kleinschreibung, Leerzeichen egal), damit sich
+    // die Historie nicht durch leicht unterschiedliche Schreibweisen aufsplittet. Angezeigt wird die
+    // zuletzt verwendete Schreibweise.
     const gruppen = {};
-    eigene.forEach(t => { (gruppen[t.uebung] = gruppen[t.uebung] || []).push(t); });
-    Object.keys(gruppen).sort().forEach(uebung => {
-      const eintraege = gruppen[uebung].slice(0, 5);
+    eigene.forEach(t => { const k = normUebung(t.uebung); (gruppen[k] = gruppen[k] || []).push(t); });
+    Object.keys(gruppen).sort((a,b) => a.localeCompare(b,'de')).forEach(key => {
+      const eintraege = gruppen[key].slice(0, 5);
+      const anzeigeName = eintraege[0].uebung.trim();
       const wrap = document.createElement('div');
       wrap.style.marginBottom = '10px';
       const erster = eintraege[eintraege.length - 1];
@@ -1355,7 +1455,7 @@
         const diff = parseFloat(letzter.gewicht) - parseFloat(erster.gewicht);
         trend = diff > 0 ? ' ↑ +' + formatZahl1(diff) + ' kg' : (diff < 0 ? ' ↓ ' + formatZahl1(diff) + ' kg' : '');
       }
-      wrap.innerHTML = '<div class="verlauf-datum-titel">' + escapeHtml(uebung) + trend + '</div>';
+      wrap.innerHTML = '<div class="verlauf-datum-titel">' + escapeHtml(anzeigeName) + trend + '</div>';
       eintraege.forEach(t => {
         const zeile = document.createElement('div');
         zeile.className = 'sport-zeile';
@@ -1375,7 +1475,28 @@
     });
   }
 
+  function aktualisiereUebungsliste() {
+    const dl = document.getElementById('tlUebungListe');
+    if (!dl) return;
+    const namen = {};
+    trainingslog.filter(t => t.person === aktivePerson).forEach(t => { namen[normUebung(t.uebung)] = t.uebung.trim(); });
+    dl.innerHTML = Object.values(namen).sort((a,b) => a.localeCompare(b,'de')).map(n => '<option value="' + escapeHtml(n) + '">').join('');
+  }
+
+  function fTlSchnellausfuellenFuer(uebungName) {
+    const key = normUebung(uebungName);
+    if (!key) return;
+    const letzter = trainingslog.filter(t => t.person === aktivePerson && normUebung(t.uebung) === key).sort((a,b) => a.datum < b.datum ? 1 : -1)[0];
+    if (!letzter) return;
+    document.getElementById('fTlGewicht').value = letzter.gewicht || '';
+    document.getElementById('fTlSaetze').value = letzter.saetze || 3;
+    document.getElementById('fTlWdh').value = letzter.wiederholungen || 10;
+  }
+
+  document.getElementById('fTlUebung').addEventListener('change', (e) => fTlSchnellausfuellenFuer(e.target.value));
+
   document.getElementById('btnTrainingslogHinzufuegen').addEventListener('click', () => {
+    aktualisiereUebungsliste();
     document.getElementById('fTlUebung').value = '';
     document.getElementById('fTlDatum').value = heuteISO();
     document.getElementById('fTlGewicht').value = '';
@@ -1403,6 +1524,7 @@
     document.getElementById('modalTrainingslog').classList.remove('zeigen');
     renderTrainingslog();
   });
+
 
   // ============================================================
   // KRAFTTRAINING-ÜBERSICHT
@@ -1561,6 +1683,20 @@
     if (aktiveAnsicht === 'verlauf') renderVerlauf();
     if (aktiveAnsicht === 'rechner') rechnerFelderLaden();
   }
+
+  // --- SCHRIFTGRÖSSE ---
+  const KEY_SCHRIFTGROESSE = 'gesundheit_grossschrift';
+  function schriftgroesseAnwenden() {
+    const gross = localStorage.getItem(KEY_SCHRIFTGROESSE) === '1';
+    document.documentElement.style.fontSize = gross ? '19px' : '';
+    document.getElementById('btnSchriftgroesse').classList.toggle('aktiv', gross);
+  }
+  document.getElementById('btnSchriftgroesse').addEventListener('click', () => {
+    const gross = localStorage.getItem(KEY_SCHRIFTGROESSE) === '1';
+    localStorage.setItem(KEY_SCHRIFTGROESSE, gross ? '0' : '1');
+    schriftgroesseAnwenden();
+  });
+  schriftgroesseAnwenden();
 
   renderPersonen();
   renderAlles();
