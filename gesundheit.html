@@ -518,6 +518,10 @@
       <label id="fSportStreckeLabel" for="fSportStrecke">Strecke (km)</label>
       <input type="number" step="0.1" id="fSportStrecke" min="0" placeholder="z.B. 5">
     </div>
+    <div class="feld" id="fSportUebungFeld" style="display:none;">
+      <label for="fSportUebung">Übung (optional)</label>
+      <select id="fSportUebung"></select>
+    </div>
     <div class="feld">
       <label for="fSportNotiz">Notiz (optional)</label>
       <input type="text" id="fSportNotiz" placeholder="z.B. lockerer Lauf">
@@ -791,9 +795,10 @@
     const zeile = document.createElement('div');
     zeile.className = 'sport-zeile';
     const strecke = (t.streckeEinheit && s.strecke) ? (' · ' + formatZahl1(parseFloat(s.strecke)) + ' ' + t.streckeEinheit) : '';
+    const uebung = s.uebung ? (' · ' + escapeHtml(s.uebung)) : '';
     zeile.innerHTML =
       '<span class="sport-icon">' + t.icon + '</span>' +
-      '<div class="sport-info"><div class="sport-titel">' + t.label + ' · ' + s.dauer + ' Min.' + strecke + '</div>' +
+      '<div class="sport-info"><div class="sport-titel">' + t.label + ' · ' + s.dauer + ' Min.' + strecke + uebung + '</div>' +
       '<div class="sport-meta">' + (s.notiz ? escapeHtml(s.notiz) : '') + '</div></div>' +
       '<button class="sport-loeschen" aria-label="Löschen">✕</button>';
     zeile.querySelector('.sport-loeschen').addEventListener('click', () => {
@@ -956,6 +961,21 @@
     } else {
       feld.style.display = 'none';
     }
+    populiereUebungsAuswahl(ausgewaehlterTyp);
+  }
+  function populiereUebungsAuswahl(typ) {
+    const feld = document.getElementById('fSportUebungFeld');
+    const sel = document.getElementById('fSportUebung');
+    const gruppen = TYP_UEBUNGSGRUPPEN[typ];
+    if (!gruppen) { feld.style.display = 'none'; sel.innerHTML = ''; return; }
+    feld.style.display = '';
+    let html = '<option value="">– keine Auswahl –</option>';
+    gruppen.forEach(g => {
+      html += '<optgroup label="' + g.icon + ' ' + g.name + '">';
+      g.uebungen.forEach(u => { html += '<option value="' + escapeHtml(u.name) + '">' + escapeHtml(u.name) + '</option>'; });
+      html += '</optgroup>';
+    });
+    sel.innerHTML = html;
   }
   document.getElementById('btnSportHinzufuegen').addEventListener('click', () => {
     ausgewaehlterTyp = 'laufen';
@@ -977,6 +997,7 @@
     sportEinheiten.push({
       id: neueId('s'), datum, person: aktivePerson, typ: ausgewaehlterTyp, dauer,
       strecke: t.streckeEinheit ? document.getElementById('fSportStrecke').value : '',
+      uebung: TYP_UEBUNGSGRUPPEN[ausgewaehlterTyp] ? document.getElementById('fSportUebung').value : '',
       notiz: document.getElementById('fSportNotiz').value.trim(),
     });
     speichern(KEY_SPORT, sportEinheiten);
@@ -1532,6 +1553,8 @@
       box.appendChild(karte);
     });
   }
+
+  const TYP_UEBUNGSGRUPPEN = { dehnen: DEHNGRUPPEN, balance: BALANCEGRUPPEN };
 
   function renderAlles() {
     renderHeute();
