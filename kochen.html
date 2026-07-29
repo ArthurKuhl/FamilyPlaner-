@@ -197,7 +197,10 @@
       <span class="wert" id="portionenWert"></span>
       <button id="btnPortionenPlus">+</button>
     </div>
-    <div class="unterliste-titel">Zutaten</div>
+    <div class="unterliste-titel" style="display:flex; align-items:center; justify-content:space-between;">
+      <span>Zutaten</span>
+      <button type="button" id="btnZutatenAlleToggle" style="font-size:0.72rem; font-weight:700; color:var(--moss); background:none; border:none; cursor:pointer; text-transform:none; letter-spacing:normal;">Alle abwählen</button>
+    </div>
     <ul class="zutaten-liste-anzeige" id="detailZutaten"></ul>
     <div class="unterliste-titel">Zubereitung</div>
     <ol class="schritte-liste-anzeige" id="detailSchritte"></ol>
@@ -317,6 +320,7 @@
   let bearbeiteId = null;
   let detailId = null;
   let detailPortionen = 1;
+  let detailZutatenAusgewaehlt = new Set();
 
   function speichernRezepte() { speichern(KEY_REZEPTE, rezepte); }
 
@@ -444,6 +448,7 @@
     if (!r) return;
     detailId = id;
     detailPortionen = r.portionenBasis;
+    detailZutatenAusgewaehlt = new Set(r.zutaten.map((z, i) => i)); // standardmäßig alle Zutaten ausgewählt
     const kat = kategorieInfo(r.kategorie);
     document.getElementById('detailKatChip').textContent = kat.icon + ' ' + kat.label;
     document.getElementById('detailKatChip').style.background = kat.farbe + '22';
@@ -463,12 +468,28 @@
     const faktor = detailPortionen / r.portionenBasis;
     const zutBox = document.getElementById('detailZutaten');
     zutBox.innerHTML = '';
-    r.zutaten.forEach(z => {
+    r.zutaten.forEach((z, i) => {
       const li = document.createElement('li');
+      li.style.display = 'flex';
+      li.style.alignItems = 'center';
+      li.style.gap = '8px';
       const menge = z.menge ? formatZahl(parseFloat(z.menge.toString().replace(',','.')) * faktor) : '';
-      li.innerHTML = '<span class="z-menge">' + escapeHtml([menge, z.einheit].filter(Boolean).join(' ')) + '</span><span>' + escapeHtml(z.name) + '</span>';
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = detailZutatenAusgewaehlt.has(i);
+      cb.style.flexShrink = '0';
+      cb.addEventListener('change', () => {
+        if (cb.checked) detailZutatenAusgewaehlt.add(i); else detailZutatenAusgewaehlt.delete(i);
+        aktualisiereZutatenAlleToggle();
+      });
+      li.appendChild(cb);
+      const inhalt = document.createElement('span');
+      inhalt.style.flex = '1';
+      inhalt.innerHTML = '<span class="z-menge">' + escapeHtml([menge, z.einheit].filter(Boolean).join(' ')) + '</span><span>' + escapeHtml(z.name) + '</span>';
+      li.appendChild(inhalt);
       zutBox.appendChild(li);
     });
+    aktualisiereZutatenAlleToggle();
     const schrittBox = document.getElementById('detailSchritte');
     schrittBox.innerHTML = '';
     r.schritte.forEach((s, i) => {
@@ -477,6 +498,19 @@
       schrittBox.appendChild(li);
     });
   }
+  function aktualisiereZutatenAlleToggle() {
+    const r = rezepte.find(x => x.id === detailId);
+    const btn = document.getElementById('btnZutatenAlleToggle');
+    if (!r || !btn) return;
+    btn.textContent = detailZutatenAusgewaehlt.size >= r.zutaten.length ? 'Alle abwählen' : 'Alle auswählen';
+  }
+  document.getElementById('btnZutatenAlleToggle').addEventListener('click', () => {
+    const r = rezepte.find(x => x.id === detailId);
+    if (!r) return;
+    if (detailZutatenAusgewaehlt.size >= r.zutaten.length) detailZutatenAusgewaehlt.clear();
+    else detailZutatenAusgewaehlt = new Set(r.zutaten.map((z, i) => i));
+    renderDetailPortionenAbhaengig(r);
+  });
   document.getElementById('btnPortionenMinus').addEventListener('click', () => {
     if (detailPortionen > 1) { detailPortionen--; renderDetailPortionenAbhaengig(rezepte.find(x => x.id === detailId)); }
   });
@@ -523,6 +557,8 @@
   document.getElementById('btnZumEinkauf').addEventListener('click', () => {
     const r = rezepte.find(x => x.id === detailId);
     if (!r) return;
+    const ausgewaehlteZutaten = r.zutaten.filter((z, i) => detailZutatenAusgewaehlt.has(i));
+    if (!ausgewaehlteZutaten.length) { alert('Bitte mindestens eine Zutat auswählen.'); return; }
     const faktor = detailPortionen / r.portionenBasis;
     let listen = laden(KEY_EINKAUF_LISTEN, null);
     if (!listen || !listen.length) {
@@ -532,7 +568,7 @@
     let aktiv = listen.find(l => l.id === aktivId) || listen[0];
     const herkunft = 'rezept:' + r.titel;
     let zusammengefuehrt = 0;
-    r.zutaten.forEach(z => {
+    ausgewaehlteZutaten.forEach(z => {
       const menge = z.menge ? formatZahl(parseFloat(z.menge.toString().replace(',','.')) * faktor) : '';
       const kandidat = aktiv.items.find(i => !i.erledigt && i.name.trim().toLowerCase() === z.name.trim().toLowerCase());
       if (kandidat && versucheMengeZusammenfuehren(kandidat, menge, z.einheit || '')) {
@@ -544,7 +580,7 @@
     });
     speichern(KEY_EINKAUF_LISTEN, listen);
     if (!aktivId) localStorage.setItem(KEY_EINKAUF_AKTIV, aktiv.id);
-    let meldung = r.zutaten.length + ' Zutat(en) wurden zu „' + aktiv.name + '“ in Einkauf hinzugefügt.';
+    let meldung = ausgewaehlteZutaten.length + ' Zutat(en) wurden zu „' + aktiv.name + '“ in Einkauf hinzugefügt.';
     if (zusammengefuehrt) meldung += ' (' + zusammengefuehrt + ' davon mit bereits vorhandenen Posten zusammengeführt.)';
     alert(meldung);
   });
