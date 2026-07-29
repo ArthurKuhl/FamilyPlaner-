@@ -229,7 +229,6 @@
     <button id="btnViewKraft" role="tab" aria-selected="false">💪 Kraft</button>
     <button id="btnViewDehnen" role="tab" aria-selected="false">🧘 Dehnen</button>
     <button id="btnViewBalance" role="tab" aria-selected="false">🤸 Balance</button>
-    <button id="btnViewErinnerungen" role="tab" aria-selected="false">💊 Erinnerungen</button>
   </div>
 </header>
 
@@ -417,66 +416,7 @@
       ℹ️ Balance-Übungen zur Sturzprävention am besten in der Nähe einer Wand oder eines stabilen Stuhls zum Festhalten üben. Bei Schwindel, Gleichgewichtsproblemen oder nach Stürzen vorab ärztlichen Rat einholen – diese Übersicht ersetzt keine individuelle Beratung.
     </div>
   </section>
-
-  <section id="ansichtErinnerungen" style="display:none;">
-    <div class="karte">
-      <div class="benachrichtigung-status">
-        <span class="text" id="benachrichtigungText">Benachrichtigungen sind noch nicht aktiviert.</span>
-        <button class="btn btn-primary" id="btnBenachrichtigungAktivieren" style="flex:0 0 auto; padding:8px 14px;">Aktivieren</button>
-      </div>
-    </div>
-
-    <div class="unterliste-titel">Heutige Checkliste</div>
-    <div class="erinnerungs-liste" id="erinnerungsListe"></div>
-    <button class="add-eintrag-btn" id="btnErinnerungHinzufuegen">＋ Erinnerung hinzufügen</button>
-
-    <div class="disclaimer-box">
-      ℹ️ Benachrichtigungen funktionieren zuverlässig, solange die App geöffnet ist bzw. kürzlich geöffnet war. Für garantierte Erinnerungen auch bei komplett geschlossener App eignen sich zusätzlich die Wecker-/Erinnerungsfunktion deines Handys.
-    </div>
-  </section>
 </main>
-
-<div class="modal-bg" id="modalErinnerung">
-  <div class="modal">
-    <h2 id="erinnerungModalTitel">Neue Erinnerung</h2>
-    <div class="feld">
-      <label for="fErinnerungName">Name</label>
-      <input type="text" id="fErinnerungName" placeholder="z.B. Vitamin D, Blutdrucktablette, Wasser trinken">
-    </div>
-    <div class="feld">
-      <label>Art</label>
-      <div class="typ-reihe" id="erinnerungTypReihe"></div>
-    </div>
-    <div class="feld">
-      <label>Zeitplan</label>
-      <div class="modus-reihe">
-        <div class="modus-opt" data-modus="zeiten">Feste Uhrzeiten</div>
-        <div class="modus-opt" data-modus="intervall">Alle X Stunden</div>
-      </div>
-    </div>
-    <div id="modusZeitenBlock">
-      <div class="zeiten-liste-eingabe" id="zeitenListeEingabe"></div>
-      <div class="zeile">
-        <div class="feld"><input type="time" id="fNeueZeit" value="08:00"></div>
-        <button type="button" class="btn btn-secondary" id="btnZeitHinzufuegen" style="flex:0 0 auto; padding:9px 14px;">+ Uhrzeit</button>
-      </div>
-    </div>
-    <div id="modusIntervallBlock" style="display:none;">
-      <div class="zeile">
-        <div class="rechner-feld"><label for="fIntervallStunden">Alle X Stunden</label><input type="number" id="fIntervallStunden" min="1" max="12" value="2"></div>
-        <div class="rechner-feld"><label for="fIntervallStart">Von</label><input type="time" id="fIntervallStart" value="08:00"></div>
-        <div class="rechner-feld"><label for="fIntervallEnde">Bis</label><input type="time" id="fIntervallEnde" value="20:00"></div>
-      </div>
-    </div>
-    <div class="modal-btns">
-      <button class="btn btn-secondary" id="btnErinnerungAbbrechen">Abbrechen</button>
-      <button class="btn btn-primary" id="btnErinnerungSpeichern">Speichern</button>
-    </div>
-    <div class="modal-btns" id="erinnerungLoeschZeile" style="display:none;">
-      <button class="btn btn-danger" id="btnErinnerungLoeschen">Erinnerung löschen</button>
-    </div>
-  </div>
-</div>
 
 <div class="modal-bg" id="modalMuskel">
   <div class="modal">
