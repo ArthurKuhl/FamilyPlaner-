@@ -1274,6 +1274,7 @@
 <div class="modal-bg" id="modalAlbumDetail" style="display:none">
   <div class="modal" style="width:min(440px,94vw);max-height:86vh;overflow-y:auto">
     <h2 id="albumDetailTitel">📸 Feld</h2>
+    <textarea id="albumDetailNotiz" placeholder="Notiz (z.B. wo/wann meist zu finden)…" onblur="albumNotizSpeichern()" style="display:none;width:100%;min-height:52px;margin-bottom:10px;padding:8px 10px;border-radius:var(--radius-sm);border:1px solid var(--parchment);font-family:'Inter',sans-serif;font-size:0.8rem;resize:vertical"></textarea>
     <div class="album-detail-fotos" id="albumDetailFotos"></div>
     <input type="file" accept="image/*" capture="environment" id="albumFotoInput" style="display:none" onchange="handleAlbumFotoUpload(event)">
     <button class="btn-add-entry" style="width:100%;padding:10px;margin-top:4px" onclick="document.getElementById('albumFotoInput').click()">📷 Foto hinzufügen</button>
@@ -4671,6 +4672,22 @@ function deleteBedIdx(e,i){
 // ==================== ZULETZT VERWENDETE PFLANZEN ====================
 let recentPlants = [];
 try { recentPlants = JSON.parse(localStorage.getItem('gartenplaner_recentPlants') || '[]') || []; } catch(e) { recentPlants = []; }
+let customPlants = [];
+try { customPlants = JSON.parse(localStorage.getItem('gartenplaner_customPlants') || '[]') || []; } catch(e) { customPlants = []; }
+function saveCustomPlants() { try { localStorage.setItem('gartenplaner_customPlants', JSON.stringify(customPlants)); } catch(e) {} }
+function addCustomPlant() {
+  const name = prompt('Name der Pflanze (auch seltene/exotische Sorten):');
+  if (!name || !name.trim()) return;
+  const trimmedName = name.trim();
+  const sym = (prompt('Symbol/Emoji dafür (optional):', '🌱') || '🌱').trim() || '🌱';
+  const existiertSchon = customPlants.some(p => p.name.toLowerCase() === trimmedName.toLowerCase()) || PLANTS.some(p => p.name.toLowerCase() === trimmedName.toLowerCase());
+  if (!existiertSchon) {
+    customPlants.push({ sym, name: trimmedName, cat: 'Eigene' });
+    saveCustomPlants();
+  }
+  selectPlantType(sym, trimmedName, null);
+  buildPlantGrid(document.getElementById('plantSearch') ? document.getElementById('plantSearch').value : '');
+}
 function addRecentPlant(sym, name) {
   recentPlants = recentPlants.filter(p => p.name !== name);
   recentPlants.unshift({ sym, name });
@@ -4698,9 +4715,20 @@ function buildPlantGrid(filter) {
         <span class="sym">${p.sym}</span><span>${p.name}${p.perennial?' <span title="Mehrjährig – bleibt über Jahre im Beet" style="opacity:0.6">🔄</span>':''}</span>
       </div>`).join('')}</div>`;
   }
+  const eigeneTreffer = customPlants.filter(p => !onlyPerennial && (!filter || p.name.toLowerCase().includes(filter)));
+  if (eigeneTreffer.length || !filter) {
+    html += `<div style="font-size:0.72rem;font-weight:600;color:var(--bark);margin:8px 0 4px">✨ Eigene Pflanzen</div>`;
+    html += `<div class="plant-grid">${eigeneTreffer.map(p=>`
+      <div class="plant-sym ${p.sym===selectedPlantSym && p.name===selectedPlantName?'active':''}" onclick="selectPlantType('${p.sym}',${jsAttrStr(p.name)},this)">
+        <span class="sym">${p.sym}</span><span>${p.name}</span>
+      </div>`).join('')}
+      <div class="plant-sym" style="border-style:dashed;opacity:0.85" onclick="addCustomPlant()">
+        <span class="sym">➕</span><span>Eigene/exotische Pflanze</span>
+      </div></div>`;
+  }
   document.getElementById('plantCatalog').innerHTML = html || '<div class="empty-state">Keine Treffer.</div>';
   const densSel=document.getElementById('densityPlantSel');
-  if(densSel) densSel.innerHTML='<option value="">– Pflanze wählen –</option>'+PLANTS.map(p=>`<option value="${p.name}">${p.sym} ${p.name}</option>`).join('');
+  if(densSel) densSel.innerHTML='<option value="">– Pflanze wählen –</option>'+PLANTS.map(p=>`<option value="${p.name}">${p.sym} ${p.name}</option>`).join('')+customPlants.map(p=>`<option value="${p.name}">${p.sym} ${p.name}</option>`).join('');
 }
 function selectPlantType(sym,name,el){
   selectedPlantSym=sym;selectedPlantName=name;
@@ -6054,8 +6082,9 @@ function albumSlotsFuerSeite(seiteId) {
   }
   const seite = ALBUM_SEITEN.find(s => s.id === seiteId);
   if (!seite) return [];
-  const eigene = album.custom[seiteId] || [];
-  return [...(seite.vorschlaege || []), ...eigene].map(name => ({ key: `${seiteId}::${name}`, label: name, icon: seite.icon }));
+  const eigene = (album.custom[seiteId] || []).map(e => typeof e === 'string' ? { name: e, notiz: '' } : e);
+  const vorschlaege = (seite.vorschlaege || []).map(name => ({ name, notiz: '' }));
+  return [...vorschlaege, ...eigene].map(e => ({ key: `${seiteId}::${e.name}`, label: e.name, icon: seite.icon, notiz: e.notiz || '' }));
 }
 function albumSlotHtml(slot, album) {
   const fotos = album.entries[slot.key] || [];
@@ -6121,14 +6150,36 @@ function renderAlbum() {
   box.innerHTML = html;
 }
 function switchAlbumSeite(id) { albumAktiveSeite = id; renderAlbum(); }
+let albumAktiverSlotSeite = null;
 function openAlbumSlot(key) {
   const album = getAlbum();
   if (!album) return;
   albumAktiverSlotKey = key;
+  albumAktiverSlotSeite = key.split('::')[0];
   const slot = ALBUM_SEITEN.flatMap(s => albumSlotsFuerSeite(s.id)).find(s => s.key === key);
   document.getElementById('albumDetailTitel').textContent = (slot?.icon || '📸') + ' ' + (slot ? slot.label : key);
+  const notizBox = document.getElementById('albumDetailNotiz');
+  const istEigenesFeld = albumAktiverSlotSeite !== 'pflanzen' && (album.custom[albumAktiverSlotSeite] || []).some(e => (typeof e === 'string' ? e : e.name) === (slot ? slot.label : ''));
+  if (istEigenesFeld) {
+    notizBox.style.display = '';
+    notizBox.value = slot?.notiz || '';
+  } else {
+    notizBox.style.display = 'none';
+  }
   renderAlbumDetailFotos();
   document.getElementById('modalAlbumDetail').style.display = 'flex';
+}
+function albumNotizSpeichern() {
+  if (!albumAktiverSlotSeite || albumAktiverSlotSeite === 'pflanzen') return;
+  const album = getAlbum();
+  const name = albumAktiverSlotKey.slice(albumAktiverSlotSeite.length + 2);
+  const liste = album.custom[albumAktiverSlotSeite] || [];
+  const idx = liste.findIndex(e => (typeof e === 'string' ? e : e.name) === name);
+  if (idx === -1) return;
+  const neueNotiz = document.getElementById('albumDetailNotiz').value.trim();
+  liste[idx] = { name, notiz: neueNotiz };
+  saveData();
+  showTempStatus('Notiz gespeichert.', 2);
 }
 function renderAlbumDetailFotos() {
   const album = getAlbum();
@@ -6191,13 +6242,15 @@ function handleAlbumFotoUpload(e) {
 function albumEigenesFeldPrompt(seiteId) {
   const name = prompt('Name für das neue Feld (z.B. eine Tier- oder Pflanzenart):');
   if (!name || !name.trim()) return;
+  const notiz = (prompt('Kurze Notiz dazu (optional, z.B. wo/wann meist zu finden):') || '').trim();
   const album = getAlbum();
   if (!album.custom[seiteId]) album.custom[seiteId] = [];
-  if (album.custom[seiteId].some(n => n.toLowerCase() === name.trim().toLowerCase())) {
+  const vorhanden = album.custom[seiteId].some(e => (typeof e === 'string' ? e : e.name).toLowerCase() === name.trim().toLowerCase());
+  if (vorhanden) {
     showTempStatus('Feld gibt es schon.', 3);
     return;
   }
-  album.custom[seiteId].push(name.trim());
+  album.custom[seiteId].push({ name: name.trim(), notiz });
   saveData();
   renderAlbum();
 }
@@ -6209,7 +6262,7 @@ function albumEigenesFeldPrompt(seiteId) {
 const GARTEN_SYNC_SCHLUESSEL = [
   'gartenplaner_v3', 'gartenplaner_varieties', 'gartenplaner_bedTemplates',
   'gartenplaner_recentPlants', 'gartenplaner_seedInventory', 'gartenplaner_costs',
-  'gartenplaner_pantry', 'gartenplaner_shops', 'gartenplaner_careDone',
+  'gartenplaner_pantry', 'gartenplaner_shops', 'gartenplaner_careDone', 'gartenplaner_customPlants',
 ];
 (function () {
   const originalSetItem = localStorage.setItem.bind(localStorage);

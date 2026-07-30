@@ -938,6 +938,12 @@
       g.uebungen.forEach(u => { html += '<option value="' + escapeHtml(u.name) + '">' + escapeHtml(u.name) + '</option>'; });
       html += '</optgroup>';
     });
+    const eigene = (typeof eigeneUebungen !== 'undefined' && eigeneUebungen[typ]) ? eigeneUebungen[typ] : [];
+    if (eigene.length) {
+      html += '<optgroup label="✨ Eigene Übungen">';
+      eigene.forEach(u => { html += '<option value="' + escapeHtml(u.name) + '">' + escapeHtml(u.name) + '</option>'; });
+      html += '</optgroup>';
+    }
     sel.innerHTML = html;
   }
   document.getElementById('btnSportHinzufuegen').addEventListener('click', () => {
@@ -1527,6 +1533,7 @@
       karte.addEventListener('click', () => muskelModalOeffnen(m));
       box.appendChild(karte);
     });
+    box.appendChild(eigeneUebungKarte('kraft'));
   }
   function muskelModalOeffnen(m) {
     document.getElementById('muskelTitel').textContent = m.icon + ' ' + m.name;
@@ -1578,6 +1585,7 @@
       karte.addEventListener('click', () => muskelModalOeffnen(m));
       box.appendChild(karte);
     });
+    box.appendChild(eigeneUebungKarte('dehnen'));
   }
 
   // ============================================================
@@ -1614,6 +1622,56 @@
       karte.addEventListener('click', () => muskelModalOeffnen(m));
       box.appendChild(karte);
     });
+    box.appendChild(eigeneUebungKarte('balance'));
+  }
+
+  // ============================================================
+  // EIGENE ÜBUNGEN – frei ausfüllbare Ergänzung zu Kraft/Dehnen/Balance,
+  // damit seltene/individuelle Übungen ohne Code-Änderung ergänzt werden können
+  // ============================================================
+  const KEY_EIGENE_UEBUNGEN = 'gesundheit_eigeneUebungen';
+  let eigeneUebungen = laden(KEY_EIGENE_UEBUNGEN, { kraft: [], dehnen: [], balance: [] });
+  function speichereEigeneUebungen() { speichern(KEY_EIGENE_UEBUNGEN, eigeneUebungen); }
+  function eigeneUebungKarte(typ) {
+    const liste = eigeneUebungen[typ] || [];
+    const karte = document.createElement('div');
+    karte.className = 'muskel-karte';
+    karte.style.borderStyle = 'dashed';
+    karte.innerHTML = '<div class="icon">✨</div><div class="name">Eigene Übungen</div><div class="anzahl">' + liste.length + ' Übung' + (liste.length === 1 ? '' : 'en') + '</div>';
+    karte.addEventListener('click', () => eigeneUebungModalOeffnen(typ));
+    return karte;
+  }
+  function eigeneUebungModalOeffnen(typ) {
+    const titel = { kraft: '✨ Eigene Kraftübungen', dehnen: '✨ Eigene Dehnübungen', balance: '✨ Eigene Balance-Übungen' };
+    document.getElementById('muskelTitel').textContent = titel[typ] || 'Eigene Übungen';
+    const liste = eigeneUebungen[typ] || [];
+    let html = liste.map(u =>
+      '<li><div class="ue-name">' + escapeHtml(u.name) + '</div><div class="ue-hinweis">' + (u.hinweis ? escapeHtml(u.hinweis) : '(keine Beschreibung)') + '</div>' +
+      '<button type="button" onclick="eigeneUebungLoeschen(\'' + typ + '\',\'' + u.id + '\')" style="margin-top:4px;font-size:0.7rem;color:var(--terracotta-text);background:none;border:none;cursor:pointer;text-decoration:underline;padding:0">Löschen</button></li>'
+    ).join('');
+    html += '<li style="list-style:none;margin-top:6px"><button type="button" onclick="addEigeneUebung(\'' + typ + '\')" style="width:100%;padding:10px;border:1px dashed var(--sage);border-radius:var(--radius-md);background:none;color:var(--moss);font-weight:700;cursor:pointer">＋ Eigene Übung hinzufügen</button></li>';
+    document.getElementById('muskelUebungen').innerHTML = html;
+    document.getElementById('modalMuskel').classList.add('zeigen');
+  }
+  function addEigeneUebung(typ) {
+    const name = (prompt('Name der Übung:') || '').trim();
+    if (!name) return;
+    const hinweis = (prompt('Kurzer Hinweis/Beschreibung (optional):') || '').trim();
+    eigeneUebungen[typ].push({ id: 'eu_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7), name, hinweis });
+    speichereEigeneUebungen();
+    eigeneUebungModalOeffnen(typ);
+    if (typ === 'kraft') renderMuskelGrid();
+    if (typ === 'dehnen') renderDehnGrid();
+    if (typ === 'balance') renderBalanceGrid();
+  }
+  function eigeneUebungLoeschen(typ, id) {
+    if (!confirm('Diese eigene Übung löschen?')) return;
+    eigeneUebungen[typ] = (eigeneUebungen[typ] || []).filter(u => u.id !== id);
+    speichereEigeneUebungen();
+    eigeneUebungModalOeffnen(typ);
+    if (typ === 'kraft') renderMuskelGrid();
+    if (typ === 'dehnen') renderDehnGrid();
+    if (typ === 'balance') renderBalanceGrid();
   }
 
   const TYP_UEBUNGSGRUPPEN = { dehnen: DEHNGRUPPEN, balance: BALANCEGRUPPEN };
@@ -1645,7 +1703,7 @@
   if (window.PlanerSync) {
     window._sync = window.PlanerSync.starteSync({
       modul: 'gesundheit',
-      keys: [KEY_TAGESWERTE, KEY_SPORT, KEY_RECHNER, KEY_MEDIKAMENTE, KEY_MED_ERLEDIGT, KEY_ZIELE, KEY_TRAININGSLOG],
+      keys: [KEY_TAGESWERTE, KEY_SPORT, KEY_RECHNER, KEY_MEDIKAMENTE, KEY_MED_ERLEDIGT, KEY_ZIELE, KEY_TRAININGSLOG, KEY_EIGENE_UEBUNGEN],
       onRemoteChange: function () {
         tageswerte = laden(KEY_TAGESWERTE, tageswerte);
         sportEinheiten = laden(KEY_SPORT, sportEinheiten);
@@ -1654,6 +1712,7 @@
         medErledigt = laden(KEY_MED_ERLEDIGT, medErledigt);
         ziele = laden(KEY_ZIELE, ziele);
         trainingslog = laden(KEY_TRAININGSLOG, trainingslog);
+        eigeneUebungen = laden(KEY_EIGENE_UEBUNGEN, eigeneUebungen);
         renderAlles();
         if (aktiveAnsicht === 'rechner') rechnerFelderLaden();
         if (aktiveAnsicht === 'verlauf') renderStats();
