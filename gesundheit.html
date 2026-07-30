@@ -1664,6 +1664,7 @@
     if (typ === 'dehnen') renderDehnGrid();
     if (typ === 'balance') renderBalanceGrid();
   }
+  window.addEigeneUebung = addEigeneUebung;
   function eigeneUebungLoeschen(typ, id) {
     if (!confirm('Diese eigene Übung löschen?')) return;
     eigeneUebungen[typ] = (eigeneUebungen[typ] || []).filter(u => u.id !== id);
@@ -1673,6 +1674,7 @@
     if (typ === 'dehnen') renderDehnGrid();
     if (typ === 'balance') renderBalanceGrid();
   }
+  window.eigeneUebungLoeschen = eigeneUebungLoeschen;
 
   const TYP_UEBUNGSGRUPPEN = { dehnen: DEHNGRUPPEN, balance: BALANCEGRUPPEN };
 
