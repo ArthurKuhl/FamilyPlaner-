@@ -229,6 +229,7 @@
     <button id="btnViewKraft" role="tab" aria-selected="false">💪 Kraft</button>
     <button id="btnViewDehnen" role="tab" aria-selected="false">🧘 Dehnen</button>
     <button id="btnViewBalance" role="tab" aria-selected="false">🤸 Balance</button>
+    <button id="btnViewZyklus" role="tab" aria-selected="false">🌙 Zyklus</button>
   </div>
 </header>
 
@@ -414,6 +415,19 @@
     <div class="muskel-grid" id="balanceGrid"></div>
     <div class="disclaimer-box">
       ℹ️ Balance-Übungen zur Sturzprävention am besten in der Nähe einer Wand oder eines stabilen Stuhls zum Festhalten üben. Bei Schwindel, Gleichgewichtsproblemen oder nach Stürzen vorab ärztlichen Rat einholen – diese Übersicht ersetzt keine individuelle Beratung.
+    </div>
+  </section>
+
+  <section id="ansichtZyklus" style="display:none;">
+    <div class="karte" id="zyklusPhaseKarte"></div>
+    <button class="add-sport-btn" id="btnPeriodeHeute" style="margin-bottom:14px;">🩸 Periode heute gestartet</button>
+    <div class="karte">
+      <h3>📅 Verlauf</h3>
+      <div id="zyklusVerlaufListe"></div>
+      <div class="leer-hinweis" id="zyklusLeer" style="display:none;">Noch keine Periode erfasst. Mit dem Button oben den letzten/aktuellen Start eintragen, danach werden Zykluslänge und Phase automatisch geschätzt.</div>
+    </div>
+    <div class="disclaimer-box">
+      ℹ️ Die Phasen- und Trainingshinweise sind allgemeine, verbreitete Orientierung – die wissenschaftliche Studienlage zu zyklusbasiertem Training ist noch nicht eindeutig, und jeder Zyklus verläuft individuell. Kein Ersatz für ärztlichen Rat, besonders bei unregelmäßigen Zyklen oder Beschwerden.
     </div>
   </section>
 </main>
@@ -1244,7 +1258,8 @@
   const btnKraft = document.getElementById('btnViewKraft');
   const btnDehnen = document.getElementById('btnViewDehnen');
   const btnBalance = document.getElementById('btnViewBalance');
-  const alleTabs = { heute: btnHeute, verlauf: btnVerlauf, rechner: btnRechner, kraft: btnKraft, dehnen: btnDehnen, balance: btnBalance };
+  const btnZyklus = document.getElementById('btnViewZyklus');
+  const alleTabs = { heute: btnHeute, verlauf: btnVerlauf, rechner: btnRechner, kraft: btnKraft, dehnen: btnDehnen, balance: btnBalance, zyklus: btnZyklus };
   function zeigeAnsicht(name) {
     aktiveAnsicht = name;
     document.getElementById('ansichtHeute').style.display = name === 'heute' ? '' : 'none';
@@ -1253,6 +1268,7 @@
     document.getElementById('ansichtKraft').style.display = name === 'kraft' ? '' : 'none';
     document.getElementById('ansichtDehnen').style.display = name === 'dehnen' ? '' : 'none';
     document.getElementById('ansichtBalance').style.display = name === 'balance' ? '' : 'none';
+    document.getElementById('ansichtZyklus').style.display = name === 'zyklus' ? '' : 'none';
     Object.keys(alleTabs).forEach((k) => {
       alleTabs[k].classList.toggle('active', k === name);
       alleTabs[k].setAttribute('aria-selected', k === name);
@@ -1261,6 +1277,7 @@
     if (name === 'kraft') { renderMuskelGrid(); renderTrainingslog(); }
     if (name === 'dehnen') renderDehnGrid();
     if (name === 'balance') renderBalanceGrid();
+    if (name === 'zyklus') renderZyklus();
   }
   btnHeute.addEventListener('click', () => zeigeAnsicht('heute'));
   btnVerlauf.addEventListener('click', () => zeigeAnsicht('verlauf'));
@@ -1268,6 +1285,7 @@
   btnKraft.addEventListener('click', () => zeigeAnsicht('kraft'));
   btnDehnen.addEventListener('click', () => zeigeAnsicht('dehnen'));
   btnBalance.addEventListener('click', () => zeigeAnsicht('balance'));
+  btnZyklus.addEventListener('click', () => zeigeAnsicht('zyklus'));
 
   // ============================================================
   // NÄHRSTOFF-RECHNER
@@ -1626,6 +1644,90 @@
   }
 
   // ============================================================
+  // ZYKLUS-BASIERTES TRAINING
+  // ============================================================
+  const KEY_ZYKLUS = 'gesundheit_zyklus';
+  let zyklusDaten = laden(KEY_ZYKLUS, {}); // { [person]: { periodenStart: ['2026-07-01', ...] } }
+  function speichereZyklus() { speichern(KEY_ZYKLUS, zyklusDaten); }
+  function zyklusPersonDaten(person) {
+    if (!zyklusDaten[person]) zyklusDaten[person] = { periodenStart: [] };
+    if (!zyklusDaten[person].periodenStart) zyklusDaten[person].periodenStart = [];
+    return zyklusDaten[person];
+  }
+  const ZYKLUS_PHASEN = {
+    menstruation: { icon: '🩸', name: 'Menstruation', tipp: 'Energie ist oft niedriger – leichtes Ausdauertraining, Spaziergänge oder Dehnen sind meist gut verträglich. Intensives Krafttraining bei Bedarf lieber pausieren.' },
+    follikel: { icon: '🌱', name: 'Follikelphase', tipp: 'Der Östrogenspiegel steigt, viele fühlen sich leistungsfähiger – gute Phase für intensives Krafttraining oder Intervalle.' },
+    eisprung: { icon: '✨', name: 'Eisprung', tipp: 'Häufig die leistungsstärkste Phase – Zeit für intensive Einheiten oder das Ausreizen persönlicher Bestleistungen.' },
+    luteal: { icon: '🌙', name: 'Lutealphase', tipp: 'Progesteron steigt, die Körpertemperatur ist leicht erhöht – Grundlagenausdauer eignet sich gut, Intensität zur zweiten Hälfte hin eher reduzieren.' },
+  };
+  function zyklusPhaseHeute(person) {
+    const daten = zyklusPersonDaten(person);
+    const termine = daten.periodenStart.slice().sort();
+    if (!termine.length) return null;
+    const letzter = new Date(termine[termine.length - 1] + 'T00:00:00');
+    const heute = new Date(heuteISO() + 'T00:00:00');
+    const tagImZyklus = Math.round((heute - letzter) / 86400000) + 1;
+    let zykluslaenge = 28;
+    if (termine.length >= 2) {
+      const diffs = [];
+      for (let i = 1; i < termine.length; i++) diffs.push((new Date(termine[i] + 'T00:00:00') - new Date(termine[i - 1] + 'T00:00:00')) / 86400000);
+      const schnitt = Math.round(diffs.reduce((a, b) => a + b, 0) / diffs.length);
+      if (schnitt >= 15 && schnitt <= 45) zykluslaenge = schnitt;
+    }
+    const periodenlaenge = 5;
+    const eisprungTag = zykluslaenge - 14;
+    let tagEffektiv = tagImZyklus;
+    if (tagEffektiv > zykluslaenge) tagEffektiv = ((tagEffektiv - 1) % zykluslaenge) + 1; // überfällig: Schätzung im nächsten angenommenen Zyklus fortsetzen
+    let phase;
+    if (tagEffektiv <= periodenlaenge) phase = 'menstruation';
+    else if (tagEffektiv < eisprungTag - 1) phase = 'follikel';
+    else if (tagEffektiv <= eisprungTag + 1) phase = 'eisprung';
+    else phase = 'luteal';
+    return { phase, tagImZyklus, tagEffektiv, zykluslaenge, ueberfaellig: tagImZyklus > zykluslaenge + 3 };
+  }
+  function renderZyklus() {
+    const info = zyklusPhaseHeute(aktivePerson);
+    const box = document.getElementById('zyklusPhaseKarte');
+    if (!info) {
+      box.innerHTML = '<h3>🌙 Zyklus & Training</h3><div class="leer-hinweis" style="padding:10px 0">Noch keine Daten – trag unten den Start der letzten/aktuellen Periode ein, um Phase und Trainingstipp zu sehen.</div>';
+    } else {
+      const p = ZYKLUS_PHASEN[info.phase];
+      box.innerHTML = '<h3>' + p.icon + ' ' + p.name + '</h3>' +
+        '<div style="font-size:0.8rem;color:var(--bark);margin-bottom:8px;">Zyklustag ' + info.tagImZyklus + ' von ca. ' + info.zykluslaenge + (info.ueberfaellig ? ' <span style="color:var(--terracotta-text);font-weight:700;">· Periode überfällig? Beim nächsten Start bitte neu erfassen.</span>' : '') + '</div>' +
+        '<div style="font-size:0.85rem;line-height:1.5;">' + escapeHtml(p.tipp) + '</div>';
+    }
+    renderZyklusVerlauf();
+  }
+  function renderZyklusVerlauf() {
+    const daten = zyklusPersonDaten(aktivePerson);
+    const termine = daten.periodenStart.slice().sort().reverse();
+    const box = document.getElementById('zyklusVerlaufListe');
+    const leer = document.getElementById('zyklusLeer');
+    leer.style.display = termine.length ? 'none' : '';
+    box.innerHTML = termine.map(datum => {
+      return '<div class="sport-zeile"><span class="sport-icon">🩸</span>' +
+        '<div class="sport-info"><div class="sport-titel">Periode gestartet</div><div class="sport-meta">' + ausISO(datum).toLocaleDateString('de-DE') + '</div></div>' +
+        '<button class="sport-loeschen" aria-label="Löschen" onclick="zyklusEintragLoeschen(\'' + datum + '\')">✕</button></div>';
+    }).join('');
+  }
+  function zyklusEintragLoeschen(datum) {
+    const daten = zyklusPersonDaten(aktivePerson);
+    daten.periodenStart = daten.periodenStart.filter(d => d !== datum);
+    speichereZyklus();
+    renderZyklus();
+  }
+  window.zyklusEintragLoeschen = zyklusEintragLoeschen;
+  document.getElementById('btnPeriodeHeute').addEventListener('click', () => {
+    const daten = zyklusPersonDaten(aktivePerson);
+    const heute = heuteISO();
+    if (daten.periodenStart.includes(heute)) { showTempStatus('Für heute schon erfasst.', 3); return; }
+    daten.periodenStart.push(heute);
+    speichereZyklus();
+    renderZyklus();
+    showTempStatus('🩸 Erfasst.', 2);
+  });
+
+  // ============================================================
   // EIGENE ÜBUNGEN – frei ausfüllbare Ergänzung zu Kraft/Dehnen/Balance,
   // damit seltene/individuelle Übungen ohne Code-Änderung ergänzt werden können
   // ============================================================
@@ -1705,7 +1807,7 @@
   if (window.PlanerSync) {
     window._sync = window.PlanerSync.starteSync({
       modul: 'gesundheit',
-      keys: [KEY_TAGESWERTE, KEY_SPORT, KEY_RECHNER, KEY_MEDIKAMENTE, KEY_MED_ERLEDIGT, KEY_ZIELE, KEY_TRAININGSLOG, KEY_EIGENE_UEBUNGEN],
+      keys: [KEY_TAGESWERTE, KEY_SPORT, KEY_RECHNER, KEY_MEDIKAMENTE, KEY_MED_ERLEDIGT, KEY_ZIELE, KEY_TRAININGSLOG, KEY_EIGENE_UEBUNGEN, KEY_ZYKLUS],
       onRemoteChange: function () {
         tageswerte = laden(KEY_TAGESWERTE, tageswerte);
         sportEinheiten = laden(KEY_SPORT, sportEinheiten);
@@ -1715,10 +1817,12 @@
         ziele = laden(KEY_ZIELE, ziele);
         trainingslog = laden(KEY_TRAININGSLOG, trainingslog);
         eigeneUebungen = laden(KEY_EIGENE_UEBUNGEN, eigeneUebungen);
+        zyklusDaten = laden(KEY_ZYKLUS, zyklusDaten);
         renderAlles();
         if (aktiveAnsicht === 'rechner') rechnerFelderLaden();
         if (aktiveAnsicht === 'verlauf') renderStats();
         if (aktiveAnsicht === 'kraft') renderTrainingslog();
+        if (aktiveAnsicht === 'zyklus') renderZyklus();
       },
     });
   }
