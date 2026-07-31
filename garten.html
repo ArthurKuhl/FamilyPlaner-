@@ -98,6 +98,16 @@
 
   .sidebar { width: 280px; background: var(--white); border-left: none; box-shadow: -2px 0 10px rgba(59,47,30,0.05); display: flex; flex-direction: column; overflow-y: auto; }
 
+  /* DESKTOP: mehr Platz auf großen Bildschirmen sinnvoll nutzen */
+  @media (min-width: 1100px) {
+    .sidebar { width: 360px; }
+    .plant-grid { grid-template-columns: repeat(5, 1fr); }
+  }
+  @media (min-width: 1500px) {
+    .sidebar { width: 420px; }
+    .plant-grid { grid-template-columns: repeat(6, 1fr); }
+  }
+
   /* Eigene, dezente Scrollbars */
   .sidebar, .modal, .plant-panel {
     scrollbar-width: thin; scrollbar-color: var(--parchment) transparent;
@@ -209,6 +219,10 @@
   .home-intro h2 { font-family: 'Playfair Display', serif; color: var(--moss); font-size: 1.4rem; margin-bottom: 6px; }
   .home-intro p { color: var(--bark); font-size: 0.85rem; }
   .home-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; max-width: 900px; margin: 0 auto; }
+  @media (min-width: 1100px) {
+    .home-grid { max-width: 1200px; }
+    .shops-wrap, .tips-wrap, .album-wrap { max-width: 1100px; }
+  }
   .home-card { background: var(--white); border-radius: var(--radius-lg); padding: 22px 18px; box-shadow: var(--shadow-soft); cursor: pointer; transition: all 0.18s; border: 1px solid var(--parchment); text-align: center; }
   .home-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); border-color: var(--sage); }
   .home-card .hc-icon { font-size: 2.1rem; margin-bottom: 10px; }
