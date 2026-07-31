@@ -505,25 +505,14 @@
       <input type="text" id="fTlUebung" list="tlUebungListe" placeholder="z.B. Bankdrücken, Kniebeugen">
       <datalist id="tlUebungListe"></datalist>
     </div>
-    <div class="zeile">
-      <div class="feld">
-        <label for="fTlDatum">Datum</label>
-        <input type="date" id="fTlDatum">
-      </div>
-      <div class="feld">
-        <label for="fTlGewicht">Gewicht (kg)</label>
-        <input type="number" step="0.5" id="fTlGewicht" placeholder="z.B. 40">
-      </div>
+    <div class="feld">
+      <label for="fTlDatum">Datum</label>
+      <input type="date" id="fTlDatum">
     </div>
-    <div class="zeile">
-      <div class="feld">
-        <label for="fTlSaetze">Sätze</label>
-        <input type="number" id="fTlSaetze" min="1" value="3">
-      </div>
-      <div class="feld">
-        <label for="fTlWdh">Wiederholungen</label>
-        <input type="number" id="fTlWdh" min="1" value="10">
-      </div>
+    <div class="feld">
+      <label>Sätze</label>
+      <div id="tlSaetzeListe"></div>
+      <button type="button" class="btn btn-secondary" id="btnTlSatzHinzufuegen" style="width:100%;margin-top:4px;padding:8px;">＋ Satz hinzufügen</button>
     </div>
     <div class="feld">
       <label for="fTlNotiz">Notiz (optional)</label>
@@ -1162,9 +1151,10 @@
     const uebungen = [...new Set(eigene.map(t => t.uebung))];
     uebungen.forEach(uebung => {
       const werte = letzte30.map(datum => {
-        const eintraege = eigene.filter(t => t.datum === datum && t.uebung === uebung && t.gewicht);
-        if (!eintraege.length) return '';
-        return Math.max(...eintraege.map(t => parseFloat(t.gewicht)));
+        const eintraege = eigene.filter(t => t.datum === datum && t.uebung === uebung);
+        const werteTag = eintraege.map(t => maxGewichtSaetze(t)).filter(v => v !== null);
+        if (!werteTag.length) return '';
+        return Math.max(...werteTag);
       });
       const gueltig = werte.filter(v => v !== '' && !isNaN(parseFloat(v)));
       if (gueltig.length < 2) return;
@@ -1392,9 +1382,35 @@
   // TRAININGSLOG (Gewicht/Sätze/Wiederholungen je Übung, für Fortschrittsverfolgung)
   // ============================================================
   const KEY_TRAININGSLOG = 'gesundheit_trainingslog';
-  let trainingslog = laden(KEY_TRAININGSLOG, []); // [{id, datum, person, uebung, gewicht, saetze, wiederholungen, notiz}]
+  let trainingslog = laden(KEY_TRAININGSLOG, []); // [{id, datum, person, uebung, saetze:[{gewicht,wiederholungen}], notiz}]
+  function migriereTrainingslog(liste) {
+    let geaendert = false;
+    liste.forEach(t => {
+      if (!Array.isArray(t.saetze)) {
+        const anzahl = Math.max(1, parseInt(t.saetze, 10) || 1);
+        const satz = { gewicht: t.gewicht || '', wiederholungen: t.wiederholungen || '' };
+        t.saetze = Array.from({ length: anzahl }, () => ({ gewicht: satz.gewicht, wiederholungen: satz.wiederholungen }));
+        delete t.gewicht;
+        delete t.wiederholungen;
+        geaendert = true;
+      }
+    });
+    return geaendert;
+  }
+  if (migriereTrainingslog(trainingslog)) speichern(KEY_TRAININGSLOG, trainingslog);
 
   function normUebung(s) { return (s || '').trim().toLowerCase(); }
+  function maxGewichtSaetze(t) {
+    const werte = (t.saetze || []).map(s => parseFloat(s.gewicht)).filter(v => !isNaN(v));
+    return werte.length ? Math.max(...werte) : null;
+  }
+  function formatSaetzeKompakt(saetze) {
+    if (!saetze || !saetze.length) return '';
+    const g0 = saetze[0].gewicht, w0 = saetze[0].wiederholungen;
+    const einheitlich = saetze.every(s => s.gewicht === g0 && s.wiederholungen === w0);
+    if (einheitlich) return saetze.length + '×' + w0 + (g0 ? ' @ ' + formatZahl1(parseFloat(g0)) + ' kg' : '');
+    return saetze.map(s => (s.gewicht ? formatZahl1(parseFloat(s.gewicht)) + 'kg' : '–') + '×' + s.wiederholungen).join(', ');
+  }
 
   let trainingslogOffen = new Set(); // Schlüssel der aktuell aufgeklappten Übungen
   function renderTrainingslog() {
@@ -1414,8 +1430,9 @@
       const erster = eintraege[eintraege.length - 1];
       const letzter = eintraege[0];
       let trend = '';
-      if (eintraege.length > 1 && erster.gewicht && letzter.gewicht) {
-        const diff = parseFloat(letzter.gewicht) - parseFloat(erster.gewicht);
+      const erstesMax = maxGewichtSaetze(erster), letztesMax = maxGewichtSaetze(letzter);
+      if (eintraege.length > 1 && erstesMax !== null && letztesMax !== null) {
+        const diff = letztesMax - erstesMax;
         trend = diff > 0 ? ' ↑ +' + formatZahl1(diff) + ' kg' : (diff < 0 ? ' ↓ ' + formatZahl1(diff) + ' kg' : '');
       }
       const offen = trainingslogOffen.has(key);
@@ -1429,7 +1446,7 @@
         '<div style="flex:1;min-width:0;">' +
           '<div style="font-weight:700;font-size:0.85rem;color:var(--bark);">' + escapeHtml(anzeigeName) + trend + '</div>' +
           '<div style="font-size:0.72rem;color:var(--bark);opacity:0.75;">' +
-            (letzter.gewicht ? formatZahl1(parseFloat(letzter.gewicht)) + ' kg · ' : '') + letzter.saetze + '×' + letzter.wiederholungen +
+            escapeHtml(formatSaetzeKompakt(letzter.saetze)) +
             ' · ' + ausISO(letzter.datum).toLocaleDateString('de-DE', { day: 'numeric', month: 'short' }) +
             (eintraege.length > 1 ? ' · ' + eintraege.length + ' Einträge' : '') +
           '</div>' +
@@ -1448,7 +1465,7 @@
           zeile.className = 'sport-zeile';
           zeile.innerHTML =
             '<span class="sport-icon">🏋️</span>' +
-            '<div class="sport-info"><div class="sport-titel">' + (t.gewicht ? formatZahl1(parseFloat(t.gewicht)) + ' kg · ' : '') + t.saetze + '×' + t.wiederholungen + '</div>' +
+            '<div class="sport-info"><div class="sport-titel">' + escapeHtml(formatSaetzeKompakt(t.saetze)) + '</div>' +
             '<div class="sport-meta">' + ausISO(t.datum).toLocaleDateString('de-DE', { day: 'numeric', month: 'short' }) + (t.notiz ? ' · ' + escapeHtml(t.notiz) : '') + '</div></div>' +
             '<button class="sport-loeschen" aria-label="Löschen">✕</button>';
           zeile.querySelector('.sport-loeschen').addEventListener('click', (e) => {
@@ -1473,14 +1490,46 @@
     dl.innerHTML = Object.values(namen).sort((a,b) => a.localeCompare(b,'de')).map(n => '<option value="' + escapeHtml(n) + '">').join('');
   }
 
+  // --- Dynamische Satz-Liste im Erfassen-Modal ---
+  let tlSaetzeState = [];
+  function renderTlSaetzeListe() {
+    const box = document.getElementById('tlSaetzeListe');
+    box.innerHTML = tlSaetzeState.map((s, i) =>
+      '<div class="zeile" style="margin-bottom:6px;align-items:center;">' +
+        '<div style="font-size:0.72rem;color:var(--bark);opacity:0.6;flex:0 0 16px;">' + (i + 1) + '.</div>' +
+        '<input type="number" step="0.5" min="0" placeholder="kg" value="' + escapeHtml(s.gewicht) + '" data-idx="' + i + '" data-feld="gewicht" style="flex:1;">' +
+        '<span style="opacity:0.55;flex:0 0 auto;">×</span>' +
+        '<input type="number" min="1" placeholder="Wdh." value="' + escapeHtml(String(s.wiederholungen)) + '" data-idx="' + i + '" data-feld="wiederholungen" style="flex:1;">' +
+        '<button type="button" class="tl-satz-entfernen" data-idx="' + i + '" style="flex:0 0 auto;background:none;border:none;color:var(--terracotta-text);font-size:1rem;cursor:pointer;padding:0 4px;' + (tlSaetzeState.length <= 1 ? 'visibility:hidden;' : '') + '">✕</button>' +
+      '</div>'
+    ).join('');
+    box.querySelectorAll('input').forEach(inp => {
+      inp.addEventListener('input', (e) => {
+        const idx = parseInt(e.target.dataset.idx, 10), feld = e.target.dataset.feld;
+        tlSaetzeState[idx][feld] = e.target.value;
+      });
+    });
+    box.querySelectorAll('.tl-satz-entfernen').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (tlSaetzeState.length <= 1) return;
+        tlSaetzeState.splice(parseInt(btn.dataset.idx, 10), 1);
+        renderTlSaetzeListe();
+      });
+    });
+  }
+  document.getElementById('btnTlSatzHinzufuegen').addEventListener('click', () => {
+    const letzter = tlSaetzeState[tlSaetzeState.length - 1] || { gewicht: '', wiederholungen: 10 };
+    tlSaetzeState.push({ gewicht: letzter.gewicht, wiederholungen: letzter.wiederholungen });
+    renderTlSaetzeListe();
+  });
+
   function fTlSchnellausfuellenFuer(uebungName) {
     const key = normUebung(uebungName);
     if (!key) return;
     const letzter = trainingslog.filter(t => t.person === aktivePerson && normUebung(t.uebung) === key).sort((a,b) => a.datum < b.datum ? 1 : -1)[0];
-    if (!letzter) return;
-    document.getElementById('fTlGewicht').value = letzter.gewicht || '';
-    document.getElementById('fTlSaetze').value = letzter.saetze || 3;
-    document.getElementById('fTlWdh').value = letzter.wiederholungen || 10;
+    if (!letzter || !letzter.saetze || !letzter.saetze.length) return;
+    tlSaetzeState = letzter.saetze.map(s => ({ gewicht: s.gewicht, wiederholungen: s.wiederholungen }));
+    renderTlSaetzeListe();
   }
 
   document.getElementById('fTlUebung').addEventListener('change', (e) => fTlSchnellausfuellenFuer(e.target.value));
@@ -1489,10 +1538,9 @@
     aktualisiereUebungsliste();
     document.getElementById('fTlUebung').value = '';
     document.getElementById('fTlDatum').value = heuteISO();
-    document.getElementById('fTlGewicht').value = '';
-    document.getElementById('fTlSaetze').value = 3;
-    document.getElementById('fTlWdh').value = 10;
     document.getElementById('fTlNotiz').value = '';
+    tlSaetzeState = [{ gewicht: '', wiederholungen: 10 }, { gewicht: '', wiederholungen: 10 }, { gewicht: '', wiederholungen: 10 }];
+    renderTlSaetzeListe();
     document.getElementById('modalTrainingslog').classList.add('zeigen');
     document.getElementById('fTlUebung').focus();
   });
@@ -1503,13 +1551,21 @@
     const datum = document.getElementById('fTlDatum').value;
     if (!uebung) { alert('Bitte einen Übungsnamen eingeben.'); return; }
     if (!datum) { alert('Bitte ein Datum wählen.'); return; }
-    trainingslog.push({
-      id: neueId('tl'), datum, person: aktivePerson, uebung,
-      gewicht: document.getElementById('fTlGewicht').value,
-      saetze: Math.max(1, parseInt(document.getElementById('fTlSaetze').value, 10) || 1),
-      wiederholungen: Math.max(1, parseInt(document.getElementById('fTlWdh').value, 10) || 1),
-      notiz: document.getElementById('fTlNotiz').value.trim(),
-    });
+    const gueltigeSaetze = tlSaetzeState
+      .filter(s => s.wiederholungen !== '' && s.wiederholungen !== null && !isNaN(parseInt(s.wiederholungen, 10)))
+      .map(s => ({ gewicht: s.gewicht === '' || s.gewicht === null ? '' : String(parseFloat(s.gewicht)), wiederholungen: Math.max(1, parseInt(s.wiederholungen, 10)) }));
+    if (!gueltigeSaetze.length) { alert('Bitte mindestens einen Satz mit Wiederholungen eintragen.'); return; }
+    const notiz = document.getElementById('fTlNotiz').value.trim();
+    const key = normUebung(uebung);
+    // Gibt es für diese Übung an diesem Tag schon einen Eintrag? Dann Sätze ergänzen statt einen weiteren Eintrag anzulegen.
+    const bestehender = trainingslog.find(t => t.person === aktivePerson && t.datum === datum && normUebung(t.uebung) === key);
+    if (bestehender) {
+      bestehender.saetze = bestehender.saetze.concat(gueltigeSaetze);
+      if (notiz && !bestehender.notiz) bestehender.notiz = notiz;
+      else if (notiz && bestehender.notiz && !bestehender.notiz.includes(notiz)) bestehender.notiz += ' · ' + notiz;
+    } else {
+      trainingslog.push({ id: neueId('tl'), datum, person: aktivePerson, uebung, saetze: gueltigeSaetze, notiz });
+    }
     speichern(KEY_TRAININGSLOG, trainingslog);
     document.getElementById('modalTrainingslog').classList.remove('zeigen');
     renderTrainingslog();
@@ -1842,6 +1898,7 @@
         medErledigt = laden(KEY_MED_ERLEDIGT, medErledigt);
         ziele = laden(KEY_ZIELE, ziele);
         trainingslog = laden(KEY_TRAININGSLOG, trainingslog);
+        if (migriereTrainingslog(trainingslog)) speichern(KEY_TRAININGSLOG, trainingslog);
         eigeneUebungen = laden(KEY_EIGENE_UEBUNGEN, eigeneUebungen);
         zyklusDaten = laden(KEY_ZYKLUS, zyklusDaten);
         renderAlles();
