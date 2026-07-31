@@ -1396,6 +1396,7 @@
 
   function normUebung(s) { return (s || '').trim().toLowerCase(); }
 
+  let trainingslogOffen = new Set(); // Schlüssel der aktuell aufgeklappten Übungen
   function renderTrainingslog() {
     const box = document.getElementById('trainingslogListe');
     const leer = document.getElementById('trainingslogLeer');
@@ -1410,8 +1411,6 @@
     Object.keys(gruppen).sort((a,b) => a.localeCompare(b,'de')).forEach(key => {
       const eintraege = gruppen[key].slice(0, 5);
       const anzeigeName = eintraege[0].uebung.trim();
-      const wrap = document.createElement('div');
-      wrap.style.marginBottom = '10px';
       const erster = eintraege[eintraege.length - 1];
       const letzter = eintraege[0];
       let trend = '';
@@ -1419,22 +1418,49 @@
         const diff = parseFloat(letzter.gewicht) - parseFloat(erster.gewicht);
         trend = diff > 0 ? ' ↑ +' + formatZahl1(diff) + ' kg' : (diff < 0 ? ' ↓ ' + formatZahl1(diff) + ' kg' : '');
       }
-      wrap.innerHTML = '<div class="verlauf-datum-titel">' + escapeHtml(anzeigeName) + trend + '</div>';
-      eintraege.forEach(t => {
-        const zeile = document.createElement('div');
-        zeile.className = 'sport-zeile';
-        zeile.innerHTML =
-          '<span class="sport-icon">🏋️</span>' +
-          '<div class="sport-info"><div class="sport-titel">' + (t.gewicht ? formatZahl1(parseFloat(t.gewicht)) + ' kg · ' : '') + t.saetze + '×' + t.wiederholungen + '</div>' +
-          '<div class="sport-meta">' + ausISO(t.datum).toLocaleDateString('de-DE', { day: 'numeric', month: 'short' }) + (t.notiz ? ' · ' + escapeHtml(t.notiz) : '') + '</div></div>' +
-          '<button class="sport-loeschen" aria-label="Löschen">✕</button>';
-        zeile.querySelector('.sport-loeschen').addEventListener('click', () => {
-          trainingslog = trainingslog.filter(x => x.id !== t.id);
-          speichern(KEY_TRAININGSLOG, trainingslog);
-          renderTrainingslog();
-        });
-        wrap.appendChild(zeile);
+      const offen = trainingslogOffen.has(key);
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'margin-bottom:8px;border:1px solid var(--sand-dark);border-radius:var(--radius-md);overflow:hidden;';
+
+      const kopf = document.createElement('div');
+      kopf.style.cssText = 'display:flex;align-items:center;gap:8px;padding:10px 12px;cursor:pointer;background:var(--white);';
+      kopf.innerHTML =
+        '<span style="font-size:0.75rem;color:var(--moss);flex-shrink:0;transition:transform .15s;' + (offen ? 'transform:rotate(90deg);' : '') + '">▸</span>' +
+        '<div style="flex:1;min-width:0;">' +
+          '<div style="font-weight:700;font-size:0.85rem;color:var(--bark);">' + escapeHtml(anzeigeName) + trend + '</div>' +
+          '<div style="font-size:0.72rem;color:var(--bark);opacity:0.75;">' +
+            (letzter.gewicht ? formatZahl1(parseFloat(letzter.gewicht)) + ' kg · ' : '') + letzter.saetze + '×' + letzter.wiederholungen +
+            ' · ' + ausISO(letzter.datum).toLocaleDateString('de-DE', { day: 'numeric', month: 'short' }) +
+            (eintraege.length > 1 ? ' · ' + eintraege.length + ' Einträge' : '') +
+          '</div>' +
+        '</div>';
+      kopf.addEventListener('click', () => {
+        if (trainingslogOffen.has(key)) trainingslogOffen.delete(key); else trainingslogOffen.add(key);
+        renderTrainingslog();
       });
+      wrap.appendChild(kopf);
+
+      if (offen) {
+        const body = document.createElement('div');
+        body.style.cssText = 'padding:2px 12px 8px;background:var(--white);border-top:1px solid var(--parchment);';
+        eintraege.forEach(t => {
+          const zeile = document.createElement('div');
+          zeile.className = 'sport-zeile';
+          zeile.innerHTML =
+            '<span class="sport-icon">🏋️</span>' +
+            '<div class="sport-info"><div class="sport-titel">' + (t.gewicht ? formatZahl1(parseFloat(t.gewicht)) + ' kg · ' : '') + t.saetze + '×' + t.wiederholungen + '</div>' +
+            '<div class="sport-meta">' + ausISO(t.datum).toLocaleDateString('de-DE', { day: 'numeric', month: 'short' }) + (t.notiz ? ' · ' + escapeHtml(t.notiz) : '') + '</div></div>' +
+            '<button class="sport-loeschen" aria-label="Löschen">✕</button>';
+          zeile.querySelector('.sport-loeschen').addEventListener('click', (e) => {
+            e.stopPropagation();
+            trainingslog = trainingslog.filter(x => x.id !== t.id);
+            speichern(KEY_TRAININGSLOG, trainingslog);
+            renderTrainingslog();
+          });
+          body.appendChild(zeile);
+        });
+        wrap.appendChild(body);
+      }
       box.appendChild(wrap);
     });
   }
