@@ -9,7 +9,7 @@
   :root {
     --soil: #3a2e1f; --moss: #4f6f45; --sage: #7fa476; --leaf: #bcd196;
     --cream: #faf6ec; --parchment: #ece0c7; --bark: #7d6339;
-    --terracotta: #c46b41; --terracotta-text: #a8532e; --sky: #5b8bb5;
+    --terracotta: #c46b41; --terracotta-text: #a8532e; --sky: #5b8bb5; --gold: #c99a3a;
     --white: #fffdf8; --navbg: #2a2016;
     --radius-sm: 8px; --radius-md: 12px; --radius-lg: 18px; --radius-pill: 22px;
     --shadow-soft: 0 2px 10px rgba(59,47,30,0.08); --shadow-md: 0 8px 26px rgba(59,47,30,0.2);
@@ -104,6 +104,13 @@
   .kategorie-reihe { display: flex; gap: 6px; flex-wrap: wrap; }
   .kategorie-opt { padding: 6px 12px; border-radius: var(--radius-pill); font-size: 0.72rem; font-weight: 600; border: 1px solid var(--parchment); background: var(--white); color: var(--bark); cursor: pointer; }
   .kategorie-opt.aktiv { color: var(--white); border-color: transparent; }
+
+  .sterne-reihe { display: flex; gap: 1px; }
+  .sterne-reihe .stern { font-size: 0.8rem; color: var(--parchment); }
+  .sterne-reihe .stern.aktiv { color: var(--gold); }
+  .sterne-eingabe { display: flex; gap: 4px; }
+  .sterne-eingabe button { background: none; border: none; font-size: 1.6rem; color: var(--parchment); cursor: pointer; padding: 0 2px; }
+  .sterne-eingabe button.aktiv { color: var(--gold); }
 
   .unterliste-titel { font-size: 0.72rem; font-weight: 700; color: var(--bark); text-transform: uppercase; letter-spacing: 0.03em; margin: 16px 0 6px; }
   .zutat-zeile, .schritt-zeile { display: flex; gap: 6px; margin-bottom: 6px; align-items: center; }
@@ -249,6 +256,10 @@
       <label>Kategorie</label>
       <div class="kategorie-reihe" id="editKategorieReihe"></div>
     </div>
+    <div class="feld">
+      <label>Bewertung</label>
+      <div class="sterne-eingabe" id="editSterneEingabe"></div>
+    </div>
     <div class="zeile">
       <div class="feld">
         <label for="fPortionen">Portionen (Basis)</label>
@@ -330,6 +341,25 @@
   let nurFavoriten = false;
   let suchtext = '';
   let bearbeiteId = null;
+  let editBewertung = 0;
+  function renderEditSterneEingabe() {
+    const box = document.getElementById('editSterneEingabe');
+    box.innerHTML = '';
+    for (let i = 1; i <= 5; i++) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = i <= editBewertung ? 'aktiv' : '';
+      btn.textContent = '★';
+      btn.addEventListener('click', () => { editBewertung = (editBewertung === i) ? 0 : i; renderEditSterneEingabe(); });
+      box.appendChild(btn);
+    }
+  }
+  function sterneAnzeige(bewertung) {
+    if (!bewertung) return '';
+    let html = '<div class="sterne-reihe">';
+    for (let i = 1; i <= 5; i++) html += '<span class="stern' + (i <= bewertung ? ' aktiv' : '') + '">★</span>';
+    return html + '</div>';
+  }
   let detailId = null;
   let detailPortionen = 1;
   let detailZutatenAusgewaehlt = new Set();
@@ -437,6 +467,7 @@
       (r.foto ? '<img class="rezept-foto-thumb" src="' + r.foto + '" alt="">' : '<div class="rezept-kat-icon">' + kat.icon + '</div>') +
       '<div class="rezept-titel">' + escapeHtml(r.titel) + '</div>' +
       '<div class="rezept-meta"><span>⏱ ' + r.zeit + ' Min.</span><span>🍽 ' + r.portionenBasis + '</span></div>' +
+      sterneAnzeige(r.bewertung) +
       tagsHtml;
     karte.querySelector('.herz').addEventListener('click', (e) => {
       e.stopPropagation();
@@ -511,7 +542,7 @@
     document.getElementById('detailKatChip').style.background = kat.farbe + '22';
     document.getElementById('detailKatChip').style.color = kat.farbe;
     document.getElementById('detailTitel').textContent = r.titel;
-    document.getElementById('detailMeta').innerHTML = '<span>⏱ ' + r.zeit + ' Min.</span>';
+    document.getElementById('detailMeta').innerHTML = '<span>⏱ ' + r.zeit + ' Min.</span>' + (r.bewertung ? '<span style="display:inline-flex;vertical-align:middle;">' + sterneAnzeige(r.bewertung) + '</span>' : '');
     const herz = document.getElementById('detailHerz');
     herz.textContent = r.favorit ? '♥' : '♡';
     herz.classList.toggle('aktiv', !!r.favorit);
@@ -706,6 +737,8 @@
     document.getElementById('fNotiz').value = r ? (r.notiz || '') : '';
     document.getElementById('fTags').value = r && r.tags ? r.tags.join(', ') : '';
     editKategorieReiheRendern(r ? r.kategorie : 'hauptspeise');
+    editBewertung = r ? (r.bewertung || 0) : 0;
+    renderEditSterneEingabe();
 
     const zutBox = document.getElementById('editZutatenListe');
     zutBox.innerHTML = '';
@@ -755,7 +788,9 @@
       titel, kategorie: gewaehlteKategorie ? gewaehlteKategorie.dataset.id : 'sonstiges',
       portionenBasis, zeit, zutaten, schritte, tags,
       notiz: document.getElementById('fNotiz').value.trim(),
+      bewertung: editBewertung,
       favorit: bearbeiteId ? (rezepte.find(x => x.id === bearbeiteId)?.favorit || false) : false,
+      foto: bearbeiteId ? (rezepte.find(x => x.id === bearbeiteId)?.foto || '') : '',
     };
     if (bearbeiteId) rezepte = rezepte.map(r => r.id === bearbeiteId ? neu : r);
     else rezepte.push(neu);
