@@ -81,6 +81,7 @@
   }
   .rezept-karte .herz.aktiv { opacity: 1; }
   .rezept-kat-icon { font-size: 1.6rem; }
+  .rezept-foto-thumb { width: 40px; height: 40px; border-radius: var(--radius-sm); object-fit: cover; }
   .rezept-titel { font-size: 0.88rem; font-weight: 700; line-height: 1.25; padding-right: 18px; }
   .rezept-meta { font-size: 0.68rem; color: var(--bark); display: flex; gap: 8px; }
   .rezept-tags { font-size: 0.65rem; color: var(--sage); margin-top: 2px; }
@@ -121,7 +122,13 @@
   .btn-danger { background: transparent; color: var(--terracotta-text); border: 1px solid var(--terracotta); }
 
   /* Detailansicht */
-  .detail-kopf { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+  .detail-kopf { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 4px; gap: 10px; }
+  .detail-foto-box { position: relative; width: 92px; height: 92px; flex-shrink: 0; border-radius: var(--radius-md); border: 2px dashed var(--sage); background: var(--parchment); display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; text-align: center; }
+  .detail-foto-box.gefuellt { border-style: solid; border-color: var(--moss); }
+  .detail-foto-box img { width: 100%; height: 100%; object-fit: cover; }
+  .dfb-placeholder { font-size: 0.62rem; color: var(--bark); opacity: 0.65; line-height: 1.3; }
+  .detail-foto-box .herz { position: absolute; top: 3px; right: 3px; font-size: 1rem; background: rgba(255,255,255,0.88); border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; padding: 0; border: none; cursor: pointer; opacity: 0.85; }
+  .detail-foto-box .herz.aktiv { color: var(--terracotta); opacity: 1; }
   .detail-kat-chip { font-size: 0.68rem; font-weight: 700; padding: 3px 10px; border-radius: var(--radius-pill); }
   .detail-meta-reihe { display: flex; gap: 14px; font-size: 0.78rem; color: var(--bark); margin: 6px 0 14px; flex-wrap: wrap; }
   .portionen-steuerung { display: flex; align-items: center; gap: 10px; background: var(--white); border-radius: var(--radius-pill); padding: 6px 6px; margin-bottom: 16px; width: fit-content; box-shadow: var(--shadow-soft); }
@@ -188,7 +195,12 @@
   <div class="modal">
     <div class="detail-kopf">
       <span class="detail-kat-chip" id="detailKatChip"></span>
-      <button class="herz" id="detailHerz" style="position:static; font-size:1.3rem;">♡</button>
+      <div class="detail-foto-box" id="detailFotoBox" title="Foto vom fertigen Gericht hinzufügen">
+        <span class="dfb-placeholder" id="detailFotoPlatzhalter">📷<br>Foto</span>
+        <img id="detailFotoImg" style="display:none;" alt="Foto des fertigen Gerichts">
+        <button type="button" class="herz" id="detailHerz">♡</button>
+      </div>
+      <input type="file" id="detailFotoInput" accept="image/*" capture="environment" style="display:none">
     </div>
     <h2 id="detailTitel"></h2>
     <div class="detail-meta-reihe" id="detailMeta"></div>
@@ -422,7 +434,7 @@
       : '';
     karte.innerHTML =
       '<button class="herz' + (r.favorit ? ' aktiv' : '') + '" data-id="' + r.id + '">' + (r.favorit ? '♥' : '♡') + '</button>' +
-      '<div class="rezept-kat-icon">' + kat.icon + '</div>' +
+      (r.foto ? '<img class="rezept-foto-thumb" src="' + r.foto + '" alt="">' : '<div class="rezept-kat-icon">' + kat.icon + '</div>') +
       '<div class="rezept-titel">' + escapeHtml(r.titel) + '</div>' +
       '<div class="rezept-meta"><span>⏱ ' + r.zeit + ' Min.</span><span>🍽 ' + r.portionenBasis + '</span></div>' +
       tagsHtml;
@@ -442,6 +454,51 @@
     return n.toLocaleString('de-DE', { maximumFractionDigits: 2 });
   }
 
+  // --- FOTO VOM FERTIGEN GERICHT ---
+  function renderDetailFoto(r) {
+    const box = document.getElementById('detailFotoBox');
+    const img = document.getElementById('detailFotoImg');
+    const platzhalter = document.getElementById('detailFotoPlatzhalter');
+    if (r.foto) {
+      img.src = r.foto;
+      img.style.display = '';
+      platzhalter.style.display = 'none';
+      box.classList.add('gefuellt');
+    } else {
+      img.style.display = 'none';
+      platzhalter.style.display = '';
+      box.classList.remove('gefuellt');
+    }
+  }
+  document.getElementById('detailFotoBox').addEventListener('click', (e) => {
+    if (e.target.closest('#detailHerz')) return;
+    document.getElementById('detailFotoInput').click();
+  });
+  document.getElementById('detailFotoInput').addEventListener('change', (e) => {
+    const file = e.target.files && e.target.files[0];
+    const r = rezepte.find(x => x.id === detailId);
+    if (!file || !r) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        const maxW = 640;
+        const scale = Math.min(1, maxW / img.width);
+        const c = document.createElement('canvas');
+        c.width = img.width * scale;
+        c.height = img.height * scale;
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        r.foto = c.toDataURL('image/jpeg', 0.75);
+        speichernRezepte();
+        renderDetailFoto(r);
+        renderGrid();
+        document.getElementById('detailFotoInput').value = '';
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
   // --- DETAILANSICHT ---
   function detailOeffnen(id) {
     const r = rezepte.find(x => x.id === id);
@@ -458,6 +515,7 @@
     const herz = document.getElementById('detailHerz');
     herz.textContent = r.favorit ? '♥' : '♡';
     herz.classList.toggle('aktiv', !!r.favorit);
+    renderDetailFoto(r);
     document.getElementById('detailNotizBox').style.display = r.notiz ? '' : 'none';
     document.getElementById('detailNotizBox').textContent = r.notiz || '';
     renderDetailPortionenAbhaengig(r);
