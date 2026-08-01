@@ -74,6 +74,8 @@
   .sport-loeschen:hover { color: var(--terracotta-text); }
 
   #btnSchriftgroesse.aktiv { background: var(--moss); color: var(--white); border-color: var(--moss); }
+  .temp-status { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); background: var(--bark); color: var(--white); padding: 10px 18px; border-radius: var(--radius-pill); font-size: 0.85rem; font-weight: 600; box-shadow: 0 4px 14px rgba(0,0,0,0.25); opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 500; max-width: 88vw; text-align: center; }
+  .temp-status.zeigen { opacity: 1; transform: translate(-50%, 0); }
 
   .add-sport-btn {
     width: 100%; background: var(--white); border: 1px dashed var(--sage); color: var(--moss);
@@ -215,6 +217,7 @@
 <script src="sync.js"></script>
 </head>
 <body>
+<div id="tempStatus" class="temp-status"></div>
 
 <header class="top">
   <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
@@ -582,6 +585,15 @@
 
   function neueId(prefix) { return prefix + Date.now() + Math.random().toString(36).slice(2,7); }
   function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  let tempStatusTimeout = null;
+  function showTempStatus(text, sekunden) {
+    const el = document.getElementById('tempStatus');
+    if (!el) return;
+    el.textContent = text;
+    el.classList.add('zeigen');
+    clearTimeout(tempStatusTimeout);
+    tempStatusTimeout = setTimeout(() => { el.classList.remove('zeigen'); }, (sekunden || 2) * 1000);
+  }
   function toISODatum(d) { return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
   function heuteISO() { return toISODatum(new Date()); }
   function ausISO(iso) { const [j,m,t] = iso.split('-').map(Number); return new Date(j, m-1, t); }
