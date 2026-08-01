@@ -82,7 +82,7 @@
   .main { display: flex; flex: 1; min-height: 0; }
 
   .canvas-wrap {
-    flex: 1; position: relative;
+    flex: 1; position: relative; min-height: 480px;
     background-image:
       linear-gradient(rgba(74,103,65,0.07) 1px, transparent 1px),
       linear-gradient(90deg, rgba(74,103,65,0.07) 1px, transparent 1px),
@@ -4010,6 +4010,7 @@ const wrap = document.getElementById('canvasWrap');
 
 function resizeCanvas() { canvas.width = wrap.clientWidth; canvas.height = wrap.clientHeight; draw(); }
 window.addEventListener('resize', resizeCanvas);
+window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 200));
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
