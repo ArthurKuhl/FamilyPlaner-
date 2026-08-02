@@ -1,7 +1,7 @@
 // Gartenplaner Service Worker
 // WICHTIG: CACHE_VERSION bei jedem Update der App-Datei erhöhen (z.B. 'v1' -> 'v2'),
 // sonst bekommen Nutzer weiterhin die alte, zwischengespeicherte Version ausgeliefert.
-const CACHE_VERSION = 'v39';
+const CACHE_VERSION = 'v40';
 const CACHE_NAME = 'planer-cache-' + CACHE_VERSION;
 
 const APP_SHELL = [
@@ -44,6 +44,14 @@ self.addEventListener('activate', (event) => {
     )
   );
   self.clients.claim();
+});
+
+// Antwortet der App auf Anfrage mit der aktuellen Cache-Version, damit sich in der
+// Oberfläche anzeigen lässt, ob ein Update tatsächlich angekommen ist.
+self.addEventListener('message', (event) => {
+  if (event.data === 'GET_VERSION') {
+    event.source.postMessage({ type: 'VERSION', version: CACHE_VERSION });
+  }
 });
 
 // Fetch-Strategie:

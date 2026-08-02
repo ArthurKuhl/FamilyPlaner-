@@ -52,6 +52,9 @@
     content: ''; position: absolute; top: 2px; right: 2px; width: 8px; height: 8px;
     border-radius: 50%; background: var(--terracotta); border: 1.5px solid var(--navbg);
   }
+  .version-badge {
+    flex: 0 0 auto; font-size: 0.62rem; color: var(--sage); opacity: 0.6; padding: 4px 4px; order: 97;
+  }
   .modal-bg {
     position: fixed; inset: 0; background: rgba(42,32,22,0.5); display: none;
     align-items: center; justify-content: center; z-index: 200; padding: 20px;
@@ -101,6 +104,7 @@
     <nav class="modul-nav" id="modulNav" aria-label="Bereiche">
       <!-- Buttons werden per JS erzeugt -->
       <button class="backup-btn" id="btnBackup" title="Sichern & Wiederherstellen">💾</button>
+      <span class="version-badge" id="versionBadge" title="App-Version"></span>
       <span class="sync-status" id="syncStatus" title="Sync-Status">⏳</span>
     </nav>
     <div class="modul-frame-wrap">
@@ -114,12 +118,14 @@
       <h2>💾 Sichern &amp; Wiederherstellen</h2>
       <p>Exportiert alle Daten aus allen Bereichen (Garten, Termine, Einkauf, Kochen, Gesundheit, Gaming) als Datei – zusätzlich zur Cloud-Synchronisierung, als extra Sicherheitsnetz. Anders als die Cloud-Synchronisierung enthält diese Datei auch die Fotos aus dem Garten-Tagebuch.</p>
       <div class="status-text" id="backupErinnerungText" style="margin-bottom:10px;"></div>
+      <div class="status-text" id="speicherStatus" style="margin-bottom:10px;"></div>
       <button class="btn btn-primary" id="btnExport">⬇ Alle Daten exportieren</button>
       <button class="btn btn-secondary" id="btnImportOeffnen">⬆ Aus Datei wiederherstellen</button>
       <input type="file" id="fileImport" accept="application/json">
       <div class="status-text" id="backupStatus"></div>
       <button class="btn btn-secondary" id="btnBackupSpaeter" style="display:none;">In 7 Tagen erneut erinnern</button>
       <button class="btn btn-secondary" id="btnBackupSchliessen" style="margin-top:6px;">Schließen</button>
+      <div id="versionStatus" style="margin-top:12px;opacity:0.6;font-size:0.72rem;text-align:center;"></div>
     </div>
   </div>
 
@@ -292,10 +298,52 @@
       reader.readAsText(datei);
     }
 
+    // ---------- SPEICHERNUTZUNG ----------
+    function berechneSpeicherNutzungMB() {
+      let zeichen = 0;
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        zeichen += (k ? k.length : 0) + (localStorage.getItem(k) || '').length;
+      }
+      return (zeichen * 2) / (1024 * 1024); // grobe Näherung: ~2 Byte je Zeichen (UTF-16)
+    }
+    function zeigeSpeicherNutzung() {
+      const el = document.getElementById('speicherStatus');
+      if (!el) return;
+      const mb = berechneSpeicherNutzungMB();
+      const warnung = mb > 7 ? ' ⚠️ Speicher wird knapp – ggf. alte Fotos (z.B. im Fotoalbum oder Pilz-Logbuch) aufräumen.' : '';
+      el.innerHTML = '📦 Genutzter Speicher: ~' + mb.toFixed(1) + ' MB (Browser-Limit meist 5–10 MB)' + warnung;
+    }
+
+    // ---------- APP-VERSION ----------
+    function frageVersionAb() {
+      if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage('GET_VERSION');
+      } else {
+        const badge = document.getElementById('versionBadge');
+        const status = document.getElementById('versionStatus');
+        if (badge) badge.textContent = '';
+        if (status) status.textContent = 'App-Version: nicht ermittelbar (Service Worker inaktiv)';
+      }
+    }
+    if (navigator.serviceWorker) {
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data && event.data.type === 'VERSION') {
+          const badge = document.getElementById('versionBadge');
+          const status = document.getElementById('versionStatus');
+          if (badge) badge.textContent = event.data.version;
+          if (status) status.textContent = 'App-Version: ' + event.data.version;
+        }
+      });
+      navigator.serviceWorker.ready.then(() => frageVersionAb());
+    }
+
     const modalBackup = document.getElementById('modalBackup');
     document.getElementById('btnBackup').addEventListener('click', () => {
       document.getElementById('backupStatus').textContent = '';
       backupErinnerungImModalAnzeigen();
+      zeigeSpeicherNutzung();
+      frageVersionAb();
       modalBackup.classList.add('zeigen');
     });
     document.getElementById('btnBackupSchliessen').addEventListener('click', () => modalBackup.classList.remove('zeigen'));
