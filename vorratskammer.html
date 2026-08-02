@@ -194,6 +194,7 @@
   </div>
 </div>
 
+<script src="gemeinsam.js"></script>
 <script>
 (function(){
   'use strict';
@@ -208,24 +209,7 @@
     { id: 'apotheke', label: 'Apotheke', icon: '💊', fest: true },
   ];
 
-  function neueId(prefix) { return prefix + Date.now() + Math.random().toString(36).slice(2,7); }
-  function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-  function heuteISO() { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
-  function ausISO(s) { return new Date(s + 'T00:00:00'); }
-
-  function laden(key, fallback) {
-    try {
-      const raw = localStorage.getItem(key);
-      if (!raw) return fallback;
-      const geparst = JSON.parse(raw);
-      return (geparst === null || geparst === undefined) ? fallback : geparst;
-    } catch (e) { console.warn('Vorratskammer: Laden fehlgeschlagen', key, e); return fallback; }
-  }
-  function speichern(key, wert) {
-    try { localStorage.setItem(key, JSON.stringify(wert)); }
-    catch (e) { console.warn('Vorratskammer: Speichern fehlgeschlagen', key, e); alert('Speichern fehlgeschlagen – ist der Speicher voll?'); }
-    if (window._sync) window._sync.melde();
-  }
+  // neueId, escapeHtml, heuteISO, ausISO, laden, speichern, showTempStatus: siehe gemeinsam.js
 
   let items = laden(KEY_ITEMS, []);
   let kategorienEigene = laden(KEY_KATEGORIEN, []);
@@ -237,15 +221,6 @@
 
   function alleKategorien() { return KATEGORIEN_FEST.concat(kategorienEigene); }
   function kategorieInfo(id) { return alleKategorien().find(k => k.id === id) || KATEGORIEN_FEST[0]; }
-
-  let tempStatusTimeout = null;
-  function zeigeMeldung(text, sekunden) {
-    const el = document.getElementById('tempStatus');
-    el.textContent = text;
-    el.classList.add('zeigen');
-    clearTimeout(tempStatusTimeout);
-    tempStatusTimeout = setTimeout(() => el.classList.remove('zeigen'), (sekunden || 2.5) * 1000);
-  }
 
   // ---------- KATEGORIE-TABS ----------
   function renderKatTabs() {
@@ -399,13 +374,13 @@
     let aktiv = listen.find(l => l.id === aktivId) || listen[0];
     const kandidat = aktiv.items.find(i => !i.erledigt && i.name.trim().toLowerCase() === item.name.trim().toLowerCase());
     if (kandidat) {
-      zeigeMeldung('„' + item.name + '" steht schon in „' + aktiv.name + '".');
+      showTempStatus('„' + item.name + '" steht schon in „' + aktiv.name + '".');
       return;
     }
     aktiv.items.push({ id: neueId('i'), name: item.name, menge: '', einheit: '', kategorie: 'sonstiges', erledigt: false, hinzugefuegtVon: 'vorrat:' + item.name });
     speichern(KEY_EINKAUF_LISTEN, listen);
     if (!aktivId) localStorage.setItem(KEY_EINKAUF_AKTIV, aktiv.id);
-    zeigeMeldung('🛒 „' + item.name + '" zu „' + aktiv.name + '" hinzugefügt.');
+    showTempStatus('🛒 „' + item.name + '" zu „' + aktiv.name + '" hinzugefügt.');
   }
 
   // ---------- FORMULAR: ITEM ANLEGEN/BEARBEITEN ----------

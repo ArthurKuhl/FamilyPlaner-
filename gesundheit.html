@@ -558,6 +558,7 @@
   </div>
 </div>
 
+<script src="gemeinsam.js"></script>
 <script>
 (function(){
   'use strict';
@@ -583,37 +584,9 @@
   ];
   const STIMMUNGEN = ['😞','😕','😐','🙂','😄'];
 
-  function neueId(prefix) { return prefix + Date.now() + Math.random().toString(36).slice(2,7); }
-  function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-  let tempStatusTimeout = null;
-  function showTempStatus(text, sekunden) {
-    const el = document.getElementById('tempStatus');
-    if (!el) return;
-    el.textContent = text;
-    el.classList.add('zeigen');
-    clearTimeout(tempStatusTimeout);
-    tempStatusTimeout = setTimeout(() => { el.classList.remove('zeigen'); }, (sekunden || 2) * 1000);
-  }
+  // neueId, escapeHtml, showTempStatus, laden, speichern, heuteISO, ausISO: siehe gemeinsam.js
   function toISODatum(d) { return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
-  function heuteISO() { return toISODatum(new Date()); }
-  function ausISO(iso) { const [j,m,t] = iso.split('-').map(Number); return new Date(j, m-1, t); }
   function typInfo(id) { return SPORT_TYPEN.find(t => t.id === id) || SPORT_TYPEN[SPORT_TYPEN.length-1]; }
-
-  function laden(key, fallback) {
-    try {
-      const raw = localStorage.getItem(key);
-      if (!raw) return fallback;
-      const geparst = JSON.parse(raw);
-      // Schutz: ein frueherer Sync-Fehler konnte hier den Text "null" ablegen, was ohne
-      // diese Pruefung faelschlich als gueltiger (leerer) Wert statt als "nichts vorhanden" gelten wuerde.
-      return (geparst === null || geparst === undefined) ? fallback : geparst;
-    } catch (e) { console.warn('Gesundheit: Laden fehlgeschlagen', key, e); return fallback; }
-  }
-  function speichern(key, wert) {
-    try { localStorage.setItem(key, JSON.stringify(wert)); }
-    catch (e) { console.warn('Gesundheit: Speichern fehlgeschlagen', key, e); alert('Speichern fehlgeschlagen – ist der Speicher voll?'); }
-    if (window._sync) window._sync.melde();
-  }
 
   let tageswerte = laden(KEY_TAGESWERTE, []); // [{id, datum, person, gewicht, schlaf, wasser, stimmung}]
   let sportEinheiten = laden(KEY_SPORT, []); // [{id, datum, person, typ, dauer, notiz}]

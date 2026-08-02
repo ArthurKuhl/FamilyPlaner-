@@ -298,6 +298,7 @@
   </div>
 </div>
 
+<script src="gemeinsam.js"></script>
 <script>
 (function(){
   'use strict';
@@ -316,24 +317,7 @@
   ];
 
   function kategorieInfo(id) { return KATEGORIEN.find(k => k.id === id) || KATEGORIEN[KATEGORIEN.length-1]; }
-  function neueId(prefix) { return prefix + Date.now() + Math.random().toString(36).slice(2,7); }
-  function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-
-  function laden(key, fallback) {
-    try {
-      const raw = localStorage.getItem(key);
-      if (!raw) return fallback;
-      const geparst = JSON.parse(raw);
-      // Schutz: ein frueherer Sync-Fehler konnte hier den Text "null" ablegen, was ohne
-      // diese Pruefung faelschlich als gueltiger (leerer) Wert statt als "nichts vorhanden" gelten wuerde.
-      return (geparst === null || geparst === undefined) ? fallback : geparst;
-    } catch (e) { console.warn('Kochen: Laden fehlgeschlagen', key, e); return fallback; }
-  }
-  function speichern(key, wert) {
-    try { localStorage.setItem(key, JSON.stringify(wert)); }
-    catch (e) { console.warn('Kochen: Speichern fehlgeschlagen', key, e); alert('Speichern fehlgeschlagen – ist der Speicher voll?'); }
-    if (window._sync) window._sync.melde();
-  }
+  // neueId, escapeHtml, laden, speichern: siehe gemeinsam.js
 
   let rezepte = laden(KEY_REZEPTE, []);
   let aktiverFilter = 'alle';
@@ -557,6 +541,7 @@
     const faktor = detailPortionen / r.portionenBasis;
     const zutBox = document.getElementById('detailZutaten');
     zutBox.innerHTML = '';
+    const vorratNamen = laden('vorratskammer_items', []).map(v => (v.name || '').trim().toLowerCase());
     r.zutaten.forEach((z, i) => {
       const li = document.createElement('li');
       li.style.display = 'flex';
@@ -572,9 +557,11 @@
         aktualisiereZutatenAlleToggle();
       });
       li.appendChild(cb);
+      const istVorrat = vorratNamen.includes(z.name.trim().toLowerCase());
       const inhalt = document.createElement('span');
       inhalt.style.flex = '1';
-      inhalt.innerHTML = '<span class="z-menge">' + escapeHtml([menge, z.einheit].filter(Boolean).join(' ')) + '</span><span>' + escapeHtml(z.name) + '</span>';
+      inhalt.innerHTML = '<span class="z-menge">' + escapeHtml([menge, z.einheit].filter(Boolean).join(' ')) + '</span><span>' + escapeHtml(z.name) + '</span>' +
+        (istVorrat ? ' <span style="font-size:0.65rem;background:#e4efe0;color:var(--moss);padding:1px 7px;border-radius:10px;font-weight:600;" title="Steht laut Vorratskammer schon bei euch bereit">📦 vorrätig</span>' : '');
       li.appendChild(inhalt);
       zutBox.appendChild(li);
     });
@@ -649,6 +636,14 @@
     const ausgewaehlteZutaten = r.zutaten.filter((z, i) => detailZutatenAusgewaehlt.has(i));
     if (!ausgewaehlteZutaten.length) { alert('Bitte mindestens eine Zutat auswählen.'); return; }
     const faktor = detailPortionen / r.portionenBasis;
+    // Abgleich mit der Vorratskammer: Zutaten, die dort schon gelistet sind, werden übersprungen.
+    const vorratNamen = laden('vorratskammer_items', []).map(v => (v.name || '').trim().toLowerCase());
+    const vorhanden = ausgewaehlteZutaten.filter(z => vorratNamen.includes(z.name.trim().toLowerCase()));
+    const hinzuzufuegen = ausgewaehlteZutaten.filter(z => !vorratNamen.includes(z.name.trim().toLowerCase()));
+    if (!hinzuzufuegen.length) {
+      alert('Alle ausgewählten Zutaten stehen laut Vorratskammer schon bei euch bereit – nichts zum Einkauf hinzugefügt.');
+      return;
+    }
     let listen = laden(KEY_EINKAUF_LISTEN, null);
     if (!listen || !listen.length) {
       listen = [{ id: neueId('l'), name: 'Wocheneinkauf', items: [] }];
@@ -657,7 +652,7 @@
     let aktiv = listen.find(l => l.id === aktivId) || listen[0];
     const herkunft = 'rezept:' + r.titel;
     let zusammengefuehrt = 0;
-    ausgewaehlteZutaten.forEach(z => {
+    hinzuzufuegen.forEach(z => {
       const menge = z.menge ? formatZahl(parseFloat(z.menge.toString().replace(',','.')) * faktor) : '';
       const kandidat = aktiv.items.find(i => !i.erledigt && i.name.trim().toLowerCase() === z.name.trim().toLowerCase());
       if (kandidat && versucheMengeZusammenfuehren(kandidat, menge, z.einheit || '')) {
@@ -669,8 +664,9 @@
     });
     speichern(KEY_EINKAUF_LISTEN, listen);
     if (!aktivId) localStorage.setItem(KEY_EINKAUF_AKTIV, aktiv.id);
-    let meldung = ausgewaehlteZutaten.length + ' Zutat(en) wurden zu „' + aktiv.name + '“ in Einkauf hinzugefügt.';
+    let meldung = hinzuzufuegen.length + ' Zutat(en) wurden zu „' + aktiv.name + '“ in Einkauf hinzugefügt.';
     if (zusammengefuehrt) meldung += ' (' + zusammengefuehrt + ' davon mit bereits vorhandenen Posten zusammengeführt.)';
+    if (vorhanden.length) meldung += '\n\n📦 Übersprungen, da schon in der Vorratskammer: ' + vorhanden.map(z => z.name).join(', ') + '.';
     alert(meldung);
   });
 

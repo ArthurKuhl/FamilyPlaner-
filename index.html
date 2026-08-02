@@ -119,6 +119,8 @@
       <p>Exportiert alle Daten aus allen Bereichen (Garten, Termine, Einkauf, Kochen, Gesundheit, Gaming) als Datei – zusätzlich zur Cloud-Synchronisierung, als extra Sicherheitsnetz. Anders als die Cloud-Synchronisierung enthält diese Datei auch die Fotos aus dem Garten-Tagebuch.</p>
       <div class="status-text" id="backupErinnerungText" style="margin-bottom:10px;"></div>
       <div class="status-text" id="speicherStatus" style="margin-bottom:10px;"></div>
+      <button class="btn btn-secondary" id="btnFotosAnzeigen" style="margin-bottom:10px;">🖼 Größte Fotos aufräumen</button>
+      <div id="fotoAufraeumListe" style="display:none;max-height:260px;overflow-y:auto;margin-bottom:10px;"></div>
       <button class="btn btn-primary" id="btnExport">⬇ Alle Daten exportieren</button>
       <button class="btn btn-secondary" id="btnImportOeffnen">⬆ Aus Datei wiederherstellen</button>
       <input type="file" id="fileImport" accept="application/json">
@@ -338,12 +340,79 @@
       navigator.serviceWorker.ready.then(() => frageVersionAb());
     }
 
+    // ---------- FOTOS FINDEN & AUFRÄUMEN ----------
+    function modulNameFuerSchluessel(key) {
+      if (key.startsWith('gartenplaner_')) return 'Garten';
+      if (key.startsWith('kochen_')) return 'Kochen';
+      if (key.startsWith('vorratskammer_')) return 'Vorratskammer';
+      if (key.startsWith('gesundheit_')) return 'Gesundheit';
+      return key;
+    }
+    function sammleFotos() {
+      const treffer = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (!key || BACKUP_AUSSCHLUSS.indexOf(key) !== -1) continue;
+        let daten;
+        try { daten = JSON.parse(localStorage.getItem(key)); } catch (e) { continue; }
+        if (!daten || typeof daten !== 'object') continue;
+        (function walk(node, pfad) {
+          if (node === null || node === undefined) return;
+          if (typeof node === 'string') {
+            if (node.indexOf('data:image') === 0) treffer.push({ key, pfad: pfad.slice(), bytes: Math.round(node.length * 0.75), src: node });
+            return;
+          }
+          if (Array.isArray(node)) node.forEach((v, idx) => walk(v, pfad.concat(idx)));
+          else if (typeof node === 'object') Object.keys(node).forEach(k => walk(node[k], pfad.concat(k)));
+        })(daten, []);
+      }
+      treffer.sort((a, b) => b.bytes - a.bytes);
+      return treffer;
+    }
+    function loescheFoto(key, pfad) {
+      let daten;
+      try { daten = JSON.parse(localStorage.getItem(key)); } catch (e) { return; }
+      let ziel = daten;
+      for (let i = 0; i < pfad.length - 1; i++) ziel = ziel[pfad[i]];
+      ziel[pfad[pfad.length - 1]] = '';
+      try { localStorage.setItem(key, JSON.stringify(daten)); } catch (e) {}
+    }
+    function renderFotoAufraeumListe() {
+      const box = document.getElementById('fotoAufraeumListe');
+      const fotos = sammleFotos().slice(0, 15);
+      if (!fotos.length) { box.innerHTML = '<p style="font-size:0.8rem;opacity:0.7;">Keine Fotos gefunden.</p>'; return; }
+      box.innerHTML = fotos.map((f, i) => {
+        const mb = (f.bytes / (1024 * 1024)).toFixed(2);
+        return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(0,0,0,0.08);">' +
+          '<img src="' + f.src + '" style="width:44px;height:44px;object-fit:cover;border-radius:6px;flex-shrink:0;">' +
+          '<div style="flex:1;font-size:0.75rem;">' + modulNameFuerSchluessel(f.key) + ' · ~' + mb + ' MB</div>' +
+          '<button type="button" data-idx="' + i + '" class="btn-foto-loeschen" style="flex:0 0 auto;background:none;border:1px solid #c0605f;color:#a03e3e;border-radius:14px;padding:4px 10px;font-size:0.72rem;cursor:pointer;">Löschen</button>' +
+          '</div>';
+      }).join('');
+      box.querySelectorAll('.btn-foto-loeschen').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const f = fotos[parseInt(btn.dataset.idx, 10)];
+          if (!confirm('Dieses Foto wirklich löschen? Das kann nicht rückgängig gemacht werden.')) return;
+          loescheFoto(f.key, f.pfad);
+          zeigeSpeicherNutzung();
+          renderFotoAufraeumListe();
+        });
+      });
+    }
+    document.getElementById('btnFotosAnzeigen').addEventListener('click', () => {
+      const box = document.getElementById('fotoAufraeumListe');
+      const sichtbar = box.style.display !== 'none';
+      box.style.display = sichtbar ? 'none' : '';
+      if (!sichtbar) renderFotoAufraeumListe();
+    });
+
     const modalBackup = document.getElementById('modalBackup');
     document.getElementById('btnBackup').addEventListener('click', () => {
       document.getElementById('backupStatus').textContent = '';
       backupErinnerungImModalAnzeigen();
       zeigeSpeicherNutzung();
       frageVersionAb();
+      document.getElementById('fotoAufraeumListe').style.display = 'none';
       modalBackup.classList.add('zeigen');
     });
     document.getElementById('btnBackupSchliessen').addEventListener('click', () => modalBackup.classList.remove('zeigen'));
