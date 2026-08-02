@@ -233,6 +233,7 @@
     <button id="btnViewDehnen" role="tab" aria-selected="false">🧘 Dehnen</button>
     <button id="btnViewBalance" role="tab" aria-selected="false">🤸 Balance</button>
     <button id="btnViewZyklus" role="tab" aria-selected="false">🌙 Zyklus</button>
+    <button id="btnViewTrainingsplan" role="tab" aria-selected="false">🗓️ Trainingsplan</button>
   </div>
 </header>
 
@@ -433,7 +434,36 @@
       ℹ️ Die Phasen- und Trainingshinweise sind allgemeine, verbreitete Orientierung – die wissenschaftliche Studienlage zu zyklusbasiertem Training ist noch nicht eindeutig, und jeder Zyklus verläuft individuell. Kein Ersatz für ärztlichen Rat, besonders bei unregelmäßigen Zyklen oder Beschwerden.
     </div>
   </section>
+
+  <section id="ansichtTrainingsplan" style="display:none;">
+    <div class="disclaimer-box" style="margin-bottom:14px;">
+      ℹ️ Wiederkehrender Wochenplan – gilt für jede Woche gleich, bis ihr etwas ändert. Für einzelne Einheiten mit Datum nutzt ihr weiterhin "＋ Sport-Einheit erfassen" im Heute-Tab.
+    </div>
+    <div id="trainingsplanTage"></div>
+  </section>
 </main>
+
+<div class="modal-bg" id="modalPlanEintrag">
+  <div class="modal">
+    <h2>Geplante Einheit</h2>
+    <div class="feld">
+      <label>Sportart</label>
+      <div class="typ-reihe" id="planTypReihe"></div>
+    </div>
+    <div class="feld">
+      <label for="fPlanUebung">Übungen/Details (optional)</label>
+      <input type="text" id="fPlanUebung" placeholder="z.B. Oberkörper, oder konkrete Übungen">
+    </div>
+    <div class="feld">
+      <label for="fPlanNotiz">Notiz (optional)</label>
+      <input type="text" id="fPlanNotiz" placeholder="z.B. Uhrzeit, Ort">
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnPlanAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnPlanSpeichern">Speichern</button>
+    </div>
+  </div>
+</div>
 
 <div class="modal-bg" id="modalMuskel">
   <div class="modal">
@@ -486,8 +516,8 @@
       <input type="number" step="0.1" id="fSportStrecke" min="0" placeholder="z.B. 5">
     </div>
     <div class="feld" id="fSportUebungFeld" style="display:none;">
-      <label for="fSportUebung">Übung (optional)</label>
-      <select id="fSportUebung"></select>
+      <label>Übungen (optional, mehrere möglich)</label>
+      <div id="fSportUebungListe" style="display:flex;flex-direction:column;gap:2px;max-height:220px;overflow-y:auto;border:1px solid var(--sand-dark);border-radius:var(--radius-md);padding:8px 10px;background:var(--white);"></div>
     </div>
     <div class="feld">
       <label for="fSportNotiz">Notiz (optional)</label>
@@ -914,28 +944,42 @@
     }
     populiereUebungsAuswahl(ausgewaehlterTyp);
   }
+  let ausgewaehlteUebungen = [];
   function populiereUebungsAuswahl(typ) {
     const feld = document.getElementById('fSportUebungFeld');
-    const sel = document.getElementById('fSportUebung');
+    const box = document.getElementById('fSportUebungListe');
     const gruppen = TYP_UEBUNGSGRUPPEN[typ];
-    if (!gruppen) { feld.style.display = 'none'; sel.innerHTML = ''; return; }
+    if (!gruppen) { feld.style.display = 'none'; box.innerHTML = ''; ausgewaehlteUebungen = []; return; }
     feld.style.display = '';
-    let html = '<option value="">– keine Auswahl –</option>';
+    let html = '';
     gruppen.forEach(g => {
-      html += '<optgroup label="' + g.icon + ' ' + g.name + '">';
-      g.uebungen.forEach(u => { html += '<option value="' + escapeHtml(u.name) + '">' + escapeHtml(u.name) + '</option>'; });
-      html += '</optgroup>';
+      html += '<div style="font-size:0.7rem;font-weight:700;color:var(--bark);margin:6px 0 2px;">' + g.icon + ' ' + escapeHtml(g.name) + '</div>';
+      g.uebungen.forEach(u => {
+        const checked = ausgewaehlteUebungen.includes(u.name);
+        html += '<label style="display:flex;align-items:center;gap:7px;padding:3px 0;font-size:0.85rem;cursor:pointer;">' +
+          '<input type="checkbox" value="' + escapeHtml(u.name) + '"' + (checked ? ' checked' : '') + '> ' + escapeHtml(u.name) + '</label>';
+      });
     });
     const eigene = (typeof eigeneUebungen !== 'undefined' && eigeneUebungen[typ]) ? eigeneUebungen[typ] : [];
     if (eigene.length) {
-      html += '<optgroup label="✨ Eigene Übungen">';
-      eigene.forEach(u => { html += '<option value="' + escapeHtml(u.name) + '">' + escapeHtml(u.name) + '</option>'; });
-      html += '</optgroup>';
+      html += '<div style="font-size:0.7rem;font-weight:700;color:var(--bark);margin:6px 0 2px;">✨ Eigene Übungen</div>';
+      eigene.forEach(u => {
+        const checked = ausgewaehlteUebungen.includes(u.name);
+        html += '<label style="display:flex;align-items:center;gap:7px;padding:3px 0;font-size:0.85rem;cursor:pointer;">' +
+          '<input type="checkbox" value="' + escapeHtml(u.name) + '"' + (checked ? ' checked' : '') + '> ' + escapeHtml(u.name) + '</label>';
+      });
     }
-    sel.innerHTML = html;
+    box.innerHTML = html || '<div style="font-size:0.78rem;opacity:0.6;">Keine Übungen hinterlegt.</div>';
+    box.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+      cb.addEventListener('change', () => {
+        if (cb.checked) { if (!ausgewaehlteUebungen.includes(cb.value)) ausgewaehlteUebungen.push(cb.value); }
+        else { ausgewaehlteUebungen = ausgewaehlteUebungen.filter(n => n !== cb.value); }
+      });
+    });
   }
   document.getElementById('btnSportHinzufuegen').addEventListener('click', () => {
     ausgewaehlterTyp = 'laufen';
+    ausgewaehlteUebungen = [];
     renderTypReihe();
     aktualisiereStreckeFeld();
     document.getElementById('fSportDatum').value = heuteISO();
@@ -954,7 +998,7 @@
     sportEinheiten.push({
       id: neueId('s'), datum, person: aktivePerson, typ: ausgewaehlterTyp, dauer,
       strecke: t.streckeEinheit ? document.getElementById('fSportStrecke').value : '',
-      uebung: TYP_UEBUNGSGRUPPEN[ausgewaehlterTyp] ? document.getElementById('fSportUebung').value : '',
+      uebung: TYP_UEBUNGSGRUPPEN[ausgewaehlterTyp] ? ausgewaehlteUebungen.join(', ') : '',
       notiz: document.getElementById('fSportNotiz').value.trim(),
     });
     speichern(KEY_SPORT, sportEinheiten);
@@ -1234,7 +1278,8 @@
   const btnDehnen = document.getElementById('btnViewDehnen');
   const btnBalance = document.getElementById('btnViewBalance');
   const btnZyklus = document.getElementById('btnViewZyklus');
-  const alleTabs = { heute: btnHeute, verlauf: btnVerlauf, rechner: btnRechner, kraft: btnKraft, dehnen: btnDehnen, balance: btnBalance, zyklus: btnZyklus };
+  const btnTrainingsplan = document.getElementById('btnViewTrainingsplan');
+  const alleTabs = { heute: btnHeute, verlauf: btnVerlauf, rechner: btnRechner, kraft: btnKraft, dehnen: btnDehnen, balance: btnBalance, zyklus: btnZyklus, trainingsplan: btnTrainingsplan };
   function zeigeAnsicht(name) {
     aktiveAnsicht = name;
     document.getElementById('ansichtHeute').style.display = name === 'heute' ? '' : 'none';
@@ -1244,6 +1289,7 @@
     document.getElementById('ansichtDehnen').style.display = name === 'dehnen' ? '' : 'none';
     document.getElementById('ansichtBalance').style.display = name === 'balance' ? '' : 'none';
     document.getElementById('ansichtZyklus').style.display = name === 'zyklus' ? '' : 'none';
+    document.getElementById('ansichtTrainingsplan').style.display = name === 'trainingsplan' ? '' : 'none';
     Object.keys(alleTabs).forEach((k) => {
       alleTabs[k].classList.toggle('active', k === name);
       alleTabs[k].setAttribute('aria-selected', k === name);
@@ -1253,6 +1299,7 @@
     if (name === 'dehnen') renderDehnGrid();
     if (name === 'balance') renderBalanceGrid();
     if (name === 'zyklus') renderZyklus();
+    if (name === 'trainingsplan') renderTrainingsplan();
   }
   btnHeute.addEventListener('click', () => zeigeAnsicht('heute'));
   btnVerlauf.addEventListener('click', () => zeigeAnsicht('verlauf'));
@@ -1261,6 +1308,7 @@
   btnDehnen.addEventListener('click', () => zeigeAnsicht('dehnen'));
   btnBalance.addEventListener('click', () => zeigeAnsicht('balance'));
   btnZyklus.addEventListener('click', () => zeigeAnsicht('zyklus'));
+  btnTrainingsplan.addEventListener('click', () => zeigeAnsicht('trainingsplan'));
 
   // ============================================================
   // NÄHRSTOFF-RECHNER
@@ -1795,6 +1843,103 @@
   });
 
   // ============================================================
+  // TRAININGSPLAN – wiederkehrender Wochenplan je Person
+  // ============================================================
+  const KEY_TRAININGSPLAN = 'gesundheit_trainingsplan';
+  let trainingsplan = laden(KEY_TRAININGSPLAN, {});
+  function trainingsplanPersonDaten(person) {
+    if (!trainingsplan[person]) trainingsplan[person] = {};
+    return trainingsplan[person];
+  }
+  function speicherePlan() { speichern(KEY_TRAININGSPLAN, trainingsplan); }
+  const WOCHENTAGE = [
+    { key: 'mo', label: 'Montag' }, { key: 'di', label: 'Dienstag' }, { key: 'mi', label: 'Mittwoch' },
+    { key: 'do', label: 'Donnerstag' }, { key: 'fr', label: 'Freitag' }, { key: 'sa', label: 'Samstag' }, { key: 'so', label: 'Sonntag' },
+  ];
+  const WOCHENTAG_HEUTE_KEY = ['so','mo','di','mi','do','fr','sa'][new Date().getDay()];
+  function renderTrainingsplan() {
+    const box = document.getElementById('trainingsplanTage');
+    const daten = trainingsplanPersonDaten(aktivePerson);
+    box.innerHTML = '';
+    WOCHENTAGE.forEach(tag => {
+      const karte = document.createElement('div');
+      karte.className = 'karte';
+      karte.style.marginBottom = '10px';
+      if (tag.key === WOCHENTAG_HEUTE_KEY) karte.style.borderLeft = '3px solid var(--moss)';
+      const einheiten = daten[tag.key] || [];
+      const titel = document.createElement('h3');
+      titel.style.marginBottom = '8px';
+      titel.textContent = tag.label + (tag.key === WOCHENTAG_HEUTE_KEY ? ' · heute' : '');
+      karte.appendChild(titel);
+      if (!einheiten.length) {
+        const leer = document.createElement('div');
+        leer.style.cssText = 'font-size:0.8rem;opacity:0.6;margin-bottom:8px;';
+        leer.textContent = 'Nichts geplant.';
+        karte.appendChild(leer);
+      }
+      einheiten.forEach(e => {
+        const t = typInfo(e.typ);
+        const zeile = document.createElement('div');
+        zeile.className = 'sport-zeile';
+        zeile.innerHTML = '<span class="sport-icon">' + t.icon + '</span>' +
+          '<div class="sport-info"><div class="sport-titel">' + t.label + (e.uebung ? ' · ' + escapeHtml(e.uebung) : '') + '</div>' +
+          '<div class="sport-meta">' + (e.notiz ? escapeHtml(e.notiz) : '') + '</div></div>' +
+          '<button class="sport-loeschen" aria-label="Löschen">✕</button>';
+        zeile.querySelector('.sport-loeschen').addEventListener('click', () => {
+          daten[tag.key] = daten[tag.key].filter(x => x.id !== e.id);
+          speicherePlan();
+          renderTrainingsplan();
+        });
+        karte.appendChild(zeile);
+      });
+      const addBtn = document.createElement('button');
+      addBtn.className = 'add-sport-btn';
+      addBtn.style.marginTop = '4px';
+      addBtn.textContent = '＋ Einheit hinzufügen';
+      addBtn.addEventListener('click', () => planEintragOeffnen(tag.key));
+      karte.appendChild(addBtn);
+      box.appendChild(karte);
+    });
+  }
+  let planAusgewaehlterTag = null;
+  let planAusgewaehlterTyp = 'laufen';
+  function renderPlanTypReihe() {
+    const box = document.getElementById('planTypReihe');
+    box.innerHTML = '';
+    SPORT_TYPEN.forEach(t => {
+      const opt = document.createElement('button');
+      opt.type = 'button';
+      opt.className = 'typ-opt' + (t.id === planAusgewaehlterTyp ? ' aktiv' : '');
+      opt.textContent = t.icon + ' ' + t.label;
+      opt.addEventListener('click', () => { planAusgewaehlterTyp = t.id; renderPlanTypReihe(); });
+      box.appendChild(opt);
+    });
+  }
+  function planEintragOeffnen(tagKey) {
+    planAusgewaehlterTag = tagKey;
+    planAusgewaehlterTyp = 'laufen';
+    renderPlanTypReihe();
+    document.getElementById('fPlanUebung').value = '';
+    document.getElementById('fPlanNotiz').value = '';
+    document.getElementById('modalPlanEintrag').classList.add('zeigen');
+  }
+  document.getElementById('btnPlanAbbrechen').addEventListener('click', () => document.getElementById('modalPlanEintrag').classList.remove('zeigen'));
+  document.getElementById('modalPlanEintrag').addEventListener('click', (e) => { if (e.target.id === 'modalPlanEintrag') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnPlanSpeichern').addEventListener('click', () => {
+    const daten = trainingsplanPersonDaten(aktivePerson);
+    if (!daten[planAusgewaehlterTag]) daten[planAusgewaehlterTag] = [];
+    daten[planAusgewaehlterTag].push({
+      id: neueId('plan'),
+      typ: planAusgewaehlterTyp,
+      uebung: document.getElementById('fPlanUebung').value.trim(),
+      notiz: document.getElementById('fPlanNotiz').value.trim(),
+    });
+    speicherePlan();
+    document.getElementById('modalPlanEintrag').classList.remove('zeigen');
+    renderTrainingsplan();
+  });
+
+  // ============================================================
   // EIGENE ÜBUNGEN – frei ausfüllbare Ergänzung zu Kraft/Dehnen/Balance,
   // damit seltene/individuelle Übungen ohne Code-Änderung ergänzt werden können
   // ============================================================
@@ -1874,7 +2019,7 @@
   if (window.PlanerSync) {
     window._sync = window.PlanerSync.starteSync({
       modul: 'gesundheit',
-      keys: [KEY_TAGESWERTE, KEY_SPORT, KEY_RECHNER, KEY_MEDIKAMENTE, KEY_MED_ERLEDIGT, KEY_ZIELE, KEY_TRAININGSLOG, KEY_EIGENE_UEBUNGEN, KEY_ZYKLUS],
+      keys: [KEY_TAGESWERTE, KEY_SPORT, KEY_RECHNER, KEY_MEDIKAMENTE, KEY_MED_ERLEDIGT, KEY_ZIELE, KEY_TRAININGSLOG, KEY_EIGENE_UEBUNGEN, KEY_ZYKLUS, KEY_TRAININGSPLAN],
       onRemoteChange: function () {
         tageswerte = laden(KEY_TAGESWERTE, tageswerte);
         sportEinheiten = laden(KEY_SPORT, sportEinheiten);
@@ -1886,11 +2031,13 @@
         if (migriereTrainingslog(trainingslog)) speichern(KEY_TRAININGSLOG, trainingslog);
         eigeneUebungen = laden(KEY_EIGENE_UEBUNGEN, eigeneUebungen);
         zyklusDaten = laden(KEY_ZYKLUS, zyklusDaten);
+        trainingsplan = laden(KEY_TRAININGSPLAN, trainingsplan);
         renderAlles();
         if (aktiveAnsicht === 'rechner') rechnerFelderLaden();
         if (aktiveAnsicht === 'verlauf') renderStats();
         if (aktiveAnsicht === 'kraft') renderTrainingslog();
         if (aktiveAnsicht === 'zyklus') renderZyklus();
+        if (aktiveAnsicht === 'trainingsplan') renderTrainingsplan();
       },
     });
   }
