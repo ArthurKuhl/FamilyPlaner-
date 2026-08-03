@@ -439,6 +439,7 @@
     <div class="disclaimer-box" style="margin-bottom:14px;">
       ℹ️ Wiederkehrender Wochenplan – gilt für jede Woche gleich, bis ihr etwas ändert. Für einzelne Einheiten mit Datum nutzt ihr weiterhin "＋ Sport-Einheit erfassen" im Heute-Tab.
     </div>
+    <div id="planAuswahlLeiste" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;"></div>
     <div id="trainingsplanTage"></div>
   </section>
 </main>
@@ -1843,23 +1844,122 @@
   });
 
   // ============================================================
-  // TRAININGSPLAN – wiederkehrender Wochenplan je Person
+  // TRAININGSPLAN – mehrere wiederkehrende Wochenpläne je Person, umschaltbar
   // ============================================================
   const KEY_TRAININGSPLAN = 'gesundheit_trainingsplan';
   let trainingsplan = laden(KEY_TRAININGSPLAN, {});
-  function trainingsplanPersonDaten(person) {
-    if (!trainingsplan[person]) trainingsplan[person] = {};
-    return trainingsplan[person];
-  }
   function speicherePlan() { speichern(KEY_TRAININGSPLAN, trainingsplan); }
   const WOCHENTAGE = [
     { key: 'mo', label: 'Montag' }, { key: 'di', label: 'Dienstag' }, { key: 'mi', label: 'Mittwoch' },
     { key: 'do', label: 'Donnerstag' }, { key: 'fr', label: 'Freitag' }, { key: 'sa', label: 'Samstag' }, { key: 'so', label: 'Sonntag' },
   ];
   const WOCHENTAG_HEUTE_KEY = ['so','mo','di','mi','do','fr','sa'][new Date().getDay()];
+
+  // Liefert den Container { plaene:[{id,name,tage}], aktivId } einer Person und migriert
+  // bei Bedarf das alte Format (Wochentage direkt als Keys, ein einziger impliziter Plan).
+  function trainingsplanPersonContainer(person) {
+    if (!trainingsplan[person]) trainingsplan[person] = {};
+    const c = trainingsplan[person];
+    if (!Array.isArray(c.plaene)) {
+      const alteTage = {};
+      let hatAltesFormat = false;
+      WOCHENTAGE.forEach(t => { if (c[t.key]) { alteTage[t.key] = c[t.key]; hatAltesFormat = true; delete c[t.key]; } });
+      c.plaene = [];
+      c.aktivId = null;
+      if (hatAltesFormat) {
+        const id = neueId('tplan');
+        c.plaene.push({ id, name: 'Mein Plan', tage: alteTage });
+        c.aktivId = id;
+      }
+    }
+    if (!c.plaene.length) {
+      const id = neueId('tplan');
+      c.plaene.push({ id, name: 'Mein Plan', tage: {} });
+      c.aktivId = id;
+    }
+    if (!c.aktivId || !c.plaene.some(p => p.id === c.aktivId)) c.aktivId = c.plaene[0].id;
+    return c;
+  }
+  function aktuellerPlan(person) {
+    const c = trainingsplanPersonContainer(person);
+    return c.plaene.find(p => p.id === c.aktivId);
+  }
+
+  function renderPlanAuswahl() {
+    const c = trainingsplanPersonContainer(aktivePerson);
+    const box = document.getElementById('planAuswahlLeiste');
+    box.innerHTML = '';
+    c.plaene.forEach(p => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'typ-opt' + (p.id === c.aktivId ? ' aktiv' : '');
+      chip.style.flexShrink = '0';
+      chip.textContent = p.name;
+      chip.addEventListener('click', () => {
+        c.aktivId = p.id;
+        speicherePlan();
+        renderPlanAuswahl();
+        renderTrainingsplan();
+      });
+      box.appendChild(chip);
+    });
+    const neuBtn = document.createElement('button');
+    neuBtn.type = 'button';
+    neuBtn.className = 'typ-opt';
+    neuBtn.style.cssText = 'flex-shrink:0;border-style:dashed;';
+    neuBtn.textContent = '＋ Neuer Plan';
+    neuBtn.addEventListener('click', () => {
+      const name = (prompt('Name für den neuen Plan (z.B. "Sommer-Split", "Reha-Plan"):') || '').trim();
+      if (!name) return;
+      const id = neueId('tplan');
+      c.plaene.push({ id, name, tage: {} });
+      c.aktivId = id;
+      speicherePlan();
+      renderPlanAuswahl();
+      renderTrainingsplan();
+    });
+    box.appendChild(neuBtn);
+
+    // Umbenennen/Löschen des gerade aktiven Plans
+    const werkzeuge = document.createElement('div');
+    werkzeuge.style.cssText = 'display:flex;gap:10px;margin-top:6px;';
+    const umbenBtn = document.createElement('button');
+    umbenBtn.type = 'button';
+    umbenBtn.style.cssText = 'background:none;border:none;color:var(--bark);font-size:0.72rem;text-decoration:underline;cursor:pointer;padding:0;';
+    umbenBtn.textContent = '✎ Umbenennen';
+    umbenBtn.addEventListener('click', () => {
+      const plan = aktuellerPlan(aktivePerson);
+      const neuerName = (prompt('Neuer Name für "' + plan.name + '":', plan.name) || '').trim();
+      if (!neuerName) return;
+      plan.name = neuerName;
+      speicherePlan();
+      renderPlanAuswahl();
+    });
+    werkzeuge.appendChild(umbenBtn);
+    if (c.plaene.length > 1) {
+      const loeschBtn = document.createElement('button');
+      loeschBtn.type = 'button';
+      loeschBtn.style.cssText = 'background:none;border:none;color:var(--terracotta-text);font-size:0.72rem;text-decoration:underline;cursor:pointer;padding:0;';
+      loeschBtn.textContent = '🗑 Diesen Plan löschen';
+      loeschBtn.addEventListener('click', () => {
+        const plan = aktuellerPlan(aktivePerson);
+        if (!confirm('Plan "' + plan.name + '" wirklich löschen?')) return;
+        c.plaene = c.plaene.filter(p => p.id !== plan.id);
+        c.aktivId = c.plaene[0].id;
+        speicherePlan();
+        renderPlanAuswahl();
+        renderTrainingsplan();
+      });
+      werkzeuge.appendChild(loeschBtn);
+    }
+    box.appendChild(werkzeuge);
+  }
+
   function renderTrainingsplan() {
+    renderPlanAuswahl();
     const box = document.getElementById('trainingsplanTage');
-    const daten = trainingsplanPersonDaten(aktivePerson);
+    const plan = aktuellerPlan(aktivePerson);
+    const daten = plan.tage;
     box.innerHTML = '';
     WOCHENTAGE.forEach(tag => {
       const karte = document.createElement('div');
@@ -1953,9 +2053,9 @@
   document.getElementById('btnPlanAbbrechen').addEventListener('click', () => document.getElementById('modalPlanEintrag').classList.remove('zeigen'));
   document.getElementById('modalPlanEintrag').addEventListener('click', (e) => { if (e.target.id === 'modalPlanEintrag') e.currentTarget.classList.remove('zeigen'); });
   document.getElementById('btnPlanSpeichern').addEventListener('click', () => {
-    const daten = trainingsplanPersonDaten(aktivePerson);
-    if (!daten[planAusgewaehlterTag]) daten[planAusgewaehlterTag] = [];
-    daten[planAusgewaehlterTag].push({
+    const plan = aktuellerPlan(aktivePerson);
+    if (!plan.tage[planAusgewaehlterTag]) plan.tage[planAusgewaehlterTag] = [];
+    plan.tage[planAusgewaehlterTag].push({
       id: neueId('plan'),
       typ: planAusgewaehlterTyp,
       uebung: document.getElementById('fPlanUebung').value.trim(),
