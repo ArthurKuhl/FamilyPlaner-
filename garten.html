@@ -70,7 +70,8 @@
   .dropdown-menu .tool-btn { width: 100%; text-align: left; }
   .dropdown-toggle { display: inline-flex; align-items: center; gap: 5px; }
   .dropdown-toggle .caret { font-size: 0.6rem; opacity: 0.8; }
-  .tool-label { font-size: 0.62rem; color: var(--sage); font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; }
+  .tool-label { font-size: 0.62rem; color: var(--sage); font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; margin-top: 4px; }
+  .tool-label:first-child { margin-top: 0; }
   .tool-btn { background: var(--moss); color: var(--leaf); border: none; border-radius: var(--radius-sm); padding: 6px 11px; font-size: 0.75rem; font-family: 'Inter', sans-serif; cursor: pointer; transition: all 0.15s; font-weight: 500; }
   .tool-btn:hover { background: var(--sage); color: var(--soil); box-shadow: var(--shadow-soft); }
   .tool-btn.active { background: var(--leaf); color: var(--soil); }
@@ -428,18 +429,19 @@
     <div class="tool-dropdown">
       <button class="tool-btn dropdown-toggle" onclick="toggleDropdown(this)" title="Planungswerkzeuge">🧰 Werkzeuge <span class="caret">▾</span></button>
       <div class="dropdown-menu">
+        <span class="tool-label">Planung</span>
         <button class="tool-btn" onclick="openCarePlan();closeDropdowns()" title="Gieß- und Pflegetermine">📅 Pflegeplan</button>
-        <button class="tool-btn" onclick="openHarvestJournal();closeDropdowns()" title="Alle Ernten chronologisch, nach Jahr">🧺 Erntebuch</button>
         <button class="tool-btn" onclick="openSowingCalendar();closeDropdowns()" title="Wann welche Pflanze aussäen">🗓 Aussaat</button>
         <button class="tool-btn" onclick="openNowOverview();closeDropdowns()" title="Was kann ich diesen Monat pflanzen und ernten?">🌾 Jetzt pflanzen &amp; ernten</button>
-        <button class="tool-btn" onclick="openVarietyDB();closeDropdowns()" title="Eigene Sortenerfahrungen">🌾 Sorten</button>
-        <button class="tool-btn" onclick="openSeedInventory();closeDropdowns()" title="Vorrätiges Saatgut verwalten">🌰 Saatgutinventar</button>
-        <button class="tool-btn" onclick="openCostTracker();closeDropdowns()" title="Ausgaben für den Garten">🧾 Kostenübersicht</button>
-        <button class="tool-btn" onclick="openPantry();closeDropdowns()" title="Eingekochtes, Fermentiertes & Co.">🥫 Vorratsliste</button>
-        <button class="tool-btn" onclick="openStats();closeDropdowns()" title="Überblick über Beete & Pflanzen">📊 Statistik</button>
-        <button class="tool-btn" onclick="openTemplateModal();closeDropdowns()" title="Gespeicherte Beet-Vorlagen">🧩 Vorlagen</button>
-        <button class="tool-btn" onclick="openWishlist();closeDropdowns()" title="Pflanzenwünsche mit Links zu Gärtnereien sammeln">💚 Wunschliste</button>
         <button class="tool-btn" onclick="openRotationTimeline();closeDropdowns()" title="Anbau-Historie je Beet">🔄 Fruchtfolge</button>
+        <span class="tool-label">Wissen &amp; Historie</span>
+        <button class="tool-btn" onclick="openHarvestJournal();closeDropdowns()" title="Alle Ernten chronologisch, nach Jahr">🧺 Erntebuch</button>
+        <button class="tool-btn" onclick="openVarietyDB();closeDropdowns()" title="Eigene Sortenerfahrungen">🌾 Sorten</button>
+        <button class="tool-btn" onclick="openStats();closeDropdowns()" title="Überblick über Beete & Pflanzen">📊 Statistik</button>
+        <span class="tool-label">Bestand</span>
+        <button class="tool-btn" onclick="openSeedInventory();closeDropdowns()" title="Vorrätiges Saatgut verwalten">🌰 Saatgutinventar</button>
+        <button class="tool-btn" onclick="openPantry();closeDropdowns()" title="Eingekochtes, Fermentiertes & Co.">🥫 Vorratsliste</button>
+        <button class="tool-btn" onclick="openTemplateModal();closeDropdowns()" title="Gespeicherte Beet-Vorlagen">🧩 Vorlagen</button>
       </div>
     </div>
     <div class="tool-sep"></div>
@@ -6074,6 +6076,13 @@ function normalisiereLink(url) {
 function renderShops() {
   const box = document.getElementById('shopsWrap');
   let html = `<div class="home-intro" style="margin-bottom:22px"><h2>🏬 Shops &amp; Dienstleister</h2><p>Deine gesammelten Anlaufstellen rund um Garten und Selbstversorgung. Einträge bleiben nur lokal in diesem Browser gespeichert.</p></div>`;
+  html += `<div class="shop-category" style="margin-bottom:22px">
+    <div class="shop-category-hd"><h3>💰 Geld &amp; Wünsche</h3></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="tool-btn" onclick="openCostTracker()" style="background:var(--moss);color:var(--white)">🧾 Kostenübersicht</button>
+      <button class="tool-btn" onclick="openWishlist()" style="background:var(--moss);color:var(--white)">💚 Wunschliste</button>
+    </div>
+  </div>`;
   for (const cat of SHOP_CATEGORIES) {
     const entries = shopEntries.filter(e => e.cat === cat.id);
     html += `<div class="shop-category">
