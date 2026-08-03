@@ -438,6 +438,7 @@
         <button class="tool-btn" onclick="openPantry();closeDropdowns()" title="Eingekochtes, Fermentiertes & Co.">🥫 Vorratsliste</button>
         <button class="tool-btn" onclick="openStats();closeDropdowns()" title="Überblick über Beete & Pflanzen">📊 Statistik</button>
         <button class="tool-btn" onclick="openTemplateModal();closeDropdowns()" title="Gespeicherte Beet-Vorlagen">🧩 Vorlagen</button>
+        <button class="tool-btn" onclick="openWishlist();closeDropdowns()" title="Pflanzenwünsche mit Links zu Gärtnereien sammeln">💚 Wunschliste</button>
         <button class="tool-btn" onclick="openRotationTimeline();closeDropdowns()" title="Anbau-Historie je Beet">🔄 Fruchtfolge</button>
       </div>
     </div>
@@ -1145,6 +1146,89 @@
     <div class="modal-btns">
       <button class="btn-cancel" onclick="closeSeedForm()">Abbrechen</button>
       <button class="btn-primary" onclick="saveSeedForm()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Wunschliste -->
+<div class="modal-bg" id="wishlistModal" style="display:none">
+  <div class="modal" style="width:min(560px,94vw);max-height:86vh;overflow-y:auto">
+    <h2>💚 Wunschliste</h2>
+    <p style="font-size:0.72rem;color:var(--bark);margin-bottom:10px">Pflanzen, die ihr euch für den Garten wünscht – mit Links direkt zur gewünschten Sorte bei euren Gärtnereien.</p>
+    <button class="btn-add-entry" style="margin-bottom:12px" onclick="openWishlistForm()">+ Neuer Wunsch</button>
+    <div class="pantry-tabs" style="margin-bottom:10px">
+      <button class="nav-btn active" id="wishTabOffen" style="padding:5px 12px;font-size:0.72rem" onclick="setWishlistFilter('offen')">🌱 Offen</button>
+      <button class="nav-btn" id="wishTabGekauft" style="padding:5px 12px;font-size:0.72rem" onclick="setWishlistFilter('gekauft')">✅ Schon besorgt</button>
+      <button class="nav-btn" id="wishTabAlle" style="padding:5px 12px;font-size:0.72rem" onclick="setWishlistFilter('alle')">Alle</button>
+    </div>
+    <div id="wishlistContent"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="document.getElementById('wishlistModal').style.display='none'">Schließen</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Wunsch-Eintrag -->
+<div class="modal-bg" id="wishlistFormModal" style="display:none">
+  <div class="modal" style="width:min(440px,94vw);max-height:88vh;overflow-y:auto">
+    <h2 id="wishFormTitle">💚 Wunsch hinzufügen</h2>
+    <input type="hidden" id="wishFormId">
+    <div class="form-row">
+      <label>Name *</label>
+      <input type="text" id="wishFormName" list="plantNamesDatalist" placeholder="z.B. Blaubeere">
+    </div>
+    <div class="form-row">
+      <label>Sorte</label>
+      <input type="text" id="wishFormVariety" placeholder="z.B. Duke">
+    </div>
+    <div style="display:flex;gap:8px">
+      <div class="form-row" style="flex:1">
+        <label>Winterhärte</label>
+        <select id="wishFormHardy">
+          <option value="">– unbekannt –</option>
+          <option value="winterhart">Winterhart</option>
+          <option value="bedingt winterhart">Bedingt winterhart (Schutz nötig)</option>
+          <option value="nicht winterhart">Nicht winterhart</option>
+        </select>
+      </div>
+      <div class="form-row" style="flex:1">
+        <label>Standort</label>
+        <select id="wishFormStandort">
+          <option value="">– unbekannt –</option>
+          <option value="Sonne">☀️ Sonne</option>
+          <option value="Halbschatten">⛅ Halbschatten</option>
+          <option value="Schatten">☁️ Schatten</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <label>Priorität</label>
+      <select id="wishFormPrioritaet">
+        <option value="mittel">Mittel</option>
+        <option value="hoch">Hoch</option>
+        <option value="niedrig">Niedrig</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label>Ca. Preis</label>
+      <input type="text" id="wishFormPreis" placeholder="z.B. 12,99 €">
+    </div>
+    <div class="form-row">
+      <label>Links zu Gärtnereien</label>
+      <div id="wishFormLinksListe"></div>
+      <button type="button" class="btn-add-entry" style="margin-top:4px" onclick="wishlistLinkZeileHinzufuegen()">+ Link hinzufügen</button>
+    </div>
+    <div class="form-row">
+      <label>Notizen</label>
+      <textarea id="wishFormNote" placeholder="z.B. Standortwunsch, Begleitpflanzen, warum gewünscht..."></textarea>
+    </div>
+    <div class="form-row" style="display:flex;align-items:center;gap:8px;">
+      <input type="checkbox" id="wishFormGekauft" style="width:auto;">
+      <label style="margin:0" for="wishFormGekauft">Schon besorgt / gepflanzt</label>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeWishlistForm()">Abbrechen</button>
+      <button class="btn-primary" onclick="saveWishlistForm()">Speichern</button>
     </div>
   </div>
 </div>
@@ -5393,6 +5477,131 @@ function deleteSeedEntry(id) {
   renderSeedInventory();
 }
 
+// ==================== WUNSCHLISTE ====================
+let wishlist = [];
+function loadWishlist() {
+  try { wishlist = JSON.parse(localStorage.getItem('gartenplaner_wishlist') || '[]') || []; }
+  catch(e) { wishlist = []; }
+}
+function saveWishlistData() {
+  try { localStorage.setItem('gartenplaner_wishlist', JSON.stringify(wishlist)); } catch(e) {}
+}
+function openWishlist() {
+  renderWishlist();
+  document.getElementById('wishlistModal').style.display = 'flex';
+}
+let wishlistFilter = 'offen';
+function setWishlistFilter(f) {
+  wishlistFilter = f;
+  ['Offen','Gekauft','Alle'].forEach(label => {
+    document.getElementById('wishTab' + label).classList.toggle('active', label.toLowerCase() === f);
+  });
+  renderWishlist();
+}
+function renderWishlist() {
+  const box = document.getElementById('wishlistContent');
+  let liste = wishlist.slice();
+  if (wishlistFilter === 'offen') liste = liste.filter(e => !e.gekauft);
+  else if (wishlistFilter === 'gekauft') liste = liste.filter(e => e.gekauft);
+  if (!liste.length) {
+    box.innerHTML = '<div class="empty-state">' + (wishlistFilter === 'gekauft' ? 'Noch nichts als besorgt markiert.' : 'Noch keine Wünsche erfasst. Füge den ersten hinzu.') + '</div>';
+    return;
+  }
+  const prioReihenfolge = { hoch: 0, mittel: 1, niedrig: 2 };
+  liste.sort((a, b) => (prioReihenfolge[a.prioritaet] ?? 1) - (prioReihenfolge[b.prioritaet] ?? 1) || (a.name||'').localeCompare(b.name||''));
+  const prioLabel = { hoch: '🔴 Hoch', mittel: '🟡 Mittel', niedrig: '🟢 Niedrig' };
+  box.innerHTML = liste.map(e => {
+    const links = (e.links || []).filter(l => l.url).map(l =>
+      `<a href="${escapeHtml(l.url)}" target="_blank" rel="noopener" style="display:inline-block;margin:3px 6px 0 0;padding:3px 10px;border-radius:12px;background:var(--cream);color:var(--moss);font-size:0.72rem;text-decoration:none;border:1px solid var(--moss)">🔗 ${escapeHtml(l.label || 'Link öffnen')}</a>`
+    ).join('');
+    return `<div class="seed-entry" style="${e.gekauft ? 'opacity:0.6' : ''}">
+      <div class="sd-name">${e.gekauft ? '✅ ' : ''}${escapeHtml(e.name)}${e.variety ? ' – ' + escapeHtml(e.variety) : ''}</div>
+      <div class="sd-meta">${[prioLabel[e.prioritaet] || '', e.hardy, e.standort, e.preis ? 'ca. ' + escapeHtml(e.preis) : ''].filter(Boolean).map(x => typeof x === 'string' ? x : escapeHtml(x)).join(' · ')}</div>
+      ${e.note ? `<div class="sd-meta">${escapeHtml(e.note)}</div>` : ''}
+      ${links ? `<div style="margin-top:4px">${links}</div>` : ''}
+      <div class="sd-actions">
+        <button onclick="wishlistGekauftUmschalten('${e.id}')">${e.gekauft ? 'Als offen markieren' : 'Als besorgt markieren'}</button>
+        <button onclick="openWishlistForm('${e.id}')">Bearbeiten</button>
+        <button onclick="deleteWishlistEntry('${e.id}')">Löschen</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function wishlistGekauftUmschalten(id) {
+  const e = wishlist.find(x => x.id === id);
+  if (!e) return;
+  e.gekauft = !e.gekauft;
+  saveWishlistData();
+  renderWishlist();
+}
+let wishlistLinkRows = [];
+function renderWishlistLinkRows() {
+  const box = document.getElementById('wishFormLinksListe');
+  box.innerHTML = wishlistLinkRows.map((l, i) => `
+    <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">
+      <input type="text" placeholder="Name (z.B. Baumschule Meier)" value="${escapeHtml(l.label)}" style="flex:1" oninput="wishlistLinkRows[${i}].label=this.value">
+      <input type="url" placeholder="https://..." value="${escapeHtml(l.url)}" style="flex:1.4" oninput="wishlistLinkRows[${i}].url=this.value">
+      <button type="button" onclick="wishlistLinkZeileEntfernen(${i})" style="flex:0 0 auto;background:none;border:none;color:var(--terracotta-text);font-size:1rem;cursor:pointer;padding:0 4px">✕</button>
+    </div>`).join('');
+}
+function wishlistLinkZeileHinzufuegen() {
+  wishlistLinkRows.push({ label: '', url: '' });
+  renderWishlistLinkRows();
+}
+function wishlistLinkZeileEntfernen(i) {
+  wishlistLinkRows.splice(i, 1);
+  renderWishlistLinkRows();
+}
+function openWishlistForm(id) {
+  const entry = id ? wishlist.find(e => e.id === id) : null;
+  document.getElementById('wishFormTitle').textContent = entry ? '💚 Wunsch bearbeiten' : '💚 Wunsch hinzufügen';
+  document.getElementById('wishFormId').value = id || '';
+  document.getElementById('wishFormName').value = entry ? entry.name : '';
+  document.getElementById('wishFormVariety').value = entry ? (entry.variety||'') : '';
+  document.getElementById('wishFormHardy').value = entry ? (entry.hardy||'') : '';
+  document.getElementById('wishFormStandort').value = entry ? (entry.standort||'') : '';
+  document.getElementById('wishFormPrioritaet').value = entry ? (entry.prioritaet||'mittel') : 'mittel';
+  document.getElementById('wishFormPreis').value = entry ? (entry.preis||'') : '';
+  document.getElementById('wishFormNote').value = entry ? (entry.note||'') : '';
+  document.getElementById('wishFormGekauft').checked = entry ? !!entry.gekauft : false;
+  wishlistLinkRows = entry && entry.links && entry.links.length ? entry.links.map(l => ({ label: l.label||'', url: l.url||'' })) : [{ label: '', url: '' }];
+  renderWishlistLinkRows();
+  document.getElementById('wishlistFormModal').style.display = 'flex';
+}
+function closeWishlistForm() { document.getElementById('wishlistFormModal').style.display = 'none'; }
+function saveWishlistForm() {
+  const name = document.getElementById('wishFormName').value.trim();
+  if (!name) { document.getElementById('wishFormName').focus(); return; }
+  const id = document.getElementById('wishFormId').value;
+  const data = {
+    name,
+    variety: document.getElementById('wishFormVariety').value.trim(),
+    hardy: document.getElementById('wishFormHardy').value,
+    standort: document.getElementById('wishFormStandort').value,
+    prioritaet: document.getElementById('wishFormPrioritaet').value,
+    preis: document.getElementById('wishFormPreis').value.trim(),
+    note: document.getElementById('wishFormNote').value.trim(),
+    gekauft: document.getElementById('wishFormGekauft').checked,
+    links: wishlistLinkRows.filter(l => l.label.trim() || l.url.trim()).map(l => ({ label: l.label.trim(), url: l.url.trim() })),
+  };
+  if (id) {
+    const e = wishlist.find(e => e.id === id);
+    if (e) Object.assign(e, data);
+  } else {
+    data.id = 'wish_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+    wishlist.push(data);
+  }
+  saveWishlistData();
+  closeWishlistForm();
+  renderWishlist();
+}
+function deleteWishlistEntry(id) {
+  if (!confirm('Diesen Wunschlisten-Eintrag wirklich löschen?')) return;
+  wishlist = wishlist.filter(e => e.id !== id);
+  saveWishlistData();
+  renderWishlist();
+}
+
 // ==================== KOSTENÜBERSICHT ====================
 let costEntries = [];
 let costYear = 'all';
@@ -6459,7 +6668,7 @@ const GARTEN_SYNC_SCHLUESSEL = [
   'gartenplaner_v3', 'gartenplaner_varieties', 'gartenplaner_bedTemplates',
   'gartenplaner_recentPlants', 'gartenplaner_seedInventory', 'gartenplaner_costs',
   'gartenplaner_pantry', 'gartenplaner_shops', 'gartenplaner_careDone', 'gartenplaner_customPlants',
-  'gartenplaner_pilzlog',
+  'gartenplaner_pilzlog', 'gartenplaner_wishlist',
 ];
 (function () {
   const originalSetItem = localStorage.setItem.bind(localStorage);
@@ -6475,6 +6684,7 @@ loadVarieties();
 loadBedTemplates();
 loadShops();
 loadSeedInventory();
+loadWishlist();
 loadCosts();
 loadPantry();
 buildPlantNamesDatalist();

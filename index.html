@@ -137,7 +137,7 @@
     const MODULE = [
       { id: 'home',        label: 'Übersicht', emoji: '🏠', src: 'home.html' },
       { id: 'garten',      label: 'Garten',    emoji: '🌱', src: 'garten.html',
-        syncKeys: ['gartenplaner_v3','gartenplaner_varieties','gartenplaner_bedTemplates','gartenplaner_recentPlants','gartenplaner_seedInventory','gartenplaner_costs','gartenplaner_pantry','gartenplaner_shops','gartenplaner_careDone','gartenplaner_customPlants','gartenplaner_pilzlog'],
+        syncKeys: ['gartenplaner_v3','gartenplaner_varieties','gartenplaner_bedTemplates','gartenplaner_recentPlants','gartenplaner_seedInventory','gartenplaner_costs','gartenplaner_pantry','gartenplaner_shops','gartenplaner_careDone','gartenplaner_customPlants','gartenplaner_pilzlog','gartenplaner_wishlist'],
         syncTransform: (werte) => { if (werte.gartenplaner_v3 && window.PlanerSync) werte.gartenplaner_v3 = window.PlanerSync.entferneFotosTief(werte.gartenplaner_v3); return werte; } },
       { id: 'termine',     label: 'Termine',   emoji: '🗓️', src: 'termine.html', syncKeys: ['termine_events_v1'] },
       { id: 'gesundheit',  label: 'Gesundheit',emoji: '🏃', src: 'gesundheit.html', syncKeys: ['gesundheit_tageswerte','gesundheit_sport','gesundheit_rechner','gesundheit_medikamente','gesundheit_medErledigt','gesundheit_ziele','gesundheit_trainingslog','gesundheit_eigeneUebungen','gesundheit_zyklus','gesundheit_trainingsplan'] },
