@@ -658,15 +658,15 @@
           </div>
         </div>
         <div class="form-row" id="editRadRow">
-          <label>Radius</label>
+          <label>Radius <span id="editRadReal" style="font-weight:400;opacity:0.7"></span></label>
           <input type="range" id="editRad" min="20" max="200" value="60" oninput="updateSelectedBed()">
         </div>
         <div class="form-row" id="editWRow" style="display:none">
-          <label>Breite</label>
+          <label>Breite <span id="editWReal" style="font-weight:400;opacity:0.7"></span></label>
           <input type="range" id="editW" min="40" max="400" value="120" oninput="updateSelectedBed()">
         </div>
         <div class="form-row" id="editHRow" style="display:none">
-          <label>Höhe</label>
+          <label>Höhe <span id="editHReal" style="font-weight:400;opacity:0.7"></span></label>
           <input type="range" id="editH" min="40" max="300" value="80" oninput="updateSelectedBed()">
         </div>
         <div class="form-row" id="editCutWRow" style="display:none">
@@ -677,6 +677,7 @@
           <label>Ausschnitt-Höhe</label>
           <input type="range" id="editCutH" min="10" max="150" value="40" oninput="updateSelectedBed()">
         </div>
+        <p style="font-size:0.68rem;color:var(--bark);margin:-4px 0 8px;opacity:0.8">📏 Reale Maße hängen von der Gartengröße ab – ändert sich der Garten, ändert sich auch die reale Größe dieses Beets (die Pixelgröße bleibt gleich).</p>
         <p id="editFreehandNote" style="display:none;font-size:0.7rem;color:var(--bark);margin:-4px 0 8px">✏️ Freiform-Umriss – Größe/Form nicht per Regler änderbar. Zum Ändern Beet löschen und neu zeichnen.</p>
         <div class="form-row">
           <label>Farbe</label>
@@ -4629,6 +4630,17 @@ function showBedEditor(bed) {
   document.getElementById('bedPhotoDate').value = new Date().toISOString().slice(0,10);
   document.getElementById('bedPhotoNote').value = '';
   renderBedPhotoLog(bed);
+  aktualisiereRealMasseAnzeige();
+}
+function aktualisiereRealMasseAnzeige() {
+  const cmPerPx = getScale();
+  const zuMeter = (px) => (px * cmPerPx / 100).toFixed(1) + ' m';
+  const radEl = document.getElementById('editRadReal');
+  const wEl = document.getElementById('editWReal');
+  const hEl = document.getElementById('editHReal');
+  if (radEl) radEl.textContent = '(≈ ⌀ ' + zuMeter(parseInt(document.getElementById('editRad').value, 10) * 2) + ')';
+  if (wEl) wEl.textContent = '(≈ ' + zuMeter(parseInt(document.getElementById('editW').value, 10)) + ')';
+  if (hEl) hEl.textContent = '(≈ ' + zuMeter(parseInt(document.getElementById('editH').value, 10)) + ')';
 }
 function setSelectedBedColor(color, el) {
   if (!selectedBed) return;
@@ -4689,6 +4701,7 @@ function updateSelectedBed() {
     selectedBed.cutH=Math.min(cutH, selectedBed.h-10);
   }
   document.getElementById('rotVal').textContent=selectedBed.rotation+'°';
+  aktualisiereRealMasseAnzeige();
   draw(); renderBedList(); saveData();
   renderBedArea(selectedBed);
 }
