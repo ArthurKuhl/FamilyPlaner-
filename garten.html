@@ -4286,9 +4286,41 @@ canvas.addEventListener('mousemove', onMove);
 canvas.addEventListener('mouseleave', hidePlantTooltip);
 window.addEventListener('mouseup', onUp);
 canvas.addEventListener('click', ()=>{});
-canvas.addEventListener('touchstart', e=>{e.preventDefault();onDown(e);},{passive:false});
-canvas.addEventListener('touchmove', e=>{e.preventDefault();onMove(e);},{passive:false});
-canvas.addEventListener('touchend', e=>{e.preventDefault();onUp(e);hidePlantTooltip();},{passive:false});
+// Ermittelt, ob ein Touch an dieser Canvas-Position eine Zeichnen/Verschieben-Aktion auslösen
+// würde. Nur dann wird natives Scrollen blockiert – über leerem Bereich soll der Finger
+// stattdessen ganz normal die Fläche scrollen können (wichtig bei gezoomten/großen Gärten).
+function ermittleCanvasZiel(x, y) {
+  if (['circle','rect','tri','lshape','freehand'].includes(mode)) return true;
+  const beete = getCurrentBeds();
+  for (let i = beete.length - 1; i >= 0; i--) {
+    const bed = beete[i];
+    for (let j = (bed.plants||[]).length - 1; j >= 0; j--) {
+      const plant = bed.plants[j];
+      const rad = (bed.rotation||0) * Math.PI/180;
+      const px = bed.x + plant.rx*Math.cos(rad) - plant.ry*Math.sin(rad);
+      const py = bed.y + plant.rx*Math.sin(rad) + plant.ry*Math.cos(rad);
+      if (Math.hypot(x-px, y-py) < 16) return true;
+    }
+  }
+  return !!hitTest(x, y);
+}
+let touchAktionAktiv = false;
+canvas.addEventListener('touchstart', e => {
+  const p = getPos(e);
+  touchAktionAktiv = ermittleCanvasZiel(p.x, p.y);
+  if (touchAktionAktiv) e.preventDefault();
+  onDown(e);
+}, {passive:false});
+canvas.addEventListener('touchmove', e => {
+  if (!touchAktionAktiv) return; // natives Scrollen zulassen
+  e.preventDefault();
+  onMove(e);
+}, {passive:false});
+canvas.addEventListener('touchend', e => {
+  if (touchAktionAktiv) e.preventDefault();
+  onUp(e); hidePlantTooltip();
+  touchAktionAktiv = false;
+}, {passive:false});
 
 function rotX(rx,ry,deg){const a=deg*Math.PI/180;return rx*Math.cos(a)-ry*Math.sin(a);}
 function rotY(rx,ry,deg){const a=deg*Math.PI/180;return rx*Math.sin(a)+ry*Math.cos(a);}
