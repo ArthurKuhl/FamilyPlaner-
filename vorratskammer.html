@@ -41,6 +41,7 @@
   .vk-kopf { display: flex; align-items: flex-start; gap: 8px; }
   .vk-herz { background: none; border: none; font-size: 1rem; cursor: pointer; opacity: 0.55; flex-shrink: 0; padding: 2px; }
   .vk-herz.aktiv { opacity: 1; color: var(--terracotta-text); }
+  .vk-bestand { width: 30px; height: 30px; border-radius: 50%; border: none; font-weight: 800; font-size: 0.78rem; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
   .vk-titel-block { flex: 1; min-width: 0; }
   .vk-name { font-size: 0.92rem; font-weight: 700; }
   .vk-menge { font-size: 0.78rem; color: var(--bark); font-weight: 600; }
@@ -107,6 +108,7 @@
       <option value="alpha">🔤 Alphabetisch</option>
       <option value="gruppierung">🗂 Gruppierung</option>
       <option value="verfall">⏳ Verfallsdatum</option>
+      <option value="bestand">🔴 Bestand (wenig zuerst)</option>
     </select>
   </div>
   <div id="vorratListe"></div>
@@ -126,9 +128,18 @@
     </div>
     <div class="zeile">
       <div class="feld">
-        <label for="fMenge">Anzahl / Menge</label>
+        <label for="fMenge">Anzahl / Menge (optional)</label>
         <input type="text" id="fMenge" placeholder="z.B. 3 Packungen, 500 g">
       </div>
+    </div>
+    <div class="feld">
+      <label for="fBestand">Bestand grob (schneller als genau zählen)</label>
+      <select id="fBestand">
+        <option value="">– keine Angabe –</option>
+        <option value="leer">🔴 Kaum/leer</option>
+        <option value="mittel">🟡 Mittlere Menge</option>
+        <option value="viel">🟢 Viel vorhanden</option>
+      </select>
     </div>
     <div class="feld">
       <label>Kategorie</label>
@@ -294,6 +305,9 @@
         const db = b.verfallsdatum || b.aufbrauchenBis || '9999-99-99';
         return da.localeCompare(db) || a.name.localeCompare(b.name, 'de');
       });
+    } else if (sortierung === 'bestand') {
+      const rang = { leer: 0, mittel: 1, viel: 2, '': 1.5 };
+      arr.sort((a, b) => (rang[a.bestand||''] - rang[b.bestand||'']) || a.name.localeCompare(b.name, 'de'));
     }
     return arr;
   }
@@ -322,6 +336,17 @@
   }
 
   // ---------- LISTE RENDERN ----------
+  const BESTAND_STUFEN = [
+    { id: 'leer',   label: '0',  farbe: '#a03e3e', bg: '#f6d9d9', titel: 'Kaum/leer – bald nachkaufen' },
+    { id: 'mittel', label: '+',  farbe: '#a8792f', bg: '#fbe8d3', titel: 'Mittlere Menge' },
+    { id: 'viel',   label: '++', farbe: '#3d7a3d', bg: '#dcefdc', titel: 'Viel vorhanden' },
+  ];
+  function bestandInfo(id) { return BESTAND_STUFEN.find(s => s.id === id) || null; }
+  function naechsterBestand(id) {
+    const idx = BESTAND_STUFEN.findIndex(s => s.id === id);
+    return BESTAND_STUFEN[(idx + 1) % BESTAND_STUFEN.length].id;
+  }
+
   function renderListe() {
     const box = document.getElementById('vorratListe');
     const eigene = sortiereItems(items.filter(i => i.kategorie === aktiveKategorie));
@@ -332,9 +357,11 @@
       const karte = document.createElement('div');
       karte.className = 'vorrat-karte';
       const sterneHtml = '<div class="sterne-reihe">' + [1,2,3,4,5].map(i => '<span class="stern' + (i <= (item.sterne||0) ? ' aktiv' : '') + '">★</span>').join('') + '</div>';
+      const bi = bestandInfo(item.bestand);
       karte.innerHTML =
         '<div class="vk-kopf">' +
           '<button class="vk-herz' + (item.favorit ? ' aktiv' : '') + '" data-id="' + item.id + '">' + (item.favorit ? '♥' : '♡') + '</button>' +
+          '<button class="vk-bestand" data-id="' + item.id + '" style="background:' + (bi ? bi.bg : '#ece5d8') + ';color:' + (bi ? bi.farbe : '#8a7c5f') + '" title="' + (bi ? bi.titel : 'Bestand grob einschätzen – antippen') + '">' + (bi ? bi.label : '?') + '</button>' +
           '<div class="vk-titel-block">' +
             '<span class="vk-name">' + escapeHtml(item.name) + '</span> ' +
             (item.menge ? '<span class="vk-menge">· ' + escapeHtml(item.menge) + '</span>' : '') +
@@ -351,6 +378,13 @@
         if (e.target.closest('.vk-herz')) {
           e.stopPropagation();
           item.favorit = !item.favorit;
+          speichern(KEY_ITEMS, items);
+          renderListe();
+          return;
+        }
+        if (e.target.closest('.vk-bestand')) {
+          e.stopPropagation();
+          item.bestand = naechsterBestand(item.bestand);
           speichern(KEY_ITEMS, items);
           renderListe();
           return;
@@ -417,6 +451,7 @@
     document.getElementById('itemModalTitel').textContent = item ? 'Vorrat bearbeiten' : 'Neuer Vorrat';
     document.getElementById('fName').value = item ? item.name : '';
     document.getElementById('fMenge').value = item ? (item.menge || '') : '';
+    document.getElementById('fBestand').value = item ? (item.bestand || '') : '';
     document.getElementById('fGruppierung').value = item ? (item.gruppierung || '') : '';
     document.getElementById('fGekauft').value = item ? (item.gekauftAm || '') : '';
     document.getElementById('fVerfall').value = item ? (item.verfallsdatum || '') : '';
@@ -439,6 +474,7 @@
     const daten = {
       name,
       menge: document.getElementById('fMenge').value.trim(),
+      bestand: document.getElementById('fBestand').value,
       kategorie: editKategorie,
       gruppierung: document.getElementById('fGruppierung').value.trim(),
       gekauftAm: document.getElementById('fGekauft').value,
