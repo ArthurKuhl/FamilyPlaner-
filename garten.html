@@ -501,20 +501,21 @@
           <label>Name</label>
           <input type="text" id="newName" placeholder="z.B. Tomaten-Beet" />
         </div>
-        <div class="form-row" id="rowRadius">
-          <label>Radius</label>
-          <input type="range" id="newRadius" min="20" max="150" value="60" oninput="document.getElementById('radiusVal').textContent=this.value">
-          <span id="radiusVal" style="font-size:0.72rem;color:var(--bark)">60</span>
-        </div>
         <div class="form-row" id="rowW" style="display:none">
-          <label>Breite</label>
+          <label id="rowWLabel">Breite</label>
           <input type="range" id="newW" min="40" max="300" value="120" oninput="document.getElementById('wVal').textContent=this.value">
           <span id="wVal" style="font-size:0.72rem;color:var(--bark)">120</span>
         </div>
         <div class="form-row" id="rowH" style="display:none">
-          <label>Höhe</label>
+          <label id="rowHLabel">Höhe</label>
           <input type="range" id="newH" min="40" max="200" value="80" oninput="document.getElementById('hVal').textContent=this.value">
           <span id="hVal" style="font-size:0.72rem;color:var(--bark)">80</span>
+        </div>
+        <div class="form-row" id="rowApex" style="display:none">
+          <label>Spitze versetzt</label>
+          <input type="range" id="newApex" min="-100" max="100" value="0" oninput="document.getElementById('apexVal').textContent=this.value+'%'">
+          <span id="apexVal" style="font-size:0.72rem;color:var(--bark)">0%</span>
+          <p style="font-size:0.68rem;color:var(--bark);opacity:0.8;margin:2px 0 0">0% = gleichschenklig mittig. ±100% + gleiche Breite/Höhe = rechtwinklig-gleichschenklig.</p>
         </div>
         <div class="form-row" id="rowCutW" style="display:none">
           <label>Ausschnitt-Breite</label>
@@ -658,17 +659,18 @@
             <span class="rotation-val" id="rotVal">0°</span>
           </div>
         </div>
-        <div class="form-row" id="editRadRow">
-          <label>Radius <span id="editRadReal" style="font-weight:400;opacity:0.7"></span></label>
-          <input type="range" id="editRad" min="20" max="200" value="60" oninput="updateSelectedBed()">
-        </div>
-        <div class="form-row" id="editWRow" style="display:none">
-          <label>Breite <span id="editWReal" style="font-weight:400;opacity:0.7"></span></label>
+        <div class="form-row" id="editWRow">
+          <label id="editWLabel">Breite <span id="editWReal" style="font-weight:400;opacity:0.7"></span></label>
           <input type="range" id="editW" min="40" max="400" value="120" oninput="updateSelectedBed()">
         </div>
-        <div class="form-row" id="editHRow" style="display:none">
-          <label>Höhe <span id="editHReal" style="font-weight:400;opacity:0.7"></span></label>
+        <div class="form-row" id="editHRow">
+          <label id="editHLabel">Höhe <span id="editHReal" style="font-weight:400;opacity:0.7"></span></label>
           <input type="range" id="editH" min="40" max="300" value="80" oninput="updateSelectedBed()">
+        </div>
+        <div class="form-row" id="editApexRow" style="display:none">
+          <label>Spitze versetzt <span id="editApexReal" style="font-weight:400;opacity:0.7"></span></label>
+          <input type="range" id="editApex" min="-100" max="100" value="0" oninput="updateSelectedBed()">
+          <button type="button" class="btn-secondary" style="margin-top:4px" onclick="setzeRechtwinkligesDreieck()">📐 Rechtwinklig-gleichschenklig</button>
         </div>
         <div class="form-row" id="editCutWRow" style="display:none">
           <label>Ausschnitt-Breite</label>
@@ -678,7 +680,6 @@
           <label>Ausschnitt-Höhe</label>
           <input type="range" id="editCutH" min="10" max="150" value="40" oninput="updateSelectedBed()">
         </div>
-        <p style="font-size:0.68rem;color:var(--bark);margin:-4px 0 8px;opacity:0.8">📏 Reale Maße hängen von der Gartengröße ab – ändert sich der Garten, ändert sich auch die reale Größe dieses Beets (die Pixelgröße bleibt gleich).</p>
         <p id="editFreehandNote" style="display:none;font-size:0.7rem;color:var(--bark);margin:-4px 0 8px">✏️ Freiform-Umriss – Größe/Form nicht per Regler änderbar. Zum Ändern Beet löschen und neu zeichnen.</p>
         <div class="form-row">
           <label>Farbe</label>
@@ -2739,13 +2740,16 @@ function pointInPolygon(rx, ry, points) {
   return inside;
 }
 function bedAreaPx2(bed) {
-  if (bed.shape === 'circle') { const r = bed.r || 60; return Math.PI * r * r; }
+  if (bed.shape === 'circle') {
+    const radX = bed.rx ?? bed.r ?? 60, radY = bed.ry ?? bed.r ?? 60;
+    return Math.PI * radX * radY;
+  }
   const w = bed.w || 120, h = bed.h || 80;
   if (bed.shape === 'lshape') {
     const cw = Math.min(bed.cutW || 0, w - 1), ch = Math.min(bed.cutH || 0, h - 1);
     return w * h - cw * ch;
   }
-  if (bed.shape === 'tri') return (Math.max(w, h) ** 2) * 0.43;
+  if (bed.shape === 'tri') return w * h / 2;
   if (bed.shape === 'freehand') return bed.points && bed.points.length >= 3 ? polygonAreaPx2(bed.points) : 0;
   return w * h;
 }
@@ -2988,9 +2992,10 @@ function saveBedAsTemplate() {
     id: 'tpl_' + Date.now(),
     name,
     shape: selectedBed.shape,
-    r: selectedBed.r,
+    rx: selectedBed.rx, ry: selectedBed.ry,
     w: selectedBed.w,
     h: selectedBed.h,
+    apexOffset: selectedBed.apexOffset,
     cutW: selectedBed.cutW,
     cutH: selectedBed.cutH,
     points: selectedBed.points,
@@ -3036,9 +3041,12 @@ function insertTemplate(id) {
     shape: tpl.shape,
     x: (canvas.width/2) + jitter(),
     y: (canvas.height/2) + jitter(),
-    r: tpl.shape==='circle' ? tpl.r : undefined,
+    r: undefined,
+    rx: tpl.shape==='circle' ? tpl.rx : undefined,
+    ry: tpl.shape==='circle' ? tpl.ry : undefined,
     w: tpl.shape!=='circle' ? tpl.w : undefined,
     h: tpl.shape!=='circle' ? tpl.h : undefined,
+    apexOffset: tpl.shape==='tri' ? tpl.apexOffset : undefined,
     cutW: tpl.shape==='lshape' ? tpl.cutW : undefined,
     cutH: tpl.shape==='lshape' ? tpl.cutH : undefined,
     points: tpl.shape==='freehand' ? (tpl.points||[]).map(p=>({x:p.x,y:p.y})) : undefined,
@@ -4198,12 +4206,13 @@ function drawBed(bed, selected) {
   ctx.lineWidth = selected ? 2.5 : 1.5;
   ctx.beginPath();
   if (bed.shape === 'circle') {
-    ctx.arc(0, 0, bed.r, 0, Math.PI * 2);
+    const radX = bed.rx ?? bed.r ?? 60, radY = bed.ry ?? bed.r ?? 60;
+    ctx.ellipse(0, 0, radX, radY, 0, 0, Math.PI * 2);
   } else if (bed.shape === 'rect') {
     ctx.roundRect(-bed.w/2, -bed.h/2, bed.w, bed.h, 6);
   } else if (bed.shape === 'tri') {
-    const r = Math.max(bed.w, bed.h) / 2;
-    ctx.moveTo(0, -r); ctx.lineTo(r*0.866, r*0.5); ctx.lineTo(-r*0.866, r*0.5); ctx.closePath();
+    const w = bed.w, h = bed.h, apex = (bed.apexOffset || 0) * (w/2);
+    ctx.moveTo(apex, -h/2); ctx.lineTo(w/2, h/2); ctx.lineTo(-w/2, h/2); ctx.closePath();
   } else if (bed.shape === 'lshape') {
     const w=bed.w, h=bed.h, cw=Math.min(bed.cutW||0,w-1), ch=Math.min(bed.cutH||0,h-1);
     ctx.moveTo(-w/2, -h/2);
@@ -4222,7 +4231,7 @@ function drawBed(bed, selected) {
   if (bed.name) {
     ctx.fillStyle = '#3b2f1e'; ctx.font = '500 11px Inter,sans-serif';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    const ty = bed.shape === 'tri' ? Math.max(bed.w,bed.h)/2*0.1 : 0;
+    const ty = bed.shape === 'tri' ? bed.h/6 : 0;
     ctx.fillText(bed.name, 0, ty);
   }
   const conflictIdx = new Set(getBedConflicts(bed).flat());
@@ -4257,10 +4266,10 @@ function drawBed(bed, selected) {
 }
 
 function getBedRadius(bed) {
-  if (bed.shape==='circle') return bed.r;
+  if (bed.shape==='circle') return Math.max(bed.rx ?? bed.r ?? 60, bed.ry ?? bed.r ?? 60);
   if (bed.shape==='rect'||bed.shape==='lshape') return Math.sqrt((bed.w/2)**2+(bed.h/2)**2);
   if (bed.shape==='freehand') return bed.points && bed.points.length ? Math.max(...bed.points.map(p=>Math.hypot(p.x,p.y))) : 40;
-  return Math.max(bed.w,bed.h)/2;
+  return Math.sqrt((bed.w/2)**2+(bed.h/2)**2);
 }
 
 // ==================== INTERACTIONS ====================
@@ -4362,11 +4371,14 @@ function onDown(e) {
     draw(); renderBedList();
   } else if (['circle','rect','tri','lshape'].includes(mode)) {
     const name=document.getElementById('newName').value||`Beet ${getCurrentBeds().length+1}`;
-    const r=parseInt(document.getElementById('newRadius').value)||60;
     const w=parseInt(document.getElementById('newW').value)||120;
     const h=parseInt(document.getElementById('newH').value)||80;
     const shape=mode;
-    const bed={id:Date.now(),shape,x,y,r:shape==='circle'?r:undefined,w:shape!=='circle'?w:undefined,h:shape!=='circle'?h:undefined,color:bedColor,name,rotation:0,plants:[]};
+    const bed={id:Date.now(),shape,x,y,
+      rx:shape==='circle'?w/2:undefined, ry:shape==='circle'?h/2:undefined,
+      w:shape!=='circle'?w:undefined, h:shape!=='circle'?h:undefined,
+      apexOffset:shape==='tri'?(parseInt(document.getElementById('newApex').value)||0)/100:undefined,
+      color:bedColor,name,rotation:0,plants:[]};
     if (shape==='lshape') {
       const cutW=parseInt(document.getElementById('newCutW').value)||60;
       const cutH=parseInt(document.getElementById('newCutH').value)||40;
@@ -4552,6 +4564,15 @@ canvas.addEventListener('dblclick', (e) => {
   if (mode==='freehand' && freehandDrawing && freehandPoints.length>=3) { e.preventDefault(); finishFreehand(); }
 });
 
+function punktInDreieck(px,py, ax,ay, bx,by, cx,cy) {
+  const vorzeichen = (px,py, ax,ay, bx,by) => (px-bx)*(ay-by) - (ax-bx)*(py-by);
+  const d1 = vorzeichen(px,py, ax,ay, bx,by);
+  const d2 = vorzeichen(px,py, bx,by, cx,cy);
+  const d3 = vorzeichen(px,py, cx,cy, ax,ay);
+  const hatNeg = (d1<0)||(d2<0)||(d3<0);
+  const hatPos = (d1>0)||(d2>0)||(d3>0);
+  return !(hatNeg && hatPos);
+}
 function hitTest(x,y) {
   for (let i=getCurrentBeds().length-1;i>=0;i--) {
     const bed=getCurrentBeds()[i];
@@ -4559,9 +4580,15 @@ function hitTest(x,y) {
     const dx=x-bed.x, dy=y-bed.y;
     const rx=dx*Math.cos(angle)-dy*Math.sin(angle);
     const ry=dx*Math.sin(angle)+dy*Math.cos(angle);
-    if (bed.shape==='circle'&&Math.hypot(rx,ry)<=bed.r) return bed;
+    if (bed.shape==='circle') {
+      const radX = bed.rx ?? bed.r ?? 60, radY = bed.ry ?? bed.r ?? 60;
+      if ((rx/radX)**2 + (ry/radY)**2 <= 1) return bed;
+    }
     if (bed.shape==='rect'&&Math.abs(rx)<=bed.w/2&&Math.abs(ry)<=bed.h/2) return bed;
-    if (bed.shape==='tri'){const r=Math.max(bed.w,bed.h)/2;if(ry>=-r&&ry<=r*0.5&&Math.abs(rx)<=r*0.866*(1-(ry+r)/(r*1.5)))return bed;}
+    if (bed.shape==='tri') {
+      const w=bed.w, h=bed.h, apex=(bed.apexOffset||0)*(w/2);
+      if (punktInDreieck(rx,ry, apex,-h/2, w/2,h/2, -w/2,h/2)) return bed;
+    }
     if (bed.shape==='lshape'){
       const w=bed.w,h=bed.h,cw=Math.min(bed.cutW||0,w-1),ch=Math.min(bed.cutH||0,h-1);
       const insideOuter = Math.abs(rx)<=w/2 && Math.abs(ry)<=h/2;
@@ -4647,9 +4674,11 @@ function showTempStatus(text, seconds) {
 
 function updateShapeControls() {
   const shape=document.getElementById('newShape').value;
-  document.getElementById('rowRadius').style.display=shape==='circle'?'':'none';
-  document.getElementById('rowW').style.display=(shape==='rect'||shape==='tri'||shape==='lshape')?'':'none';
-  document.getElementById('rowH').style.display=(shape==='rect'||shape==='tri'||shape==='lshape')?'':'none';
+  document.getElementById('rowW').style.display=(shape==='circle'||shape==='rect'||shape==='tri'||shape==='lshape')?'':'none';
+  document.getElementById('rowH').style.display=(shape==='circle'||shape==='rect'||shape==='tri'||shape==='lshape')?'':'none';
+  document.getElementById('rowWLabel').textContent = shape==='circle' ? 'Breite (⌀)' : 'Breite';
+  document.getElementById('rowHLabel').textContent = shape==='circle' ? 'Höhe (⌀)' : 'Höhe';
+  document.getElementById('rowApex').style.display=shape==='tri'?'':'none';
   document.getElementById('rowCutW').style.display=shape==='lshape'?'':'none';
   document.getElementById('rowCutH').style.display=shape==='lshape'?'':'none';
   document.getElementById('rowFreehandHint').style.display=shape==='freehand'?'':'none';
@@ -4666,14 +4695,21 @@ function showBedEditor(bed) {
   document.getElementById('editName').value=bed.name||'';
   document.getElementById('editRot').value=bed.rotation||0;
   document.getElementById('rotVal').textContent=(bed.rotation||0)+'°';
-  document.getElementById('editRad').value=bed.r||60;
-  document.getElementById('editW').value=bed.w||120;
-  document.getElementById('editH').value=bed.h||80;
+  if (bed.shape==='circle') {
+    document.getElementById('editW').value=(bed.rx ?? bed.r ?? 60)*2;
+    document.getElementById('editH').value=(bed.ry ?? bed.r ?? 60)*2;
+  } else {
+    document.getElementById('editW').value=bed.w||120;
+    document.getElementById('editH').value=bed.h||80;
+  }
+  document.getElementById('editApex').value=Math.round((bed.apexOffset||0)*100);
   document.getElementById('editCutW').value=bed.cutW||60;
   document.getElementById('editCutH').value=bed.cutH||40;
-  document.getElementById('editRadRow').style.display=bed.shape==='circle'?'':'none';
-  document.getElementById('editWRow').style.display=(bed.shape==='rect'||bed.shape==='tri'||bed.shape==='lshape')?'':'none';
-  document.getElementById('editHRow').style.display=(bed.shape==='rect'||bed.shape==='tri'||bed.shape==='lshape')?'':'none';
+  document.getElementById('editWLabel').innerHTML = (bed.shape==='circle' ? 'Breite (⌀)' : 'Breite') + ' <span id="editWReal" style="font-weight:400;opacity:0.7"></span>';
+  document.getElementById('editHLabel').innerHTML = (bed.shape==='circle' ? 'Höhe (⌀)' : 'Höhe') + ' <span id="editHReal" style="font-weight:400;opacity:0.7"></span>';
+  document.getElementById('editWRow').style.display=(bed.shape==='freehand')?'none':'';
+  document.getElementById('editHRow').style.display=(bed.shape==='freehand')?'none':'';
+  document.getElementById('editApexRow').style.display=bed.shape==='tri'?'':'none';
   document.getElementById('editCutWRow').style.display=bed.shape==='lshape'?'':'none';
   document.getElementById('editCutHRow').style.display=bed.shape==='lshape'?'':'none';
   const freehandNote = document.getElementById('editFreehandNote');
@@ -4690,15 +4726,22 @@ function showBedEditor(bed) {
   renderBedPhotoLog(bed);
   aktualisiereRealMasseAnzeige();
 }
+function setzeRechtwinkligesDreieck() {
+  if (!selectedBed || selectedBed.shape!=='tri') return;
+  pushUndo();
+  const seite = Math.max(selectedBed.w||120, selectedBed.h||80);
+  selectedBed.w = seite; selectedBed.h = seite; selectedBed.apexOffset = -1;
+  showBedEditor(selectedBed);
+  draw(); renderBedList(); saveData();
+}
 function aktualisiereRealMasseAnzeige() {
-  const cmPerPx = getScale();
-  const zuMeter = (px) => (px * cmPerPx / 100).toFixed(1) + ' m';
-  const radEl = document.getElementById('editRadReal');
+  const zuMeter = (px) => (px / 100).toFixed(1) + ' m';
   const wEl = document.getElementById('editWReal');
   const hEl = document.getElementById('editHReal');
-  if (radEl) radEl.textContent = '(≈ ⌀ ' + zuMeter(parseInt(document.getElementById('editRad').value, 10) * 2) + ')';
+  const apexEl = document.getElementById('editApexReal');
   if (wEl) wEl.textContent = '(≈ ' + zuMeter(parseInt(document.getElementById('editW').value, 10)) + ')';
   if (hEl) hEl.textContent = '(≈ ' + zuMeter(parseInt(document.getElementById('editH').value, 10)) + ')';
+  if (apexEl) apexEl.textContent = document.getElementById('editApex').value + '%';
 }
 function setSelectedBedColor(color, el) {
   if (!selectedBed) return;
@@ -4749,9 +4792,17 @@ function updateSelectedBed() {
   if(!selectedBed) return;
   selectedBed.name=document.getElementById('editName').value;
   selectedBed.rotation=parseInt(document.getElementById('editRot').value)||0;
-  selectedBed.r=parseInt(document.getElementById('editRad').value)||60;
-  selectedBed.w=parseInt(document.getElementById('editW').value)||120;
-  selectedBed.h=parseInt(document.getElementById('editH').value)||80;
+  const w=parseInt(document.getElementById('editW').value)||120;
+  const h=parseInt(document.getElementById('editH').value)||80;
+  if (selectedBed.shape==='circle') {
+    selectedBed.rx=w/2; selectedBed.ry=h/2;
+    delete selectedBed.r;
+  } else {
+    selectedBed.w=w; selectedBed.h=h;
+  }
+  if (selectedBed.shape==='tri') {
+    selectedBed.apexOffset=(parseInt(document.getElementById('editApex').value)||0)/100;
+  }
   if (selectedBed.shape==='lshape') {
     const cutW=parseInt(document.getElementById('editCutW').value)||60;
     const cutH=parseInt(document.getElementById('editCutH').value)||40;
