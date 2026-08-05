@@ -311,7 +311,7 @@
         <input type="time" id="fNeueWasserzeit" value="12:00">
         <button type="button" id="btnWasserzeitHinzufuegen">＋ Uhrzeit</button>
       </div>
-      <div class="hinweis-klein">Funktioniert, solange die App im Hintergrund geöffnet ist (Tab oder installierte App). Bei vollständig geschlossener App/Browser hängt es vom Handy ab, ob die Erinnerung noch ankommt – auf eigenem Gerät kurz ausprobieren.</div>
+      <div class="hinweis-klein">Funktioniert zuverlässig, solange die App im Vordergrund und der Bildschirm an ist. Bei gesperrtem Bildschirm oder App im Hintergrund pausieren mobile Browser die Prüfung meist – dafür holt die App die Erinnerung beim nächsten Öffnen innerhalb von 3 Std. nach. Für 100%ig zuverlässige Erinnerungen eignet sich der Wecker/die Erinnerungsfunktion des Handys besser.</div>
     </div>
   </section>
 
@@ -869,6 +869,52 @@
   function speichereWasserErinnerung(einst) {
     try { localStorage.setItem(KEY_WASSER_ERINNERUNG, JSON.stringify(einst)); } catch (e) {}
   }
+
+  // Prüft alle 20 Sekunden, ob eine geplante Uhrzeit gerade erreicht ist, und löst dann die
+  // Browser-Benachrichtigung aus. Das funktioniert zuverlässig, solange die App im Vordergrund
+  // (Bildschirm an) ist – siehe Hinweistext in der Oberfläche zu den Grenzen im Hintergrund.
+  let letzteAusgeloesteWasserzeit = null;
+  function pruefeWasserErinnerung() {
+    const einst = ladeWasserErinnerung();
+    if (!einst.aktiv || !einst.zeiten || !einst.zeiten.length) return;
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    const jetzt = new Date();
+    const aktuelleZeit = String(jetzt.getHours()).padStart(2, '0') + ':' + String(jetzt.getMinutes()).padStart(2, '0');
+    if (einst.zeiten.indexOf(aktuelleZeit) === -1) return;
+    const schluessel = heuteISO() + ' ' + aktuelleZeit;
+    if (letzteAusgeloesteWasserzeit === schluessel) return; // in dieser Minute schon ausgelöst
+    letzteAusgeloesteWasserzeit = schluessel;
+    try {
+      new Notification('💧 Zeit zu trinken!', { body: 'Erinnerung aus deinem Gesundheit-Tagebuch.', tag: 'wasser-erinnerung-' + aktuelleZeit, icon: 'icon-192.png' });
+    } catch (e) {}
+    try { localStorage.setItem('gesundheit_letzteWassererinnerungGesehen', schluessel); } catch (e) {}
+  }
+  setInterval(pruefeWasserErinnerung, 20000);
+
+  // Fängt zumindest den Fall ab, dass eine geplante Zeit verpasst wurde, weil die App gerade
+  // geschlossen/im Hintergrund war: beim nächsten Öffnen wird kurz nachträglich informiert.
+  function pruefeVerpassteWasserErinnerung() {
+    const einst = ladeWasserErinnerung();
+    if (!einst.aktiv || !einst.zeiten || !einst.zeiten.length) return;
+    const jetzt = new Date();
+    const aktuelleMinuten = jetzt.getHours() * 60 + jetzt.getMinutes();
+    const vergangene = einst.zeiten.filter(z => {
+      const teile = z.split(':').map(Number);
+      return (teile[0] * 60 + teile[1]) <= aktuelleMinuten;
+    }).sort();
+    if (!vergangene.length) return;
+    const letzte = vergangene[vergangene.length - 1];
+    const schluessel = heuteISO() + ' ' + letzte;
+    let letzteGesehen = null;
+    try { letzteGesehen = localStorage.getItem('gesundheit_letzteWassererinnerungGesehen'); } catch (e) {}
+    if (letzteGesehen === schluessel) return;
+    const teile = letzte.split(':').map(Number);
+    if (aktuelleMinuten - (teile[0] * 60 + teile[1]) > 180) return; // zu lange her, nicht mehr sinnvoll
+    try { localStorage.setItem('gesundheit_letzteWassererinnerungGesehen', schluessel); } catch (e) {}
+    showTempStatus('💧 Trink-Erinnerung ' + letzte + ' Uhr verpasst (App war zu)', 5);
+  }
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) pruefeVerpassteWasserErinnerung(); });
+  pruefeVerpassteWasserErinnerung();
 
   function renderWasserErinnerungUI() {
     const einst = ladeWasserErinnerung();
