@@ -121,6 +121,7 @@
     <div class="view-toggle" role="tablist">
       <button id="btnViewKalender" class="active" role="tab" aria-selected="true">Kalender</button>
       <button id="btnViewListe" role="tab" aria-selected="false">Liste</button>
+      <button id="btnViewWunschliste" role="tab" aria-selected="false">🎁 Wunschliste</button>
     </div>
   </header>
 
@@ -139,9 +140,70 @@
     <section id="listeView" style="display:none;">
       <div id="listeInhalt"></div>
     </section>
+
+    <section id="wunschlisteView" style="display:none;">
+      <div class="chip-select" id="anlassFilterRow" style="margin-bottom:12px;"></div>
+      <button class="btn-primary" id="btnWunschHinzufuegen" style="margin-bottom:14px;">＋ Neuer Wunsch</button>
+      <div id="wunschlisteInhalt"></div>
+      <div id="wunschlisteAggregation"></div>
+    </section>
   </main>
 
   <button class="fab" id="fabAdd" aria-label="Neuen Termin hinzufügen">+</button>
+
+  <div class="modal-bg" id="wunschModal" style="display:none;">
+    <div class="modal">
+      <h2 id="wunschModalTitel">Neuer Wunsch</h2>
+      <input type="hidden" id="wunschId">
+      <div class="form-row">
+        <label>Für wen</label>
+        <div class="chip-select" id="wunschPersonReihe"></div>
+      </div>
+      <div class="form-row">
+        <label>Anlass</label>
+        <div class="chip-select" id="wunschAnlassReihe"></div>
+      </div>
+      <div class="form-row">
+        <label for="wunschName">Was?</label>
+        <input type="text" id="wunschName" placeholder="z.B. Kopfhörer, Buch von...">
+      </div>
+      <div class="two-col">
+        <div class="form-row">
+          <label for="wunschPreis">Ca. Preis</label>
+          <input type="text" id="wunschPreis" placeholder="z.B. 30 €">
+        </div>
+        <div class="form-row">
+          <label for="wunschPrioritaet">Priorität</label>
+          <select id="wunschPrioritaet">
+            <option value="mittel">Mittel</option>
+            <option value="hoch">Hoch</option>
+            <option value="niedrig">Niedrig</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <label for="wunschLink">Link (optional)</label>
+        <input type="url" id="wunschLink" placeholder="https://...">
+      </div>
+      <div class="form-row">
+        <label for="wunschNotiz">Notiz</label>
+        <textarea id="wunschNotiz" placeholder="z.B. Größe, Farbe, Ausgabe"></textarea>
+      </div>
+      <div class="check-row">
+        <input type="checkbox" id="wunschReserviert">
+        <label for="wunschReserviert" style="margin:0">Schon besorgt/reserviert von jemandem</label>
+      </div>
+      <div class="form-row" id="wunschReserviertVonFeld" style="display:none;">
+        <label for="wunschReserviertVon">Reserviert von</label>
+        <div class="chip-select" id="wunschReserviertVonReihe"></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" id="btnWunschAbbrechen">Abbrechen</button>
+        <button class="btn-primary" id="btnWunschSpeichern">Speichern</button>
+      </div>
+      <button class="btn-delete" id="btnWunschLoeschen" style="display:none;">Wunsch löschen</button>
+    </div>
+  </div>
 
   <!-- Tagesdetail (Kalenderklick) -->
   <div class="modal-bg" id="modalTag">
@@ -401,6 +463,7 @@
     function renderAktuelleAnsicht() {
       renderKalender();
       renderListe();
+      if (document.getElementById('wunschlisteView').style.display !== 'none') renderWunschliste();
     }
 
     // --- View-Umschalter ---
@@ -414,7 +477,198 @@
     btnViewListe.addEventListener('click', () => {
       btnViewListe.classList.add('active'); btnViewListe.setAttribute('aria-selected','true');
       btnViewKalender.classList.remove('active'); btnViewKalender.setAttribute('aria-selected','false');
+      btnViewWunschliste.classList.remove('active'); btnViewWunschliste.setAttribute('aria-selected','false');
       document.getElementById('listeView').style.display=''; document.getElementById('kalenderView').style.display='none';
+      document.getElementById('wunschlisteView').style.display='none';
+      document.getElementById('fabAdd').style.display='';
+    });
+    const btnViewWunschliste = document.getElementById('btnViewWunschliste');
+    btnViewWunschliste.addEventListener('click', () => {
+      btnViewWunschliste.classList.add('active'); btnViewWunschliste.setAttribute('aria-selected','true');
+      btnViewKalender.classList.remove('active'); btnViewKalender.setAttribute('aria-selected','false');
+      btnViewListe.classList.remove('active'); btnViewListe.setAttribute('aria-selected','false');
+      document.getElementById('wunschlisteView').style.display='';
+      document.getElementById('kalenderView').style.display='none'; document.getElementById('listeView').style.display='none';
+      document.getElementById('fabAdd').style.display='none';
+      renderWunschliste();
+    });
+
+    // ============================================================
+    // WUNSCHLISTE (Geburtstage, Weihnachten, Ostern & Co.)
+    // ============================================================
+    const KEY_WUNSCHLISTE = 'termine_wunschliste';
+    function ladenWunschliste() {
+      try { const raw = localStorage.getItem(KEY_WUNSCHLISTE); return raw ? JSON.parse(raw) : []; } catch(e) { return []; }
+    }
+    function speichernWunschliste(arr) {
+      try { localStorage.setItem(KEY_WUNSCHLISTE, JSON.stringify(arr)); } catch(e) {}
+      if (window._sync) window._sync.melde();
+    }
+    let wunschliste = ladenWunschliste();
+    const ANLAESSE = [
+      { id: 'geburtstag', label: '🎂 Geburtstag' },
+      { id: 'weihnachten', label: '🎄 Weihnachten' },
+      { id: 'ostern', label: '🐣 Ostern' },
+      { id: 'sonstiges', label: '✨ Sonstiges' },
+    ];
+    let anlassFilter = 'alle';
+    function anlassLabel(id) { const a = ANLAESSE.find(x=>x.id===id); return a ? a.label : id; }
+    function personLabel(id) { const p = WER_OPTIONEN.find(x=>x.id===id); return p ? p.label : id; }
+    function personFarbe(id) { const p = WER_OPTIONEN.find(x=>x.id===id); return p ? p.farbe : 'var(--moss)'; }
+
+    function renderAnlassFilter() {
+      const box = document.getElementById('anlassFilterRow');
+      box.innerHTML = '';
+      const alle = document.createElement('button');
+      alle.className = 'opt' + (anlassFilter==='alle' ? ' active' : '');
+      alle.textContent = 'Alle Anlässe';
+      if (anlassFilter==='alle') alle.style.background = 'var(--soil)';
+      alle.addEventListener('click', () => { anlassFilter='alle'; renderAnlassFilter(); renderWunschliste(); });
+      box.appendChild(alle);
+      ANLAESSE.forEach(a => {
+        const btn = document.createElement('button');
+        btn.className = 'opt' + (anlassFilter===a.id ? ' active' : '');
+        btn.textContent = a.label;
+        if (anlassFilter===a.id) btn.style.background = 'var(--moss)';
+        btn.addEventListener('click', () => { anlassFilter=a.id; renderAnlassFilter(); renderWunschliste(); });
+        box.appendChild(btn);
+      });
+    }
+
+    function renderWunschliste() {
+      renderAnlassFilter();
+      const box = document.getElementById('wunschlisteInhalt');
+      let liste = wunschliste.slice();
+      if (aktiverFilter !== 'alle') liste = liste.filter(w => w.person === aktiverFilter);
+      if (anlassFilter !== 'alle') liste = liste.filter(w => w.anlass === anlassFilter);
+      const prio = { hoch: 0, mittel: 1, niedrig: 2 };
+      liste.sort((a,b) => (prio[a.prioritaet]??1) - (prio[b.prioritaet]??1) || (a.name||'').localeCompare(b.name||'','de'));
+      if (!liste.length) {
+        box.innerHTML = '<p style="opacity:0.6;font-size:0.85rem;padding:14px 0">Noch keine Wünsche erfasst.</p>';
+      } else {
+        box.innerHTML = liste.map(w => {
+          const prioIcon = w.prioritaet==='hoch' ? '🔴' : w.prioritaet==='niedrig' ? '🟢' : '🟡';
+          const linkHtml = w.link ? `<a href="${escapeHtml(w.link)}" target="_blank" rel="noopener" style="font-size:0.75rem;color:var(--moss)">🔗 Link öffnen</a>` : '';
+          return `<div class="termin-card" data-id="${w.id}" style="cursor:pointer;${w.reserviert?'opacity:0.65':''}">
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+              <span style="background:${personFarbe(w.person)};color:#fff;border-radius:12px;padding:2px 9px;font-size:0.7rem;font-weight:600">${escapeHtml(personLabel(w.person))}</span>
+              <span style="font-size:0.75rem">${anlassLabel(w.anlass)}</span>
+              <span>${prioIcon}</span>
+              ${w.reserviert ? '<span style="font-size:0.7rem;background:#e4efe0;color:var(--moss);border-radius:10px;padding:1px 8px">✅ reserviert' + (w.reserviertVon ? ' von ' + escapeHtml(personLabel(w.reserviertVon)) : '') + '</span>' : ''}
+            </div>
+            <div style="font-weight:700;margin-top:4px">${escapeHtml(w.name)}${w.preis ? ' <span style="font-weight:400;opacity:0.7;font-size:0.8rem">· ca. ' + escapeHtml(w.preis) + '</span>' : ''}</div>
+            ${w.notiz ? `<div style="font-size:0.8rem;opacity:0.8;margin-top:2px">${escapeHtml(w.notiz)}</div>` : ''}
+            ${linkHtml ? `<div style="margin-top:4px">${linkHtml}</div>` : ''}
+          </div>`;
+        }).join('');
+        box.querySelectorAll('.termin-card').forEach(el => {
+          el.addEventListener('click', (e) => {
+            if (e.target.tagName === 'A') return;
+            wunschFormOeffnen(el.dataset.id);
+          });
+        });
+      }
+      renderWunschAggregation();
+    }
+
+    // --- Sammelübersicht: liest (nur lesend) aus Garten- und Gaming-Wunschlisten mit ---
+    function renderWunschAggregation() {
+      const box = document.getElementById('wunschlisteAggregation');
+      let html = '';
+      try {
+        const gartenListe = JSON.parse(localStorage.getItem('gartenplaner_wishlist') || '[]').filter(g => !g.gekauft);
+        if (gartenListe.length) {
+          html += '<div class="sidebar-title" style="margin:18px 0 8px">🌱 Aus der Garten-Wunschliste</div>';
+          html += gartenListe.map(g => `<div class="termin-card">${escapeHtml(g.name)}${g.variety ? ' – ' + escapeHtml(g.variety) : ''}${g.preis ? ' · ca. ' + escapeHtml(g.preis) : ''}</div>`).join('');
+          html += '<p style="font-size:0.7rem;opacity:0.6">Bearbeiten im Garten-Modul (Shops &amp; Dienstleister → Wunschliste).</p>';
+        }
+      } catch(e) {}
+      try {
+        const spieleListe = JSON.parse(localStorage.getItem('gaming_spiele') || '[]').filter(s => s.status === 'wunschliste');
+        if (spieleListe.length) {
+          html += '<div class="sidebar-title" style="margin:18px 0 8px">🎮 Aus der Gaming-Wunschliste</div>';
+          html += spieleListe.map(s => `<div class="termin-card">${escapeHtml(s.titel)}${s.person ? ' – ' + escapeHtml(personLabel(s.person)) : ''}</div>`).join('');
+          html += '<p style="font-size:0.7rem;opacity:0.6">Bearbeiten im Gaming-Modul.</p>';
+        }
+      } catch(e) {}
+      box.innerHTML = html;
+    }
+
+    // --- Formular ---
+    let wunschEditPerson = 'familie', wunschEditAnlass = 'geburtstag', wunschEditReserviertVon = 'familie';
+    function optReiheRendernLokal(boxId, optionen, aktiv, onSelect, labelKey, idKey) {
+      const box = document.getElementById(boxId);
+      box.innerHTML = '';
+      optionen.forEach(o => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'opt' + (o[idKey]===aktiv ? ' active' : '');
+        btn.textContent = o[labelKey];
+        if (o[idKey]===aktiv) btn.style.background = o.farbe || 'var(--moss)';
+        btn.addEventListener('click', () => onSelect(o[idKey]));
+        box.appendChild(btn);
+      });
+    }
+    function renderWunschPersonReihe() { optReiheRendernLokal('wunschPersonReihe', WER_OPTIONEN, wunschEditPerson, (id)=>{wunschEditPerson=id;renderWunschPersonReihe();}, 'label', 'id'); }
+    function renderWunschAnlassReihe() { optReiheRendernLokal('wunschAnlassReihe', ANLAESSE, wunschEditAnlass, (id)=>{wunschEditAnlass=id;renderWunschAnlassReihe();}, 'label', 'id'); }
+    function renderWunschReserviertVonReihe() { optReiheRendernLokal('wunschReserviertVonReihe', WER_OPTIONEN, wunschEditReserviertVon, (id)=>{wunschEditReserviertVon=id;renderWunschReserviertVonReihe();}, 'label', 'id'); }
+
+    document.getElementById('wunschReserviert').addEventListener('change', (e) => {
+      document.getElementById('wunschReserviertVonFeld').style.display = e.target.checked ? '' : 'none';
+    });
+
+    function wunschFormOeffnen(id) {
+      const w = id ? wunschliste.find(x=>x.id===id) : null;
+      document.getElementById('wunschModalTitel').textContent = w ? 'Wunsch bearbeiten' : 'Neuer Wunsch';
+      document.getElementById('wunschId').value = id || '';
+      document.getElementById('wunschName').value = w ? w.name : '';
+      document.getElementById('wunschPreis').value = w ? (w.preis||'') : '';
+      document.getElementById('wunschPrioritaet').value = w ? (w.prioritaet||'mittel') : 'mittel';
+      document.getElementById('wunschLink').value = w ? (w.link||'') : '';
+      document.getElementById('wunschNotiz').value = w ? (w.notiz||'') : '';
+      document.getElementById('wunschReserviert').checked = w ? !!w.reserviert : false;
+      document.getElementById('wunschReserviertVonFeld').style.display = (w && w.reserviert) ? '' : 'none';
+      wunschEditPerson = w ? w.person : (aktiverFilter!=='alle' ? aktiverFilter : 'familie');
+      wunschEditAnlass = w ? w.anlass : 'geburtstag';
+      wunschEditReserviertVon = w ? (w.reserviertVon || 'familie') : 'familie';
+      renderWunschPersonReihe(); renderWunschAnlassReihe(); renderWunschReserviertVonReihe();
+      document.getElementById('btnWunschLoeschen').style.display = w ? '' : 'none';
+      document.getElementById('wunschModal').style.display = 'flex';
+    }
+    document.getElementById('btnWunschHinzufuegen').addEventListener('click', () => wunschFormOeffnen(null));
+    document.getElementById('btnWunschAbbrechen').addEventListener('click', () => document.getElementById('wunschModal').style.display='none');
+    document.getElementById('wunschModal').addEventListener('click', (e) => { if (e.target.id==='wunschModal') e.currentTarget.style.display='none'; });
+    document.getElementById('btnWunschSpeichern').addEventListener('click', () => {
+      const name = document.getElementById('wunschName').value.trim();
+      if (!name) { alert('Bitte einen Namen für den Wunsch eingeben.'); return; }
+      const id = document.getElementById('wunschId').value;
+      const daten = {
+        person: wunschEditPerson, anlass: wunschEditAnlass, name,
+        preis: document.getElementById('wunschPreis').value.trim(),
+        prioritaet: document.getElementById('wunschPrioritaet').value,
+        link: document.getElementById('wunschLink').value.trim(),
+        notiz: document.getElementById('wunschNotiz').value.trim(),
+        reserviert: document.getElementById('wunschReserviert').checked,
+        reserviertVon: document.getElementById('wunschReserviert').checked ? wunschEditReserviertVon : '',
+      };
+      if (id) {
+        const w = wunschliste.find(x=>x.id===id);
+        if (w) Object.assign(w, daten);
+      } else {
+        daten.id = 'wunsch_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+        wunschliste.push(daten);
+      }
+      speichernWunschliste(wunschliste);
+      document.getElementById('wunschModal').style.display='none';
+      renderWunschliste();
+    });
+    document.getElementById('btnWunschLoeschen').addEventListener('click', () => {
+      const id = document.getElementById('wunschId').value;
+      if (!id || !confirm('Diesen Wunsch wirklich löschen?')) return;
+      wunschliste = wunschliste.filter(x=>x.id!==id);
+      speichernWunschliste(wunschliste);
+      document.getElementById('wunschModal').style.display='none';
+      renderWunschliste();
     });
 
     // --- Tagesdetail-Modal ---
@@ -616,8 +870,8 @@
     if (window.PlanerSync) {
       window._sync = window.PlanerSync.starteSync({
         modul: 'termine',
-        keys: [STORAGE_KEY],
-        onRemoteChange: function () { events = ladenAlle(); renderFilter(); renderAktuelleAnsicht(); },
+        keys: [STORAGE_KEY, KEY_WUNSCHLISTE],
+        onRemoteChange: function () { events = ladenAlle(); wunschliste = ladenWunschliste(); renderFilter(); renderAktuelleAnsicht(); },
       });
     }
   })();
