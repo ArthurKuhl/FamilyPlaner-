@@ -629,7 +629,7 @@
       document.getElementById('wunschReserviert').checked = w ? !!w.reserviert : false;
       document.getElementById('wunschReserviertVonFeld').style.display = (w && w.reserviert) ? '' : 'none';
       wunschEditPerson = w ? w.person : (aktiverFilter!=='alle' ? aktiverFilter : 'familie');
-      wunschEditAnlass = w ? w.anlass : 'geburtstag';
+      wunschEditAnlass = w ? w.anlass : (anlassFilter !== 'alle' ? anlassFilter : 'geburtstag');
       wunschEditReserviertVon = w ? (w.reserviertVon || 'familie') : 'familie';
       renderWunschPersonReihe(); renderWunschAnlassReihe(); renderWunschReserviertVonReihe();
       document.getElementById('btnWunschLoeschen').style.display = w ? '' : 'none';
