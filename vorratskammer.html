@@ -32,6 +32,11 @@
   .kat-tab-neu { flex: 0 0 auto; background: transparent; border: 1px dashed #6b5a3e; color: var(--sage); font-size: 0.75rem; font-weight: 600; padding: 6px 14px; border-radius: var(--radius-pill); cursor: pointer; white-space: nowrap; }
 
   main { padding: 12px 14px; max-width: 680px; margin: 0 auto; }
+  @media (min-width: 1000px) {
+    main { max-width: 1200px; }
+    #vorratListe { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 10px; align-items: start; }
+    #vorratListe .vorrat-karte { margin-bottom: 0; }
+  }
 
   .werkzeug-zeile { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
   .werkzeug-zeile select { padding: 8px 10px; border-radius: var(--radius-sm); border: 1px solid var(--parchment); background: var(--white); font-size: 0.8rem; color: var(--soil); }

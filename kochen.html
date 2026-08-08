@@ -16,10 +16,23 @@
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Inter', sans-serif; background: var(--cream); color: var(--soil); min-height: 100vh; padding-bottom: 40px; }
+  body.bg-kueche {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Ctext x='6' y='38' font-size='30' opacity='0.05'%3E%F0%9F%8D%B3%3C/text%3E%3Ctext x='78' y='34' font-size='26' opacity='0.05'%3E%F0%9F%A5%84%3C/text%3E%3Ctext x='34' y='96' font-size='28' opacity='0.05'%3E%F0%9F%8D%B4%3C/text%3E%3Ctext x='96' y='104' font-size='24' opacity='0.05'%3E%F0%9F%8D%85%3C/text%3E%3C/svg%3E");
+    background-repeat: repeat;
+  }
+  body.bg-kraeuter {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Ctext x='8' y='40' font-size='28' opacity='0.055'%3E%F0%9F%8C%BF%3C/text%3E%3Ctext x='80' y='36' font-size='24' opacity='0.055'%3E%F0%9F%8C%B8%3C/text%3E%3Ctext x='36' y='98' font-size='26' opacity='0.055'%3E%F0%9F%8B%8B%3C/text%3E%3Ctext x='98' y='106' font-size='24' opacity='0.055'%3E%F0%9F%8C%BE%3C/text%3E%3C/svg%3E");
+    background-repeat: repeat;
+  }
+  .theme-btn { background: none; border: none; color: var(--leaf); font-size: 1.1rem; cursor: pointer; padding: 4px 6px; flex-shrink: 0; }
+  .theme-popup { display: none; position: absolute; right: 12px; top: 54px; background: var(--white); border-radius: var(--radius-md); box-shadow: var(--shadow-md); padding: 10px; z-index: 50; }
+  .theme-popup.zeigen { display: flex; gap: 8px; }
+  .theme-swatch { width: 40px; height: 40px; border-radius: var(--radius-sm); border: 2px solid transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; background: var(--cream); }
+  .theme-swatch.aktiv { border-color: var(--moss); }
   button, input, select, textarea { font-family: inherit; -webkit-tap-highlight-color: transparent; }
   :focus-visible { outline: 2px solid var(--terracotta); outline-offset: 2px; border-radius: 4px; }
 
-  header.top { background: var(--navbg); color: var(--leaf); padding: 10px 12px; }
+  header.top { background: var(--navbg); color: var(--leaf); padding: 10px 12px; position: relative; }
   header.top .titel-zeile { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
   header.top h1 { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; }
   .add-btn {
@@ -70,6 +83,10 @@
   .filter-chip.active { background: var(--moss); color: var(--leaf); border-color: var(--moss); }
 
   main { padding: 12px 14px; max-width: 680px; margin: 0 auto; }
+  @media (min-width: 1000px) {
+    main { max-width: 1200px; }
+    .rezept-grid { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; }
+  }
 
   .rezept-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
   .rezept-karte {
@@ -162,6 +179,7 @@
 <header class="top">
   <div class="titel-zeile">
     <h1>🍳 Kochen &amp; Backen</h1>
+    <button class="theme-btn" id="btnThemeAuswahl" title="Hintergrundmuster wählen">🎨</button>
     <button class="add-btn" id="btnNeu">＋ Neu</button>
   </div>
   <div class="view-toggle" role="tablist">
@@ -176,6 +194,11 @@
   </div>
   <div class="filter-reihe" id="filterReihe" style="margin-top:8px;"></div>
   <div class="filter-reihe" id="tagFilterReihe" style="margin-top:4px;"></div>
+  <div class="theme-popup" id="themePopup">
+    <div class="theme-swatch" data-theme="" title="Kein Muster">✕</div>
+    <div class="theme-swatch" data-theme="bg-kueche" title="Küchenmotive">🍳</div>
+    <div class="theme-swatch" data-theme="bg-kraeuter" title="Kräuter &amp; Blumen">🌿</div>
+  </div>
 </header>
 
 <main>
@@ -748,6 +771,34 @@
     document.getElementById('modalEdit').classList.add('zeigen');
     document.getElementById('modalDetail').classList.remove('zeigen');
   }
+  // --- HINTERGRUNDMUSTER (geräte-lokal, rein optisch) ---
+  const KEY_THEME = 'kochen_hintergrundThema';
+  function themeAnwenden(id) {
+    document.body.classList.remove('bg-kueche', 'bg-kraeuter');
+    if (id) document.body.classList.add(id);
+    document.querySelectorAll('.theme-swatch').forEach(s => s.classList.toggle('aktiv', s.dataset.theme === id));
+  }
+  let aktivesTheme = '';
+  try { aktivesTheme = localStorage.getItem(KEY_THEME) || ''; } catch(e) {}
+  themeAnwenden(aktivesTheme);
+  document.getElementById('btnThemeAuswahl').addEventListener('click', () => {
+    document.getElementById('themePopup').classList.toggle('zeigen');
+  });
+  document.querySelectorAll('.theme-swatch').forEach(swatch => {
+    swatch.addEventListener('click', () => {
+      const id = swatch.dataset.theme;
+      themeAnwenden(id);
+      try { localStorage.setItem(KEY_THEME, id); } catch(e) {}
+      document.getElementById('themePopup').classList.remove('zeigen');
+    });
+  });
+  document.addEventListener('click', (e) => {
+    const popup = document.getElementById('themePopup');
+    if (popup.classList.contains('zeigen') && !popup.contains(e.target) && e.target.id !== 'btnThemeAuswahl') {
+      popup.classList.remove('zeigen');
+    }
+  });
+
   document.getElementById('btnNeu').addEventListener('click', () => editModalOeffnen(null));
   document.getElementById('btnDetailBearbeiten').addEventListener('click', () => {
     const r = rezepte.find(x => x.id === detailId);

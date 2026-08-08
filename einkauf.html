@@ -66,6 +66,11 @@
   .listen-tab-neu { flex: 0 0 auto; background: transparent; border: 1px dashed #4a3a28; color: var(--sage); border-radius: var(--radius-pill); padding: 6px 12px; cursor: pointer; font-size: 0.9rem; }
 
   main { padding: 12px 14px; max-width: 640px; margin: 0 auto; }
+  @media (min-width: 1000px) {
+    main { max-width: 1100px; }
+    #offeneItems { column-count: 2; column-gap: 28px; }
+    .kategorie-gruppe { break-inside: avoid; }
+  }
 
   .quick-add { display: flex; gap: 8px; margin-bottom: 10px; }
   .vorlagen-erinnerung {

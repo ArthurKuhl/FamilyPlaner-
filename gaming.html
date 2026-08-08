@@ -32,6 +32,10 @@
   .filter-chip.active { background: var(--moss); color: var(--leaf); border-color: var(--moss); }
 
   main { padding: 12px 14px; max-width: 680px; margin: 0 auto; }
+  @media (min-width: 1000px) {
+    main { max-width: 1200px; }
+    .spiel-grid { grid-template-columns: repeat(auto-fill, minmax(195px, 1fr)); gap: 14px; }
+  }
 
   .stat-reihe { display: flex; gap: 8px; margin-bottom: 12px; }
   .stat-box { flex: 1; background: var(--white); border-radius: var(--radius-md); padding: 10px; text-align: center; box-shadow: var(--shadow-soft); }
