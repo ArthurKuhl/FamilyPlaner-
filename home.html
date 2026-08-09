@@ -23,6 +23,7 @@
   header.top .datum { font-size: 0.8rem; color: var(--sage); margin-top: 2px; text-transform: capitalize; }
 
   main { padding: 14px; max-width: 640px; margin: 0 auto; }
+  @media (min-width: 1000px) { main { max-width: 1200px; } }
 
   .kachel {
     background: var(--white); border-radius: var(--radius-md); padding: 14px; margin-bottom: 12px;
@@ -96,14 +97,6 @@
       <span class="kachel-pfeil">→</span>
     </div>
     <div id="kochenHeuteInfo"></div>
-  </div>
-
-  <div class="kachel" id="kachelVorrat" style="display:none;">
-    <div class="kachel-kopf">
-      <div class="kachel-titel">🥫 Vorratskammer</div>
-      <span class="kachel-badge" id="badgeVorrat">0</span>
-    </div>
-    <div id="listeVorrat"></div>
   </div>
 
   <div class="kachel garten-kachel" id="kachelGarten">
@@ -309,31 +302,6 @@
   }
 
   // ============================================================
-  // VORRATSKAMMER – bald ablaufende/aufzubrauchende Vorräte
-  // ============================================================
-  function renderVorrat() {
-    const items = laden('vorratskammer_items', []);
-    const heuteDatum = heute();
-    const bald = [];
-    items.forEach(it => {
-      const datum = it.verfallsdatum || it.aufbrauchenBis;
-      if (!datum) return;
-      const tage = Math.round((ausISO(datum) - heuteDatum) / 86400000);
-      if (tage <= 7) bald.push({ name: it.name, tage });
-    });
-    const kachel = document.getElementById('kachelVorrat');
-    if (!bald.length) { kachel.style.display = 'none'; return; }
-    kachel.style.display = '';
-    bald.sort((a, b) => a.tage - b.tage);
-    document.getElementById('badgeVorrat').textContent = bald.length;
-    document.getElementById('listeVorrat').innerHTML = bald.slice(0, 4).map(b => {
-      const text = b.tage < 0 ? 'abgelaufen' : (b.tage === 0 ? 'heute' : 'noch ' + b.tage + ' Tag' + (b.tage === 1 ? '' : 'e'));
-      return '<div class="mini-zeile"><span class="mini-name">' + escapeHtml(b.name) + '</span><span class="mini-zeit">' + text + '</span></div>';
-    }).join('') + (bald.length > 4 ? '<div class="mini-leer">+ ' + (bald.length - 4) + ' weitere</div>' : '');
-  }
-  document.getElementById('kachelVorrat').addEventListener('click', () => navigiere('vorratskammer'));
-
-  // ============================================================
   // KOCHEN – heutiges Rezept aus dem Wochenplan
   // ============================================================
   const KOCHEN_KATEGORIE_ICONS = {
@@ -361,11 +329,10 @@
   renderGartenWarnungen();
   renderGartenPflanzErnte();
   renderKochenHeute();
-  renderVorrat();
 
   // Bei Rückkehr auf die Startseite (z.B. nach Bearbeitung in einem anderen Modul) neu laden
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) { renderTermine(); renderEinkauf(); renderSport(); renderGartenWarnungen(); renderGartenPflanzErnte(); renderKochenHeute(); renderVorrat(); }
+    if (!document.hidden) { renderTermine(); renderEinkauf(); renderSport(); renderGartenWarnungen(); renderGartenPflanzErnte(); renderKochenHeute(); }
   });
 })();
 </script>
