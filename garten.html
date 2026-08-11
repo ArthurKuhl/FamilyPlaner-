@@ -964,49 +964,74 @@
 <div class="modal-bg" id="varietyModal" style="display:none">
   <div class="modal" style="width:min(640px,96vw);max-height:88vh;overflow-y:auto">
     <h2>🌾 Sortendatenbank</h2>
-    <p style="font-size:0.72rem;color:var(--bark);margin-bottom:10px">Sammle eigene Erfahrungen zu konkreten Sorten – Geschmack, Ertrag, Bezugsquelle, Krankheitsresistenz u.ä. Diese Daten gelten gartenübergreifend.</p>
-    <div class="form-row">
-      <label>Pflanze</label>
-      <select id="varietyPlantSel" onchange="renderVarietyList()"></select>
+    <div class="tabs" role="tablist" style="margin-bottom:10px">
+      <div class="tab active" role="tab" tabindex="0" aria-selected="true" onclick="switchVdbTab('sorten')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">📋 Meine Sorten</div>
+      <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchVdbTab('probleme')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">🔍 Blattprobleme</div>
+      <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchVdbTab('ideen')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">💡 Pflanzenideen</div>
     </div>
-    <div id="varietyListBox" style="margin:10px 0"></div>
 
-    <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--parchment)">
-      <div class="sidebar-title" id="varietyFormTitle">➕ Neue Sorte</div>
-      <input type="hidden" id="varietyEditId" value="">
+    <div class="tab-content active" id="vdbTabSorten">
+      <p style="font-size:0.72rem;color:var(--bark);margin-bottom:10px">Sammle eigene Erfahrungen zu konkreten Sorten – Geschmack, Ertrag, Bezugsquelle, Krankheitsresistenz u.ä. Diese Daten gelten gartenübergreifend.</p>
       <div class="form-row">
-        <label>Sortenname</label>
-        <input type="text" id="varietyName" placeholder="z.B. 'Black Krim', 'Berner Rose'..." />
+        <label>Pflanze</label>
+        <select id="varietyPlantSel" onchange="renderVarietyList()"></select>
       </div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <div class="form-row" style="flex:1;min-width:140px">
-          <label>Bewertung</label>
-          <select id="varietyRating">
-            <option value="0">– keine –</option>
-            <option value="1">⭐ (1/5)</option>
-            <option value="2">⭐⭐ (2/5)</option>
-            <option value="3">⭐⭐⭐ (3/5)</option>
-            <option value="4">⭐⭐⭐⭐ (4/5)</option>
-            <option value="5">⭐⭐⭐⭐⭐ (5/5)</option>
-          </select>
+      <div id="varietyListBox" style="margin:10px 0"></div>
+
+      <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--parchment)">
+        <div class="sidebar-title" id="varietyFormTitle">➕ Neue Sorte</div>
+        <input type="hidden" id="varietyEditId" value="">
+        <div class="form-row">
+          <label>Sortenname</label>
+          <input type="text" id="varietyName" placeholder="z.B. 'Black Krim', 'Berner Rose'..." />
         </div>
-        <div class="form-row" style="flex:1;min-width:140px">
-          <label>Bezugsquelle</label>
-          <input type="text" id="varietySource" placeholder="z.B. Bingenheimer Saatgut..." />
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <div class="form-row" style="flex:1;min-width:140px">
+            <label>Bewertung</label>
+            <select id="varietyRating">
+              <option value="0">– keine –</option>
+              <option value="1">⭐ (1/5)</option>
+              <option value="2">⭐⭐ (2/5)</option>
+              <option value="3">⭐⭐⭐ (3/5)</option>
+              <option value="4">⭐⭐⭐⭐ (4/5)</option>
+              <option value="5">⭐⭐⭐⭐⭐ (5/5)</option>
+            </select>
+          </div>
+          <div class="form-row" style="flex:1;min-width:140px">
+            <label>Bezugsquelle</label>
+            <input type="text" id="varietySource" placeholder="z.B. Bingenheimer Saatgut..." />
+          </div>
+        </div>
+        <div class="form-row">
+          <label>Erntehinweis</label>
+          <input type="text" id="varietyHarvest" placeholder="z.B. früh, 65 Tage, Ende Aug...." />
+        </div>
+        <div class="form-row">
+          <label>Notizen / Eigenschaften</label>
+          <textarea id="varietyNotes" placeholder="Geschmack, Resistenzen, Ertrag, Besonderheiten..."></textarea>
+        </div>
+        <div class="modal-btns" style="justify-content:flex-start">
+          <button class="btn-primary" onclick="saveVarietyForm()">💾 Speichern</button>
+          <button class="btn-secondary" id="varietyCancelEditBtn" onclick="resetVarietyForm()" style="display:none">Abbrechen</button>
         </div>
       </div>
+    </div>
+
+    <div class="tab-content" id="vdbTabProbleme" style="display:none">
+      <p style="font-size:0.72rem;color:var(--bark);margin-bottom:10px">Häufige Symptome an Blättern, ihre wahrscheinlichste Ursache und was dagegen hilft. Bei anhaltenden oder sich ausbreitenden Problemen im Zweifel eine Gärtnerei oder Pflanzenschutz-Beratung hinzuziehen.</p>
+      <div id="blattproblemeBox" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px"></div>
+    </div>
+
+    <div class="tab-content" id="vdbTabIdeen" style="display:none">
+      <p style="font-size:0.72rem;color:var(--bark);margin-bottom:10px">Kuratierte Vorschläge nach Standort-Eigenschaft – als Anregung, unabhängig vom eigenen Beet-Pflanzenkatalog.</p>
       <div class="form-row">
-        <label>Erntehinweis</label>
-        <input type="text" id="varietyHarvest" placeholder="z.B. früh, 65 Tage, Ende Aug...." />
+        <label>Themenliste</label>
+        <select id="pflanzenIdeenSel" onchange="renderPflanzenIdeen()">
+          <option value="trocken">🌵 Trockenheitsverträglich</option>
+          <option value="sonne">☀️ Volle Sonne</option>
+        </select>
       </div>
-      <div class="form-row">
-        <label>Notizen / Eigenschaften</label>
-        <textarea id="varietyNotes" placeholder="Geschmack, Resistenzen, Ertrag, Besonderheiten..."></textarea>
-      </div>
-      <div class="modal-btns" style="justify-content:flex-start">
-        <button class="btn-primary" onclick="saveVarietyForm()">💾 Speichern</button>
-        <button class="btn-secondary" id="varietyCancelEditBtn" onclick="resetVarietyForm()" style="display:none">Abbrechen</button>
-      </div>
+      <div id="pflanzenIdeenBox" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:8px"></div>
     </div>
 
     <div class="modal-btns">
@@ -2187,6 +2212,81 @@ function renderSowingHint(plantName) {
 }
 
 // ==================== SORTENDATENBANK ====================
+const BLATTPROBLEME = [
+  { icon: '🌀', titel: 'Gekräuselte Blätter', ursache: 'Hitzestress oder Blattlausbefall', fix: 'Schattierung an heißen Tagen, Unterseite der Blätter auf Blattläuse prüfen' },
+  { icon: '💛', titel: 'Gelbe Blätter', ursache: 'Meist Überwässerung, seltener Nährstoffmangel', fix: 'Boden antrocknen lassen, Drainage prüfen, Gießrhythmus reduzieren' },
+  { icon: '🍂', titel: 'Braune Blattspitzen', ursache: 'Zu trockene Luft oder unregelmäßiges Gießen', fix: 'Gleichmäßiger gießen, bei Zimmerpflanzen Luftfeuchtigkeit erhöhen' },
+  { icon: '🟤', titel: 'Braune Flecken', ursache: 'Pilzinfektion, oft durch Staunässe auf dem Blatt begünstigt', fix: 'Befallene Blätter entfernen, von oben gießen vermeiden, für Luftzirkulation sorgen' },
+  { icon: '🌿', titel: 'Blasse Blätter', ursache: 'Nährstoffmangel im Boden', fix: 'Ausgewogen düngen, Bodenqualität mit Kompost verbessern' },
+  { icon: '🍃', titel: 'Blattfall', ursache: 'Überwässerung oder plötzlicher Standortwechsel', fix: 'Bodenfeuchte prüfen, Pflanze nicht ständig umstellen, Ruhe geben' },
+  { icon: '🕳️', titel: 'Löcher in Blättern', ursache: 'Fraßschäden durch Raupen, Schnecken oder Käfer', fix: 'Pflanze und Umgebung absuchen, betroffene Bereiche gezielt kontrollieren' },
+  { icon: '🎨', titel: 'Verblassende Farbe', ursache: 'Zu viel direkte Sonneneinstrahlung', fix: 'An helleren, aber indirekten Standort umstellen' },
+];
+
+const PFLANZEN_IDEEN = {
+  trocken: [
+    { name: 'Sand-Thymian', info: 'Niedriger Bodendecker, blüht rosa-lila, mag magere Böden' },
+    { name: 'Hornkraut', info: 'Silbrige Polster mit weißen Blüten, sehr genügsam' },
+    { name: 'Winterharte Mittagsblume', info: 'Sonnenhungrig, leuchtende Blüten, gut für Steingärten' },
+    { name: 'Hauswurz', info: 'Sukkulente Rosetten, praktisch pflegefrei' },
+    { name: 'Polster-Glockenblume', info: 'Blauviolette Blütenpolster, verträgt kurze Trockenphasen' },
+    { name: 'Polster-Phlox', info: 'Dichtes Blütenkissen im Frühjahr, sonnig und durchlässig' },
+    { name: 'Kriech-Rosmarin', info: 'Aromatisch, niedrig wachsend, ideal für Mauerkronen' },
+    { name: 'Fetthenne', info: 'Sukkulent, gelbe Blüten, sehr trockenheitsverträglich' },
+    { name: 'Schleifenblume', info: 'Immergrün, weiße Blütenteppiche im Frühling' },
+    { name: 'Feinblättrige Schafgarbe', info: 'Filigranes Laub, anspruchslos, zieht Insekten an' },
+  ],
+  sonne: [
+    { name: 'Hibiskus (Garten-Eibisch)', info: 'Dauerblüher den ganzen Sommer, große Blüten' },
+    { name: 'Sternjasmin', info: 'Duftender Kletterer für Wände und Rankgitter' },
+    { name: 'Sonnenblume', info: 'Klassiker, folgt der Sonne während des Wachstums' },
+    { name: 'Zinnie', info: 'Vielfarbig, blüht schon nach wenigen Wochen' },
+    { name: 'Cosmos (Schmuckkörbchen)', info: 'Genügsam, blüht auch auf kargem Boden' },
+    { name: 'Madagaskar-Immergrün', info: 'Sehr hitzeverträglich, pflegeleicht' },
+    { name: 'Stockrose', info: 'Hochwachsend, klassische Bauerngarten-Pflanze' },
+    { name: 'Lavendel', info: 'Duftend, bienenfreundlich, sehr trockenheitsresistent' },
+    { name: 'Salbei (Zier-)', info: 'Kräftige Blütenähren vom Sommer bis zum Frost' },
+  ],
+};
+
+function renderBlattprobleme() {
+  const box = document.getElementById('blattproblemeBox');
+  if (!box) return;
+  box.innerHTML = BLATTPROBLEME.map(p => `
+    <div style="padding:8px;border:1px solid var(--parchment);border-radius:8px;text-align:center">
+      <div style="font-size:1.5rem">${p.icon}</div>
+      <div style="font-weight:700;font-size:0.76rem;margin-top:2px">${escapeHtml(p.titel)}</div>
+      <div style="font-size:0.68rem;color:var(--bark);margin-top:4px"><strong>Ursache:</strong> ${escapeHtml(p.ursache)}</div>
+      <div style="font-size:0.68rem;color:var(--moss);margin-top:3px"><strong>Fix:</strong> ${escapeHtml(p.fix)}</div>
+    </div>`).join('');
+}
+
+function renderPflanzenIdeen() {
+  const sel = document.getElementById('pflanzenIdeenSel');
+  const box = document.getElementById('pflanzenIdeenBox');
+  if (!sel || !box) return;
+  const liste = PFLANZEN_IDEEN[sel.value] || [];
+  box.innerHTML = liste.map(p => `
+    <div style="padding:8px;border:1px solid var(--parchment);border-radius:8px">
+      <div style="font-weight:700;font-size:0.76rem">${escapeHtml(p.name)}</div>
+      <div style="font-size:0.68rem;color:var(--bark);margin-top:3px">${escapeHtml(p.info)}</div>
+    </div>`).join('');
+}
+
+function switchVdbTab(id) {
+  ['sorten','probleme','ideen'].forEach(t => {
+    const content = document.getElementById('vdbTab' + t.charAt(0).toUpperCase() + t.slice(1));
+    if (content) content.style.display = (t === id) ? '' : 'none';
+  });
+  document.querySelectorAll('#varietyModal .tabs .tab').forEach((el, i) => {
+    const isActive = ['sorten','probleme','ideen'][i] === id;
+    el.classList.toggle('active', isActive);
+    el.setAttribute('aria-selected', isActive ? 'true' : 'false');
+  });
+  if (id === 'probleme') renderBlattprobleme();
+  if (id === 'ideen') renderPflanzenIdeen();
+}
+
 let varietyDB = {}; // { plantName: [ {id,name,rating,source,harvest,notes} ] }
 function loadVarieties() {
   try { varietyDB = JSON.parse(localStorage.getItem('gartenplaner_varieties') || '{}') || {}; } catch(e) { varietyDB = {}; }
@@ -2210,6 +2310,7 @@ function openVarietyDB(plantName) {
   populateVarietyPlantSelect(plantName);
   resetVarietyForm();
   renderVarietyList();
+  switchVdbTab('sorten');
   document.getElementById('varietyModal').style.display = 'flex';
 }
 function renderVarietyDatalist(plantName) {
