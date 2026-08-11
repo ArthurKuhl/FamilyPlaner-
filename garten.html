@@ -1017,12 +1017,12 @@
       </div>
     </div>
 
-    <div class="tab-content" id="vdbTabProbleme" style="display:none">
+    <div class="tab-content" id="vdbTabProbleme">
       <p style="font-size:0.72rem;color:var(--bark);margin-bottom:10px">Häufige Symptome an Blättern, ihre wahrscheinlichste Ursache und was dagegen hilft. Bei anhaltenden oder sich ausbreitenden Problemen im Zweifel eine Gärtnerei oder Pflanzenschutz-Beratung hinzuziehen.</p>
       <div id="blattproblemeBox" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px"></div>
     </div>
 
-    <div class="tab-content" id="vdbTabIdeen" style="display:none">
+    <div class="tab-content" id="vdbTabIdeen">
       <p style="font-size:0.72rem;color:var(--bark);margin-bottom:10px">Kuratierte Vorschläge nach Standort-Eigenschaft – als Anregung, unabhängig vom eigenen Beet-Pflanzenkatalog.</p>
       <div class="form-row">
         <label>Themenliste</label>
@@ -2276,7 +2276,7 @@ function renderPflanzenIdeen() {
 function switchVdbTab(id) {
   ['sorten','probleme','ideen'].forEach(t => {
     const content = document.getElementById('vdbTab' + t.charAt(0).toUpperCase() + t.slice(1));
-    if (content) content.style.display = (t === id) ? '' : 'none';
+    if (content) content.classList.toggle('active', t === id);
   });
   document.querySelectorAll('#varietyModal .tabs .tab').forEach((el, i) => {
     const isActive = ['sorten','probleme','ideen'][i] === id;
