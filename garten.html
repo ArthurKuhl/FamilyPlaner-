@@ -16,6 +16,20 @@
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Inter', sans-serif; background: var(--cream); color: var(--soil); min-height: 100vh; display: flex; flex-direction: column; }
+
+  .theme-btn { background: none; border: none; color: var(--leaf); font-size: 1.1rem; cursor: pointer; padding: 4px 6px; flex-shrink: 0; }
+  .theme-popup { display: none; position: absolute; right: 12px; top: 54px; background: var(--white, #fff); border-radius: var(--radius-md, 10px); box-shadow: var(--shadow-md, 0 8px 26px rgba(59,47,30,0.2)); padding: 10px; z-index: 50; }
+  .theme-popup.zeigen { display: flex; gap: 8px; }
+  .theme-swatch { width: 40px; height: 40px; border-radius: var(--radius-sm, 8px); border: 2px solid transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; background: var(--cream); }
+  .theme-swatch.aktiv { border-color: var(--moss); }
+  body.bg-pflanzen {
+    background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22190%22%20height%3D%22190%22%20viewBox%3D%220%200%20190%20190%22%3E%3Cg%20opacity%3D%220.11%22%3E%3Cg%20transform%3D%22translate%2810%2C15%29%20scale%280.9%29%20rotate%28-10%29%22%3E%3Cline%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%2240%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3Cpath%20d%3D%22M%200%208%20C%208%204%2C%2014%208%2C%2016%2014%20C%2010%2016%2C%204%2014%2C%200%208%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M%200%2018%20C%20-8%2014%2C%20-14%2018%2C%20-16%2024%20C%20-10%2026%2C%20-4%2024%2C%200%2018%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M%200%2028%20C%208%2024%2C%2014%2028%2C%2016%2034%20C%2010%2036%2C%204%2034%2C%200%2028%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%28110%2C20%29%20scale%280.75%29%20rotate%2825%29%22%3E%3Cpath%20d%3D%22M%200%200%20C%2020%20-4%2C%2030%2014%2C%200%2034%20C%20-30%2014%2C%20-20%20-4%2C%200%200%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cline%20x1%3D%220%22%20y1%3D%222%22%20x2%3D%220%22%20y2%3D%2232%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%2855%2C110%29%20scale%280.8%29%20rotate%2815%29%22%3E%3Cline%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%2240%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3Cpath%20d%3D%22M%200%208%20C%208%204%2C%2014%208%2C%2016%2014%20C%2010%2016%2C%204%2014%2C%200%208%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M%200%2018%20C%20-8%2014%2C%20-14%2018%2C%20-16%2024%20C%20-10%2026%2C%20-4%2024%2C%200%2018%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M%200%2028%20C%208%2024%2C%2014%2028%2C%2016%2034%20C%2010%2036%2C%204%2034%2C%200%2028%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    background-repeat: repeat;
+  }
+  body.bg-werkzeug {
+    background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22190%22%20height%3D%22190%22%20viewBox%3D%220%200%20190%20190%22%3E%3Cg%20opacity%3D%220.1%22%3E%3Cg%20transform%3D%22translate%2815%2C10%29%20scale%280.8%29%20rotate%28-10%29%22%3E%3Cline%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%2234%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3Cpath%20d%3D%22M%20-10%2034%20C%20-10%2046%2C%2010%2046%2C%2010%2034%20C%2010%2030%2C%20-10%2030%2C%20-10%2034%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cline%20x1%3D%22-6%22%20y1%3D%2210%22%20x2%3D%226%22%20y2%3D%2210%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%28115%2C15%29%20scale%280.75%29%20rotate%2810%29%22%3E%3Cline%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%2236%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3Cline%20x1%3D%22-14%22%20y1%3D%2236%22%20x2%3D%2214%22%20y2%3D%2236%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3Cline%20x1%3D%22-14%22%20y1%3D%2236%22%20x2%3D%22-14%22%20y2%3D%2244%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3Cline%20x1%3D%22-7%22%20y1%3D%2236%22%20x2%3D%22-7%22%20y2%3D%2244%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3Cline%20x1%3D%220%22%20y1%3D%2236%22%20x2%3D%220%22%20y2%3D%2244%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3Cline%20x1%3D%227%22%20y1%3D%2236%22%20x2%3D%227%22%20y2%3D%2244%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3Cline%20x1%3D%2214%22%20y1%3D%2236%22%20x2%3D%2214%22%20y2%3D%2244%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%2855%2C115%29%20scale%280.7%29%20rotate%280%29%22%3E%3Ccircle%20cx%3D%220%22%20cy%3D%220%22%20r%3D%2210%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22/%3E%3Cline%20x1%3D%2214.0%22%20y1%3D%220.0%22%20x2%3D%2220.0%22%20y2%3D%220.0%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3Cline%20x1%3D%229.9%22%20y1%3D%229.9%22%20x2%3D%2214.1%22%20y2%3D%2214.1%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3Cline%20x1%3D%220.0%22%20y1%3D%2214.0%22%20x2%3D%220.0%22%20y2%3D%2220.0%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3Cline%20x1%3D%22-9.9%22%20y1%3D%229.9%22%20x2%3D%22-14.1%22%20y2%3D%2214.1%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3Cline%20x1%3D%22-14.0%22%20y1%3D%220.0%22%20x2%3D%22-20.0%22%20y2%3D%220.0%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3Cline%20x1%3D%22-9.9%22%20y1%3D%22-9.9%22%20x2%3D%22-14.1%22%20y2%3D%22-14.1%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3Cline%20x1%3D%22-0.0%22%20y1%3D%22-14.0%22%20x2%3D%22-0.0%22%20y2%3D%22-20.0%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3Cline%20x1%3D%229.9%22%20y1%3D%22-9.9%22%20x2%3D%2214.1%22%20y2%3D%22-14.1%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    background-repeat: repeat;
+  }
   :focus-visible { outline: 2px solid var(--terracotta); outline-offset: 2px; border-radius: 4px; }
   button, select, input[type=text], input[type=number], input[type=date] { -webkit-tap-highlight-color: transparent; }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; } }
@@ -337,10 +351,17 @@
 <header>
   <h1 style="cursor:pointer" onclick="showView('home')" title="Zur Startseite">🌿 Gartenplaner <span class="hdr-sub">Dein Garten, geplant</span></h1>
   <div class="hdr-right">
+    <button class="theme-btn" id="btnThemeAuswahl" title="Hintergrundmuster wählen">🎨</button>
     <span id="statusMsg" role="status" aria-live="polite">Wähle ein Werkzeug</span>
     <button class="btn-help" onclick="openHelpModal()" title="Kurzanleitung anzeigen" aria-label="Kurzanleitung anzeigen">?</button>
   </div>
 </header>
+  <div class="theme-popup" id="themePopup">
+<div class="theme-swatch" data-theme="" title="Kein Muster">✕</div>
+    <div class="theme-swatch" data-theme="bg-pflanzen" title="Beete & Pflanzen">🌿</div>
+    <div class="theme-swatch" data-theme="bg-werkzeug" title="Gartenwerkzeug">🛠️</div>
+  </div>
+
 
 <nav class="main-nav" role="tablist" aria-label="Bereiche">
   <button class="nav-btn active" data-view="home" role="tab" aria-selected="true" onclick="showView('home')">🏠 Start</button>
@@ -6898,6 +6919,39 @@ if (window.PlanerSync) {
     });
     observer.observe(modal, { attributes: true, attributeFilter: ['style'] });
   });
+})();
+</script>
+
+<script>
+(function() {
+  var KEY_THEME = 'garten_hintergrundThema';
+  var klassen = ['bg-pflanzen', 'bg-werkzeug'];
+  function themeAnwenden(id) {
+    document.body.classList.remove.apply(document.body.classList, klassen);
+    if (id) document.body.classList.add(id);
+    document.querySelectorAll('.theme-swatch').forEach(function(s) { s.classList.toggle('aktiv', s.dataset.theme === id); });
+  }
+  var aktivesTheme = '';
+  try { aktivesTheme = localStorage.getItem(KEY_THEME) || ''; } catch(e) {}
+  themeAnwenden(aktivesTheme);
+  var btn = document.getElementById('btnThemeAuswahl');
+  var popup = document.getElementById('themePopup');
+  if (btn && popup) {
+    btn.addEventListener('click', function() { popup.classList.toggle('zeigen'); });
+    document.querySelectorAll('.theme-swatch').forEach(function(swatch) {
+      swatch.addEventListener('click', function() {
+        var id = swatch.dataset.theme;
+        themeAnwenden(id);
+        try { localStorage.setItem(KEY_THEME, id); } catch(e) {}
+        popup.classList.remove('zeigen');
+      });
+    });
+    document.addEventListener('click', function(e) {
+      if (popup.classList.contains('zeigen') && !popup.contains(e.target) && e.target.id !== 'btnThemeAuswahl') {
+        popup.classList.remove('zeigen');
+      }
+    });
+  }
 })();
 </script>
 </body>

@@ -16,6 +16,20 @@
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Inter', sans-serif; background: var(--cream); color: var(--soil); min-height: 100vh; padding-bottom: 40px; }
+
+  .theme-btn { background: none; border: none; color: var(--leaf); font-size: 1.1rem; cursor: pointer; padding: 4px 6px; flex-shrink: 0; }
+  .theme-popup { display: none; position: absolute; right: 12px; top: 54px; background: var(--white, #fff); border-radius: var(--radius-md, 10px); box-shadow: var(--shadow-md, 0 8px 26px rgba(59,47,30,0.2)); padding: 10px; z-index: 50; }
+  .theme-popup.zeigen { display: flex; gap: 8px; }
+  .theme-swatch { width: 40px; height: 40px; border-radius: var(--radius-sm, 8px); border: 2px solid transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; background: var(--cream); }
+  .theme-swatch.aktiv { border-color: var(--moss); }
+  body.bg-korb {
+    background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22190%22%20height%3D%22190%22%20viewBox%3D%220%200%20190%20190%22%3E%3Cg%20opacity%3D%220.1%22%3E%3Cg%20transform%3D%22translate%2815%2C15%29%20scale%280.75%29%20rotate%28-6%29%22%3E%3Cpath%20d%3D%22M%20-16%20-4%20L%2016%20-4%20L%2012%2022%20C%2012%2026%2C%20-12%2026%2C%20-12%2022%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M%20-8%20-4%20C%20-8%20-16%2C%208%20-16%2C%208%20-4%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cline%20x1%3D%22-16%22%20y1%3D%22-4%22%20x2%3D%22-20%22%20y2%3D%22-10%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3Cline%20x1%3D%2216%22%20y1%3D%22-4%22%20x2%3D%2220%22%20y2%3D%22-10%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%28115%2C20%29%20scale%280.7%29%20rotate%288%29%22%3E%3Cpath%20d%3D%22M%20-14%20-2%20L%2014%20-2%20L%2012%2030%20L%20-12%2030%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M%20-7%20-2%20C%20-7%20-14%2C%207%20-14%2C%207%20-2%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%2860%2C115%29%20scale%280.65%29%20rotate%284%29%22%3E%3Cpath%20d%3D%22M%20-16%20-4%20L%2016%20-4%20L%2012%2022%20C%2012%2026%2C%20-12%2026%2C%20-12%2022%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M%20-8%20-4%20C%20-8%20-16%2C%208%20-16%2C%208%20-4%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cline%20x1%3D%22-16%22%20y1%3D%22-4%22%20x2%3D%22-20%22%20y2%3D%22-10%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3Cline%20x1%3D%2216%22%20y1%3D%22-4%22%20x2%3D%2220%22%20y2%3D%22-10%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    background-repeat: repeat;
+  }
+  body.bg-sterne {
+    background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22190%22%20height%3D%22190%22%20viewBox%3D%220%200%20190%20190%22%3E%3Cg%20opacity%3D%220.1%22%3E%3Cg%20transform%3D%22translate%2815%2C15%29%20scale%280.75%29%20rotate%280%29%22%3E%3Cpolygon%20points%3D%220.0%2C-14.0%20-3.5%2C-4.9%20-13.3%2C-4.3%20-5.7%2C1.9%20-8.2%2C11.3%20-0.0%2C6.0%208.2%2C11.3%205.7%2C1.9%2013.3%2C-4.3%203.5%2C-4.9%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%28115%2C25%29%20scale%280.55%29%20rotate%2820%29%22%3E%3Cpolygon%20points%3D%220.0%2C-14.0%20-3.5%2C-4.9%20-13.3%2C-4.3%20-5.7%2C1.9%20-8.2%2C11.3%20-0.0%2C6.0%208.2%2C11.3%205.7%2C1.9%2013.3%2C-4.3%203.5%2C-4.9%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%2860%2C115%29%20scale%280.65%29%20rotate%28-15%29%22%3E%3Cpolygon%20points%3D%220.0%2C-14.0%20-3.5%2C-4.9%20-13.3%2C-4.3%20-5.7%2C1.9%20-8.2%2C11.3%20-0.0%2C6.0%208.2%2C11.3%205.7%2C1.9%2013.3%2C-4.3%203.5%2C-4.9%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    background-repeat: repeat;
+  }
   button, input, select { font-family: inherit; -webkit-tap-highlight-color: transparent; }
   :focus-visible { outline: 2px solid var(--terracotta); outline-offset: 2px; border-radius: 4px; }
 
@@ -169,6 +183,7 @@
 <header class="top">
   <div class="titel-zeile">
     <h1>🛒 Einkauf</h1>
+    <button class="theme-btn" id="btnThemeAuswahl" title="Hintergrundmuster wählen">🎨</button>
     <div style="display:flex; gap:4px;">
       <button class="listen-icon-btn" id="btnVorlagen" title="Vorlagen">📋</button>
       <button class="listen-icon-btn" id="btnListeVerwalten" title="Liste umbenennen/löschen">⚙️</button>
@@ -177,6 +192,12 @@
   <div class="listen-tabs" id="listenTabs"></div>
   <div class="ich-bin-reihe" id="ichBinReihe"></div>
 </header>
+  <div class="theme-popup" id="themePopup">
+<div class="theme-swatch" data-theme="" title="Kein Muster">✕</div>
+    <div class="theme-swatch" data-theme="bg-korb" title="Korb & Tüte">🛒</div>
+    <div class="theme-swatch" data-theme="bg-sterne" title="Sterne">⭐</div>
+  </div>
+
 
 <main>
   <div class="vorlagen-erinnerung" id="vorlagenErinnerung" style="display:none;">
@@ -875,6 +896,39 @@
         renderAlles();
         pruefeVorlagenErinnerung();
       },
+    });
+  }
+})();
+</script>
+
+<script>
+(function() {
+  var KEY_THEME = 'einkauf_hintergrundThema';
+  var klassen = ['bg-korb', 'bg-sterne'];
+  function themeAnwenden(id) {
+    document.body.classList.remove.apply(document.body.classList, klassen);
+    if (id) document.body.classList.add(id);
+    document.querySelectorAll('.theme-swatch').forEach(function(s) { s.classList.toggle('aktiv', s.dataset.theme === id); });
+  }
+  var aktivesTheme = '';
+  try { aktivesTheme = localStorage.getItem(KEY_THEME) || ''; } catch(e) {}
+  themeAnwenden(aktivesTheme);
+  var btn = document.getElementById('btnThemeAuswahl');
+  var popup = document.getElementById('themePopup');
+  if (btn && popup) {
+    btn.addEventListener('click', function() { popup.classList.toggle('zeigen'); });
+    document.querySelectorAll('.theme-swatch').forEach(function(swatch) {
+      swatch.addEventListener('click', function() {
+        var id = swatch.dataset.theme;
+        themeAnwenden(id);
+        try { localStorage.setItem(KEY_THEME, id); } catch(e) {}
+        popup.classList.remove('zeigen');
+      });
+    });
+    document.addEventListener('click', function(e) {
+      if (popup.classList.contains('zeigen') && !popup.contains(e.target) && e.target.id !== 'btnThemeAuswahl') {
+        popup.classList.remove('zeigen');
+      }
     });
   }
 })();

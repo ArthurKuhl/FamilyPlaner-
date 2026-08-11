@@ -16,6 +16,20 @@
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Inter', sans-serif; background: var(--cream); color: var(--soil); min-height: 100vh; padding-bottom: 40px; }
+
+  .theme-btn { background: none; border: none; color: var(--leaf); font-size: 1.1rem; cursor: pointer; padding: 4px 6px; flex-shrink: 0; }
+  .theme-popup { display: none; position: absolute; right: 12px; top: 54px; background: var(--white, #fff); border-radius: var(--radius-md, 10px); box-shadow: var(--shadow-md, 0 8px 26px rgba(59,47,30,0.2)); padding: 10px; z-index: 50; }
+  .theme-popup.zeigen { display: flex; gap: 8px; }
+  .theme-swatch { width: 40px; height: 40px; border-radius: var(--radius-sm, 8px); border: 2px solid transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; background: var(--cream); }
+  .theme-swatch.aktiv { border-color: var(--moss); }
+  body.bg-wasser {
+    background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22190%22%20height%3D%22190%22%20viewBox%3D%220%200%20190%20190%22%3E%3Cg%20opacity%3D%220.11%22%3E%3Cg%20transform%3D%22translate%2815%2C15%29%20scale%280.9%29%20rotate%280%29%22%3E%3Cpath%20d%3D%22M%200%200%20C%2010%2014%2C%2014%2024%2C%200%2034%20C%20-14%2024%2C%20-10%2014%2C%200%200%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%28115%2C20%29%20scale%280.7%29%20rotate%2820%29%22%3E%3Cpath%20d%3D%22M%200%200%20C%2020%20-4%2C%2030%2014%2C%200%2034%20C%20-30%2014%2C%20-20%20-4%2C%200%200%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cline%20x1%3D%220%22%20y1%3D%222%22%20x2%3D%220%22%20y2%3D%2232%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%2860%2C115%29%20scale%280.8%29%20rotate%28-8%29%22%3E%3Cpath%20d%3D%22M%200%200%20C%2010%2014%2C%2014%2024%2C%200%2034%20C%20-14%2024%2C%20-10%2014%2C%200%200%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    background-repeat: repeat;
+  }
+  body.bg-puls {
+    background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22190%22%20height%3D%22190%22%20viewBox%3D%220%200%20190%20190%22%3E%3Cg%20opacity%3D%220.1%22%3E%3Cg%20transform%3D%22translate%2815%2C15%29%20scale%280.7%29%20rotate%280%29%22%3E%3Cpath%20d%3D%22M%200%208%20C%20-4%200%2C%20-16%200%2C%20-16%2012%20C%20-16%2022%2C%200%2032%2C%200%2032%20C%200%2032%2C%2016%2022%2C%2016%2012%20C%2016%200%2C%204%200%2C%200%208%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%28115%2C25%29%20scale%280.9%29%20rotate%280%29%22%3E%3Cpath%20d%3D%22M%20-20%200%20L%20-8%200%20L%20-3%20-14%20L%204%2014%20L%209%200%20L%2020%200%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%2860%2C115%29%20scale%280.6%29%20rotate%2810%29%22%3E%3Cpath%20d%3D%22M%200%208%20C%20-4%200%2C%20-16%200%2C%20-16%2012%20C%20-16%2022%2C%200%2032%2C%200%2032%20C%200%2032%2C%2016%2022%2C%2016%2012%20C%2016%200%2C%204%200%2C%200%208%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    background-repeat: repeat;
+  }
   button, input, select, textarea { font-family: inherit; -webkit-tap-highlight-color: transparent; }
   :focus-visible { outline: 2px solid var(--terracotta); outline-offset: 2px; border-radius: 4px; }
 
@@ -227,6 +241,7 @@
 <header class="top">
   <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
     <h1 style="margin:0;">🏃 Gesundheit &amp; Sport</h1>
+    <button class="theme-btn" id="btnThemeAuswahl" title="Hintergrundmuster wählen">🎨</button>
     <button id="btnSchriftgroesse" title="Schriftgröße umschalten" style="flex-shrink:0; border:1px solid var(--sand-dark); background:var(--white); border-radius:var(--radius-md); padding:6px 10px; font-weight:700; color:var(--bark); cursor:pointer;">Aa</button>
   </div>
   <div class="person-reihe" id="personReihe"></div>
@@ -241,6 +256,12 @@
     <button id="btnViewTrainingsplan" role="tab" aria-selected="false">🗓️ Trainingsplan</button>
   </div>
 </header>
+  <div class="theme-popup" id="themePopup">
+<div class="theme-swatch" data-theme="" title="Kein Muster">✕</div>
+    <div class="theme-swatch" data-theme="bg-wasser" title="Wasser & Ruhe">💧</div>
+    <div class="theme-swatch" data-theme="bg-puls" title="Puls & Bewegung">❤️</div>
+  </div>
+
 
 <main>
   <section id="ansichtHeute">
@@ -2217,6 +2238,39 @@
         if (aktiveAnsicht === 'zyklus') renderZyklus();
         if (aktiveAnsicht === 'trainingsplan') renderTrainingsplan();
       },
+    });
+  }
+})();
+</script>
+
+<script>
+(function() {
+  var KEY_THEME = 'gesundheit_hintergrundThema';
+  var klassen = ['bg-wasser', 'bg-puls'];
+  function themeAnwenden(id) {
+    document.body.classList.remove.apply(document.body.classList, klassen);
+    if (id) document.body.classList.add(id);
+    document.querySelectorAll('.theme-swatch').forEach(function(s) { s.classList.toggle('aktiv', s.dataset.theme === id); });
+  }
+  var aktivesTheme = '';
+  try { aktivesTheme = localStorage.getItem(KEY_THEME) || ''; } catch(e) {}
+  themeAnwenden(aktivesTheme);
+  var btn = document.getElementById('btnThemeAuswahl');
+  var popup = document.getElementById('themePopup');
+  if (btn && popup) {
+    btn.addEventListener('click', function() { popup.classList.toggle('zeigen'); });
+    document.querySelectorAll('.theme-swatch').forEach(function(swatch) {
+      swatch.addEventListener('click', function() {
+        var id = swatch.dataset.theme;
+        themeAnwenden(id);
+        try { localStorage.setItem(KEY_THEME, id); } catch(e) {}
+        popup.classList.remove('zeigen');
+      });
+    });
+    document.addEventListener('click', function(e) {
+      if (popup.classList.contains('zeigen') && !popup.contains(e.target) && e.target.id !== 'btnThemeAuswahl') {
+        popup.classList.remove('zeigen');
+      }
     });
   }
 })();
