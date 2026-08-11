@@ -141,7 +141,10 @@
     <div class="projekt-meta" id="detailMeta" style="margin-bottom:6px;"></div>
     <div class="unterliste-titel">Material</div>
     <ul class="detail-material-liste" id="detailMaterial"></ul>
-    <div class="detail-notiz-box" id="detailNotizBox" style="display:none;"></div>
+    <div class="unterliste-titel">📐 Skizzen</div>
+    <div id="detailSkizzenGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;margin-bottom:8px"></div>
+    <button class="zeile-hinzufuegen" id="btnNeueSkizze">＋ Neue Skizze</button>
+    <div class="detail-notiz-box" id="detailNotizBox" style="display:none;margin-top:14px"></div>
     <div class="modal-btns">
       <button class="btn btn-secondary" id="btnDetailSchliessen">Schließen</button>
       <button class="btn btn-primary" id="btnZumEinkauf">🛒 Material zum Einkauf</button>
@@ -184,6 +187,29 @@
     </div>
     <div class="modal-btns" id="editLoeschZeile" style="display:none;">
       <button class="btn btn-danger" id="btnEditLoeschen">Projekt löschen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Skizze zeichnen/bearbeiten -->
+<div class="modal-bg" id="modalSkizze">
+  <div class="modal" style="max-width:720px">
+    <h2 id="skizzeTitelKopf">Neue Skizze</h2>
+    <div class="feld">
+      <label for="fSkizzeName">Name (optional)</label>
+      <input type="text" id="fSkizzeName" placeholder="z.B. Grundriss, Seitenansicht...">
+    </div>
+    <div id="skizzeToolbar" style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px"></div>
+    <div style="border:1px solid var(--parchment);border-radius:8px;overflow:hidden;touch-action:none">
+      <canvas id="skizzeCanvas" width="800" height="500" style="width:100%;height:auto;display:block;background:#fff;cursor:crosshair"></canvas>
+    </div>
+    <p style="font-size:0.65rem;color:var(--bark);opacity:0.75;margin-top:6px">Grobe Skizze – kein Maßstab, kein CAD-Ersatz. Ideal für schnelle Ideen-/Grundriss-Notizen.</p>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnSkizzeAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnSkizzeSpeichern">💾 Speichern</button>
+    </div>
+    <div class="modal-btns" id="skizzeLoeschZeile" style="display:none;">
+      <button class="btn btn-danger" id="btnSkizzeLoeschen">Skizze löschen</button>
     </div>
   </div>
 </div>
@@ -329,6 +355,7 @@
       });
     }
     document.getElementById('modalDetail').classList.add('zeigen');
+    detailSkizzenRendern(p);
   }
   document.getElementById('btnDetailSchliessen').addEventListener('click', () => document.getElementById('modalDetail').classList.remove('zeigen'));
   document.getElementById('modalDetail').addEventListener('click', (e) => { if (e.target.id === 'modalDetail') e.currentTarget.classList.remove('zeigen'); });
@@ -477,6 +504,215 @@
     document.getElementById('modalEdit').classList.remove('zeigen');
     renderGrid();
   });
+
+  // --- SKIZZEN (grobe 2D-Zeichnungen pro Projekt) ---
+  let skizzeProjektId = null;
+  let skizzeBearbeiteId = null;
+  let skizzeShapes = [];
+  let skizzeTool = 'stift';
+  let skizzeFarbe = '#3a2e1f';
+  let skizzeStrichstaerke = 3;
+  let skizzeRasterAn = false;
+  let skizzeZeichnung = null;
+  let skizzeZeichnet = false;
+
+  const skizzeCanvas = document.getElementById('skizzeCanvas');
+  const skizzeCtx = skizzeCanvas.getContext('2d');
+
+  function skizzeCanvasPos(e) {
+    const rect = skizzeCanvas.getBoundingClientRect();
+    const scaleX = skizzeCanvas.width / rect.width;
+    const scaleY = skizzeCanvas.height / rect.height;
+    return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
+  }
+
+  function skizzeZeichneRaster() {
+    if (!skizzeRasterAn) return;
+    skizzeCtx.save();
+    skizzeCtx.strokeStyle = 'rgba(58,46,31,0.12)';
+    skizzeCtx.lineWidth = 1;
+    const step = 25;
+    for (let x = 0; x <= skizzeCanvas.width; x += step) { skizzeCtx.beginPath(); skizzeCtx.moveTo(x, 0); skizzeCtx.lineTo(x, skizzeCanvas.height); skizzeCtx.stroke(); }
+    for (let y = 0; y <= skizzeCanvas.height; y += step) { skizzeCtx.beginPath(); skizzeCtx.moveTo(0, y); skizzeCtx.lineTo(skizzeCanvas.width, y); skizzeCtx.stroke(); }
+    skizzeCtx.restore();
+  }
+
+  function skizzeZeichneShape(s) {
+    skizzeCtx.lineWidth = s.width;
+    skizzeCtx.lineCap = 'round';
+    skizzeCtx.lineJoin = 'round';
+    skizzeCtx.strokeStyle = (s.type === 'eraser') ? '#ffffff' : s.color;
+    skizzeCtx.fillStyle = s.color;
+    if (s.type === 'freehand' || s.type === 'eraser') {
+      skizzeCtx.beginPath();
+      s.points.forEach((pt, i) => { if (i === 0) skizzeCtx.moveTo(pt.x, pt.y); else skizzeCtx.lineTo(pt.x, pt.y); });
+      skizzeCtx.stroke();
+    } else if (s.type === 'line') {
+      skizzeCtx.beginPath(); skizzeCtx.moveTo(s.points[0].x, s.points[0].y); skizzeCtx.lineTo(s.points[1].x, s.points[1].y); skizzeCtx.stroke();
+    } else if (s.type === 'rect') {
+      const [a, b] = s.points;
+      skizzeCtx.strokeRect(Math.min(a.x, b.x), Math.min(a.y, b.y), Math.abs(b.x - a.x), Math.abs(b.y - a.y));
+    } else if (s.type === 'circle') {
+      const [a, b] = s.points;
+      const rx = Math.abs(b.x - a.x) / 2, ry = Math.abs(b.y - a.y) / 2;
+      const cx = (a.x + b.x) / 2, cy = (a.y + b.y) / 2;
+      skizzeCtx.beginPath(); skizzeCtx.ellipse(cx, cy, Math.max(rx, 1), Math.max(ry, 1), 0, 0, Math.PI * 2); skizzeCtx.stroke();
+    } else if (s.type === 'text') {
+      skizzeCtx.font = (s.width * 6 + 10) + 'px sans-serif';
+      skizzeCtx.fillText(s.text || '', s.points[0].x, s.points[0].y);
+    }
+  }
+
+  function skizzeNeuZeichnen() {
+    skizzeCtx.clearRect(0, 0, skizzeCanvas.width, skizzeCanvas.height);
+    skizzeCtx.fillStyle = '#ffffff';
+    skizzeCtx.fillRect(0, 0, skizzeCanvas.width, skizzeCanvas.height);
+    skizzeZeichneRaster();
+    skizzeShapes.forEach(skizzeZeichneShape);
+    if (skizzeZeichnung) skizzeZeichneShape(skizzeZeichnung);
+  }
+
+  function skizzeStart(e) {
+    e.preventDefault();
+    const pos = skizzeCanvasPos(e);
+    if (skizzeTool === 'text') {
+      const text = prompt('Text eingeben:');
+      if (text) { skizzeShapes.push({ type: 'text', points: [pos], text, color: skizzeFarbe, width: skizzeStrichstaerke }); skizzeNeuZeichnen(); }
+      return;
+    }
+    skizzeZeichnet = true;
+    const typ = (skizzeTool === 'stift') ? 'freehand' : (skizzeTool === 'radierer') ? 'eraser' : skizzeTool;
+    skizzeZeichnung = { type: typ, points: [pos], color: skizzeFarbe, width: skizzeTool === 'radierer' ? skizzeStrichstaerke * 4 : skizzeStrichstaerke };
+  }
+  function skizzeMove(e) {
+    if (!skizzeZeichnet || !skizzeZeichnung) return;
+    e.preventDefault();
+    const pos = skizzeCanvasPos(e);
+    if (skizzeZeichnung.type === 'freehand' || skizzeZeichnung.type === 'eraser') skizzeZeichnung.points.push(pos);
+    else skizzeZeichnung.points[1] = pos;
+    skizzeNeuZeichnen();
+  }
+  function skizzeEnde() {
+    if (!skizzeZeichnet || !skizzeZeichnung) { skizzeZeichnet = false; return; }
+    skizzeZeichnet = false;
+    if (skizzeZeichnung.points.length >= 2 || skizzeZeichnung.type === 'freehand' || skizzeZeichnung.type === 'eraser') skizzeShapes.push(skizzeZeichnung);
+    skizzeZeichnung = null;
+    skizzeNeuZeichnen();
+  }
+  skizzeCanvas.addEventListener('pointerdown', skizzeStart);
+  skizzeCanvas.addEventListener('pointermove', skizzeMove);
+  window.addEventListener('pointerup', skizzeEnde);
+
+  function skizzeToolbarRendern() {
+    const box = document.getElementById('skizzeToolbar');
+    box.innerHTML = '';
+    const werkzeuge = [
+      { id: 'stift', label: '✏️ Stift' },
+      { id: 'line', label: '／ Linie' },
+      { id: 'rect', label: '▭ Rechteck' },
+      { id: 'circle', label: '◯ Kreis' },
+      { id: 'text', label: '🔤 Text' },
+      { id: 'radierer', label: '🧽 Radierer' },
+    ];
+    werkzeuge.forEach(w => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      const aktiv = w.id === skizzeTool;
+      btn.className = 'opt' + (aktiv ? ' aktiv' : '');
+      if (aktiv) btn.style.background = 'var(--moss)';
+      btn.textContent = w.label;
+      btn.addEventListener('click', () => { skizzeTool = w.id; skizzeToolbarRendern(); });
+      box.appendChild(btn);
+    });
+    const farbe = document.createElement('input');
+    farbe.type = 'color'; farbe.value = skizzeFarbe;
+    farbe.style.cssText = 'width:34px;height:34px;border:none;padding:0;background:none;cursor:pointer';
+    farbe.addEventListener('input', (e) => { skizzeFarbe = e.target.value; });
+    box.appendChild(farbe);
+
+    const staerke = document.createElement('input');
+    staerke.type = 'range'; staerke.min = '1'; staerke.max = '12'; staerke.value = skizzeStrichstaerke;
+    staerke.style.width = '80px';
+    staerke.addEventListener('input', (e) => { skizzeStrichstaerke = parseInt(e.target.value, 10); });
+    box.appendChild(staerke);
+
+    const rasterBtn = document.createElement('button');
+    rasterBtn.type = 'button';
+    rasterBtn.className = 'opt' + (skizzeRasterAn ? ' aktiv' : '');
+    if (skizzeRasterAn) rasterBtn.style.background = 'var(--moss)';
+    rasterBtn.textContent = '▦ Raster';
+    rasterBtn.addEventListener('click', () => { skizzeRasterAn = !skizzeRasterAn; skizzeToolbarRendern(); skizzeNeuZeichnen(); });
+    box.appendChild(rasterBtn);
+
+    const undoBtn = document.createElement('button');
+    undoBtn.type = 'button'; undoBtn.className = 'opt';
+    undoBtn.textContent = '⟲ Rückgängig';
+    undoBtn.addEventListener('click', () => { skizzeShapes.pop(); skizzeNeuZeichnen(); });
+    box.appendChild(undoBtn);
+
+    const clearBtn = document.createElement('button');
+    clearBtn.type = 'button'; clearBtn.className = 'opt';
+    clearBtn.textContent = '🗑️ Leeren';
+    clearBtn.addEventListener('click', () => { if (confirm('Ganze Zeichnung leeren?')) { skizzeShapes = []; skizzeNeuZeichnen(); } });
+    box.appendChild(clearBtn);
+  }
+
+  function skizzeOeffnen(projektId, skizzeId) {
+    skizzeProjektId = projektId;
+    skizzeBearbeiteId = skizzeId || null;
+    const p = projekte.find(x => x.id === projektId);
+    const bestehend = (p && skizzeId) ? (p.skizzen || []).find(s => s.id === skizzeId) : null;
+    skizzeShapes = bestehend ? JSON.parse(JSON.stringify(bestehend.shapes || [])) : [];
+    document.getElementById('fSkizzeName').value = bestehend ? (bestehend.name || '') : '';
+    document.getElementById('skizzeTitelKopf').textContent = bestehend ? 'Skizze bearbeiten' : 'Neue Skizze';
+    document.getElementById('skizzeLoeschZeile').style.display = bestehend ? '' : 'none';
+    skizzeTool = 'stift';
+    skizzeToolbarRendern();
+    skizzeNeuZeichnen();
+    document.getElementById('modalSkizze').classList.add('zeigen');
+  }
+  document.getElementById('btnNeueSkizze').addEventListener('click', () => skizzeOeffnen(detailId, null));
+  document.getElementById('btnSkizzeAbbrechen').addEventListener('click', () => document.getElementById('modalSkizze').classList.remove('zeigen'));
+  document.getElementById('modalSkizze').addEventListener('click', (e) => { if (e.target.id === 'modalSkizze') e.currentTarget.classList.remove('zeigen'); });
+
+  document.getElementById('btnSkizzeSpeichern').addEventListener('click', () => {
+    const p = projekte.find(x => x.id === skizzeProjektId);
+    if (!p) return;
+    if (!p.skizzen) p.skizzen = [];
+    const name = document.getElementById('fSkizzeName').value.trim();
+    const thumb = skizzeCanvas.toDataURL('image/png');
+    if (skizzeBearbeiteId) {
+      const s = p.skizzen.find(x => x.id === skizzeBearbeiteId);
+      if (s) { s.name = name; s.shapes = skizzeShapes; s.thumb = thumb; }
+    } else {
+      p.skizzen.push({ id: neueId('sk'), name, shapes: skizzeShapes, thumb, erstellt: new Date().toISOString() });
+    }
+    speichernProjekte();
+    document.getElementById('modalSkizze').classList.remove('zeigen');
+    detailSkizzenRendern(p);
+  });
+  document.getElementById('btnSkizzeLoeschen').addEventListener('click', () => {
+    if (!confirm('Diese Skizze wirklich löschen?')) return;
+    const p = projekte.find(x => x.id === skizzeProjektId);
+    if (p && p.skizzen) p.skizzen = p.skizzen.filter(s => s.id !== skizzeBearbeiteId);
+    speichernProjekte();
+    document.getElementById('modalSkizze').classList.remove('zeigen');
+    detailSkizzenRendern(p);
+  });
+
+  function detailSkizzenRendern(p) {
+    const grid = document.getElementById('detailSkizzenGrid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    (p.skizzen || []).forEach(s => {
+      const el = document.createElement('div');
+      el.style.cssText = 'border:1px solid var(--parchment);border-radius:8px;overflow:hidden;cursor:pointer;text-align:center';
+      el.innerHTML = '<img src="' + s.thumb + '" style="width:100%;display:block;aspect-ratio:8/5;object-fit:cover;background:#fff">' +
+        '<div style="font-size:0.62rem;padding:3px;color:var(--bark)">' + (s.name ? escapeHtml(s.name) : 'Skizze') + '</div>';
+      el.addEventListener('click', () => skizzeOeffnen(p.id, s.id));
+      grid.appendChild(el);
+    });
+  }
 
   renderSortButton();
   renderFilter();
