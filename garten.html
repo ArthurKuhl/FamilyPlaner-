@@ -968,6 +968,7 @@
       <div class="tab active" role="tab" tabindex="0" aria-selected="true" onclick="switchVdbTab('sorten')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">📋 Meine Sorten</div>
       <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchVdbTab('probleme')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">🔍 Blattprobleme</div>
       <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchVdbTab('ideen')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">💡 Pflanzenideen</div>
+      <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchVdbTab('mulch')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">🍂 Mulch</div>
     </div>
 
     <div class="tab-content active" id="vdbTabSorten">
@@ -1029,9 +1030,20 @@
         <select id="pflanzenIdeenSel" onchange="renderPflanzenIdeen()">
           <option value="trocken">🌵 Trockenheitsverträglich</option>
           <option value="sonne">☀️ Volle Sonne</option>
+          <option value="schatten">🌳 Schattenbereich</option>
+          <option value="staunaesse">💧 Staunässe / Lehmboden</option>
+          <option value="sand">⏳ Sandboden</option>
+          <option value="schotter">🪨 Schotter / Kiesbeet</option>
+          <option value="naehrstoffreich">🌻 Nährstoffreiche Erde</option>
+          <option value="naehrstoffarm">🌾 Nährstoffarme Erde</option>
         </select>
       </div>
       <div id="pflanzenIdeenBox" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:8px"></div>
+    </div>
+
+    <div class="tab-content" id="vdbTabMulch">
+      <p style="font-size:0.72rem;color:var(--bark);margin-bottom:10px">Welches Mulchmaterial für welchen Bereich – als grobe Orientierung, im Einzelfall auf Pflanzenbedarf und Bodentyp abstimmen.</p>
+      <div id="mulchBox" style="display:grid;grid-template-columns:1fr;gap:8px"></div>
     </div>
 
     <div class="modal-btns">
@@ -2247,7 +2259,80 @@ const PFLANZEN_IDEEN = {
     { name: 'Lavendel', info: 'Duftend, bienenfreundlich, sehr trockenheitsresistent' },
     { name: 'Salbei (Zier-)', info: 'Kräftige Blütenähren vom Sommer bis zum Frost' },
   ],
+  schatten: [
+    { name: 'Funkie (Hosta)', info: 'Große dekorative Blätter, viele Sorten für schattige Beete' },
+    { name: 'Purpurglöckchen (Heuchera)', info: 'Farbenfrohes Laub, wächst auch im tiefen Schatten' },
+    { name: 'Elfenblume', info: 'Zierlicher Bodendecker, verträgt trockenen Schatten unter Bäumen' },
+    { name: 'Waldsteinie', info: 'Immergrüner Bodendecker, gelbe Blüten im Frühjahr' },
+    { name: 'Storchschnabel (Waldstauden-)', info: 'Anspruchslos, blüht auch im Halbschatten zuverlässig' },
+    { name: 'Immergrün (Vinca)', info: 'Winterharter Bodendecker, unterdrückt Unkraut' },
+    { name: 'Frauenfarn', info: 'Filigranes Laub, mag feuchten, schattigen Standort' },
+    { name: 'Buschwindröschen', info: 'Frühjahrsblüher für lichten Schatten unter Gehölzen' },
+  ],
+  staunaesse: [
+    { name: 'Sumpfdotterblume', info: 'Gelbe Frühjahrsblüher, liebt nasse, lehmige Standorte' },
+    { name: 'Sumpf-Schwertlilie', info: 'Stattliche Blüten, verträgt zeitweise Staunässe gut' },
+    { name: 'Blutweiderich', info: 'Hoher Blütenstand, ideal für feuchte Beetränder' },
+    { name: 'Mädesüß', info: 'Duftende Schaumblüten, mag feuchten bis nassen Boden' },
+    { name: 'Prachtspiere (Astilbe)', info: 'Farbenfrohe Federblüten, verträgt schwere, feuchte Böden' },
+    { name: 'Hortensie', info: 'Mag gleichmäßig feuchten Boden, auch lehmige Standorte' },
+    { name: 'Kerzenknöterich', info: 'Robuste Staude für feuchte, nährstoffreiche Böden' },
+  ],
+  sand: [
+    { name: 'Besenginster', info: 'Genügsamer Strauch, kommt mit magerem Sandboden zurecht' },
+    { name: 'Sanddorn', info: 'Tiefwurzler, ideal für durchlässige, sandige Böden' },
+    { name: 'Königskerze', info: 'Hochwachsend, liebt trockene, sandige Standorte' },
+    { name: 'Grasnelke', info: 'Kompakte Polster, klassische Sandboden-Pflanze' },
+    { name: 'Currykraut', info: 'Silbriges Laub, sehr genügsam auf leichten Böden' },
+    { name: 'Federgras', info: 'Filigranes Ziergras, bevorzugt durchlässigen, sandigen Boden' },
+  ],
+  schotter: [
+    { name: 'Mauerpfeffer (Sedum)', info: 'Sukkulent, wächst auch in schmalen Kiesfugen' },
+    { name: 'Steinbrech', info: 'Niedrige Polster, klassisch für Steingärten' },
+    { name: 'Islandmohn', info: 'Zarte Blüten, mag durchlässigen, steinigen Untergrund' },
+    { name: 'Kissenaster', info: 'Kompakter Wuchs, blüht im Spätsommer im Schotterbeet' },
+    { name: 'Bartnelke', info: 'Zweijährig, farbenfroh, gut für Kies- und Steinbeete' },
+    { name: 'Blauschwingel', info: 'Blaugraues Ziergras, sehr genügsam und trockenheitsfest' },
+  ],
+  naehrstoffreich: [
+    { name: 'Rittersporn', info: 'Starkzehrer mit hohen, farbenprächtigen Blütenähren' },
+    { name: 'Pfingstrose', info: 'Braucht nährstoffreichen, humosen Boden für kräftige Blüte' },
+    { name: 'Dahlie', info: 'Blüht üppig bei guter Nährstoffversorgung, regelmäßig düngen' },
+    { name: 'Rose', info: 'Profitiert von humusreichem, gut versorgtem Boden' },
+    { name: 'Sonnenblume', info: 'Starkzehrer, dankt nährstoffreichen Boden mit kräftigem Wuchs' },
+    { name: 'Kürbis', info: 'Sehr nährstoffhungrig, wächst gut direkt auf dem Komposthaufen' },
+  ],
+  naehrstoffarm: [
+    { name: 'Küchenschelle', info: 'Typische Magerwiesen-Pflanze, mag nährstoffarme Böden' },
+    { name: 'Skabiose', info: 'Zarte Blüten, bevorzugt karge, kalkhaltige Standorte' },
+    { name: 'Thymian', info: 'Aromatisch, wächst besser auf magerem als auf fettem Boden' },
+    { name: 'Sonnenröschen', info: 'Niedriger Bodendecker für trockene, nährstoffarme Flächen' },
+    { name: 'Habichtskraut', info: 'Genügsame Wildstaude, typisch für Magerrasen' },
+    { name: 'Wildtulpe', info: 'Bevorzugt durchlässige, eher nährstoffarme Standorte' },
+  ],
 };
+
+const MULCH_ARTEN = [
+  { name: '🪵 Rindenmulch', geeignet: 'Gehölze, Sträucher, Rosen, Zierbeete', hinweis: 'Säuert den Boden leicht an; für Gemüse- und Kräuterbeete eher ungeeignet' },
+  { name: '🌱 Grasschnitt', geeignet: 'Gemüsebeete, Beerensträucher', hinweis: 'Nur dünn und angetrocknet aufbringen, sonst fault es und bildet Schimmel' },
+  { name: '🪚 Holzhackschnitzel', geeignet: 'Wege, Gehölzrandbereiche, Beerensträucher', hinweis: 'Entzieht beim Verrotten Stickstoff an der Oberfläche – nicht direkt in frisch bepflanzte Erde einarbeiten' },
+  { name: '🟤 Kompost', geeignet: 'Gemüsebeete, Blumenbeete', hinweis: 'Wirkt zugleich als Dünger, gut ausgereift verwenden' },
+  { name: '🌿 Heckenschnitt (gehäckselt)', geeignet: 'Gehölze, Wege, Untermulchung im Gemüsegarten', hinweis: 'Grob häckseln, sonst verfilzt die Schicht und wird undurchlässig' },
+  { name: '🌾 Stroh', geeignet: 'Erdbeeren, Kartoffeln, Gemüsebeete', hinweis: 'Hält Feuchtigkeit und hält Früchte sauber, verrottet relativ schnell' },
+  { name: '🍂 Laub', geeignet: 'Gehölze, Staudenbeete, Winterschutz', hinweis: 'Im Frühjahr leicht einarbeiten oder abrechen, sonst kann es verschlämmen' },
+  { name: '🪨 Kies / Splitt (mineralisch)', geeignet: 'Steingarten, mediterrane und trockenheitsliebende Pflanzen', hinweis: 'Kein Nährstoffeintrag, hält den Wurzelhals trocken – ideal gegen Staunässe am Stamm' },
+];
+
+function renderMulch() {
+  const box = document.getElementById('mulchBox');
+  if (!box) return;
+  box.innerHTML = MULCH_ARTEN.map(m => `
+    <div style="padding:8px 10px;border:1px solid var(--parchment);border-radius:8px">
+      <div style="font-weight:700;font-size:0.8rem">${escapeHtml(m.name)}</div>
+      <div style="font-size:0.7rem;color:var(--bark);margin-top:3px"><strong>Geeignet für:</strong> ${escapeHtml(m.geeignet)}</div>
+      <div style="font-size:0.7rem;color:var(--moss);margin-top:3px">${escapeHtml(m.hinweis)}</div>
+    </div>`).join('');
+}
 
 function renderBlattprobleme() {
   const box = document.getElementById('blattproblemeBox');
@@ -2274,17 +2359,18 @@ function renderPflanzenIdeen() {
 }
 
 function switchVdbTab(id) {
-  ['sorten','probleme','ideen'].forEach(t => {
+  ['sorten','probleme','ideen','mulch'].forEach(t => {
     const content = document.getElementById('vdbTab' + t.charAt(0).toUpperCase() + t.slice(1));
     if (content) content.classList.toggle('active', t === id);
   });
   document.querySelectorAll('#varietyModal .tabs .tab').forEach((el, i) => {
-    const isActive = ['sorten','probleme','ideen'][i] === id;
+    const isActive = ['sorten','probleme','ideen','mulch'][i] === id;
     el.classList.toggle('active', isActive);
     el.setAttribute('aria-selected', isActive ? 'true' : 'false');
   });
   if (id === 'probleme') renderBlattprobleme();
   if (id === 'ideen') renderPflanzenIdeen();
+  if (id === 'mulch') renderMulch();
 }
 
 let varietyDB = {}; // { plantName: [ {id,name,rating,source,harvest,notes} ] }
