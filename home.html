@@ -55,6 +55,23 @@
   }
   .kochen-rezept-info { display: flex; align-items: center; gap: 8px; font-size: 0.88rem; font-weight: 600; }
   .kochen-rezept-info .icon { font-size: 1.3rem; }
+
+  .fb-typ-reihe { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+  .fb-typ-btn { padding: 6px 12px; border-radius: var(--radius-pill); font-size: 0.75rem; font-weight: 600; border: 1px solid var(--parchment); background: var(--cream); color: var(--bark); cursor: pointer; }
+  .fb-typ-btn.aktiv { background: var(--moss); color: var(--white); border-color: transparent; }
+  .fb-textarea { width: 100%; min-height: 60px; padding: 8px; border: 1px solid var(--parchment); border-radius: var(--radius-sm); font-family: inherit; font-size: 0.85rem; resize: vertical; background: var(--cream); color: var(--soil); }
+  .fb-btn-hinzufuegen { margin-top: 6px; background: var(--moss); color: var(--white); border: none; border-radius: var(--radius-pill); padding: 8px 16px; font-size: 0.82rem; font-weight: 700; cursor: pointer; }
+  .fb-eintrag { display: flex; align-items: flex-start; gap: 8px; padding: 8px 0; border-top: 1px solid var(--parchment); }
+  .fb-eintrag:first-of-type { border-top: none; }
+  .fb-eintrag.erledigt { opacity: 0.55; }
+  .fb-eintrag.erledigt .fb-eintrag-text { text-decoration: line-through; }
+  .fb-eintrag-icon { font-size: 1.1rem; flex-shrink: 0; }
+  .fb-eintrag-body { flex: 1; min-width: 0; }
+  .fb-eintrag-text { font-size: 0.85rem; line-height: 1.35; word-break: break-word; }
+  .fb-eintrag-datum { font-size: 0.68rem; color: var(--bark); opacity: 0.75; margin-top: 2px; }
+  .fb-eintrag-btns { display: flex; gap: 4px; flex-shrink: 0; }
+  .fb-eintrag-btns button { background: none; border: none; font-size: 0.95rem; cursor: pointer; padding: 2px 4px; opacity: 0.7; }
+  .fb-eintrag-btns button:hover { opacity: 1; }
 </style>
 <script src="personen.js"></script>
 <script src="sync.js"></script>
@@ -108,6 +125,19 @@
     <div id="gartenWarnungen"></div>
     <div class="garten-hinweis" id="gartenPflanzErnte" style="margin-top:6px;"></div>
   </div>
+
+  <div class="kachel" id="kachelFeedback" style="cursor:default">
+    <div class="kachel-kopf" id="feedbackToggle" style="cursor:pointer">
+      <div class="kachel-titel">💬 Feedback &amp; Ideen</div>
+      <span class="kachel-badge leer" id="badgeFeedback">0</span>
+    </div>
+    <div id="feedbackBody" style="display:none;margin-top:8px">
+      <div class="fb-typ-reihe" id="feedbackTypReihe"></div>
+      <textarea class="fb-textarea" id="feedbackText" placeholder="Was ist dir aufgefallen? Bug, Idee, Verbesserungsvorschlag ..."></textarea>
+      <button class="fb-btn-hinzufuegen" id="btnFeedbackHinzufuegen">＋ Hinzufügen</button>
+      <div id="feedbackListe" style="margin-top:6px"></div>
+    </div>
+  </div>
 </main>
 
 <script>
@@ -122,6 +152,12 @@
     try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; }
     catch (e) { return fallback; }
   }
+  function speichern(key, wert) {
+    try { localStorage.setItem(key, JSON.stringify(wert)); }
+    catch (e) { console.warn('Übersicht: Speichern fehlgeschlagen', key, e); alert('Speichern fehlgeschlagen – ist der Speicher voll?'); }
+    if (window._sync) window._sync.melde();
+  }
+  function neueId(prefix) { return prefix + Date.now() + Math.random().toString(36).slice(2, 7); }
   function navigiere(modul) {
     try { window.parent.postMessage({ type: 'navigiere', modul: modul }, window.location.origin); } catch (e) {}
   }
@@ -323,6 +359,108 @@
   }
   document.getElementById('kachelKochen').addEventListener('click', () => navigiere('kochen'));
 
+  // ============================================================
+  // FEEDBACK & IDEEN
+  // ============================================================
+  const KEY_FEEDBACK = 'app_feedback';
+  const FEEDBACK_TYPEN = [
+    { id: 'bug',   label: 'Bug',       icon: '🐛' },
+    { id: 'idee',  label: 'Idee',      icon: '💡' },
+    { id: 'sonstiges', label: 'Sonstiges', icon: '💬' },
+  ];
+  function feedbackTypInfo(id) { return FEEDBACK_TYPEN.find(t => t.id === id) || FEEDBACK_TYPEN[2]; }
+  let feedbackEintraege = laden(KEY_FEEDBACK, []);
+  let feedbackAusgewaehlterTyp = 'idee';
+
+  function feedbackSpeichern() { speichern(KEY_FEEDBACK, feedbackEintraege); }
+
+  function feedbackTypReiheRendern() {
+    const box = document.getElementById('feedbackTypReihe');
+    box.innerHTML = '';
+    FEEDBACK_TYPEN.forEach(t => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'fb-typ-btn' + (t.id === feedbackAusgewaehlterTyp ? ' aktiv' : '');
+      btn.textContent = t.icon + ' ' + t.label;
+      btn.addEventListener('click', () => { feedbackAusgewaehlterTyp = t.id; feedbackTypReiheRendern(); });
+      box.appendChild(btn);
+    });
+  }
+
+  function feedbackDatumText(iso) {
+    const d = new Date(iso);
+    return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' }) + ' · ' + d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function feedbackListeRendern() {
+    const box = document.getElementById('feedbackListe');
+    box.innerHTML = '';
+    const offenAnzahl = feedbackEintraege.filter(e => !e.erledigt).length;
+    const badge = document.getElementById('badgeFeedback');
+    badge.textContent = String(offenAnzahl);
+    badge.className = 'kachel-badge' + (offenAnzahl === 0 ? ' leer' : '');
+    if (!feedbackEintraege.length) {
+      box.innerHTML = '<div class="mini-leer">Noch kein Feedback hinterlassen.</div>';
+      return;
+    }
+    const sortiert = feedbackEintraege.slice().sort((a, b) => {
+      if (a.erledigt !== b.erledigt) return a.erledigt ? 1 : -1;
+      return new Date(b.erstellt) - new Date(a.erstellt);
+    });
+    sortiert.forEach(e => {
+      const info = feedbackTypInfo(e.typ);
+      const zeile = document.createElement('div');
+      zeile.className = 'fb-eintrag' + (e.erledigt ? ' erledigt' : '');
+      zeile.innerHTML =
+        '<span class="fb-eintrag-icon">' + info.icon + '</span>' +
+        '<div class="fb-eintrag-body">' +
+          '<div class="fb-eintrag-text">' + escapeHtml(e.text) + '</div>' +
+          '<div class="fb-eintrag-datum">' + feedbackDatumText(e.erstellt) + '</div>' +
+        '</div>' +
+        '<div class="fb-eintrag-btns">' +
+          '<button class="fb-btn-erledigt" title="' + (e.erledigt ? 'Als offen markieren' : 'Als erledigt markieren') + '">' + (e.erledigt ? '↺' : '✓') + '</button>' +
+          '<button class="fb-btn-loeschen" title="Löschen">🗑️</button>' +
+        '</div>';
+      zeile.querySelector('.fb-btn-erledigt').addEventListener('click', () => {
+        e.erledigt = !e.erledigt;
+        feedbackSpeichern();
+        feedbackListeRendern();
+      });
+      zeile.querySelector('.fb-btn-loeschen').addEventListener('click', () => {
+        if (!confirm('Diesen Eintrag wirklich löschen?')) return;
+        feedbackEintraege = feedbackEintraege.filter(x => x.id !== e.id);
+        feedbackSpeichern();
+        feedbackListeRendern();
+      });
+      box.appendChild(zeile);
+    });
+  }
+
+  document.getElementById('feedbackToggle').addEventListener('click', () => {
+    const body = document.getElementById('feedbackBody');
+    body.style.display = body.style.display === 'none' ? '' : 'none';
+  });
+  document.getElementById('btnFeedbackHinzufuegen').addEventListener('click', () => {
+    const feld = document.getElementById('feedbackText');
+    const text = feld.value.trim();
+    if (!text) { feld.focus(); return; }
+    feedbackEintraege.push({ id: neueId('fb'), typ: feedbackAusgewaehlterTyp, text, erstellt: new Date().toISOString(), erledigt: false });
+    feedbackSpeichern();
+    feld.value = '';
+    feedbackListeRendern();
+  });
+
+  feedbackTypReiheRendern();
+  feedbackListeRendern();
+
+  if (window.PlanerSync) {
+    window._sync = window.PlanerSync.starteSync({
+      modul: 'home',
+      keys: [KEY_FEEDBACK],
+      onRemoteChange: function () { feedbackEintraege = laden(KEY_FEEDBACK, feedbackEintraege); feedbackListeRendern(); },
+    });
+  }
+
   renderTermine();
   renderEinkauf();
   renderSport();
@@ -332,7 +470,7 @@
 
   // Bei Rückkehr auf die Startseite (z.B. nach Bearbeitung in einem anderen Modul) neu laden
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) { renderTermine(); renderEinkauf(); renderSport(); renderGartenWarnungen(); renderGartenPflanzErnte(); renderKochenHeute(); }
+    if (!document.hidden) { renderTermine(); renderEinkauf(); renderSport(); renderGartenWarnungen(); renderGartenPflanzErnte(); renderKochenHeute(); feedbackEintraege = laden(KEY_FEEDBACK, feedbackEintraege); feedbackListeRendern(); }
   });
 })();
 </script>

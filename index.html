@@ -135,7 +135,7 @@
     // Zentrale Liste aller Bereiche. Neue Bereiche später einfach hier ergänzen:
     // src auf die fertige Modul-Datei zeigen lassen, sobald sie existiert.
     const MODULE = [
-      { id: 'home',        label: 'Übersicht', emoji: '🏠', src: 'home.html' },
+      { id: 'home',        label: 'Übersicht', emoji: '🏠', src: 'home.html', syncKeys: ['app_feedback'] },
       { id: 'garten',      label: 'Garten',    emoji: '🌱', src: 'garten.html',
         syncKeys: ['gartenplaner_v3','gartenplaner_varieties','gartenplaner_bedTemplates','gartenplaner_recentPlants','gartenplaner_seedInventory','gartenplaner_costs','gartenplaner_pantry','gartenplaner_shops','gartenplaner_careDone','gartenplaner_customPlants','gartenplaner_pilzlog','gartenplaner_wishlist'],
         syncTransform: (werte) => { if (werte.gartenplaner_v3 && window.PlanerSync) werte.gartenplaner_v3 = window.PlanerSync.entferneFotosTief(werte.gartenplaner_v3); return werte; } },
