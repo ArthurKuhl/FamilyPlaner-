@@ -167,7 +167,7 @@
   .plant-sym .sym { font-size: 1.15rem; }
 
   .tabs { display: flex; border-bottom: 2px solid var(--parchment); background: var(--cream); }
-  .tab { flex: 1; padding: 10px 4px; text-align: center; font-size: 0.68rem; font-weight: 600; color: var(--bark); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s; text-transform: uppercase; letter-spacing: 0.04em; }
+  .tab { flex: 1; min-width: 0; padding: 10px 4px; text-align: center; font-size: 0.68rem; font-weight: 600; color: var(--bark); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s; text-transform: uppercase; letter-spacing: 0.04em; }
   .tab:hover { color: var(--moss); background: rgba(79,111,69,0.06); }
   .tab.active { color: var(--moss); border-bottom-color: var(--moss); background: rgba(79,111,69,0.08); }
   .tab-content { display: none; }
@@ -965,9 +965,9 @@
   <div class="modal" style="width:min(640px,96vw);max-height:88vh;overflow-y:auto">
     <h2>🌾 Sortendatenbank</h2>
     <div class="tabs" role="tablist" style="margin-bottom:10px">
-      <div class="tab active" role="tab" tabindex="0" aria-selected="true" onclick="switchVdbTab('sorten')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">📋 Meine Sorten</div>
-      <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchVdbTab('probleme')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">🔍 Blattprobleme</div>
-      <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchVdbTab('ideen')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">💡 Pflanzenideen</div>
+      <div class="tab active" role="tab" tabindex="0" aria-selected="true" onclick="switchVdbTab('sorten')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">📋 Sorten</div>
+      <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchVdbTab('probleme')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">🔍 Probleme</div>
+      <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchVdbTab('ideen')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">💡 Ideen</div>
       <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchVdbTab('mulch')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">🍂 Mulch</div>
     </div>
 
