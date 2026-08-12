@@ -172,6 +172,23 @@
     display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700;
   }
   .notiz-box { background: var(--parchment); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 0.82rem; margin-top: 14px; color: var(--bark); }
+
+  .btn-kochmodus { background: var(--terracotta); color: var(--white); border: none; border-radius: var(--radius-pill); padding: 11px; font-weight: 700; font-size: 0.85rem; cursor: pointer; width: 100%; margin-top: 8px; }
+  #modalKochmodus .modal { display: flex; flex-direction: column; min-height: 70vh; }
+  .kochmodus-kopf { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .kochmodus-kopf h2 { font-size: 1.05rem; }
+  #btnKochmodusSchliessen { background: none; border: none; font-size: 1.5rem; line-height: 1; cursor: pointer; color: var(--bark); padding: 4px; }
+  .kochmodus-fortschritt { font-size: 0.78rem; color: var(--bark); margin-bottom: 10px; text-align: center; }
+  .kochmodus-schritt-box { flex: 1; display: flex; align-items: center; justify-content: center; padding: 16px 4px; }
+  .kochmodus-schritt-text { font-size: 1.5rem; line-height: 1.55; font-weight: 600; text-align: center; }
+  .kochmodus-nav { display: flex; gap: 10px; margin-top: 12px; }
+  .kochmodus-nav button { flex: 1; padding: 14px; border-radius: var(--radius-pill); font-weight: 700; font-size: 0.95rem; border: none; cursor: pointer; }
+  .kochmodus-nav .btn-zurueck { background: var(--white); color: var(--bark); border: 1px solid var(--parchment); }
+  .kochmodus-nav .btn-weiter { background: var(--moss); color: var(--white); }
+  .kochmodus-nav button:disabled { opacity: 0.4; cursor: default; }
+  #btnKochmodusZutaten { margin-top: 14px; width: 100%; background: var(--white); border: 1px solid var(--parchment); border-radius: var(--radius-pill); padding: 9px; font-size: 0.8rem; font-weight: 700; color: var(--bark); cursor: pointer; }
+  #kochmodusZutatenListe { margin-top: 8px; max-height: 30vh; overflow-y: auto; }
+  .kochmodus-wachhinweis { font-size: 0.65rem; color: var(--bark); opacity: 0.7; text-align: center; margin-top: 10px; }
 </style>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
@@ -252,6 +269,7 @@
     <div class="unterliste-titel">Zubereitung</div>
     <ol class="schritte-liste-anzeige" id="detailSchritte"></ol>
     <div class="notiz-box" id="detailNotizBox" style="display:none;"></div>
+    <button class="btn-kochmodus" id="btnKochmodusStart">👨‍🍳 Koch-Modus</button>
     <div class="modal-btns">
       <button class="btn btn-secondary" id="btnDetailSchliessen">Schließen</button>
       <button class="btn btn-primary" id="btnZumEinkauf">🛒 Zum Einkauf</button>
@@ -259,6 +277,27 @@
     <div class="modal-btns">
       <button class="btn btn-secondary" id="btnDetailBearbeiten">Bearbeiten</button>
     </div>
+  </div>
+</div>
+
+<!-- Koch-Modus: Schritt für Schritt, großer Text, Bildschirm bleibt an -->
+<div class="modal-bg" id="modalKochmodus">
+  <div class="modal">
+    <div class="kochmodus-kopf">
+      <h2 id="kochmodusTitel"></h2>
+      <button id="btnKochmodusSchliessen" aria-label="Koch-Modus schließen">✕</button>
+    </div>
+    <div class="kochmodus-fortschritt" id="kochmodusFortschritt"></div>
+    <div class="kochmodus-schritt-box">
+      <div class="kochmodus-schritt-text" id="kochmodusSchrittText"></div>
+    </div>
+    <div class="kochmodus-nav">
+      <button class="btn-zurueck" id="btnKochmodusZurueck">← Zurück</button>
+      <button class="btn-weiter" id="btnKochmodusWeiter">Weiter →</button>
+    </div>
+    <button id="btnKochmodusZutaten">🥕 Zutaten anzeigen</button>
+    <ul class="zutaten-liste-anzeige" id="kochmodusZutatenListe" style="display:none;"></ul>
+    <div class="kochmodus-wachhinweis" id="kochmodusWachhinweis"></div>
   </div>
 </div>
 
@@ -620,6 +659,86 @@
   });
   document.getElementById('btnPortionenPlus').addEventListener('click', () => {
     detailPortionen++; renderDetailPortionenAbhaengig(rezepte.find(x => x.id === detailId));
+  });
+
+  // ---------- KOCH-MODUS ----------
+  let kochmodusSchrittIndex = 0;
+  let kochmodusWakeLock = null;
+
+  async function kochmodusWakeLockAnfordern() {
+    try {
+      if ('wakeLock' in navigator) {
+        kochmodusWakeLock = await navigator.wakeLock.request('screen');
+        document.getElementById('kochmodusWachhinweis').textContent = '☀️ Bildschirm bleibt an, solange der Koch-Modus offen ist.';
+      } else {
+        document.getElementById('kochmodusWachhinweis').textContent = 'ℹ️ Dieses Gerät unterstützt „Bildschirm an“ leider nicht automatisch.';
+      }
+    } catch (e) {
+      document.getElementById('kochmodusWachhinweis').textContent = 'ℹ️ Bildschirm-wach-halten war gerade nicht möglich.';
+    }
+  }
+  async function kochmodusWakeLockFreigeben() {
+    try { if (kochmodusWakeLock) { await kochmodusWakeLock.release(); kochmodusWakeLock = null; } } catch (e) {}
+  }
+  document.addEventListener('visibilitychange', async () => {
+    if (document.visibilityState === 'visible' && document.getElementById('modalKochmodus').classList.contains('zeigen') && !kochmodusWakeLock) {
+      await kochmodusWakeLockAnfordern();
+    }
+  });
+
+  function kochmodusSchrittRendern(r) {
+    const gesamt = r.schritte.length;
+    document.getElementById('kochmodusFortschritt').textContent = 'Schritt ' + (kochmodusSchrittIndex + 1) + ' von ' + gesamt;
+    document.getElementById('kochmodusSchrittText').textContent = r.schritte[kochmodusSchrittIndex];
+    document.getElementById('btnKochmodusZurueck').disabled = kochmodusSchrittIndex === 0;
+    const weiterBtn = document.getElementById('btnKochmodusWeiter');
+    weiterBtn.textContent = (kochmodusSchrittIndex >= gesamt - 1) ? '✓ Fertig' : 'Weiter →';
+  }
+  function kochmodusZutatenRendern(r) {
+    const faktor = detailPortionen / r.portionenBasis;
+    const box = document.getElementById('kochmodusZutatenListe');
+    box.innerHTML = r.zutaten.map(z => {
+      const menge = z.menge ? formatZahl(parseFloat(z.menge.toString().replace(',', '.')) * faktor) : '';
+      return '<li>' + '<span class="z-menge">' + escapeHtml([menge, z.einheit].filter(Boolean).join(' ')) + '</span><span>' + escapeHtml(z.name) + '</span></li>';
+    }).join('');
+  }
+  function kochmodusOeffnen() {
+    const r = rezepte.find(x => x.id === detailId);
+    if (!r || !r.schritte.length) { alert('Für dieses Rezept sind keine Zubereitungsschritte hinterlegt.'); return; }
+    kochmodusSchrittIndex = 0;
+    document.getElementById('kochmodusTitel').textContent = r.titel;
+    document.getElementById('kochmodusZutatenListe').style.display = 'none';
+    document.getElementById('btnKochmodusZutaten').textContent = '🥕 Zutaten anzeigen';
+    kochmodusZutatenRendern(r);
+    kochmodusSchrittRendern(r);
+    document.getElementById('modalKochmodus').classList.add('zeigen');
+    kochmodusWakeLockAnfordern();
+  }
+  function kochmodusSchliessen() {
+    kochmodusWakeLockFreigeben();
+    document.getElementById('modalKochmodus').classList.remove('zeigen');
+  }
+  document.getElementById('btnKochmodusStart').addEventListener('click', kochmodusOeffnen);
+  document.getElementById('btnKochmodusSchliessen').addEventListener('click', kochmodusSchliessen);
+  document.getElementById('modalKochmodus').addEventListener('click', (e) => { if (e.target.id === 'modalKochmodus') kochmodusSchliessen(); });
+  document.getElementById('btnKochmodusZurueck').addEventListener('click', () => {
+    const r = rezepte.find(x => x.id === detailId);
+    if (!r || kochmodusSchrittIndex === 0) return;
+    kochmodusSchrittIndex--;
+    kochmodusSchrittRendern(r);
+  });
+  document.getElementById('btnKochmodusWeiter').addEventListener('click', () => {
+    const r = rezepte.find(x => x.id === detailId);
+    if (!r) return;
+    if (kochmodusSchrittIndex >= r.schritte.length - 1) { kochmodusSchliessen(); return; }
+    kochmodusSchrittIndex++;
+    kochmodusSchrittRendern(r);
+  });
+  document.getElementById('btnKochmodusZutaten').addEventListener('click', () => {
+    const box = document.getElementById('kochmodusZutatenListe');
+    const zeigen = box.style.display === 'none';
+    box.style.display = zeigen ? '' : 'none';
+    document.getElementById('btnKochmodusZutaten').textContent = zeigen ? '🥕 Zutaten ausblenden' : '🥕 Zutaten anzeigen';
   });
   document.getElementById('detailHerz').addEventListener('click', () => {
     const r = rezepte.find(x => x.id === detailId);

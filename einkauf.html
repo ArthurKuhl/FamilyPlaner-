@@ -150,6 +150,16 @@
   .leer-hinweis { text-align: center; color: var(--bark); font-size: 0.85rem; padding: 46px 16px; opacity: 0.75; }
   .leer-hinweis .em { font-size: 2.2rem; display: block; margin-bottom: 8px; }
 
+  .preis-sektion { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--parchment); }
+  .preis-trend { font-size: 0.82rem; font-weight: 700; margin-bottom: 6px; }
+  .preis-trend.hoch { color: #a03e3e; }
+  .preis-trend.runter { color: var(--moss); }
+  .preis-verlauf-liste { list-style: none; margin-bottom: 8px; }
+  .preis-verlauf-liste li { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid var(--parchment); font-size: 0.78rem; }
+  .preis-verlauf-liste li span:last-child { font-weight: 700; }
+  .preis-eingabe-zeile { display: flex; gap: 6px; align-items: center; }
+  .preis-eingabe-zeile input { flex: 1; }
+
   .modal-bg { position: fixed; inset: 0; background: rgba(42,32,22,0.45); display: none; align-items: flex-end; justify-content: center; z-index: 100; }
   .modal-bg.zeigen { display: flex; }
   .modal { background: var(--cream); border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding: 18px 18px 24px; width: 100%; max-width: 460px; max-height: 88vh; overflow-y: auto; box-shadow: var(--shadow-md); }
@@ -256,12 +266,37 @@
       <label>Hinzugefügt von</label>
       <div class="kategorie-reihe" id="itemWerReihe"></div>
     </div>
+    <div class="preis-sektion">
+      <div class="unterliste-titel" style="font-size:0.72rem;font-weight:700;color:var(--bark);text-transform:uppercase;letter-spacing:0.03em;margin-bottom:6px;">📈 Preisverlauf</div>
+      <div id="preisTrendText"></div>
+      <ul class="preis-verlauf-liste" id="preisVerlaufListe"></ul>
+      <div class="preis-eingabe-zeile">
+        <input type="number" step="0.01" min="0" id="fPreisNeu" placeholder="Preis erfassen, z.B. 2.49">
+        <button type="button" class="btn btn-secondary" id="btnPreisHinzufuegen" style="flex:0 0 auto;">＋ Erfassen</button>
+      </div>
+    </div>
     <div class="modal-btns">
       <button class="btn btn-secondary" id="btnItemAbbrechen">Abbrechen</button>
       <button class="btn btn-primary" id="btnItemSpeichern">Speichern</button>
     </div>
     <div class="modal-btns">
       <button class="btn btn-danger" id="btnItemLoeschen">Löschen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Preis beim Abhaken erfassen (optional) -->
+<div class="modal-bg" id="modalPreisAbhaken">
+  <div class="modal" style="max-width:400px;">
+    <h2 id="preisAbhakenTitel">Preis notieren?</h2>
+    <div id="preisAbhakenTrend" style="font-size:0.8rem;color:var(--bark);margin-bottom:10px;"></div>
+    <div class="feld">
+      <label for="fPreisAbhaken">Preis (optional, €)</label>
+      <input type="number" step="0.01" min="0" id="fPreisAbhaken" placeholder="z.B. 2.49">
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnPreisAbhakenUeberspringen">Überspringen</button>
+      <button class="btn btn-primary" id="btnPreisAbhakenSpeichern">💾 Speichern</button>
     </div>
   </div>
 </div>
@@ -335,6 +370,7 @@
   const KEY_LISTEN = 'einkauf_listen';
   const KEY_AKTIV = 'einkauf_aktiveListe';
   const KEY_FAVORITEN = 'einkauf_favoriten';
+  const KEY_PREISE = 'einkauf_preise';
 
   const KATEGORIEN = [
     { id: 'obst_gemuese',  label: 'Obst & Gemüse',          icon: '🥦', farbe: '#4f6f45' },
@@ -363,6 +399,39 @@
   function neueId(prefix) { return prefix + Date.now() + Math.random().toString(36).slice(2,7); }
   function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
+  // ---------- PREIS-TRACKING ----------
+  function preisNormName(name) { return String(name || '').trim().toLowerCase(); }
+  function preisHistorie(name) { return preise[preisNormName(name)] || []; }
+  function preisHinzufuegen(name, wert) {
+    const key = preisNormName(name);
+    if (!key || !(wert > 0)) return;
+    if (!preise[key]) preise[key] = [];
+    preise[key].push({ datum: new Date().toISOString(), preis: Math.round(wert * 100) / 100 });
+    speichern(KEY_PREISE, preise);
+  }
+  function preisFormatEuro(n) { return n.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' }); }
+  function preisTrendHtml(name) {
+    const hist = preisHistorie(name);
+    if (!hist.length) return '<div class="preis-trend">Noch keine Preise erfasst.</div>';
+    const letzter = hist[hist.length - 1];
+    if (hist.length === 1) return '<div class="preis-trend">Zuletzt: ' + preisFormatEuro(letzter.preis) + '</div>';
+    const vorheriger = hist[hist.length - 2];
+    const diff = letzter.preis - vorheriger.preis;
+    const klasse = diff > 0.001 ? 'hoch' : (diff < -0.001 ? 'runter' : '');
+    const pfeil = diff > 0.001 ? '↑' : (diff < -0.001 ? '↓' : '→');
+    return '<div class="preis-trend ' + klasse + '">' + pfeil + ' ' + preisFormatEuro(letzter.preis) + ' (vorher ' + preisFormatEuro(vorheriger.preis) + ')</div>';
+  }
+  function preisVerlaufRendern(name) {
+    document.getElementById('preisTrendText').innerHTML = preisTrendHtml(name);
+    const liste = document.getElementById('preisVerlaufListe');
+    const hist = preisHistorie(name).slice(-8).reverse();
+    liste.innerHTML = hist.map(e => {
+      const d = new Date(e.datum);
+      return '<li><span>' + d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' }) + '</span><span>' + preisFormatEuro(e.preis) + '</span></li>';
+    }).join('');
+  }
+
+
   function laden(key, fallback) {
     try {
       const raw = localStorage.getItem(key);
@@ -387,6 +456,7 @@
   let aktiveListeId = localStorage.getItem(KEY_AKTIV);
   if (!aktiveListeId || !listen.some(l => l.id === aktiveListeId)) aktiveListeId = listen[0].id;
   let favoriten = laden(KEY_FAVORITEN, {});
+  let preise = laden(KEY_PREISE, {}); // { normalisierterName: [{datum, preis}] }
   let erledigtOffen = false;
   let aktuellePerson = localStorage.getItem(KEY_AKTUELLE_PERSON);
   if (!aktuellePerson || !PERSONEN.some(p => p.id === aktuellePerson)) {
@@ -562,9 +632,13 @@
       '<button class="item-loeschen" aria-label="Löschen">✕</button>';
     zeile.querySelector('.item-checkbox').addEventListener('click', (e) => {
       e.stopPropagation();
-      item.erledigt = !item.erledigt;
-      speichernListen();
-      renderAlles();
+      if (!item.erledigt) {
+        preisAbhakenOeffnen(item);
+      } else {
+        item.erledigt = false;
+        speichernListen();
+        renderAlles();
+      }
     });
     zeile.querySelector('.item-loeschen').addEventListener('click', (e) => {
       e.stopPropagation();
@@ -590,6 +664,33 @@
     renderSortButton();
     renderAlles();
   });
+
+  // ---------- Preis beim Abhaken (optional) ----------
+  let preisAbhakenItemId = null;
+  function preisAbhakenOeffnen(item) {
+    preisAbhakenItemId = item.id;
+    document.getElementById('preisAbhakenTitel').textContent = 'Preis für „' + item.name + '“ notieren?';
+    document.getElementById('preisAbhakenTrend').innerHTML = preisTrendHtml(item.name);
+    document.getElementById('fPreisAbhaken').value = '';
+    document.getElementById('modalPreisAbhaken').classList.add('zeigen');
+  }
+  function preisAbhakenAbschliessen(mitPreis) {
+    const liste = aktiveListe();
+    const item = liste.items.find(i => i.id === preisAbhakenItemId);
+    if (item) {
+      if (mitPreis) {
+        const wert = parseFloat(document.getElementById('fPreisAbhaken').value.replace(',', '.'));
+        if (wert > 0) preisHinzufuegen(item.name, wert);
+      }
+      item.erledigt = true;
+      speichernListen();
+    }
+    document.getElementById('modalPreisAbhaken').classList.remove('zeigen');
+    renderAlles();
+  }
+  document.getElementById('btnPreisAbhakenUeberspringen').addEventListener('click', () => preisAbhakenAbschliessen(false));
+  document.getElementById('btnPreisAbhakenSpeichern').addEventListener('click', () => preisAbhakenAbschliessen(true));
+  document.getElementById('modalPreisAbhaken').addEventListener('click', (e) => { if (e.target.id === 'modalPreisAbhaken') preisAbhakenAbschliessen(false); });
 
   function renderOffeneItems() {
     const box = document.getElementById('offeneItems');
@@ -674,10 +775,22 @@
     document.getElementById('fItemEinheit').value = item.einheit || '';
     itemKategorieReiheRendern(item.kategorie);
     itemWerReiheRendern(item.hinzugefuegtVon && item.hinzugefuegtVon.indexOf('rezept:') !== 0 ? item.hinzugefuegtVon : null);
+    document.getElementById('fPreisNeu').value = '';
+    preisVerlaufRendern(item.name);
     document.getElementById('modalItem').classList.add('zeigen');
   }
   document.getElementById('btnItemAbbrechen').addEventListener('click', () => document.getElementById('modalItem').classList.remove('zeigen'));
   document.getElementById('modalItem').addEventListener('click', (e) => { if (e.target.id === 'modalItem') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnPreisHinzufuegen').addEventListener('click', () => {
+    const liste = aktiveListe();
+    const item = liste.items.find(i => i.id === bearbeitetesItemId);
+    if (!item) return;
+    const wert = parseFloat(document.getElementById('fPreisNeu').value.replace(',', '.'));
+    if (!(wert > 0)) { alert('Bitte einen gültigen Preis eingeben.'); return; }
+    preisHinzufuegen(item.name, wert);
+    document.getElementById('fPreisNeu').value = '';
+    preisVerlaufRendern(item.name);
+  });
   document.getElementById('btnItemSpeichern').addEventListener('click', () => {
     const liste = aktiveListe();
     const item = liste.items.find(i => i.id === bearbeitetesItemId);
@@ -887,11 +1000,12 @@
   if (window.PlanerSync) {
     window._sync = window.PlanerSync.starteSync({
       modul: 'einkauf',
-      keys: [KEY_LISTEN, KEY_FAVORITEN, KEY_VORLAGEN],
+      keys: [KEY_LISTEN, KEY_FAVORITEN, KEY_VORLAGEN, KEY_PREISE],
       onRemoteChange: function () {
         listen = laden(KEY_LISTEN, listen);
         favoriten = laden(KEY_FAVORITEN, favoriten);
         vorlagen = laden(KEY_VORLAGEN, vorlagen);
+        preise = laden(KEY_PREISE, preise);
         if (!listen.some(l => l.id === aktiveListeId)) aktiveListeId = listen[0].id;
         renderAlles();
         pruefeVorlagenErinnerung();

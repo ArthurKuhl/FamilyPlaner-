@@ -91,6 +91,15 @@
   .sport-meta { font-size: 0.7rem; color: var(--bark); margin-top: 1px; }
   .sport-loeschen { background: none; border: none; color: var(--parchment); font-size: 1rem; cursor: pointer; padding: 2px 4px; }
   .sport-loeschen:hover { color: var(--terracotta-text); }
+  .sport-route-btn { background: none; border: none; font-size: 1rem; cursor: pointer; padding: 2px 4px; opacity: 0.75; }
+
+  .gps-panel { background: var(--cream); border: 1px solid var(--sand-dark); border-radius: var(--radius-md); padding: 10px 12px; margin-top: 6px; }
+  .gps-panel .gps-werte { display: flex; gap: 18px; margin-bottom: 8px; }
+  .gps-panel .gps-wert-block .gps-wert { font-size: 1.25rem; font-weight: 700; }
+  .gps-panel .gps-wert-block .gps-label { font-size: 0.65rem; color: var(--bark); text-transform: uppercase; letter-spacing: 0.03em; }
+  .gps-panel .gps-status { font-size: 0.72rem; color: var(--bark); margin-bottom: 8px; }
+  .btn-gps-start { background: var(--moss); color: var(--white); border: none; border-radius: var(--radius-pill); padding: 8px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; }
+  .btn-gps-stop { background: var(--terracotta); color: var(--white); border: none; border-radius: var(--radius-pill); padding: 8px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; }
 
   #btnSchriftgroesse.aktiv { background: var(--moss); color: var(--white); border-color: var(--moss); }
   .temp-status { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); background: var(--bark); color: var(--white); padding: 10px 18px; border-radius: var(--radius-pill); font-size: 0.85rem; font-weight: 600; box-shadow: 0 4px 14px rgba(0,0,0,0.25); opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 500; max-width: 88vw; text-align: center; }
@@ -541,6 +550,15 @@
     <div class="feld" id="fSportStreckeFeld" style="display:none;">
       <label id="fSportStreckeLabel" for="fSportStrecke">Strecke (km)</label>
       <input type="number" step="0.1" id="fSportStrecke" min="0" placeholder="z.B. 5">
+      <button type="button" class="btn-gps-start" id="btnGpsStart" style="margin-top:6px;">📍 GPS-Tracking starten</button>
+      <div class="gps-panel" id="gpsPanel" style="display:none;">
+        <div class="gps-werte">
+          <div class="gps-wert-block"><div class="gps-wert" id="gpsWertDistanz">0,00 km</div><div class="gps-label">Distanz</div></div>
+          <div class="gps-wert-block"><div class="gps-wert" id="gpsWertZeit">00:00</div><div class="gps-label">Zeit</div></div>
+        </div>
+        <div class="gps-status" id="gpsStatus">📍 Suche GPS-Signal ...</div>
+        <button type="button" class="btn-gps-stop" id="btnGpsStop">⏹ Tracking stoppen &amp; übernehmen</button>
+      </div>
     </div>
     <div class="feld" id="fSportUebungFeld" style="display:none;">
       <label>Übungen (optional, mehrere möglich)</label>
@@ -553,6 +571,21 @@
     <div class="modal-btns">
       <button class="btn btn-secondary" id="btnSportAbbrechen">Abbrechen</button>
       <button class="btn btn-primary" id="btnSportSpeichern">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalGpsRoute">
+  <div class="modal">
+    <h2>🗺️ Route</h2>
+    <svg id="gpsRouteSvg" viewBox="0 0 200 140" style="width:100%;height:auto;background:var(--cream);border-radius:var(--radius-md);border:1px solid var(--sand-dark);"></svg>
+    <div class="gps-werte" style="margin-top:10px;">
+      <div class="gps-wert-block"><div class="gps-wert" id="gpsRouteDistanz">–</div><div class="gps-label">Distanz</div></div>
+      <div class="gps-wert-block"><div class="gps-wert" id="gpsRouteDauer">–</div><div class="gps-label">Dauer</div></div>
+      <div class="gps-wert-block"><div class="gps-wert" id="gpsRoutePace">–</div><div class="gps-label">Ø Tempo</div></div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnGpsRouteSchliessen">Schließen</button>
     </div>
   </div>
 </div>
@@ -808,7 +841,11 @@
       '<span class="sport-icon">' + t.icon + '</span>' +
       '<div class="sport-info"><div class="sport-titel">' + t.label + ' · ' + s.dauer + ' Min.' + strecke + uebung + '</div>' +
       '<div class="sport-meta">' + (s.notiz ? escapeHtml(s.notiz) : '') + '</div></div>' +
+      (s.gpsRoute ? '<button class="sport-route-btn" aria-label="Route ansehen" title="Route ansehen">🗺️</button>' : '') +
       '<button class="sport-loeschen" aria-label="Löschen">✕</button>';
+    if (s.gpsRoute) {
+      zeile.querySelector('.sport-route-btn').addEventListener('click', () => gpsRouteAnzeigen(s));
+    }
     zeile.querySelector('.sport-loeschen').addEventListener('click', () => {
       sportEinheiten = sportEinheiten.filter(x => x.id !== s.id);
       speichern(KEY_SPORT, sportEinheiten);
@@ -1051,6 +1088,7 @@
     });
   }
   document.getElementById('btnSportHinzufuegen').addEventListener('click', () => {
+    gpsAbbrechen();
     ausgewaehlterTyp = 'laufen';
     ausgewaehlteUebungen = [];
     renderTypReihe();
@@ -1061,21 +1099,139 @@
     document.getElementById('fSportNotiz').value = '';
     document.getElementById('modalSport').classList.add('zeigen');
   });
-  document.getElementById('btnSportAbbrechen').addEventListener('click', () => document.getElementById('modalSport').classList.remove('zeigen'));
-  document.getElementById('modalSport').addEventListener('click', (e) => { if (e.target.id === 'modalSport') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnSportAbbrechen').addEventListener('click', () => { gpsAbbrechen(); document.getElementById('modalSport').classList.remove('zeigen'); });
+  document.getElementById('modalSport').addEventListener('click', (e) => { if (e.target.id === 'modalSport') { gpsAbbrechen(); e.currentTarget.classList.remove('zeigen'); } });
+
+  // ---------- GPS-TRACKING ----------
+  let gpsWatchId = null;
+  let gpsPunkte = [];
+  let gpsStartZeit = null;
+  let gpsTimerId = null;
+  let gpsAufgezeichneteRoute = null; // wird beim Speichern an die Sport-Einheit angehängt
+
+  function haversineKm(lat1, lon1, lat2, lon2) {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
+  function gpsGesamtDistanzKm() {
+    let d = 0;
+    for (let i = 1; i < gpsPunkte.length; i++) {
+      d += haversineKm(gpsPunkte[i-1].lat, gpsPunkte[i-1].lng, gpsPunkte[i].lat, gpsPunkte[i].lng);
+    }
+    return d;
+  }
+  function gpsZeitText(sekunden) {
+    const m = Math.floor(sekunden / 60), s = Math.floor(sekunden % 60);
+    return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+  }
+  function gpsAnzeigeAktualisieren() {
+    const sekunden = gpsStartZeit ? (Date.now() - gpsStartZeit) / 1000 : 0;
+    document.getElementById('gpsWertZeit').textContent = gpsZeitText(sekunden);
+    document.getElementById('gpsWertDistanz').textContent = gpsGesamtDistanzKm().toLocaleString('de-DE', { maximumFractionDigits: 2, minimumFractionDigits: 2 }) + ' km';
+  }
+  document.getElementById('btnGpsStart').addEventListener('click', () => {
+    if (!navigator.geolocation) { alert('GPS wird von diesem Browser nicht unterstützt.'); return; }
+    gpsPunkte = [];
+    gpsStartZeit = Date.now();
+    document.getElementById('gpsPanel').style.display = '';
+    document.getElementById('btnGpsStart').style.display = 'none';
+    document.getElementById('gpsStatus').textContent = '📍 Suche GPS-Signal ...';
+    gpsAnzeigeAktualisieren();
+    gpsTimerId = setInterval(gpsAnzeigeAktualisieren, 1000);
+    gpsWatchId = navigator.geolocation.watchPosition(
+      (pos) => {
+        gpsPunkte.push({ lat: pos.coords.latitude, lng: pos.coords.longitude, t: Date.now() });
+        document.getElementById('gpsStatus').textContent = '📍 Tracking läuft · ' + gpsPunkte.length + ' Punkte erfasst (Genauigkeit ~' + Math.round(pos.coords.accuracy) + ' m)';
+        gpsAnzeigeAktualisieren();
+      },
+      (err) => {
+        document.getElementById('gpsStatus').textContent = '⚠ GPS-Fehler: ' + (err.code === 1 ? 'Zugriff verweigert – bitte Standortzugriff erlauben.' : err.message);
+      },
+      { enableHighAccuracy: true, maximumAge: 2000, timeout: 15000 }
+    );
+  });
+  function gpsStoppenIntern() {
+    if (gpsWatchId !== null) { navigator.geolocation.clearWatch(gpsWatchId); gpsWatchId = null; }
+    if (gpsTimerId !== null) { clearInterval(gpsTimerId); gpsTimerId = null; }
+  }
+  document.getElementById('btnGpsStop').addEventListener('click', () => {
+    gpsStoppenIntern();
+    const distanzKm = gpsGesamtDistanzKm();
+    const dauerMin = gpsStartZeit ? Math.max(1, Math.round((Date.now() - gpsStartZeit) / 60000)) : 1;
+    if (gpsPunkte.length >= 2) {
+      gpsAufgezeichneteRoute = gpsPunkte.slice();
+      document.getElementById('fSportStrecke').value = distanzKm.toFixed(2);
+      document.getElementById('fSportDauer').value = dauerMin;
+    } else {
+      alert('Zu wenige GPS-Punkte erfasst – Strecke wurde nicht übernommen.');
+    }
+    document.getElementById('gpsPanel').style.display = 'none';
+    document.getElementById('btnGpsStart').style.display = '';
+    document.getElementById('btnGpsStart').textContent = '📍 GPS-Tracking erneut starten';
+  });
+  function gpsAbbrechen() {
+    gpsStoppenIntern();
+    gpsPunkte = [];
+    gpsStartZeit = null;
+    gpsAufgezeichneteRoute = null;
+    document.getElementById('gpsPanel').style.display = 'none';
+    document.getElementById('btnGpsStart').style.display = '';
+    document.getElementById('btnGpsStart').textContent = '📍 GPS-Tracking starten';
+  }
+
+  // ---------- Routen-Anzeige-Modal ----------
+  function gpsRouteAnzeigen(s) {
+    const route = s.gpsRoute;
+    const svg = document.getElementById('gpsRouteSvg');
+    if (!route || route.length < 2) { svg.innerHTML = ''; return; }
+    const lats = route.map(p => p.lat), lngs = route.map(p => p.lng);
+    const minLat = Math.min(...lats), maxLat = Math.max(...lats);
+    const minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
+    const spanLat = Math.max(maxLat - minLat, 0.0001), spanLng = Math.max(maxLng - minLng, 0.0001);
+    const pad = 10;
+    const pts = route.map(p => {
+      const x = pad + ((p.lng - minLng) / spanLng) * (200 - 2 * pad);
+      const y = pad + (1 - (p.lat - minLat) / spanLat) * (140 - 2 * pad);
+      return x.toFixed(1) + ',' + y.toFixed(1);
+    });
+    svg.innerHTML =
+      '<polyline points="' + pts.join(' ') + '" fill="none" stroke="#4f6f45" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>' +
+      '<circle cx="' + pts[0].split(',')[0] + '" cy="' + pts[0].split(',')[1] + '" r="4" fill="#4f6f45"/>' +
+      '<circle cx="' + pts[pts.length-1].split(',')[0] + '" cy="' + pts[pts.length-1].split(',')[1] + '" r="4" fill="#c46b41"/>';
+    const distanzKm = gpsRouteDistanzBerechnen(route);
+    document.getElementById('gpsRouteDistanz').textContent = distanzKm.toLocaleString('de-DE', { maximumFractionDigits: 2 }) + ' km';
+    document.getElementById('gpsRouteDauer').textContent = s.dauer + ' Min.';
+    const paceMinProKm = distanzKm > 0 ? (s.dauer / distanzKm) : 0;
+    document.getElementById('gpsRoutePace').textContent = paceMinProKm > 0 ? paceMinProKm.toLocaleString('de-DE', { maximumFractionDigits: 1 }) + ' min/km' : '–';
+    document.getElementById('modalGpsRoute').classList.add('zeigen');
+  }
+  function gpsRouteDistanzBerechnen(route) {
+    let d = 0;
+    for (let i = 1; i < route.length; i++) d += haversineKm(route[i-1].lat, route[i-1].lng, route[i].lat, route[i].lng);
+    return d;
+  }
+  document.getElementById('btnGpsRouteSchliessen').addEventListener('click', () => document.getElementById('modalGpsRoute').classList.remove('zeigen'));
+  document.getElementById('modalGpsRoute').addEventListener('click', (e) => { if (e.target.id === 'modalGpsRoute') e.currentTarget.classList.remove('zeigen'); });
+
   document.getElementById('btnSportSpeichern').addEventListener('click', () => {
     const datum = document.getElementById('fSportDatum').value;
     if (!datum) { alert('Bitte ein Datum wählen.'); return; }
     const dauer = Math.max(1, parseInt(document.getElementById('fSportDauer').value, 10) || 30);
     const t = typInfo(ausgewaehlterTyp);
-    sportEinheiten.push({
+    const neu = {
       id: neueId('s'), datum, person: aktivePerson, typ: ausgewaehlterTyp, dauer,
       strecke: t.streckeEinheit ? document.getElementById('fSportStrecke').value : '',
       uebung: TYP_UEBUNGSGRUPPEN[ausgewaehlterTyp] ? ausgewaehlteUebungen.join(', ') : '',
       notiz: document.getElementById('fSportNotiz').value.trim(),
-    });
+    };
+    if (gpsAufgezeichneteRoute && gpsAufgezeichneteRoute.length >= 2) neu.gpsRoute = gpsAufgezeichneteRoute;
+    sportEinheiten.push(neu);
     speichern(KEY_SPORT, sportEinheiten);
     document.getElementById('modalSport').classList.remove('zeigen');
+    gpsAbbrechen();
     renderAlles();
   });
 
@@ -2091,6 +2247,7 @@
   let planAusgewaehlterTag = null;
   let planAusgewaehlterTyp = 'laufen';
   function planAlsErledigtEintragen(planEintrag) {
+    gpsAbbrechen();
     ausgewaehlterTyp = planEintrag.typ;
     ausgewaehlteUebungen = planEintrag.uebung ? planEintrag.uebung.split(',').map(s => s.trim()).filter(Boolean) : [];
     renderTypReihe();
