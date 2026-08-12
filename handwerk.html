@@ -48,6 +48,20 @@
   .filter-reihe { display: flex; gap: 5px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px; scrollbar-width: none; }
   .filter-reihe::-webkit-scrollbar { display: none; }
   .filter-chip { flex: 0 0 auto; background: transparent; border: 1px solid #4a3a28; color: var(--sage); font-size: 0.72rem; font-weight: 600; padding: 5px 12px; border-radius: var(--radius-pill); cursor: pointer; white-space: nowrap; }
+  .ansicht-tabs { display: flex; gap: 6px; margin-bottom: 8px; }
+  .ansicht-tab { flex: 1; background: transparent; border: 1px solid #4a3a28; color: var(--sage); font-size: 0.78rem; font-weight: 700; padding: 7px 10px; border-radius: var(--radius-pill); cursor: pointer; }
+  .ansicht-tab.active { background: var(--terracotta); color: var(--white); border-color: var(--terracotta); }
+  .wartung-liste { display: grid; grid-template-columns: 1fr; gap: 10px; }
+  @media (min-width: 1000px) { .wartung-liste { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); } }
+  .wartung-karte { background: var(--white); border-radius: var(--radius-md); padding: 12px; box-shadow: var(--shadow-soft); display: flex; align-items: center; gap: 10px; border-left: 4px solid var(--parchment); cursor: pointer; }
+  .wartung-karte.faellig { border-left-color: var(--terracotta); }
+  .wartung-karte.pausiert { opacity: 0.55; }
+  .wk-icon { font-size: 1.5rem; flex-shrink: 0; }
+  .wk-body { flex: 1; min-width: 0; }
+  .wk-titel { font-size: 0.9rem; font-weight: 700; line-height: 1.25; }
+  .wk-meta { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 5px; }
+  .wk-check { flex-shrink: 0; width: 42px; height: 42px; border-radius: 50%; border: 2px solid var(--parchment); background: var(--white); font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .wk-check.erledigt { background: var(--moss); border-color: var(--moss); color: var(--white); }
   .filter-chip.active { background: var(--moss); color: var(--leaf); border-color: var(--moss); }
 
   main { padding: 12px 14px; max-width: 680px; margin: 0 auto; }
@@ -81,6 +95,9 @@
   .opt.aktiv { color: var(--white); border-color: transparent; }
 
   .unterliste-titel { font-size: 0.72rem; font-weight: 700; color: var(--bark); text-transform: uppercase; letter-spacing: 0.03em; margin: 16px 0 6px; }
+  .verlauf-liste { list-style: none; }
+  .verlauf-liste li { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid var(--parchment); font-size: 0.8rem; }
+  .verlauf-liste .v-wer { font-weight: 700; }
   .material-zeile { display: flex; gap: 6px; margin-bottom: 6px; align-items: center; }
   .material-zeile input.menge { width: 60px; flex: 0 0 60px; }
   .material-zeile input.einheit { width: 68px; flex: 0 0 68px; }
@@ -111,11 +128,16 @@
     <button class="theme-btn" id="btnThemeAuswahl" title="Hintergrundmuster wählen">🎨</button>
     <button class="add-btn" id="btnNeu">＋ Neu</button>
   </div>
-  <div class="suchzeile" style="display:flex; align-items:center; gap:6px;">
+  <div class="ansicht-tabs">
+    <button class="ansicht-tab active" id="tabProjekte">📋 Projekte</button>
+    <button class="ansicht-tab" id="tabWartung">🔁 Wartung</button>
+  </div>
+  <div class="suchzeile" id="ansichtProjekteKopf" style="display:flex; align-items:center; gap:6px;">
     <input type="text" id="fSuche" placeholder="Projekt suchen ..." style="flex:1;">
     <button class="filter-chip" id="btnSortRichtung" style="flex:0 0 auto;">🔤 A–Z</button>
   </div>
   <div class="filter-reihe" id="filterReihe"></div>
+  <div class="filter-reihe" id="wartungFilterReihe" style="display:none;"></div>
 </header>
   <div class="theme-popup" id="themePopup">
 <div class="theme-swatch" data-theme="" title="Kein Muster">✕</div>
@@ -125,9 +147,17 @@
 
 
 <main>
-  <div class="projekt-grid" id="projektGrid"></div>
-  <div class="leer-hinweis" id="leerHinweis" style="display:none;">
-    <span class="em">🔨</span><span id="leerText">Noch keine Projekte. Tippe auf „＋ Neu“, um eins anzulegen.</span>
+  <div id="ansichtProjekte">
+    <div class="projekt-grid" id="projektGrid"></div>
+    <div class="leer-hinweis" id="leerHinweis" style="display:none;">
+      <span class="em">🔨</span><span id="leerText">Noch keine Projekte. Tippe auf „＋ Neu“, um eins anzulegen.</span>
+    </div>
+  </div>
+  <div id="ansichtWartung" style="display:none;">
+    <div class="wartung-liste" id="wartungListe"></div>
+    <div class="leer-hinweis" id="wartungLeerHinweis" style="display:none;">
+      <span class="em">🔁</span>Noch keine wiederkehrende Wartung angelegt.<br>Tippe auf „＋ Neu", um z.B. Rauchmelder-Batterie oder Dachrinne reinigen anzulegen.
+    </div>
   </div>
 </main>
 
@@ -210,6 +240,62 @@
     </div>
     <div class="modal-btns" id="skizzeLoeschZeile" style="display:none;">
       <button class="btn btn-danger" id="btnSkizzeLoeschen">Skizze löschen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Wartungsaufgabe Neu/Bearbeiten -->
+<div class="modal-bg" id="modalWartung">
+  <div class="modal">
+    <h2 id="wartungTitelKopf">Neue Wartungsaufgabe</h2>
+    <input type="hidden" id="editWartungId" value="">
+    <div class="feld">
+      <label for="fWartungTitel">Aufgabe</label>
+      <input type="text" id="fWartungTitel" placeholder="z.B. Rauchmelder-Batterie, Dachrinne reinigen, Heizungscheck ...">
+    </div>
+    <div class="feld">
+      <label for="fWartungIcon">Symbol</label>
+      <input type="text" id="fWartungIcon" maxlength="4" placeholder="🔁" style="width:80px;">
+    </div>
+    <div class="feld">
+      <label>Turnus</label>
+      <div class="opt-reihe" id="wartungTurnusReihe"></div>
+    </div>
+    <div class="feld">
+      <label>Zuständigkeit</label>
+      <div class="opt-reihe" id="wartungZuweisungReihe"></div>
+    </div>
+    <div class="feld" id="wartungFestPersonFeld" style="display:none;">
+      <label>Wer ist zuständig?</label>
+      <div class="opt-reihe" id="wartungFestPersonReihe"></div>
+    </div>
+    <div class="feld" id="wartungRotationFeld" style="display:none;">
+      <label>Wer wechselt sich ab?</label>
+      <div class="opt-reihe" id="wartungRotationPersonenReihe"></div>
+    </div>
+    <div class="feld">
+      <label class="opt" id="btnWartungPausiert" style="display:inline-block;width:auto;">⏸ Pausiert (aktuell nicht fällig)</label>
+    </div>
+    <div class="unterliste-titel" id="wartungVerlaufTitel" style="display:none;">Verlauf (letzte Erledigungen)</div>
+    <ul class="verlauf-liste" id="wartungVerlaufListe"></ul>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnWartungAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnWartungSpeichern">💾 Speichern</button>
+    </div>
+    <div class="modal-btns" id="wartungLoeschZeile" style="display:none;">
+      <button class="btn btn-danger" id="btnWartungLoeschen">Wartungsaufgabe löschen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Wartung Erledigt: Wer war's? -->
+<div class="modal-bg" id="modalWartungErledigt">
+  <div class="modal" style="max-width:400px;">
+    <h2>Wer hat's erledigt?</h2>
+    <div class="opt-reihe" id="wartungErledigtPersonReihe" style="margin-bottom:16px;"></div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnWartungErledigtAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnWartungErledigtBestaetigen">✓ Bestätigen</button>
     </div>
   </div>
 </div>
@@ -465,7 +551,10 @@
     document.getElementById('modalDetail').classList.remove('zeigen');
     document.getElementById('fTitel').focus();
   }
-  document.getElementById('btnNeu').addEventListener('click', () => editModalOeffnen(null));
+  document.getElementById('btnNeu').addEventListener('click', () => {
+    if (typeof aktiveAnsicht !== 'undefined' && aktiveAnsicht === 'wartung') wartungEditOeffnen(null);
+    else editModalOeffnen(null);
+  });
   document.getElementById('btnDetailBearbeiten').addEventListener('click', () => {
     const p = projekte.find(x => x.id === detailId);
     if (p) editModalOeffnen(p);
@@ -714,15 +803,345 @@
     });
   }
 
+  // ============================================================
+  // WARTUNG (wiederkehrende Haus-Wartung, getrennt von Projekten)
+  // ============================================================
+  const KEY_WARTUNG = 'handwerk_wartung';
+  let wartungsaufgaben = laden(KEY_WARTUNG, []);
+  let aktiveAnsicht = 'projekte';
+  let wartungFilter = 'faellig';
+  let editWartungId = null;
+  let wartungErledigtZielId = null;
+
+  const WARTUNG_TURNUS_OPTIONEN = [
+    { id: 'monatlich', label: 'Monatlich' },
+    { id: 'vierteljaehrlich', label: 'Vierteljährlich' },
+    { id: 'halbjaehrlich', label: 'Halbjährlich' },
+    { id: 'jaehrlich', label: 'Jährlich' },
+    { id: 'einmalig', label: 'Einmalig' },
+  ];
+  const WARTUNG_ZUWEISUNG_OPTIONEN = [
+    { id: 'offen', label: '🙋 Jeder' },
+    { id: 'fest', label: '📌 Feste Person' },
+    { id: 'rotation', label: '🔄 Rotation' },
+  ];
+  const WARTUNG_MONATE = { monatlich: 1, vierteljaehrlich: 3, halbjaehrlich: 6, jaehrlich: 12 };
+
+  function speichernWartung() { speichern(KEY_WARTUNG, wartungsaufgaben); if (window._sync) window._sync.melde(); }
+
+  function wartungLetzteErledigung(w) {
+    if (!w.erledigt || !w.erledigt.length) return null;
+    return w.erledigt[w.erledigt.length - 1];
+  }
+  function wartungIstFaellig(w) {
+    if (w.pausiert) return false;
+    const letzte = wartungLetzteErledigung(w);
+    if (w.turnus === 'einmalig') return !letzte;
+    if (!letzte) return true;
+    const monate = WARTUNG_MONATE[w.turnus] || 1;
+    const faelligAb = new Date(letzte.datum);
+    faelligAb.setMonth(faelligAb.getMonth() + monate);
+    return faelligAb <= new Date();
+  }
+  function wartungTurnusText(w) {
+    return (WARTUNG_TURNUS_OPTIONEN.find(t => t.id === w.turnus) || {}).label || w.turnus;
+  }
+  function wartungAktuellZustaendig(w) {
+    if (w.zuweisung === 'fest' && w.person) return personInfo(w.person);
+    if (w.zuweisung === 'rotation' && (w.rotationPersonen || []).length) {
+      const idx = (w.rotationIndex || 0) % w.rotationPersonen.length;
+      return personInfo(w.rotationPersonen[idx]);
+    }
+    return null;
+  }
+  function wartungNaechsteFaelligkeitText(w) {
+    const letzte = wartungLetzteErledigung(w);
+    if (!letzte) return 'noch nie erledigt';
+    if (w.turnus === 'einmalig') return 'erledigt';
+    const monate = WARTUNG_MONATE[w.turnus] || 1;
+    const naechste = new Date(letzte.datum);
+    naechste.setMonth(naechste.getMonth() + monate);
+    return 'nächstes Mal ~' + naechste.toLocaleDateString('de-DE', { month: 'short', year: 'numeric' });
+  }
+
+  // ---------- Ansicht umschalten ----------
+  function ansichtAnwenden() {
+    document.getElementById('tabProjekte').classList.toggle('active', aktiveAnsicht === 'projekte');
+    document.getElementById('tabWartung').classList.toggle('active', aktiveAnsicht === 'wartung');
+    document.getElementById('ansichtProjekte').style.display = (aktiveAnsicht === 'projekte') ? '' : 'none';
+    document.getElementById('ansichtWartung').style.display = (aktiveAnsicht === 'wartung') ? '' : 'none';
+    document.getElementById('ansichtProjekteKopf').style.display = (aktiveAnsicht === 'projekte') ? 'flex' : 'none';
+    document.getElementById('filterReihe').style.display = (aktiveAnsicht === 'projekte') ? '' : 'none';
+    document.getElementById('wartungFilterReihe').style.display = (aktiveAnsicht === 'wartung') ? '' : 'none';
+    if (aktiveAnsicht === 'wartung') { renderWartungFilter(); renderWartungListe(); }
+  }
+  document.getElementById('tabProjekte').addEventListener('click', () => { aktiveAnsicht = 'projekte'; ansichtAnwenden(); });
+  document.getElementById('tabWartung').addEventListener('click', () => { aktiveAnsicht = 'wartung'; ansichtAnwenden(); });
+
+  function renderWartungFilter() {
+    const box = document.getElementById('wartungFilterReihe');
+    const faelligeAnzahl = wartungsaufgaben.filter(wartungIstFaellig).length;
+    const filter = [
+      { id: 'faellig', label: '📌 Fällig' + (faelligeAnzahl ? ' (' + faelligeAnzahl + ')' : '') },
+      { id: 'alle', label: 'Alle' },
+      { id: 'pausiert', label: '⏸ Pausiert' },
+    ];
+    box.innerHTML = '';
+    filter.forEach(f => {
+      const btn = document.createElement('button');
+      btn.className = 'filter-chip' + (f.id === wartungFilter ? ' active' : '');
+      btn.textContent = f.label;
+      btn.addEventListener('click', () => { wartungFilter = f.id; renderWartungFilter(); renderWartungListe(); });
+      box.appendChild(btn);
+    });
+  }
+
+  function renderWartungListe() {
+    const box = document.getElementById('wartungListe');
+    let gefiltert = wartungsaufgaben.slice();
+    if (wartungFilter === 'faellig') gefiltert = gefiltert.filter(w => wartungIstFaellig(w) && !w.pausiert);
+    else if (wartungFilter === 'pausiert') gefiltert = gefiltert.filter(w => w.pausiert);
+    else gefiltert = gefiltert.filter(w => !w.pausiert);
+
+    gefiltert.sort((a, b) => {
+      const fa = wartungIstFaellig(a), fb = wartungIstFaellig(b);
+      if (fa !== fb) return fa ? -1 : 1;
+      return (a.titel || '').localeCompare(b.titel || '', 'de');
+    });
+
+    document.getElementById('wartungLeerHinweis').style.display = wartungsaufgaben.length ? 'none' : '';
+    box.innerHTML = '';
+    if (!gefiltert.length && wartungsaufgaben.length) {
+      box.innerHTML = '<div class="leer-hinweis"><span class="em">✅</span>Nichts zu tun in dieser Ansicht.</div>';
+      return;
+    }
+    gefiltert.forEach(w => {
+      const faellig = wartungIstFaellig(w);
+      const zustaendig = wartungAktuellZustaendig(w);
+      const karte = document.createElement('div');
+      karte.className = 'wartung-karte' + (faellig ? ' faellig' : '') + (w.pausiert ? ' pausiert' : '');
+      let metaHtml = '<span class="mini-chip">' + escapeHtml(wartungTurnusText(w)) + '</span>';
+      metaHtml += '<span class="mini-chip">' + escapeHtml(wartungNaechsteFaelligkeitText(w)) + '</span>';
+      if (zustaendig) metaHtml += '<span class="mini-chip person" style="background:' + escapeHtml(zustaendig.farbe || '#7d6339') + '">' + escapeHtml(zustaendig.label) + '</span>';
+      else if (w.zuweisung === 'offen') metaHtml += '<span class="mini-chip">🙋 Jeder</span>';
+      if (w.pausiert) metaHtml += '<span class="mini-chip">⏸ Pausiert</span>';
+      karte.innerHTML =
+        '<div class="wk-icon">' + escapeHtml(w.icon || '🔁') + '</div>' +
+        '<div class="wk-body"><div class="wk-titel">' + escapeHtml(w.titel) + '</div><div class="wk-meta">' + metaHtml + '</div></div>' +
+        '<button class="wk-check' + (faellig ? '' : ' erledigt') + '" title="' + (faellig ? 'Als erledigt markieren' : 'Nicht fällig') + '">' + (faellig ? '' : '✓') + '</button>';
+      karte.addEventListener('click', (e) => {
+        if (e.target.closest('.wk-check')) {
+          e.stopPropagation();
+          if (faellig) wartungErledigtOeffnen(w.id);
+          return;
+        }
+        wartungEditOeffnen(w.id);
+      });
+      box.appendChild(karte);
+    });
+  }
+
+  // ---------- Wartung Erledigt-Modal ----------
+  function wartungErledigtOeffnen(id) {
+    wartungErledigtZielId = id;
+    const w = wartungsaufgaben.find(x => x.id === id);
+    const box = document.getElementById('wartungErledigtPersonReihe');
+    box.innerHTML = '';
+    const vorschlag = wartungAktuellZustaendig(w);
+    PERSONEN.forEach(p => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'opt' + (vorschlag && vorschlag.id === p.id ? ' aktiv' : '');
+      if (vorschlag && vorschlag.id === p.id) btn.style.background = 'var(--moss)';
+      btn.textContent = p.label;
+      btn.dataset.person = p.id;
+      btn.addEventListener('click', () => {
+        box.querySelectorAll('.opt').forEach(o => { o.classList.remove('aktiv'); o.style.background = ''; });
+        btn.classList.add('aktiv'); btn.style.background = 'var(--moss)';
+      });
+      box.appendChild(btn);
+    });
+    document.getElementById('modalWartungErledigt').classList.add('zeigen');
+  }
+  document.getElementById('btnWartungErledigtAbbrechen').addEventListener('click', () => document.getElementById('modalWartungErledigt').classList.remove('zeigen'));
+  document.getElementById('modalWartungErledigt').addEventListener('click', (e) => { if (e.target.id === 'modalWartungErledigt') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnWartungErledigtBestaetigen').addEventListener('click', () => {
+    const gewaehlt = document.querySelector('#wartungErledigtPersonReihe .opt.aktiv');
+    const w = wartungsaufgaben.find(x => x.id === wartungErledigtZielId);
+    if (!w) return;
+    const wer = gewaehlt ? gewaehlt.dataset.person : (PERSONEN[0] || {}).id;
+    if (!w.erledigt) w.erledigt = [];
+    w.erledigt.push({ datum: new Date().toISOString(), von: wer });
+    if (w.zuweisung === 'rotation' && (w.rotationPersonen || []).length) {
+      w.rotationIndex = ((w.rotationIndex || 0) + 1) % w.rotationPersonen.length;
+    }
+    speichernWartung();
+    document.getElementById('modalWartungErledigt').classList.remove('zeigen');
+    renderWartungFilter(); renderWartungListe();
+  });
+
+  // ---------- Wartung Neu/Bearbeiten-Modal ----------
+  let wGewaehlterTurnus = 'jaehrlich';
+  let wGewaehlteZuweisung = 'offen';
+  let wGewaehltePerson = null;
+  let wGewaehlteRotation = [];
+  let wGewaehltPausiert = false;
+
+  function wartungTurnusReiheRendern() {
+    const box = document.getElementById('wartungTurnusReihe');
+    box.innerHTML = '';
+    WARTUNG_TURNUS_OPTIONEN.forEach(t => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      const aktiv = t.id === wGewaehlterTurnus;
+      btn.className = 'opt' + (aktiv ? ' aktiv' : '');
+      if (aktiv) btn.style.background = 'var(--moss)';
+      btn.textContent = t.label;
+      btn.addEventListener('click', () => { wGewaehlterTurnus = t.id; wartungTurnusReiheRendern(); });
+      box.appendChild(btn);
+    });
+  }
+  function wartungZuweisungReiheRendern() {
+    const box = document.getElementById('wartungZuweisungReihe');
+    box.innerHTML = '';
+    WARTUNG_ZUWEISUNG_OPTIONEN.forEach(z => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      const aktiv = z.id === wGewaehlteZuweisung;
+      btn.className = 'opt' + (aktiv ? ' aktiv' : '');
+      if (aktiv) btn.style.background = 'var(--moss)';
+      btn.textContent = z.label;
+      btn.addEventListener('click', () => {
+        wGewaehlteZuweisung = z.id;
+        wartungZuweisungReiheRendern();
+        document.getElementById('wartungFestPersonFeld').style.display = (wGewaehlteZuweisung === 'fest') ? '' : 'none';
+        document.getElementById('wartungRotationFeld').style.display = (wGewaehlteZuweisung === 'rotation') ? '' : 'none';
+      });
+      box.appendChild(btn);
+    });
+    document.getElementById('wartungFestPersonFeld').style.display = (wGewaehlteZuweisung === 'fest') ? '' : 'none';
+    document.getElementById('wartungRotationFeld').style.display = (wGewaehlteZuweisung === 'rotation') ? '' : 'none';
+  }
+  function wartungFestPersonReiheRendern() {
+    const box = document.getElementById('wartungFestPersonReihe');
+    box.innerHTML = '';
+    PERSONEN.forEach(p => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      const aktiv = wGewaehltePerson === p.id;
+      btn.className = 'opt' + (aktiv ? ' aktiv' : '');
+      if (aktiv) btn.style.background = 'var(--moss)';
+      btn.textContent = p.label;
+      btn.addEventListener('click', () => { wGewaehltePerson = p.id; wartungFestPersonReiheRendern(); });
+      box.appendChild(btn);
+    });
+  }
+  function wartungRotationReiheRendern() {
+    const box = document.getElementById('wartungRotationPersonenReihe');
+    box.innerHTML = '';
+    PERSONEN.forEach(p => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      const aktiv = wGewaehlteRotation.includes(p.id);
+      btn.className = 'opt' + (aktiv ? ' aktiv' : '');
+      if (aktiv) btn.style.background = 'var(--moss)';
+      btn.textContent = p.label;
+      btn.addEventListener('click', () => {
+        if (wGewaehlteRotation.includes(p.id)) wGewaehlteRotation = wGewaehlteRotation.filter(x => x !== p.id);
+        else wGewaehlteRotation.push(p.id);
+        wartungRotationReiheRendern();
+      });
+      box.appendChild(btn);
+    });
+  }
+  function wartungPausiertButtonRendern() {
+    const btn = document.getElementById('btnWartungPausiert');
+    btn.classList.toggle('aktiv', wGewaehltPausiert);
+    btn.style.background = wGewaehltPausiert ? 'var(--moss)' : '';
+  }
+  document.getElementById('btnWartungPausiert').addEventListener('click', () => { wGewaehltPausiert = !wGewaehltPausiert; wartungPausiertButtonRendern(); });
+
+  function wartungVerlaufRendern(w) {
+    const titel = document.getElementById('wartungVerlaufTitel');
+    const liste = document.getElementById('wartungVerlaufListe');
+    liste.innerHTML = '';
+    if (!w || !w.erledigt || !w.erledigt.length) { titel.style.display = 'none'; return; }
+    titel.style.display = '';
+    w.erledigt.slice(-10).reverse().forEach(e => {
+      const li = document.createElement('li');
+      const d = new Date(e.datum);
+      const datumTxt = d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' });
+      const p = personInfo(e.von);
+      li.innerHTML = '<span>' + datumTxt + '</span><span class="v-wer">' + escapeHtml(p ? p.label : e.von) + '</span>';
+      liste.appendChild(li);
+    });
+  }
+
+  function wartungEditOeffnen(id) {
+    editWartungId = id || null;
+    const w = editWartungId ? wartungsaufgaben.find(x => x.id === editWartungId) : null;
+    document.getElementById('wartungTitelKopf').textContent = w ? 'Wartungsaufgabe bearbeiten' : 'Neue Wartungsaufgabe';
+    document.getElementById('fWartungTitel').value = w ? w.titel : '';
+    document.getElementById('fWartungIcon').value = w ? (w.icon || '') : '';
+    wGewaehlterTurnus = w ? w.turnus : 'jaehrlich';
+    wGewaehlteZuweisung = w ? w.zuweisung : 'offen';
+    wGewaehltePerson = w ? w.person : (PERSONEN[0] || {}).id;
+    wGewaehlteRotation = w ? (w.rotationPersonen || []).slice() : PERSONEN.map(p => p.id);
+    wGewaehltPausiert = w ? !!w.pausiert : false;
+    wartungTurnusReiheRendern();
+    wartungZuweisungReiheRendern();
+    wartungFestPersonReiheRendern();
+    wartungRotationReiheRendern();
+    wartungPausiertButtonRendern();
+    wartungVerlaufRendern(w);
+    document.getElementById('wartungLoeschZeile').style.display = w ? '' : 'none';
+    document.getElementById('modalWartung').classList.add('zeigen');
+  }
+  document.getElementById('btnWartungAbbrechen').addEventListener('click', () => document.getElementById('modalWartung').classList.remove('zeigen'));
+  document.getElementById('modalWartung').addEventListener('click', (e) => { if (e.target.id === 'modalWartung') e.currentTarget.classList.remove('zeigen'); });
+
+  document.getElementById('btnWartungSpeichern').addEventListener('click', () => {
+    const titel = document.getElementById('fWartungTitel').value.trim();
+    if (!titel) { document.getElementById('fWartungTitel').focus(); return; }
+    const icon = document.getElementById('fWartungIcon').value.trim() || '🔁';
+    let w = editWartungId ? wartungsaufgaben.find(x => x.id === editWartungId) : null;
+    if (!w) { w = { id: neueId('wa'), erledigt: [], rotationIndex: 0 }; wartungsaufgaben.push(w); }
+    w.titel = titel;
+    w.icon = icon;
+    w.turnus = wGewaehlterTurnus;
+    w.zuweisung = wGewaehlteZuweisung;
+    w.person = wGewaehltePerson;
+    w.rotationPersonen = wGewaehlteRotation.slice();
+    w.pausiert = wGewaehltPausiert;
+    speichernWartung();
+    document.getElementById('modalWartung').classList.remove('zeigen');
+    renderWartungFilter(); renderWartungListe();
+  });
+  document.getElementById('btnWartungLoeschen').addEventListener('click', () => {
+    if (!editWartungId) return;
+    if (!confirm('Diese Wartungsaufgabe wirklich löschen? Der Verlauf geht dabei verloren.')) return;
+    wartungsaufgaben = wartungsaufgaben.filter(w => w.id !== editWartungId);
+    speichernWartung();
+    document.getElementById('modalWartung').classList.remove('zeigen');
+    renderWartungFilter(); renderWartungListe();
+  });
+
+  // "＋ Neu"-Button kontextabhängig: Projekt oder Wartungsaufgabe (Listener s. weiter oben, wird dort ersetzt)
+
   renderSortButton();
   renderFilter();
   renderGrid();
+  ansichtAnwenden();
 
   if (window.PlanerSync) {
     window._sync = window.PlanerSync.starteSync({
       modul: 'handwerk',
-      keys: [KEY_PROJEKTE],
-      onRemoteChange: function () { projekte = laden(KEY_PROJEKTE, projekte); renderFilter(); renderGrid(); },
+      keys: [KEY_PROJEKTE, KEY_WARTUNG],
+      onRemoteChange: function () {
+        projekte = laden(KEY_PROJEKTE, projekte); renderFilter(); renderGrid();
+        wartungsaufgaben = laden(KEY_WARTUNG, wartungsaufgaben);
+        if (aktiveAnsicht === 'wartung') { renderWartungFilter(); renderWartungListe(); }
+      },
     });
   }
 })();

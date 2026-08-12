@@ -132,6 +132,7 @@
     <span class="anzahl-text" id="anzahlText"></span>
     <select id="sortAuswahl">
       <option value="alpha">🔤 Alphabetisch</option>
+      <option value="lagerort">📍 Lagerort</option>
       <option value="gruppierung">🗂 Gruppierung</option>
       <option value="verfall">⏳ Verfallsdatum</option>
       <option value="bestand">🔴 Bestand (wenig zuerst)</option>
@@ -166,6 +167,10 @@
         <option value="mittel">🟡 Mittlere Menge</option>
         <option value="viel">🟢 Viel vorhanden</option>
       </select>
+    </div>
+    <div class="feld">
+      <label>Lagerort</label>
+      <div class="kategorie-reihe" id="fLagerortReihe"></div>
     </div>
     <div class="feld">
       <label>Kategorie</label>
@@ -245,6 +250,14 @@
     { id: 'lebensmittel', label: 'Lebensmittel', icon: '🍎', fest: true },
     { id: 'apotheke', label: 'Apotheke', icon: '💊', fest: true },
   ];
+  const LAGERORT_OPTIONEN = [
+    { id: 'kuehlschrank', label: 'Kühlschrank', icon: '🧊' },
+    { id: 'gefrierfach', label: 'Gefrierfach', icon: '❄️' },
+    { id: 'vorratsschrank', label: 'Vorratsschrank', icon: '🗄️' },
+    { id: 'keller', label: 'Keller', icon: '🏚️' },
+    { id: 'sonstiges', label: 'Sonstiges', icon: '📦' },
+  ];
+  function lagerortInfo(id) { return LAGERORT_OPTIONEN.find(l => l.id === id); }
 
   // neueId, escapeHtml, heuteISO, ausISO, laden, speichern, showTempStatus: siehe gemeinsam.js
 
@@ -255,6 +268,7 @@
   let bearbeitenId = null;
   let editSterne = 0;
   let editKategorie = 'lebensmittel';
+  let editLagerort = '';
 
   function alleKategorien() { return KATEGORIEN_FEST.concat(kategorienEigene); }
   function kategorieInfo(id) { return alleKategorien().find(k => k.id === id) || KATEGORIEN_FEST[0]; }
@@ -325,6 +339,8 @@
       arr.sort((a, b) => a.name.localeCompare(b.name, 'de'));
     } else if (sortierung === 'gruppierung') {
       arr.sort((a, b) => (a.gruppierung || '\uffff').localeCompare(b.gruppierung || '\uffff', 'de') || a.name.localeCompare(b.name, 'de'));
+    } else if (sortierung === 'lagerort') {
+      arr.sort((a, b) => (a.lagerort || '\uffff').localeCompare(b.lagerort || '\uffff', 'de') || a.name.localeCompare(b.name, 'de'));
     } else if (sortierung === 'verfall') {
       arr.sort((a, b) => {
         const da = a.verfallsdatum || a.aufbrauchenBis || '9999-99-99';
@@ -396,6 +412,7 @@
           '<button class="vk-cart" data-id="' + item.id + '" title="Zur Einkaufsliste hinzufügen">🛒</button>' +
         '</div>' +
         '<div class="vk-meta-reihe">' +
+          (item.lagerort && lagerortInfo(item.lagerort) ? '<span class="vk-chip">' + lagerortInfo(item.lagerort).icon + ' ' + escapeHtml(lagerortInfo(item.lagerort).label) + '</span>' : '') +
           (item.gruppierung ? '<span class="vk-chip">' + escapeHtml(item.gruppierung) + '</span>' : '') +
           verfallBadge(item) +
         '</div>' +
@@ -444,6 +461,15 @@
   }
 
   // ---------- FORMULAR: ITEM ANLEGEN/BEARBEITEN ----------
+  function renderFormLagerortReihe() {
+    const box = document.getElementById('fLagerortReihe');
+    box.innerHTML = LAGERORT_OPTIONEN.map(l =>
+      '<button type="button" class="kategorie-opt' + (l.id === editLagerort ? ' aktiv' : '') + '" data-id="' + l.id + '">' + l.icon + ' ' + escapeHtml(l.label) + '</button>'
+    ).join('');
+    box.querySelectorAll('.kategorie-opt').forEach(btn => {
+      btn.addEventListener('click', () => { editLagerort = (editLagerort === btn.dataset.id) ? '' : btn.dataset.id; renderFormLagerortReihe(); });
+    });
+  }
   function renderFormKategorieReihe() {
     const box = document.getElementById('fKategorieReihe');
     box.innerHTML = alleKategorien().map(k =>
@@ -485,7 +511,9 @@
     document.getElementById('fNotiz').value = item ? (item.notiz || '') : '';
     editSterne = item ? (item.sterne || 0) : 0;
     editKategorie = item ? item.kategorie : aktiveKategorie;
+    editLagerort = item ? (item.lagerort || '') : '';
     aktualisiereGruppierungListe();
+    renderFormLagerortReihe();
     renderFormKategorieReihe();
     renderSterneEingabe();
     document.getElementById('loeschZeile').style.display = item ? '' : 'none';
@@ -502,6 +530,7 @@
       menge: document.getElementById('fMenge').value.trim(),
       bestand: document.getElementById('fBestand').value,
       kategorie: editKategorie,
+      lagerort: editLagerort,
       gruppierung: document.getElementById('fGruppierung').value.trim(),
       gekauftAm: document.getElementById('fGekauft').value,
       verfallsdatum: document.getElementById('fVerfall').value,
