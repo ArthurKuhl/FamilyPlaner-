@@ -45,6 +45,11 @@
   .mini-farbpunkt { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
   .mini-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .mini-leer { font-size: 0.8rem; color: var(--bark); opacity: 0.7; padding: 4px 0; }
+  .haushalt-zeile { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-top: 1px solid var(--parchment); font-size: 0.84rem; }
+  .haushalt-zeile:first-child { border-top: none; }
+  .haushalt-zeile .hz-icon { font-size: 1.05rem; flex-shrink: 0; }
+  .haushalt-zeile .hz-titel { flex: 1; min-width: 0; }
+  .haushalt-zeile .hz-wer { font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-pill); color: var(--white); flex-shrink: 0; }
 
   .garten-kachel { border-top: 3px solid var(--moss); }
   .garten-hinweis { font-size: 0.8rem; color: var(--bark); line-height: 1.4; }
@@ -124,6 +129,14 @@
     <div class="garten-hinweis" id="gartenHinweisText">Pflegeplan &amp; Tagesüberblick ansehen (Gieß-/Pflegeaufgaben, Wetterwarnungen)</div>
     <div id="gartenWarnungen"></div>
     <div class="garten-hinweis" id="gartenPflanzErnte" style="margin-top:6px;"></div>
+  </div>
+
+  <div class="kachel" id="kachelHaushalt">
+    <div class="kachel-kopf">
+      <div class="kachel-titel">🧹 Haushalt</div>
+      <span class="kachel-badge leer" id="badgeHaushalt">0</span>
+    </div>
+    <div id="haushaltListe"></div>
   </div>
 
   <div class="kachel" id="kachelFeedback" style="cursor:default">
@@ -360,6 +373,57 @@
   document.getElementById('kachelKochen').addEventListener('click', () => navigiere('kochen'));
 
   // ============================================================
+  // HAUSHALT (fällige Aufgaben heute)
+  // ============================================================
+  document.getElementById('kachelHaushalt').addEventListener('click', () => navigiere('haushalt'));
+
+  function haushaltPersonInfo(id) {
+    const liste = window.PLANER_PERSONEN || [{ id: 'mama', label: 'Mama', farbe: '#c46b41' }, { id: 'papa', label: 'Papa', farbe: '#5b8bb5' }];
+    return liste.find(p => p.id === id) || { id, label: id, farbe: '#7d6339' };
+  }
+  function haushaltIstFaelligOffen(a) {
+    if (a.pausiert) return false;
+    const heute = new Date().toISOString().slice(0, 10);
+    const letzte = (a.erledigt && a.erledigt.length) ? a.erledigt[a.erledigt.length - 1] : null;
+    const letzteDatum = letzte ? (letzte.datum || '').slice(0, 10) : null;
+    const letzteMonat = letzte ? (letzte.datum || '').slice(0, 7) : null;
+    if (a.turnus === 'taeglich') return !letzte || letzteDatum !== heute;
+    if (a.turnus === 'woechentlich') {
+      const heuteTag = new Date().getDay();
+      if (!(a.wochentage || []).includes(heuteTag)) return false;
+      return !letzte || letzteDatum !== heute;
+    }
+    if (a.turnus === 'monatlich') return !letzte || letzteMonat !== heute.slice(0, 7);
+    if (a.turnus === 'einmalig') return !letzte;
+    return false;
+  }
+  function haushaltZustaendigText(a) {
+    if (a.zuweisung === 'fest' && a.person) return haushaltPersonInfo(a.person);
+    if (a.zuweisung === 'rotation' && (a.rotationPersonen || []).length) {
+      const idx = (a.rotationIndex || 0) % a.rotationPersonen.length;
+      return haushaltPersonInfo(a.rotationPersonen[idx]);
+    }
+    return null;
+  }
+  function renderHaushalt() {
+    const aufgaben = laden('haushalt_aufgaben', []);
+    const faellige = aufgaben.filter(haushaltIstFaelligOffen);
+    const badge = document.getElementById('badgeHaushalt');
+    badge.textContent = String(faellige.length);
+    badge.className = 'kachel-badge' + (faellige.length === 0 ? ' leer' : '');
+    const box = document.getElementById('haushaltListe');
+    if (!faellige.length) {
+      box.innerHTML = '<div class="mini-leer">' + (aufgaben.length ? 'Heute nichts offen. 🎉' : 'Noch keine Aufgaben angelegt.') + '</div>';
+      return;
+    }
+    box.innerHTML = faellige.slice(0, 5).map(a => {
+      const wer = haushaltZustaendigText(a);
+      const werHtml = wer ? '<span class="hz-wer" style="background:' + escapeHtml(wer.farbe || '#7d6339') + '">' + escapeHtml(wer.label) + '</span>' : '';
+      return '<div class="haushalt-zeile"><span class="hz-icon">' + escapeHtml(a.icon || '🧹') + '</span><span class="hz-titel">' + escapeHtml(a.titel) + '</span>' + werHtml + '</div>';
+    }).join('') + (faellige.length > 5 ? '<div class="mini-leer">+ ' + (faellige.length - 5) + ' weitere ...</div>' : '');
+  }
+
+  // ============================================================
   // FEEDBACK & IDEEN
   // ============================================================
   const KEY_FEEDBACK = 'app_feedback';
@@ -467,10 +531,11 @@
   renderGartenWarnungen();
   renderGartenPflanzErnte();
   renderKochenHeute();
+  renderHaushalt();
 
   // Bei Rückkehr auf die Startseite (z.B. nach Bearbeitung in einem anderen Modul) neu laden
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) { renderTermine(); renderEinkauf(); renderSport(); renderGartenWarnungen(); renderGartenPflanzErnte(); renderKochenHeute(); feedbackEintraege = laden(KEY_FEEDBACK, feedbackEintraege); feedbackListeRendern(); }
+    if (!document.hidden) { renderTermine(); renderEinkauf(); renderSport(); renderGartenWarnungen(); renderGartenPflanzErnte(); renderKochenHeute(); renderHaushalt(); feedbackEintraege = laden(KEY_FEEDBACK, feedbackEintraege); feedbackListeRendern(); }
   });
 })();
 </script>

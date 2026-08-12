@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Haushalt</title>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
+<script src="personen.js"></script>
+<script src="sync.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap');
+  :root {
+    --soil: #3a2e1f; --moss: #4f6f45; --sage: #7fa476; --leaf: #bcd196;
+    --cream: #faf6ec; --parchment: #ece0c7; --bark: #7d6339;
+    --terracotta: #c46b41; --terracotta-text: #a8532e; --sky: #5b8bb5;
+    --white: #fffdf8; --navbg: #2a2016;
+    --radius-sm: 8px; --radius-md: 12px; --radius-lg: 18px; --radius-pill: 22px;
+    --shadow-soft: 0 2px 10px rgba(59,47,30,0.08); --shadow-md: 0 8px 26px rgba(59,47,30,0.2);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--cream); color: var(--soil); min-height: 100vh; padding-bottom: 40px; }
+
+  .theme-btn { background: none; border: none; color: var(--leaf); font-size: 1.1rem; cursor: pointer; padding: 4px 6px; flex-shrink: 0; }
+  .theme-popup { display: none; position: absolute; right: 12px; top: 54px; background: var(--white); border-radius: var(--radius-md); box-shadow: var(--shadow-md); padding: 10px; z-index: 50; }
+  .theme-popup.zeigen { display: flex; gap: 8px; }
+  .theme-swatch { width: 40px; height: 40px; border-radius: var(--radius-sm); border: 2px solid transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; background: var(--cream); }
+  .theme-swatch.aktiv { border-color: var(--moss); }
+  body.bg-besen {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='190' height='190' viewBox='0 0 190 190'%3E%3Cg opacity='0.1'%3E%3Cg transform='translate(15,15) scale(0.8) rotate(-8)'%3E%3Cline x1='0' y1='0' x2='0' y2='22' stroke='%235a4832' stroke-width='1.25' stroke-linecap='round'/%3E%3Cpath d='M -10 22 L 10 22 L 6 38 L -6 38 Z' fill='none' stroke='%235a4832' stroke-width='1.25' stroke-linejoin='round'/%3E%3C/g%3E%3Cg transform='translate(115,25) scale(0.75) rotate(15)'%3E%3Crect x='-14' y='-4' width='28' height='16' rx='2' fill='none' stroke='%235a4832' stroke-width='1.25'/%3E%3Cline x1='-14' y1='0' x2='14' y2='0' stroke='%235a4832' stroke-width='1.25'/%3E%3C/g%3E%3Cg transform='translate(60,115) scale(0.7) rotate(-5)'%3E%3Cline x1='0' y1='0' x2='0' y2='22' stroke='%235a4832' stroke-width='1.25' stroke-linecap='round'/%3E%3Cpath d='M -10 22 L 10 22 L 6 38 L -6 38 Z' fill='none' stroke='%235a4832' stroke-width='1.25' stroke-linejoin='round'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    background-repeat: repeat;
+  }
+  body.bg-haus {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='190' height='190' viewBox='0 0 190 190'%3E%3Cg opacity='0.1'%3E%3Cg transform='translate(15,20) scale(0.8) rotate(-6)'%3E%3Cpath d='M -16 0 L 0 -16 L 16 0 L 16 20 L -16 20 Z' fill='none' stroke='%235a4832' stroke-width='1.25' stroke-linejoin='round'/%3E%3C/g%3E%3Cg transform='translate(115,25) scale(0.7) rotate(10)'%3E%3Cpath d='M 0 -14 C 8 -6, 8 6, 0 16 C -8 6, -8 -6, 0 -14 Z' fill='none' stroke='%235a4832' stroke-width='1.25'/%3E%3C/g%3E%3Cg transform='translate(60,115) scale(0.75) rotate(-4)'%3E%3Cpath d='M -16 0 L 0 -16 L 16 0 L 16 20 L -16 20 Z' fill='none' stroke='%235a4832' stroke-width='1.25' stroke-linejoin='round'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    background-repeat: repeat;
+  }
+  button, input, select, textarea { font-family: inherit; -webkit-tap-highlight-color: transparent; }
+  :focus-visible { outline: 2px solid var(--terracotta); outline-offset: 2px; border-radius: 4px; }
+
+  header.top { background: var(--navbg); color: var(--leaf); padding: 10px 12px; }
+  header.top .titel-zeile { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  header.top h1 { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; }
+  .add-btn { background: var(--terracotta); color: var(--white); border: none; border-radius: var(--radius-pill); font-size: 0.82rem; font-weight: 700; padding: 7px 15px; cursor: pointer; }
+  .filter-reihe { display: flex; gap: 5px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px; scrollbar-width: none; }
+  .filter-reihe::-webkit-scrollbar { display: none; }
+  .filter-chip { flex: 0 0 auto; background: transparent; border: 1px solid #4a3a28; color: var(--sage); font-size: 0.72rem; font-weight: 600; padding: 5px 12px; border-radius: var(--radius-pill); cursor: pointer; white-space: nowrap; }
+  .filter-chip.active { background: var(--moss); color: var(--leaf); border-color: var(--moss); }
+
+  main { padding: 12px 14px; max-width: 680px; margin: 0 auto; }
+  @media (min-width: 1000px) {
+    main { max-width: 1200px; }
+    .aufgaben-liste { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+  }
+
+  .aufgaben-liste { display: grid; grid-template-columns: 1fr; gap: 10px; }
+  .aufgaben-karte { background: var(--white); border-radius: var(--radius-md); padding: 12px; box-shadow: var(--shadow-soft); display: flex; align-items: center; gap: 10px; border-left: 4px solid var(--parchment); }
+  .aufgaben-karte.faellig { border-left-color: var(--terracotta); }
+  .aufgaben-karte.pausiert { opacity: 0.55; }
+  .ak-icon { font-size: 1.5rem; flex-shrink: 0; }
+  .ak-body { flex: 1; min-width: 0; cursor: pointer; }
+  .ak-titel { font-size: 0.9rem; font-weight: 700; line-height: 1.25; }
+  .ak-meta { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 5px; }
+  .mini-chip { font-size: 0.62rem; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-pill); white-space: nowrap; background: var(--parchment); color: var(--bark); }
+  .mini-chip.person { color: var(--white); }
+  .ak-check { flex-shrink: 0; width: 42px; height: 42px; border-radius: 50%; border: 2px solid var(--parchment); background: var(--white); font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .ak-check.erledigt { background: var(--moss); border-color: var(--moss); color: var(--white); }
+  .ak-check.faellig-nicht { border-color: var(--parchment); color: var(--parchment); }
+
+  .leer-hinweis { text-align: center; color: var(--bark); font-size: 0.85rem; padding: 46px 16px; opacity: 0.75; }
+  .leer-hinweis .em { font-size: 2.2rem; display: block; margin-bottom: 8px; }
+
+  .modal-bg { position: fixed; inset: 0; background: rgba(42,32,22,0.45); display: none; align-items: flex-end; justify-content: center; z-index: 100; padding-top: 6vh; }
+  .modal-bg.zeigen { display: flex; }
+  .modal { background: var(--cream); border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding: 18px 18px 24px; width: 100%; max-width: 540px; max-height: 92vh; overflow-y: auto; box-shadow: var(--shadow-md); }
+  @media (min-width: 600px) { .modal-bg { align-items: center; } .modal { border-radius: var(--radius-lg); } }
+  .modal h2 { font-family: 'Playfair Display', serif; font-size: 1.15rem; margin-bottom: 12px; }
+
+  .feld { margin-bottom: 12px; }
+  .feld label { display: block; font-size: 0.7rem; font-weight: 700; color: var(--bark); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.03em; }
+  .feld input, .feld select, .feld textarea { width: 100%; padding: 9px 11px; border: 1px solid var(--parchment); border-radius: var(--radius-sm); font-size: 0.9rem; background: var(--white); color: var(--soil); }
+  .opt-reihe { display: flex; gap: 6px; flex-wrap: wrap; }
+  .opt { padding: 6px 12px; border-radius: var(--radius-pill); font-size: 0.75rem; font-weight: 600; border: 1px solid var(--parchment); background: var(--white); color: var(--bark); cursor: pointer; }
+  .opt.aktiv { color: var(--white); border-color: transparent; background: var(--moss); }
+  .opt.klein { padding: 5px 10px; font-size: 0.72rem; }
+
+  .modal-btns { display: flex; gap: 8px; margin-top: 18px; }
+  .btn { flex: 1; padding: 11px; border-radius: var(--radius-pill); border: none; font-weight: 700; font-size: 0.85rem; cursor: pointer; }
+  .btn-primary { background: var(--moss); color: var(--leaf); }
+  .btn-secondary { background: var(--white); color: var(--bark); border: 1px solid var(--parchment); }
+  .btn-danger { background: transparent; color: var(--terracotta-text); border: 1px solid var(--terracotta); }
+
+  .unterliste-titel { font-size: 0.72rem; font-weight: 700; color: var(--bark); text-transform: uppercase; letter-spacing: 0.03em; margin: 16px 0 6px; }
+  .verlauf-liste { list-style: none; }
+  .verlauf-liste li { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid var(--parchment); font-size: 0.8rem; }
+  .verlauf-liste .v-wer { font-weight: 700; }
+  .verlauf-leer { font-size: 0.8rem; color: var(--bark); opacity: 0.7; padding: 4px 0; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="titel-zeile">
+    <h1>🧹 Haushalt</h1>
+    <button class="theme-btn" id="btnThemeAuswahl" title="Hintergrundmuster wählen">🎨</button>
+    <button class="add-btn" id="btnNeu">＋ Neu</button>
+  </div>
+  <div class="filter-reihe" id="filterReihe"></div>
+</header>
+  <div class="theme-popup" id="themePopup">
+    <div class="theme-swatch" data-theme="" title="Kein Muster">✕</div>
+    <div class="theme-swatch" data-theme="bg-besen" title="Besen &amp; Wischer">🧹</div>
+    <div class="theme-swatch" data-theme="bg-haus" title="Haus &amp; Herz">🏡</div>
+  </div>
+
+<main>
+  <div class="aufgaben-liste" id="aufgabenListe"></div>
+  <div class="leer-hinweis" id="leerHinweis" style="display:none;">
+    <span class="em">🧹</span>
+    Noch keine Haushaltsaufgaben angelegt.<br>Tippe auf „＋ Neu", um loszulegen.
+  </div>
+</main>
+
+<!-- Neu / Bearbeiten -->
+<div class="modal-bg" id="modalEdit">
+  <div class="modal">
+    <h2 id="editTitelKopf">Neue Aufgabe</h2>
+    <input type="hidden" id="editId" value="">
+    <div class="feld">
+      <label for="fTitel">Aufgabe</label>
+      <input type="text" id="fTitel" placeholder="z.B. Spülmaschine ausräumen, Müll raustragen ...">
+    </div>
+    <div class="feld">
+      <label for="fIcon">Symbol</label>
+      <input type="text" id="fIcon" maxlength="4" placeholder="🧹" style="width:80px;">
+    </div>
+    <div class="feld">
+      <label>Turnus</label>
+      <div class="opt-reihe" id="turnusReihe"></div>
+    </div>
+    <div class="feld" id="wochentageFeld" style="display:none;">
+      <label>Wochentage</label>
+      <div class="opt-reihe" id="wochentageReihe"></div>
+    </div>
+    <div class="feld">
+      <label>Zuständigkeit</label>
+      <div class="opt-reihe" id="zuweisungReihe"></div>
+    </div>
+    <div class="feld" id="festPersonFeld" style="display:none;">
+      <label>Wer ist zuständig?</label>
+      <div class="opt-reihe" id="festPersonReihe"></div>
+    </div>
+    <div class="feld" id="rotationFeld" style="display:none;">
+      <label>Wer wechselt sich ab?</label>
+      <div class="opt-reihe" id="rotationPersonenReihe"></div>
+    </div>
+    <div class="feld">
+      <label class="opt" id="btnPausiert" style="display:inline-block;width:auto;">⏸ Pausiert (aktuell nicht fällig)</label>
+    </div>
+
+    <div class="unterliste-titel" id="verlaufTitel" style="display:none;">Verlauf (letzte Erledigungen)</div>
+    <ul class="verlauf-liste" id="verlaufListe"></ul>
+
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnEditAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnEditSpeichern">💾 Speichern</button>
+    </div>
+    <div class="modal-btns" id="editLoeschZeile" style="display:none;">
+      <button class="btn btn-danger" id="btnEditLoeschen">Aufgabe löschen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Erledigt: Wer war's? -->
+<div class="modal-bg" id="modalErledigt">
+  <div class="modal" style="max-width:400px;">
+    <h2>Wer hat's erledigt?</h2>
+    <div class="opt-reihe" id="erledigtPersonReihe" style="margin-bottom:16px;"></div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnErledigtAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnErledigtBestaetigen">✓ Bestätigen</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  const KEY_AUFGABEN = 'haushalt_aufgaben';
+
+  function laden(key, fallback) {
+    try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; }
+    catch (e) { return fallback; }
+  }
+  function speichern(key, wert) {
+    try { localStorage.setItem(key, JSON.stringify(wert)); }
+    catch (e) { console.warn('Haushalt: Speichern fehlgeschlagen', key, e); alert('Speichern fehlgeschlagen – ist der Speicher voll?'); }
+    if (window._sync) window._sync.melde();
+  }
+  function neueId(prefix) { return prefix + Date.now() + Math.random().toString(36).slice(2, 7); }
+  function escapeHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  function personenListe() {
+    if (window.PLANER_PERSONEN && window.PLANER_PERSONEN.length) return window.PLANER_PERSONEN;
+    return [{ id: 'mama', label: 'Mama', farbe: '#c46b41' }, { id: 'papa', label: 'Papa', farbe: '#5b8bb5' }];
+  }
+  function personInfo(id) {
+    return personenListe().find(p => p.id === id) || { id, label: id, farbe: '#7d6339' };
+  }
+
+  const WOCHENTAGE = [
+    { id: 1, label: 'Mo' }, { id: 2, label: 'Di' }, { id: 3, label: 'Mi' }, { id: 4, label: 'Do' },
+    { id: 5, label: 'Fr' }, { id: 6, label: 'Sa' }, { id: 0, label: 'So' },
+  ];
+  const TURNUS_OPTIONEN = [
+    { id: 'taeglich', label: 'Täglich' },
+    { id: 'woechentlich', label: 'Wöchentlich' },
+    { id: 'monatlich', label: 'Monatlich' },
+    { id: 'einmalig', label: 'Einmalig' },
+  ];
+  const ZUWEISUNG_OPTIONEN = [
+    { id: 'offen', label: '🙋 Jeder' },
+    { id: 'fest', label: '📌 Feste Person' },
+    { id: 'rotation', label: '🔄 Rotation' },
+  ];
+
+  function heuteISO() { return new Date().toISOString().slice(0, 10); }
+  function datumISO(iso) { return (iso || '').slice(0, 10); }
+  function monatKey(iso) { return (iso || '').slice(0, 7); }
+
+  function letzteErledigung(a) {
+    if (!a.erledigt || !a.erledigt.length) return null;
+    return a.erledigt[a.erledigt.length - 1];
+  }
+
+  function istHeuteFaellig(a) {
+    if (a.pausiert) return false;
+    const heute = heuteISO();
+    const letzte = letzteErledigung(a);
+    if (a.turnus === 'taeglich') {
+      return !letzte || datumISO(letzte.datum) !== heute;
+    }
+    if (a.turnus === 'woechentlich') {
+      const heuteTag = new Date().getDay();
+      if (!(a.wochentage || []).includes(heuteTag)) return false;
+      return !letzte || datumISO(letzte.datum) !== heute;
+    }
+    if (a.turnus === 'monatlich') {
+      return !letzte || monatKey(letzte.datum) !== monatKey(heute + 'T00:00');
+    }
+    if (a.turnus === 'einmalig') {
+      return !letzte;
+    }
+    return false;
+  }
+
+  function istHeuteErledigt(a) {
+    const letzte = letzteErledigung(a);
+    return !!letzte && datumISO(letzte.datum) === heuteISO();
+  }
+
+  function turnusText(a) {
+    if (a.turnus === 'taeglich') return 'Täglich';
+    if (a.turnus === 'woechentlich') {
+      const namen = (a.wochentage || []).map(t => (WOCHENTAGE.find(w => w.id === t) || {}).label).filter(Boolean);
+      return namen.length ? 'Wöchentlich: ' + namen.join(', ') : 'Wöchentlich';
+    }
+    if (a.turnus === 'monatlich') return 'Monatlich';
+    return 'Einmalig';
+  }
+
+  function aktuellZustaendig(a) {
+    if (a.zuweisung === 'fest' && a.person) return personInfo(a.person);
+    if (a.zuweisung === 'rotation' && (a.rotationPersonen || []).length) {
+      const idx = (a.rotationIndex || 0) % a.rotationPersonen.length;
+      return personInfo(a.rotationPersonen[idx]);
+    }
+    return null;
+  }
+
+  let aufgaben = laden(KEY_AUFGABEN, []);
+  let aktiverFilter = 'faellig';
+  let editId = null;
+  let erledigtZielId = null;
+
+  function speichernAufgaben() { speichern(KEY_AUFGABEN, aufgaben); }
+
+  function renderFilter() {
+    const box = document.getElementById('filterReihe');
+    const faelligeAnzahl = aufgaben.filter(a => istHeuteFaellig(a) && !istHeuteErledigt(a)).length;
+    const filter = [
+      { id: 'faellig', label: '📌 Heute fällig' + (faelligeAnzahl ? ' (' + faelligeAnzahl + ')' : '') },
+      { id: 'alle', label: 'Alle' },
+      { id: 'pausiert', label: '⏸ Pausiert' },
+    ];
+    box.innerHTML = '';
+    filter.forEach(f => {
+      const btn = document.createElement('button');
+      btn.className = 'filter-chip' + (f.id === aktiverFilter ? ' active' : '');
+      btn.textContent = f.label;
+      btn.addEventListener('click', () => { aktiverFilter = f.id; renderFilter(); renderListe(); });
+      box.appendChild(btn);
+    });
+  }
+
+  function renderListe() {
+    const box = document.getElementById('aufgabenListe');
+    let gefiltert = aufgaben.slice();
+    if (aktiverFilter === 'faellig') gefiltert = gefiltert.filter(a => istHeuteFaellig(a) && !istHeuteErledigt(a) && !a.pausiert);
+    else if (aktiverFilter === 'pausiert') gefiltert = gefiltert.filter(a => a.pausiert);
+    else gefiltert = gefiltert.filter(a => !a.pausiert);
+
+    gefiltert.sort((a, b) => {
+      const fa = istHeuteFaellig(a) && !istHeuteErledigt(a);
+      const fb = istHeuteFaellig(b) && !istHeuteErledigt(b);
+      if (fa !== fb) return fa ? -1 : 1;
+      return (a.titel || '').localeCompare(b.titel || '', 'de');
+    });
+
+    document.getElementById('leerHinweis').style.display = aufgaben.length ? 'none' : '';
+    box.innerHTML = '';
+    if (!gefiltert.length && aufgaben.length) {
+      box.innerHTML = '<div class="leer-hinweis"><span class="em">✅</span>Nichts zu tun in dieser Ansicht.</div>';
+      return;
+    }
+    gefiltert.forEach(a => {
+      const faellig = istHeuteFaellig(a);
+      const erledigtHeute = istHeuteErledigt(a);
+      const zustaendig = aktuellZustaendig(a);
+      const karte = document.createElement('div');
+      karte.className = 'aufgaben-karte' + (faellig && !erledigtHeute ? ' faellig' : '') + (a.pausiert ? ' pausiert' : '');
+
+      let metaHtml = '<span class="mini-chip">' + escapeHtml(turnusText(a)) + '</span>';
+      if (zustaendig) {
+        metaHtml += '<span class="mini-chip person" style="background:' + escapeHtml(zustaendig.farbe || '#7d6339') + '">' + escapeHtml(zustaendig.label) + '</span>';
+      } else if (a.zuweisung === 'offen') {
+        metaHtml += '<span class="mini-chip">🙋 Jeder</span>';
+      }
+      if (a.pausiert) metaHtml += '<span class="mini-chip">⏸ Pausiert</span>';
+
+      karte.innerHTML =
+        '<div class="ak-icon">' + escapeHtml(a.icon || '🧹') + '</div>' +
+        '<div class="ak-body">' +
+          '<div class="ak-titel">' + escapeHtml(a.titel) + '</div>' +
+          '<div class="ak-meta">' + metaHtml + '</div>' +
+        '</div>' +
+        '<button class="ak-check' + (erledigtHeute ? ' erledigt' : (!faellig ? ' faellig-nicht' : '')) + '" title="' + (erledigtHeute ? 'Heute erledigt – Klick zum Rückgängigmachen' : 'Als erledigt markieren') + '">' + (erledigtHeute ? '✓' : '') + '</button>';
+
+      karte.querySelector('.ak-body').addEventListener('click', () => editOeffnen(a.id));
+      karte.querySelector('.ak-check').addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (erledigtHeute) {
+          if (!confirm('Heutige Erledigung wieder rückgängig machen?')) return;
+          a.erledigt.pop();
+          if (a.zuweisung === 'rotation') a.rotationIndex = Math.max(0, (a.rotationIndex || 0) - 1);
+          speichernAufgaben();
+          renderFilter(); renderListe();
+        } else {
+          erledigtOeffnen(a.id);
+        }
+      });
+      box.appendChild(karte);
+    });
+  }
+
+  // --- Erledigt-Modal ---
+  function erledigtOeffnen(id) {
+    erledigtZielId = id;
+    const a = aufgaben.find(x => x.id === id);
+    const box = document.getElementById('erledigtPersonReihe');
+    box.innerHTML = '';
+    const vorschlag = aktuellZustaendig(a);
+    personenListe().forEach(p => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'opt' + (vorschlag && vorschlag.id === p.id ? ' aktiv' : '');
+      btn.textContent = p.label;
+      btn.dataset.person = p.id;
+      btn.addEventListener('click', () => {
+        box.querySelectorAll('.opt').forEach(o => o.classList.remove('aktiv'));
+        btn.classList.add('aktiv');
+      });
+      box.appendChild(btn);
+    });
+    document.getElementById('modalErledigt').classList.add('zeigen');
+  }
+  document.getElementById('btnErledigtAbbrechen').addEventListener('click', () => document.getElementById('modalErledigt').classList.remove('zeigen'));
+  document.getElementById('modalErledigt').addEventListener('click', (e) => { if (e.target.id === 'modalErledigt') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnErledigtBestaetigen').addEventListener('click', () => {
+    const gewaehlt = document.querySelector('#erledigtPersonReihe .opt.aktiv');
+    const a = aufgaben.find(x => x.id === erledigtZielId);
+    if (!a) return;
+    const wer = gewaehlt ? gewaehlt.dataset.person : (personenListe()[0] || {}).id;
+    if (!a.erledigt) a.erledigt = [];
+    a.erledigt.push({ datum: new Date().toISOString(), von: wer });
+    if (a.zuweisung === 'rotation' && (a.rotationPersonen || []).length) {
+      a.rotationIndex = ((a.rotationIndex || 0) + 1) % a.rotationPersonen.length;
+    }
+    speichernAufgaben();
+    document.getElementById('modalErledigt').classList.remove('zeigen');
+    renderFilter(); renderListe();
+  });
+
+  // --- Neu / Bearbeiten-Modal ---
+  let gewaehlterTurnus = 'taeglich';
+  let gewaehlteWochentage = [];
+  let gewaehlteZuweisung = 'offen';
+  let gewaehltePerson = null;
+  let gewaehlteRotation = [];
+  let gewaehltPausiert = false;
+
+  function turnusReiheRendern() {
+    const box = document.getElementById('turnusReihe');
+    box.innerHTML = '';
+    TURNUS_OPTIONEN.forEach(t => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'opt' + (t.id === gewaehlterTurnus ? ' aktiv' : '');
+      btn.textContent = t.label;
+      btn.addEventListener('click', () => { gewaehlterTurnus = t.id; turnusReiheRendern(); document.getElementById('wochentageFeld').style.display = (gewaehlterTurnus === 'woechentlich') ? '' : 'none'; });
+      box.appendChild(btn);
+    });
+    document.getElementById('wochentageFeld').style.display = (gewaehlterTurnus === 'woechentlich') ? '' : 'none';
+  }
+  function wochentageReiheRendern() {
+    const box = document.getElementById('wochentageReihe');
+    box.innerHTML = '';
+    WOCHENTAGE.forEach(w => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'opt klein' + (gewaehlteWochentage.includes(w.id) ? ' aktiv' : '');
+      btn.textContent = w.label;
+      btn.addEventListener('click', () => {
+        if (gewaehlteWochentage.includes(w.id)) gewaehlteWochentage = gewaehlteWochentage.filter(x => x !== w.id);
+        else gewaehlteWochentage.push(w.id);
+        wochentageReiheRendern();
+      });
+      box.appendChild(btn);
+    });
+  }
+  function zuweisungReiheRendern() {
+    const box = document.getElementById('zuweisungReihe');
+    box.innerHTML = '';
+    ZUWEISUNG_OPTIONEN.forEach(z => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'opt' + (z.id === gewaehlteZuweisung ? ' aktiv' : '');
+      btn.textContent = z.label;
+      btn.addEventListener('click', () => {
+        gewaehlteZuweisung = z.id;
+        zuweisungReiheRendern();
+        document.getElementById('festPersonFeld').style.display = (gewaehlteZuweisung === 'fest') ? '' : 'none';
+        document.getElementById('rotationFeld').style.display = (gewaehlteZuweisung === 'rotation') ? '' : 'none';
+      });
+      box.appendChild(btn);
+    });
+    document.getElementById('festPersonFeld').style.display = (gewaehlteZuweisung === 'fest') ? '' : 'none';
+    document.getElementById('rotationFeld').style.display = (gewaehlteZuweisung === 'rotation') ? '' : 'none';
+  }
+  function festPersonReiheRendern() {
+    const box = document.getElementById('festPersonReihe');
+    box.innerHTML = '';
+    personenListe().forEach(p => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'opt' + (gewaehltePerson === p.id ? ' aktiv' : '');
+      btn.textContent = p.label;
+      btn.addEventListener('click', () => { gewaehltePerson = p.id; festPersonReiheRendern(); });
+      box.appendChild(btn);
+    });
+  }
+  function rotationReiheRendern() {
+    const box = document.getElementById('rotationPersonenReihe');
+    box.innerHTML = '';
+    personenListe().forEach(p => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'opt' + (gewaehlteRotation.includes(p.id) ? ' aktiv' : '');
+      btn.textContent = p.label;
+      btn.addEventListener('click', () => {
+        if (gewaehlteRotation.includes(p.id)) gewaehlteRotation = gewaehlteRotation.filter(x => x !== p.id);
+        else gewaehlteRotation.push(p.id);
+        rotationReiheRendern();
+      });
+      box.appendChild(btn);
+    });
+  }
+  function pausiertButtonRendern() {
+    const btn = document.getElementById('btnPausiert');
+    btn.classList.toggle('aktiv', gewaehltPausiert);
+  }
+  document.getElementById('btnPausiert').addEventListener('click', () => { gewaehltPausiert = !gewaehltPausiert; pausiertButtonRendern(); });
+
+  function verlaufRendern(a) {
+    const titel = document.getElementById('verlaufTitel');
+    const liste = document.getElementById('verlaufListe');
+    liste.innerHTML = '';
+    if (!a || !a.erledigt || !a.erledigt.length) { titel.style.display = 'none'; return; }
+    titel.style.display = '';
+    a.erledigt.slice(-10).reverse().forEach(e => {
+      const li = document.createElement('li');
+      const d = new Date(e.datum);
+      const datumTxt = d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' });
+      li.innerHTML = '<span>' + datumTxt + '</span><span class="v-wer">' + escapeHtml(personInfo(e.von).label) + '</span>';
+      liste.appendChild(li);
+    });
+  }
+
+  function editOeffnen(id) {
+    editId = id || null;
+    const a = editId ? aufgaben.find(x => x.id === editId) : null;
+    document.getElementById('editTitelKopf').textContent = a ? 'Aufgabe bearbeiten' : 'Neue Aufgabe';
+    document.getElementById('fTitel').value = a ? a.titel : '';
+    document.getElementById('fIcon').value = a ? (a.icon || '') : '';
+    gewaehlterTurnus = a ? a.turnus : 'taeglich';
+    gewaehlteWochentage = a ? (a.wochentage || []).slice() : [1, 2, 3, 4, 5];
+    gewaehlteZuweisung = a ? a.zuweisung : 'offen';
+    gewaehltePerson = a ? a.person : (personenListe()[0] || {}).id;
+    gewaehlteRotation = a ? (a.rotationPersonen || []).slice() : personenListe().map(p => p.id);
+    gewaehltPausiert = a ? !!a.pausiert : false;
+    turnusReiheRendern();
+    wochentageReiheRendern();
+    zuweisungReiheRendern();
+    festPersonReiheRendern();
+    rotationReiheRendern();
+    pausiertButtonRendern();
+    verlaufRendern(a);
+    document.getElementById('editLoeschZeile').style.display = a ? '' : 'none';
+    document.getElementById('modalEdit').classList.add('zeigen');
+  }
+  document.getElementById('btnNeu').addEventListener('click', () => editOeffnen(null));
+  document.getElementById('btnEditAbbrechen').addEventListener('click', () => document.getElementById('modalEdit').classList.remove('zeigen'));
+  document.getElementById('modalEdit').addEventListener('click', (e) => { if (e.target.id === 'modalEdit') e.currentTarget.classList.remove('zeigen'); });
+
+  document.getElementById('btnEditSpeichern').addEventListener('click', () => {
+    const titel = document.getElementById('fTitel').value.trim();
+    if (!titel) { document.getElementById('fTitel').focus(); return; }
+    const icon = document.getElementById('fIcon').value.trim() || '🧹';
+    let a = editId ? aufgaben.find(x => x.id === editId) : null;
+    if (!a) {
+      a = { id: neueId('ha'), erledigt: [], rotationIndex: 0 };
+      aufgaben.push(a);
+    }
+    a.titel = titel;
+    a.icon = icon;
+    a.turnus = gewaehlterTurnus;
+    a.wochentage = gewaehlteWochentage.slice();
+    a.zuweisung = gewaehlteZuweisung;
+    a.person = gewaehltePerson;
+    a.rotationPersonen = gewaehlteRotation.slice();
+    a.pausiert = gewaehltPausiert;
+    speichernAufgaben();
+    document.getElementById('modalEdit').classList.remove('zeigen');
+    renderFilter(); renderListe();
+  });
+  document.getElementById('btnEditLoeschen').addEventListener('click', () => {
+    if (!editId) return;
+    if (!confirm('Diese Aufgabe wirklich löschen? Der Verlauf geht dabei verloren.')) return;
+    aufgaben = aufgaben.filter(a => a.id !== editId);
+    speichernAufgaben();
+    document.getElementById('modalEdit').classList.remove('zeigen');
+    renderFilter(); renderListe();
+  });
+
+  // --- Hintergrundmuster ---
+  (function () {
+    const KEY_THEME = 'haushalt_hintergrundThema';
+    const klassen = ['bg-besen', 'bg-haus'];
+    function themeAnwenden(id) {
+      document.body.classList.remove.apply(document.body.classList, klassen);
+      if (id) document.body.classList.add(id);
+      document.querySelectorAll('.theme-swatch').forEach(s => s.classList.toggle('aktiv', s.dataset.theme === id));
+    }
+    let aktivesTheme = '';
+    try { aktivesTheme = localStorage.getItem(KEY_THEME) || ''; } catch (e) {}
+    themeAnwenden(aktivesTheme);
+    const btn = document.getElementById('btnThemeAuswahl');
+    const popup = document.getElementById('themePopup');
+    btn.addEventListener('click', () => popup.classList.toggle('zeigen'));
+    document.querySelectorAll('.theme-swatch').forEach(swatch => {
+      swatch.addEventListener('click', () => {
+        const id = swatch.dataset.theme;
+        themeAnwenden(id);
+        try { localStorage.setItem(KEY_THEME, id); } catch (e) {}
+        popup.classList.remove('zeigen');
+      });
+    });
+    document.addEventListener('click', (e) => {
+      if (popup.classList.contains('zeigen') && !popup.contains(e.target) && e.target.id !== 'btnThemeAuswahl') popup.classList.remove('zeigen');
+    });
+  })();
+
+  renderFilter();
+  renderListe();
+
+  if (window.PlanerSync) {
+    window._sync = window.PlanerSync.starteSync({
+      modul: 'haushalt',
+      keys: [KEY_AUFGABEN],
+      onRemoteChange: function () { aufgaben = laden(KEY_AUFGABEN, aufgaben); renderFilter(); renderListe(); },
+    });
+  }
+})();
+</script>
+</body>
+</html>
