@@ -965,7 +965,7 @@
 
 <!-- MODAL: Freistehende Pflanze (Baum/Strauch außerhalb Beet) -->
 <div class="modal-bg" id="freiPflanzeModal">
-  <div class="modal" style="max-width:440px">
+  <div class="modal" style="max-width:440px;max-height:88vh;overflow-y:auto">
     <h2 id="freiPflanzeTitel">🌳 Baum/Strauch</h2>
     <div class="form-row">
       <label>Name</label>
@@ -984,6 +984,48 @@
       <label>Notizen</label>
       <textarea id="fpNotiz" placeholder="Standort-Besonderheiten, Pflegehinweise, Ernteerwartung..."></textarea>
     </div>
+    <div class="form-row">
+      <label>Foto (optional)</label>
+      <input type="file" id="fpPhotoInput" accept="image/*" onchange="handleFreiPflanzePhoto(event)"/>
+      <div id="fpPhotoBox" style="display:none;margin-top:6px">
+        <img id="fpPhotoPreview" style="max-width:100%;max-height:160px;border-radius:8px;border:1.5px solid var(--parchment);display:block"/>
+        <button type="button" class="btn-secondary" style="margin-top:6px;max-width:140px" onclick="removeFreiPflanzePhoto()">Foto entfernen</button>
+      </div>
+    </div>
+
+    <div class="unterliste-titel" style="font-family:'Playfair Display',serif;font-size:0.9rem;color:var(--moss);margin:16px 0 8px">🧺 Ernte</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:8px">
+      <div class="form-row" style="flex:1;min-width:110px;margin-bottom:0">
+        <label>Datum</label>
+        <input type="date" id="fpHarvestDate"/>
+      </div>
+      <div class="form-row" style="flex:1;min-width:80px;margin-bottom:0">
+        <label>Menge</label>
+        <input type="number" id="fpHarvestAmount" min="0" step="0.01" placeholder="z.B. 1.5"/>
+      </div>
+      <div class="form-row" style="flex:1;min-width:90px;margin-bottom:0">
+        <label>Einheit</label>
+        <select id="fpHarvestUnit">
+          <option value="kg">kg</option>
+          <option value="g">g</option>
+          <option value="Stück">Stück</option>
+          <option value="Bund">Bund</option>
+          <option value="Liter">Liter</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row" style="margin-bottom:8px">
+      <label>Verwendung (optional)</label>
+      <select id="fpHarvestMethod"><option value="">– nicht angegeben –</option></select>
+    </div>
+    <div class="form-row" style="margin-bottom:8px">
+      <label>Notiz (optional)</label>
+      <input type="text" id="fpHarvestNote" placeholder="z.B. sehr aromatisch, für Marmelade..."/>
+    </div>
+    <button class="btn-primary" type="button" onclick="addFreiPflanzeHarvest()">🧺 Ernte eintragen</button>
+    <div id="fpHarvestTotal" style="font-size:0.76rem;color:var(--bark);margin:10px 0 6px"></div>
+    <div id="fpHarvestLog"></div>
+
     <div class="modal-btns">
       <button class="btn-primary" onclick="fpSpeichern()">💾 Speichern</button>
       <button class="btn-cancel" onclick="document.getElementById('freiPflanzeModal').style.display='none'">Schließen</button>
@@ -1690,14 +1732,16 @@ function harvestUseLabel(key) {
   return o ? `${o.icon} ${o.label}` : null;
 }
 function populateHarvestMethodSelect() {
-  const sel = document.getElementById('ppHarvestMethod');
-  if (!sel || sel.dataset.built) return;
-  HARVEST_USE_OPTIONS.forEach(o => {
-    const opt = document.createElement('option');
-    opt.value = o.key; opt.textContent = `${o.icon} ${o.label}`;
-    sel.appendChild(opt);
+  ['ppHarvestMethod', 'fpHarvestMethod'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel || sel.dataset.built) return;
+    HARVEST_USE_OPTIONS.forEach(o => {
+      const opt = document.createElement('option');
+      opt.value = o.key; opt.textContent = `${o.icon} ${o.label}`;
+      sel.appendChild(opt);
+    });
+    sel.dataset.built = '1';
   });
-  sel.dataset.built = '1';
 }
 function isPerennial(name) {
   const p = PLANTS.find(p => p.name === (name||'').trim());
@@ -5246,7 +5290,112 @@ function openFreiPflanzePanel(fp) {
   document.getElementById('fpNotiz').value = fp.notiz || '';
   const dl = document.getElementById('fpNameVorschlaege');
   dl.innerHTML = PLANTS.filter(p => isPerennial(p.name)).map(p => `<option value="${escapeHtml(p.name)}">`).join('');
+  populateHarvestMethodSelect();
+  renderFreiPflanzePhoto(fp.photo);
+  document.getElementById('fpHarvestDate').value = new Date().toISOString().slice(0,10);
+  document.getElementById('fpHarvestAmount').value = '';
+  document.getElementById('fpHarvestMethod').value = '';
+  document.getElementById('fpHarvestNote').value = '';
+  renderFreiPflanzeHarvestLog(fp);
   document.getElementById('freiPflanzeModal').style.display = 'flex';
+}
+function renderFreiPflanzePhoto(photo) {
+  const box=document.getElementById('fpPhotoBox');
+  const img=document.getElementById('fpPhotoPreview');
+  const input=document.getElementById('fpPhotoInput');
+  if (input) input.value='';
+  if (photo) { img.src=photo; box.style.display='block'; }
+  else { img.src=''; box.style.display='none'; }
+}
+function handleFreiPflanzePhoto(e) {
+  const file = e.target.files && e.target.files[0];
+  if (!file || !activeFreiPflanzeId) return;
+  const reader = new FileReader();
+  reader.onerror = () => showTempStatus('⚠ Foto konnte nicht gelesen werden.', 5);
+  reader.onload = (ev) => {
+    const img = new Image();
+    img.onerror = () => showTempStatus('⚠ Datei ist kein gültiges Bild.', 5);
+    img.onload = () => {
+      const maxW = 480;
+      const scale = Math.min(1, maxW / img.width);
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width * scale;
+      canvas.height = img.height * scale;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.72);
+      const fp = getCurrentFreiPflanzen().find(x => x.id === activeFreiPflanzeId);
+      if (!fp) return;
+      pushUndo();
+      fp.photo = dataUrl;
+      saveData();
+      renderFreiPflanzePhoto(dataUrl);
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+function removeFreiPflanzePhoto() {
+  const fp = getCurrentFreiPflanzen().find(x => x.id === activeFreiPflanzeId);
+  if (!fp) return;
+  pushUndo();
+  fp.photo = '';
+  saveData();
+  renderFreiPflanzePhoto('');
+}
+function addFreiPflanzeHarvest() {
+  const fp = getCurrentFreiPflanzen().find(x => x.id === activeFreiPflanzeId);
+  if (!fp) return;
+  const date = document.getElementById('fpHarvestDate').value;
+  const amount = parseFloat(document.getElementById('fpHarvestAmount').value);
+  const unit = document.getElementById('fpHarvestUnit').value;
+  const method = document.getElementById('fpHarvestMethod').value;
+  const note = document.getElementById('fpHarvestNote').value;
+  if (!date || isNaN(amount) || amount <= 0) {
+    showTempStatus('⚠ Bitte Datum und eine Menge größer 0 eingeben.', 5);
+    return;
+  }
+  pushUndo();
+  if (!fp.harvests) fp.harvests = [];
+  fp.harvests.push({ date, amount, unit, method, note });
+  fp.harvests.sort((a,b) => a.date < b.date ? 1 : -1);
+  saveData();
+  document.getElementById('fpHarvestAmount').value = '';
+  document.getElementById('fpHarvestMethod').value = '';
+  document.getElementById('fpHarvestNote').value = '';
+  renderFreiPflanzeHarvestLog(fp);
+  showTempStatus(`🧺 Ernte eingetragen: ${amount} ${unit}`, 3);
+}
+function deleteFreiPflanzeHarvestEntry(hIdx) {
+  const fp = getCurrentFreiPflanzen().find(x => x.id === activeFreiPflanzeId);
+  if (!fp || !fp.harvests) return;
+  pushUndo();
+  fp.harvests.splice(hIdx, 1);
+  saveData();
+  renderFreiPflanzeHarvestLog(fp);
+}
+function renderFreiPflanzeHarvestLog(fp) {
+  const totalBox = document.getElementById('fpHarvestTotal');
+  const logBox = document.getElementById('fpHarvestLog');
+  if (!totalBox || !logBox) return;
+  const harvests = (fp && fp.harvests) || [];
+  if (!harvests.length) {
+    totalBox.textContent = '';
+    logBox.innerHTML = '<div class="empty-state">Noch keine Ernte eingetragen.</div>';
+    return;
+  }
+  const totals = {};
+  harvests.forEach(h => {
+    const n = normalizeHarvestUnit(h.unit, parseFloat(h.amount)||0);
+    totals[n.unit] = (totals[n.unit]||0) + n.amount;
+  });
+  totalBox.innerHTML = '🧺 Gesamt: ' + Object.entries(totals).map(([u,n]) => `${n % 1 === 0 ? n : n.toFixed(2)} ${u}`).join(' · ');
+  logBox.innerHTML = harvests.map((h, i) => `
+    <div style="display:flex;align-items:center;gap:8px;padding:5px 8px;margin-bottom:4px;border-radius:7px;background:var(--cream)">
+      <span style="font-size:0.76rem;color:var(--bark);min-width:70px">${escapeHtml(h.date)}</span>
+      <span style="flex:1;font-size:0.8rem"><strong>${h.amount} ${escapeHtml(h.unit)}</strong>${h.method ? ' · '+escapeHtml(harvestUseLabel(h.method)||h.method) : ''}${h.note ? ' · '+escapeHtml(h.note) : ''}</span>
+      <button onclick="deleteFreiPflanzeHarvestEntry(${i})" style="background:none;border:none;color:#c05030;cursor:pointer;font-size:0.85rem;opacity:0.6" title="Löschen">🗑</button>
+    </div>`).join('');
 }
 function fpAktualisiereSymbolVorschau() {
   const name = document.getElementById('fpName').value.trim();
