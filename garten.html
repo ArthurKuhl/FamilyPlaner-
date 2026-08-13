@@ -503,6 +503,8 @@
           </select>
         </div>
         <div class="bed-list" id="bedList"><div class="empty-state">Noch keine Beete. Zeichne eins!</div></div>
+        <div class="sidebar-title" style="margin-top:14px">🌳 Freistehende Pflanzen</div>
+        <div class="bed-list" id="freiPflanzenList"><div class="empty-state">Keine freistehenden Bäume/Sträucher.</div></div>
       </div>
 
       <!-- TAB: Neues Beet -->
@@ -575,6 +577,7 @@
         <div id="plantCatalog"></div>
         <div style="margin-top:10px">
           <button class="btn-primary" onclick="setMode('plant');switchTab('beds')">🌱 Pflanzenmodus</button>
+          <button class="btn-secondary" style="margin-top:6px" onclick="setMode('freitree');switchTab('beds')" title="Baum/Strauch direkt auf die Fläche setzen, ohne eigenes Beet">🌳 Frei platzieren (ohne Beet)</button>
         </div>
       </div>
 
@@ -956,6 +959,37 @@
     <div id="nowOverviewContent"></div>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="document.getElementById('nowModal').style.display='none'">Schließen</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Freistehende Pflanze (Baum/Strauch außerhalb Beet) -->
+<div class="modal-bg" id="freiPflanzeModal">
+  <div class="modal" style="max-width:440px">
+    <h2 id="freiPflanzeTitel">🌳 Baum/Strauch</h2>
+    <div class="form-row">
+      <label>Name</label>
+      <input type="text" id="fpName" list="fpNameVorschlaege" placeholder="z.B. Apfelbaum, Holunder..." oninput="fpAktualisiereSymbolVorschau()">
+      <datalist id="fpNameVorschlaege"></datalist>
+    </div>
+    <div class="form-row">
+      <label>Sorte (optional)</label>
+      <input type="text" id="fpSorte" placeholder="z.B. 'Boskoop'">
+    </div>
+    <div class="form-row">
+      <label>Gepflanzt am (optional)</label>
+      <input type="date" id="fpDatum">
+    </div>
+    <div class="form-row">
+      <label>Notizen</label>
+      <textarea id="fpNotiz" placeholder="Standort-Besonderheiten, Pflegehinweise, Ernteerwartung..."></textarea>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-primary" onclick="fpSpeichern()">💾 Speichern</button>
+      <button class="btn-cancel" onclick="document.getElementById('freiPflanzeModal').style.display='none'">Schließen</button>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-danger" id="fpLoeschenBtn" onclick="fpLoeschen()">🗑 Entfernen</button>
     </div>
   </div>
 </div>
@@ -4051,6 +4085,12 @@ function setCurrentBeds(b) {
   if (gardens[currentGardenId]) gardens[currentGardenId].beds = b;
 }
 
+function getCurrentFreiPflanzen() {
+  if (!gardens[currentGardenId]) return [];
+  if (!gardens[currentGardenId].freiPflanzen) gardens[currentGardenId].freiPflanzen = [];
+  return gardens[currentGardenId].freiPflanzen;
+}
+
 // ==================== SETTINGS: MASSSTAB & HINTERGRUND ====================
 function getScale() {
   // Fest auf 1 (1 Zeichen-Einheit = 1 echter cm) – auch für Gärten mit einem älteren,
@@ -4346,6 +4386,7 @@ function draw() {
   drawBgImage();
   drawGardenBoundary();
   for (const bed of getCurrentBeds()) drawBed(bed, selectedBeds.includes(bed));
+  for (const fp of getCurrentFreiPflanzen()) drawFreiPflanze(fp);
   if (freehandDrawing && freehandPoints.length) {
     ctx.save();
     ctx.strokeStyle = '#4f6f45'; ctx.lineWidth = 2; ctx.setLineDash([5,4]);
@@ -4377,6 +4418,29 @@ function draw() {
     ctx.fillText(dragPlant.plant.sym, dragPlant.curX, dragPlant.curY);
     ctx.restore();
   }
+  if (dragFreiPflanze) {
+    ctx.save();
+    ctx.globalAlpha = 0.85;
+    ctx.font = '26px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(dragFreiPflanze.item.sym || '🌳', dragFreiPflanze.curX, dragFreiPflanze.curY);
+    ctx.restore();
+  }
+}
+function drawFreiPflanze(fp) {
+  if (dragFreiPflanze && dragFreiPflanze.item === fp) return; // wird als Drag-Vorschau gezeichnet
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(fp.x, fp.y, 17, 0, Math.PI*2);
+  ctx.fillStyle = 'rgba(79,111,69,0.10)';
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(79,111,69,0.35)';
+  ctx.lineWidth = 1.2;
+  ctx.setLineDash([3,2]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.font = '24px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(fp.sym || '🌳', fp.x, fp.y);
+  ctx.restore();
 }
 function drawBgImage() {
   const url = getBgImage();
@@ -4489,6 +4553,15 @@ let mode = 'select', bedColor = '#7a9e72';
 let freehandDrawing = false, freehandPoints = [], freehandMouseX = 0, freehandMouseY = 0;
 let hoverConflictBedId = null;
 let selectedPlantSym = PLANTS[0].sym, selectedPlantName = PLANTS[0].name;
+let dragFreiPflanze = null;
+let activeFreiPflanzeId = null;
+function hitTestFreiPflanze(x, y) {
+  const liste = getCurrentFreiPflanzen();
+  for (let i = liste.length - 1; i >= 0; i--) {
+    if (Math.hypot(x - liste[i].x, y - liste[i].y) < 18) return liste[i];
+  }
+  return null;
+}
 
 function getPos(e) {
   const rect = canvas.getBoundingClientRect();
@@ -4507,7 +4580,8 @@ canvas.addEventListener('click', ()=>{});
 // würde. Nur dann wird natives Scrollen blockiert – über leerem Bereich soll der Finger
 // stattdessen ganz normal die Fläche scrollen können (wichtig bei gezoomten/großen Gärten).
 function ermittleCanvasZiel(x, y) {
-  if (['circle','rect','tri','lshape','freehand'].includes(mode)) return true;
+  if (['circle','rect','tri','lshape','freehand','freitree'].includes(mode)) return true;
+  if (hitTestFreiPflanze(x, y)) return true;
   const beete = getCurrentBeds();
   for (let i = beete.length - 1; i >= 0; i--) {
     const bed = beete[i];
@@ -4544,6 +4618,23 @@ function rotY(rx,ry,deg){const a=deg*Math.PI/180;return rx*Math.sin(a)+ry*Math.c
 
 function onDown(e) {
   const {x,y} = getPos(e);
+  if (mode==='freitree') {
+    pushUndo();
+    const neu = { id: Date.now(), x, y, sym: selectedPlantSym || '🌳', name: selectedPlantName || '', sorte: '', datum: '', notiz: '' };
+    getCurrentFreiPflanzen().push(neu);
+    saveData(); draw(); renderFreiPflanzenList();
+    setMode('select');
+    openFreiPflanzePanel(neu);
+    showTempStatus('✓ Platziert – Details ergänzen und speichern', 4);
+    return;
+  }
+  if (mode==='select') {
+    const fpHit = hitTestFreiPflanze(x, y);
+    if (fpHit) {
+      dragFreiPflanze = { item: fpHit, startX: x, startY: y, curX: x, curY: y, moved: false };
+      return;
+    }
+  }
   if (mode==='select') {
     for (let i=getCurrentBeds().length-1;i>=0;i--) {
       const bed=getCurrentBeds()[i];
@@ -4644,6 +4735,17 @@ function onMove(e) {
     draw();
     return;
   }
+  if (dragFreiPflanze) {
+    const {x,y}=getPos(e);
+    dragFreiPflanze.curX=x; dragFreiPflanze.curY=y;
+    if (!dragFreiPflanze.moved && Math.hypot(x-dragFreiPflanze.startX,y-dragFreiPflanze.startY)>6) {
+      dragFreiPflanze.moved = true;
+      pushUndo();
+    }
+    if (dragFreiPflanze.moved) { dragFreiPflanze.item.x = x; dragFreiPflanze.item.y = y; }
+    draw();
+    return;
+  }
   if (dragPlant) {
     const {x,y}=getPos(e);
     dragPlant.curX=x; dragPlant.curY=y;
@@ -4708,6 +4810,17 @@ function hidePlantTooltip() {
   if (hoverConflictBedId !== null) { hoverConflictBedId = null; draw(); }
 }
 function onUp(e) {
+  if (dragFreiPflanze) {
+    const dfp = dragFreiPflanze; dragFreiPflanze = null;
+    if (!dfp.moved) {
+      openFreiPflanzePanel(dfp.item);
+      draw();
+      return;
+    }
+    saveData(); draw(); renderFreiPflanzenList();
+    showTempStatus('✓ Verschoben', 2);
+    return;
+  }
   if (dragPlant) {
     const dp = dragPlant; dragPlant = null;
     if (!dp.moved) {
@@ -4862,7 +4975,7 @@ function setMode(m) {
   const map={circle:'btnCircle',rect:'btnRect',tri:'btnTri',lshape:'btnLshape',freehand:'btnFreehand',select:'btnSelect',plant:'btnPlant'};
   if(map[m]) document.getElementById(map[m])?.classList.add('active');
   wrap.className='canvas-wrap mode-'+m;
-  const labels={circle:'Kreis zeichnen',rect:'Rechteck zeichnen',tri:'Dreieck zeichnen',lshape:'L-Form zeichnen',freehand:'Freiform: Punkte anklicken, am Startpunkt schließen',select:'Auswählen / Verschieben',plant:`Pflanze setzen: ${selectedPlantSym}`};
+  const labels={circle:'Kreis zeichnen',rect:'Rechteck zeichnen',tri:'Dreieck zeichnen',lshape:'L-Form zeichnen',freehand:'Freiform: Punkte anklicken, am Startpunkt schließen',select:'Auswählen / Verschieben',plant:`Pflanze setzen: ${selectedPlantSym}`,freitree:`🌳 Frei platzieren: ${selectedPlantSym} – auf die Fläche tippen (außerhalb eines Beets)`};
   document.getElementById('statusMsg').textContent=labels[m]||m;
   document.getElementById('sb1').textContent='Modus: '+(labels[m]||m);
   updateShapeControls();
@@ -4875,7 +4988,7 @@ function showTempStatus(text, seconds) {
   el.textContent = text;
   if (statusMsgTimer) clearTimeout(statusMsgTimer);
   statusMsgTimer = setTimeout(() => {
-    const labels={circle:'Kreis zeichnen',rect:'Rechteck zeichnen',tri:'Dreieck zeichnen',lshape:'L-Form zeichnen',freehand:'Freiform: Punkte anklicken, am Startpunkt schließen',select:'Auswählen / Verschieben',plant:`Pflanze setzen: ${selectedPlantSym}`};
+    const labels={circle:'Kreis zeichnen',rect:'Rechteck zeichnen',tri:'Dreieck zeichnen',lshape:'L-Form zeichnen',freehand:'Freiform: Punkte anklicken, am Startpunkt schließen',select:'Auswählen / Verschieben',plant:`Pflanze setzen: ${selectedPlantSym}`,freitree:`🌳 Frei platzieren: ${selectedPlantSym}`};
     el.textContent = labels[mode]||'';
   }, (seconds||5)*1000);
 }
@@ -5075,6 +5188,7 @@ function sortedBedsWithIndex(beds) {
   return withIdx;
 }
 function renderBedList() {
+  renderFreiPflanzenList();
   const list=document.getElementById('bedList');
   const beds=getCurrentBeds();
   if(!beds.length){list.innerHTML='<div class="empty-state">Noch keine Beete. Zeichne eins!</div>';return;}
@@ -5100,6 +5214,72 @@ function deleteBedIdx(e,i){
   pushUndo();
   getCurrentBeds().splice(i,1);if(selectedBed&&!getCurrentBeds().includes(selectedBed)){selectedBed=null;hideBedEditor();}draw();renderBedList();saveData();updateStatus();
 }
+
+// ==================== FREISTEHENDE PFLANZEN (Bäume/Sträucher ohne eigenes Beet) ====================
+function renderFreiPflanzenList() {
+  const list = document.getElementById('freiPflanzenList');
+  if (!list) return;
+  const liste = getCurrentFreiPflanzen();
+  if (!liste.length) { list.innerHTML = '<div class="empty-state">Keine freistehenden Bäume/Sträucher.</div>'; return; }
+  list.innerHTML = liste.map((fp, i) => `
+    <div class="bed-item" tabindex="0" role="button" aria-label="${escapeHtml(fp.name||'Pflanze')} bearbeiten" onclick="openFreiPflanzePanelByIdx(${i})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openFreiPflanzePanelByIdx(${i});}">
+      <span style="font-size:1.1rem">${fp.sym||'🌳'}</span>
+      <span>${escapeHtml(fp.name||'Unbenannt')}${fp.sorte?' ('+escapeHtml(fp.sorte)+')':''}</span>
+      <button class="bed-item-del" aria-label="${escapeHtml(fp.name||'Pflanze')} löschen" title="Entfernen" onclick="deleteFreiPflanzeIdx(event,${i})">✕</button>
+    </div>`).join('');
+}
+function openFreiPflanzePanelByIdx(i) { openFreiPflanzePanel(getCurrentFreiPflanzen()[i]); }
+function deleteFreiPflanzeIdx(e, i) {
+  e.stopPropagation();
+  const fp = getCurrentFreiPflanzen()[i];
+  if (!confirm(`"${fp.name||'Diese Pflanze'}" wirklich entfernen?`)) return;
+  pushUndo();
+  getCurrentFreiPflanzen().splice(i, 1);
+  saveData(); draw(); renderFreiPflanzenList();
+}
+function openFreiPflanzePanel(fp) {
+  activeFreiPflanzeId = fp.id;
+  document.getElementById('freiPflanzeTitel').textContent = (fp.sym||'🌳') + ' ' + (fp.name || 'Baum/Strauch');
+  document.getElementById('fpName').value = fp.name || '';
+  document.getElementById('fpSorte').value = fp.sorte || '';
+  document.getElementById('fpDatum').value = fp.datum || '';
+  document.getElementById('fpNotiz').value = fp.notiz || '';
+  const dl = document.getElementById('fpNameVorschlaege');
+  dl.innerHTML = PLANTS.filter(p => isPerennial(p.name)).map(p => `<option value="${escapeHtml(p.name)}">`).join('');
+  document.getElementById('freiPflanzeModal').style.display = 'flex';
+}
+function fpAktualisiereSymbolVorschau() {
+  const name = document.getElementById('fpName').value.trim();
+  const match = PLANTS.find(p => p.name.toLowerCase() === name.toLowerCase());
+  if (match) document.getElementById('freiPflanzeTitel').textContent = match.sym + ' ' + match.name;
+}
+function fpSpeichern() {
+  const fp = getCurrentFreiPflanzen().find(x => x.id === activeFreiPflanzeId);
+  if (!fp) return;
+  const name = document.getElementById('fpName').value.trim();
+  const match = PLANTS.find(p => p.name.toLowerCase() === name.toLowerCase());
+  pushUndo();
+  fp.name = name;
+  fp.sym = match ? match.sym : (fp.sym || '🌳');
+  fp.sorte = document.getElementById('fpSorte').value.trim();
+  fp.datum = document.getElementById('fpDatum').value;
+  fp.notiz = document.getElementById('fpNotiz').value.trim();
+  saveData(); draw(); renderFreiPflanzenList();
+  document.getElementById('freiPflanzeModal').style.display = 'none';
+  showTempStatus('✓ Gespeichert', 3);
+}
+function fpLoeschen() {
+  const fp = getCurrentFreiPflanzen().find(x => x.id === activeFreiPflanzeId);
+  if (!fp) return;
+  if (!confirm(`"${fp.name||'Diese Pflanze'}" wirklich entfernen?`)) return;
+  pushUndo();
+  const liste = getCurrentFreiPflanzen();
+  const idx = liste.findIndex(x => x.id === activeFreiPflanzeId);
+  if (idx >= 0) liste.splice(idx, 1);
+  saveData(); draw(); renderFreiPflanzenList();
+  document.getElementById('freiPflanzeModal').style.display = 'none';
+}
+
 
 // ==================== PLANT CATALOGUE ====================
 // ==================== ZULETZT VERWENDETE PFLANZEN ====================
