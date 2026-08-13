@@ -237,6 +237,15 @@
   .btn { flex: 1; padding: 11px; border-radius: var(--radius-pill); border: none; font-weight: 700; font-size: 0.85rem; cursor: pointer; }
   .btn-primary { background: var(--moss); color: var(--leaf); }
   .btn-secondary { background: var(--white); color: var(--bark); border: 1px solid var(--parchment); }
+
+  /* Sehr breite Bildschirme: Content etwas breiter + dezente Deko-Streifen im Rand */
+  .deko-rand { display: none; position: fixed; top: 0; bottom: 0; width: 220px; background-repeat: repeat-y; background-position: center top; pointer-events: none; z-index: -1; }
+  .deko-rand.links { left: 0; }
+  .deko-rand.rechts { right: 0; transform: scaleX(-1); }
+  @media (min-width: 1600px) {
+    main { max-width: 1440px; }
+    .deko-rand { display: block; background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22220%22%20height%3D%221400%22%20viewBox%3D%220%200%20220%201400%22%3E%3Cg%20opacity%3D%220.16%22%3E%3Cg%20transform%3D%22translate%2860%2C90%29%20scale%280.85%29%20rotate%28-12%29%22%3E%3Cpath%20d%3D%22M%200%208%20C%20-4%200%2C%20-16%200%2C%20-16%2012%20C%20-16%2022%2C%200%2032%2C%200%2032%20C%200%2032%2C%2016%2022%2C%2016%2012%20C%2016%200%2C%204%200%2C%200%208%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%28150%2C260%29%20scale%280.85%29%20rotate%2815%29%22%3E%3Cpath%20d%3D%22M%20-20%200%20L%20-8%200%20L%20-3%20-14%20L%204%2014%20L%209%200%20L%2020%200%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%2860%2C430%29%20scale%280.85%29%20rotate%28-6%29%22%3E%3Cpath%20d%3D%22M%200%200%20C%2010%2014%2C%2014%2024%2C%200%2034%20C%20-14%2024%2C%20-10%2014%2C%200%200%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%28150%2C640%29%20scale%280.85%29%20rotate%2810%29%22%3E%3Cpath%20d%3D%22M%200%208%20C%20-4%200%2C%20-16%200%2C%20-16%2012%20C%20-16%2022%2C%200%2032%2C%200%2032%20C%200%2032%2C%2016%2022%2C%2016%2012%20C%2016%200%2C%204%200%2C%200%208%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%2860%2C810%29%20scale%280.85%29%20rotate%28-15%29%22%3E%3Cpath%20d%3D%22M%20-20%200%20L%20-8%200%20L%20-3%20-14%20L%204%2014%20L%209%200%20L%2020%200%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%28150%2C980%29%20scale%280.85%29%20rotate%286%29%22%3E%3Cpath%20d%3D%22M%200%200%20C%2010%2014%2C%2014%2024%2C%200%2034%20C%20-14%2024%2C%20-10%2014%2C%200%200%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%2860%2C1180%29%20scale%280.85%29%20rotate%28-10%29%22%3E%3Cpath%20d%3D%22M%200%208%20C%20-4%200%2C%20-16%200%2C%20-16%2012%20C%20-16%2022%2C%200%2032%2C%200%2032%20C%200%2032%2C%2016%2022%2C%2016%2012%20C%2016%200%2C%204%200%2C%200%208%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%28150%2C1340%29%20scale%280.85%29%20rotate%2812%29%22%3E%3Cpath%20d%3D%22M%20-20%200%20L%20-8%200%20L%20-3%20-14%20L%204%2014%20L%209%200%20L%2020%200%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); }
+  }
 </style>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
@@ -245,6 +254,9 @@
 <script src="sync.js"></script>
 </head>
 <body>
+<div class="deko-rand links" aria-hidden="true"></div>
+<div class="deko-rand rechts" aria-hidden="true"></div>
+
 <div id="tempStatus" class="temp-status"></div>
 
 <header class="top">
