@@ -1045,6 +1045,7 @@
       <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchVdbTab('probleme')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">🔍 Probleme</div>
       <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchVdbTab('ideen')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">💡 Ideen</div>
       <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchVdbTab('mulch')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">🍂 Mulch</div>
+      <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchVdbTab('steckbrief')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">📋 Steckbrief</div>
     </div>
 
     <div class="tab-content active" id="vdbTabSorten">
@@ -1120,6 +1121,15 @@
     <div class="tab-content" id="vdbTabMulch">
       <p style="font-size:0.72rem;color:var(--bark);margin-bottom:10px">Welches Mulchmaterial für welchen Bereich – als grobe Orientierung, im Einzelfall auf Pflanzenbedarf und Bodentyp abstimmen.</p>
       <div id="mulchBox" style="display:grid;grid-template-columns:1fr;gap:8px"></div>
+    </div>
+
+    <div class="tab-content" id="vdbTabSteckbrief">
+      <p style="font-size:0.72rem;color:var(--bark);margin-bottom:10px">Ausführliche Steckbriefe zu den häufigsten Garten-Pflanzen – Standort, Boden, Aussaat/Pflanzzeit, Ernte, Pflege. Für seltenere Pflanzen aus dem Katalog gibt es aktuell noch keinen Steckbrief.</p>
+      <div class="form-row">
+        <label>Pflanze</label>
+        <select id="steckbriefSel" onchange="renderSteckbrief()"></select>
+      </div>
+      <div id="steckbriefBox" style="margin-top:10px"></div>
     </div>
 
     <div class="modal-btns">
@@ -2401,6 +2411,72 @@ const MULCH_ARTEN = [
   { name: '🪨 Kies / Splitt (mineralisch)', geeignet: 'Steingarten, mediterrane und trockenheitsliebende Pflanzen', hinweis: 'Kein Nährstoffeintrag, hält den Wurzelhals trocken – ideal gegen Staunässe am Stamm' },
 ];
 
+// ==================== PFLANZEN-STECKBRIEFE ====================
+// Kuratierte Auswahl der häufigsten Garten-Pflanzen (nicht alle ~100+ aus PLANTS,
+// bei Bedarf einzeln erweiterbar). Key = exakter Name aus PLANTS.
+const PLANT_STECKBRIEFE = {
+  'Tomate': { standort: 'Vollsonnig, warm, windgeschützt', boden: 'Nährstoffreich, humos, gut durchlässig', aussaat: 'Vorkultur ab Feb/März, auspflanzen nach den Eisheiligen (Mitte Mai)', ernte: 'Juli bis Oktober', pflege: 'Regelmäßig gießen (nicht über die Blätter), ausgeizen, Stützen/Rankhilfe nötig', besonderheit: 'Regenschutz reduziert Braunfäule-Risiko deutlich' },
+  'Karotte': { standort: 'Sonnig bis halbschattig', boden: 'Tiefgründig, locker, steinfrei', aussaat: 'März bis Juli, Direktsaat', ernte: '10–16 Wochen nach Aussaat', pflege: 'Gleichmäßig feucht halten, früh vereinzeln', besonderheit: 'Frisch gedüngter Boden führt zu gegabelten Wurzeln – vermeiden' },
+  'Salat': { standort: 'Sonnig bis halbschattig, im Sommer auch schattig', boden: 'Humos, nährstoffreich, gleichmäßig feucht', aussaat: 'März bis August, Vorkultur oder Direktsaat', ernte: '6–10 Wochen nach Aussaat', pflege: 'Regelmäßig gießen, staffelweise nachsäen für Dauerernte', besonderheit: 'Schießt bei Hitze/Trockenheit schnell in die Blüte' },
+  'Paprika': { standort: 'Vollsonnig, warm, windgeschützt', boden: 'Nährstoffreich, humos', aussaat: 'Vorkultur ab Februar, auspflanzen nach den Eisheiligen', ernte: 'August bis Oktober', pflege: 'Regelmäßig gießen, wärmeliebend – im Gewächshaus zuverlässiger', besonderheit: 'Braucht viel Wärme, im Freiland oft nur bei mildem Sommer ertragreich' },
+  'Gurke': { standort: 'Vollsonnig, warm, windgeschützt', boden: 'Nährstoffreich, humos, durchlässig', aussaat: 'Vorkultur ab April, auspflanzen nach den Eisheiligen', ernte: 'Juli bis September', pflege: 'Viel und gleichmäßig gießen, Rankhilfe bei Freilandgurken', besonderheit: 'Verträgt sich schlecht mit Tomaten in unmittelbarer Nähe' },
+  'Zwiebel': { standort: 'Vollsonnig', boden: 'Locker, durchlässig, nicht frisch gedüngt', aussaat: 'Steckzwiebeln März/April, Saat Februar/März', ernte: 'Juli/August, wenn das Laub umknickt', pflege: 'Wenig Wasser nötig, unkrautfrei halten', besonderheit: 'Zum Trocknen nach der Ernte einige Tage an der Luft liegen lassen' },
+  'Bohnen': { standort: 'Sonnig, warm', boden: 'Durchlässig, nicht zu nährstoffreich', aussaat: 'Nach den Eisheiligen (Mai), frostempfindlich', ernte: 'Ca. 8–12 Wochen nach Aussaat', pflege: 'Stangenbohnen brauchen Rankhilfe, mäßig gießen', besonderheit: 'Reichern als Stickstoffsammler den Boden für Folgekulturen an' },
+  'Kartoffel': { standort: 'Sonnig', boden: 'Locker, tiefgründig, humos', aussaat: 'Pflanzung ab April, frostfrei', ernte: 'Juli bis September, je nach Sorte', pflege: 'Anhäufeln, gleichmäßig gießen', besonderheit: 'Nie in der Nähe von Tomaten pflanzen (gleiche Krankheiten, z.B. Kraut-/Braunfäule)' },
+  'Zucchini': { standort: 'Vollsonnig, windgeschützt', boden: 'Sehr nährstoffreich, humos', aussaat: 'Vorkultur ab April, auspflanzen nach den Eisheiligen', ernte: 'Juli bis Oktober, laufend', pflege: 'Viel Wasser und Nährstoffe, regelmäßig ernten fördert Nachwuchs', besonderheit: 'Eine Pflanze reicht meist für eine ganze Familie' },
+  'Kürbis': { standort: 'Vollsonnig, viel Platz', boden: 'Sehr nährstoffreich, gerne direkt auf Kompost', aussaat: 'Vorkultur ab April, auspflanzen nach den Eisheiligen', ernte: 'September/Oktober', pflege: 'Viel Wasser, ausladende Ranken einplanen', besonderheit: 'Für Lagerkürbisse vor dem ersten Frost ernten und Stiel dranlassen' },
+  'Erdbeere': { standort: 'Sonnig bis halbschattig', boden: 'Humos, durchlässig, leicht sauer', aussaat: 'Pflanzung im Frühjahr oder Spätsommer', ernte: 'Mai bis Juli, je nach Sorte', pflege: 'Mulchen (Stroh) hält Früchte sauber, alle 3–4 Jahre Standort wechseln', besonderheit: 'Ableger (Ausläufer) lassen sich leicht zur Vermehrung nutzen' },
+  'Himbeere': { standort: 'Sonnig bis halbschattig, windgeschützt', boden: 'Humos, durchlässig, leicht sauer', aussaat: 'Pflanzung im Herbst oder Frühjahr', ernte: 'Sommer- oder Herbstsorten, Juni–Oktober je nach Sorte', pflege: 'Rankhilfe/Spalier, nach der Ernte alte Ruten bodennah zurückschneiden', besonderheit: 'Sommer- und Herbsthimbeeren werden unterschiedlich geschnitten – Sorte beachten' },
+  'Heidelbeere': { standort: 'Sonnig bis halbschattig', boden: 'Sauer (Moorbeeterde), durchlässig', aussaat: 'Pflanzung im Herbst oder Frühjahr', ernte: 'Juli bis September', pflege: 'Nur mit kalkarmem/Regenwasser gießen, im Kübel oder Moorbeet kultivieren', besonderheit: 'Normaler Gartenboden ist meist zu wenig sauer – spezielle Erde nötig' },
+  'Johannisbeere': { standort: 'Sonnig bis halbschattig', boden: 'Nährstoffreich, humos', aussaat: 'Pflanzung im Herbst', ernte: 'Juni/Juli', pflege: 'Jährlicher Auslichtungsschnitt, alte Triebe (>3 Jahre) entfernen', besonderheit: 'Rote/weiße und schwarze Sorten werden unterschiedlich geschnitten' },
+  'Basilikum': { standort: 'Vollsonnig, warm, windgeschützt', boden: 'Nährstoffreich, humos, durchlässig', aussaat: 'Vorkultur ab März, auspflanzen/rausstellen nach den Eisheiligen', ernte: 'Laufend, ganze Saison', pflege: 'Regelmäßig gießen, Triebspitzen ausbrechen fördert Verzweigung', besonderheit: 'Sehr frostempfindlich, reagiert auch auf Kälte unter 10°C empfindlich' },
+  'Petersilie': { standort: 'Halbschattig bis sonnig', boden: 'Humos, gleichmäßig feucht', aussaat: 'März bis Juli, Direktsaat (keimt langsam)', ernte: 'Laufend ab ca. 8 Wochen nach Aussaat', pflege: 'Gleichmäßig feucht halten', besonderheit: 'Zweijährig – im zweiten Jahr blüht sie und die Blätter werden bitter' },
+  'Schnittlauch': { standort: 'Sonnig bis halbschattig', boden: 'Humos, feucht', aussaat: 'März bis Mai oder Teilung von Horsten', ernte: 'Laufend von Frühjahr bis Herbst', pflege: 'Regelmäßig zurückschneiden fördert neuen Austrieb, alle paar Jahre teilen', besonderheit: 'Mehrjährig winterhart, treibt im Frühjahr zuverlässig wieder aus' },
+  'Thymian': { standort: 'Vollsonnig, warm', boden: 'Trocken, durchlässig, kalkhaltig, mager', aussaat: 'Pflanzung im Frühjahr', ernte: 'Laufend, am aromatischsten kurz vor der Blüte', pflege: 'Wenig gießen, im Frühjahr zurückschneiden', besonderheit: 'Verträgt keine Staunässe – im Kübel auf gute Drainage achten' },
+  'Rosmarin': { standort: 'Vollsonnig, warm, windgeschützt', boden: 'Durchlässig, kalkhaltig, mager', aussaat: 'Pflanzung im Frühjahr', ernte: 'Ganzjährig möglich', pflege: 'Wenig gießen, im Kübel überwintern (nicht winterhart in kalten Lagen)', besonderheit: 'In Regionen mit strengen Wintern am besten frostfrei überwintern' },
+  'Minze': { standort: 'Halbschattig bis sonnig', boden: 'Feucht, nährstoffreich', aussaat: 'Pflanzung im Frühjahr, meist über Ableger', ernte: 'Laufend von Frühjahr bis Herbst', pflege: 'Regelmäßig gießen, wuchert stark über Wurzelausläufer', besonderheit: 'Unbedingt mit Wurzelsperre (Kübel im Boden) pflanzen, sonst breitet sie sich stark aus' },
+  'Salbei': { standort: 'Vollsonnig, warm', boden: 'Durchlässig, kalkhaltig, mager', aussaat: 'Pflanzung im Frühjahr', ernte: 'Laufend, Hauptsaison Sommer', pflege: 'Wenig gießen, im Frühjahr zurückschneiden', besonderheit: 'Verholzt mit den Jahren – alle paar Jahre kräftig zurückschneiden oder neu ziehen' },
+  'Oregano': { standort: 'Vollsonnig, warm', boden: 'Trocken, durchlässig, kalkhaltig, mager', aussaat: 'Pflanzung im Frühjahr', ernte: 'Laufend, am aromatischsten kurz vor der Blüte', pflege: 'Wenig gießen', besonderheit: 'Mehrjährig winterhart an geschützten Standorten' },
+  'Apfelbaum': { standort: 'Sonnig, luftig', boden: 'Nährstoffreich, durchlässig', aussaat: 'Pflanzung im Herbst oder zeitigen Frühjahr', ernte: 'August bis Oktober, sortenabhängig', pflege: 'Jährlicher Erziehungs-/Auslichtungsschnitt im Winter', besonderheit: 'Für guten Fruchtansatz meist einen zweiten Apfelbaum als Befruchter in der Nähe einplanen' },
+  'Birnbaum': { standort: 'Sonnig, warm, windgeschützt', boden: 'Nährstoffreich, durchlässig', aussaat: 'Pflanzung im Herbst oder zeitigen Frühjahr', ernte: 'August bis Oktober', pflege: 'Jährlicher Erziehungsschnitt im Winter', besonderheit: 'Blüht früh – Spätfrost kann die Ernte gefährden' },
+  'Kirschbaum': { standort: 'Sonnig, warm', boden: 'Durchlässig, nicht zu nass', aussaat: 'Pflanzung im Herbst oder zeitigen Frühjahr', ernte: 'Juni/Juli', pflege: 'Schnitt nur im Sommer (Vermeidung von Krankheiten über Schnittwunden im Winter)', besonderheit: 'Vogelschutznetz meist nötig, Vögel sind schnell vor Ort' },
+  'Pflaumenbaum': { standort: 'Sonnig, warm', boden: 'Nährstoffreich, durchlässig', aussaat: 'Pflanzung im Herbst oder zeitigen Frühjahr', ernte: 'August/September', pflege: 'Schnitt nach der Ernte im Sommer', besonderheit: 'Anfällig für Scharkakrankheit – bei Symptomen Fachberatung hinzuziehen' },
+  'Japanische Quitte': { standort: 'Sonnig bis halbschattig', boden: 'Durchlässig, anspruchslos', aussaat: 'Pflanzung im Herbst oder Frühjahr', ernte: 'Oktober, vor dem ersten starken Frost', pflege: 'Pflegeleicht, gelegentlicher Auslichtungsschnitt', besonderheit: 'Früchte sind roh ungenießbar, aber ideal für Gelee und Kompott (viel Pektin)' },
+  'Feigenbaum': { standort: 'Vollsonnig, warm, windgeschützt (Südwand ideal)', boden: 'Durchlässig, mäßig nährstoffreich', aussaat: 'Pflanzung im Frühjahr', ernte: 'Spätsommer bis Herbst, in milden Lagen zwei Ernten möglich', pflege: 'In kälteren Regionen Winterschutz (Vlies/Mulch) nötig', besonderheit: 'In rauen Lagen am besten im Kübel kultivieren und frostfrei überwintern' },
+  'Walnussbaum': { standort: 'Sonnig, viel Platz (wird groß)', boden: 'Tiefgründig, nährstoffreich', aussaat: 'Pflanzung im Herbst', ernte: 'September/Oktober', pflege: 'Kaum Pflege nötig, sehr genügsam sobald etabliert', besonderheit: 'Wurzelausscheidungen hemmen das Wachstum vieler anderer Pflanzen in der Nähe (Juglon)' },
+  'Rose': { standort: 'Sonnig, luftig', boden: 'Nährstoffreich, durchlässig', aussaat: 'Pflanzung im Herbst oder Frühjahr', ernte: '–', pflege: 'Rückschnitt im Frühjahr, regelmäßig düngen', besonderheit: 'Nicht am gleichen Standort wie eine Vorgänger-Rose neu pflanzen ("Rosenmüdigkeit" des Bodens)' },
+  'Lavendel': { standort: 'Vollsonnig, warm', boden: 'Trocken, durchlässig, kalkhaltig, mager', aussaat: 'Pflanzung im Frühjahr', ernte: 'Blüte Juni bis August, zum Trocknen kurz vor Vollblüte schneiden', pflege: 'Wenig gießen, im Frühjahr zurückschneiden (nicht ins alte Holz)', besonderheit: 'Verträgt keine Staunässe – bei schwerem Boden Sand/Kies einarbeiten' },
+};
+function populateSteckbriefSelect() {
+  const sel = document.getElementById('steckbriefSel');
+  if (!sel) return;
+  const names = Object.keys(PLANT_STECKBRIEFE).sort((a,b) => a.localeCompare(b, 'de'));
+  const prev = sel.value;
+  sel.innerHTML = names.map(n => {
+    const p = PLANTS.find(pl => pl.name === n);
+    const sym = p ? p.sym : '🌱';
+    return `<option value="${escapeHtml(n)}">${sym} ${escapeHtml(n)}</option>`;
+  }).join('');
+  if (prev && names.includes(prev)) sel.value = prev;
+}
+function renderSteckbrief() {
+  const sel = document.getElementById('steckbriefSel');
+  const box = document.getElementById('steckbriefBox');
+  if (!sel || !box) return;
+  const sb = PLANT_STECKBRIEFE[sel.value];
+  if (!sb) { box.innerHTML = '<div class="empty-state">Kein Steckbrief vorhanden.</div>'; return; }
+  const rows = [
+    ['☀️ Standort', sb.standort], ['🌍 Boden', sb.boden], ['🌱 Aussaat/Pflanzzeit', sb.aussaat],
+    ['🧺 Ernte', sb.ernte], ['🧰 Pflege', sb.pflege],
+  ];
+  box.innerHTML = `
+    <div style="padding:10px 12px;border:1px solid var(--parchment);border-radius:8px">
+      ${rows.map(([label, val]) => `<div style="margin-bottom:6px;font-size:0.74rem"><strong>${label}:</strong> ${escapeHtml(val)}</div>`).join('')}
+      ${sb.besonderheit ? `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--parchment);font-size:0.72rem;color:var(--moss)"><strong>💡 Besonderheit:</strong> ${escapeHtml(sb.besonderheit)}</div>` : ''}
+    </div>`;
+}
+
+
 function renderMulch() {
   const box = document.getElementById('mulchBox');
   if (!box) return;
@@ -2437,18 +2513,19 @@ function renderPflanzenIdeen() {
 }
 
 function switchVdbTab(id) {
-  ['sorten','probleme','ideen','mulch'].forEach(t => {
+  ['sorten','probleme','ideen','mulch','steckbrief'].forEach(t => {
     const content = document.getElementById('vdbTab' + t.charAt(0).toUpperCase() + t.slice(1));
     if (content) content.classList.toggle('active', t === id);
   });
   document.querySelectorAll('#varietyModal .tabs .tab').forEach((el, i) => {
-    const isActive = ['sorten','probleme','ideen','mulch'][i] === id;
+    const isActive = ['sorten','probleme','ideen','mulch','steckbrief'][i] === id;
     el.classList.toggle('active', isActive);
     el.setAttribute('aria-selected', isActive ? 'true' : 'false');
   });
   if (id === 'probleme') renderBlattprobleme();
   if (id === 'ideen') renderPflanzenIdeen();
   if (id === 'mulch') renderMulch();
+  if (id === 'steckbrief') { populateSteckbriefSelect(); renderSteckbrief(); }
 }
 
 let varietyDB = {}; // { plantName: [ {id,name,rating,source,harvest,notes} ] }

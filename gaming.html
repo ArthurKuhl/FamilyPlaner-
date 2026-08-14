@@ -232,6 +232,10 @@
       <label>Status</label>
       <div class="opt-reihe" id="editStatusReihe"></div>
     </div>
+    <div class="feld" id="fGeschaetzteDauerFeld" style="display:none">
+      <label for="fGeschaetzteDauer">Geschätzte Spieldauer (Std., optional)</label>
+      <input type="number" id="fGeschaetzteDauer" min="0" step="0.5" placeholder="z.B. 40 – lohnt sich das heute Abend noch?">
+    </div>
     <div class="zeile">
       <div class="feld">
         <label for="fSpielzeit">Spielzeit (Std., optional)</label>
@@ -413,7 +417,8 @@
         '<span class="mini-chip" style="background:' + stat.farbe + '22; color:' + stat.farbe + ';">' + stat.icon + ' ' + stat.label + '</span>' +
       '</div>' +
       sterneAnzeige(s.bewertung || 0) +
-      (s.spielzeit ? '<div class="spiel-zeit">⏱ ' + s.spielzeit + ' Std.</div>' : '');
+      (s.spielzeit ? '<div class="spiel-zeit">⏱ ' + s.spielzeit + ' Std.</div>' : '') +
+      (s.status === 'wunschliste' && s.geschaetzteDauer ? '<div class="spiel-zeit">⏳ ca. ' + s.geschaetzteDauer + ' Std. (geschätzt)</div>' : '');
     karte.addEventListener('click', () => editModalOeffnen(s));
     return karte;
   }
@@ -453,6 +458,8 @@
   }
   function renderEditStatusReihe() {
     optReiheRendern('editStatusReihe', STATUSSE, editStatus, (id) => { editStatus = id; renderEditStatusReihe(); });
+    const feld = document.getElementById('fGeschaetzteDauerFeld');
+    if (feld) feld.style.display = (editStatus === 'wunschliste') ? '' : 'none';
   }
   function renderSterneEingabe() {
     const box = document.getElementById('sterneEingabe');
@@ -472,6 +479,7 @@
     document.getElementById('editKopf').textContent = s ? 'Spiel bearbeiten' : 'Neues Spiel';
     document.getElementById('fTitel').value = s ? s.titel : '';
     document.getElementById('fSpielzeit').value = s ? (s.spielzeit || '') : '';
+    document.getElementById('fGeschaetzteDauer').value = s ? (s.geschaetzteDauer || '') : '';
     document.getElementById('fNotiz').value = s ? (s.notiz || '') : '';
     editPerson = s ? s.person : (personFilter !== 'alle' ? personFilter : 'mama');
     editPlattform = s ? s.plattform : 'pc';
@@ -493,6 +501,7 @@
       id: bearbeiteId || neueId('g'),
       titel, person: editPerson, plattform: editPlattform, status: editStatus,
       spielzeit: document.getElementById('fSpielzeit').value.trim(),
+      geschaetzteDauer: document.getElementById('fGeschaetzteDauer').value.trim(),
       bewertung: editBewertung,
       notiz: document.getElementById('fNotiz').value.trim(),
     };

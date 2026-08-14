@@ -625,7 +625,7 @@
         const spieleListe = JSON.parse(localStorage.getItem('gaming_spiele') || '[]').filter(s => s.status === 'wunschliste');
         if (spieleListe.length) {
           html += '<div class="sidebar-title" style="margin:18px 0 8px">🎮 Aus der Gaming-Wunschliste</div>';
-          html += spieleListe.map(s => `<div class="termin-card">${escapeHtml(s.titel)}${s.person ? ' – ' + escapeHtml(personLabel(s.person)) : ''}</div>`).join('');
+          html += spieleListe.map(s => `<div class="termin-card">${escapeHtml(s.titel)}${s.person ? ' – ' + escapeHtml(personLabel(s.person)) : ''}${s.geschaetzteDauer ? ' · ca. ' + escapeHtml(s.geschaetzteDauer) + ' Std.' : ''}</div>`).join('');
           html += '<p style="font-size:0.7rem;opacity:0.6">Bearbeiten im Gaming-Modul.</p>';
         }
       } catch(e) {}
