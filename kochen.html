@@ -106,6 +106,7 @@
   .rezept-titel { font-size: 0.88rem; font-weight: 700; line-height: 1.25; padding-right: 18px; }
   .rezept-meta { font-size: 0.68rem; color: var(--bark); display: flex; gap: 8px; }
   .rezept-tags { font-size: 0.65rem; color: var(--sage); margin-top: 2px; }
+  .rezept-zutat-treffer { font-size: 0.65rem; color: var(--moss); margin-top: 4px; font-weight: 600; }
 
   .leer-hinweis { text-align: center; color: var(--bark); font-size: 0.85rem; padding: 46px 16px; opacity: 0.75; }
   .leer-hinweis .em { font-size: 2.2rem; display: block; margin-bottom: 8px; }
@@ -221,7 +222,7 @@
   </div>
   <div class="suchzeile-sort-reihe" id="suchzeileBox" style="display:flex; align-items:center; gap:6px;">
     <div class="suchzeile" style="flex:1; margin-bottom:0;">
-      <input type="text" id="fSuche" placeholder="Rezept suchen ...">
+      <input type="text" id="fSuche" placeholder="Rezept oder Zutat suchen ...">
     </div>
     <button class="filter-chip" id="btnSortRichtung" style="flex:0 0 auto;">🔤 A–Z</button>
   </div>
@@ -500,7 +501,11 @@
       if (aktiverFilter !== 'alle' && r.kategorie !== aktiverFilter) return false;
       if (aktiverTagFilter !== 'alle' && !(r.tags || []).includes(aktiverTagFilter)) return false;
       if (nurFavoriten && !r.favorit) return false;
-      if (suchtext && !r.titel.toLowerCase().includes(suchtext)) return false;
+      if (suchtext) {
+        const titelTreffer = r.titel.toLowerCase().includes(suchtext);
+        const zutatTreffer = (r.zutaten || []).some(z => (z.name || '').toLowerCase().includes(suchtext));
+        if (!titelTreffer && !zutatTreffer) return false;
+      }
       return true;
     });
     gefiltert.sort((a, b) => sortRichtung === 'za' ? b.titel.localeCompare(a.titel) : a.titel.localeCompare(b.titel));
@@ -525,12 +530,18 @@
     const tagsHtml = (r.tags && r.tags.length)
       ? '<div class="rezept-tags">' + r.tags.slice(0,3).map(t => '#' + escapeHtml(t)).join(' ') + '</div>'
       : '';
+    let zutatTrefferHtml = '';
+    if (suchtext && !r.titel.toLowerCase().includes(suchtext)) {
+      const treffer = (r.zutaten || []).find(z => (z.name || '').toLowerCase().includes(suchtext));
+      if (treffer) zutatTrefferHtml = '<div class="rezept-zutat-treffer">🥕 enthält: ' + escapeHtml(treffer.name) + '</div>';
+    }
     karte.innerHTML =
       '<button class="herz' + (r.favorit ? ' aktiv' : '') + '" data-id="' + r.id + '">' + (r.favorit ? '♥' : '♡') + '</button>' +
       (r.foto ? '<img class="rezept-foto-thumb" src="' + r.foto + '" alt="">' : '<div class="rezept-kat-icon">' + kat.icon + '</div>') +
       '<div class="rezept-titel">' + escapeHtml(r.titel) + '</div>' +
       '<div class="rezept-meta"><span>⏱ ' + r.zeit + ' Min.</span><span>🍽 ' + r.portionenBasis + '</span></div>' +
       sterneAnzeige(r.bewertung) +
+      zutatTrefferHtml +
       tagsHtml;
     karte.querySelector('.herz').addEventListener('click', (e) => {
       e.stopPropagation();
