@@ -5497,9 +5497,14 @@ function selectPlantType(sym,name,el){
   addRecentPlant(sym,name);
   const search=document.getElementById('plantSearch');
   buildPlantGrid(search?search.value:'');
-  setMode('plant');
   switchTab('beds');
-  showTempStatus(`🌱 ${name} ausgewählt – jetzt auf ein Beet tippen zum Pflanzen`, 4);
+  if (isPerennial(name)) {
+    setMode('freitree');
+    showTempStatus(`🌳 ${name} ausgewählt – jetzt frei im Garten platzieren (oder oben auf "🌱 Pflanzenmodus" tippen, um stattdessen in ein Beet zu setzen)`, 5);
+  } else {
+    setMode('plant');
+    showTempStatus(`🌱 ${name} ausgewählt – jetzt auf ein Beet tippen zum Pflanzen`, 4);
+  }
 }
 
 // ==================== SYMPTOM & PEST DROPDOWNS ====================
