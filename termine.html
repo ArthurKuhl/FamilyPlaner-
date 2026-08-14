@@ -9,7 +9,7 @@
   :root {
     --soil: #3a2e1f; --moss: #4f6f45; --sage: #7fa476; --leaf: #bcd196;
     --cream: #faf6ec; --parchment: #ece0c7; --bark: #7d6339;
-    --terracotta: #c46b41; --sky: #5b8bb5; --white: #fffdf8;
+    --terracotta: #c46b41; --terracotta-text: #a8532e; --sky: #5b8bb5; --gold: #c99a3a; --white: #fffdf8; --navbg: #2a2016;
     --shadow-soft: 0 2px 10px rgba(59,47,30,0.08); --shadow-md: 0 6px 20px rgba(59,47,30,0.14);
     --radius-sm: 8px; --radius-md: 12px; --radius-lg: 18px; --radius-pill: 22px;
   }
@@ -32,7 +32,7 @@
   :focus-visible { outline: 2px solid var(--terracotta); outline-offset: 2px; border-radius: 4px; }
   .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
 
-  header.top { background: #2a2016; color: var(--leaf); padding: 14px 16px 12px; }
+  header.top { background: var(--navbg); color: var(--leaf); padding: 14px 16px 12px; }
   .top-titel-zeile { display: flex; align-items: center; justify-content: space-between; }
   header.top h1 { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 600; }
   .ics-btn { background: none; border: 1px solid #4a3a28; color: var(--sage); border-radius: var(--radius-pill); font-size: 0.72rem; font-weight: 600; padding: 5px 12px; cursor: pointer; }
@@ -120,9 +120,9 @@
   .chip-select .opt.active { color: var(--white); border-color: transparent; }
   .check-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
   .check-row input { width: auto; }
-  .btn-primary { background: var(--moss); color: var(--white); border: none; border-radius: var(--radius-sm); padding: 10px; font-size: 0.85rem; font-weight: 600; cursor: pointer; width: 100%; font-family: 'Inter', sans-serif; }
-  .btn-secondary { background: transparent; color: var(--moss); border: 1px solid var(--moss); border-radius: var(--radius-sm); padding: 8px; font-size: 0.8rem; font-weight: 500; cursor: pointer; width: 100%; margin-top: 8px; font-family: 'Inter', sans-serif; }
-  .btn-delete { background: transparent; color: var(--terracotta); border: 1px solid var(--terracotta); border-radius: var(--radius-sm); padding: 8px; font-size: 0.8rem; font-weight: 500; cursor: pointer; width: 100%; margin-top: 8px; font-family: 'Inter', sans-serif; }
+  .btn-primary { background: var(--moss); color: var(--white); border: none; border-radius: var(--radius-pill); padding: 10px; font-size: 0.85rem; font-weight: 700; cursor: pointer; width: 100%; font-family: 'Inter', sans-serif; }
+  .btn-secondary { background: transparent; color: var(--moss); border: 1px solid var(--moss); border-radius: var(--radius-pill); padding: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer; width: 100%; margin-top: 8px; font-family: 'Inter', sans-serif; }
+  .btn-delete { background: transparent; color: var(--terracotta); border: 1px solid var(--terracotta); border-radius: var(--radius-pill); padding: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer; width: 100%; margin-top: 8px; font-family: 'Inter', sans-serif; }
   .modal-actions { display: flex; gap: 8px; margin-top: 4px; }
 
   /* Sehr breite Bildschirme: Content etwas breiter + dezente Deko-Streifen im Rand */
