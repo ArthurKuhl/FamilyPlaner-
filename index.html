@@ -132,6 +132,7 @@
     <nav class="modul-nav" id="modulNav" aria-label="Bereiche">
       <!-- Buttons werden per JS erzeugt -->
       <button class="backup-btn" id="btnBackup" title="Sichern & Wiederherstellen">💾</button>
+      <button class="backup-btn" id="btnPersonen" title="Personen verwalten">👪</button>
       <span class="version-badge" id="versionBadge" title="App-Version"></span>
       <span class="sync-status" id="syncStatus" title="Sync-Status">⏳</span>
     </nav>
@@ -185,6 +186,21 @@
         <div style="font-size:0.7rem;color:var(--bark);margin-bottom:4px;">Euer Familien-Code (für weitere Geräte)</div>
         <div style="font-size:1.15rem;font-weight:700;letter-spacing:0.12em;color:var(--moss);" id="familienCodeAnzeige">------</div>
       </div>
+    </div>
+  </div>
+
+  <div class="modal-bg" id="modalPersonen">
+    <div class="modal">
+      <h2>👪 Personen verwalten</h2>
+      <p>Diese Liste gilt für Termine, Gesundheit &amp; Sport und Gaming. Änderungen gelten für alle Geräte eurer Familie (synchronisiert über euren Familien-Code).</p>
+      <div id="personenListe" style="margin-bottom:14px;"></div>
+      <div style="display:flex;gap:8px;margin-bottom:10px;">
+        <input type="text" id="personenNeuName" placeholder="Name der Person" style="flex:1;padding:10px;border-radius:10px;border:1px solid #ddd;font-family:'Inter',sans-serif;">
+        <input type="color" id="personenNeuFarbe" value="#4f6f45" style="width:44px;height:40px;border-radius:8px;border:1px solid #ddd;padding:2px;">
+      </div>
+      <button class="btn btn-primary" id="btnPersonHinzufuegen">+ Person hinzufügen</button>
+      <div class="status-text" id="personenStatus" style="margin-top:8px;"></div>
+      <button class="btn btn-secondary" id="btnPersonenSchliessen" style="margin-top:6px;">Schließen</button>
     </div>
   </div>
 
@@ -243,7 +259,135 @@
       document.getElementById('setupOverlay').style.display = 'none';
       codeAnzeigenAktualisieren();
       starteBereiche();
+      starteePersonenSync();
     }
+
+    // ============================================================
+    // PERSONENVERWALTUNG – synct 'planer_personenListe' wie ein eigenes,
+    // "virtuelles" Modul über sync.js, damit sie auf allen Geräten der
+    // Familie gleich ist. personen.js (in jedem iframe-Modul geladen) liest
+    // denselben localStorage-Schlüssel.
+    // ============================================================
+    const PERSONEN_KEY = 'planer_personenListe';
+    let personenSyncHandle = null;
+
+    const PERSONEN_STANDARD = [
+      { id: 'person1', label: 'Person 1', farbe: '#4f6f45' },
+      { id: 'person2', label: 'Person 2', farbe: '#5b8bb5' },
+    ];
+    const PERSONEN_LEGACY = [
+      { id: 'familie', label: 'Familie', farbe: '#4f6f45' },
+      { id: 'mama',    label: 'Mama',    farbe: '#c46b41' },
+      { id: 'papa',    label: 'Papa',    farbe: '#5b8bb5' },
+      { id: 'lev',     label: 'Lev',     farbe: '#c99a3a' },
+      { id: 'malia',   label: 'Malia',   farbe: '#8a5c7a' },
+    ];
+    function holePersonen() {
+      try {
+        const raw = localStorage.getItem(PERSONEN_KEY);
+        if (raw) {
+          const liste = JSON.parse(raw);
+          if (Array.isArray(liste) && liste.length) return liste;
+        }
+      } catch (e) {}
+      // Noch nichts vorhanden (z.B. Modal wurde geöffnet, bevor ein Modul-iframe
+      // personen.js geladen hat) -> selbst einmalig befüllen, dieselbe Heuristik
+      // wie in personen.js: bestehende Installation erkennt man an schon
+      // vorhandenen App-Daten.
+      const bekannteSchluessel = ['termine_liste', 'kochen_rezepte', 'gartenplaner_v3', 'einkauf_liste'];
+      const bestehend = bekannteSchluessel.some(k => {
+        try { const r = localStorage.getItem(k); return r && r !== '[]' && r !== '{}' && r !== 'null'; } catch (e) { return false; }
+      });
+      const start = bestehend ? PERSONEN_LEGACY : PERSONEN_STANDARD;
+      try { localStorage.setItem(PERSONEN_KEY, JSON.stringify(start)); } catch (e) {}
+      return start;
+    }
+    function speicherePersonen(liste) {
+      try { localStorage.setItem(PERSONEN_KEY, JSON.stringify(liste)); } catch (e) {}
+      if (personenSyncHandle) personenSyncHandle.melde();
+      renderPersonenListe();
+    }
+    function starteePersonenSync() {
+      if (typeof PlanerSync === 'undefined' || !familienId()) return;
+      personenSyncHandle = PlanerSync.starteSync({
+        modul: 'personen',
+        keys: [PERSONEN_KEY],
+        onRemoteChange: () => renderPersonenListe(),
+      });
+    }
+    function slugifiziere(name) {
+      const basis = name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '') || 'person';
+      let id = basis, i = 2;
+      const bestehende = holePersonen().map(p => p.id);
+      while (bestehende.includes(id)) { id = basis + i; i++; }
+      return id;
+    }
+    function renderPersonenListe() {
+      const box = document.getElementById('personenListe');
+      if (!box) return;
+      const liste = holePersonen();
+      if (!liste.length) {
+        box.innerHTML = '<div style="font-size:0.8rem;color:var(--bark);opacity:0.7;">Noch keine Personen angelegt.</div>';
+        return;
+      }
+      box.innerHTML = liste.map((p, i) => `
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f0ead9;">
+          <span style="width:16px;height:16px;border-radius:50%;background:${p.farbe || '#4f6f45'};flex-shrink:0;display:inline-block;"></span>
+          <input type="text" value="${p.label.replace(/"/g, '&quot;')}" data-i="${i}" class="personen-label-input" style="flex:1;padding:7px;border-radius:8px;border:1px solid #ddd;font-family:'Inter',sans-serif;font-size:0.85rem;">
+          <input type="color" value="${p.farbe || '#4f6f45'}" data-i="${i}" class="personen-farbe-input" style="width:36px;height:34px;border-radius:6px;border:1px solid #ddd;padding:2px;">
+          <button data-i="${i}" class="personen-loeschen-btn" style="background:none;border:none;color:#a03e3e;font-size:1.1rem;cursor:pointer;padding:4px 6px;" title="Löschen">✕</button>
+        </div>`).join('');
+      box.querySelectorAll('.personen-label-input').forEach(inp => {
+        inp.addEventListener('change', () => {
+          const liste2 = holePersonen();
+          const i = parseInt(inp.dataset.i, 10);
+          if (liste2[i] && inp.value.trim()) liste2[i].label = inp.value.trim();
+          speicherePersonen(liste2);
+        });
+      });
+      box.querySelectorAll('.personen-farbe-input').forEach(inp => {
+        inp.addEventListener('change', () => {
+          const liste2 = holePersonen();
+          const i = parseInt(inp.dataset.i, 10);
+          if (liste2[i]) liste2[i].farbe = inp.value;
+          speicherePersonen(liste2);
+        });
+      });
+      box.querySelectorAll('.personen-loeschen-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const liste2 = holePersonen();
+          const i = parseInt(btn.dataset.i, 10);
+          if (liste2.length <= 1) {
+            document.getElementById('personenStatus').textContent = 'Mindestens eine Person muss übrig bleiben.';
+            return;
+          }
+          if (!confirm(`"${liste2[i].label}" wirklich löschen? Bestehende Zuordnungen (z.B. Termine) bleiben mit der alten ID erhalten, zeigen aber keinen Namen mehr an.`)) return;
+          liste2.splice(i, 1);
+          speicherePersonen(liste2);
+        });
+      });
+    }
+    document.getElementById('btnPersonen').addEventListener('click', () => {
+      document.getElementById('personenStatus').textContent = '';
+      renderPersonenListe();
+      document.getElementById('modalPersonen').classList.add('zeigen');
+    });
+    document.getElementById('btnPersonenSchliessen').addEventListener('click', () => {
+      document.getElementById('modalPersonen').classList.remove('zeigen');
+    });
+    document.getElementById('btnPersonHinzufuegen').addEventListener('click', () => {
+      const nameFeld = document.getElementById('personenNeuName');
+      const farbeFeld = document.getElementById('personenNeuFarbe');
+      const name = nameFeld.value.trim();
+      const status = document.getElementById('personenStatus');
+      if (!name) { status.textContent = 'Bitte einen Namen eingeben.'; return; }
+      const liste = holePersonen();
+      liste.push({ id: slugifiziere(name), label: name, farbe: farbeFeld.value });
+      speicherePersonen(liste);
+      nameFeld.value = '';
+      status.textContent = '';
+    });
 
     if (!familienId()) {
       document.getElementById('setupOverlay').style.display = 'flex';
