@@ -275,6 +275,7 @@
     <button id="btnViewBalance" role="tab" aria-selected="false">🤸 Balance</button>
     <button id="btnViewZyklus" role="tab" aria-selected="false">🌙 Zyklus</button>
     <button id="btnViewTrainingsplan" role="tab" aria-selected="false">🗓️ Trainingsplan</button>
+    <button id="btnViewKoerperlexikon" role="tab" aria-selected="false">🦴 Körperlexikon</button>
   </div>
 </header>
   <div class="theme-popup" id="themePopup">
@@ -488,6 +489,23 @@
     </div>
     <div id="planAuswahlLeiste" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;"></div>
     <div id="trainingsplanTage"></div>
+  </section>
+
+  <section id="ansichtKoerperlexikon" style="display:none;">
+    <div class="disclaimer-box" style="margin-bottom:14px;">
+      ℹ️ Vereinfachte Übersichtsgrafik zum Lernen – keine exakte medizinische Darstellung. Positionen sind schematisch, nicht anatomisch präzise. Bei echten Fragen zu Beschwerden bitte ärztlich abklären lassen.
+    </div>
+    <div class="view-toggle" role="tablist" style="margin-bottom:14px;">
+      <button id="btnLexMuskeln" role="tab" aria-selected="true">💪 Muskeln</button>
+      <button id="btnLexKnochen" role="tab" aria-selected="false">🦴 Knochen</button>
+      <button id="btnLexOrgane" role="tab" aria-selected="false">🫁 Organe</button>
+    </div>
+    <div class="karte" style="text-align:center;">
+      <div id="lexDiagrammBox"></div>
+    </div>
+    <div class="karte" style="margin-top:12px;">
+      <div id="lexLegendeBox"></div>
+    </div>
   </section>
 </main>
 
@@ -1520,7 +1538,8 @@
   const btnBalance = document.getElementById('btnViewBalance');
   const btnZyklus = document.getElementById('btnViewZyklus');
   const btnTrainingsplan = document.getElementById('btnViewTrainingsplan');
-  const alleTabs = { heute: btnHeute, verlauf: btnVerlauf, rechner: btnRechner, kraft: btnKraft, dehnen: btnDehnen, balance: btnBalance, zyklus: btnZyklus, trainingsplan: btnTrainingsplan };
+  const btnKoerperlexikon = document.getElementById('btnViewKoerperlexikon');
+  const alleTabs = { heute: btnHeute, verlauf: btnVerlauf, rechner: btnRechner, kraft: btnKraft, dehnen: btnDehnen, balance: btnBalance, zyklus: btnZyklus, trainingsplan: btnTrainingsplan, koerperlexikon: btnKoerperlexikon };
   function zeigeAnsicht(name) {
     aktiveAnsicht = name;
     document.getElementById('ansichtHeute').style.display = name === 'heute' ? '' : 'none';
@@ -1531,6 +1550,7 @@
     document.getElementById('ansichtBalance').style.display = name === 'balance' ? '' : 'none';
     document.getElementById('ansichtZyklus').style.display = name === 'zyklus' ? '' : 'none';
     document.getElementById('ansichtTrainingsplan').style.display = name === 'trainingsplan' ? '' : 'none';
+    document.getElementById('ansichtKoerperlexikon').style.display = name === 'koerperlexikon' ? '' : 'none';
     Object.keys(alleTabs).forEach((k) => {
       alleTabs[k].classList.toggle('active', k === name);
       alleTabs[k].setAttribute('aria-selected', k === name);
@@ -1541,6 +1561,7 @@
     if (name === 'balance') renderBalanceGrid();
     if (name === 'zyklus') renderZyklus();
     if (name === 'trainingsplan') renderTrainingsplan();
+    if (name === 'koerperlexikon') renderKoerperlexikon('muskeln');
   }
   btnHeute.addEventListener('click', () => zeigeAnsicht('heute'));
   btnVerlauf.addEventListener('click', () => zeigeAnsicht('verlauf'));
@@ -1550,6 +1571,122 @@
   btnBalance.addEventListener('click', () => zeigeAnsicht('balance'));
   btnZyklus.addEventListener('click', () => zeigeAnsicht('zyklus'));
   btnTrainingsplan.addEventListener('click', () => zeigeAnsicht('trainingsplan'));
+  btnKoerperlexikon.addEventListener('click', () => zeigeAnsicht('koerperlexikon'));
+
+  // ============================================================
+  // KÖRPERLEXIKON – vereinfachte Original-Illustration (kein Foto/Scan),
+  // Körperumriss aus einfachen Formen + nummerierte Marker + Legende.
+  // ============================================================
+  const KOERPER_DATEN = {
+    muskeln: [
+      { nr: 1,  x: 100, y: 52,  de: 'Kapuzenmuskel', la: 'Trapezius' },
+      { nr: 2,  x: 72,  y: 62,  de: 'Deltamuskel (Schulter)', la: 'Deltoideus' },
+      { nr: 2,  x: 128, y: 62,  de: 'Deltamuskel (Schulter)', la: 'Deltoideus' },
+      { nr: 3,  x: 100, y: 90,  de: 'Großer Brustmuskel', la: 'Pectoralis major' },
+      { nr: 4,  x: 48,  y: 108, de: 'Bizeps', la: 'Biceps brachii' },
+      { nr: 4,  x: 152, y: 108, de: 'Bizeps', la: 'Biceps brachii' },
+      { nr: 5,  x: 38,  y: 152, de: 'Speichenmuskel (Unterarm)', la: 'Brachioradialis' },
+      { nr: 6,  x: 100, y: 118, de: 'Gerader Bauchmuskel ("Sixpack")', la: 'Rectus abdominis' },
+      { nr: 7,  x: 78,  y: 132, de: 'Äußerer schräger Bauchmuskel', la: 'Obliquus externus abdominis' },
+      { nr: 8,  x: 90,  y: 235, de: 'Schneidermuskel', la: 'Sartorius' },
+      { nr: 9,  x: 100, y: 225, de: 'Vierköpfiger Oberschenkelmuskel', la: 'Quadriceps femoris' },
+      { nr: 10, x: 80,  y: 335, de: 'Schienbeinmuskel (vorne)', la: 'Tibialis anterior' },
+      { nr: 11, x: 122, y: 335, de: 'Wadenmuskel', la: 'Gastrocnemius' },
+    ],
+    knochen: [
+      { nr: 1,  x: 100, y: 24,  de: 'Schädel', la: 'Cranium' },
+      { nr: 2,  x: 100, y: 42,  de: 'Unterkiefer', la: 'Mandibula' },
+      { nr: 3,  x: 78,  y: 58,  de: 'Schlüsselbein', la: 'Clavicula' },
+      { nr: 4,  x: 100, y: 88,  de: 'Brustbein', la: 'Sternum' },
+      { nr: 5,  x: 122, y: 95,  de: 'Rippen', la: 'Costae' },
+      { nr: 6,  x: 100, y: 118, de: 'Wirbelsäule', la: 'Columna vertebralis' },
+      { nr: 7,  x: 45,  y: 100, de: 'Oberarmknochen', la: 'Humerus' },
+      { nr: 8,  x: 33,  y: 148, de: 'Speiche', la: 'Radius' },
+      { nr: 9,  x: 40,  y: 158, de: 'Elle', la: 'Ulna' },
+      { nr: 10, x: 100, y: 176, de: 'Becken', la: 'Os coxae (Pelvis)' },
+      { nr: 11, x: 88,  y: 230, de: 'Oberschenkelknochen', la: 'Femur' },
+      { nr: 12, x: 84,  y: 272, de: 'Kniescheibe', la: 'Patella' },
+      { nr: 13, x: 80,  y: 330, de: 'Schienbein', la: 'Tibia' },
+      { nr: 14, x: 96,  y: 335, de: 'Wadenbein', la: 'Fibula' },
+      { nr: 15, x: 78,  y: 378, de: 'Fußwurzelknochen', la: 'Ossa tarsi' },
+    ],
+    organe: [
+      { nr: 1,  x: 100, y: 26,  de: 'Gehirn', la: 'Cerebrum' },
+      { nr: 2,  x: 100, y: 54,  de: 'Schilddrüse', la: 'Glandula thyroidea' },
+      { nr: 3,  x: 78,  y: 88,  de: 'Lunge (paarig)', la: 'Pulmo' },
+      { nr: 4,  x: 106, y: 96,  de: 'Herz', la: 'Cor' },
+      { nr: 5,  x: 82,  y: 118, de: 'Leber', la: 'Hepar' },
+      { nr: 6,  x: 120, y: 118, de: 'Magen', la: 'Gaster (Ventriculus)' },
+      { nr: 7,  x: 130, y: 108, de: 'Milz', la: 'Splen (Lien)' },
+      { nr: 8,  x: 100, y: 130, de: 'Bauchspeicheldrüse', la: 'Pancreas' },
+      { nr: 9,  x: 96,  y: 150, de: 'Dünndarm', la: 'Intestinum tenue' },
+      { nr: 10, x: 74,  y: 155, de: 'Dickdarm', la: 'Intestinum crassum' },
+      { nr: 11, x: 70,  y: 128, de: 'Niere (paarig)', la: 'Ren' },
+      { nr: 12, x: 100, y: 178, de: 'Harnblase', la: 'Vesica urinaria' },
+    ],
+  };
+  let lexAktuellerBereich = 'muskeln';
+
+  function koerperUmrissSvg(marker) {
+    const punkte = marker.map(m =>
+      `<g>
+        <circle cx="${m.x}" cy="${m.y}" r="8" fill="var(--moss)" stroke="var(--white)" stroke-width="1.5"></circle>
+        <text x="${m.x}" y="${m.y + 3.5}" text-anchor="middle" font-size="8.5" font-weight="700" fill="var(--white)" font-family="Inter, sans-serif">${m.nr}</text>
+      </g>`).join('');
+    return `
+      <svg viewBox="0 0 200 400" style="width:100%;max-width:230px;height:auto;">
+        <g fill="var(--parchment)" stroke="var(--bark)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round">
+          <circle cx="100" cy="28" r="20"></circle>
+          <path d="M75,54 Q100,48 125,54 L120,172 Q100,182 80,172 Z"></path>
+          <line x1="75" y1="63" x2="45" y2="105" stroke-width="15"></line>
+          <line x1="45" y1="105" x2="35" y2="160" stroke-width="13"></line>
+          <line x1="125" y1="63" x2="155" y2="105" stroke-width="15"></line>
+          <line x1="155" y1="105" x2="165" y2="160" stroke-width="13"></line>
+          <circle cx="35" cy="164" r="6"></circle>
+          <circle cx="165" cy="164" r="6"></circle>
+          <line x1="90" y1="176" x2="85" y2="270" stroke-width="19"></line>
+          <line x1="85" y1="270" x2="80" y2="372" stroke-width="15"></line>
+          <line x1="110" y1="176" x2="115" y2="270" stroke-width="19"></line>
+          <line x1="115" y1="270" x2="120" y2="372" stroke-width="15"></line>
+          <ellipse cx="79" cy="382" rx="10" ry="6"></ellipse>
+          <ellipse cx="121" cy="382" rx="10" ry="6"></ellipse>
+        </g>
+        ${punkte}
+      </svg>`;
+  }
+
+  function renderKoerperlexikon(bereich) {
+    lexAktuellerBereich = bereich;
+    ['btnLexMuskeln', 'btnLexKnochen', 'btnLexOrgane'].forEach(id => {
+      const el = document.getElementById(id);
+      const zugehoerig = { btnLexMuskeln: 'muskeln', btnLexKnochen: 'knochen', btnLexOrgane: 'organe' }[id];
+      el.classList.toggle('active', zugehoerig === bereich);
+      el.setAttribute('aria-selected', zugehoerig === bereich);
+    });
+    const marker = KOERPER_DATEN[bereich];
+    document.getElementById('lexDiagrammBox').innerHTML = koerperUmrissSvg(marker);
+    // Bei doppelt vergebenen Nummern (paarige Muskeln/Knochen/Organe) nur einmal in der Legende zeigen
+    const gesehen = new Set();
+    const legendeItems = marker.filter(m => {
+      if (gesehen.has(m.nr)) return false;
+      gesehen.add(m.nr);
+      return true;
+    });
+    document.getElementById('lexLegendeBox').innerHTML =
+      '<div style="display:grid;gap:8px;">' +
+      legendeItems.map(m => `
+        <div style="display:flex;align-items:baseline;gap:10px;padding-bottom:8px;border-bottom:1px solid var(--parchment);">
+          <span style="flex-shrink:0;width:22px;height:22px;border-radius:50%;background:var(--moss);color:var(--white);font-size:0.72rem;font-weight:700;display:flex;align-items:center;justify-content:center;">${m.nr}</span>
+          <span style="flex:1;">
+            <span style="font-weight:700;color:var(--soil);">${m.de}</span>
+            <span style="color:var(--bark);font-style:italic;opacity:0.8;"> – ${m.la}</span>
+          </span>
+        </div>`).join('') +
+      '</div>';
+  }
+  document.getElementById('btnLexMuskeln').addEventListener('click', () => renderKoerperlexikon('muskeln'));
+  document.getElementById('btnLexKnochen').addEventListener('click', () => renderKoerperlexikon('knochen'));
+  document.getElementById('btnLexOrgane').addEventListener('click', () => renderKoerperlexikon('organe'));
 
   // ============================================================
   // NÄHRSTOFF-RECHNER
