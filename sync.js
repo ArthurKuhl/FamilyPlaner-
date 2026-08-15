@@ -68,6 +68,7 @@ window.PlanerSync = (function () {
 
   const STATUS_KEY = 'planer_syncStatus';
   const GERAET_ID_KEY = 'planer_geraeteId';
+  const FAMILIEN_ID_KEY = 'planer_familienId';
 
   let app = null, auth = null, db = null, authReady = null;
   let verfuegbar = typeof firebase !== 'undefined';
@@ -81,6 +82,23 @@ window.PlanerSync = (function () {
     return id;
   }
   const geraeteId = holeGeraeteId();
+
+  // Familien-Code (z.B. "K3M9QT") – trennt die Cloud-Daten verschiedener Familien/Haushalte
+  // voneinander. Wird von der Shell (index.html) beim ersten Start abgefragt/erzeugt, BEVOR
+  // irgendein Modul geladen wird. Fehlt er (z.B. bei direktem Öffnen eines Moduls ohne Shell),
+  // wird bewusst NICHT synchronisiert, statt versehentlich in einen ungetrennten globalen
+  // Bereich zu schreiben.
+  function holeFamilienId() {
+    try { return (localStorage.getItem(FAMILIEN_ID_KEY) || '').trim() || null; } catch (e) { return null; }
+  }
+
+  // Baut die Firestore-Dokument-Referenz für ein Modul, geschachtelt unter dem Familien-Code.
+  // Gibt null zurück, wenn (noch) kein Familien-Code vorhanden ist.
+  function docRefFuer(modul) {
+    const familienId = holeFamilienId();
+    if (!familienId) return null;
+    return db.collection('planerFamilien').doc(familienId).collection('daten').doc(modul);
+  }
 
   function setzeStatus(s) {
     try { localStorage.setItem(STATUS_KEY, s); } catch (e) {}
@@ -147,6 +165,7 @@ window.PlanerSync = (function () {
 
   function starteSync({ modul, keys, onRemoteChange, transform, vorAnwendungTransform }) {
     if (!verfuegbar) return { melde: function () {} };
+    if (!holeFamilienId()) { setzeStatus('nicht_verfuegbar'); return { melde: function () {} }; }
     initFirebase();
     if (!verfuegbar) return { melde: function () {} };
 
@@ -154,7 +173,7 @@ window.PlanerSync = (function () {
     let pushTimer = null;
     let abbestellen = null;
 
-    function docRef() { return db.collection('planerDaten').doc(modul); }
+    function docRef() { return docRefFuer(modul); }
 
     function localSnapshot() {
       const out = {};
@@ -243,6 +262,7 @@ window.PlanerSync = (function () {
 
   function pushWerte(modul, keys, transform) {
     if (!verfuegbar) return Promise.resolve();
+    if (!holeFamilienId()) return Promise.resolve();
     initFirebase();
     if (!verfuegbar) return Promise.resolve();
     return (authReady || Promise.resolve()).then(() => {
@@ -255,7 +275,9 @@ window.PlanerSync = (function () {
         } catch (e) { /* Schlüssel bei Parse-Fehler überspringen statt null zu senden */ }
       });
       if (transform) { try { werte = transform(werte); } catch (e) { console.warn('PlanerSync transform Fehler', e); } }
-      return db.collection('planerDaten').doc(modul).set({
+      const ref = docRefFuer(modul);
+      if (!ref) return;
+      return ref.set({
         werte: werte,
         _aktualisiertVon: geraeteId,
         _aktualisiertAm: firebase.firestore.FieldValue.serverTimestamp(),
@@ -273,5 +295,7 @@ window.PlanerSync = (function () {
     pushWerte: pushWerte,
     status: function () { try { return localStorage.getItem(STATUS_KEY) || 'unbekannt'; } catch (e) { return 'unbekannt'; } },
     geraeteId: geraeteId,
+    familienId: holeFamilienId,
+    setzeFamilienId: function (id) { try { localStorage.setItem(FAMILIEN_ID_KEY, String(id).trim().toUpperCase()); } catch (e) {} },
   };
 })();

@@ -97,6 +97,34 @@
     z-index: 50; pointer-events: none;
   }
   .offline-hinweis.zeigen { transform: translateX(-50%) translateY(0); }
+
+  /* Familien-Setup: blockierendes Overlay beim allerersten Start (kein Familien-Code vorhanden) */
+  .setup-overlay {
+    position: fixed; inset: 0; background: var(--cream); z-index: 500;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  .setup-box { width: 100%; max-width: 420px; text-align: center; }
+  .setup-box h1 { font-size: 1.3rem; color: var(--moss); margin-bottom: 8px; }
+  .setup-box p { font-size: 0.85rem; color: var(--bark); line-height: 1.5; margin-bottom: 18px; }
+  .setup-box .btn {
+    display: block; width: 100%; padding: 13px; border-radius: 22px; border: none; font-weight: 700;
+    font-size: 0.9rem; cursor: pointer; margin-bottom: 10px; text-align: center;
+  }
+  .setup-box .btn-primary { background: var(--moss); color: var(--leaf); }
+  .setup-box .btn-secondary { background: #fff; color: var(--bark); border: 1px solid #ddd; }
+  .setup-box input {
+    width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #ddd; font-size: 1.1rem;
+    text-align: center; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 10px;
+    font-family: 'Inter', sans-serif; font-weight: 700; color: var(--soil);
+  }
+  .setup-code-anzeige {
+    font-size: 2rem; font-weight: 700; letter-spacing: 0.15em; color: var(--moss);
+    background: #fff; border-radius: 14px; padding: 16px; margin-bottom: 14px;
+    border: 2px dashed var(--sage);
+  }
+  .setup-schritt { display: none; }
+  .setup-schritt.zeigen { display: block; }
+  .setup-zurueck { background: none; border: none; color: var(--bark); font-size: 0.78rem; cursor: pointer; margin-top: 6px; text-decoration: underline; }
 </style>
 </head>
 <body>
@@ -113,6 +141,31 @@
   </div>
   <div class="offline-hinweis" id="offlineHinweis">Offline – letzte gespeicherte Version wird angezeigt</div>
 
+  <div class="setup-overlay" id="setupOverlay" style="display:none">
+    <div class="setup-box">
+      <div class="setup-schritt zeigen" id="setupSchrittStart">
+        <h1>👋 Willkommen</h1>
+        <p>Damit eure Familiendaten sauber von denen anderer Nutzer getrennt bleiben, braucht ihr einen gemeinsamen Familien-Code. Alle Geräte eurer Familie verwenden denselben Code.</p>
+        <button class="btn btn-primary" id="btnSetupNeu">🌱 Neue Familie erstellen</button>
+        <button class="btn btn-secondary" id="btnSetupBeitreten">🔑 Vorhandenem Code beitreten</button>
+      </div>
+      <div class="setup-schritt" id="setupSchrittNeu">
+        <h1>✅ Euer Familien-Code</h1>
+        <p>Notiert euch diesen Code – ihr gebt ihn auf jedem weiteren Gerät eurer Familie ein (z.B. beim Partner-Handy), damit alle dieselben Daten sehen.</p>
+        <div class="setup-code-anzeige" id="setupNeuCode">------</div>
+        <button class="btn btn-primary" id="btnSetupNeuWeiter">Los geht's</button>
+      </div>
+      <div class="setup-schritt" id="setupSchrittBeitreten">
+        <h1>🔑 Code eingeben</h1>
+        <p>Gib den Familien-Code ein, den ein anderes Gerät eurer Familie bereits angezeigt bekommen hat.</p>
+        <input type="text" id="setupCodeInput" placeholder="z.B. K3M9QT" maxlength="10">
+        <div class="status-text" id="setupBeitretenStatus" style="color:var(--terracotta);margin-bottom:10px;"></div>
+        <button class="btn btn-primary" id="btnSetupBeitretenBestaetigen">Beitreten</button>
+        <button class="setup-zurueck" id="btnSetupZurueck1">Zurück</button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-bg" id="modalBackup">
     <div class="modal">
       <h2>💾 Sichern &amp; Wiederherstellen</h2>
@@ -128,6 +181,10 @@
       <button class="btn btn-secondary" id="btnBackupSpaeter" style="display:none;">In 7 Tagen erneut erinnern</button>
       <button class="btn btn-secondary" id="btnBackupSchliessen" style="margin-top:6px;">Schließen</button>
       <div id="versionStatus" style="margin-top:12px;opacity:0.6;font-size:0.72rem;text-align:center;"></div>
+      <div style="margin-top:14px;padding-top:14px;border-top:1px solid #e5ddc8;text-align:center;">
+        <div style="font-size:0.7rem;color:var(--bark);margin-bottom:4px;">Euer Familien-Code (für weitere Geräte)</div>
+        <div style="font-size:1.15rem;font-weight:700;letter-spacing:0.12em;color:var(--moss);" id="familienCodeAnzeige">------</div>
+      </div>
     </div>
   </div>
 
@@ -153,6 +210,68 @@
     const nav = document.getElementById('modulNav');
     const frame = document.getElementById('modulFrame');
 
+    // ============================================================
+    // FAMILIEN-SETUP: läuft VOR allem anderen. Ohne Familien-Code wird kein
+    // Modul geladen und nicht synchronisiert (siehe sync.js), damit Daten
+    // unterschiedlicher Familien niemals versehentlich vermischt werden.
+    // ============================================================
+    const FAMILIEN_ID_KEY = 'planer_familienId';
+    const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // ohne O/0, I/1 – schwer verwechselbar
+
+    function familienId() {
+      try { return (localStorage.getItem(FAMILIEN_ID_KEY) || '').trim() || null; } catch (e) { return null; }
+    }
+    function setzeFamilienId(id) {
+      try { localStorage.setItem(FAMILIEN_ID_KEY, String(id).trim().toUpperCase()); } catch (e) {}
+    }
+    function erzeugeCode() {
+      let code = '';
+      for (let i = 0; i < 6; i++) code += CODE_ALPHABET[Math.floor(Math.random() * CODE_ALPHABET.length)];
+      return code;
+    }
+    function codeAnzeigenAktualisieren() {
+      const el = document.getElementById('familienCodeAnzeige');
+      if (el) el.textContent = familienId() || '------';
+    }
+
+    function setupSchrittZeigen(id) {
+      document.querySelectorAll('.setup-schritt').forEach(el => el.classList.remove('zeigen'));
+      document.getElementById(id).classList.add('zeigen');
+    }
+
+    function initApp() {
+      document.getElementById('setupOverlay').style.display = 'none';
+      codeAnzeigenAktualisieren();
+      starteBereiche();
+    }
+
+    if (!familienId()) {
+      document.getElementById('setupOverlay').style.display = 'flex';
+      document.getElementById('btnSetupNeu').addEventListener('click', () => {
+        const code = erzeugeCode();
+        setzeFamilienId(code);
+        document.getElementById('setupNeuCode').textContent = code;
+        setupSchrittZeigen('setupSchrittNeu');
+      });
+      document.getElementById('btnSetupBeitreten').addEventListener('click', () => {
+        setupSchrittZeigen('setupSchrittBeitreten');
+      });
+      document.getElementById('btnSetupZurueck1').addEventListener('click', () => {
+        setupSchrittZeigen('setupSchrittStart');
+      });
+      document.getElementById('btnSetupNeuWeiter').addEventListener('click', initApp);
+      document.getElementById('btnSetupBeitretenBestaetigen').addEventListener('click', () => {
+        const val = document.getElementById('setupCodeInput').value.trim();
+        const status = document.getElementById('setupBeitretenStatus');
+        if (val.length < 4) { status.textContent = 'Bitte den vollständigen Code eingeben.'; return; }
+        status.textContent = '';
+        setzeFamilienId(val);
+        initApp();
+      });
+    } else {
+      initApp();
+    }
+
     function bereichLaden(id, { schreiben = true } = {}) {
       const mod = MODULE.find(m => m.id === id) || MODULE[0];
       frame.src = mod.src;
@@ -165,21 +284,23 @@
       }
     }
 
-    MODULE.forEach(mod => {
-      const btn = document.createElement('button');
-      btn.className = 'modul-btn';
-      btn.dataset.id = mod.id;
-      btn.innerHTML = `<span class="em" aria-hidden="true">${mod.emoji}</span><span>${mod.label}</span>`;
-      btn.addEventListener('click', () => bereichLaden(mod.id));
-      nav.appendChild(btn);
-    });
+    function starteBereiche() {
+      MODULE.forEach(mod => {
+        const btn = document.createElement('button');
+        btn.className = 'modul-btn';
+        btn.dataset.id = mod.id;
+        btn.innerHTML = `<span class="em" aria-hidden="true">${mod.emoji}</span><span>${mod.label}</span>`;
+        btn.addEventListener('click', () => bereichLaden(mod.id));
+        nav.appendChild(btn);
+      });
 
-    let start = 'home';
-    try {
-      const gespeichert = localStorage.getItem(STORAGE_KEY);
-      if (gespeichert && MODULE.some(m => m.id === gespeichert)) start = gespeichert;
-    } catch (e) {}
-    bereichLaden(start, { schreiben: false });
+      let start = 'home';
+      try {
+        const gespeichert = localStorage.getItem(STORAGE_KEY);
+        if (gespeichert && MODULE.some(m => m.id === gespeichert)) start = gespeichert;
+      } catch (e) {}
+      bereichLaden(start, { schreiben: false });
+    }
 
     // Erlaubt Modulen (z.B. der Startseite), per Kachel-Klick zu einem anderen Bereich zu wechseln
     window.addEventListener('message', (e) => {
@@ -413,6 +534,7 @@
       backupErinnerungImModalAnzeigen();
       zeigeSpeicherNutzung();
       frageVersionAb();
+      codeAnzeigenAktualisieren();
       document.getElementById('fotoAufraeumListe').style.display = 'none';
       modalBackup.classList.add('zeigen');
     });
