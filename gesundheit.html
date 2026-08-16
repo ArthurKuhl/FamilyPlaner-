@@ -298,6 +298,7 @@
     <button id="btnViewTrainingsplan" role="tab" aria-selected="false">🗓️ Trainingsplan</button>
     <button id="btnViewKoerperlexikon" role="tab" aria-selected="false">🦴 Körperlexikon</button>
     <button id="btnViewInfos" role="tab" aria-selected="false">ℹ️ Infos</button>
+    <button id="btnViewErnaehrung" role="tab" aria-selected="false">🍽️ Ernährung</button>
   </div>
 </header>
   <div class="theme-popup" id="themePopup">
@@ -1120,7 +1121,97 @@
       </div>
     </details>
   </section>
+
+  <section id="ansichtErnaehrung" style="display:none;">
+    <div class="disclaimer-box" style="margin-bottom:14px;">
+      ℹ️ Manuelles Tracking – Werte pro Portion selbst eintragen (z.B. von der Verpackung). Kein Ersatz für ärztliche/ernährungsberaterische Einschätzung.
+    </div>
+    <div class="karte">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;">
+        <input type="date" id="ernaehrungDatum" style="padding:8px;border-radius:8px;border:1px solid var(--parchment);font-family:'Inter',sans-serif;">
+        <button class="btn-secondary" id="btnZielKalorienBearbeiten" style="width:auto;padding:8px 12px;font-size:0.75rem;">🎯 Zielkalorien</button>
+      </div>
+      <div class="ziel-balken-wrap"><div class="ziel-balken" id="kalorienZielBalken"></div></div>
+      <div style="display:flex;justify-content:space-between;margin-top:4px;">
+        <span class="ziel-text" id="kalorienZielText">0 kcal</span>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px;text-align:center;">
+        <div style="flex:1;background:var(--cream);border-radius:10px;padding:8px;">
+          <div style="font-size:0.65rem;color:var(--bark);">Protein</div>
+          <div style="font-weight:700;color:var(--soil);" id="summeProtein">0 g</div>
+        </div>
+        <div style="flex:1;background:var(--cream);border-radius:10px;padding:8px;">
+          <div style="font-size:0.65rem;color:var(--bark);">Kohlenhydrate</div>
+          <div style="font-weight:700;color:var(--soil);" id="summeKohlenhydrate">0 g</div>
+        </div>
+        <div style="flex:1;background:var(--cream);border-radius:10px;padding:8px;">
+          <div style="font-size:0.65rem;color:var(--bark);">Fett</div>
+          <div style="font-weight:700;color:var(--soil);" id="summeFett">0 g</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="ernaehrungListe"></div>
+    <div class="leer-hinweis" id="ernaehrungLeer" style="display:none;">Noch keine Einträge für diesen Tag.</div>
+
+    <button id="btnErnaehrungHinzufuegen" style="width:100%; background:var(--white); border:1px dashed var(--sage); color:var(--moss); border-radius:var(--radius-md); padding:12px; font-weight:700; cursor:pointer; margin-top:8px;">＋ Mahlzeit erfassen</button>
+  </section>
 </main>
+
+<div class="modal-bg" id="modalErnaehrung">
+  <div class="modal">
+    <h2>🍽️ Mahlzeit erfassen</h2>
+    <div class="feld">
+      <label for="fErnName">Was?</label>
+      <input type="text" id="fErnName" list="ernaehrungHistorieListe" placeholder="z.B. Haferflocken mit Milch">
+      <datalist id="ernaehrungHistorieListe"></datalist>
+    </div>
+    <div class="zeile">
+      <div class="feld">
+        <label for="fErnMenge">Menge</label>
+        <input type="number" id="fErnMenge" min="0" step="1" placeholder="z.B. 150">
+      </div>
+      <div class="feld">
+        <label for="fErnEinheit">Einheit</label>
+        <select id="fErnEinheit">
+          <option value="g">g</option>
+          <option value="ml">ml</option>
+          <option value="Stück">Stück</option>
+          <option value="Portion">Portion</option>
+        </select>
+      </div>
+    </div>
+    <div class="feld">
+      <label for="fErnZeit">Uhrzeit</label>
+      <input type="time" id="fErnZeit">
+    </div>
+    <div class="zeile">
+      <div class="feld">
+        <label for="fErnKalorien">Kalorien (kcal)</label>
+        <input type="number" id="fErnKalorien" min="0" step="1">
+      </div>
+      <div class="feld">
+        <label for="fErnProtein">Protein (g)</label>
+        <input type="number" id="fErnProtein" min="0" step="0.5">
+      </div>
+    </div>
+    <div class="zeile">
+      <div class="feld">
+        <label for="fErnKohlenhydrate">Kohlenhydrate (g)</label>
+        <input type="number" id="fErnKohlenhydrate" min="0" step="0.5">
+      </div>
+      <div class="feld">
+        <label for="fErnFett">Fett (g)</label>
+        <input type="number" id="fErnFett" min="0" step="0.5">
+      </div>
+    </div>
+    <div class="status-text" id="ernaehrungStatus"></div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnErnaehrungAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnErnaehrungSpeichern">Speichern</button>
+    </div>
+  </div>
+</div>
 
 
 <div class="modal-bg" id="modalPlanEintrag">
@@ -1166,6 +1257,10 @@
     <div class="feld">
       <label for="fZielSport">Sport-Wochenziel (Minuten)</label>
       <input type="number" id="fZielSport" min="0" step="10" value="150">
+    </div>
+    <div class="feld">
+      <label for="fZielKalorien">Kalorienziel pro Tag (kcal, optional)</label>
+      <input type="number" id="fZielKalorien" min="0" step="50" placeholder="z.B. 2000">
     </div>
     <div class="modal-btns">
       <button class="btn btn-secondary" id="btnZieleAbbrechen">Abbrechen</button>
@@ -1359,9 +1454,9 @@
   // ZIELE (Wasser-Tagesziel pro Person, Sport-Wochenziel pro Person)
   // ============================================================
   const KEY_ZIELE = 'gesundheit_ziele';
-  let ziele = laden(KEY_ZIELE, {}); // { [person]: { wasser: 8, sportMinuten: 150 } }
+  let ziele = laden(KEY_ZIELE, {}); // { [person]: { wasser: 8, sportMinuten: 150, kalorien: 0 } }
   function zielFuerPerson(person) {
-    return ziele[person] || { wasser: 8, sportMinuten: 150 };
+    return ziele[person] || { wasser: 8, sportMinuten: 150, kalorien: 0 };
   }
   function speichernZiele() { speichern(KEY_ZIELE, ziele); }
 
@@ -1380,6 +1475,7 @@
     const z = zielFuerPerson(aktivePerson);
     document.getElementById('fZielWasser').value = z.wasser;
     document.getElementById('fZielSport').value = z.sportMinuten;
+    document.getElementById('fZielKalorien').value = z.kalorien || '';
     document.getElementById('modalZiele').classList.add('zeigen');
   }
   document.getElementById('btnZieleAbbrechen').addEventListener('click', () => document.getElementById('modalZiele').classList.remove('zeigen'));
@@ -1388,11 +1484,13 @@
     ziele[aktivePerson] = {
       wasser: Math.max(1, parseInt(document.getElementById('fZielWasser').value, 10) || 8),
       sportMinuten: Math.max(0, parseInt(document.getElementById('fZielSport').value, 10) || 0),
+      kalorien: Math.max(0, parseInt(document.getElementById('fZielKalorien').value, 10) || 0),
     };
     speichernZiele();
     document.getElementById('modalZiele').classList.remove('zeigen');
     renderHeute();
     if (aktiveAnsicht === 'verlauf') renderStats();
+    if (aktiveAnsicht === 'ernaehrung') renderErnaehrung();
   });
 
   function renderHeute() {
@@ -2154,7 +2252,8 @@
   const btnTrainingsplan = document.getElementById('btnViewTrainingsplan');
   const btnKoerperlexikon = document.getElementById('btnViewKoerperlexikon');
   const btnInfos = document.getElementById('btnViewInfos');
-  const alleTabs = { heute: btnHeute, verlauf: btnVerlauf, rechner: btnRechner, kraft: btnKraft, dehnen: btnDehnen, balance: btnBalance, zyklus: btnZyklus, trainingsplan: btnTrainingsplan, koerperlexikon: btnKoerperlexikon, infos: btnInfos };
+  const btnErnaehrung = document.getElementById('btnViewErnaehrung');
+  const alleTabs = { heute: btnHeute, verlauf: btnVerlauf, rechner: btnRechner, kraft: btnKraft, dehnen: btnDehnen, balance: btnBalance, zyklus: btnZyklus, trainingsplan: btnTrainingsplan, koerperlexikon: btnKoerperlexikon, infos: btnInfos, ernaehrung: btnErnaehrung };
   function zeigeAnsicht(name) {
     aktiveAnsicht = name;
     document.getElementById('ansichtHeute').style.display = name === 'heute' ? '' : 'none';
@@ -2167,6 +2266,7 @@
     document.getElementById('ansichtTrainingsplan').style.display = name === 'trainingsplan' ? '' : 'none';
     document.getElementById('ansichtKoerperlexikon').style.display = name === 'koerperlexikon' ? '' : 'none';
     document.getElementById('ansichtInfos').style.display = name === 'infos' ? '' : 'none';
+    document.getElementById('ansichtErnaehrung').style.display = name === 'ernaehrung' ? '' : 'none';
     Object.keys(alleTabs).forEach((k) => {
       alleTabs[k].classList.toggle('active', k === name);
       alleTabs[k].setAttribute('aria-selected', k === name);
@@ -2178,6 +2278,7 @@
     if (name === 'zyklus') renderZyklus();
     if (name === 'trainingsplan') renderTrainingsplan();
     if (name === 'koerperlexikon') renderKoerperlexikon('muskeln');
+    if (name === 'ernaehrung') renderErnaehrung();
   }
   btnHeute.addEventListener('click', () => zeigeAnsicht('heute'));
   btnVerlauf.addEventListener('click', () => zeigeAnsicht('verlauf'));
@@ -2189,6 +2290,7 @@
   btnTrainingsplan.addEventListener('click', () => zeigeAnsicht('trainingsplan'));
   btnKoerperlexikon.addEventListener('click', () => zeigeAnsicht('koerperlexikon'));
   btnInfos.addEventListener('click', () => zeigeAnsicht('infos'));
+  btnErnaehrung.addEventListener('click', () => zeigeAnsicht('ernaehrung'));
 
   // ============================================================
   // KÖRPERLEXIKON – vereinfachte Original-Illustrationen (kein Foto/Scan),
@@ -2724,6 +2826,153 @@
     else phase = 'luteal';
     return { phase, tagImZyklus, tagEffektiv, zykluslaenge, ueberfaellig: tagImZyklus > zykluslaenge + 3 };
   }
+  // ============================================================
+  // ERNÄHRUNGSTRACKING – manuelle Mahlzeiten-Erfassung mit Kalorien/Makros,
+  // Tagessumme, Abgleich gegen (optionales) Kalorienziel pro Person.
+  // ============================================================
+  const KEY_ERNAEHRUNG = 'gesundheit_ernaehrung';
+  let ernaehrungEintraege = laden(KEY_ERNAEHRUNG, []); // [{id, person, datum, zeit, name, menge, einheit, kalorien, protein, kohlenhydrate, fett}]
+  function speichernErnaehrung() { speichern(KEY_ERNAEHRUNG, ernaehrungEintraege); }
+
+  const ernaehrungDatumFeld = document.getElementById('ernaehrungDatum');
+  ernaehrungDatumFeld.value = heuteISO();
+  ernaehrungDatumFeld.addEventListener('change', () => {
+    if (!ernaehrungDatumFeld.value) ernaehrungDatumFeld.value = heuteISO();
+    renderErnaehrung();
+  });
+
+  function ernaehrungHistorie() {
+    // Letzte Werte je eindeutigem (kleingeschriebenem) Namen, neueste zuerst
+    const karte = {};
+    ernaehrungEintraege
+      .slice()
+      .sort((a, b) => (a.datum + (a.zeit || '')) < (b.datum + (b.zeit || '')) ? 1 : -1)
+      .forEach(e => { const k = (e.name || '').trim().toLowerCase(); if (k && !karte[k]) karte[k] = e; });
+    return karte;
+  }
+
+  function renderErnaehrung() {
+    const datum = ernaehrungDatumFeld.value || heuteISO();
+    const box = document.getElementById('ernaehrungListe');
+    const leer = document.getElementById('ernaehrungLeer');
+    const tagesEintraege = ernaehrungEintraege
+      .filter(e => e.person === aktivePerson && e.datum === datum)
+      .sort((a, b) => (a.zeit || '') < (b.zeit || '') ? -1 : 1);
+
+    box.innerHTML = '';
+    leer.style.display = tagesEintraege.length ? 'none' : '';
+
+    let sKalorien = 0, sProtein = 0, sKohlenhydrate = 0, sFett = 0;
+    tagesEintraege.forEach(e => {
+      sKalorien += Number(e.kalorien) || 0;
+      sProtein += Number(e.protein) || 0;
+      sKohlenhydrate += Number(e.kohlenhydrate) || 0;
+      sFett += Number(e.fett) || 0;
+      const zeile = document.createElement('div');
+      zeile.className = 'karte';
+      zeile.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;padding:12px 14px;';
+      zeile.innerHTML =
+        '<div style="flex:1;min-width:0;">' +
+          '<div style="font-weight:700;color:var(--soil);">' + escapeHtml(e.name) + '</div>' +
+          '<div style="font-size:0.72rem;color:var(--bark);">' + (e.zeit ? e.zeit + ' Uhr · ' : '') + (e.menge ? e.menge + ' ' + e.einheit : '') + '</div>' +
+        '</div>' +
+        '<div style="text-align:right;flex-shrink:0;">' +
+          '<div style="font-weight:700;color:var(--moss);">' + Math.round(Number(e.kalorien) || 0) + ' kcal</div>' +
+          '<div style="font-size:0.68rem;color:var(--bark);">P ' + (e.protein||0) + 'g · K ' + (e.kohlenhydrate||0) + 'g · F ' + (e.fett||0) + 'g</div>' +
+        '</div>' +
+        '<button data-id="' + e.id + '" class="ernaehrung-loeschen" style="background:none;border:none;color:var(--terracotta-text);font-size:1.1rem;cursor:pointer;padding:4px;flex-shrink:0;">✕</button>';
+      box.appendChild(zeile);
+    });
+    box.querySelectorAll('.ernaehrung-loeschen').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.id;
+        ernaehrungEintraege = ernaehrungEintraege.filter(e => e.id !== id);
+        speichernErnaehrung();
+        renderErnaehrung();
+        if (window._sync) window._sync.melde();
+      });
+    });
+
+    const ziel = zielFuerPerson(aktivePerson).kalorien || 0;
+    const balken = document.getElementById('kalorienZielBalken');
+    const text = document.getElementById('kalorienZielText');
+    if (ziel > 0) {
+      const anteil = Math.min(100, Math.round((sKalorien / ziel) * 100));
+      balken.style.width = anteil + '%';
+      balken.classList.toggle('erreicht', sKalorien >= ziel * 0.9 && sKalorien <= ziel * 1.1);
+      text.textContent = Math.round(sKalorien) + ' / ' + ziel + ' kcal';
+    } else {
+      balken.style.width = '0%';
+      text.textContent = Math.round(sKalorien) + ' kcal (kein Ziel gesetzt)';
+    }
+    document.getElementById('summeProtein').textContent = Math.round(sProtein) + ' g';
+    document.getElementById('summeKohlenhydrate').textContent = Math.round(sKohlenhydrate) + ' g';
+    document.getElementById('summeFett').textContent = Math.round(sFett) + ' g';
+  }
+
+  document.getElementById('btnZielKalorienBearbeiten').addEventListener('click', zieleModalOeffnen);
+
+  document.getElementById('btnErnaehrungHinzufuegen').addEventListener('click', () => {
+    document.getElementById('fErnName').value = '';
+    document.getElementById('fErnMenge').value = '';
+    document.getElementById('fErnEinheit').value = 'g';
+    document.getElementById('fErnZeit').value = new Date().toTimeString().slice(0,5);
+    document.getElementById('fErnKalorien').value = '';
+    document.getElementById('fErnProtein').value = '';
+    document.getElementById('fErnKohlenhydrate').value = '';
+    document.getElementById('fErnFett').value = '';
+    document.getElementById('ernaehrungStatus').textContent = '';
+    const historie = ernaehrungHistorie();
+    document.getElementById('ernaehrungHistorieListe').innerHTML = Object.values(historie)
+      .slice(0, 30)
+      .map(e => '<option value="' + escapeHtml(e.name) + '"></option>').join('');
+    document.getElementById('modalErnaehrung').classList.add('zeigen');
+  });
+  // Beim Verlassen des Namensfelds: falls dieser Name schon mal erfasst wurde und die
+  // Nährwertfelder noch leer sind, automatisch mit den letzten Werten vorbefüllen.
+  document.getElementById('fErnName').addEventListener('blur', () => {
+    const name = document.getElementById('fErnName').value.trim().toLowerCase();
+    if (!name) return;
+    const treffer = ernaehrungHistorie()[name];
+    if (!treffer) return;
+    const kalorienFeld = document.getElementById('fErnKalorien');
+    if (!kalorienFeld.value) {
+      kalorienFeld.value = treffer.kalorien || '';
+      document.getElementById('fErnProtein').value = treffer.protein || '';
+      document.getElementById('fErnKohlenhydrate').value = treffer.kohlenhydrate || '';
+      document.getElementById('fErnFett').value = treffer.fett || '';
+      if (!document.getElementById('fErnMenge').value) {
+        document.getElementById('fErnMenge').value = treffer.menge || '';
+        document.getElementById('fErnEinheit').value = treffer.einheit || 'g';
+      }
+      document.getElementById('ernaehrungStatus').textContent = '💡 Werte von "' + treffer.name + '" übernommen – bei Bedarf anpassen.';
+    }
+  });
+  document.getElementById('btnErnaehrungAbbrechen').addEventListener('click', () => document.getElementById('modalErnaehrung').classList.remove('zeigen'));
+  document.getElementById('modalErnaehrung').addEventListener('click', (e) => { if (e.target.id === 'modalErnaehrung') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnErnaehrungSpeichern').addEventListener('click', () => {
+    const name = document.getElementById('fErnName').value.trim();
+    const status = document.getElementById('ernaehrungStatus');
+    if (!name) { status.textContent = 'Bitte einen Namen eingeben.'; return; }
+    ernaehrungEintraege.push({
+      id: 'ern_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
+      person: aktivePerson,
+      datum: ernaehrungDatumFeld.value || heuteISO(),
+      zeit: document.getElementById('fErnZeit').value || '',
+      name: name,
+      menge: document.getElementById('fErnMenge').value || '',
+      einheit: document.getElementById('fErnEinheit').value,
+      kalorien: parseFloat(document.getElementById('fErnKalorien').value) || 0,
+      protein: parseFloat(document.getElementById('fErnProtein').value) || 0,
+      kohlenhydrate: parseFloat(document.getElementById('fErnKohlenhydrate').value) || 0,
+      fett: parseFloat(document.getElementById('fErnFett').value) || 0,
+    });
+    speichernErnaehrung();
+    document.getElementById('modalErnaehrung').classList.remove('zeigen');
+    renderErnaehrung();
+    if (window._sync) window._sync.melde();
+  });
+
   function renderZyklus() {
     const info = zyklusPhaseHeute(aktivePerson);
     const box = document.getElementById('zyklusPhaseKarte');
@@ -3047,6 +3296,7 @@
     renderHeute();
     if (aktiveAnsicht === 'verlauf') renderVerlauf();
     if (aktiveAnsicht === 'rechner') rechnerFelderLaden();
+    if (aktiveAnsicht === 'ernaehrung') renderErnaehrung();
   }
 
   // --- SCHRIFTGRÖSSE ---
@@ -3070,7 +3320,7 @@
   if (window.PlanerSync) {
     window._sync = window.PlanerSync.starteSync({
       modul: 'gesundheit',
-      keys: [KEY_TAGESWERTE, KEY_SPORT, KEY_RECHNER, KEY_MEDIKAMENTE, KEY_MED_ERLEDIGT, KEY_ZIELE, KEY_TRAININGSLOG, KEY_EIGENE_UEBUNGEN, KEY_ZYKLUS, KEY_TRAININGSPLAN],
+      keys: [KEY_TAGESWERTE, KEY_SPORT, KEY_RECHNER, KEY_MEDIKAMENTE, KEY_MED_ERLEDIGT, KEY_ZIELE, KEY_TRAININGSLOG, KEY_EIGENE_UEBUNGEN, KEY_ZYKLUS, KEY_TRAININGSPLAN, KEY_ERNAEHRUNG],
       onRemoteChange: function () {
         tageswerte = laden(KEY_TAGESWERTE, tageswerte);
         sportEinheiten = laden(KEY_SPORT, sportEinheiten);
@@ -3083,12 +3333,14 @@
         eigeneUebungen = laden(KEY_EIGENE_UEBUNGEN, eigeneUebungen);
         zyklusDaten = laden(KEY_ZYKLUS, zyklusDaten);
         trainingsplan = laden(KEY_TRAININGSPLAN, trainingsplan);
+        ernaehrungEintraege = laden(KEY_ERNAEHRUNG, ernaehrungEintraege);
         renderAlles();
         if (aktiveAnsicht === 'rechner') rechnerFelderLaden();
         if (aktiveAnsicht === 'verlauf') renderStats();
         if (aktiveAnsicht === 'kraft') renderTrainingslog();
         if (aktiveAnsicht === 'zyklus') renderZyklus();
         if (aktiveAnsicht === 'trainingsplan') renderTrainingsplan();
+        if (aktiveAnsicht === 'ernaehrung') renderErnaehrung();
       },
     });
   }
