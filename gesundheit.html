@@ -2275,7 +2275,8 @@
     // zuletzt verwendete Schreibweise.
     const gruppen = {};
     eigene.forEach(t => { const k = normUebung(t.uebung); (gruppen[k] = gruppen[k] || []).push(t); });
-    Object.keys(gruppen).sort((a,b) => a.localeCompare(b,'de')).forEach(key => {
+    // Neueste zuerst trainierte Übung oben – nicht alphabetisch, das war verwirrend
+    Object.keys(gruppen).sort((a,b) => gruppen[b][0].datum < gruppen[a][0].datum ? -1 : (gruppen[b][0].datum > gruppen[a][0].datum ? 1 : 0)).forEach(key => {
       const eintraege = gruppen[key].slice(0, 5);
       const anzeigeName = eintraege[0].uebung.trim();
       const erster = eintraege[eintraege.length - 1];
