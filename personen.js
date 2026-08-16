@@ -53,9 +53,19 @@ function holePersonenListe() {
       if (Array.isArray(liste) && liste.length) return liste;
     }
   } catch (e) {}
-  // Noch keine Liste vorhanden -> einmalig befüllen
+  // Noch keine Liste vorhanden. WICHTIG: nur das Gerät, das die Familie ursprünglich
+  // erstellt hat, darf hier einen Startwert erzeugen UND in localStorage speichern -
+  // sonst würden zwei Geräte, die beide gleichzeitig zum ersten Mal eine neue,
+  // noch leere Sync-Kategorie berühren, jeweils ihre eigene geratene Liste hochladen
+  // und sich gegenseitig überschreiben (genau das ist uns mit Mama/Papa/Lev/Malia
+  // passiert). Beitretende Geräte zeigen bis zum Eintreffen der echten Cloud-Daten
+  // nur einen NICHT gespeicherten, temporären Platzhalter an.
   const startliste = planerErkenneBestehendeInstallation() ? PLANER_PERSONEN_LEGACY : window.PLANER_PERSONEN_STANDARD;
-  try { localStorage.setItem(PERSONEN_KEY, JSON.stringify(startliste)); } catch (e) {}
+  let istErsteller = false;
+  try { istErsteller = localStorage.getItem('planer_familienErsteller') === '1'; } catch (e) {}
+  if (istErsteller) {
+    try { localStorage.setItem(PERSONEN_KEY, JSON.stringify(startliste)); } catch (e) {}
+  }
   return startliste;
 }
 

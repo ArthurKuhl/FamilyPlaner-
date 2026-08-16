@@ -291,15 +291,20 @@
         }
       } catch (e) {}
       // Noch nichts vorhanden (z.B. Modal wurde geöffnet, bevor ein Modul-iframe
-      // personen.js geladen hat) -> selbst einmalig befüllen, dieselbe Heuristik
-      // wie in personen.js: bestehende Installation erkennt man an schon
-      // vorhandenen App-Daten.
+      // personen.js geladen hat). NUR das Gerät, das die Familie ursprünglich
+      // erstellt hat, darf hier lokal speichern (und damit später hochsyncen) -
+      // sonst überschreiben sich mehrere gleichzeitig neue Geräte gegenseitig
+      // (siehe personen.js für die ausführliche Begründung).
       const bekannteSchluessel = ['termine_liste', 'kochen_rezepte', 'gartenplaner_v3', 'einkauf_liste'];
       const bestehend = bekannteSchluessel.some(k => {
         try { const r = localStorage.getItem(k); return r && r !== '[]' && r !== '{}' && r !== 'null'; } catch (e) { return false; }
       });
       const start = bestehend ? PERSONEN_LEGACY : PERSONEN_STANDARD;
-      try { localStorage.setItem(PERSONEN_KEY, JSON.stringify(start)); } catch (e) {}
+      let istErsteller = false;
+      try { istErsteller = localStorage.getItem('planer_familienErsteller') === '1'; } catch (e) {}
+      if (istErsteller) {
+        try { localStorage.setItem(PERSONEN_KEY, JSON.stringify(start)); } catch (e) {}
+      }
       return start;
     }
     function speicherePersonen(liste) {
@@ -394,6 +399,7 @@
       document.getElementById('btnSetupNeu').addEventListener('click', () => {
         const code = erzeugeCode();
         setzeFamilienId(code);
+        try { localStorage.setItem('planer_familienErsteller', '1'); } catch (e) {}
         document.getElementById('setupNeuCode').textContent = code;
         setupSchrittZeigen('setupSchrittNeu');
       });
