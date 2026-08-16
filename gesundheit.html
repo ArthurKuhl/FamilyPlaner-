@@ -2428,49 +2428,49 @@
   // ============================================================
   const MUSKELGRUPPEN = [
     { id: 'brust', name: 'Brust', icon: '🫁', uebungen: [
-      { name: 'Bankdrücken', hinweis: 'Langhantel oder Kurzhanteln, Grundübung für die gesamte Brustmuskulatur' },
-      { name: 'Liegestütze', hinweis: 'Ohne Geräte überall durchführbar' },
-      { name: 'Kabelzug über Kreuz (Cable Crossover)', hinweis: 'Gut für die Definition des äußeren Brustbereichs' },
-      { name: 'Butterfly / Fliegende', hinweis: 'Isolationsübung, schont die Schultern' },
+      { name: 'Bankdrücken', hinweis: 'Langhantel oder Kurzhanteln, Grundübung für die gesamte Brustmuskulatur', muskeln: ['Großer Brustmuskel', 'Trizeps', 'Vorderer Deltamuskel'] },
+      { name: 'Liegestütze', hinweis: 'Ohne Geräte überall durchführbar', muskeln: ['Großer Brustmuskel', 'Trizeps', 'Vorderer Deltamuskel', 'Rumpfmuskulatur'] },
+      { name: 'Kabelzug über Kreuz (Cable Crossover)', hinweis: 'Gut für die Definition des äußeren Brustbereichs', muskeln: ['Großer Brustmuskel', 'Vorderer Deltamuskel'] },
+      { name: 'Butterfly / Fliegende', hinweis: 'Isolationsübung, schont die Schultern', muskeln: ['Großer Brustmuskel', 'Vorderer Deltamuskel'] },
     ]},
     { id: 'ruecken', name: 'Rücken', icon: '🔺', uebungen: [
-      { name: 'Klimmzüge', hinweis: 'Sehr effektiv für den oberen Rücken und die Lat-Muskulatur' },
-      { name: 'Rudern (Langhantel/Kurzhantel)', hinweis: 'Kräftigt die mittlere Rückenmuskulatur' },
-      { name: 'Kreuzheben', hinweis: 'Ganzkörper-Grundübung, besonders für unteren Rücken – auf sauberer Technik achten' },
-      { name: 'Latzug am Kabelzug', hinweis: 'Gute Alternative, wenn Klimmzüge noch schwerfallen' },
+      { name: 'Klimmzüge', hinweis: 'Sehr effektiv für den oberen Rücken und die Lat-Muskulatur', muskeln: ['Breiter Rückenmuskel', 'Bizeps', 'Kapuzenmuskel'] },
+      { name: 'Rudern (Langhantel/Kurzhantel)', hinweis: 'Kräftigt die mittlere Rückenmuskulatur', muskeln: ['Kapuzenmuskel', 'Rautenmuskeln', 'Breiter Rückenmuskel', 'Bizeps'] },
+      { name: 'Kreuzheben', hinweis: 'Ganzkörper-Grundübung, besonders für unteren Rücken – auf sauberer Technik achten', muskeln: ['Rückenstrecker', 'Großer Gesäßmuskel', 'Beinbeuger', 'Kapuzenmuskel'] },
+      { name: 'Latzug am Kabelzug', hinweis: 'Gute Alternative, wenn Klimmzüge noch schwerfallen', muskeln: ['Breiter Rückenmuskel', 'Bizeps'] },
     ]},
     { id: 'schultern', name: 'Schultern', icon: '🔵', uebungen: [
-      { name: 'Schulterdrücken', hinweis: 'Kurzhantel oder Langhantel, für die gesamte Schulterpartie' },
-      { name: 'Seitheben', hinweis: 'Isoliert den seitlichen Schultermuskel' },
-      { name: 'Frontheben', hinweis: 'Für den vorderen Schulterbereich' },
-      { name: 'Reverse Flys', hinweis: 'Für die hintere Schulter, oft vernachlässigt' },
+      { name: 'Schulterdrücken', hinweis: 'Kurzhantel oder Langhantel, für die gesamte Schulterpartie', muskeln: ['Deltamuskel (gesamt)', 'Trizeps'] },
+      { name: 'Seitheben', hinweis: 'Isoliert den seitlichen Schultermuskel', muskeln: ['Seitlicher Deltamuskel'] },
+      { name: 'Frontheben', hinweis: 'Für den vorderen Schulterbereich', muskeln: ['Vorderer Deltamuskel'] },
+      { name: 'Reverse Flys', hinweis: 'Für die hintere Schulter, oft vernachlässigt', muskeln: ['Hinterer Deltamuskel', 'Rautenmuskeln'] },
     ]},
     { id: 'bizeps', name: 'Bizeps', icon: '💪', uebungen: [
-      { name: 'Bizepscurls', hinweis: 'Kurzhantel oder Langhantel, klassische Übung' },
-      { name: 'Klimmzüge (Untergriff)', hinweis: 'Trainiert Bizeps und Rücken gleichzeitig' },
-      { name: 'Konzentrationscurls', hinweis: 'Sitzend, für gezielte Isolation' },
+      { name: 'Bizepscurls', hinweis: 'Kurzhantel oder Langhantel, klassische Übung', muskeln: ['Bizeps', 'Unterarmmuskulatur'] },
+      { name: 'Klimmzüge (Untergriff)', hinweis: 'Trainiert Bizeps und Rücken gleichzeitig', muskeln: ['Bizeps', 'Breiter Rückenmuskel'] },
+      { name: 'Konzentrationscurls', hinweis: 'Sitzend, für gezielte Isolation', muskeln: ['Bizeps'] },
     ]},
     { id: 'trizeps', name: 'Trizeps', icon: '🦾', uebungen: [
-      { name: 'Trizepsdrücken am Kabel', hinweis: 'Gut kontrollierbar, gelenkschonend' },
-      { name: 'Dips', hinweis: 'An Barren oder Bank, auch mit Körpergewicht möglich' },
-      { name: 'French Press', hinweis: 'Langhantel oder Kurzhantel liegend/stehend' },
+      { name: 'Trizepsdrücken am Kabel', hinweis: 'Gut kontrollierbar, gelenkschonend', muskeln: ['Trizeps'] },
+      { name: 'Dips', hinweis: 'An Barren oder Bank, auch mit Körpergewicht möglich', muskeln: ['Trizeps', 'Großer Brustmuskel', 'Vorderer Deltamuskel'] },
+      { name: 'French Press', hinweis: 'Langhantel oder Kurzhantel liegend/stehend', muskeln: ['Trizeps'] },
     ]},
     { id: 'bauch', name: 'Bauch / Core', icon: '⭕', uebungen: [
-      { name: 'Plank (Unterarmstütz)', hinweis: 'Statische Übung, kräftigt die gesamte Rumpfmuskulatur' },
-      { name: 'Crunches', hinweis: 'Klassische Übung für die geraden Bauchmuskeln' },
-      { name: 'Beinheben (hängend oder liegend)', hinweis: 'Für den unteren Bauchbereich' },
-      { name: 'Russian Twists', hinweis: 'Für die seitliche Bauchmuskulatur (schräge Bauchmuskeln)' },
+      { name: 'Plank (Unterarmstütz)', hinweis: 'Statische Übung, kräftigt die gesamte Rumpfmuskulatur', muskeln: ['Gerader Bauchmuskel', 'Schräge Bauchmuskeln', 'Rückenstrecker'] },
+      { name: 'Crunches', hinweis: 'Klassische Übung für die geraden Bauchmuskeln', muskeln: ['Gerader Bauchmuskel'] },
+      { name: 'Beinheben (hängend oder liegend)', hinweis: 'Für den unteren Bauchbereich', muskeln: ['Gerader Bauchmuskel (unterer Bereich)', 'Hüftbeuger'] },
+      { name: 'Russian Twists', hinweis: 'Für die seitliche Bauchmuskulatur (schräge Bauchmuskeln)', muskeln: ['Schräge Bauchmuskeln', 'Gerader Bauchmuskel'] },
     ]},
     { id: 'gesaess', name: 'Gesäß', icon: '🍑', uebungen: [
-      { name: 'Kniebeugen', hinweis: 'Grundübung, trainiert Gesäß und Beine gemeinsam' },
-      { name: 'Hip Thrust', hinweis: 'Sehr gezielt für den großen Gesäßmuskel' },
-      { name: 'Ausfallschritte (Lunges)', hinweis: 'Auch gut einseitig für die Balance' },
+      { name: 'Kniebeugen', hinweis: 'Grundübung, trainiert Gesäß und Beine gemeinsam', muskeln: ['Großer Gesäßmuskel', 'Quadrizeps', 'Beinbeuger'] },
+      { name: 'Hip Thrust', hinweis: 'Sehr gezielt für den großen Gesäßmuskel', muskeln: ['Großer Gesäßmuskel', 'Beinbeuger'] },
+      { name: 'Ausfallschritte (Lunges)', hinweis: 'Auch gut einseitig für die Balance', muskeln: ['Großer Gesäßmuskel', 'Quadrizeps', 'Beinbeuger'] },
     ]},
     { id: 'beine', name: 'Beine', icon: '🦵', uebungen: [
-      { name: 'Kniebeugen', hinweis: 'Trainiert vor allem den vorderen Oberschenkel (Quadrizeps)' },
-      { name: 'Beinpresse', hinweis: 'Geräte-gestützt, gut für Einsteiger geeignet' },
-      { name: 'Beincurls (liegend/sitzend)', hinweis: 'Für die Beinbeuger (Rückseite Oberschenkel)' },
-      { name: 'Wadenheben', hinweis: 'Für die Wadenmuskulatur, stehend oder sitzend' },
+      { name: 'Kniebeugen', hinweis: 'Trainiert vor allem den vorderen Oberschenkel (Quadrizeps)', muskeln: ['Quadrizeps', 'Großer Gesäßmuskel', 'Beinbeuger'] },
+      { name: 'Beinpresse', hinweis: 'Geräte-gestützt, gut für Einsteiger geeignet', muskeln: ['Quadrizeps', 'Großer Gesäßmuskel', 'Beinbeuger'] },
+      { name: 'Beincurls (liegend/sitzend)', hinweis: 'Für die Beinbeuger (Rückseite Oberschenkel)', muskeln: ['Beinbeuger (Ischiocrurale Muskulatur)'] },
+      { name: 'Wadenheben', hinweis: 'Für die Wadenmuskulatur, stehend oder sitzend', muskeln: ['Wadenmuskel (Gastrocnemius)'] },
     ]},
   ];
 
@@ -2489,7 +2489,10 @@
   function muskelModalOeffnen(m) {
     document.getElementById('muskelTitel').textContent = m.icon + ' ' + m.name;
     document.getElementById('muskelUebungen').innerHTML = m.uebungen
-      .map(u => '<li><div class="ue-name">' + u.name + '</div><div class="ue-hinweis">' + u.hinweis + '</div></li>').join('');
+      .map(u => {
+        const muskelnText = u.muskeln && u.muskeln.length ? ' (' + u.muskeln.join(', ') + ')' : '';
+        return '<li><div class="ue-name">' + u.name + '<span style="font-weight:400;font-style:italic;color:var(--bark);opacity:0.8;">' + muskelnText + '</span></div><div class="ue-hinweis">' + u.hinweis + '</div></li>';
+      }).join('');
     document.getElementById('modalMuskel').classList.add('zeigen');
   }
   document.getElementById('btnMuskelSchliessen').addEventListener('click', () => document.getElementById('modalMuskel').classList.remove('zeigen'));
