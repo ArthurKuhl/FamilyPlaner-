@@ -257,6 +257,16 @@
   .lex-swatch { width: 18px; height: 18px; border-radius: 5px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.6rem; font-weight: 700; }
   .lex-name { font-weight: 700; color: var(--soil); }
   .lex-lat { font-style: italic; color: var(--bark); opacity: 0.85; display: block; font-size: 0.7rem; }
+  .info-karte { background: var(--white); border-radius: var(--radius-md); margin-bottom: 10px; box-shadow: var(--shadow-soft); overflow: hidden; }
+  .info-karte summary { padding: 14px; font-weight: 700; color: var(--soil); cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; }
+  .info-karte summary::-webkit-details-marker { display: none; }
+  .info-karte summary::after { content: '▾'; color: var(--moss); transition: transform 0.2s; flex-shrink: 0; margin-left: 8px; }
+  .info-karte[open] summary::after { transform: rotate(180deg); }
+  .info-inhalt { padding: 0 14px 16px; font-size: 0.82rem; color: var(--bark); line-height: 1.55; }
+  .info-inhalt p { margin: 0 0 10px; }
+  .info-inhalt ul { margin: 0 0 10px; padding-left: 18px; }
+  .info-inhalt li { margin-bottom: 5px; }
+  .info-inhalt strong { color: var(--soil); }
 </style>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
@@ -287,6 +297,7 @@
     <button id="btnViewZyklus" role="tab" aria-selected="false">🌙 Zyklus</button>
     <button id="btnViewTrainingsplan" role="tab" aria-selected="false">🗓️ Trainingsplan</button>
     <button id="btnViewKoerperlexikon" role="tab" aria-selected="false">🦴 Körperlexikon</button>
+    <button id="btnViewInfos" role="tab" aria-selected="false">ℹ️ Infos</button>
   </div>
 </header>
   <div class="theme-popup" id="themePopup">
@@ -1033,6 +1044,81 @@
         </div>
       </div>
     </div>
+  </section>
+
+  <section id="ansichtInfos" style="display:none;">
+    <div class="disclaimer-box" style="margin-bottom:14px;">
+      ⚠️ <strong>Allgemeine Grundlagen-Infos, keine individuelle Beratung.</strong> Jeder Körper reagiert unterschiedlich – auf Genetik, Vorerkrankungen, Medikamente, Stresslevel, Hormone und vieles mehr. Was bei einer Person funktioniert, muss bei einer anderen nicht wirken. Bei konkreten Zielen (Abnehmen, Muskelaufbau, Ernährungsumstellung) lohnt sich eine persönliche Beratung durch Arzt, Ernährungsberatung oder qualifizierte Trainer – besonders bei bestehenden gesundheitlichen Einschränkungen.
+    </div>
+
+    <details class="info-karte" open>
+      <summary>⚖️ Abnehmen – wie funktioniert das grundsätzlich?</summary>
+      <div class="info-inhalt">
+        <p>Body-Gewichtsveränderung folgt im Kern der <strong>Energiebilanz</strong>: Wird über einen längeren Zeitraum weniger Energie aufgenommen als verbraucht, nimmt man tendenziell ab – wird mehr aufgenommen als verbraucht, tendenziell zu. Wie stark und wie schnell das im Einzelfall passiert, hängt aber von vielen weiteren Faktoren ab (Stoffwechsel, Schlaf, Stress, Hormone, Muskelmasse).</p>
+        <ul>
+          <li><strong>Langsam schlägt schnell:</strong> Ein moderates, über Wochen und Monate gehaltenes Defizit ist meist nachhaltiger als radikale Diäten – die häufig zu Muskelverlust, Jojo-Effekt und Frust führen.</li>
+          <li><strong>Krafttraining hilft beim Abnehmen</strong>, weil es hilft, Muskelmasse zu erhalten, während Körperfett reduziert wird.</li>
+          <li><strong>Nicht nur die Waage zählt:</strong> Umfänge, Fotos, wie Kleidung sitzt oder wie man sich fühlt sagen oft mehr als die Zahl auf der Waage, die von Wasser, Verdauung und Zyklus tageweise stark schwankt.</li>
+          <li>Sehr niedrige Kalorienzufuhr über längere Zeit kann Stoffwechsel, Hormonhaushalt und Energielevel negativ beeinflussen – im Zweifel lieber fachlich begleiten lassen statt selbst zu extremen Maßnahmen zu greifen.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="info-karte">
+      <summary>🍽️ Ernährung – ein paar Grundlagen</summary>
+      <div class="info-inhalt">
+        <p>Es gibt nicht "die eine richtige" Ernährungsweise für alle – aber ein paar Bausteine, die für die meisten Menschen als sinnvoll gelten:</p>
+        <ul>
+          <li><strong>Protein (Eiweiß):</strong> wichtig für Muskelerhalt/-aufbau und hält oft länger satt. Enthalten in z.B. Fleisch, Fisch, Eiern, Hülsenfrüchten, Milchprodukten, Tofu.</li>
+          <li><strong>Ballaststoffe:</strong> Gemüse, Obst, Vollkornprodukte und Hülsenfrüchte fördern Sättigung und Verdauung.</li>
+          <li><strong>Gesunde Fette:</strong> z.B. aus Nüssen, Olivenöl, Fisch – gehören zu einer ausgewogenen Ernährung dazu, nicht meiden.</li>
+          <li><strong>Wasser:</strong> ausreichend trinken (die App hat dafür eine eigene Wasser-Erinnerung im Heute-Tab).</li>
+          <li><strong>Verarbeitete/zuckerreiche Lebensmittel</strong> in Maßen genießen, statt sie komplett zu verbieten – strikte Verbote führen bei vielen eher zu Heißhunger und Rückfällen.</li>
+          <li>Es muss nicht perfekt sein: eine Ernährungsweise, die man über Monate/Jahre durchhalten kann, schlägt fast immer die "perfekte" Diät, die nach zwei Wochen aufgegeben wird.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="info-karte">
+      <summary>💪 Fitness aufbauen</summary>
+      <div class="info-inhalt">
+        <p>Fitness und Kraft aufzubauen ist ein langfristiger Prozess – ein paar Grundprinzipien:</p>
+        <ul>
+          <li><strong>Konsistenz vor Intensität:</strong> Regelmäßiges, moderates Training über Monate schlägt sporadische Extrem-Einheiten.</li>
+          <li><strong>Progressive Steigerung:</strong> Damit sich der Körper anpasst, muss die Belastung über Zeit langsam steigen (mehr Gewicht, mehr Wiederholungen oder mehr Kontrolle in der Übung).</li>
+          <li><strong>Regeneration gehört dazu:</strong> Muskeln wachsen in der Erholungsphase, nicht während des Trainings selbst – Ruhetage einplanen (siehe Ruhetag-Tracking im Heute-Tab).</li>
+          <li><strong>Abwechslung hilft:</strong> Kraft, Ausdauer und Beweglichkeit ergänzen sich gegenseitig, keine davon ganz vernachlässigen.</li>
+          <li>Realistisch starten und langsam steigern senkt das Verletzungsrisiko deutlich – lieber zu leicht als zu schwer anfangen.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="info-karte">
+      <summary>😴 Schlaf &amp; Erholung</summary>
+      <div class="info-inhalt">
+        <p>Schlaf wird beim Thema Fitness/Abnehmen oft unterschätzt, spielt aber eine große Rolle:</p>
+        <ul>
+          <li>Schlafmangel beeinflusst Hormone, die Hunger und Sättigung steuern – kann Heißhunger begünstigen.</li>
+          <li>Erholsamer Schlaf unterstützt Muskelregeneration und allgemeine Leistungsfähigkeit.</li>
+          <li>Chronischer Stress (unabhängig vom Schlaf) kann Stoffwechsel und Motivation ebenfalls beeinflussen – Erholungsphasen sind kein "Luxus", sondern Teil des Prozesses.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="info-karte">
+      <summary>🚩 Wann professionelle Hilfe sinnvoll ist</summary>
+      <div class="info-inhalt">
+        <p>Diese App kann Grundlagen vermitteln und beim Tracking helfen, aber keine persönliche Beratung ersetzen. Eine fachliche Einschätzung (Arzt, Ernährungsberatung, qualifizierter Trainer) lohnt sich besonders bei:</p>
+        <ul>
+          <li>bestehenden gesundheitlichen Vorerkrankungen (z.B. Herz-Kreislauf, Diabetes, Schilddrüse)</li>
+          <li>Medikamenteneinnahme, die Gewicht/Stoffwechsel beeinflussen kann</li>
+          <li>starkem, ungewolltem Gewichtsverlust oder -zunahme ohne erkennbaren Grund</li>
+          <li>Schwangerschaft/Stillzeit</li>
+          <li>anhaltend gestörtem Verhältnis zu Essen oder dem eigenen Körper</li>
+          <li>anhaltenden Schmerzen beim Training</li>
+        </ul>
+      </div>
+    </details>
   </section>
 </main>
 
@@ -2067,7 +2153,8 @@
   const btnZyklus = document.getElementById('btnViewZyklus');
   const btnTrainingsplan = document.getElementById('btnViewTrainingsplan');
   const btnKoerperlexikon = document.getElementById('btnViewKoerperlexikon');
-  const alleTabs = { heute: btnHeute, verlauf: btnVerlauf, rechner: btnRechner, kraft: btnKraft, dehnen: btnDehnen, balance: btnBalance, zyklus: btnZyklus, trainingsplan: btnTrainingsplan, koerperlexikon: btnKoerperlexikon };
+  const btnInfos = document.getElementById('btnViewInfos');
+  const alleTabs = { heute: btnHeute, verlauf: btnVerlauf, rechner: btnRechner, kraft: btnKraft, dehnen: btnDehnen, balance: btnBalance, zyklus: btnZyklus, trainingsplan: btnTrainingsplan, koerperlexikon: btnKoerperlexikon, infos: btnInfos };
   function zeigeAnsicht(name) {
     aktiveAnsicht = name;
     document.getElementById('ansichtHeute').style.display = name === 'heute' ? '' : 'none';
@@ -2079,6 +2166,7 @@
     document.getElementById('ansichtZyklus').style.display = name === 'zyklus' ? '' : 'none';
     document.getElementById('ansichtTrainingsplan').style.display = name === 'trainingsplan' ? '' : 'none';
     document.getElementById('ansichtKoerperlexikon').style.display = name === 'koerperlexikon' ? '' : 'none';
+    document.getElementById('ansichtInfos').style.display = name === 'infos' ? '' : 'none';
     Object.keys(alleTabs).forEach((k) => {
       alleTabs[k].classList.toggle('active', k === name);
       alleTabs[k].setAttribute('aria-selected', k === name);
@@ -2100,6 +2188,7 @@
   btnZyklus.addEventListener('click', () => zeigeAnsicht('zyklus'));
   btnTrainingsplan.addEventListener('click', () => zeigeAnsicht('trainingsplan'));
   btnKoerperlexikon.addEventListener('click', () => zeigeAnsicht('koerperlexikon'));
+  btnInfos.addEventListener('click', () => zeigeAnsicht('infos'));
 
   // ============================================================
   // KÖRPERLEXIKON – vereinfachte Original-Illustrationen (kein Foto/Scan),
