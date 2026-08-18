@@ -32,6 +32,8 @@
   .theme-swatch.farbe.aktiv { border-color: var(--moss); border-width: 3px; }
   .theme-farbe-custom { position: relative; overflow: hidden; background: conic-gradient(red,yellow,lime,cyan,blue,magenta,red); }
   .theme-farbe-custom-input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; border: none; padding: 0; }
+  .theme-foto-swatch { border: 2px dashed var(--bark); background: var(--cream); position: relative; overflow: hidden; }
+  .theme-foto-input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
   body.bg-besen {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='190' height='190' viewBox='0 0 190 190'%3E%3Cg opacity='0.1'%3E%3Cg transform='translate(15,15) scale(0.8) rotate(-8)'%3E%3Cline x1='0' y1='0' x2='0' y2='22' stroke='%235a4832' stroke-width='1.25' stroke-linecap='round'/%3E%3Cpath d='M -10 22 L 10 22 L 6 38 L -6 38 Z' fill='none' stroke='%235a4832' stroke-width='1.25' stroke-linejoin='round'/%3E%3C/g%3E%3Cg transform='translate(115,25) scale(0.75) rotate(15)'%3E%3Crect x='-14' y='-4' width='28' height='16' rx='2' fill='none' stroke='%235a4832' stroke-width='1.25'/%3E%3Cline x1='-14' y1='0' x2='14' y2='0' stroke='%235a4832' stroke-width='1.25'/%3E%3C/g%3E%3Cg transform='translate(60,115) scale(0.7) rotate(-5)'%3E%3Cline x1='0' y1='0' x2='0' y2='22' stroke='%235a4832' stroke-width='1.25' stroke-linecap='round'/%3E%3Cpath d='M -10 22 L 10 22 L 6 38 L -6 38 Z' fill='none' stroke='%235a4832' stroke-width='1.25' stroke-linejoin='round'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
     background-repeat: repeat;
@@ -153,6 +155,9 @@
     <div class="theme-swatch farbe" data-theme="farbe:#f4a261" style="background:#f4a261" title="Koralle"></div>
     <label class="theme-swatch farbe theme-farbe-custom" title="Eigene Farbe">
       <input type="color" class="theme-farbe-custom-input" value="#f7d9dd">
+    </label>
+    <label class="theme-swatch theme-foto-swatch" title="Eigenes Foto hochladen">
+      📷<input type="file" accept="image/*" class="theme-foto-input">
     </label>
   </div>
 
@@ -692,11 +697,24 @@
   // --- Hintergrundmuster ---
   (function () {
     const KEY_THEME = 'haushalt_hintergrundThema';
+    const KEY_FOTO = KEY_THEME.replace('hintergrundThema', 'hintergrundBildEigenes');
     const klassen = ['bg-besen', 'bg-haus'];
     function themeAnwenden(id) {
       document.body.classList.remove.apply(document.body.classList, klassen);
       document.body.style.backgroundColor = '';
-    if (id && id.indexOf('farbe:') === 0) { document.body.style.backgroundColor = id.slice(6) + 'b3'; }
+    document.body.style.backgroundImage = '';
+    document.body.style.backgroundSize = '';
+    document.body.style.backgroundPosition = '';
+    document.body.style.backgroundRepeat = '';
+    var eigenesFoto = '';
+    try { eigenesFoto = localStorage.getItem(KEY_FOTO) || ''; } catch(e) {}
+    if (id === 'foto' && eigenesFoto) {
+      document.body.style.backgroundImage = 'linear-gradient(rgba(250,246,236,0.82),rgba(250,246,236,0.82)), url("' + eigenesFoto + '")';
+      document.body.style.backgroundSize = 'cover';
+      document.body.style.backgroundPosition = 'center';
+      document.body.style.backgroundRepeat = 'no-repeat';
+    }
+    else if (id && id.indexOf('farbe:') === 0) { document.body.style.backgroundColor = id.slice(6) + 'b3'; }
     else if (id) document.body.classList.add(id);
       document.querySelectorAll('.theme-swatch').forEach(s => s.classList.toggle('aktiv', s.dataset.theme === id));
     }
@@ -711,10 +729,40 @@
       try { localStorage.setItem(KEY_THEME, neueId); } catch(e) {}
     });
   }
+  var fotoInput = document.querySelector('.theme-foto-input');
+  if (fotoInput) {
+    fotoInput.addEventListener('change', function(e) {
+      var file = e.target.files && e.target.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function(ev) {
+        var img = new Image();
+        img.onload = function() {
+          var maxW = 900;
+          var scale = Math.min(1, maxW / img.width);
+          var canvas = document.createElement('canvas');
+          canvas.width = img.width * scale;
+          canvas.height = img.height * scale;
+          var ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          var dataUrl = canvas.toDataURL('image/jpeg', 0.65);
+          try {
+            localStorage.setItem(KEY_FOTO, dataUrl);
+            localStorage.setItem(KEY_THEME, 'foto');
+          } catch(err) { alert('Foto konnte nicht gespeichert werden (evtl. zu groß oder Speicher voll).'); return; }
+          themeAnwenden('foto');
+        };
+        img.onerror = function() { alert('Datei ist kein gültiges Bild.'); };
+        img.src = ev.target.result;
+      };
+      reader.onerror = function() { alert('Foto konnte nicht gelesen werden.'); };
+      reader.readAsDataURL(file);
+    });
+  }
     const btn = document.getElementById('btnThemeAuswahl');
     const popup = document.getElementById('themePopup');
     btn.addEventListener('click', () => popup.classList.toggle('zeigen'));
-    document.querySelectorAll('.theme-swatch:not(.theme-farbe-custom)').forEach(swatch => {
+    document.querySelectorAll('.theme-swatch:not(.theme-farbe-custom):not(.theme-foto-swatch)').forEach(swatch => {
       swatch.addEventListener('click', () => {
         const id = swatch.dataset.theme;
         themeAnwenden(id);
