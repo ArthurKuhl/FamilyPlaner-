@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ausflüge</title>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
+<script src="personen.js"></script>
+<script src="sync.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap');
+  :root {
+    --soil: #3a2e1f; --moss: #4f6f45; --sage: #7fa476; --leaf: #bcd196;
+    --cream: #faf6ec; --parchment: #ece0c7; --bark: #7d6339;
+    --terracotta: #c46b41; --terracotta-text: #a8532e; --sky: #5b8bb5;
+    --white: #fffdf8; --navbg: #2a2016;
+    --radius-sm: 8px; --radius-md: 12px; --radius-lg: 18px; --radius-pill: 22px;
+    --shadow-soft: 0 2px 10px rgba(59,47,30,0.08); --shadow-md: 0 8px 26px rgba(59,47,30,0.2);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--cream); color: var(--soil); min-height: 100vh; padding-bottom: 40px; }
+
+  .theme-btn { background: none; border: none; color: var(--leaf); font-size: 1.1rem; cursor: pointer; padding: 4px 6px; flex-shrink: 0; }
+  .theme-popup { display: none; position: absolute; right: 12px; top: 54px; background: var(--white); border-radius: var(--radius-md); box-shadow: var(--shadow-md); padding: 10px; z-index: 50; }
+  .theme-popup.zeigen { display: flex; gap: 8px; flex-wrap: wrap; max-width: 216px; }
+  .theme-swatch { width: 40px; height: 40px; border-radius: var(--radius-sm); border: 2px solid transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; background: var(--cream); }
+  .theme-swatch.aktiv { border-color: var(--moss); }
+  .theme-farbe-trenner { flex-basis: 100%; height: 1px; background: rgba(0,0,0,0.08); margin: 2px 0; }
+  .theme-swatch.farbe { border: 2px solid rgba(0,0,0,0.1); }
+  .theme-swatch.farbe.aktiv { border-color: var(--moss); border-width: 3px; }
+  .theme-farbe-custom { position: relative; overflow: hidden; background: conic-gradient(red,yellow,lime,cyan,blue,magenta,red); }
+  .theme-farbe-custom-input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; border: none; padding: 0; }
+  .theme-foto-swatch { border: 2px dashed var(--bark); background: var(--cream); position: relative; overflow: hidden; }
+  .theme-foto-input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+  body.bg-kompass {
+    background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22190%22%20height%3D%22190%22%20viewBox%3D%220%200%20190%20190%22%3E%3Cg%20opacity%3D%220.1%22%3E%3Cg%20transform%3D%22translate%2830%2C30%29%20scale%280.8%29%20rotate%28-10%29%22%3E%3Ccircle%20cx%3D%220%22%20cy%3D%220%22%20r%3D%2214%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22/%3E%3Cpath%20d%3D%22M%200%20-9%20L%204%203%20L%200%209%20L%20-4%203%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Ccircle%20cx%3D%220%22%20cy%3D%220%22%20r%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%28140%2C50%29%20scale%280.7%29%20rotate%2820%29%22%3E%3Ccircle%20cx%3D%220%22%20cy%3D%220%22%20r%3D%2214%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22/%3E%3Cpath%20d%3D%22M%200%20-9%20L%204%203%20L%200%209%20L%20-4%203%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Ccircle%20cx%3D%220%22%20cy%3D%220%22%20r%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%2885%2C140%29%20scale%280.75%29%20rotate%28-8%29%22%3E%3Ccircle%20cx%3D%220%22%20cy%3D%220%22%20r%3D%2214%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22/%3E%3Cpath%20d%3D%22M%200%20-9%20L%204%203%20L%200%209%20L%20-4%203%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Ccircle%20cx%3D%220%22%20cy%3D%220%22%20r%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    background-repeat: repeat;
+  }
+  body.bg-karte {
+    background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22190%22%20height%3D%22190%22%20viewBox%3D%220%200%20190%20190%22%3E%3Cg%20opacity%3D%220.1%22%3E%3Cg%20transform%3D%22translate%2830%2C35%29%20scale%280.7%29%20rotate%28-8%29%22%3E%3Cpath%20d%3D%22M%20-16%20-10%20L%20-6%20-14%20L%206%20-10%20L%2016%20-14%20L%2016%2012%20L%206%2016%20L%20-6%2012%20L%20-16%2016%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cline%20x1%3D%22-6%22%20y1%3D%22-14%22%20x2%3D%22-6%22%20y2%3D%2212%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3Cline%20x1%3D%226%22%20y1%3D%22-10%22%20x2%3D%226%22%20y2%3D%2216%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3Cpath%20d%3D%22M%20-2%20-4%20C%202%20-8%2C%206%20-4%2C%204%200%20C%202%203%2C%20-2%202%2C%20-2%20-2%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%28145%2C30%29%20scale%280.6%29%20rotate%2812%29%22%3E%3Cpath%20d%3D%22M%20-16%20-10%20L%20-6%20-14%20L%206%20-10%20L%2016%20-14%20L%2016%2012%20L%206%2016%20L%20-6%2012%20L%20-16%2016%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cline%20x1%3D%22-6%22%20y1%3D%22-14%22%20x2%3D%22-6%22%20y2%3D%2212%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3Cline%20x1%3D%226%22%20y1%3D%22-10%22%20x2%3D%226%22%20y2%3D%2216%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3Cpath%20d%3D%22M%20-2%20-4%20C%202%20-8%2C%206%20-4%2C%204%200%20C%202%203%2C%20-2%202%2C%20-2%20-2%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%2890%2C135%29%20scale%280.65%29%20rotate%28-5%29%22%3E%3Cpath%20d%3D%22M%20-16%20-10%20L%20-6%20-14%20L%206%20-10%20L%2016%20-14%20L%2016%2012%20L%206%2016%20L%20-6%2012%20L%20-16%2016%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cline%20x1%3D%22-6%22%20y1%3D%22-14%22%20x2%3D%22-6%22%20y2%3D%2212%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3Cline%20x1%3D%226%22%20y1%3D%22-10%22%20x2%3D%226%22%20y2%3D%2216%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3Cpath%20d%3D%22M%20-2%20-4%20C%202%20-8%2C%206%20-4%2C%204%200%20C%202%203%2C%20-2%202%2C%20-2%20-2%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    background-repeat: repeat;
+  }
+  button, input, select, textarea { font-family: inherit; -webkit-tap-highlight-color: transparent; }
+  :focus-visible { outline: 2px solid var(--terracotta); outline-offset: 2px; border-radius: 4px; }
+
+  header.top { background: var(--navbg); color: var(--leaf); padding: 10px 12px; }
+  header.top .titel-zeile { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  header.top h1 { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; }
+  .add-btn { background: var(--terracotta); color: var(--white); border: none; border-radius: var(--radius-pill); font-size: 0.82rem; font-weight: 700; padding: 7px 15px; cursor: pointer; }
+  .filter-reihe { display: flex; gap: 5px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px; scrollbar-width: none; }
+  .filter-reihe::-webkit-scrollbar { display: none; }
+  .filter-chip { flex: 0 0 auto; background: transparent; border: 1px solid #4a3a28; color: var(--sage); font-size: 0.72rem; font-weight: 600; padding: 5px 12px; border-radius: var(--radius-pill); cursor: pointer; white-space: nowrap; }
+  .filter-chip.active { background: var(--moss); color: var(--leaf); border-color: var(--moss); }
+
+  main { padding: 12px 14px; max-width: 680px; margin: 0 auto; }
+  @media (min-width: 1000px) {
+    main { max-width: 1200px; }
+    .ausflug-liste { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+    .erlebt-liste { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+  }
+
+  .ausflug-liste { display: grid; grid-template-columns: 1fr; gap: 10px; }
+  .ausflug-karte { background: var(--white); border-radius: var(--radius-md); padding: 14px; box-shadow: var(--shadow-soft); cursor: pointer; border-left: 4px solid var(--moss); }
+  .ak-titel { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.05rem; color: var(--soil); }
+  .ak-meta { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+  .mini-chip { font-size: 0.62rem; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-pill); white-space: nowrap; background: var(--parchment); color: var(--bark); }
+  .mini-chip.person { color: var(--white); }
+  .ak-packfortschritt { font-size: 0.7rem; color: var(--bark); margin-top: 6px; }
+
+  .erlebt-liste { display: grid; grid-template-columns: 1fr; gap: 12px; }
+  .erlebt-karte { background: var(--white); border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow-soft); cursor: pointer; }
+  .ek-fotos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; background: var(--parchment); }
+  .ek-fotos img { width: 100%; height: 70px; object-fit: cover; display: block; }
+  .ek-fotos .ek-mehr { display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.5); color: white; font-weight: 700; font-size: 0.85rem; }
+  .ek-body { padding: 12px 14px; }
+  .ek-titel { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1rem; color: var(--soil); }
+  .ek-datum { font-size: 0.7rem; color: var(--bark); opacity: 0.75; margin-top: 2px; }
+  .ek-text { font-size: 0.82rem; color: var(--soil); margin-top: 6px; line-height: 1.4; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
+  .ek-verknuepft { font-size: 0.68rem; color: var(--moss); margin-top: 6px; }
+
+  .foto-galerie-edit { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .fge-item { position: relative; width: 76px; height: 76px; border-radius: 8px; overflow: hidden; }
+  .fge-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .fge-item button { position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.6); color: white; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 0.7rem; cursor: pointer; line-height: 1; }
+  .fge-add { width: 76px; height: 76px; border-radius: 8px; border: 2px dashed var(--sage); background: var(--cream); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; color: var(--moss); cursor: pointer; }
+
+  .packliste-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--parchment); }
+  .packliste-item input[type="checkbox"] { width: 18px; height: 18px; flex-shrink: 0; }
+  .packliste-item .pli-text { flex: 1; font-size: 0.85rem; }
+  .packliste-item.erledigt .pli-text { text-decoration: line-through; opacity: 0.55; }
+  .packliste-item button { background: none; border: none; color: var(--terracotta-text); font-size: 1rem; cursor: pointer; padding: 2px 6px; }
+
+  .leer-hinweis { text-align: center; color: var(--bark); font-size: 0.85rem; padding: 46px 16px; opacity: 0.75; }
+  .leer-hinweis .em { font-size: 2.2rem; display: block; margin-bottom: 8px; }
+
+  .modal-bg { position: fixed; inset: 0; background: rgba(42,32,22,0.45); display: none; align-items: flex-end; justify-content: center; z-index: 100; padding-top: 6vh; }
+  .modal-bg.zeigen { display: flex; }
+  .modal { background: var(--cream); border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding: 18px 18px 24px; width: 100%; max-width: 540px; max-height: 92vh; overflow-y: auto; box-shadow: var(--shadow-md); }
+  @media (min-width: 600px) { .modal-bg { align-items: center; } .modal { border-radius: var(--radius-lg); } }
+  .modal h2 { font-family: 'Playfair Display', serif; font-size: 1.15rem; margin-bottom: 12px; }
+
+  .feld { margin-bottom: 12px; }
+  .feld label { display: block; font-size: 0.7rem; font-weight: 700; color: var(--bark); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.03em; }
+  .feld input, .feld select, .feld textarea { width: 100%; padding: 9px 11px; border: 1px solid var(--parchment); border-radius: var(--radius-sm); font-size: 0.9rem; background: var(--white); color: var(--soil); }
+  .opt-reihe { display: flex; gap: 6px; flex-wrap: wrap; }
+  .opt { padding: 6px 12px; border-radius: var(--radius-pill); font-size: 0.75rem; font-weight: 600; border: 1px solid var(--parchment); background: var(--white); color: var(--bark); cursor: pointer; }
+  .opt.aktiv { color: var(--white); border-color: transparent; background: var(--moss); }
+  .opt.klein { padding: 5px 10px; font-size: 0.72rem; }
+
+  .modal-btns { display: flex; gap: 8px; margin-top: 18px; }
+  .btn { flex: 1; padding: 11px; border-radius: var(--radius-pill); border: none; font-weight: 700; font-size: 0.85rem; cursor: pointer; }
+  .btn-primary { background: var(--moss); color: var(--leaf); }
+  .btn-secondary { background: var(--white); color: var(--bark); border: 1px solid var(--parchment); }
+  .btn-danger { background: transparent; color: var(--terracotta-text); border: 1px solid var(--terracotta); }
+
+  .unterliste-titel { font-size: 0.72rem; font-weight: 700; color: var(--bark); text-transform: uppercase; letter-spacing: 0.03em; margin: 16px 0 6px; }
+  .verlauf-liste { list-style: none; }
+  .verlauf-liste li { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid var(--parchment); font-size: 0.8rem; }
+  .verlauf-liste .v-wer { font-weight: 700; }
+  .verlauf-leer { font-size: 0.8rem; color: var(--bark); opacity: 0.7; padding: 4px 0; }
+
+  /* Sehr breite Bildschirme: Content etwas breiter + dezente Deko-Streifen im Rand */
+  .deko-rand { display: none; position: fixed; top: 0; bottom: 0; width: 220px; background-repeat: repeat-y; background-position: center top; pointer-events: none; z-index: -1; }
+  .deko-rand.links { left: 0; }
+  .deko-rand.rechts { right: 0; transform: scaleX(-1); }
+  @media (min-width: 1600px) {
+    main { max-width: 1440px; }
+    .deko-rand { display: block; background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22220%22%20height%3D%221400%22%20viewBox%3D%220%200%20220%201400%22%3E%3Cg%20opacity%3D%220.16%22%3E%3Cg%20transform%3D%22translate%2860%2C90%29%20scale%280.85%29%20rotate%28-12%29%22%3E%3Cline%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%2222%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22/%3E%3Cpath%20d%3D%22M%20-10%2022%20L%2010%2022%20L%206%2038%20L%20-6%2038%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%28150%2C260%29%20scale%280.85%29%20rotate%2815%29%22%3E%3Cpath%20d%3D%22M%20-16%200%20L%200%20-16%20L%2016%200%20L%2016%2020%20L%20-16%2020%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%2860%2C430%29%20scale%280.85%29%20rotate%28-6%29%22%3E%3Crect%20x%3D%22-12%22%20y%3D%22-4%22%20width%3D%2224%22%20height%3D%224%22%20rx%3D%221%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22/%3E%3Cpath%20d%3D%22M%20-14%200%20C%20-14%20-2%2C%20-12%20-4%2C%20-8%20-4%20L%208%20-4%20C%2012%20-4%2C%2014%20-2%2C%2014%200%20L%2014%2030%20C%2014%2034%2C%2010%2036%2C%200%2036%20C%20-10%2036%2C%20-14%2034%2C%20-14%2030%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%28150%2C640%29%20scale%280.85%29%20rotate%2810%29%22%3E%3Cline%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%2222%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22/%3E%3Cpath%20d%3D%22M%20-10%2022%20L%2010%2022%20L%206%2038%20L%20-6%2038%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%2860%2C810%29%20scale%280.85%29%20rotate%28-15%29%22%3E%3Cpath%20d%3D%22M%20-16%200%20L%200%20-16%20L%2016%200%20L%2016%2020%20L%20-16%2020%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%28150%2C980%29%20scale%280.85%29%20rotate%286%29%22%3E%3Crect%20x%3D%22-12%22%20y%3D%22-4%22%20width%3D%2224%22%20height%3D%224%22%20rx%3D%221%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22/%3E%3Cpath%20d%3D%22M%20-14%200%20C%20-14%20-2%2C%20-12%20-4%2C%20-8%20-4%20L%208%20-4%20C%2012%20-4%2C%2014%20-2%2C%2014%200%20L%2014%2030%20C%2014%2034%2C%2010%2036%2C%200%2036%20C%20-10%2036%2C%20-14%2034%2C%20-14%2030%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%2860%2C1180%29%20scale%280.85%29%20rotate%28-10%29%22%3E%3Cline%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%2222%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22/%3E%3Cpath%20d%3D%22M%20-10%2022%20L%2010%2022%20L%206%2038%20L%20-6%2038%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%28150%2C1340%29%20scale%280.85%29%20rotate%2812%29%22%3E%3Cpath%20d%3D%22M%20-16%200%20L%200%20-16%20L%2016%200%20L%2016%2020%20L%20-16%2020%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); }
+  }
+  .ansicht-tabs { display: flex; gap: 6px; margin-bottom: 8px; }
+  .ansicht-tab { flex: 1; background: transparent; border: 1px solid #4a3a28; color: var(--sage); font-size: 0.78rem; font-weight: 700; padding: 7px 10px; border-radius: var(--radius-pill); cursor: pointer; }
+  .ansicht-tab.active { background: var(--terracotta); color: var(--white); border-color: var(--terracotta); }
+  .info-karte { background: var(--white); border-radius: var(--radius-md); margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); overflow: hidden; }
+  .info-karte summary { padding: 14px; font-weight: 700; color: var(--soil); cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; }
+  .info-karte summary::-webkit-details-marker { display: none; }
+  .info-karte summary::after { content: '▾'; color: var(--terracotta); transition: transform 0.2s; flex-shrink: 0; margin-left: 8px; }
+  .info-karte[open] summary::after { transform: rotate(180deg); }
+  .info-inhalt { padding: 0 14px 16px; font-size: 0.82rem; color: var(--bark); line-height: 1.55; }
+  .info-inhalt p { margin: 0 0 10px; }
+  .info-inhalt ul { margin: 0 0 10px; padding-left: 18px; }
+  .info-inhalt li { margin-bottom: 5px; }
+  .info-inhalt strong { color: var(--soil); }
+  .info-disclaimer { background: #fff3d9; border: 1px solid #e0c27a; border-radius: var(--radius-md); padding: 12px 14px; font-size: 0.78rem; color: #6b5220; margin-bottom: 14px; line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class="deko-rand links" aria-hidden="true"></div>
+<div class="deko-rand rechts" aria-hidden="true"></div>
+
+
+<header class="top">
+  <div class="titel-zeile">
+    <h1>🧭 Ausflüge</h1>
+    <button class="theme-btn" id="btnThemeAuswahl" title="Hintergrundmuster wählen">🎨</button>
+    <button class="add-btn" id="btnNeu">＋ Neu</button>
+  </div>
+</header>
+  <div class="theme-popup" id="themePopup">
+    <div class="theme-swatch" data-theme="" title="Kein Muster">✕</div>
+    <div class="theme-swatch" data-theme="bg-kompass" title="Kompass">🧭</div>
+    <div class="theme-swatch" data-theme="bg-karte" title="Landkarte">🗺️</div>
+    <div class="theme-farbe-trenner"></div>
+    <div class="theme-swatch farbe" data-theme="farbe:#f7d9dd" style="background:#f7d9dd" title="Pastell Rosa"></div>
+    <div class="theme-swatch farbe" data-theme="farbe:#d9ebf7" style="background:#d9ebf7" title="Pastell Blau"></div>
+    <div class="theme-swatch farbe" data-theme="farbe:#dcefd9" style="background:#dcefd9" title="Pastell Grün"></div>
+    <div class="theme-swatch farbe" data-theme="farbe:#f7ecd9" style="background:#f7ecd9" title="Pastell Gelb"></div>
+    <div class="theme-swatch farbe" data-theme="farbe:#e8d9f7" style="background:#e8d9f7" title="Pastell Lila"></div>
+    <div class="theme-swatch farbe" data-theme="farbe:#f7d9c4" style="background:#f7d9c4" title="Pastell Pfirsich"></div>
+    <div class="theme-swatch farbe" data-theme="farbe:#a8dadc" style="background:#a8dadc" title="Türkis"></div>
+    <div class="theme-swatch farbe" data-theme="farbe:#f4a261" style="background:#f4a261" title="Koralle"></div>
+    <label class="theme-swatch farbe theme-farbe-custom" title="Eigene Farbe">
+      <input type="color" class="theme-farbe-custom-input" value="#f7d9dd">
+    </label>
+    <label class="theme-swatch theme-foto-swatch" title="Eigenes Foto hochladen">
+      📷<input type="file" accept="image/*" class="theme-foto-input">
+    </label>
+  </div>
+
+<main>
+  <div class="ansicht-tabs">
+    <button class="ansicht-tab active" id="tabPlanung">📋 Planung</button>
+    <button class="ansicht-tab" id="tabErlebt">📸 Erlebt</button>
+  </div>
+
+  <div id="ansichtPlanung">
+    <div class="ausflug-liste" id="ausflugListe"></div>
+    <div class="leer-hinweis" id="leerHinweisPlanung" style="display:none;">
+      <span class="em">🧭</span>
+      Noch keine Ausflüge geplant.<br>Tippe auf „＋ Neu", um den ersten anzulegen.
+    </div>
+  </div>
+
+  <div id="ansichtErlebt" style="display:none;">
+    <div class="erlebt-liste" id="erlebtListe"></div>
+    <div class="leer-hinweis" id="leerHinweisErlebt" style="display:none;">
+      <span class="em">📸</span>
+      Noch nichts festgehalten.<br>Tippe auf „＋ Neu", um Fotos und Erinnerungen zu sammeln.
+    </div>
+  </div>
+</main>
+
+<!-- Planung: Neu / Bearbeiten -->
+<div class="modal-bg" id="modalPlanung">
+  <div class="modal">
+    <h2 id="planungTitelKopf">Neuer Ausflug</h2>
+    <input type="hidden" id="pEditId" value="">
+    <div class="feld">
+      <label for="pTitel">Titel</label>
+      <input type="text" id="pTitel" placeholder="z.B. Zoo Karlsruhe, Wanderung Schwarzwald ...">
+    </div>
+    <div class="zeile" style="display:flex;gap:10px;">
+      <div class="feld" style="flex:2;">
+        <label for="pOrt">Ort</label>
+        <input type="text" id="pOrt" placeholder="z.B. Karlsruhe">
+      </div>
+    </div>
+    <div class="zeile" style="display:flex;gap:10px;">
+      <div class="feld" style="flex:1;">
+        <label for="pDatum">Datum</label>
+        <input type="date" id="pDatum">
+      </div>
+      <div class="feld" style="flex:1;">
+        <label for="pDatumBis">bis (optional)</label>
+        <input type="date" id="pDatumBis">
+      </div>
+    </div>
+    <div class="sidebar-title" style="margin:14px 0 4px;font-size:0.85rem;">🚗 Hinfahrt</div>
+    <div class="zeile" style="display:flex;gap:10px;">
+      <div class="feld" style="flex:1;">
+        <label for="pAbfahrt">Abfahrt</label>
+        <input type="time" id="pAbfahrt">
+      </div>
+      <div class="feld" style="flex:1;">
+        <label for="pAnkunft">Ankunft</label>
+        <input type="time" id="pAnkunft">
+      </div>
+    </div>
+    <div class="feld">
+      <label for="pHinfahrtNotiz">Notiz zur Hinfahrt</label>
+      <input type="text" id="pHinfahrtNotiz" placeholder="z.B. mit dem Auto über A8">
+    </div>
+    <div class="sidebar-title" style="margin:14px 0 4px;font-size:0.85rem;">🏠 Rückfahrt</div>
+    <div class="zeile" style="display:flex;gap:10px;">
+      <div class="feld" style="flex:1;">
+        <label for="pRueckfahrtStart">Rückfahrt-Start</label>
+        <input type="time" id="pRueckfahrtStart">
+      </div>
+      <div class="feld" style="flex:1;">
+        <label for="pEnde">Zurück (Ende)</label>
+        <input type="time" id="pEnde">
+      </div>
+    </div>
+    <div class="feld">
+      <label for="pRueckfahrtNotiz">Notiz zur Rückfahrt</label>
+      <input type="text" id="pRueckfahrtNotiz" placeholder="z.B. Stopp am Rasthof">
+    </div>
+    <div class="sidebar-title" style="margin:14px 0 4px;font-size:0.85rem;">🗺️ Route</div>
+    <div class="feld">
+      <label for="pRoute">Route / Zwischenstopps</label>
+      <textarea id="pRoute" rows="2" placeholder="z.B. über den Rastplatz Baden-Baden, dann..."></textarea>
+    </div>
+    <div class="feld">
+      <label for="pRouteLink">Link zu einer Karten-Route (optional)</label>
+      <input type="url" id="pRouteLink" placeholder="z.B. Google-Maps-Link">
+    </div>
+    <div class="sidebar-title" style="margin:14px 0 4px;font-size:0.85rem;">👪 Teilnehmer</div>
+    <div class="opt-reihe" id="pTeilnehmerReihe"></div>
+    <div class="sidebar-title" style="margin:14px 0 4px;font-size:0.85rem;">🎒 Packliste</div>
+    <div id="packlisteBox"></div>
+    <div style="display:flex;gap:8px;margin-top:6px;">
+      <input type="text" id="pPackNeu" placeholder="Gegenstand hinzufügen ..." style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid var(--parchment);font-family:'Inter',sans-serif;font-size:0.85rem;">
+      <button class="btn-secondary" id="btnPackHinzufuegen" style="width:auto;padding:8px 14px;">+</button>
+    </div>
+    <div class="feld" style="margin-top:14px;">
+      <label for="pNotiz">Notizen</label>
+      <textarea id="pNotiz" rows="3" placeholder="Sonstiges..."></textarea>
+    </div>
+
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnPlanungAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnPlanungSpeichern">💾 Speichern</button>
+    </div>
+    <div class="modal-btns" id="planungLoeschZeile" style="display:none;">
+      <button class="btn btn-danger" id="btnPlanungLoeschen">Ausflug löschen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Erlebt: Neu / Bearbeiten -->
+<div class="modal-bg" id="modalErlebt">
+  <div class="modal">
+    <h2 id="erlebtTitelKopf">Neue Erinnerung</h2>
+    <input type="hidden" id="eEditId" value="">
+    <div class="feld">
+      <label for="eTitel">Überschrift</label>
+      <input type="text" id="eTitel" placeholder="z.B. Tag im Zoo, Wanderung zum Gipfel ...">
+    </div>
+    <div class="feld">
+      <label for="eDatum">Datum</label>
+      <input type="date" id="eDatum">
+    </div>
+    <div class="feld">
+      <label for="eAusflugLink">Verknüpfter Ausflug (optional)</label>
+      <select id="eAusflugLink"></select>
+    </div>
+    <div class="feld">
+      <label for="eText">Text</label>
+      <textarea id="eText" rows="4" placeholder="Was habt ihr erlebt?"></textarea>
+    </div>
+    <div class="feld">
+      <label>Fotos</label>
+      <div class="foto-galerie-edit" id="fotoGalerieEdit">
+        <label class="fge-add" title="Foto hinzufügen">＋<input type="file" accept="image/*" id="eFotoInput" style="display:none;"></label>
+      </div>
+    </div>
+
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnErlebtAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnErlebtSpeichern">💾 Speichern</button>
+    </div>
+    <div class="modal-btns" id="erlebtLoeschZeile" style="display:none;">
+      <button class="btn btn-danger" id="btnErlebtLoeschen">Erinnerung löschen</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  const KEY_AUSFLUEGE = 'ausfluege_planung';
+  const KEY_ERLEBT = 'ausfluege_erlebt';
+
+  function laden(key, fallback) {
+    try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; }
+    catch (e) { return fallback; }
+  }
+  function speichern(key, wert) {
+    try { localStorage.setItem(key, JSON.stringify(wert)); }
+    catch (e) { console.warn('Ausflüge: Speichern fehlgeschlagen', key, e); alert('Speichern fehlgeschlagen – ist der Speicher voll?'); }
+    if (window._sync) window._sync.melde();
+  }
+  function neueId(prefix) { return prefix + Date.now() + Math.random().toString(36).slice(2, 7); }
+  function escapeHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+  function datumAnzeige(iso) {
+    if (!iso) return '';
+    const [j, m, t] = iso.split('-');
+    return t + '.' + m + '.' + j;
+  }
+  function PERSONEN() {
+    if (window.PLANER_PERSONEN && window.PLANER_PERSONEN.length) return window.PLANER_PERSONEN;
+    return [{ id: 'person1', label: 'Person 1', farbe: '#4f6f45' }, { id: 'person2', label: 'Person 2', farbe: '#5b8bb5' }];
+  }
+  function personLabel(id) {
+    const p = PERSONEN().find(x => x.id === id);
+    return p ? p.label : id;
+  }
+  function personFarbe(id) {
+    const p = PERSONEN().find(x => x.id === id);
+    return p ? p.farbe : '#7d6339';
+  }
+
+  let ausfluege = laden(KEY_AUSFLUEGE, []);
+  let erlebt = laden(KEY_ERLEBT, []);
+  let aktiveAnsicht = 'planung';
+
+  function ansichtAnwenden() {
+    document.getElementById('tabPlanung').classList.toggle('active', aktiveAnsicht === 'planung');
+    document.getElementById('tabErlebt').classList.toggle('active', aktiveAnsicht === 'erlebt');
+    document.getElementById('ansichtPlanung').style.display = aktiveAnsicht === 'planung' ? '' : 'none';
+    document.getElementById('ansichtErlebt').style.display = aktiveAnsicht === 'erlebt' ? '' : 'none';
+    document.getElementById('btnNeu').textContent = aktiveAnsicht === 'planung' ? '＋ Neu' : '＋ Neu';
+    if (aktiveAnsicht === 'erlebt') renderErlebt();
+  }
+  document.getElementById('tabPlanung').addEventListener('click', () => { aktiveAnsicht = 'planung'; ansichtAnwenden(); });
+  document.getElementById('tabErlebt').addEventListener('click', () => { aktiveAnsicht = 'erlebt'; ansichtAnwenden(); });
+
+  document.getElementById('btnNeu').addEventListener('click', () => {
+    if (aktiveAnsicht === 'planung') planungOeffnen(null);
+    else erlebtOeffnen(null);
+  });
+
+  // ============================================================
+  // PLANUNG
+  // ============================================================
+  function ausflugTitelKurz(a) {
+    return a.titel || a.ort || 'Ausflug';
+  }
+  function renderAusflugListe() {
+    const box = document.getElementById('ausflugListe');
+    const leer = document.getElementById('leerHinweisPlanung');
+    const liste = ausfluege.slice().sort((a, b) => (b.datum || '') < (a.datum || '') ? -1 : 1);
+    box.innerHTML = '';
+    leer.style.display = liste.length ? 'none' : '';
+    liste.forEach(a => {
+      const erledigt = (a.packliste || []).filter(p => p.erledigt).length;
+      const gesamt = (a.packliste || []).length;
+      const karte = document.createElement('div');
+      karte.className = 'ausflug-karte';
+      karte.innerHTML =
+        '<div class="ak-titel">' + escapeHtml(ausflugTitelKurz(a)) + '</div>' +
+        '<div class="ak-meta">' +
+          (a.ort ? '<span class="mini-chip">📍 ' + escapeHtml(a.ort) + '</span>' : '') +
+          (a.datum ? '<span class="mini-chip">🗓 ' + datumAnzeige(a.datum) + (a.datumBis ? ' – ' + datumAnzeige(a.datumBis) : '') + '</span>' : '') +
+          (a.teilnehmer || []).map(pid => '<span class="mini-chip person" style="background:' + personFarbe(pid) + '">' + escapeHtml(personLabel(pid)) + '</span>').join('') +
+        '</div>' +
+        (gesamt ? '<div class="ak-packfortschritt">🎒 ' + erledigt + ' / ' + gesamt + ' gepackt</div>' : '');
+      karte.addEventListener('click', () => planungOeffnen(a.id));
+      box.appendChild(karte);
+    });
+  }
+
+  let pTeilnehmerAuswahl = [];
+  let pPackliste = [];
+
+  function renderTeilnehmerReihe() {
+    const box = document.getElementById('pTeilnehmerReihe');
+    box.innerHTML = '';
+    PERSONEN().forEach(p => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      const aktiv = pTeilnehmerAuswahl.includes(p.id);
+      btn.className = 'opt' + (aktiv ? ' active' : '');
+      btn.textContent = p.label;
+      if (aktiv) btn.style.background = p.farbe || 'var(--moss)';
+      if (aktiv) btn.style.color = '#fff';
+      btn.addEventListener('click', () => {
+        if (pTeilnehmerAuswahl.includes(p.id)) pTeilnehmerAuswahl = pTeilnehmerAuswahl.filter(x => x !== p.id);
+        else pTeilnehmerAuswahl.push(p.id);
+        renderTeilnehmerReihe();
+      });
+      box.appendChild(btn);
+    });
+  }
+  function renderPackliste() {
+    const box = document.getElementById('packlisteBox');
+    box.innerHTML = '';
+    pPackliste.forEach((item, i) => {
+      const row = document.createElement('div');
+      row.className = 'packliste-item' + (item.erledigt ? ' erledigt' : '');
+      row.innerHTML =
+        '<input type="checkbox" ' + (item.erledigt ? 'checked' : '') + '>' +
+        '<span class="pli-text">' + escapeHtml(item.text) + '</span>' +
+        '<button type="button">✕</button>';
+      row.querySelector('input').addEventListener('change', (e) => { item.erledigt = e.target.checked; renderPackliste(); });
+      row.querySelector('button').addEventListener('click', () => { pPackliste.splice(i, 1); renderPackliste(); });
+      box.appendChild(row);
+    });
+  }
+  document.getElementById('btnPackHinzufuegen').addEventListener('click', () => {
+    const feld = document.getElementById('pPackNeu');
+    const text = feld.value.trim();
+    if (!text) return;
+    pPackliste.push({ id: neueId('pack'), text, erledigt: false });
+    feld.value = '';
+    renderPackliste();
+  });
+  document.getElementById('pPackNeu').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); document.getElementById('btnPackHinzufuegen').click(); }
+  });
+
+  let pEditId = null;
+  function planungOeffnen(id) {
+    pEditId = id || null;
+    const a = pEditId ? ausfluege.find(x => x.id === pEditId) : null;
+    document.getElementById('planungTitelKopf').textContent = a ? 'Ausflug bearbeiten' : 'Neuer Ausflug';
+    document.getElementById('pEditId').value = pEditId || '';
+    document.getElementById('pTitel').value = a ? (a.titel || '') : '';
+    document.getElementById('pOrt').value = a ? (a.ort || '') : '';
+    document.getElementById('pDatum').value = a ? (a.datum || '') : '';
+    document.getElementById('pDatumBis').value = a ? (a.datumBis || '') : '';
+    document.getElementById('pAbfahrt').value = a ? (a.abfahrt || '') : '';
+    document.getElementById('pAnkunft').value = a ? (a.ankunft || '') : '';
+    document.getElementById('pHinfahrtNotiz').value = a ? (a.hinfahrtNotiz || '') : '';
+    document.getElementById('pRueckfahrtStart').value = a ? (a.rueckfahrtStart || '') : '';
+    document.getElementById('pEnde').value = a ? (a.ende || '') : '';
+    document.getElementById('pRueckfahrtNotiz').value = a ? (a.rueckfahrtNotiz || '') : '';
+    document.getElementById('pRoute').value = a ? (a.route || '') : '';
+    document.getElementById('pRouteLink').value = a ? (a.routeLink || '') : '';
+    document.getElementById('pNotiz').value = a ? (a.notiz || '') : '';
+    pTeilnehmerAuswahl = a && Array.isArray(a.teilnehmer) ? a.teilnehmer.slice() : [];
+    pPackliste = a && Array.isArray(a.packliste) ? a.packliste.map(x => ({ ...x })) : [];
+    renderTeilnehmerReihe();
+    renderPackliste();
+    document.getElementById('planungLoeschZeile').style.display = a ? '' : 'none';
+    document.getElementById('modalPlanung').classList.add('zeigen');
+  }
+  document.getElementById('btnPlanungAbbrechen').addEventListener('click', () => document.getElementById('modalPlanung').classList.remove('zeigen'));
+  document.getElementById('modalPlanung').addEventListener('click', (e) => { if (e.target.id === 'modalPlanung') e.currentTarget.classList.remove('zeigen'); });
+
+  document.getElementById('btnPlanungSpeichern').addEventListener('click', () => {
+    const titel = document.getElementById('pTitel').value.trim();
+    const ort = document.getElementById('pOrt').value.trim();
+    if (!titel && !ort) { document.getElementById('pTitel').focus(); return; }
+    let a = pEditId ? ausfluege.find(x => x.id === pEditId) : null;
+    if (!a) { a = { id: neueId('ausflug') }; ausfluege.push(a); }
+    a.titel = titel;
+    a.ort = ort;
+    a.datum = document.getElementById('pDatum').value;
+    a.datumBis = document.getElementById('pDatumBis').value;
+    a.abfahrt = document.getElementById('pAbfahrt').value;
+    a.ankunft = document.getElementById('pAnkunft').value;
+    a.hinfahrtNotiz = document.getElementById('pHinfahrtNotiz').value.trim();
+    a.rueckfahrtStart = document.getElementById('pRueckfahrtStart').value;
+    a.ende = document.getElementById('pEnde').value;
+    a.rueckfahrtNotiz = document.getElementById('pRueckfahrtNotiz').value.trim();
+    a.route = document.getElementById('pRoute').value.trim();
+    a.routeLink = document.getElementById('pRouteLink').value.trim();
+    a.notiz = document.getElementById('pNotiz').value.trim();
+    a.teilnehmer = pTeilnehmerAuswahl.slice();
+    a.packliste = pPackliste.slice();
+    speichern(KEY_AUSFLUEGE, ausfluege);
+    document.getElementById('modalPlanung').classList.remove('zeigen');
+    renderAusflugListe();
+  });
+  document.getElementById('btnPlanungLoeschen').addEventListener('click', () => {
+    if (!pEditId) return;
+    if (!confirm('Diesen Ausflug wirklich löschen? Verknüpfte Erinnerungen bleiben erhalten, verlieren aber die Verknüpfung.')) return;
+    ausfluege = ausfluege.filter(a => a.id !== pEditId);
+    erlebt.forEach(e => { if (e.ausflugId === pEditId) e.ausflugId = ''; });
+    speichern(KEY_AUSFLUEGE, ausfluege);
+    speichern(KEY_ERLEBT, erlebt);
+    document.getElementById('modalPlanung').classList.remove('zeigen');
+    renderAusflugListe();
+  });
+
+  // ============================================================
+  // ERLEBT
+  // ============================================================
+  function renderErlebt() {
+    const box = document.getElementById('erlebtListe');
+    const leer = document.getElementById('leerHinweisErlebt');
+    const liste = erlebt.slice().sort((a, b) => (b.datum || '') < (a.datum || '') ? -1 : 1);
+    box.innerHTML = '';
+    leer.style.display = liste.length ? 'none' : '';
+    liste.forEach(e => {
+      const fotos = e.fotos || [];
+      const zeigen = fotos.slice(0, 4);
+      const rest = fotos.length - zeigen.length;
+      const ausflug = ausfluege.find(a => a.id === e.ausflugId);
+      const karte = document.createElement('div');
+      karte.className = 'erlebt-karte';
+      let fotosHtml = '';
+      if (zeigen.length) {
+        fotosHtml = '<div class="ek-fotos">' + zeigen.map((f, i) => {
+          if (i === zeigen.length - 1 && rest > 0) return '<div style="position:relative"><img src="' + f + '"><div class="ek-mehr" style="position:absolute;inset:0;">+' + rest + '</div></div>';
+          return '<img src="' + f + '">';
+        }).join('') + '</div>';
+      }
+      karte.innerHTML = fotosHtml +
+        '<div class="ek-body">' +
+          '<div class="ek-titel">' + escapeHtml(e.titel || 'Ohne Titel') + '</div>' +
+          '<div class="ek-datum">' + datumAnzeige(e.datum) + '</div>' +
+          (e.text ? '<div class="ek-text">' + escapeHtml(e.text) + '</div>' : '') +
+          (ausflug ? '<div class="ek-verknuepft">🔗 ' + escapeHtml(ausflugTitelKurz(ausflug)) + '</div>' : '') +
+        '</div>';
+      karte.addEventListener('click', () => erlebtOeffnen(e.id));
+      box.appendChild(karte);
+    });
+  }
+
+  let eEditId = null;
+  let eFotos = [];
+
+  function renderFotoGalerieEdit() {
+    const box = document.getElementById('fotoGalerieEdit');
+    box.querySelectorAll('.fge-item').forEach(el => el.remove());
+    const addLabel = box.querySelector('.fge-add');
+    eFotos.forEach((foto, i) => {
+      const item = document.createElement('div');
+      item.className = 'fge-item';
+      item.innerHTML = '<img src="' + foto + '"><button type="button">✕</button>';
+      item.querySelector('button').addEventListener('click', () => { eFotos.splice(i, 1); renderFotoGalerieEdit(); });
+      box.insertBefore(item, addLabel);
+    });
+  }
+  document.getElementById('eFotoInput').addEventListener('change', (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        const maxW = 640;
+        const scale = Math.min(1, maxW / img.width);
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        eFotos.push(canvas.toDataURL('image/jpeg', 0.72));
+        renderFotoGalerieEdit();
+      };
+      img.onerror = () => alert('Datei ist kein gültiges Bild.');
+      img.src = ev.target.result;
+    };
+    reader.onerror = () => alert('Foto konnte nicht gelesen werden.');
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  });
+
+  function ausflugAuswahlBefuellen(aktuelleId) {
+    const sel = document.getElementById('eAusflugLink');
+    const sortiert = ausfluege.slice().sort((a, b) => (b.datum || '') < (a.datum || '') ? -1 : 1);
+    sel.innerHTML = '<option value="">(kein verknüpfter Ausflug)</option>' +
+      sortiert.map(a => '<option value="' + a.id + '">' + escapeHtml(ausflugTitelKurz(a)) + (a.datum ? ' – ' + datumAnzeige(a.datum) : '') + '</option>').join('');
+    sel.value = aktuelleId || '';
+  }
+
+  function erlebtOeffnen(id) {
+    eEditId = id || null;
+    const e = eEditId ? erlebt.find(x => x.id === eEditId) : null;
+    document.getElementById('erlebtTitelKopf').textContent = e ? 'Erinnerung bearbeiten' : 'Neue Erinnerung';
+    document.getElementById('eEditId').value = eEditId || '';
+    document.getElementById('eTitel').value = e ? (e.titel || '') : '';
+    document.getElementById('eDatum').value = e ? (e.datum || '') : '';
+    document.getElementById('eText').value = e ? (e.text || '') : '';
+    ausflugAuswahlBefuellen(e ? e.ausflugId : '');
+    eFotos = e && Array.isArray(e.fotos) ? e.fotos.slice() : [];
+    renderFotoGalerieEdit();
+    document.getElementById('erlebtLoeschZeile').style.display = e ? '' : 'none';
+    document.getElementById('modalErlebt').classList.add('zeigen');
+  }
+  document.getElementById('btnErlebtAbbrechen').addEventListener('click', () => document.getElementById('modalErlebt').classList.remove('zeigen'));
+  document.getElementById('modalErlebt').addEventListener('click', (e) => { if (e.target.id === 'modalErlebt') e.currentTarget.classList.remove('zeigen'); });
+
+  document.getElementById('btnErlebtSpeichern').addEventListener('click', () => {
+    const titel = document.getElementById('eTitel').value.trim();
+    if (!titel) { document.getElementById('eTitel').focus(); return; }
+    let e = eEditId ? erlebt.find(x => x.id === eEditId) : null;
+    if (!e) { e = { id: neueId('erlebt') }; erlebt.push(e); }
+    e.titel = titel;
+    e.datum = document.getElementById('eDatum').value;
+    e.ausflugId = document.getElementById('eAusflugLink').value;
+    e.text = document.getElementById('eText').value.trim();
+    e.fotos = eFotos.slice();
+    speichern(KEY_ERLEBT, erlebt);
+    document.getElementById('modalErlebt').classList.remove('zeigen');
+    renderErlebt();
+  });
+  document.getElementById('btnErlebtLoeschen').addEventListener('click', () => {
+    if (!eEditId) return;
+    if (!confirm('Diese Erinnerung wirklich löschen?')) return;
+    erlebt = erlebt.filter(e => e.id !== eEditId);
+    speichern(KEY_ERLEBT, erlebt);
+    document.getElementById('modalErlebt').classList.remove('zeigen');
+    renderErlebt();
+  });
+
+
+  // --- Hintergrundmuster ---
+  (function () {
+    const KEY_THEME = 'ausfluege_hintergrundThema';
+    const KEY_FOTO = KEY_THEME.replace('hintergrundThema', 'hintergrundBildEigenes');
+    const klassen = ['bg-kompass', 'bg-karte'];
+    function themeAnwenden(id) {
+      document.body.classList.remove.apply(document.body.classList, klassen);
+      document.body.style.backgroundColor = '';
+    document.body.style.backgroundImage = '';
+    document.body.style.backgroundSize = '';
+    document.body.style.backgroundPosition = '';
+    document.body.style.backgroundRepeat = '';
+    var eigenesFoto = '';
+    try { eigenesFoto = localStorage.getItem(KEY_FOTO) || ''; } catch(e) {}
+    if (id === 'foto' && eigenesFoto) {
+      document.body.style.backgroundImage = 'linear-gradient(rgba(250,246,236,0.82),rgba(250,246,236,0.82)), url("' + eigenesFoto + '")';
+      document.body.style.backgroundSize = 'cover';
+      document.body.style.backgroundPosition = 'center';
+      document.body.style.backgroundRepeat = 'no-repeat';
+    }
+    else if (id && id.indexOf('farbe:') === 0) { document.body.style.backgroundColor = id.slice(6) + 'b3'; }
+    else if (id) document.body.classList.add(id);
+      document.querySelectorAll('.theme-swatch').forEach(s => s.classList.toggle('aktiv', s.dataset.theme === id));
+    }
+    let aktivesTheme = '';
+    try { aktivesTheme = localStorage.getItem(KEY_THEME) || ''; } catch (e) {}
+    themeAnwenden(aktivesTheme);
+  var customFarbeInput = document.querySelector('.theme-farbe-custom-input');
+  if (customFarbeInput) {
+    customFarbeInput.addEventListener('input', function() {
+      var neueId = 'farbe:' + customFarbeInput.value;
+      themeAnwenden(neueId);
+      try { localStorage.setItem(KEY_THEME, neueId); } catch(e) {}
+    });
+  }
+  var fotoInput = document.querySelector('.theme-foto-input');
+  if (fotoInput) {
+    fotoInput.addEventListener('change', function(e) {
+      var file = e.target.files && e.target.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function(ev) {
+        var img = new Image();
+        img.onload = function() {
+          var maxW = 900;
+          var scale = Math.min(1, maxW / img.width);
+          var canvas = document.createElement('canvas');
+          canvas.width = img.width * scale;
+          canvas.height = img.height * scale;
+          var ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          var dataUrl = canvas.toDataURL('image/jpeg', 0.65);
+          try {
+            localStorage.setItem(KEY_FOTO, dataUrl);
+            localStorage.setItem(KEY_THEME, 'foto');
+          } catch(err) { alert('Foto konnte nicht gespeichert werden (evtl. zu groß oder Speicher voll).'); return; }
+          themeAnwenden('foto');
+        };
+        img.onerror = function() { alert('Datei ist kein gültiges Bild.'); };
+        img.src = ev.target.result;
+      };
+      reader.onerror = function() { alert('Foto konnte nicht gelesen werden.'); };
+      reader.readAsDataURL(file);
+    });
+  }
+    const btn = document.getElementById('btnThemeAuswahl');
+    const popup = document.getElementById('themePopup');
+    btn.addEventListener('click', () => popup.classList.toggle('zeigen'));
+    document.querySelectorAll('.theme-swatch:not(.theme-farbe-custom):not(.theme-foto-swatch)').forEach(swatch => {
+      swatch.addEventListener('click', () => {
+        const id = swatch.dataset.theme;
+        themeAnwenden(id);
+        try { localStorage.setItem(KEY_THEME, id); } catch (e) {}
+        popup.classList.remove('zeigen');
+      });
+    });
+    document.addEventListener('click', (e) => {
+      if (popup.classList.contains('zeigen') && !popup.contains(e.target) && e.target.id !== 'btnThemeAuswahl') popup.classList.remove('zeigen');
+    });
+  })();
+
+  renderAusflugListe();
+
+  if (window.PlanerSync) {
+    window._sync = window.PlanerSync.starteSync({
+      modul: 'ausfluege',
+      keys: [KEY_AUSFLUEGE, KEY_ERLEBT],
+      onRemoteChange: function () {
+        ausfluege = laden(KEY_AUSFLUEGE, ausfluege);
+        erlebt = laden(KEY_ERLEBT, erlebt);
+        if (aktiveAnsicht === 'planung') renderAusflugListe(); else renderErlebt();
+      },
+    });
+  }
+})();
+</script>
+</body>
+</html>
