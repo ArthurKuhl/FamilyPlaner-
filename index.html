@@ -186,6 +186,11 @@
         <div style="font-size:0.7rem;color:var(--bark);margin-bottom:4px;">Euer Familien-Code (für weitere Geräte)</div>
         <div style="font-size:1.15rem;font-weight:700;letter-spacing:0.12em;color:var(--moss);" id="familienCodeAnzeige">------</div>
       </div>
+      <div style="margin-top:14px;padding-top:14px;border-top:1px solid #e5ddc8;text-align:center;">
+        <div style="font-size:0.7rem;color:var(--bark);margin-bottom:6px;">Wer nutzt dieses Gerät hauptsächlich?</div>
+        <select id="geraetIdentitaetAuswahl" style="padding:8px 12px;border-radius:10px;border:1px solid #ddd;font-family:'Inter',sans-serif;font-size:0.85rem;"></select>
+        <p style="font-size:0.65rem;color:var(--bark);opacity:0.75;margin-top:6px;line-height:1.4;">Wird genutzt, um Wünsche auszublenden, die vor dieser Person versteckt wurden (z.B. Geschenküberraschungen). Kein echter Passwortschutz – die Daten liegen weiterhin für alle in der gemeinsamen Cloud.</p>
+      </div>
     </div>
   </div>
 
@@ -497,7 +502,7 @@
     // ============================================================
     // Schlüssel, die bewusst NICHT exportiert/importiert werden: geräte-/sitzungsspezifisch,
     // würden auf einem anderen Gerät keinen Sinn ergeben oder sich automatisch neu bilden.
-    const BACKUP_AUSSCHLUSS = ['planer_geraeteId', 'planer_syncStatus'];
+    const BACKUP_AUSSCHLUSS = ['planer_geraeteId', 'planer_syncStatus', 'planer_geraetIdentitaet'];
 
     function alleBackupSchluessel() {
       const keys = [];
@@ -681,12 +686,28 @@
     });
 
     const modalBackup = document.getElementById('modalBackup');
+    const GERAET_IDENTITAET_KEY = 'planer_geraetIdentitaet';
+    function geraetIdentitaetAuswahlBefuellen() {
+      const sel = document.getElementById('geraetIdentitaetAuswahl');
+      if (!sel) return;
+      const personen = holePersonen();
+      let aktuell = '';
+      try { aktuell = localStorage.getItem(GERAET_IDENTITAET_KEY) || ''; } catch (e) {}
+      sel.innerHTML = '<option value="">(nicht festgelegt)</option>' +
+        personen.map(p => `<option value="${p.id}">${p.label}</option>`).join('');
+      sel.value = aktuell;
+    }
+    document.getElementById('geraetIdentitaetAuswahl').addEventListener('change', (e) => {
+      try { localStorage.setItem(GERAET_IDENTITAET_KEY, e.target.value); } catch (err) {}
+    });
+
     document.getElementById('btnBackup').addEventListener('click', () => {
       document.getElementById('backupStatus').textContent = '';
       backupErinnerungImModalAnzeigen();
       zeigeSpeicherNutzung();
       frageVersionAb();
       codeAnzeigenAktualisieren();
+      geraetIdentitaetAuswahlBefuellen();
       document.getElementById('fotoAufraeumListe').style.display = 'none';
       modalBackup.classList.add('zeigen');
     });

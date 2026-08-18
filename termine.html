@@ -263,6 +263,11 @@
         <label for="wunschNotiz">Notiz</label>
         <textarea id="wunschNotiz" placeholder="z.B. Größe, Farbe, Ausgabe"></textarea>
       </div>
+      <div class="form-row">
+        <label>🔒 Verstecken vor (optional, für Überraschungen)</label>
+        <div class="chip-select" id="wunschVersteckenReihe"></div>
+        <p style="font-size:0.68rem;opacity:0.65;margin-top:4px;">Kein echter Passwortschutz – blendet den Wunsch nur auf Geräten aus, die als "diese Person" eingestellt sind (💾-Menü in der Übersicht).</p>
+      </div>
       <div class="check-row">
         <input type="checkbox" id="wunschReserviert">
         <label for="wunschReserviert" style="margin:0">Schon besorgt/reserviert von jemandem</label>
@@ -656,11 +661,15 @@
           ${w.jahr ? `<span style="font-size:0.7rem;opacity:0.65">${escapeHtml(w.jahr)}</span>` : ''}
           <span>${prioIcon}</span>
           ${w.reserviert ? '<span style="font-size:0.7rem;background:#e4efe0;color:var(--moss);border-radius:10px;padding:1px 8px">✅ reserviert' + (w.reserviertVon ? ' von ' + escapeHtml(personLabel(w.reserviertVon)) : '') + '</span>' : ''}
+          ${w.versteckenVor && w.versteckenVor.length ? '<span style="font-size:0.7rem;background:#f3e6c9;color:#8a6a1f;border-radius:10px;padding:1px 8px">🔒 versteckt vor ' + w.versteckenVor.map(personLabel).map(escapeHtml).join(', ') + '</span>' : ''}
         </div>
         <div style="font-weight:700;margin-top:4px">${escapeHtml(w.name)}${w.preis ? ' <span style="font-weight:400;opacity:0.7;font-size:0.8rem">· ca. ' + escapeHtml(w.preis) + '</span>' : ''}</div>
         ${w.notiz ? `<div style="font-size:0.8rem;opacity:0.8;margin-top:2px">${escapeHtml(w.notiz)}</div>` : ''}
         ${linkHtml ? `<div style="margin-top:4px">${linkHtml}</div>` : ''}
       </div>`;
+    }
+    function geraetIdentitaet() {
+      try { return localStorage.getItem('planer_geraetIdentitaet') || ''; } catch (e) { return ''; }
     }
     function renderWunschliste() {
       renderAnlassFilter();
@@ -668,6 +677,8 @@
       let liste = wunschliste.slice();
       if (aktiverFilter !== 'alle') liste = liste.filter(w => w.person === aktiverFilter);
       if (anlassFilter !== 'alle') liste = liste.filter(w => w.anlass === anlassFilter);
+      const meineIdentitaet = geraetIdentitaet();
+      if (meineIdentitaet) liste = liste.filter(w => !w.versteckenVor || !w.versteckenVor.includes(meineIdentitaet));
 
       if (!liste.length) {
         box.innerHTML = '<p style="opacity:0.6;font-size:0.85rem;padding:14px 0">Noch keine Wünsche erfasst.</p>';
@@ -719,6 +730,7 @@
 
     // --- Formular ---
     let wunschEditPerson = 'familie', wunschEditAnlass = 'geburtstag', wunschEditReserviertVon = 'familie';
+    let wunschEditVersteckenVor = [];
     function optReiheRendernLokal(boxId, optionen, aktiv, onSelect, labelKey, idKey) {
       const box = document.getElementById(boxId);
       box.innerHTML = '';
@@ -735,6 +747,27 @@
     function renderWunschPersonReihe() { optReiheRendernLokal('wunschPersonReihe', WER_OPTIONEN, wunschEditPerson, (id)=>{wunschEditPerson=id;renderWunschPersonReihe();}, 'label', 'id'); }
     function renderWunschAnlassReihe() { optReiheRendernLokal('wunschAnlassReihe', ANLAESSE, wunschEditAnlass, (id)=>{wunschEditAnlass=id;renderWunschAnlassReihe();}, 'label', 'id'); }
     function renderWunschReserviertVonReihe() { optReiheRendernLokal('wunschReserviertVonReihe', WER_OPTIONEN, wunschEditReserviertVon, (id)=>{wunschEditReserviertVon=id;renderWunschReserviertVonReihe();}, 'label', 'id'); }
+    function renderWunschVersteckenReihe() {
+      const box = document.getElementById('wunschVersteckenReihe');
+      box.innerHTML = '';
+      WER_OPTIONEN.forEach(o => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        const aktiv = wunschEditVersteckenVor.includes(o.id);
+        btn.className = 'opt' + (aktiv ? ' active' : '');
+        btn.textContent = o.label;
+        if (aktiv) btn.style.background = o.farbe || 'var(--moss)';
+        btn.addEventListener('click', () => {
+          if (wunschEditVersteckenVor.includes(o.id)) {
+            wunschEditVersteckenVor = wunschEditVersteckenVor.filter(x => x !== o.id);
+          } else {
+            wunschEditVersteckenVor.push(o.id);
+          }
+          renderWunschVersteckenReihe();
+        });
+        box.appendChild(btn);
+      });
+    }
 
     document.getElementById('wunschReserviert').addEventListener('change', (e) => {
       document.getElementById('wunschReserviertVonFeld').style.display = e.target.checked ? '' : 'none';
@@ -755,7 +788,8 @@
       wunschEditPerson = w ? w.person : (aktiverFilter!=='alle' ? aktiverFilter : 'familie');
       wunschEditAnlass = w ? w.anlass : (anlassFilter !== 'alle' ? anlassFilter : 'geburtstag');
       wunschEditReserviertVon = w ? (w.reserviertVon || 'familie') : 'familie';
-      renderWunschPersonReihe(); renderWunschAnlassReihe(); renderWunschReserviertVonReihe();
+      wunschEditVersteckenVor = w && Array.isArray(w.versteckenVor) ? w.versteckenVor.slice() : [];
+      renderWunschPersonReihe(); renderWunschAnlassReihe(); renderWunschReserviertVonReihe(); renderWunschVersteckenReihe();
       document.getElementById('btnWunschLoeschen').style.display = w ? '' : 'none';
       document.getElementById('wunschModal').style.display = 'flex';
     }
@@ -775,6 +809,7 @@
         notiz: document.getElementById('wunschNotiz').value.trim(),
         reserviert: document.getElementById('wunschReserviert').checked,
         reserviertVon: document.getElementById('wunschReserviert').checked ? wunschEditReserviertVon : '',
+        versteckenVor: wunschEditVersteckenVor.slice(),
       };
       if (id) {
         const w = wunschliste.find(x=>x.id===id);
