@@ -30,9 +30,14 @@
   }
   .theme-btn { background: none; border: none; color: var(--leaf); font-size: 1.1rem; cursor: pointer; padding: 4px 6px; flex-shrink: 0; }
   .theme-popup { display: none; position: absolute; right: 12px; top: 54px; background: var(--white); border-radius: var(--radius-md); box-shadow: var(--shadow-md); padding: 10px; z-index: 50; }
-  .theme-popup.zeigen { display: flex; gap: 8px; }
+  .theme-popup.zeigen { display: flex; gap: 8px; flex-wrap: wrap; max-width: 216px; }
   .theme-swatch { width: 40px; height: 40px; border-radius: var(--radius-sm); border: 2px solid transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; background: var(--cream); }
   .theme-swatch.aktiv { border-color: var(--moss); }
+  .theme-farbe-trenner { flex-basis: 100%; height: 1px; background: rgba(0,0,0,0.08); margin: 2px 0; }
+  .theme-swatch.farbe { border: 2px solid rgba(0,0,0,0.1); }
+  .theme-swatch.farbe.aktiv { border-color: var(--moss); border-width: 3px; }
+  .theme-farbe-custom { position: relative; overflow: hidden; background: conic-gradient(red,yellow,lime,cyan,blue,magenta,red); }
+  .theme-farbe-custom-input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; border: none; padding: 0; }
   button, input, select, textarea { font-family: inherit; -webkit-tap-highlight-color: transparent; }
   :focus-visible { outline: 2px solid var(--terracotta); outline-offset: 2px; border-radius: 4px; }
 
@@ -245,6 +250,18 @@
     <div class="theme-swatch" data-theme="bg-kueche" title="Küchenmotive">🍳</div>
     <div class="theme-swatch" data-theme="bg-kraeuter" title="Kräuter &amp; Blumen">🌿</div>
     <div class="theme-swatch" data-theme="bg-fruechte" title="Früchte &amp; Beeren">🍓</div>
+    <div class="theme-farbe-trenner"></div>
+    <div class="theme-swatch farbe" data-theme="farbe:#f7d9dd" style="background:#f7d9dd" title="Pastell Rosa"></div>
+    <div class="theme-swatch farbe" data-theme="farbe:#d9ebf7" style="background:#d9ebf7" title="Pastell Blau"></div>
+    <div class="theme-swatch farbe" data-theme="farbe:#dcefd9" style="background:#dcefd9" title="Pastell Grün"></div>
+    <div class="theme-swatch farbe" data-theme="farbe:#f7ecd9" style="background:#f7ecd9" title="Pastell Gelb"></div>
+    <div class="theme-swatch farbe" data-theme="farbe:#e8d9f7" style="background:#e8d9f7" title="Pastell Lila"></div>
+    <div class="theme-swatch farbe" data-theme="farbe:#f7d9c4" style="background:#f7d9c4" title="Pastell Pfirsich"></div>
+    <div class="theme-swatch farbe" data-theme="farbe:#a8dadc" style="background:#a8dadc" title="Türkis"></div>
+    <div class="theme-swatch farbe" data-theme="farbe:#f4a261" style="background:#f4a261" title="Koralle"></div>
+    <label class="theme-swatch farbe theme-farbe-custom" title="Eigene Farbe">
+      <input type="color" class="theme-farbe-custom-input" value="#f7d9dd">
+    </label>
   </div>
 </header>
 
@@ -991,16 +1008,26 @@
   const KEY_THEME = 'kochen_hintergrundThema';
   function themeAnwenden(id) {
     document.body.classList.remove('bg-kueche', 'bg-kraeuter', 'bg-fruechte');
-    if (id) document.body.classList.add(id);
+    document.body.style.backgroundColor = '';
+    if (id && id.indexOf('farbe:') === 0) { document.body.style.backgroundColor = id.slice(6) + 'b3'; }
+    else if (id) document.body.classList.add(id);
     document.querySelectorAll('.theme-swatch').forEach(s => s.classList.toggle('aktiv', s.dataset.theme === id));
   }
   let aktivesTheme = '';
   try { aktivesTheme = localStorage.getItem(KEY_THEME) || ''; } catch(e) {}
   themeAnwenden(aktivesTheme);
+  var customFarbeInput = document.querySelector('.theme-farbe-custom-input');
+  if (customFarbeInput) {
+    customFarbeInput.addEventListener('input', function() {
+      var neueId = 'farbe:' + customFarbeInput.value;
+      themeAnwenden(neueId);
+      try { localStorage.setItem(KEY_THEME, neueId); } catch(e) {}
+    });
+  }
   document.getElementById('btnThemeAuswahl').addEventListener('click', () => {
     document.getElementById('themePopup').classList.toggle('zeigen');
   });
-  document.querySelectorAll('.theme-swatch').forEach(swatch => {
+  document.querySelectorAll('.theme-swatch:not(.theme-farbe-custom)').forEach(swatch => {
     swatch.addEventListener('click', () => {
       const id = swatch.dataset.theme;
       themeAnwenden(id);
