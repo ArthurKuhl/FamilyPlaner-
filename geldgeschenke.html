@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Geldgeschenke</title>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
+<script src="personen.js"></script>
+<script src="sync.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap');
+  :root {
+    --soil: #3a2e1f; --moss: #4f6f45; --sage: #7fa476; --leaf: #bcd196;
+    --cream: #faf6ec; --parchment: #ece0c7; --bark: #7d6339;
+    --terracotta: #c46b41; --terracotta-text: #a8532e; --sky: #5b8bb5;
+    --white: #fffdf8; --navbg: #2a2016;
+    --radius-sm: 8px; --radius-md: 12px; --radius-lg: 18px; --radius-pill: 22px;
+    --shadow-soft: 0 2px 10px rgba(59,47,30,0.08); --shadow-md: 0 8px 26px rgba(59,47,30,0.2);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--cream); color: var(--soil); min-height: 100vh; padding-bottom: 40px; }
+
+  .theme-btn { background: none; border: none; color: var(--leaf); font-size: 1.1rem; cursor: pointer; padding: 4px 6px; flex-shrink: 0; }
+  .theme-popup { display: none; position: absolute; right: 12px; top: 54px; background: var(--white); border-radius: var(--radius-md); box-shadow: var(--shadow-md); padding: 10px; z-index: 50; }
+  .theme-popup.zeigen { display: flex; gap: 8px; flex-wrap: wrap; max-width: 216px; }
+  .theme-swatch { width: 40px; height: 40px; border-radius: var(--radius-sm); border: 2px solid transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; background: var(--cream); }
+  .theme-swatch.aktiv { border-color: var(--moss); }
+  .theme-farbe-trenner { flex-basis: 100%; height: 1px; background: rgba(0,0,0,0.08); margin: 2px 0; }
+  .theme-swatch.farbe { border: 2px solid rgba(0,0,0,0.1); }
+  .theme-swatch.farbe.aktiv { border-color: var(--moss); border-width: 3px; }
+  .theme-farbe-custom { position: relative; overflow: hidden; background: conic-gradient(red,yellow,lime,cyan,blue,magenta,red); }
+  .theme-farbe-custom-input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; border: none; padding: 0; }
+  body.bg-muenzen {
+    background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22190%22%20height%3D%22190%22%20viewBox%3D%220%200%20190%20190%22%3E%3Cg%20opacity%3D%220.1%22%3E%3Cg%20transform%3D%22translate%2830%2C30%29%20scale%280.85%29%20rotate%28-12%29%22%3E%3Ccircle%20cx%3D%220%22%20cy%3D%220%22%20r%3D%2211%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22/%3E%3Ccircle%20cx%3D%220%22%20cy%3D%220%22%20r%3D%226.5%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22/%3E%3Cline%20x1%3D%220%22%20y1%3D%22-3.5%22%20x2%3D%220%22%20y2%3D%223.5%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3Cline%20x1%3D%22-3%22%20y1%3D%22-1.5%22%20x2%3D%223%22%20y2%3D%22-1.5%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%28140%2C50%29%20scale%280.75%29%20rotate%2820%29%22%3E%3Ccircle%20cx%3D%220%22%20cy%3D%220%22%20r%3D%2211%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22/%3E%3Ccircle%20cx%3D%220%22%20cy%3D%220%22%20r%3D%226.5%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22/%3E%3Cline%20x1%3D%220%22%20y1%3D%22-3.5%22%20x2%3D%220%22%20y2%3D%223.5%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3Cline%20x1%3D%22-3%22%20y1%3D%22-1.5%22%20x2%3D%223%22%20y2%3D%22-1.5%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%2885%2C140%29%20scale%280.8%29%20rotate%28-8%29%22%3E%3Ccircle%20cx%3D%220%22%20cy%3D%220%22%20r%3D%2211%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22/%3E%3Ccircle%20cx%3D%220%22%20cy%3D%220%22%20r%3D%226.5%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22/%3E%3Cline%20x1%3D%220%22%20y1%3D%22-3.5%22%20x2%3D%220%22%20y2%3D%223.5%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3Cline%20x1%3D%22-3%22%20y1%3D%22-1.5%22%20x2%3D%223%22%20y2%3D%22-1.5%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    background-repeat: repeat;
+  }
+  body.bg-geschenk {
+    background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22190%22%20height%3D%22190%22%20viewBox%3D%220%200%20190%20190%22%3E%3Cg%20opacity%3D%220.1%22%3E%3Cg%20transform%3D%22translate%2830%2C35%29%20scale%280.75%29%20rotate%28-10%29%22%3E%3Crect%20x%3D%22-14%22%20y%3D%22-2%22%20width%3D%2228%22%20height%3D%2226%22%20rx%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22/%3E%3Cline%20x1%3D%22-14%22%20y1%3D%2210%22%20x2%3D%2214%22%20y2%3D%2210%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3Cline%20x1%3D%220%22%20y1%3D%22-2%22%20x2%3D%220%22%20y2%3D%2224%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3Cpath%20d%3D%22M%200%20-2%20C%20-6%20-14%2C%20-18%20-10%2C%20-12%20-2%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M%200%20-2%20C%206%20-14%2C%2018%20-10%2C%2012%20-2%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%28145%2C30%29%20scale%280.65%29%20rotate%2815%29%22%3E%3Crect%20x%3D%22-14%22%20y%3D%22-2%22%20width%3D%2228%22%20height%3D%2226%22%20rx%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22/%3E%3Cline%20x1%3D%22-14%22%20y1%3D%2210%22%20x2%3D%2214%22%20y2%3D%2210%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3Cline%20x1%3D%220%22%20y1%3D%22-2%22%20x2%3D%220%22%20y2%3D%2224%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3Cpath%20d%3D%22M%200%20-2%20C%20-6%20-14%2C%20-18%20-10%2C%20-12%20-2%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M%200%20-2%20C%206%20-14%2C%2018%20-10%2C%2012%20-2%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%2890%2C135%29%20scale%280.7%29%20rotate%28-5%29%22%3E%3Crect%20x%3D%22-14%22%20y%3D%22-2%22%20width%3D%2228%22%20height%3D%2226%22%20rx%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22/%3E%3Cline%20x1%3D%22-14%22%20y1%3D%2210%22%20x2%3D%2214%22%20y2%3D%2210%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3Cline%20x1%3D%220%22%20y1%3D%22-2%22%20x2%3D%220%22%20y2%3D%2224%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3Cpath%20d%3D%22M%200%20-2%20C%20-6%20-14%2C%20-18%20-10%2C%20-12%20-2%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M%200%20-2%20C%206%20-14%2C%2018%20-10%2C%2012%20-2%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    background-repeat: repeat;
+  }
+  button, input, select, textarea { font-family: inherit; -webkit-tap-highlight-color: transparent; }
+  :focus-visible { outline: 2px solid var(--terracotta); outline-offset: 2px; border-radius: 4px; }
+
+  header.top { background: var(--navbg); color: var(--leaf); padding: 10px 12px; }
+  header.top .titel-zeile { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  header.top h1 { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; }
+  .add-btn { background: var(--terracotta); color: var(--white); border: none; border-radius: var(--radius-pill); font-size: 0.82rem; font-weight: 700; padding: 7px 15px; cursor: pointer; }
+  .filter-reihe { display: flex; gap: 5px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px; scrollbar-width: none; }
+  .filter-reihe::-webkit-scrollbar { display: none; }
+  .filter-chip { flex: 0 0 auto; background: transparent; border: 1px solid #4a3a28; color: var(--sage); font-size: 0.72rem; font-weight: 600; padding: 5px 12px; border-radius: var(--radius-pill); cursor: pointer; white-space: nowrap; }
+  .filter-chip.active { background: var(--moss); color: var(--leaf); border-color: var(--moss); }
+
+  main { padding: 12px 14px; max-width: 680px; margin: 0 auto; }
+  @media (min-width: 1000px) {
+    main { max-width: 1200px; }
+    .geschenk-liste { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+  }
+
+  .geschenk-liste { display: grid; grid-template-columns: 1fr; gap: 10px; }
+  .geschenk-karte { background: var(--white); border-radius: var(--radius-md); padding: 12px 14px; box-shadow: var(--shadow-soft); display: flex; align-items: center; gap: 10px; cursor: pointer; border-left: 4px solid var(--parchment); }
+  .gk-icon { font-size: 1.5rem; flex-shrink: 0; }
+  .gk-body { flex: 1; min-width: 0; }
+  .gk-titel { font-size: 0.9rem; font-weight: 700; line-height: 1.25; }
+  .gk-meta { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 5px; }
+  .gk-betrag { font-size: 1.05rem; font-weight: 700; color: var(--moss); flex-shrink: 0; white-space: nowrap; }
+  .mini-chip { font-size: 0.62rem; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-pill); white-space: nowrap; background: var(--parchment); color: var(--bark); }
+  .mini-chip.person { color: var(--white); }
+  .person-uebersicht-karte { background: var(--white); border-radius: var(--radius-md); padding: 14px; box-shadow: var(--shadow-soft); margin-bottom: 10px; }
+  .puk-kopf { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
+  .puk-name { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1rem; color: var(--soil); }
+  .puk-summe { font-weight: 700; font-size: 1.1rem; color: var(--moss); }
+  .puk-eintrag { display: flex; justify-content: space-between; font-size: 0.78rem; padding: 4px 0; border-top: 1px solid var(--parchment); color: var(--bark); }
+  .puk-eintrag .pe-betrag { font-weight: 700; color: var(--soil); }
+
+  .leer-hinweis { text-align: center; color: var(--bark); font-size: 0.85rem; padding: 46px 16px; opacity: 0.75; }
+  .leer-hinweis .em { font-size: 2.2rem; display: block; margin-bottom: 8px; }
+
+  .modal-bg { position: fixed; inset: 0; background: rgba(42,32,22,0.45); display: none; align-items: flex-end; justify-content: center; z-index: 100; padding-top: 6vh; }
+  .modal-bg.zeigen { display: flex; }
+  .modal { background: var(--cream); border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding: 18px 18px 24px; width: 100%; max-width: 540px; max-height: 92vh; overflow-y: auto; box-shadow: var(--shadow-md); }
+  @media (min-width: 600px) { .modal-bg { align-items: center; } .modal { border-radius: var(--radius-lg); } }
+  .modal h2 { font-family: 'Playfair Display', serif; font-size: 1.15rem; margin-bottom: 12px; }
+
+  .feld { margin-bottom: 12px; }
+  .feld label { display: block; font-size: 0.7rem; font-weight: 700; color: var(--bark); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.03em; }
+  .feld input, .feld select, .feld textarea { width: 100%; padding: 9px 11px; border: 1px solid var(--parchment); border-radius: var(--radius-sm); font-size: 0.9rem; background: var(--white); color: var(--soil); }
+  .opt-reihe { display: flex; gap: 6px; flex-wrap: wrap; }
+  .opt { padding: 6px 12px; border-radius: var(--radius-pill); font-size: 0.75rem; font-weight: 600; border: 1px solid var(--parchment); background: var(--white); color: var(--bark); cursor: pointer; }
+  .opt.aktiv { color: var(--white); border-color: transparent; background: var(--moss); }
+  .opt.klein { padding: 5px 10px; font-size: 0.72rem; }
+
+  .modal-btns { display: flex; gap: 8px; margin-top: 18px; }
+  .btn { flex: 1; padding: 11px; border-radius: var(--radius-pill); border: none; font-weight: 700; font-size: 0.85rem; cursor: pointer; }
+  .btn-primary { background: var(--moss); color: var(--leaf); }
+  .btn-secondary { background: var(--white); color: var(--bark); border: 1px solid var(--parchment); }
+  .btn-danger { background: transparent; color: var(--terracotta-text); border: 1px solid var(--terracotta); }
+
+  .unterliste-titel { font-size: 0.72rem; font-weight: 700; color: var(--bark); text-transform: uppercase; letter-spacing: 0.03em; margin: 16px 0 6px; }
+  .verlauf-liste { list-style: none; }
+  .verlauf-liste li { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid var(--parchment); font-size: 0.8rem; }
+  .verlauf-liste .v-wer { font-weight: 700; }
+  .verlauf-leer { font-size: 0.8rem; color: var(--bark); opacity: 0.7; padding: 4px 0; }
+
+  /* Sehr breite Bildschirme: Content etwas breiter + dezente Deko-Streifen im Rand */
+  .deko-rand { display: none; position: fixed; top: 0; bottom: 0; width: 220px; background-repeat: repeat-y; background-position: center top; pointer-events: none; z-index: -1; }
+  .deko-rand.links { left: 0; }
+  .deko-rand.rechts { right: 0; transform: scaleX(-1); }
+  @media (min-width: 1600px) {
+    main { max-width: 1440px; }
+    .deko-rand { display: block; background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22220%22%20height%3D%221400%22%20viewBox%3D%220%200%20220%201400%22%3E%3Cg%20opacity%3D%220.16%22%3E%3Cg%20transform%3D%22translate%2860%2C90%29%20scale%280.85%29%20rotate%28-12%29%22%3E%3Cline%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%2222%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22/%3E%3Cpath%20d%3D%22M%20-10%2022%20L%2010%2022%20L%206%2038%20L%20-6%2038%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%28150%2C260%29%20scale%280.85%29%20rotate%2815%29%22%3E%3Cpath%20d%3D%22M%20-16%200%20L%200%20-16%20L%2016%200%20L%2016%2020%20L%20-16%2020%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%2860%2C430%29%20scale%280.85%29%20rotate%28-6%29%22%3E%3Crect%20x%3D%22-12%22%20y%3D%22-4%22%20width%3D%2224%22%20height%3D%224%22%20rx%3D%221%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22/%3E%3Cpath%20d%3D%22M%20-14%200%20C%20-14%20-2%2C%20-12%20-4%2C%20-8%20-4%20L%208%20-4%20C%2012%20-4%2C%2014%20-2%2C%2014%200%20L%2014%2030%20C%2014%2034%2C%2010%2036%2C%200%2036%20C%20-10%2036%2C%20-14%2034%2C%20-14%2030%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%28150%2C640%29%20scale%280.85%29%20rotate%2810%29%22%3E%3Cline%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%2222%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22/%3E%3Cpath%20d%3D%22M%20-10%2022%20L%2010%2022%20L%206%2038%20L%20-6%2038%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%2860%2C810%29%20scale%280.85%29%20rotate%28-15%29%22%3E%3Cpath%20d%3D%22M%20-16%200%20L%200%20-16%20L%2016%200%20L%2016%2020%20L%20-16%2020%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%28150%2C980%29%20scale%280.85%29%20rotate%286%29%22%3E%3Crect%20x%3D%22-12%22%20y%3D%22-4%22%20width%3D%2224%22%20height%3D%224%22%20rx%3D%221%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22/%3E%3Cpath%20d%3D%22M%20-14%200%20C%20-14%20-2%2C%20-12%20-4%2C%20-8%20-4%20L%208%20-4%20C%2012%20-4%2C%2014%20-2%2C%2014%200%20L%2014%2030%20C%2014%2034%2C%2010%2036%2C%200%2036%20C%20-10%2036%2C%20-14%2034%2C%20-14%2030%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%2860%2C1180%29%20scale%280.85%29%20rotate%28-10%29%22%3E%3Cline%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%2222%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22/%3E%3Cpath%20d%3D%22M%20-10%2022%20L%2010%2022%20L%206%2038%20L%20-6%2038%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%28150%2C1340%29%20scale%280.85%29%20rotate%2812%29%22%3E%3Cpath%20d%3D%22M%20-16%200%20L%200%20-16%20L%2016%200%20L%2016%2020%20L%20-16%2020%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); }
+  }
+  .ansicht-tabs { display: flex; gap: 6px; margin-bottom: 8px; }
+  .ansicht-tab { flex: 1; background: transparent; border: 1px solid #4a3a28; color: var(--sage); font-size: 0.78rem; font-weight: 700; padding: 7px 10px; border-radius: var(--radius-pill); cursor: pointer; }
+  .ansicht-tab.active { background: var(--terracotta); color: var(--white); border-color: var(--terracotta); }
+  .info-karte { background: var(--white); border-radius: var(--radius-md); margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); overflow: hidden; }
+  .info-karte summary { padding: 14px; font-weight: 700; color: var(--soil); cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; }
+  .info-karte summary::-webkit-details-marker { display: none; }
+  .info-karte summary::after { content: '▾'; color: var(--terracotta); transition: transform 0.2s; flex-shrink: 0; margin-left: 8px; }
+  .info-karte[open] summary::after { transform: rotate(180deg); }
+  .info-inhalt { padding: 0 14px 16px; font-size: 0.82rem; color: var(--bark); line-height: 1.55; }
+  .info-inhalt p { margin: 0 0 10px; }
+  .info-inhalt ul { margin: 0 0 10px; padding-left: 18px; }
+  .info-inhalt li { margin-bottom: 5px; }
+  .info-inhalt strong { color: var(--soil); }
+  .info-disclaimer { background: #fff3d9; border: 1px solid #e0c27a; border-radius: var(--radius-md); padding: 12px 14px; font-size: 0.78rem; color: #6b5220; margin-bottom: 14px; line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class="deko-rand links" aria-hidden="true"></div>
+<div class="deko-rand rechts" aria-hidden="true"></div>
+
+
+<header class="top">
+  <div class="titel-zeile">
+    <h1>💶 Geldgeschenke</h1>
+    <button class="theme-btn" id="btnThemeAuswahl" title="Hintergrundmuster wählen">🎨</button>
+    <button class="add-btn" id="btnNeu">＋ Neu</button>
+  </div>
+  <div class="filter-reihe" id="filterReihe"></div>
+</header>
+  <div class="theme-popup" id="themePopup">
+    <div class="theme-swatch" data-theme="" title="Kein Muster">✕</div>
+    <div class="theme-swatch" data-theme="bg-muenzen" title="Münzen">🪙</div>
+    <div class="theme-swatch" data-theme="bg-geschenk" title="Geschenke">🎁</div>
+    <div class="theme-farbe-trenner"></div>
+    <div class="theme-swatch farbe" data-theme="farbe:#f7d9dd" style="background:#f7d9dd" title="Pastell Rosa"></div>
+    <div class="theme-swatch farbe" data-theme="farbe:#d9ebf7" style="background:#d9ebf7" title="Pastell Blau"></div>
+    <div class="theme-swatch farbe" data-theme="farbe:#dcefd9" style="background:#dcefd9" title="Pastell Grün"></div>
+    <div class="theme-swatch farbe" data-theme="farbe:#f7ecd9" style="background:#f7ecd9" title="Pastell Gelb"></div>
+    <div class="theme-swatch farbe" data-theme="farbe:#e8d9f7" style="background:#e8d9f7" title="Pastell Lila"></div>
+    <div class="theme-swatch farbe" data-theme="farbe:#f7d9c4" style="background:#f7d9c4" title="Pastell Pfirsich"></div>
+    <div class="theme-swatch farbe" data-theme="farbe:#a8dadc" style="background:#a8dadc" title="Türkis"></div>
+    <div class="theme-swatch farbe" data-theme="farbe:#f4a261" style="background:#f4a261" title="Koralle"></div>
+    <label class="theme-swatch farbe theme-farbe-custom" title="Eigene Farbe">
+      <input type="color" class="theme-farbe-custom-input" value="#f7d9dd">
+    </label>
+  </div>
+
+<main>
+  <div class="ansicht-tabs">
+    <button class="ansicht-tab active" id="tabListe">📋 Liste</button>
+    <button class="ansicht-tab" id="tabUebersicht">👤 Übersicht nach Person</button>
+  </div>
+
+  <div id="ansichtListe">
+    <div class="filter-reihe" id="anlassFilterReihe" style="margin-bottom:8px;"></div>
+    <div class="geschenk-liste" id="geschenkListe"></div>
+    <div class="leer-hinweis" id="leerHinweis" style="display:none;">
+      <span class="em">💶</span>
+      Noch keine Geldgeschenke erfasst.<br>Tippe auf „＋ Neu", um den ersten Eintrag anzulegen.
+    </div>
+  </div>
+
+  <div id="ansichtUebersicht" style="display:none;">
+    <p style="font-size:0.78rem;color:var(--bark);margin-bottom:12px;">Summe pro Person, über alle Anlässe und Jahre hinweg – hilft bei der Einschätzung für ein gleichwertiges Geschenk.</p>
+    <div id="uebersichtListe"></div>
+    <div class="leer-hinweis" id="uebersichtLeer" style="display:none;">
+      <span class="em">👤</span>
+      Noch nichts zu übersehen – erst ein paar Geldgeschenke erfassen.
+    </div>
+  </div>
+</main>
+
+<!-- Neu / Bearbeiten -->
+<div class="modal-bg" id="modalEdit">
+  <div class="modal">
+    <h2 id="editTitelKopf">Neues Geldgeschenk</h2>
+    <input type="hidden" id="editId" value="">
+    <div class="feld">
+      <label for="fVon">Von wem?</label>
+      <input type="text" id="fVon" list="vonHistorieListe" placeholder="z.B. Oma Erika, Tante Sabine ...">
+      <datalist id="vonHistorieListe"></datalist>
+    </div>
+    <div class="feld">
+      <label>Für wen (Familienmitglied)?</label>
+      <div class="opt-reihe" id="fuerPersonReihe"></div>
+    </div>
+    <div class="feld">
+      <label>Anlass</label>
+      <div class="opt-reihe" id="anlassReihe"></div>
+    </div>
+    <div class="feld" id="anlassSonstigesFeld" style="display:none;">
+      <label for="fAnlassSonstiges">Anlass (frei)</label>
+      <input type="text" id="fAnlassSonstiges" placeholder="z.B. Konfirmation">
+    </div>
+    <div class="zeile" style="display:flex;gap:10px;">
+      <div class="feld" style="flex:1;">
+        <label for="fBetrag">Betrag (€)</label>
+        <input type="number" id="fBetrag" min="0" step="1" placeholder="z.B. 50">
+      </div>
+      <div class="feld" style="flex:1;">
+        <label for="fDatum">Datum</label>
+        <input type="date" id="fDatum">
+      </div>
+    </div>
+    <div class="feld">
+      <label for="fNotiz">Notiz (optional)</label>
+      <textarea id="fNotiz" rows="2" placeholder="z.B. zusätzlich ein Buch geschenkt"></textarea>
+    </div>
+
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnEditAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnEditSpeichern">💾 Speichern</button>
+    </div>
+    <div class="modal-btns" id="editLoeschZeile" style="display:none;">
+      <button class="btn btn-danger" id="btnEditLoeschen">Eintrag löschen</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  const KEY_GESCHENKE = 'geldgeschenke_liste';
+
+  function laden(key, fallback) {
+    try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; }
+    catch (e) { return fallback; }
+  }
+  function speichern(key, wert) {
+    try { localStorage.setItem(key, JSON.stringify(wert)); }
+    catch (e) { console.warn('Geldgeschenke: Speichern fehlgeschlagen', key, e); alert('Speichern fehlgeschlagen – ist der Speicher voll?'); }
+    if (window._sync) window._sync.melde();
+  }
+  function neueId(prefix) { return prefix + Date.now() + Math.random().toString(36).slice(2, 7); }
+  function escapeHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+  function heuteISO() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  function datumAnzeige(iso) {
+    if (!iso) return '';
+    const [j, m, t] = iso.split('-');
+    return t + '.' + m + '.' + j;
+  }
+  function PERSONEN() {
+    if (window.PLANER_PERSONEN && window.PLANER_PERSONEN.length) return window.PLANER_PERSONEN;
+    return [{ id: 'person1', label: 'Person 1', farbe: '#4f6f45' }, { id: 'person2', label: 'Person 2', farbe: '#5b8bb5' }];
+  }
+  function personLabel(id) {
+    const p = PERSONEN().find(x => x.id === id);
+    return p ? p.label : id;
+  }
+  function personFarbe(id) {
+    const p = PERSONEN().find(x => x.id === id);
+    return p ? p.farbe : '#7d6339';
+  }
+
+  const ANLAESSE = [
+    { id: 'geburtstag', label: '🎂 Geburtstag' },
+    { id: 'hochzeit', label: '💍 Hochzeit' },
+    { id: 'taufe', label: '👶 Taufe' },
+    { id: 'konfirmation', label: '⛪ Konfirmation/Kommunion' },
+    { id: 'weihnachten', label: '🎄 Weihnachten' },
+    { id: 'sonstiges', label: '✨ Sonstiges' },
+  ];
+  function anlassLabel(g) {
+    if (g.anlass === 'sonstiges' && g.anlassText) return '✨ ' + g.anlassText;
+    const a = ANLAESSE.find(x => x.id === g.anlass);
+    return a ? a.label : g.anlass;
+  }
+
+  let geschenke = laden(KEY_GESCHENKE, []);
+  let aktiveAnsicht = 'liste';
+  let filterFuer = 'alle';
+  let filterAnlass = 'alle';
+
+  // ---------- Filter-Leisten ----------
+  function renderFilter() {
+    const box = document.getElementById('filterReihe');
+    box.innerHTML = '';
+    const alle = document.createElement('button');
+    alle.className = 'filter-chip' + (filterFuer === 'alle' ? ' active' : '');
+    alle.textContent = 'Alle';
+    alle.addEventListener('click', () => { filterFuer = 'alle'; renderFilter(); renderListe(); renderUebersicht(); });
+    box.appendChild(alle);
+    PERSONEN().forEach(p => {
+      const chip = document.createElement('button');
+      chip.className = 'filter-chip' + (filterFuer === p.id ? ' active' : '');
+      chip.textContent = p.label;
+      chip.addEventListener('click', () => { filterFuer = p.id; renderFilter(); renderListe(); renderUebersicht(); });
+      box.appendChild(chip);
+    });
+  }
+  function renderAnlassFilter() {
+    const box = document.getElementById('anlassFilterReihe');
+    box.innerHTML = '';
+    const alle = document.createElement('button');
+    alle.className = 'filter-chip' + (filterAnlass === 'alle' ? ' active' : '');
+    alle.textContent = 'Alle Anlässe';
+    alle.addEventListener('click', () => { filterAnlass = 'alle'; renderAnlassFilter(); renderListe(); });
+    box.appendChild(alle);
+    ANLAESSE.forEach(a => {
+      const chip = document.createElement('button');
+      chip.className = 'filter-chip' + (filterAnlass === a.id ? ' active' : '');
+      chip.textContent = a.label;
+      chip.addEventListener('click', () => { filterAnlass = a.id; renderAnlassFilter(); renderListe(); });
+      box.appendChild(chip);
+    });
+  }
+
+  // ---------- Liste ----------
+  function gefiltert() {
+    return geschenke.filter(g =>
+      (filterFuer === 'alle' || g.fuer === filterFuer) &&
+      (filterAnlass === 'alle' || g.anlass === filterAnlass)
+    );
+  }
+  function renderListe() {
+    const box = document.getElementById('geschenkListe');
+    const leer = document.getElementById('leerHinweis');
+    const liste = gefiltert().slice().sort((a, b) => (b.datum || '') < (a.datum || '') ? -1 : 1);
+    box.innerHTML = '';
+    leer.style.display = liste.length ? 'none' : '';
+    liste.forEach(g => {
+      const karte = document.createElement('div');
+      karte.className = 'geschenk-karte';
+      karte.style.borderLeftColor = personFarbe(g.fuer);
+      karte.innerHTML =
+        '<div class="gk-icon">💶</div>' +
+        '<div class="gk-body">' +
+          '<div class="gk-titel">' + escapeHtml(g.von) + '</div>' +
+          '<div class="gk-meta">' +
+            '<span class="mini-chip person" style="background:' + personFarbe(g.fuer) + '">Für ' + escapeHtml(personLabel(g.fuer)) + '</span>' +
+            '<span class="mini-chip">' + escapeHtml(anlassLabel(g)) + '</span>' +
+            '<span class="mini-chip">' + datumAnzeige(g.datum) + '</span>' +
+          '</div>' +
+        '</div>' +
+        '<div class="gk-betrag">' + Number(g.betrag || 0).toLocaleString('de-DE') + ' €</div>';
+      karte.addEventListener('click', () => editOeffnen(g.id));
+      box.appendChild(karte);
+    });
+  }
+
+  // ---------- Übersicht nach Person (Geber) ----------
+  function renderUebersicht() {
+    const box = document.getElementById('uebersichtListe');
+    const leer = document.getElementById('uebersichtLeer');
+    const gefilterteListe = gefiltert();
+    const gruppen = {};
+    gefilterteListe.forEach(g => {
+      const key = (g.von || '').trim();
+      if (!key) return;
+      (gruppen[key] = gruppen[key] || []).push(g);
+    });
+    const namen = Object.keys(gruppen).sort((a, b) => {
+      const summeA = gruppen[a].reduce((s, g) => s + (Number(g.betrag) || 0), 0);
+      const summeB = gruppen[b].reduce((s, g) => s + (Number(g.betrag) || 0), 0);
+      return summeB - summeA;
+    });
+    box.innerHTML = '';
+    leer.style.display = namen.length ? 'none' : '';
+    namen.forEach(name => {
+      const eintraege = gruppen[name].slice().sort((a, b) => (b.datum || '') < (a.datum || '') ? -1 : 1);
+      const summe = eintraege.reduce((s, g) => s + (Number(g.betrag) || 0), 0);
+      const karte = document.createElement('div');
+      karte.className = 'person-uebersicht-karte';
+      karte.innerHTML =
+        '<div class="puk-kopf"><span class="puk-name">' + escapeHtml(name) + '</span><span class="puk-summe">' + summe.toLocaleString('de-DE') + ' €</span></div>' +
+        eintraege.map(g =>
+          '<div class="puk-eintrag"><span>' + escapeHtml(anlassLabel(g)) + ' · für ' + escapeHtml(personLabel(g.fuer)) + ' · ' + datumAnzeige(g.datum) + '</span><span class="pe-betrag">' + Number(g.betrag || 0).toLocaleString('de-DE') + ' €</span></div>'
+        ).join('');
+      box.appendChild(karte);
+    });
+  }
+
+  // ---------- Ansicht umschalten ----------
+  function ansichtAnwenden() {
+    document.getElementById('tabListe').classList.toggle('active', aktiveAnsicht === 'liste');
+    document.getElementById('tabUebersicht').classList.toggle('active', aktiveAnsicht === 'uebersicht');
+    document.getElementById('ansichtListe').style.display = aktiveAnsicht === 'liste' ? '' : 'none';
+    document.getElementById('ansichtUebersicht').style.display = aktiveAnsicht === 'uebersicht' ? '' : 'none';
+    if (aktiveAnsicht === 'uebersicht') renderUebersicht();
+  }
+  document.getElementById('tabListe').addEventListener('click', () => { aktiveAnsicht = 'liste'; ansichtAnwenden(); });
+  document.getElementById('tabUebersicht').addEventListener('click', () => { aktiveAnsicht = 'uebersicht'; ansichtAnwenden(); });
+
+  // ---------- Neu / Bearbeiten ----------
+  let editId = null;
+  let gewaehltFuer = null;
+  let gewaehltAnlass = 'geburtstag';
+
+  function fuerReiheRendern() {
+    const box = document.getElementById('fuerPersonReihe');
+    box.innerHTML = '';
+    PERSONEN().forEach(p => {
+      const opt = document.createElement('button');
+      opt.type = 'button';
+      opt.className = 'opt' + (gewaehltFuer === p.id ? ' aktiv' : '');
+      opt.textContent = p.label;
+      opt.addEventListener('click', () => { gewaehltFuer = p.id; fuerReiheRendern(); });
+      box.appendChild(opt);
+    });
+  }
+  function anlassReiheRendern() {
+    const box = document.getElementById('anlassReihe');
+    box.innerHTML = '';
+    ANLAESSE.forEach(a => {
+      const opt = document.createElement('button');
+      opt.type = 'button';
+      opt.className = 'opt' + (gewaehltAnlass === a.id ? ' aktiv' : '');
+      opt.textContent = a.label;
+      opt.addEventListener('click', () => {
+        gewaehltAnlass = a.id;
+        anlassReiheRendern();
+        document.getElementById('anlassSonstigesFeld').style.display = a.id === 'sonstiges' ? '' : 'none';
+      });
+      box.appendChild(opt);
+    });
+  }
+
+  function vonHistorieBefuellen() {
+    const namen = [...new Set(geschenke.map(g => (g.von || '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'de'));
+    document.getElementById('vonHistorieListe').innerHTML = namen.map(n => '<option value="' + escapeHtml(n) + '"></option>').join('');
+  }
+
+  function editOeffnen(id) {
+    editId = id || null;
+    const g = editId ? geschenke.find(x => x.id === editId) : null;
+    document.getElementById('editTitelKopf').textContent = g ? 'Geldgeschenk bearbeiten' : 'Neues Geldgeschenk';
+    document.getElementById('editId').value = editId || '';
+    document.getElementById('fVon').value = g ? g.von : '';
+    document.getElementById('fBetrag').value = g ? g.betrag : '';
+    document.getElementById('fDatum').value = g ? g.datum : heuteISO();
+    document.getElementById('fNotiz').value = g ? (g.notiz || '') : '';
+    gewaehltFuer = g ? g.fuer : (PERSONEN()[0] ? PERSONEN()[0].id : null);
+    gewaehltAnlass = g ? g.anlass : 'geburtstag';
+    document.getElementById('fAnlassSonstiges').value = g ? (g.anlassText || '') : '';
+    document.getElementById('anlassSonstigesFeld').style.display = gewaehltAnlass === 'sonstiges' ? '' : 'none';
+    fuerReiheRendern();
+    anlassReiheRendern();
+    vonHistorieBefuellen();
+    document.getElementById('editLoeschZeile').style.display = g ? '' : 'none';
+    document.getElementById('modalEdit').classList.add('zeigen');
+  }
+  document.getElementById('btnNeu').addEventListener('click', () => editOeffnen(null));
+  document.getElementById('btnEditAbbrechen').addEventListener('click', () => document.getElementById('modalEdit').classList.remove('zeigen'));
+  document.getElementById('modalEdit').addEventListener('click', (e) => { if (e.target.id === 'modalEdit') e.currentTarget.classList.remove('zeigen'); });
+
+  document.getElementById('btnEditSpeichern').addEventListener('click', () => {
+    const von = document.getElementById('fVon').value.trim();
+    if (!von) { document.getElementById('fVon').focus(); return; }
+    if (!gewaehltFuer) { alert('Bitte auswählen, für wen das Geschenk war.'); return; }
+    let g = editId ? geschenke.find(x => x.id === editId) : null;
+    if (!g) {
+      g = { id: neueId('geld') };
+      geschenke.push(g);
+    }
+    g.von = von;
+    g.fuer = gewaehltFuer;
+    g.anlass = gewaehltAnlass;
+    g.anlassText = gewaehltAnlass === 'sonstiges' ? document.getElementById('fAnlassSonstiges').value.trim() : '';
+    g.betrag = parseFloat(document.getElementById('fBetrag').value) || 0;
+    g.datum = document.getElementById('fDatum').value || heuteISO();
+    g.notiz = document.getElementById('fNotiz').value.trim();
+    speichern(KEY_GESCHENKE, geschenke);
+    document.getElementById('modalEdit').classList.remove('zeigen');
+    renderFilter(); renderListe(); renderUebersicht();
+  });
+  document.getElementById('btnEditLoeschen').addEventListener('click', () => {
+    if (!editId) return;
+    if (!confirm('Diesen Eintrag wirklich löschen?')) return;
+    geschenke = geschenke.filter(g => g.id !== editId);
+    speichern(KEY_GESCHENKE, geschenke);
+    document.getElementById('modalEdit').classList.remove('zeigen');
+    renderFilter(); renderListe(); renderUebersicht();
+  });
+
+
+  // --- Hintergrundmuster ---
+  (function () {
+    const KEY_THEME = 'geldgeschenke_hintergrundThema';
+    const klassen = ['bg-muenzen', 'bg-geschenk'];
+    function themeAnwenden(id) {
+      document.body.classList.remove.apply(document.body.classList, klassen);
+      document.body.style.backgroundColor = '';
+    if (id && id.indexOf('farbe:') === 0) { document.body.style.backgroundColor = id.slice(6) + 'b3'; }
+    else if (id) document.body.classList.add(id);
+      document.querySelectorAll('.theme-swatch').forEach(s => s.classList.toggle('aktiv', s.dataset.theme === id));
+    }
+    let aktivesTheme = '';
+    try { aktivesTheme = localStorage.getItem(KEY_THEME) || ''; } catch (e) {}
+    themeAnwenden(aktivesTheme);
+  var customFarbeInput = document.querySelector('.theme-farbe-custom-input');
+  if (customFarbeInput) {
+    customFarbeInput.addEventListener('input', function() {
+      var neueId = 'farbe:' + customFarbeInput.value;
+      themeAnwenden(neueId);
+      try { localStorage.setItem(KEY_THEME, neueId); } catch(e) {}
+    });
+  }
+    const btn = document.getElementById('btnThemeAuswahl');
+    const popup = document.getElementById('themePopup');
+    btn.addEventListener('click', () => popup.classList.toggle('zeigen'));
+    document.querySelectorAll('.theme-swatch:not(.theme-farbe-custom)').forEach(swatch => {
+      swatch.addEventListener('click', () => {
+        const id = swatch.dataset.theme;
+        themeAnwenden(id);
+        try { localStorage.setItem(KEY_THEME, id); } catch (e) {}
+        popup.classList.remove('zeigen');
+      });
+    });
+    document.addEventListener('click', (e) => {
+      if (popup.classList.contains('zeigen') && !popup.contains(e.target) && e.target.id !== 'btnThemeAuswahl') popup.classList.remove('zeigen');
+    });
+  })();
+
+  renderFilter();
+  renderAnlassFilter();
+  renderListe();
+
+  if (window.PlanerSync) {
+    window._sync = window.PlanerSync.starteSync({
+      modul: 'geldgeschenke',
+      keys: [KEY_GESCHENKE],
+      onRemoteChange: function () { geschenke = laden(KEY_GESCHENKE, geschenke); renderFilter(); renderListe(); renderUebersicht(); },
+    });
+  }
+})();
+</script>
+</body>
+</html>
