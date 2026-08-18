@@ -11,7 +11,7 @@
     --soil: #3a2e1f; --moss: #4f6f45; --sage: #7fa476; --leaf: #bcd196;
     --cream: #faf6ec; --parchment: #ece0c7; --bark: #7d6339;
     --terracotta: #c46b41; --terracotta-text: #a8532e; --sky: #5b8bb5;
-    --white: #fffdf8; --navbg: #2a2016;
+    --white: #fffdf8; --navbg: #2a2016; --navbg2: #3a2e1f;
     --radius-sm: 8px; --radius-md: 12px; --radius-lg: 18px; --radius-pill: 22px;
     --shadow-soft: 0 2px 10px rgba(59,47,30,0.08); --shadow-md: 0 8px 26px rgba(59,47,30,0.2);
   }
@@ -19,7 +19,7 @@
     --soil: #f0e8d8; --moss: #6fae5e; --sage: #9bc98a; --leaf: #cfe3b8;
     --cream: #1e1b16; --parchment: #2b261e; --bark: #c2b393;
     --terracotta: #d9855a; --terracotta-text: #e8a37e; --sky: #7fa8cc; --gold: #dcb158;
-    --white: #2f2a22; --navbg: #14100c;
+    --white: #2f2a22; --navbg: #14100c; --navbg2: #221a12;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Inter', sans-serif; background: var(--cream); color: var(--soil); min-height: 100vh; padding-bottom: 40px; }
@@ -47,8 +47,10 @@
   button, input, select, textarea { font-family: inherit; -webkit-tap-highlight-color: transparent; }
   :focus-visible { outline: 2px solid var(--terracotta); outline-offset: 2px; border-radius: 4px; }
 
-  header.top { background: var(--navbg); color: var(--leaf); padding: 10px 12px; }
-  header.top h1 { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; }
+  header.top { position: relative; background: linear-gradient(135deg, var(--navbg2), var(--navbg)); color: var(--leaf); padding: 10px 12px; }
+
+  header.top::after { content: ''; position: absolute; left: 0; right: 0; bottom: -3px; height: 3px; background: linear-gradient(90deg, var(--moss), var(--sage) 35%, var(--leaf) 65%, var(--moss)); opacity: 0.85; z-index: 1; }
+  header.top h1 { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 700; margin-bottom: 8px; }
   .person-reihe, .view-toggle { display: flex; gap: 5px; }
   .person-reihe { margin-bottom: 8px; }
   .person-chip {
@@ -115,7 +117,6 @@
   .btn-gps-start { background: var(--moss); color: var(--white); border: none; border-radius: var(--radius-pill); padding: 8px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; }
   .btn-gps-stop { background: var(--terracotta); color: var(--white); border: none; border-radius: var(--radius-pill); padding: 8px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; }
 
-  #btnSchriftgroesse.aktiv { background: var(--moss); color: var(--white); border-color: var(--moss); }
   .temp-status { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); background: var(--bark); color: var(--white); padding: 10px 18px; border-radius: var(--radius-pill); font-size: 0.85rem; font-weight: 600; box-shadow: 0 4px 14px rgba(0,0,0,0.25); opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 500; max-width: 88vw; text-align: center; }
   .temp-status.zeigen { opacity: 1; transform: translate(-50%, 0); }
 
@@ -298,7 +299,6 @@
   <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
     <h1 style="margin:0;">🏃 Gesundheit &amp; Sport</h1>
     <button class="theme-btn" id="btnThemeAuswahl" title="Hintergrundmuster wählen">🎨</button>
-    <button id="btnSchriftgroesse" title="Schriftgröße umschalten" style="flex-shrink:0; border:1px solid var(--sand-dark); background:var(--white); border-radius:var(--radius-md); padding:6px 10px; font-weight:700; color:var(--bark); cursor:pointer;">Aa</button>
   </div>
   <div class="person-reihe" id="personReihe"></div>
   <div class="view-toggle" role="tablist">
@@ -3354,13 +3354,7 @@
   function schriftgroesseAnwenden() {
     const gross = localStorage.getItem(KEY_SCHRIFTGROESSE) === 'gross';
     document.documentElement.style.fontSize = gross ? '19px' : '';
-    document.getElementById('btnSchriftgroesse').classList.toggle('aktiv', gross);
   }
-  document.getElementById('btnSchriftgroesse').addEventListener('click', () => {
-    const gross = localStorage.getItem(KEY_SCHRIFTGROESSE) === 'gross';
-    localStorage.setItem(KEY_SCHRIFTGROESSE, gross ? 'normal' : 'gross');
-    schriftgroesseAnwenden();
-  });
   schriftgroesseAnwenden();
 
   renderPersonen();

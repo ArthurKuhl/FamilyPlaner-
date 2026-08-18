@@ -23,13 +23,13 @@
   :root {
     --soil: #3a2e1f; --moss: #4f6f45; --sage: #7fa476; --leaf: #bcd196;
     --cream: #faf6ec; --bark: #7d6339; --terracotta: #c46b41;
-    --navbg: #2a2016;
+    --navbg: #2a2016; --navbg2: #3a2e1f;
   }
   html[data-dark="1"] {
     --soil: #f0e8d8; --moss: #6fae5e; --sage: #9bc98a; --leaf: #cfe3b8;
     --cream: #1e1b16; --parchment: #2b261e; --bark: #c2b393;
     --terracotta: #d9855a; --terracotta-text: #e8a37e; --sky: #7fa8cc; --gold: #dcb158;
-    --white: #2f2a22; --navbg: #14100c;
+    --white: #2f2a22; --navbg: #14100c; --navbg2: #221a12;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body {
@@ -42,7 +42,7 @@
 
   /* Hauptnavigation: gleichrangige Bereiche, horizontal scrollbar auf schmalen Screens */
   nav.modul-nav {
-    background: var(--navbg); display: flex; align-items: center; gap: 4px; padding: 6px 8px;
+    background: linear-gradient(135deg, var(--navbg2), var(--navbg)); display: flex; align-items: center; gap: 4px; padding: 6px 8px;
     overflow-x: auto; -webkit-overflow-scrolling: touch; flex-shrink: 0;
     box-shadow: 0 2px 6px rgba(0,0,0,0.15);
     scrollbar-width: none;

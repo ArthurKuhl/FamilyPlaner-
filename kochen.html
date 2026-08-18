@@ -11,7 +11,7 @@
     --soil: #3a2e1f; --moss: #4f6f45; --sage: #7fa476; --leaf: #bcd196;
     --cream: #faf6ec; --parchment: #ece0c7; --bark: #7d6339;
     --terracotta: #c46b41; --terracotta-text: #a8532e; --sky: #5b8bb5; --gold: #c99a3a;
-    --white: #fffdf8; --navbg: #2a2016;
+    --white: #fffdf8; --navbg: #2a2016; --navbg2: #3a2e1f;
     --radius-sm: 8px; --radius-md: 12px; --radius-lg: 18px; --radius-pill: 22px;
     --shadow-soft: 0 2px 10px rgba(59,47,30,0.08); --shadow-md: 0 8px 26px rgba(59,47,30,0.2);
   }
@@ -19,7 +19,7 @@
     --soil: #f0e8d8; --moss: #6fae5e; --sage: #9bc98a; --leaf: #cfe3b8;
     --cream: #1e1b16; --parchment: #2b261e; --bark: #c2b393;
     --terracotta: #d9855a; --terracotta-text: #e8a37e; --sky: #7fa8cc; --gold: #dcb158;
-    --white: #2f2a22; --navbg: #14100c;
+    --white: #2f2a22; --navbg: #14100c; --navbg2: #221a12;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Inter', sans-serif; background: var(--cream); color: var(--soil); min-height: 100vh; padding-bottom: 40px; }
@@ -50,9 +50,11 @@
   button, input, select, textarea { font-family: inherit; -webkit-tap-highlight-color: transparent; }
   :focus-visible { outline: 2px solid var(--terracotta); outline-offset: 2px; border-radius: 4px; }
 
-  header.top { background: var(--navbg); color: var(--leaf); padding: 10px 12px; position: relative; }
+  header.top { position: relative; background: linear-gradient(135deg, var(--navbg2), var(--navbg)); color: var(--leaf); padding: 10px 12px; position: relative; }
+
+  header.top::after { content: ''; position: absolute; left: 0; right: 0; bottom: -3px; height: 3px; background: linear-gradient(90deg, var(--moss), var(--sage) 35%, var(--leaf) 65%, var(--moss)); opacity: 0.85; z-index: 1; }
   header.top .titel-zeile { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-  header.top h1 { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; }
+  header.top h1 { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 700; }
   .add-btn {
     background: var(--terracotta); color: var(--white); border: none; border-radius: var(--radius-pill);
     font-size: 0.82rem; font-weight: 700; padding: 7px 15px; cursor: pointer;
