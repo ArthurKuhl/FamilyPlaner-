@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
+<script>(function(){try{var m=localStorage.getItem('planer_darkMode');if(m==='dunkel'||(m==='auto'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.setAttribute('data-dark','1');}var s=localStorage.getItem('planer_schriftgroesse');if(s==='gross'){document.documentElement.style.fontSize='19px';}}catch(e){}})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Familienplaner</title>
@@ -23,6 +24,12 @@
     --soil: #3a2e1f; --moss: #4f6f45; --sage: #7fa476; --leaf: #bcd196;
     --cream: #faf6ec; --bark: #7d6339; --terracotta: #c46b41;
     --navbg: #2a2016;
+  }
+  html[data-dark="1"] {
+    --soil: #f0e8d8; --moss: #6fae5e; --sage: #9bc98a; --leaf: #cfe3b8;
+    --cream: #1e1b16; --parchment: #2b261e; --bark: #c2b393;
+    --terracotta: #d9855a; --terracotta-text: #e8a37e; --sky: #7fa8cc; --gold: #dcb158;
+    --white: #2f2a22; --navbg: #14100c;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body {
@@ -133,6 +140,7 @@
       <!-- Buttons werden per JS erzeugt -->
       <button class="backup-btn" id="btnBackup" title="Sichern & Wiederherstellen">💾</button>
       <button class="backup-btn" id="btnPersonen" title="Personen verwalten">👪</button>
+      <button class="backup-btn" id="btnEinstellungen" title="Einstellungen">⚙️</button>
       <span class="version-badge" id="versionBadge" title="App-Version"></span>
       <span class="sync-status" id="syncStatus" title="Sync-Status">⏳</span>
     </nav>
@@ -209,6 +217,70 @@
     </div>
   </div>
 
+  <div class="modal-bg" id="modalEinstellungen">
+    <div class="modal" style="max-height:85vh;overflow-y:auto;">
+      <h2>⚙️ Einstellungen</h2>
+      <p style="font-size:0.72rem;color:var(--bark);margin-top:-8px;margin-bottom:14px;">Diese Einstellungen gelten nur für dieses Gerät – nicht synchronisiert, jeder kann sich das nach eigenem Geschmack einrichten.</p>
+
+      <div style="border-top:1px solid #e5ddc8;padding-top:14px;margin-bottom:16px;">
+        <div style="font-weight:700;color:var(--soil);margin-bottom:8px;">🔀 Reihenfolge der Module</div>
+        <div id="reihenfolgeListe"></div>
+      </div>
+
+      <div style="border-top:1px solid #e5ddc8;padding-top:14px;margin-bottom:16px;">
+        <div style="font-weight:700;color:var(--soil);margin-bottom:8px;">🎨 Darstellung</div>
+        <div style="margin-bottom:10px;">
+          <label style="font-size:0.8rem;color:var(--bark);display:block;margin-bottom:4px;">Farbschema</label>
+          <select id="einstDarkMode" style="width:100%;padding:9px 10px;border-radius:10px;border:1px solid #ddd;font-family:'Inter',sans-serif;font-size:0.85rem;">
+            <option value="hell">☀️ Hell</option>
+            <option value="dunkel">🌙 Dunkel</option>
+            <option value="auto">🔄 Automatisch (Systemeinstellung)</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:0.8rem;color:var(--bark);display:block;margin-bottom:4px;">Schriftgröße</label>
+          <select id="einstSchriftgroesse" style="width:100%;padding:9px 10px;border-radius:10px;border:1px solid #ddd;font-family:'Inter',sans-serif;font-size:0.85rem;">
+            <option value="normal">Normal</option>
+            <option value="gross">Groß</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="border-top:1px solid #e5ddc8;padding-top:14px;margin-bottom:16px;">
+        <div style="font-weight:700;color:var(--soil);margin-bottom:8px;">🏠 Start</div>
+        <label style="font-size:0.8rem;color:var(--bark);display:block;margin-bottom:4px;">Beim Öffnen der App immer starten mit</label>
+        <select id="einstStartModul" style="width:100%;padding:9px 10px;border-radius:10px;border:1px solid #ddd;font-family:'Inter',sans-serif;font-size:0.85rem;"></select>
+      </div>
+
+      <div style="border-top:1px solid #e5ddc8;padding-top:14px;">
+        <div style="font-weight:700;color:var(--soil);margin-bottom:8px;">🔔 Erinnerungen</div>
+        <div class="einst-erinnerung-zeile" style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0ead9;">
+          <span style="font-size:0.85rem;">💧 Wasser-Erinnerung (Gesundheit)</span>
+          <input type="checkbox" id="einstErinnWasser" style="width:20px;height:20px;">
+        </div>
+        <div class="einst-erinnerung-zeile" style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0ead9;">
+          <span style="font-size:0.85rem;">🗓️ Termin-Erinnerungen</span>
+          <input type="checkbox" id="einstErinnTermine" style="width:20px;height:20px;">
+        </div>
+        <div class="einst-erinnerung-zeile" style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0ead9;">
+          <span style="font-size:0.85rem;">🛒 Einkaufsvorlagen-Erinnerung</span>
+          <input type="checkbox" id="einstErinnVorlagen" style="width:20px;height:20px;">
+        </div>
+        <div class="einst-erinnerung-zeile" style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;">
+          <span style="font-size:0.85rem;">💾 Backup-Erinnerung nach</span>
+          <select id="einstBackupIntervall" style="padding:6px 8px;border-radius:8px;border:1px solid #ddd;font-family:'Inter',sans-serif;font-size:0.8rem;">
+            <option value="7">7 Tagen</option>
+            <option value="14">14 Tagen</option>
+            <option value="30">30 Tagen</option>
+            <option value="9999">nie</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn btn-secondary" id="btnEinstellungenSchliessen" style="margin-top:18px;">Schließen</button>
+    </div>
+  </div>
+
   <script>
     // Zentrale Liste aller Bereiche. Neue Bereiche später einfach hier ergänzen:
     // src auf die fertige Modul-Datei zeigen lassen, sobald sie existiert.
@@ -230,6 +302,17 @@
       { id: 'ausfluege',   label: 'Ausflüge', emoji: '🧭', src: 'ausfluege.html', syncKeys: ['ausfluege_planung', 'ausfluege_erlebt'] },
     ];
     const STORAGE_KEY = 'planer_aktiverBereich';
+    const REIHENFOLGE_KEY = 'planer_modulReihenfolge';
+    function moduleInGespeicherterReihenfolge() {
+      let reihenfolge = [];
+      try { reihenfolge = JSON.parse(localStorage.getItem(REIHENFOLGE_KEY) || '[]'); } catch (e) {}
+      const bekannt = MODULE.map(m => m.id);
+      // Gespeicherte IDs, die es noch gibt, zuerst (in der gemerkten Reihenfolge)
+      const geordnet = reihenfolge.filter(id => bekannt.includes(id)).map(id => MODULE.find(m => m.id === id));
+      // Neue/unbekannte Module (z.B. frisch hinzugekommen) hängen sich hinten an
+      const fehlende = MODULE.filter(m => !reihenfolge.includes(m.id));
+      return geordnet.concat(fehlende);
+    }
 
     const nav = document.getElementById('modulNav');
     const frame = document.getElementById('modulFrame');
@@ -402,6 +485,110 @@
       status.textContent = '';
     });
 
+    // ============================================================
+    // EINSTELLUNGEN – rein geräte-lokal, nicht synchronisiert.
+    // ============================================================
+    const modalEinstellungen = document.getElementById('modalEinstellungen');
+    function aktuellerBereichId() {
+      const btn = nav.querySelector('.modul-btn.active');
+      if (btn) return btn.dataset.id;
+      try { return localStorage.getItem(STORAGE_KEY) || 'home'; } catch (e) { return 'home'; }
+    }
+    function renderReihenfolgeListe() {
+      const box = document.getElementById('reihenfolgeListe');
+      const liste = moduleInGespeicherterReihenfolge();
+      box.innerHTML = liste.map((mod, i) => `
+        <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #f0ead9;">
+          <span style="flex:1;font-size:0.85rem;">${mod.emoji} ${mod.label}</span>
+          <button type="button" data-dir="up" data-i="${i}" ${i === 0 ? 'disabled' : ''} style="background:none;border:1px solid #ddd;border-radius:6px;width:30px;height:30px;cursor:pointer;opacity:${i === 0 ? 0.3 : 1};">▲</button>
+          <button type="button" data-dir="down" data-i="${i}" ${i === liste.length - 1 ? 'disabled' : ''} style="background:none;border:1px solid #ddd;border-radius:6px;width:30px;height:30px;cursor:pointer;opacity:${i === liste.length - 1 ? 0.3 : 1};">▼</button>
+        </div>`).join('');
+      box.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const i = parseInt(btn.dataset.i, 10);
+          const j = btn.dataset.dir === 'up' ? i - 1 : i + 1;
+          const arr = liste.map(m => m.id);
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+          try { localStorage.setItem(REIHENFOLGE_KEY, JSON.stringify(arr)); } catch (e) {}
+          renderReihenfolgeListe();
+          starteBereiche();
+        });
+      });
+    }
+
+    function startModulAuswahlBefuellen() {
+      const sel = document.getElementById('einstStartModul');
+      let aktuell = '';
+      try { aktuell = localStorage.getItem('planer_startModul') || ''; } catch (e) {}
+      sel.innerHTML = '<option value="">Zuletzt geöffneter Bereich</option>' +
+        MODULE.map(m => `<option value="${m.id}">${m.emoji} ${m.label}</option>`).join('');
+      sel.value = aktuell;
+    }
+
+    function einstellungenBefuellen() {
+      renderReihenfolgeListe();
+      let darkMode = 'hell';
+      try { darkMode = localStorage.getItem('planer_darkMode') || 'hell'; } catch (e) {}
+      document.getElementById('einstDarkMode').value = darkMode;
+      let schrift = 'normal';
+      try { schrift = localStorage.getItem('planer_schriftgroesse') || 'normal'; } catch (e) {}
+      document.getElementById('einstSchriftgroesse').value = schrift;
+      startModulAuswahlBefuellen();
+      try { document.getElementById('einstErinnWasser').checked = (JSON.parse(localStorage.getItem('gesundheit_wasserErinnerung') || '{}').aktiv) || false; } catch (e) { document.getElementById('einstErinnWasser').checked = false; }
+      try { document.getElementById('einstErinnTermine').checked = localStorage.getItem('planer_terminErinnerungenAktiv') !== '0'; } catch (e) {}
+      try { document.getElementById('einstErinnVorlagen').checked = localStorage.getItem('einkauf_vorlagenErinnerungAktiv') !== '0'; } catch (e) {}
+      let backupTage = '30';
+      try { backupTage = localStorage.getItem('planer_backupErinnerungTage') || '30'; } catch (e) {}
+      document.getElementById('einstBackupIntervall').value = backupTage;
+    }
+
+    function darkModeAnwenden(modus) {
+      const dunkel = modus === 'dunkel' || (modus === 'auto' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      if (dunkel) document.documentElement.setAttribute('data-dark', '1');
+      else document.documentElement.removeAttribute('data-dark');
+    }
+
+    document.getElementById('btnEinstellungen').addEventListener('click', () => {
+      einstellungenBefuellen();
+      document.getElementById('modalEinstellungen').classList.add('zeigen');
+    });
+    document.getElementById('btnEinstellungenSchliessen').addEventListener('click', () => {
+      document.getElementById('modalEinstellungen').classList.remove('zeigen');
+    });
+    modalEinstellungen.addEventListener('click', (e) => { if (e.target.id === 'modalEinstellungen') modalEinstellungen.classList.remove('zeigen'); });
+
+    document.getElementById('einstDarkMode').addEventListener('change', (e) => {
+      try { localStorage.setItem('planer_darkMode', e.target.value); } catch (err) {}
+      darkModeAnwenden(e.target.value);
+      bereichLaden(aktuellerBereichId(), { schreiben: false }); // aktuelles Modul neu laden, damit es die Änderung übernimmt
+    });
+    document.getElementById('einstSchriftgroesse').addEventListener('change', (e) => {
+      try { localStorage.setItem('planer_schriftgroesse', e.target.value); } catch (err) {}
+      document.documentElement.style.fontSize = e.target.value === 'gross' ? '19px' : '';
+      bereichLaden(aktuellerBereichId(), { schreiben: false });
+    });
+    document.getElementById('einstStartModul').addEventListener('change', (e) => {
+      try { localStorage.setItem('planer_startModul', e.target.value); } catch (err) {}
+    });
+    document.getElementById('einstErinnWasser').addEventListener('change', (e) => {
+      try {
+        const einst = JSON.parse(localStorage.getItem('gesundheit_wasserErinnerung') || '{}');
+        einst.aktiv = e.target.checked;
+        if (!einst.zeiten) einst.zeiten = ['10:00', '12:30', '15:00', '17:30'];
+        localStorage.setItem('gesundheit_wasserErinnerung', JSON.stringify(einst));
+      } catch (err) {}
+    });
+    document.getElementById('einstErinnTermine').addEventListener('change', (e) => {
+      try { localStorage.setItem('planer_terminErinnerungenAktiv', e.target.checked ? '1' : '0'); } catch (err) {}
+    });
+    document.getElementById('einstErinnVorlagen').addEventListener('change', (e) => {
+      try { localStorage.setItem('einkauf_vorlagenErinnerungAktiv', e.target.checked ? '1' : '0'); } catch (err) {}
+    });
+    document.getElementById('einstBackupIntervall').addEventListener('change', (e) => {
+      try { localStorage.setItem('planer_backupErinnerungTage', e.target.value); } catch (err) {}
+      backupErinnerungAktualisieren();
+    });
+
     if (!familienId()) {
       document.getElementById('setupOverlay').style.display = 'flex';
       document.getElementById('btnSetupNeu').addEventListener('click', () => {
@@ -443,19 +630,26 @@
     }
 
     function starteBereiche() {
-      MODULE.forEach(mod => {
+      nav.querySelectorAll('.modul-btn').forEach(b => b.remove());
+      moduleInGespeicherterReihenfolge().forEach(mod => {
         const btn = document.createElement('button');
         btn.className = 'modul-btn';
         btn.dataset.id = mod.id;
         btn.innerHTML = `<span class="em" aria-hidden="true">${mod.emoji}</span><span>${mod.label}</span>`;
         btn.addEventListener('click', () => bereichLaden(mod.id));
-        nav.appendChild(btn);
+        nav.insertBefore(btn, document.getElementById('btnBackup'));
       });
 
       let start = 'home';
       try {
-        const gespeichert = localStorage.getItem(STORAGE_KEY);
-        if (gespeichert && MODULE.some(m => m.id === gespeichert)) start = gespeichert;
+        let startModul = '';
+        try { startModul = localStorage.getItem('planer_startModul') || ''; } catch (e) {}
+        if (startModul && MODULE.some(m => m.id === startModul)) {
+          start = startModul;
+        } else {
+          const gespeichert = localStorage.getItem(STORAGE_KEY);
+          if (gespeichert && MODULE.some(m => m.id === gespeichert)) start = gespeichert;
+        }
       } catch (e) {}
       bereichLaden(start, { schreiben: false });
     }
@@ -715,9 +909,13 @@
     document.getElementById('btnBackupSchliessen').addEventListener('click', () => modalBackup.classList.remove('zeigen'));
     modalBackup.addEventListener('click', (e) => { if (e.target.id === 'modalBackup') modalBackup.classList.remove('zeigen'); });
     // ============================================================
-    // GESAMT-BACKUP-ERINNERUNG (alle 30 Tage, mit 7-Tage-Snooze)
+    // GESAMT-BACKUP-ERINNERUNG (Standard: 30 Tage, mit 7-Tage-Snooze; Intervall in ⚙️ Einstellungen änderbar)
     // ============================================================
-    const BACKUP_ERINNERUNG_TAGE = 30;
+    function backupErinnerungTage() {
+      let wert = 30;
+      try { wert = parseInt(localStorage.getItem('planer_backupErinnerungTage'), 10) || 30; } catch (e) {}
+      return wert;
+    }
     const BACKUP_SNOOZE_TAGE = 7;
 
     function backupTageSeitLetztem() {
@@ -731,7 +929,7 @@
       try { snooze = localStorage.getItem('planer_backupSnoozeBis'); } catch (e) { snooze = null; }
       if (snooze && new Date(snooze).getTime() > Date.now()) return false;
       const tage = backupTageSeitLetztem();
-      return tage === null || tage >= BACKUP_ERINNERUNG_TAGE;
+      return tage === null || tage >= backupErinnerungTage();
     }
     function backupErinnerungAktualisieren() {
       document.getElementById('btnBackup').classList.toggle('faellig', backupIstFaellig());
@@ -742,7 +940,7 @@
       const spaeterBtn = document.getElementById('btnBackupSpaeter');
       if (tage === null) {
         el.textContent = 'ℹ️ Du hast noch kein Gesamt-Backup exportiert.';
-      } else if (tage >= BACKUP_ERINNERUNG_TAGE) {
+      } else if (tage >= backupErinnerungTage()) {
         el.textContent = '⏰ Letztes Backup vor ' + tage + ' Tagen – ein neues wäre sinnvoll.';
       } else {
         el.textContent = '✓ Letztes Backup vor ' + tage + ' Tag(en).';
@@ -836,6 +1034,7 @@
 
     function pruefeTerminErinnerungen() {
       if (!('Notification' in window) || Notification.permission !== 'granted') return;
+      try { if (localStorage.getItem('planer_terminErinnerungenAktiv') === '0') return; } catch (e) {}
       let events;
       try { events = JSON.parse(localStorage.getItem(KEY_TERMINE) || '[]'); } catch (e) { events = []; }
       if (!events || !events.length) return;
