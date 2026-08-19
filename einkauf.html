@@ -269,7 +269,7 @@
   <div id="offeneItems"></div>
   <div id="erledigtSection" class="erledigt-section" style="display:none;">
     <div class="erledigt-kopf">
-      <button class="aufklappen" id="btnErledigtToggle">▸ Erledigt (<span id="erledigtAnzahl">0</span>)</button>
+      <button class="aufklappen" id="btnErledigtToggle"><span id="erledigtToggleIcon">▸</span> Erledigt (<span id="erledigtAnzahl">0</span>)</button>
       <button class="erledigt-loeschen-btn" id="btnErledigtLoeschen">Entfernen</button>
     </div>
     <div id="erledigtItems" style="display:none;"></div>
@@ -757,7 +757,8 @@
     const erledigt = liste.items.filter(i => i.erledigt);
     const section = document.getElementById('erledigtSection');
     section.style.display = erledigt.length ? '' : 'none';
-    document.getElementById('btnErledigtToggle').innerHTML = (erledigtOffen ? '▾' : '▸') + ' Erledigt (<span id="erledigtAnzahl">' + erledigt.length + '</span>)';
+    document.getElementById('erledigtToggleIcon').textContent = erledigtOffen ? '▾' : '▸';
+    document.getElementById('erledigtAnzahl').textContent = erledigt.length;
     const box = document.getElementById('erledigtItems');
     box.style.display = erledigtOffen ? '' : 'none';
     box.innerHTML = '';

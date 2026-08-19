@@ -338,6 +338,10 @@
 
 
 <main>
+  <div id="datenschutzBanner" class="disclaimer-box" style="display:none; margin:0 0 12px 0; position:relative; padding-right:34px;">
+    🔒 <strong>Hinweis:</strong> Deine Eingaben hier (u.a. Gewicht, Schlaf, Trainingsdaten) werden mit den anderen Mitgliedern deiner Familie über die Cloud synchronisiert – wie bei allen Modulen dieser App. Bitte nur eintragen, was du mit ihnen teilen möchtest.
+    <button id="btnDatenschutzBannerSchliessen" title="Schließen" style="position:absolute; top:6px; right:8px; background:none; border:none; font-size:1.1rem; cursor:pointer; color:inherit; line-height:1;">✕</button>
+  </div>
   <section id="ansichtHeute">
     <div class="karte">
       <div class="datum-label" id="heuteDatumLabel"></div>
@@ -1079,6 +1083,9 @@
   <section id="ansichtInfos" style="display:none;">
     <div class="disclaimer-box" style="margin-bottom:14px;">
       ⚠️ <strong>Allgemeine Grundlagen-Infos, keine individuelle Beratung.</strong> Jeder Körper reagiert unterschiedlich – auf Genetik, Vorerkrankungen, Medikamente, Stresslevel, Hormone und vieles mehr. Was bei einer Person funktioniert, muss bei einer anderen nicht wirken. Bei konkreten Zielen (Abnehmen, Muskelaufbau, Ernährungsumstellung) lohnt sich eine persönliche Beratung durch Arzt, Ernährungsberatung oder qualifizierte Trainer – besonders bei bestehenden gesundheitlichen Einschränkungen.
+    </div>
+    <div class="disclaimer-box" style="margin-bottom:14px;">
+      🔒 <strong>Datenschutz:</strong> Dieses Modul kann sensible Gesundheitsdaten enthalten (z. B. Blutdruck, Gewicht, Zyklus, Medikamente). Alle Einträge werden – wie in jedem Modul dieser App – über die gemeinsame Familien-Cloud synchronisiert und sind für alle Mitglieder deiner Familiengruppe sichtbar. Es gibt keine separate Zugriffsbeschränkung innerhalb der Familie. Trage hier nur ein, was du mit den anderen teilen möchtest.
     </div>
 
     <details class="info-karte" open>
@@ -3388,6 +3395,18 @@
       },
     });
   }
+
+  // Datenschutz-Banner: einmalig pro Gerät anzeigen, bis geschlossen
+  const KEY_DATENSCHUTZ_BANNER = 'gesundheit_datenschutzBannerGesehen';
+  try {
+    if (!localStorage.getItem(KEY_DATENSCHUTZ_BANNER)) {
+      document.getElementById('datenschutzBanner').style.display = '';
+    }
+  } catch (e) {}
+  document.getElementById('btnDatenschutzBannerSchliessen').addEventListener('click', () => {
+    document.getElementById('datenschutzBanner').style.display = 'none';
+    try { localStorage.setItem(KEY_DATENSCHUTZ_BANNER, '1'); } catch (e) {}
+  });
 })();
 </script>
 
