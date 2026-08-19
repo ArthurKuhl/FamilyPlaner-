@@ -525,6 +525,19 @@
     });
   }
 
+  // Kacheln von Modulen ausblenden, die in den Einstellungen (Modul-Übersicht) für dieses Gerät versteckt wurden
+  const KACHEL_MODUL_MAP = { kachelTermine: 'termine', kachelEinkauf: 'einkauf', kachelSport: 'gesundheit', kachelKochen: 'kochen', kachelGarten: 'garten', kachelHaushalt: 'haushalt' };
+  function versteckteKachelnAnwenden() {
+    let versteckt = [];
+    try { versteckt = JSON.parse(localStorage.getItem('planer_versteckteModule') || '[]'); } catch (e) {}
+    Object.entries(KACHEL_MODUL_MAP).forEach(([kachelId, modulId]) => {
+      if (versteckt.includes(modulId)) {
+        const el = document.getElementById(kachelId);
+        if (el) el.style.display = 'none';
+      }
+    });
+  }
+
   renderTermine();
   renderEinkauf();
   renderSport();
@@ -532,10 +545,11 @@
   renderGartenPflanzErnte();
   renderKochenHeute();
   renderHaushalt();
+  versteckteKachelnAnwenden();
 
   // Bei Rückkehr auf die Startseite (z.B. nach Bearbeitung in einem anderen Modul) neu laden
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) { renderTermine(); renderEinkauf(); renderSport(); renderGartenWarnungen(); renderGartenPflanzErnte(); renderKochenHeute(); renderHaushalt(); feedbackEintraege = laden(KEY_FEEDBACK, feedbackEintraege); feedbackListeRendern(); }
+    if (!document.hidden) { renderTermine(); renderEinkauf(); renderSport(); renderGartenWarnungen(); renderGartenPflanzErnte(); renderKochenHeute(); renderHaushalt(); feedbackEintraege = laden(KEY_FEEDBACK, feedbackEintraege); feedbackListeRendern(); versteckteKachelnAnwenden(); }
   });
 })();
 </script>
