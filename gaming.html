@@ -224,7 +224,7 @@
     <div class="karte">
       <h3>🌐 Aktuelle Nintendo-News</h3>
       <div class="filter-reihe" style="margin-bottom:10px;">
-        <button type="button" class="filter-chip active" id="btnFeedQuelleNtower">🕹️ Community (ntower)</button>
+        <button type="button" class="filter-chip active" id="btnFeedQuelleNtower">🇩🇪 Fanmagazin (Nintendo-Online)</button>
         <button type="button" class="filter-chip" id="btnFeedQuelleOffiziell">🎮 Offiziell (Nintendo)</button>
       </div>
       <div id="gamingFeedInhalt" style="font-size:0.85rem;">Lädt…</div>
@@ -740,10 +740,10 @@
   const RSS2JSON_KEY = 'gzgrcvnabxmmjjevo0nlsuucc1bl9qzizlvuzjkq'; // eigener kostenloser Key von rss2json.com
   const GAMING_FEED_QUELLEN = {
     ntower: {
-      url: 'https://www.ntower.de/news-feed', // ohne &showImage=true: dieser Zusatz lässt rss2json.com an der Syntax scheitern
+      url: 'https://nintendo-online.de/rss.xml',
       cacheKey: 'gaming_newsfeedCache',
-      label: 'ntower.de',
-      linkZielseite: 'https://www.ntower.de',
+      label: 'Nintendo-Online.de',
+      linkZielseite: 'https://nintendo-online.de',
     },
     offiziell: {
       url: 'https://www.nintendo.com/de-de/news.xml',
