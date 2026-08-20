@@ -298,10 +298,7 @@
 <header class="top">
   <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
     <h1 style="margin:0;">🏃 Gesundheit &amp; Sport</h1>
-    <div style="display:flex;align-items:center;gap:2px;">
-      <button class="theme-btn" id="btnTabsAnpassen" title="Tabs anpassen">⚙️</button>
-      <button class="theme-btn" id="btnThemeAuswahl" title="Hintergrundmuster wählen">🎨</button>
-    </div>
+    <button class="theme-btn" id="btnThemeAuswahl" title="Hintergrundmuster wählen">🎨</button>
   </div>
   <div class="person-reihe" id="personReihe"></div>
   <div class="view-toggle" role="tablist">
@@ -341,6 +338,10 @@
 
 
 <main>
+  <div id="datenschutzBanner" class="disclaimer-box" style="display:none; margin:0 0 12px 0; position:relative; padding-right:34px;">
+    🔒 <strong>Hinweis:</strong> Deine Eingaben hier (u.a. Gewicht, Schlaf, Trainingsdaten) werden mit den anderen Mitgliedern deiner Familie über die Cloud synchronisiert – wie bei allen Modulen dieser App. Bitte nur eintragen, was du mit ihnen teilen möchtest.
+    <button id="btnDatenschutzBannerSchliessen" title="Schließen" style="position:absolute; top:6px; right:8px; background:none; border:none; font-size:1.1rem; cursor:pointer; color:inherit; line-height:1;">✕</button>
+  </div>
   <section id="ansichtHeute">
     <div class="karte">
       <div class="datum-label" id="heuteDatumLabel"></div>
@@ -1083,6 +1084,20 @@
     <div class="disclaimer-box" style="margin-bottom:14px;">
       ⚠️ <strong>Allgemeine Grundlagen-Infos, keine individuelle Beratung.</strong> Jeder Körper reagiert unterschiedlich – auf Genetik, Vorerkrankungen, Medikamente, Stresslevel, Hormone und vieles mehr. Was bei einer Person funktioniert, muss bei einer anderen nicht wirken. Bei konkreten Zielen (Abnehmen, Muskelaufbau, Ernährungsumstellung) lohnt sich eine persönliche Beratung durch Arzt, Ernährungsberatung oder qualifizierte Trainer – besonders bei bestehenden gesundheitlichen Einschränkungen.
     </div>
+    <div class="disclaimer-box" style="margin-bottom:14px;">
+      🔒 <strong>Datenschutz:</strong> Dieses Modul kann sensible Gesundheitsdaten enthalten (z. B. Blutdruck, Gewicht, Zyklus, Medikamente). Alle Einträge werden – wie in jedem Modul dieser App – über die gemeinsame Familien-Cloud synchronisiert und sind für alle Mitglieder deiner Familiengruppe sichtbar. Es gibt keine separate Zugriffsbeschränkung innerhalb der Familie. Trage hier nur ein, was du mit den anderen teilen möchtest.
+    </div>
+
+    <div class="info-karte" style="margin-bottom:14px;padding:14px;">
+      <div style="font-weight:700;margin-bottom:8px;">🌐 Aktuelle Fitness- &amp; Gesundheits-News</div>
+      <div id="gesundheitFeedInhalt" style="font-size:0.85rem;">Lädt…</div>
+    </div>
+    <div class="info-karte" style="margin-bottom:14px;padding:14px;">
+      <div style="font-weight:700;margin-bottom:8px;">🔗 Weitere Quellen</div>
+      <p style="font-size:0.72rem;color:var(--bark);margin-top:-4px;margin-bottom:10px;">Kein eingebetteter Feed möglich – ein Klick öffnet die Seite direkt.</p>
+      <a href="https://www.fitforfun.de/" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--white);border:1px solid var(--sage);border-radius:var(--radius-md);color:var(--moss);font-weight:600;text-decoration:none;margin-bottom:8px;">🏃 Fit For Fun <span>↗</span></a>
+      <a href="https://www.vital.de/" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--white);border:1px solid var(--sage);border-radius:var(--radius-md);color:var(--moss);font-weight:600;text-decoration:none;">💪 Vital.de <span>↗</span></a>
+    </div>
 
     <details class="info-karte" open>
       <summary>⚖️ Abnehmen – wie funktioniert das grundsätzlich?</summary>
@@ -1204,15 +1219,6 @@
     <button id="btnErnaehrungHinzufuegen" style="width:100%; background:var(--white); border:1px dashed var(--sage); color:var(--moss); border-radius:var(--radius-md); padding:12px; font-weight:700; cursor:pointer; margin-top:8px;">＋ Mahlzeit erfassen</button>
   </section>
 </main>
-
-<div class="modal-bg" id="modalTabsAnpassen">
-  <div class="modal">
-    <h2>⚙️ Tabs anpassen</h2>
-    <p style="font-size:0.75rem;color:var(--bark);margin-top:-6px;margin-bottom:10px;">Nur für dieses Gerät. „Heute" bleibt immer der Startpunkt.</p>
-    <div id="tabsAnpassenListe"></div>
-    <button id="btnTabsAnpassenSchliessen" style="width:100%; background:var(--moss); color:var(--leaf); border:none; border-radius:var(--radius-md); padding:12px; font-weight:700; cursor:pointer; margin-top:14px;">Fertig</button>
-  </div>
-</div>
 
 <div class="modal-bg" id="modalErnaehrung">
   <div class="modal">
@@ -2335,6 +2341,10 @@
     if (name === 'trainingsplan') renderTrainingsplan();
     if (name === 'koerperlexikon') renderKoerperlexikon('muskeln');
     if (name === 'ernaehrung') renderErnaehrung();
+    if (name === 'infos' && !document.getElementById('gesundheitFeedInhalt').dataset.built) {
+      document.getElementById('gesundheitFeedInhalt').dataset.built = '1';
+      ladeGesundheitFeed();
+    }
   }
   btnHeute.addEventListener('click', () => zeigeAnsicht('heute'));
   btnVerlauf.addEventListener('click', () => zeigeAnsicht('verlauf'));
@@ -2347,89 +2357,6 @@
   btnKoerperlexikon.addEventListener('click', () => zeigeAnsicht('koerperlexikon'));
   btnInfos.addEventListener('click', () => zeigeAnsicht('infos'));
   btnErnaehrung.addEventListener('click', () => zeigeAnsicht('ernaehrung'));
-
-  // ============================================================
-  // TABS ANPASSEN – Reihenfolge & Sichtbarkeit, geräte-lokal (Einstellungen ⚙️)
-  // "Heute" bleibt fix als erster, immer sichtbarer Tab.
-  // ============================================================
-  const TAB_ORDER_KEY = 'gesundheit_tabReihenfolge';
-  const TAB_HIDDEN_KEY = 'gesundheit_versteckteTabs';
-  const viewToggleContainer = document.querySelector('header.top .view-toggle');
-
-  function tabReihenfolge() {
-    let gespeichert = [];
-    try { gespeichert = JSON.parse(localStorage.getItem(TAB_ORDER_KEY) || '[]'); } catch (e) {}
-    const bekannt = Object.keys(alleTabs).filter(id => id !== 'heute');
-    const geordnet = gespeichert.filter(id => bekannt.includes(id));
-    const fehlende = bekannt.filter(id => !geordnet.includes(id));
-    return ['heute', ...geordnet, ...fehlende];
-  }
-
-  function versteckteTabs() {
-    try { return JSON.parse(localStorage.getItem(TAB_HIDDEN_KEY) || '[]'); } catch (e) { return []; }
-  }
-
-  function tabsNeuAnordnen() {
-    const reihenfolge = tabReihenfolge();
-    const versteckt = versteckteTabs();
-    reihenfolge.forEach(id => {
-      const btn = alleTabs[id];
-      if (!btn) return;
-      viewToggleContainer.appendChild(btn);
-      btn.style.display = (id !== 'heute' && versteckt.includes(id)) ? 'none' : '';
-    });
-    if (versteckt.includes(aktiveAnsicht)) zeigeAnsicht('heute');
-  }
-
-  function renderTabsAnpassenListe() {
-    const box = document.getElementById('tabsAnpassenListe');
-    const reihenfolge = tabReihenfolge().filter(id => id !== 'heute');
-    const versteckt = versteckteTabs();
-    box.innerHTML = reihenfolge.map((id, i) => {
-      const label = alleTabs[id].textContent.trim();
-      return `
-      <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #f0ead9;">
-        <input type="checkbox" data-hide-id="${id}" style="width:20px;height:20px;flex-shrink:0;" ${versteckt.includes(id) ? '' : 'checked'}>
-        <span style="flex:1;font-size:0.85rem;">${label}</span>
-        <button type="button" data-dir="up" data-i="${i}" ${i === 0 ? 'disabled' : ''} style="background:none;border:1px solid #ddd;border-radius:6px;width:30px;height:30px;cursor:pointer;opacity:${i === 0 ? 0.3 : 1};">▲</button>
-        <button type="button" data-dir="down" data-i="${i}" ${i === reihenfolge.length - 1 ? 'disabled' : ''} style="background:none;border:1px solid #ddd;border-radius:6px;width:30px;height:30px;cursor:pointer;opacity:${i === reihenfolge.length - 1 ? 0.3 : 1};">▼</button>
-      </div>`;
-    }).join('');
-    box.querySelectorAll('button[data-dir]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const i = parseInt(btn.dataset.i, 10);
-        const j = btn.dataset.dir === 'up' ? i - 1 : i + 1;
-        const arr = reihenfolge.slice();
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-        try { localStorage.setItem(TAB_ORDER_KEY, JSON.stringify(arr)); } catch (e) {}
-        tabsNeuAnordnen();
-        renderTabsAnpassenListe();
-      });
-    });
-    box.querySelectorAll('input[data-hide-id]').forEach(cb => {
-      cb.addEventListener('change', () => {
-        let arr = versteckteTabs();
-        if (cb.checked) arr = arr.filter(id => id !== cb.dataset.hideId);
-        else if (!arr.includes(cb.dataset.hideId)) arr.push(cb.dataset.hideId);
-        try { localStorage.setItem(TAB_HIDDEN_KEY, JSON.stringify(arr)); } catch (e) {}
-        tabsNeuAnordnen();
-      });
-    });
-  }
-
-  document.getElementById('btnTabsAnpassen').addEventListener('click', () => {
-    renderTabsAnpassenListe();
-    document.getElementById('modalTabsAnpassen').classList.add('zeigen');
-  });
-  document.getElementById('btnTabsAnpassenSchliessen').addEventListener('click', () => {
-    document.getElementById('modalTabsAnpassen').classList.remove('zeigen');
-  });
-  document.getElementById('modalTabsAnpassen').addEventListener('click', (e) => {
-    if (e.target.id === 'modalTabsAnpassen') document.getElementById('modalTabsAnpassen').classList.remove('zeigen');
-  });
-
-  tabsNeuAnordnen();
-
 
   // ============================================================
   // KÖRPERLEXIKON – vereinfachte Original-Illustrationen (kein Foto/Scan),
@@ -3483,6 +3410,64 @@
       },
     });
   }
+
+  // Datenschutz-Banner: einmalig pro Gerät anzeigen, bis geschlossen
+  const KEY_DATENSCHUTZ_BANNER = 'gesundheit_datenschutzBannerGesehen';
+  try {
+    if (!localStorage.getItem(KEY_DATENSCHUTZ_BANNER)) {
+      document.getElementById('datenschutzBanner').style.display = '';
+    }
+  } catch (e) {}
+  document.getElementById('btnDatenschutzBannerSchliessen').addEventListener('click', () => {
+    document.getElementById('datenschutzBanner').style.display = 'none';
+    try { localStorage.setItem(KEY_DATENSCHUTZ_BANNER, '1'); } catch (e) {}
+  });
+
+  // ==================== NEWSFEED: Fitness & Gesundheit (Men's Health) ====================
+  const RSS2JSON_KEY = 'gzgrcvnabxmmjjevo0nlsuucc1bl9qzizlvuzjkq'; // eigener kostenloser Key von rss2json.com
+  const GESUNDHEIT_FEED_URL = 'https://www.menshealth.de/rss/alle';
+  const GESUNDHEIT_FEED_CACHE_KEY = 'gesundheit_newsfeedCache';
+  async function ladeGesundheitFeed(forceRefresh) {
+    const el = document.getElementById('gesundheitFeedInhalt');
+    if (!el) return;
+    try {
+      if (!forceRefresh) {
+        const cache = JSON.parse(localStorage.getItem(GESUNDHEIT_FEED_CACHE_KEY) || 'null');
+        if (cache && (Date.now() - cache.fetchedAt) < 3 * 60 * 60 * 1000) {
+          renderGesundheitFeed(cache.items);
+          return;
+        }
+      }
+    } catch (e) {}
+    try {
+      let url = 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(GESUNDHEIT_FEED_URL) + '&count=6';
+      if (RSS2JSON_KEY) url += '&api_key=' + encodeURIComponent(RSS2JSON_KEY);
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.status !== 'ok') throw new Error(data.message || 'Fehler');
+      const items = data.items.map(i => ({ title: i.title, link: i.link, pubDate: i.pubDate, thumbnail: i.thumbnail }));
+      try { localStorage.setItem(GESUNDHEIT_FEED_CACHE_KEY, JSON.stringify({ items, fetchedAt: Date.now() })); } catch (e) {}
+      renderGesundheitFeed(items);
+    } catch (e) {
+      el.innerHTML = '⚠ News konnten gerade nicht geladen werden (' + escapeHtml(String(e.message || e)) + '). <a href="https://www.menshealth.de" target="_blank" rel="noopener">Direkt zu menshealth.de →</a> <button type="button" onclick="ladeGesundheitFeed(true)" style="margin-left:6px;background:none;border:1px solid var(--sage);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:0.78rem;">🔄 erneut versuchen</button>';
+    }
+  }
+  function renderGesundheitFeed(items) {
+    const el = document.getElementById('gesundheitFeedInhalt');
+    if (!el) return;
+    if (!items || !items.length) { el.textContent = 'Aktuell keine News verfügbar.'; return; }
+    el.innerHTML = items.map(i => {
+      const datum = i.pubDate ? new Date(i.pubDate.replace(' ', 'T')).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '';
+      const bild = i.thumbnail ? '<img src="' + i.thumbnail + '" alt="" style="width:56px;height:56px;object-fit:cover;border-radius:8px;flex-shrink:0;">' : '';
+      return '<div style="display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid #eee5d0;">' +
+        bild +
+        '<div style="flex:1;min-width:0;">' +
+        '<a href="' + i.link + '" target="_blank" rel="noopener" style="color:var(--moss);font-weight:600;text-decoration:none;">' + escapeHtml(i.title) + '</a>' +
+        (datum ? '<div style="font-size:0.7rem;color:var(--bark);opacity:0.75;margin-top:2px;">' + datum + '</div>' : '') +
+        '</div></div>';
+    }).join('') + '<div style="margin-top:8px;font-size:0.68rem;color:var(--bark);opacity:0.7;">Quelle: menshealth.de · <button type="button" onclick="ladeGesundheitFeed(true)" style="background:none;border:none;color:inherit;text-decoration:underline;cursor:pointer;padding:0;font-size:inherit;">aktualisieren</button></div>';
+  }
+  window.ladeGesundheitFeed = ladeGesundheitFeed;
 })();
 </script>
 

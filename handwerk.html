@@ -220,6 +220,17 @@
       ⚠️ Allgemeine Grundlagen, keine Anleitung für den konkreten Einzelfall. Bei Arbeiten an Strom, Gas, tragenden Wänden oder wenn du dir unsicher bist: Fachbetrieb hinzuziehen statt selbst zu experimentieren.
     </div>
 
+    <div class="info-karte" style="margin-bottom:14px;padding:14px;">
+      <div style="font-weight:700;margin-bottom:8px;">🌐 Aktuelle Handwerk- &amp; Heimwerker-News</div>
+      <div id="handwerkFeedInhalt" style="font-size:0.85rem;">Lädt…</div>
+    </div>
+    <div class="info-karte" style="margin-bottom:14px;padding:14px;">
+      <div style="font-weight:700;margin-bottom:8px;">🔗 Weitere Quellen</div>
+      <p style="font-size:0.72rem;color:var(--bark);margin-top:-4px;margin-bottom:10px;">Kein eingebetteter Feed möglich – ein Klick öffnet die Seite direkt.</p>
+      <a href="https://www.heimwerker.de/" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--white);border:1px solid var(--sage);border-radius:var(--radius-md);color:var(--moss);font-weight:600;text-decoration:none;margin-bottom:8px;">🔨 heimwerker.de <span>↗</span></a>
+      <a href="https://www.selbst.de/" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--white);border:1px solid var(--sage);border-radius:var(--radius-md);color:var(--moss);font-weight:600;text-decoration:none;">🛠️ selbst.de <span>↗</span></a>
+    </div>
+
     <details class="info-karte" open>
       <summary>🧰 Werkzeug-Grundausstattung</summary>
       <div class="info-inhalt">
@@ -993,6 +1004,10 @@
     document.getElementById('wartungFilterReihe').style.display = (aktiveAnsicht === 'wartung') ? '' : 'none';
     document.getElementById('btnNeu').style.display = (aktiveAnsicht === 'infos') ? 'none' : '';
     if (aktiveAnsicht === 'wartung') { renderWartungFilter(); renderWartungListe(); }
+    if (aktiveAnsicht === 'infos' && !document.getElementById('handwerkFeedInhalt').dataset.built) {
+      document.getElementById('handwerkFeedInhalt').dataset.built = '1';
+      ladeHandwerkFeed();
+    }
   }
   document.getElementById('tabProjekte').addEventListener('click', () => { aktiveAnsicht = 'projekte'; ansichtAnwenden(); });
   document.getElementById('tabWartung').addEventListener('click', () => { aktiveAnsicht = 'wartung'; ansichtAnwenden(); });
@@ -1264,6 +1279,52 @@
       },
     });
   }
+
+  // ==================== NEWSFEED: Handwerk & Heimwerken (heimwerker-test.de) ====================
+  const RSS2JSON_KEY = 'gzgrcvnabxmmjjevo0nlsuucc1bl9qzizlvuzjkq'; // eigener kostenloser Key von rss2json.com
+  const HANDWERK_FEED_URL = 'https://www.heimwerker-test.de/rss/news';
+  const HANDWERK_FEED_CACHE_KEY = 'handwerk_newsfeedCache';
+  async function ladeHandwerkFeed(forceRefresh) {
+    const el = document.getElementById('handwerkFeedInhalt');
+    if (!el) return;
+    try {
+      if (!forceRefresh) {
+        const cache = JSON.parse(localStorage.getItem(HANDWERK_FEED_CACHE_KEY) || 'null');
+        if (cache && (Date.now() - cache.fetchedAt) < 3 * 60 * 60 * 1000) {
+          renderHandwerkFeed(cache.items);
+          return;
+        }
+      }
+    } catch (e) {}
+    try {
+      let url = 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(HANDWERK_FEED_URL) + '&count=6';
+      if (RSS2JSON_KEY) url += '&api_key=' + encodeURIComponent(RSS2JSON_KEY);
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.status !== 'ok') throw new Error(data.message || 'Fehler');
+      const items = data.items.map(i => ({ title: i.title, link: i.link, pubDate: i.pubDate, thumbnail: i.thumbnail }));
+      try { localStorage.setItem(HANDWERK_FEED_CACHE_KEY, JSON.stringify({ items, fetchedAt: Date.now() })); } catch (e) {}
+      renderHandwerkFeed(items);
+    } catch (e) {
+      el.innerHTML = '⚠ News konnten gerade nicht geladen werden (' + escapeHtml(String(e.message || e)) + '). <a href="https://www.heimwerker-test.de" target="_blank" rel="noopener">Direkt zur Seite →</a> <button type="button" onclick="ladeHandwerkFeed(true)" style="margin-left:6px;background:none;border:1px solid var(--sage);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:0.78rem;">🔄 erneut versuchen</button>';
+    }
+  }
+  function renderHandwerkFeed(items) {
+    const el = document.getElementById('handwerkFeedInhalt');
+    if (!el) return;
+    if (!items || !items.length) { el.textContent = 'Aktuell keine News verfügbar.'; return; }
+    el.innerHTML = items.map(i => {
+      const datum = i.pubDate ? new Date(i.pubDate.replace(' ', 'T')).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '';
+      const bild = i.thumbnail ? '<img src="' + i.thumbnail + '" alt="" style="width:56px;height:56px;object-fit:cover;border-radius:8px;flex-shrink:0;">' : '';
+      return '<div style="display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid #eee5d0;">' +
+        bild +
+        '<div style="flex:1;min-width:0;">' +
+        '<a href="' + i.link + '" target="_blank" rel="noopener" style="color:var(--moss);font-weight:600;text-decoration:none;">' + escapeHtml(i.title) + '</a>' +
+        (datum ? '<div style="font-size:0.7rem;color:var(--bark);opacity:0.75;margin-top:2px;">' + datum + '</div>' : '') +
+        '</div></div>';
+    }).join('') + '<div style="margin-top:8px;font-size:0.68rem;color:var(--bark);opacity:0.7;">Quelle: heimwerker-test.de · <button type="button" onclick="ladeHandwerkFeed(true)" style="background:none;border:none;color:inherit;text-decoration:underline;cursor:pointer;padding:0;font-size:inherit;">aktualisieren</button></div>';
+  }
+  window.ladeHandwerkFeed = ladeHandwerkFeed;
 })();
 </script>
 

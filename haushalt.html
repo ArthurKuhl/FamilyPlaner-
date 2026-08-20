@@ -189,6 +189,17 @@
       ⚠️ Allgemeine Hausmittel-Tipps – bei empfindlichen Materialien (Seide, Leder, alte/wertvolle Textilien) vorher an unauffälliger Stelle testen oder professionelle Reinigung nutzen.
     </div>
 
+    <div class="info-karte" style="margin-bottom:14px;padding:14px;">
+      <div style="font-weight:700;margin-bottom:8px;">🌐 Aktuelle Haushaltstipps</div>
+      <div id="haushaltFeedInhalt" style="font-size:0.85rem;">Lädt…</div>
+    </div>
+    <div class="info-karte" style="margin-bottom:14px;padding:14px;">
+      <div style="font-weight:700;margin-bottom:8px;">🔗 Weitere Quellen</div>
+      <p style="font-size:0.72rem;color:var(--bark);margin-top:-4px;margin-bottom:10px;">Kein eingebetteter Feed möglich – ein Klick öffnet die Seite direkt.</p>
+      <a href="https://www.schoener-wohnen.de/" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--white);border:1px solid var(--sage);border-radius:var(--radius-md);color:var(--moss);font-weight:600;text-decoration:none;margin-bottom:8px;">🏠 Schöner Wohnen <span>↗</span></a>
+      <a href="https://blog.helpling.de/haushaltstipps/" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--white);border:1px solid var(--sage);border-radius:var(--radius-md);color:var(--moss);font-weight:600;text-decoration:none;">🧹 Helpling-Blog <span>↗</span></a>
+    </div>
+
     <details class="info-karte" open>
       <summary>🧽 Reinigungsmittel-Grundausstattung</summary>
       <div class="info-inhalt">
@@ -667,6 +678,10 @@
     document.getElementById('btnNeu').style.display = name === 'infos' ? 'none' : '';
     const filterReihe = document.getElementById('filterReihe');
     if (filterReihe) filterReihe.style.display = name === 'infos' ? 'none' : '';
+    if (name === 'infos' && !document.getElementById('haushaltFeedInhalt').dataset.built) {
+      document.getElementById('haushaltFeedInhalt').dataset.built = '1';
+      ladeHaushaltFeed();
+    }
   }
   document.getElementById('tabAufgaben').addEventListener('click', () => haushaltAnsichtAnwenden('aufgaben'));
   document.getElementById('tabInfos').addEventListener('click', () => haushaltAnsichtAnwenden('infos'));
@@ -794,6 +809,52 @@
       onRemoteChange: function () { aufgaben = laden(KEY_AUFGABEN, aufgaben); renderFilter(); renderListe(); },
     });
   }
+
+  // ==================== NEWSFEED: Haushaltstipps (Haushalts-Blog.de) ====================
+  const RSS2JSON_KEY = 'gzgrcvnabxmmjjevo0nlsuucc1bl9qzizlvuzjkq'; // eigener kostenloser Key von rss2json.com
+  const HAUSHALT_FEED_URL = 'https://haushalts-blog.de/feed/';
+  const HAUSHALT_FEED_CACHE_KEY = 'haushalt_newsfeedCache';
+  async function ladeHaushaltFeed(forceRefresh) {
+    const el = document.getElementById('haushaltFeedInhalt');
+    if (!el) return;
+    try {
+      if (!forceRefresh) {
+        const cache = JSON.parse(localStorage.getItem(HAUSHALT_FEED_CACHE_KEY) || 'null');
+        if (cache && (Date.now() - cache.fetchedAt) < 3 * 60 * 60 * 1000) {
+          renderHaushaltFeed(cache.items);
+          return;
+        }
+      }
+    } catch (e) {}
+    try {
+      let url = 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(HAUSHALT_FEED_URL) + '&count=6';
+      if (RSS2JSON_KEY) url += '&api_key=' + encodeURIComponent(RSS2JSON_KEY);
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.status !== 'ok') throw new Error(data.message || 'Fehler');
+      const items = data.items.map(i => ({ title: i.title, link: i.link, pubDate: i.pubDate, thumbnail: i.thumbnail }));
+      try { localStorage.setItem(HAUSHALT_FEED_CACHE_KEY, JSON.stringify({ items, fetchedAt: Date.now() })); } catch (e) {}
+      renderHaushaltFeed(items);
+    } catch (e) {
+      el.innerHTML = '⚠ Tipps konnten gerade nicht geladen werden (' + escapeHtml(String(e.message || e)) + '). <a href="https://haushalts-blog.de" target="_blank" rel="noopener">Direkt zur Seite →</a> <button type="button" onclick="ladeHaushaltFeed(true)" style="margin-left:6px;background:none;border:1px solid var(--sage);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:0.78rem;">🔄 erneut versuchen</button>';
+    }
+  }
+  function renderHaushaltFeed(items) {
+    const el = document.getElementById('haushaltFeedInhalt');
+    if (!el) return;
+    if (!items || !items.length) { el.textContent = 'Aktuell keine Tipps verfügbar.'; return; }
+    el.innerHTML = items.map(i => {
+      const datum = i.pubDate ? new Date(i.pubDate.replace(' ', 'T')).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '';
+      const bild = i.thumbnail ? '<img src="' + i.thumbnail + '" alt="" style="width:56px;height:56px;object-fit:cover;border-radius:8px;flex-shrink:0;">' : '';
+      return '<div style="display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid #eee5d0;">' +
+        bild +
+        '<div style="flex:1;min-width:0;">' +
+        '<a href="' + i.link + '" target="_blank" rel="noopener" style="color:var(--moss);font-weight:600;text-decoration:none;">' + escapeHtml(i.title) + '</a>' +
+        (datum ? '<div style="font-size:0.7rem;color:var(--bark);opacity:0.75;margin-top:2px;">' + datum + '</div>' : '') +
+        '</div></div>';
+    }).join('') + '<div style="margin-top:8px;font-size:0.68rem;color:var(--bark);opacity:0.7;">Quelle: haushalts-blog.de · <button type="button" onclick="ladeHaushaltFeed(true)" style="background:none;border:none;color:inherit;text-decoration:underline;cursor:pointer;padding:0;font-size:inherit;">aktualisieren</button></div>';
+  }
+  window.ladeHaushaltFeed = ladeHaushaltFeed;
 })();
 </script>
 </body>
