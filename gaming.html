@@ -223,6 +223,10 @@
   <section id="ansichtNews" style="display:none;">
     <div class="karte">
       <h3>🌐 Aktuelle Nintendo-News</h3>
+      <div class="filter-reihe" style="margin-bottom:10px;">
+        <button type="button" class="filter-chip active" id="btnFeedQuelleNtower">🕹️ Community (ntower)</button>
+        <button type="button" class="filter-chip" id="btnFeedQuelleOffiziell">🎮 Offiziell (Nintendo)</button>
+      </div>
       <div id="gamingFeedInhalt" style="font-size:0.85rem;">Lädt…</div>
     </div>
   </section>
@@ -730,38 +734,59 @@
     });
   }
 
-  // ==================== NEWSFEED: Nintendo-News (ntower) ====================
+  // ==================== NEWSFEED: Nintendo-News (ntower + offiziell) ====================
   // Gleiches Prinzip wie Garten/Kochen: rss2json.com wandelt RSS in JSON,
   // Ergebnis 3 Std. lokal zwischengespeichert (kein Cloud-Sync).
   const RSS2JSON_KEY = 'gzgrcvnabxmmjjevo0nlsuucc1bl9qzizlvuzjkq'; // eigener kostenloser Key von rss2json.com
-  const GAMING_FEED_URL = 'https://www.ntower.de/news-feed'; // ohne &showImage=true: dieser Zusatz lässt rss2json.com an der Syntax scheitern
-  const GAMING_FEED_CACHE_KEY = 'gaming_newsfeedCache';
+  const GAMING_FEED_QUELLEN = {
+    ntower: {
+      url: 'https://www.ntower.de/news-feed', // ohne &showImage=true: dieser Zusatz lässt rss2json.com an der Syntax scheitern
+      cacheKey: 'gaming_newsfeedCache',
+      label: 'ntower.de',
+      linkZielseite: 'https://www.ntower.de',
+    },
+    offiziell: {
+      url: 'https://www.nintendo.com/de-de/news.xml',
+      cacheKey: 'gaming_newsfeedCacheOffiziell',
+      label: 'nintendo.com',
+      linkZielseite: 'https://www.nintendo.com/de-de/',
+    },
+  };
+  const GAMING_FEED_QUELLE_KEY = 'gaming_newsfeedQuelle';
+  let gamingFeedQuelle = 'ntower';
+  try {
+    const gespeicherteQuelle = localStorage.getItem(GAMING_FEED_QUELLE_KEY);
+    if (gespeicherteQuelle && GAMING_FEED_QUELLEN[gespeicherteQuelle]) gamingFeedQuelle = gespeicherteQuelle;
+  } catch (e) {}
+
   async function ladeGamingFeed(forceRefresh) {
     const el = document.getElementById('gamingFeedInhalt');
     if (!el) return;
+    const quelle = GAMING_FEED_QUELLEN[gamingFeedQuelle];
+    el.textContent = 'Lädt…';
     try {
       if (!forceRefresh) {
-        const cache = JSON.parse(localStorage.getItem(GAMING_FEED_CACHE_KEY) || 'null');
+        const cache = JSON.parse(localStorage.getItem(quelle.cacheKey) || 'null');
         if (cache && (Date.now() - cache.fetchedAt) < 3 * 60 * 60 * 1000) {
-          renderGamingFeed(cache.items);
+          renderGamingFeed(cache.items, quelle);
           return;
         }
       }
     } catch (e) {}
     try {
-      let url = 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(GAMING_FEED_URL) + '&count=8';
+      let url = 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(quelle.url) + '&count=8';
       if (RSS2JSON_KEY) url += '&api_key=' + encodeURIComponent(RSS2JSON_KEY);
       const res = await fetch(url);
       const data = await res.json();
       if (data.status !== 'ok') throw new Error(data.message || 'Fehler');
       const items = data.items.map(i => ({ title: i.title, link: i.link, pubDate: i.pubDate, thumbnail: i.thumbnail }));
-      try { localStorage.setItem(GAMING_FEED_CACHE_KEY, JSON.stringify({ items, fetchedAt: Date.now() })); } catch (e) {}
-      renderGamingFeed(items);
+      try { localStorage.setItem(quelle.cacheKey, JSON.stringify({ items, fetchedAt: Date.now() })); } catch (e) {}
+      renderGamingFeed(items, quelle);
     } catch (e) {
-      el.innerHTML = '⚠ News konnten gerade nicht geladen werden (' + escapeHtml(String(e.message || e)) + '). <a href="https://www.ntower.de" target="_blank" rel="noopener">Direkt zu ntower.de →</a> <button type="button" onclick="ladeGamingFeed(true)" style="margin-left:6px;background:none;border:1px solid var(--sage);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:0.78rem;">🔄 erneut versuchen</button>';
+      el.innerHTML = '⚠ News konnten gerade nicht geladen werden (' + escapeHtml(String(e.message || e)) + '). <a href="' + quelle.linkZielseite + '" target="_blank" rel="noopener">Direkt zu ' + quelle.label + ' →</a> <button type="button" onclick="ladeGamingFeed(true)" style="margin-left:6px;background:none;border:1px solid var(--sage);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:0.78rem;">🔄 erneut versuchen</button>';
     }
   }
-  function renderGamingFeed(items) {
+  function renderGamingFeed(items, quelle) {
     const el = document.getElementById('gamingFeedInhalt');
     if (!el) return;
     if (!items || !items.length) { el.textContent = 'Aktuell keine News verfügbar.'; return; }
@@ -774,8 +799,20 @@
         '<a href="' + i.link + '" target="_blank" rel="noopener" style="color:var(--moss);font-weight:600;text-decoration:none;">' + escapeHtml(i.title) + '</a>' +
         (datum ? '<div style="font-size:0.7rem;color:var(--bark);opacity:0.75;margin-top:2px;">' + datum + '</div>' : '') +
         '</div></div>';
-    }).join('') + '<div style="margin-top:8px;font-size:0.68rem;color:var(--bark);opacity:0.7;">Quelle: ntower.de · <button type="button" onclick="ladeGamingFeed(true)" style="background:none;border:none;color:inherit;text-decoration:underline;cursor:pointer;padding:0;font-size:inherit;">aktualisieren</button></div>';
+    }).join('') + '<div style="margin-top:8px;font-size:0.68rem;color:var(--bark);opacity:0.7;">Quelle: ' + quelle.label + ' · <button type="button" onclick="ladeGamingFeed(true)" style="background:none;border:none;color:inherit;text-decoration:underline;cursor:pointer;padding:0;font-size:inherit;">aktualisieren</button></div>';
   }
+  function gamingFeedQuelleUmschalten(neueQuelle) {
+    if (gamingFeedQuelle === neueQuelle) return;
+    gamingFeedQuelle = neueQuelle;
+    try { localStorage.setItem(GAMING_FEED_QUELLE_KEY, neueQuelle); } catch (e) {}
+    document.getElementById('btnFeedQuelleNtower').classList.toggle('active', neueQuelle === 'ntower');
+    document.getElementById('btnFeedQuelleOffiziell').classList.toggle('active', neueQuelle === 'offiziell');
+    ladeGamingFeed();
+  }
+  document.getElementById('btnFeedQuelleNtower').addEventListener('click', () => gamingFeedQuelleUmschalten('ntower'));
+  document.getElementById('btnFeedQuelleOffiziell').addEventListener('click', () => gamingFeedQuelleUmschalten('offiziell'));
+  document.getElementById('btnFeedQuelleNtower').classList.toggle('active', gamingFeedQuelle === 'ntower');
+  document.getElementById('btnFeedQuelleOffiziell').classList.toggle('active', gamingFeedQuelle === 'offiziell');
   window.ladeGamingFeed = ladeGamingFeed;
 })();
 </script>
