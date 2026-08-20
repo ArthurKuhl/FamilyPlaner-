@@ -240,6 +240,7 @@
 <header class="top">
   <div class="titel-zeile">
     <h1>🍳 Kochen &amp; Backen</h1>
+    <button class="theme-btn" id="btnNews" title="Aktuelle Rezept-Ideen">🌐</button>
     <button class="theme-btn" id="btnThemeAuswahl" title="Hintergrundmuster wählen">🎨</button>
     <button class="add-btn" id="btnNeu">＋ Neu</button>
   </div>
@@ -303,21 +304,6 @@
     </div>
 
     <details class="info-karte" open>
-      <summary>🌐 Aktuelle Rezept-Ideen (Web)</summary>
-      <div class="info-inhalt" id="kochenFeedInhalt">Lädt…</div>
-    </details>
-
-    <details class="info-karte" open>
-      <summary>🔗 Weitere Rezept-Quellen</summary>
-      <div class="info-inhalt">
-        <p style="font-size:0.72rem;color:var(--bark);margin-top:-4px;margin-bottom:10px;">Kein eingebetteter Feed möglich – ein Klick öffnet die Seite direkt.</p>
-        <a href="https://www.chefkoch.de/" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--white);border:1px solid var(--sage);border-radius:var(--radius-md);color:var(--moss);font-weight:600;text-decoration:none;margin-bottom:8px;">👨‍🍳 Chefkoch.de <span>↗</span></a>
-        <a href="https://www.kochbar.de/" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--white);border:1px solid var(--sage);border-radius:var(--radius-md);color:var(--moss);font-weight:600;text-decoration:none;margin-bottom:8px;">🍲 Kochbar.de <span>↗</span></a>
-        <a href="https://www.lecker.de/" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--white);border:1px solid var(--sage);border-radius:var(--radius-md);color:var(--moss);font-weight:600;text-decoration:none;">🍽️ LECKER.de <span>↗</span></a>
-      </div>
-    </details>
-
-    <details class="info-karte" open>
       <summary>🔥 Grundtechniken kurz erklärt</summary>
       <div class="info-inhalt">
         <ul>
@@ -371,6 +357,23 @@
 </main>
 
 <!-- Detailansicht -->
+<div class="modal-bg" id="newsModal">
+  <div class="modal">
+    <h2>🌐 Aktuelle Rezept-Ideen</h2>
+    <div id="kochenFeedInhalt" style="font-size:0.85rem;">Lädt…</div>
+    <div style="margin-top:14px;">
+      <div style="font-weight:700;margin-bottom:8px;font-size:0.9rem;">🔗 Weitere Quellen</div>
+      <p style="font-size:0.72rem;color:var(--bark);margin-top:-4px;margin-bottom:10px;">Kein eingebetteter Feed möglich – ein Klick öffnet die Seite direkt.</p>
+      <a href="https://www.chefkoch.de/" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--white);border:1px solid var(--sage);border-radius:var(--radius-md);color:var(--moss);font-weight:600;text-decoration:none;margin-bottom:8px;">👨‍🍳 Chefkoch.de <span>↗</span></a>
+      <a href="https://www.kochbar.de/" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--white);border:1px solid var(--sage);border-radius:var(--radius-md);color:var(--moss);font-weight:600;text-decoration:none;margin-bottom:8px;">🍲 Kochbar.de <span>↗</span></a>
+      <a href="https://www.lecker.de/" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--white);border:1px solid var(--sage);border-radius:var(--radius-md);color:var(--moss);font-weight:600;text-decoration:none;">🍽️ LECKER.de <span>↗</span></a>
+    </div>
+    <div class="modal-btns" style="margin-top:14px;">
+      <button class="btn btn-secondary" id="btnNewsSchliessen">Schließen</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="modalDetail">
   <div class="modal">
     <div class="detail-kopf">
@@ -1323,10 +1326,6 @@
     btnViewInfos.setAttribute('aria-selected', name === 'infos');
     document.getElementById('btnNeu').style.display = name === 'infos' ? 'none' : '';
     if (name === 'wochenplan') renderWochenplan();
-    if (name === 'infos' && !document.getElementById('kochenFeedInhalt').dataset.built) {
-      document.getElementById('kochenFeedInhalt').dataset.built = '1';
-      ladeKochenFeed();
-    }
   }
   btnViewRezepte.addEventListener('click', () => zeigeKochenAnsicht('rezepte'));
   btnViewWochenplan.addEventListener('click', () => zeigeKochenAnsicht('wochenplan'));
@@ -1393,6 +1392,15 @@
     }).join('') + '<div style="margin-top:8px;font-size:0.68rem;color:var(--bark);opacity:0.7;">Quelle: gutekueche.de · <button type="button" onclick="ladeKochenFeed(true)" style="background:none;border:none;color:inherit;text-decoration:underline;cursor:pointer;padding:0;font-size:inherit;">aktualisieren</button></div>';
   }
   window.ladeKochenFeed = ladeKochenFeed;
+  document.getElementById('btnNews').addEventListener('click', () => {
+    document.getElementById('newsModal').classList.add('zeigen');
+    if (!document.getElementById('kochenFeedInhalt').dataset.built) {
+      document.getElementById('kochenFeedInhalt').dataset.built = '1';
+      ladeKochenFeed();
+    }
+  });
+  document.getElementById('btnNewsSchliessen').addEventListener('click', () => document.getElementById('newsModal').classList.remove('zeigen'));
+  document.getElementById('newsModal').addEventListener('click', (e) => { if (e.target.id === 'newsModal') e.currentTarget.classList.remove('zeigen'); });
 })();
 </script>
 </body>
