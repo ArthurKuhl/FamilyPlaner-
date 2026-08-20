@@ -226,6 +226,7 @@
       <div class="filter-reihe" style="margin-bottom:10px;">
         <button type="button" class="filter-chip active" id="btnFeedQuelleNtower">🇩🇪 Fanmagazin (Nintendo-Online)</button>
         <button type="button" class="filter-chip" id="btnFeedQuelleOffiziell">🎮 Offiziell (Nintendo)</button>
+        <button type="button" class="filter-chip" id="btnFeedQuelleNintendolife">🌍 Nintendo Life (EN)</button>
       </div>
       <div id="gamingFeedInhalt" style="font-size:0.85rem;">Lädt…</div>
     </div>
@@ -744,12 +745,21 @@
       cacheKey: 'gaming_newsfeedCache',
       label: 'Nintendo-Online.de',
       linkZielseite: 'https://nintendo-online.de',
+      btnId: 'btnFeedQuelleNtower',
     },
     offiziell: {
       url: 'https://www.nintendo.com/de-de/news.xml',
       cacheKey: 'gaming_newsfeedCacheOffiziell',
       label: 'nintendo.com',
       linkZielseite: 'https://www.nintendo.com/de-de/',
+      btnId: 'btnFeedQuelleOffiziell',
+    },
+    nintendolife: {
+      url: 'https://www.nintendolife.com/feeds/latest',
+      cacheKey: 'gaming_newsfeedCacheNintendolife',
+      label: 'nintendolife.com',
+      linkZielseite: 'https://www.nintendolife.com',
+      btnId: 'btnFeedQuelleNintendolife',
     },
   };
   const GAMING_FEED_QUELLE_KEY = 'gaming_newsfeedQuelle';
@@ -801,18 +811,24 @@
         '</div></div>';
     }).join('') + '<div style="margin-top:8px;font-size:0.68rem;color:var(--bark);opacity:0.7;">Quelle: ' + quelle.label + ' · <button type="button" onclick="ladeGamingFeed(true)" style="background:none;border:none;color:inherit;text-decoration:underline;cursor:pointer;padding:0;font-size:inherit;">aktualisieren</button></div>';
   }
+  function gamingFeedQuelleAktualisierenButtons() {
+    Object.keys(GAMING_FEED_QUELLEN).forEach(key => {
+      const btn = document.getElementById(GAMING_FEED_QUELLEN[key].btnId);
+      if (btn) btn.classList.toggle('active', key === gamingFeedQuelle);
+    });
+  }
   function gamingFeedQuelleUmschalten(neueQuelle) {
     if (gamingFeedQuelle === neueQuelle) return;
     gamingFeedQuelle = neueQuelle;
     try { localStorage.setItem(GAMING_FEED_QUELLE_KEY, neueQuelle); } catch (e) {}
-    document.getElementById('btnFeedQuelleNtower').classList.toggle('active', neueQuelle === 'ntower');
-    document.getElementById('btnFeedQuelleOffiziell').classList.toggle('active', neueQuelle === 'offiziell');
+    gamingFeedQuelleAktualisierenButtons();
     ladeGamingFeed();
   }
-  document.getElementById('btnFeedQuelleNtower').addEventListener('click', () => gamingFeedQuelleUmschalten('ntower'));
-  document.getElementById('btnFeedQuelleOffiziell').addEventListener('click', () => gamingFeedQuelleUmschalten('offiziell'));
-  document.getElementById('btnFeedQuelleNtower').classList.toggle('active', gamingFeedQuelle === 'ntower');
-  document.getElementById('btnFeedQuelleOffiziell').classList.toggle('active', gamingFeedQuelle === 'offiziell');
+  Object.keys(GAMING_FEED_QUELLEN).forEach(key => {
+    const btn = document.getElementById(GAMING_FEED_QUELLEN[key].btnId);
+    if (btn) btn.addEventListener('click', () => gamingFeedQuelleUmschalten(key));
+  });
+  gamingFeedQuelleAktualisierenButtons();
   window.ladeGamingFeed = ladeGamingFeed;
 })();
 </script>
