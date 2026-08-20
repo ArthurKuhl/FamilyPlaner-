@@ -1367,7 +1367,7 @@
       try { localStorage.setItem(KOCHEN_FEED_CACHE_KEY, JSON.stringify({ items, fetchedAt: Date.now() })); } catch (e) {}
       renderKochenFeed(items);
     } catch (e) {
-      el.innerHTML = '⚠ Rezepte konnten gerade nicht geladen werden. <a href="https://www.gutekueche.de" target="_blank" rel="noopener">Direkt zur Seite →</a> <button type="button" onclick="ladeKochenFeed(true)" style="margin-left:6px;background:none;border:1px solid var(--sage);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:0.78rem;">🔄 erneut versuchen</button>';
+      el.innerHTML = '⚠ Rezepte konnten gerade nicht geladen werden (' + escapeHtml(String(e.message || e)) + '). <a href="https://www.gutekueche.de" target="_blank" rel="noopener">Direkt zur Seite →</a> <button type="button" onclick="ladeKochenFeed(true)" style="margin-left:6px;background:none;border:1px solid var(--sage);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:0.78rem;">🔄 erneut versuchen</button>';
     }
   }
   function renderKochenFeed(items) {
@@ -1382,6 +1382,7 @@
         '</div>';
     }).join('') + '<div style="margin-top:8px;font-size:0.68rem;color:var(--bark);opacity:0.7;">Quelle: gutekueche.de · <button type="button" onclick="ladeKochenFeed(true)" style="background:none;border:none;color:inherit;text-decoration:underline;cursor:pointer;padding:0;font-size:inherit;">aktualisieren</button></div>';
   }
+  window.ladeKochenFeed = ladeKochenFeed;
 })();
 </script>
 </body>

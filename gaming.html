@@ -758,7 +758,7 @@
       try { localStorage.setItem(GAMING_FEED_CACHE_KEY, JSON.stringify({ items, fetchedAt: Date.now() })); } catch (e) {}
       renderGamingFeed(items);
     } catch (e) {
-      el.innerHTML = '⚠ News konnten gerade nicht geladen werden. <a href="https://www.ntower.de" target="_blank" rel="noopener">Direkt zu ntower.de →</a> <button type="button" onclick="ladeGamingFeed(true)" style="margin-left:6px;background:none;border:1px solid var(--sage);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:0.78rem;">🔄 erneut versuchen</button>';
+      el.innerHTML = '⚠ News konnten gerade nicht geladen werden (' + escapeHtml(String(e.message || e)) + '). <a href="https://www.ntower.de" target="_blank" rel="noopener">Direkt zu ntower.de →</a> <button type="button" onclick="ladeGamingFeed(true)" style="margin-left:6px;background:none;border:1px solid var(--sage);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:0.78rem;">🔄 erneut versuchen</button>';
     }
   }
   function renderGamingFeed(items) {
@@ -776,6 +776,7 @@
         '</div></div>';
     }).join('') + '<div style="margin-top:8px;font-size:0.68rem;color:var(--bark);opacity:0.7;">Quelle: ntower.de · <button type="button" onclick="ladeGamingFeed(true)" style="background:none;border:none;color:inherit;text-decoration:underline;cursor:pointer;padding:0;font-size:inherit;">aktualisieren</button></div>';
   }
+  window.ladeGamingFeed = ladeGamingFeed;
 })();
 </script>
 
