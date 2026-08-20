@@ -164,6 +164,7 @@
 <header class="top">
   <div class="titel-zeile">
     <h1>🔨 Handwerk</h1>
+    <button class="theme-btn" id="btnNews" title="Aktuelle Handwerk-News">🌐</button>
     <button class="theme-btn" id="btnThemeAuswahl" title="Hintergrundmuster wählen">🎨</button>
     <button class="add-btn" id="btnNeu">＋ Neu</button>
   </div>
@@ -220,15 +221,6 @@
       ⚠️ Allgemeine Grundlagen, keine Anleitung für den konkreten Einzelfall. Bei Arbeiten an Strom, Gas, tragenden Wänden oder wenn du dir unsicher bist: Fachbetrieb hinzuziehen statt selbst zu experimentieren.
     </div>
 
-    <div class="info-karte" style="margin-bottom:14px;padding:14px;">
-      <div style="font-weight:700;margin-bottom:8px;">🌐 Aktuelle Handwerk- &amp; Heimwerker-News</div>
-      <div id="handwerkFeedInhalt" style="font-size:0.85rem;">Lädt…</div>
-    </div>
-    <div class="info-karte" style="margin-bottom:14px;padding:14px;">
-      <div style="font-weight:700;margin-bottom:8px;">🔗 Weitere Quellen</div>
-      <p style="font-size:0.72rem;color:var(--bark);margin-top:-4px;margin-bottom:10px;">Kein eingebetteter Feed möglich – ein Klick öffnet die Seite direkt.</p>
-      <a href="https://www.heimwerker.de/" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--white);border:1px solid var(--sage);border-radius:var(--radius-md);color:var(--moss);font-weight:600;text-decoration:none;margin-bottom:8px;">🔨 heimwerker.de <span>↗</span></a>
-      <a href="https://www.selbst.de/" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--white);border:1px solid var(--sage);border-radius:var(--radius-md);color:var(--moss);font-weight:600;text-decoration:none;">🛠️ selbst.de <span>↗</span></a>
     </div>
 
     <details class="info-karte" open>
@@ -289,6 +281,22 @@
 </main>
 
 <!-- Detailansicht -->
+<div class="modal-bg" id="newsModal">
+  <div class="modal">
+    <h2>🌐 Aktuelle Handwerk- &amp; Heimwerker-News</h2>
+    <div id="handwerkFeedInhalt" style="font-size:0.85rem;">Lädt…</div>
+    <div style="margin-top:14px;">
+      <div style="font-weight:700;margin-bottom:8px;font-size:0.9rem;">🔗 Weitere Quellen</div>
+      <p style="font-size:0.72rem;color:var(--bark);margin-top:-4px;margin-bottom:10px;">Kein eingebetteter Feed möglich – ein Klick öffnet die Seite direkt.</p>
+      <a href="https://www.heimwerker.de/" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--white);border:1px solid var(--sage);border-radius:var(--radius-md);color:var(--moss);font-weight:600;text-decoration:none;margin-bottom:8px;">🔨 heimwerker.de <span>↗</span></a>
+      <a href="https://www.selbst.de/" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--white);border:1px solid var(--sage);border-radius:var(--radius-md);color:var(--moss);font-weight:600;text-decoration:none;">🛠️ selbst.de <span>↗</span></a>
+    </div>
+    <div class="modal-btns" style="margin-top:14px;">
+      <button class="btn btn-secondary" id="btnNewsSchliessen">Schließen</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="modalDetail">
   <div class="modal">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
@@ -1004,14 +1012,19 @@
     document.getElementById('wartungFilterReihe').style.display = (aktiveAnsicht === 'wartung') ? '' : 'none';
     document.getElementById('btnNeu').style.display = (aktiveAnsicht === 'infos') ? 'none' : '';
     if (aktiveAnsicht === 'wartung') { renderWartungFilter(); renderWartungListe(); }
-    if (aktiveAnsicht === 'infos' && !document.getElementById('handwerkFeedInhalt').dataset.built) {
-      document.getElementById('handwerkFeedInhalt').dataset.built = '1';
-      ladeHandwerkFeed();
-    }
   }
   document.getElementById('tabProjekte').addEventListener('click', () => { aktiveAnsicht = 'projekte'; ansichtAnwenden(); });
   document.getElementById('tabWartung').addEventListener('click', () => { aktiveAnsicht = 'wartung'; ansichtAnwenden(); });
   document.getElementById('tabInfos').addEventListener('click', () => { aktiveAnsicht = 'infos'; ansichtAnwenden(); });
+  document.getElementById('btnNews').addEventListener('click', () => {
+    document.getElementById('newsModal').classList.add('zeigen');
+    if (!document.getElementById('handwerkFeedInhalt').dataset.built) {
+      document.getElementById('handwerkFeedInhalt').dataset.built = '1';
+      ladeHandwerkFeed();
+    }
+  });
+  document.getElementById('btnNewsSchliessen').addEventListener('click', () => document.getElementById('newsModal').classList.remove('zeigen'));
+  document.getElementById('newsModal').addEventListener('click', (e) => { if (e.target.id === 'newsModal') e.currentTarget.classList.remove('zeigen'); });
 
   function renderWartungFilter() {
     const box = document.getElementById('wartungFilterReihe');
