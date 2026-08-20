@@ -359,6 +359,7 @@
 <header>
   <h1 style="cursor:pointer" onclick="showView('home')" title="Zur Startseite">🌿 Gartenplaner <span class="hdr-sub">Dein Garten, geplant</span></h1>
   <div class="hdr-right">
+    <button class="theme-btn" id="btnNews" title="Aktuelle Garten-News">🌐</button>
     <button class="theme-btn" id="btnThemeAuswahl" title="Hintergrundmuster wählen">🎨</button>
     <span id="statusMsg" role="status" aria-live="polite">Wähle ein Werkzeug</span>
     <button class="btn-help" onclick="openHelpModal()" title="Kurzanleitung anzeigen" aria-label="Kurzanleitung anzeigen">?</button>
@@ -965,6 +966,26 @@
 </div>
 
 <!-- MODAL: Jetzt pflanzen & ernten -->
+<div class="modal-bg" id="newsModal" style="display:none">
+  <div class="modal" style="width:min(560px,96vw);max-height:88vh;overflow-y:auto">
+    <h2>🌐 Aktuelle Garten-News</h2>
+    <div class="filter-reihe" style="margin-bottom:10px;">
+      <button type="button" class="filter-chip active" id="btnGartenFeedQuellePlantura" onclick="gartenFeedQuelleUmschalten('plantura')">Plantura</button>
+      <button type="button" class="filter-chip" id="btnGartenFeedQuelleGig" onclick="gartenFeedQuelleUmschalten('gig')">Gern im Garten</button>
+    </div>
+    <div id="gartenFeedInhalt" style="font-size:0.85rem;color:var(--bark)">Lädt…</div>
+    <div style="margin-top:14px;">
+      <div style="font-weight:700;margin-bottom:8px;font-size:0.9rem;">🔗 Weitere Quellen</div>
+      <p style="font-size:0.72rem;color:var(--bark);margin-top:-4px;margin-bottom:10px;">Kein eingebetteter Feed möglich – ein Klick öffnet die Seite direkt.</p>
+      <a href="https://www.nutzpflanzenvielfalt.de/" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--white);border:1px solid var(--sage);border-radius:var(--radius-md);color:var(--moss);font-weight:600;text-decoration:none;margin-bottom:8px;">🌱 VEN – Verein zur Erhaltung der Nutzpflanzenvielfalt <span>↗</span></a>
+      <a href="https://www.faunaseeds.com/de_DE/" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--white);border:1px solid var(--sage);border-radius:var(--radius-md);color:var(--moss);font-weight:600;text-decoration:none;">🌾 Faunaseeds – Saatgut-Webshop <span>↗</span></a>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="document.getElementById('newsModal').style.display='none'">Schließen</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="nowModal" style="display:none">
   <div class="modal" style="width:min(560px,96vw);max-height:88vh;overflow-y:auto">
     <h2>🌾 Jetzt pflanzen &amp; ernten</h2>
@@ -6950,20 +6971,6 @@ const TIPS_TOPICS = [
 function renderTips() {
   const box = document.getElementById('tipsWrap');
   let html = `<div class="home-intro" style="margin-bottom:22px"><h2>📖 Tipps &amp; Tricks</h2><p>Grundlagenwissen für den Einstieg – zum Nachschlagen, nicht zum Auswendiglernen.</p></div>`;
-  html += `<div class="tips-topic" id="gartenFeedBox" style="margin-bottom:22px">
-    <div class="tips-topic-hd"><span class="tt-icon">🌐</span><h3>Aktuelles aus Garten-Blogs</h3></div>
-    <div class="filter-reihe" style="margin-bottom:10px;">
-      <button type="button" class="filter-chip active" id="btnGartenFeedQuellePlantura" onclick="gartenFeedQuelleUmschalten('plantura')">Plantura</button>
-      <button type="button" class="filter-chip" id="btnGartenFeedQuelleGig" onclick="gartenFeedQuelleUmschalten('gig')">Gern im Garten</button>
-    </div>
-    <div id="gartenFeedInhalt" style="font-size:0.82rem;color:var(--bark)">Lädt…</div>
-  </div>
-  <div class="tips-topic" style="margin-bottom:22px">
-    <div class="tips-topic-hd"><span class="tt-icon">🔗</span><h3>Weitere Quellen</h3></div>
-    <p style="font-size:0.72rem;color:var(--bark);margin-top:-2px;margin-bottom:10px;">Kein eingebetteter Feed möglich – ein Klick öffnet die Seite direkt.</p>
-    <a href="https://www.nutzpflanzenvielfalt.de/" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--white);border:1px solid var(--sage);border-radius:var(--radius-md);color:var(--moss);font-weight:600;text-decoration:none;margin-bottom:8px;">🌱 VEN – Verein zur Erhaltung der Nutzpflanzenvielfalt <span>↗</span></a>
-    <a href="https://www.faunaseeds.com/de_DE/" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--white);border:1px solid var(--sage);border-radius:var(--radius-md);color:var(--moss);font-weight:600;text-decoration:none;">🌾 Faunaseeds – Saatgut-Webshop <span>↗</span></a>
-  </div>`;
   TIPS_TOPICS.forEach((topic, ti) => {
     html += `<div class="tips-topic">
       <div class="tips-topic-hd"><span class="tt-icon">${topic.icon}</span><h3>${escapeHtml(topic.title)}</h3></div>`;
@@ -6980,7 +6987,6 @@ function renderTips() {
   });
   box.innerHTML = html;
   box.dataset.built = '1';
-  ladeGartenFeed();
 }
 
 // ==================== NEWSFEED: Garten-Blogs (Plantura + Gern im Garten) ====================
@@ -7069,6 +7075,13 @@ function gartenFeedQuelleUmschalten(neueQuelle) {
 }
 window.ladeGartenFeed = ladeGartenFeed;
 window.gartenFeedQuelleUmschalten = gartenFeedQuelleUmschalten;
+document.getElementById('btnNews').addEventListener('click', () => {
+  document.getElementById('newsModal').style.display = 'flex';
+  if (!document.getElementById('gartenFeedInhalt').dataset.built) {
+    document.getElementById('gartenFeedInhalt').dataset.built = '1';
+    ladeGartenFeed();
+  }
+});
 function toggleAccordion(id) {
   const el = document.getElementById(id);
   if (el) el.classList.toggle('open');
