@@ -57,7 +57,6 @@
   .listen-tabs { display: flex; gap: 4px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 8px; scrollbar-width: none; }
   .listen-tabs::-webkit-scrollbar { display: none; }
   .ich-bin-reihe { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding-bottom: 4px; }
-  .ich-bin-label { font-size: 0.68rem; color: var(--sage); font-weight: 600; opacity: 0.8; }
   .ich-bin-chip {
     background: transparent; border: 1px solid #4a3a28; color: var(--sage); font-size: 0.7rem; font-weight: 600;
     padding: 4px 11px; border-radius: var(--radius-pill); cursor: pointer;
@@ -269,7 +268,7 @@
   <div id="offeneItems"></div>
   <div id="erledigtSection" class="erledigt-section" style="display:none;">
     <div class="erledigt-kopf">
-      <button class="aufklappen" id="btnErledigtToggle"><span id="erledigtToggleIcon">▸</span> Erledigt (<span id="erledigtAnzahl">0</span>)</button>
+      <button class="aufklappen" id="btnErledigtToggle">▸ Erledigt (<span id="erledigtAnzahl">0</span>)</button>
       <button class="erledigt-loeschen-btn" id="btnErledigtLoeschen">Entfernen</button>
     </div>
     <div id="erledigtItems" style="display:none;"></div>
@@ -512,7 +511,7 @@
 
   function renderIchBinReihe() {
     const box = document.getElementById('ichBinReihe');
-    box.innerHTML = '<span class="ich-bin-label">Ich bin:</span>';
+    box.innerHTML = '';
     PERSONEN.forEach(p => {
       const chip = document.createElement('button');
       chip.className = 'ich-bin-chip' + (p.id === aktuellePerson ? ' active' : '');
@@ -757,8 +756,7 @@
     const erledigt = liste.items.filter(i => i.erledigt);
     const section = document.getElementById('erledigtSection');
     section.style.display = erledigt.length ? '' : 'none';
-    document.getElementById('erledigtToggleIcon').textContent = erledigtOffen ? '▾' : '▸';
-    document.getElementById('erledigtAnzahl').textContent = erledigt.length;
+    document.getElementById('btnErledigtToggle').innerHTML = (erledigtOffen ? '▾' : '▸') + ' Erledigt (<span id="erledigtAnzahl">' + erledigt.length + '</span>)';
     const box = document.getElementById('erledigtItems');
     box.style.display = erledigtOffen ? '' : 'none';
     box.innerHTML = '';
