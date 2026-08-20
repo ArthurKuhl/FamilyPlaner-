@@ -226,9 +226,14 @@
       <div class="filter-reihe" style="margin-bottom:10px;">
         <button type="button" class="filter-chip active" id="btnFeedQuelleNtower">🇩🇪 Fanmagazin (Nintendo-Online)</button>
         <button type="button" class="filter-chip" id="btnFeedQuelleOffiziell">🎮 Offiziell (Nintendo)</button>
-        <button type="button" class="filter-chip" id="btnFeedQuelleNintendolife">🌍 Nintendo Life (EN)</button>
       </div>
       <div id="gamingFeedInhalt" style="font-size:0.85rem;">Lädt…</div>
+    </div>
+    <div class="karte">
+      <h3>🔗 Weitere Quellen</h3>
+      <p style="font-size:0.72rem;color:var(--bark);margin-top:-4px;margin-bottom:10px;">Kein eingebetteter Feed möglich (Bot-Schutz der Seiten) – aber ein Klick öffnet die News direkt.</p>
+      <a href="https://www.ntower.de/news/" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--white);border:1px solid var(--sage);border-radius:var(--radius-md);color:var(--moss);font-weight:600;text-decoration:none;margin-bottom:8px;">🕹️ ntower.de – Community-News <span>↗</span></a>
+      <a href="https://www.nintendolife.com/news" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--white);border:1px solid var(--sage);border-radius:var(--radius-md);color:var(--moss);font-weight:600;text-decoration:none;">🌍 Nintendo Life – News (EN) <span>↗</span></a>
     </div>
   </section>
 </main>
@@ -753,13 +758,6 @@
       label: 'nintendo.com',
       linkZielseite: 'https://www.nintendo.com/de-de/',
       btnId: 'btnFeedQuelleOffiziell',
-    },
-    nintendolife: {
-      url: 'https://www.nintendolife.com/feeds/latest',
-      cacheKey: 'gaming_newsfeedCacheNintendolife',
-      label: 'nintendolife.com',
-      linkZielseite: 'https://www.nintendolife.com',
-      btnId: 'btnFeedQuelleNintendolife',
     },
   };
   const GAMING_FEED_QUELLE_KEY = 'gaming_newsfeedQuelle';
