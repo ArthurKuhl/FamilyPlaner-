@@ -734,7 +734,7 @@
   // Gleiches Prinzip wie Garten/Kochen: rss2json.com wandelt RSS in JSON,
   // Ergebnis 3 Std. lokal zwischengespeichert (kein Cloud-Sync).
   const RSS2JSON_KEY = 'gzgrcvnabxmmjjevo0nlsuucc1bl9qzizlvuzjkq'; // eigener kostenloser Key von rss2json.com
-  const GAMING_FEED_URL = 'https://www.ntower.de/news-feed&showImage=true';
+  const GAMING_FEED_URL = 'https://www.ntower.de/news-feed'; // ohne &showImage=true: dieser Zusatz lässt rss2json.com an der Syntax scheitern
   const GAMING_FEED_CACHE_KEY = 'gaming_newsfeedCache';
   async function ladeGamingFeed(forceRefresh) {
     const el = document.getElementById('gamingFeedInhalt');
