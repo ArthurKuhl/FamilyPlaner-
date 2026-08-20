@@ -240,6 +240,7 @@
 <header class="top">
   <div class="titel-zeile">
     <h1>🍳 Kochen &amp; Backen</h1>
+    <button class="theme-btn" id="btnInfosModal" title="Infos">ℹ️</button>
     <button class="theme-btn" id="btnNews" title="Aktuelle Rezept-Ideen">🌐</button>
     <button class="theme-btn" id="btnThemeAuswahl" title="Hintergrundmuster wählen">🎨</button>
     <button class="add-btn" id="btnNeu">＋ Neu</button>
@@ -247,7 +248,6 @@
   <div class="view-toggle" role="tablist">
     <button id="btnViewRezepte" class="active" role="tab" aria-selected="true">📖 Rezepte</button>
     <button id="btnViewWochenplan" role="tab" aria-selected="false">📅 Wochenplan</button>
-    <button id="btnViewInfos" role="tab" aria-selected="false">ℹ️ Infos</button>
   </div>
   <div class="suchzeile-sort-reihe" id="suchzeileBox" style="display:flex; align-items:center; gap:6px;">
     <div class="suchzeile" style="flex:1; margin-bottom:0;">
@@ -298,7 +298,9 @@
     <button class="btn btn-primary" id="btnWochenplanZuEinkauf" style="width:100%; margin-top:14px;">🛒 Alle Zutaten dieser Woche in den Einkauf</button>
   </section>
 
-  <section id="ansichtInfos" style="display:none;">
+  <div class="modal-bg" id="infosModal">
+    <div class="modal" style="width:min(560px,96vw);max-height:88vh;overflow-y:auto">
+    <h2>ℹ️ Infos</h2>
     <div class="info-disclaimer">
       ⚠️ Allgemeine Küchen-Grundlagen – bei Lebensmittelallergien/-unverträglichkeiten Zutatenlisten trotzdem immer selbst genau prüfen.
     </div>
@@ -353,7 +355,11 @@
         </ul>
       </div>
     </details>
-  </section>
+    <div class="modal-btns" style="margin-top:14px;">
+      <button class="btn btn-secondary" id="btnInfosModalSchliessen">Schließen</button>
+    </div>
+    </div>
+  </div>
 </main>
 
 <!-- Detailansicht -->
@@ -1310,26 +1316,29 @@
   // --- Ansichts-Umschaltung Rezepte / Wochenplan ---
   const btnViewRezepte = document.getElementById('btnViewRezepte');
   const btnViewWochenplan = document.getElementById('btnViewWochenplan');
-  const btnViewInfos = document.getElementById('btnViewInfos');
   function zeigeKochenAnsicht(name) {
     document.getElementById('ansichtRezepte').style.display = name === 'rezepte' ? '' : 'none';
     document.getElementById('ansichtWochenplan').style.display = name === 'wochenplan' ? '' : 'none';
-    document.getElementById('ansichtInfos').style.display = name === 'infos' ? '' : 'none';
     document.getElementById('suchzeileBox').style.display = name === 'rezepte' ? '' : 'none';
     document.getElementById('filterReihe').style.display = name === 'rezepte' ? '' : 'none';
     document.getElementById('tagFilterReihe').style.display = name === 'rezepte' ? '' : 'none';
     btnViewRezepte.classList.toggle('active', name === 'rezepte');
     btnViewWochenplan.classList.toggle('active', name === 'wochenplan');
-    btnViewInfos.classList.toggle('active', name === 'infos');
     btnViewRezepte.setAttribute('aria-selected', name === 'rezepte');
     btnViewWochenplan.setAttribute('aria-selected', name === 'wochenplan');
-    btnViewInfos.setAttribute('aria-selected', name === 'infos');
-    document.getElementById('btnNeu').style.display = name === 'infos' ? 'none' : '';
     if (name === 'wochenplan') renderWochenplan();
   }
   btnViewRezepte.addEventListener('click', () => zeigeKochenAnsicht('rezepte'));
   btnViewWochenplan.addEventListener('click', () => zeigeKochenAnsicht('wochenplan'));
-  btnViewInfos.addEventListener('click', () => zeigeKochenAnsicht('infos'));
+  document.getElementById('btnInfosModal').addEventListener('click', () => {
+    document.getElementById('infosModal').classList.add('zeigen');
+  });
+  document.getElementById('btnInfosModalSchliessen').addEventListener('click', () => {
+    document.getElementById('infosModal').classList.remove('zeigen');
+  });
+  document.getElementById('infosModal').addEventListener('click', (e) => {
+    if (e.target.id === 'infosModal') e.currentTarget.classList.remove('zeigen');
+  });
 
   renderSortButton();
   renderFilter();

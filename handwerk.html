@@ -164,6 +164,7 @@
 <header class="top">
   <div class="titel-zeile">
     <h1>🔨 Handwerk</h1>
+    <button class="theme-btn" id="btnInfosModal" title="Infos">ℹ️</button>
     <button class="theme-btn" id="btnNews" title="Aktuelle Handwerk-News">🌐</button>
     <button class="theme-btn" id="btnThemeAuswahl" title="Hintergrundmuster wählen">🎨</button>
     <button class="add-btn" id="btnNeu">＋ Neu</button>
@@ -171,7 +172,6 @@
   <div class="ansicht-tabs">
     <button class="ansicht-tab active" id="tabProjekte">📋 Projekte</button>
     <button class="ansicht-tab" id="tabWartung">🔁 Wartung</button>
-    <button class="ansicht-tab" id="tabInfos">ℹ️ Infos</button>
   </div>
   <div class="suchzeile" id="ansichtProjekteKopf" style="display:flex; align-items:center; gap:6px;">
     <input type="text" id="fSuche" placeholder="Projekt suchen ..." style="flex:1;">
@@ -216,7 +216,9 @@
     </div>
   </div>
 
-  <div id="ansichtInfos" style="display:none;">
+  <div class="modal-bg" id="infosModal">
+    <div class="modal" style="width:min(560px,96vw);max-height:88vh;overflow-y:auto">
+    <h2>ℹ️ Infos</h2>
     <div class="info-disclaimer">
       ⚠️ Allgemeine Grundlagen, keine Anleitung für den konkreten Einzelfall. Bei Arbeiten an Strom, Gas, tragenden Wänden oder wenn du dir unsicher bist: Fachbetrieb hinzuziehen statt selbst zu experimentieren.
     </div>
@@ -275,6 +277,10 @@
         </ul>
       </div>
     </details>
+    <div class="modal-btns" style="margin-top:14px;">
+      <button class="btn btn-secondary" id="btnInfosModalSchliessen">Schließen</button>
+    </div>
+    </div>
   </div>
 </main>
 
@@ -1001,19 +1007,24 @@
   function ansichtAnwenden() {
     document.getElementById('tabProjekte').classList.toggle('active', aktiveAnsicht === 'projekte');
     document.getElementById('tabWartung').classList.toggle('active', aktiveAnsicht === 'wartung');
-    document.getElementById('tabInfos').classList.toggle('active', aktiveAnsicht === 'infos');
     document.getElementById('ansichtProjekte').style.display = (aktiveAnsicht === 'projekte') ? '' : 'none';
     document.getElementById('ansichtWartung').style.display = (aktiveAnsicht === 'wartung') ? '' : 'none';
-    document.getElementById('ansichtInfos').style.display = (aktiveAnsicht === 'infos') ? '' : 'none';
     document.getElementById('ansichtProjekteKopf').style.display = (aktiveAnsicht === 'projekte') ? 'flex' : 'none';
     document.getElementById('filterReihe').style.display = (aktiveAnsicht === 'projekte') ? '' : 'none';
     document.getElementById('wartungFilterReihe').style.display = (aktiveAnsicht === 'wartung') ? '' : 'none';
-    document.getElementById('btnNeu').style.display = (aktiveAnsicht === 'infos') ? 'none' : '';
     if (aktiveAnsicht === 'wartung') { renderWartungFilter(); renderWartungListe(); }
   }
   document.getElementById('tabProjekte').addEventListener('click', () => { aktiveAnsicht = 'projekte'; ansichtAnwenden(); });
   document.getElementById('tabWartung').addEventListener('click', () => { aktiveAnsicht = 'wartung'; ansichtAnwenden(); });
-  document.getElementById('tabInfos').addEventListener('click', () => { aktiveAnsicht = 'infos'; ansichtAnwenden(); });
+  document.getElementById('btnInfosModal').addEventListener('click', () => {
+    document.getElementById('infosModal').classList.add('zeigen');
+  });
+  document.getElementById('btnInfosModalSchliessen').addEventListener('click', () => {
+    document.getElementById('infosModal').classList.remove('zeigen');
+  });
+  document.getElementById('infosModal').addEventListener('click', (e) => {
+    if (e.target.id === 'infosModal') e.currentTarget.classList.remove('zeigen');
+  });
   document.getElementById('btnNews').addEventListener('click', () => {
     document.getElementById('newsModal').classList.add('zeigen');
     if (!document.getElementById('handwerkFeedInhalt').dataset.built) {
