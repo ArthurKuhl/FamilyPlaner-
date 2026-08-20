@@ -169,6 +169,7 @@
   <div class="view-toggle" role="tablist" style="margin-top:8px;">
     <button id="btnViewBibliothek" role="tab" aria-selected="true">Bibliothek</button>
     <button id="btnViewStatistik" role="tab" aria-selected="false">📊 Statistik</button>
+    <button id="btnViewNews" role="tab" aria-selected="false">🌐 News</button>
   </div>
 </header>
   <div class="theme-popup" id="themePopup">
@@ -216,6 +217,13 @@
     <div class="karte">
       <h3>📜 Verlauf</h3>
       <div id="sitzungsVerlauf"></div>
+    </div>
+  </section>
+
+  <section id="ansichtNews" style="display:none;">
+    <div class="karte">
+      <h3>🌐 Aktuelle Nintendo-News</h3>
+      <div id="gamingFeedInhalt" style="font-size:0.85rem;">Lädt…</div>
     </div>
   </section>
 </main>
@@ -676,18 +684,27 @@
 
   const btnViewBibliothek = document.getElementById('btnViewBibliothek');
   const btnViewStatistik = document.getElementById('btnViewStatistik');
+  const btnViewNews = document.getElementById('btnViewNews');
   function zeigeAnsicht(name) {
     aktiveAnsicht = name;
     document.getElementById('ansichtBibliothek').style.display = name === 'bibliothek' ? '' : 'none';
     document.getElementById('ansichtStatistik').style.display = name === 'statistik' ? '' : 'none';
+    document.getElementById('ansichtNews').style.display = name === 'news' ? '' : 'none';
     btnViewBibliothek.classList.toggle('active', name === 'bibliothek');
     btnViewStatistik.classList.toggle('active', name === 'statistik');
+    btnViewNews.classList.toggle('active', name === 'news');
     btnViewBibliothek.setAttribute('aria-selected', name === 'bibliothek');
     btnViewStatistik.setAttribute('aria-selected', name === 'statistik');
+    btnViewNews.setAttribute('aria-selected', name === 'news');
     if (name === 'statistik') renderStatistik();
+    if (name === 'news' && !document.getElementById('gamingFeedInhalt').dataset.built) {
+      document.getElementById('gamingFeedInhalt').dataset.built = '1';
+      ladeGamingFeed();
+    }
   }
   btnViewBibliothek.addEventListener('click', () => zeigeAnsicht('bibliothek'));
   btnViewStatistik.addEventListener('click', () => zeigeAnsicht('statistik'));
+  btnViewNews.addEventListener('click', () => zeigeAnsicht('news'));
 
   function renderAlles() {
     renderStats();
@@ -711,6 +728,53 @@
         if (aktiveAnsicht === 'statistik') renderStatistik();
       },
     });
+  }
+
+  // ==================== NEWSFEED: Nintendo-News (ntower) ====================
+  // Gleiches Prinzip wie Garten/Kochen: rss2json.com wandelt RSS in JSON,
+  // Ergebnis 3 Std. lokal zwischengespeichert (kein Cloud-Sync).
+  const RSS2JSON_KEY = 'gzgrcvnabxmmjjevo0nlsuucc1bl9qzizlvuzjkq'; // eigener kostenloser Key von rss2json.com
+  const GAMING_FEED_URL = 'https://www.ntower.de/news-feed&showImage=true';
+  const GAMING_FEED_CACHE_KEY = 'gaming_newsfeedCache';
+  async function ladeGamingFeed(forceRefresh) {
+    const el = document.getElementById('gamingFeedInhalt');
+    if (!el) return;
+    try {
+      if (!forceRefresh) {
+        const cache = JSON.parse(localStorage.getItem(GAMING_FEED_CACHE_KEY) || 'null');
+        if (cache && (Date.now() - cache.fetchedAt) < 3 * 60 * 60 * 1000) {
+          renderGamingFeed(cache.items);
+          return;
+        }
+      }
+    } catch (e) {}
+    try {
+      let url = 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(GAMING_FEED_URL) + '&count=8';
+      if (RSS2JSON_KEY) url += '&api_key=' + encodeURIComponent(RSS2JSON_KEY);
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.status !== 'ok') throw new Error(data.message || 'Fehler');
+      const items = data.items.map(i => ({ title: i.title, link: i.link, pubDate: i.pubDate, thumbnail: i.thumbnail }));
+      try { localStorage.setItem(GAMING_FEED_CACHE_KEY, JSON.stringify({ items, fetchedAt: Date.now() })); } catch (e) {}
+      renderGamingFeed(items);
+    } catch (e) {
+      el.innerHTML = '⚠ News konnten gerade nicht geladen werden. <a href="https://www.ntower.de" target="_blank" rel="noopener">Direkt zu ntower.de →</a> <button type="button" onclick="ladeGamingFeed(true)" style="margin-left:6px;background:none;border:1px solid var(--sage);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:0.78rem;">🔄 erneut versuchen</button>';
+    }
+  }
+  function renderGamingFeed(items) {
+    const el = document.getElementById('gamingFeedInhalt');
+    if (!el) return;
+    if (!items || !items.length) { el.textContent = 'Aktuell keine News verfügbar.'; return; }
+    el.innerHTML = items.map(i => {
+      const datum = i.pubDate ? new Date(i.pubDate.replace(' ', 'T')).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '';
+      const bild = i.thumbnail ? '<img src="' + i.thumbnail + '" alt="" style="width:64px;height:64px;object-fit:cover;border-radius:8px;flex-shrink:0;">' : '';
+      return '<div style="display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid #eee5d0;">' +
+        bild +
+        '<div style="flex:1;min-width:0;">' +
+        '<a href="' + i.link + '" target="_blank" rel="noopener" style="color:var(--moss);font-weight:600;text-decoration:none;">' + escapeHtml(i.title) + '</a>' +
+        (datum ? '<div style="font-size:0.7rem;color:var(--bark);opacity:0.75;margin-top:2px;">' + datum + '</div>' : '') +
+        '</div></div>';
+    }).join('') + '<div style="margin-top:8px;font-size:0.68rem;color:var(--bark);opacity:0.7;">Quelle: ntower.de · <button type="button" onclick="ladeGamingFeed(true)" style="background:none;border:none;color:inherit;text-decoration:underline;cursor:pointer;padding:0;font-size:inherit;">aktualisieren</button></div>';
   }
 })();
 </script>
