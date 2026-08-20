@@ -157,6 +157,7 @@
 <header class="top">
   <div class="titel-zeile">
     <h1>🎮 Gaming</h1>
+    <button class="theme-btn" id="btnNews" title="Aktuelle Nintendo-News">🌐</button>
     <button class="theme-btn" id="btnThemeAuswahl" title="Hintergrundmuster wählen">🎨</button>
     <button class="add-btn" id="btnNeu">＋ Neu</button>
   </div>
@@ -169,7 +170,6 @@
   <div class="view-toggle" role="tablist" style="margin-top:8px;">
     <button id="btnViewBibliothek" role="tab" aria-selected="true">Bibliothek</button>
     <button id="btnViewStatistik" role="tab" aria-selected="false">📊 Statistik</button>
-    <button id="btnViewNews" role="tab" aria-selected="false">🌐 News</button>
   </div>
 </header>
   <div class="theme-popup" id="themePopup">
@@ -219,24 +219,27 @@
       <div id="sitzungsVerlauf"></div>
     </div>
   </section>
+</main>
 
-  <section id="ansichtNews" style="display:none;">
-    <div class="karte">
-      <h3>🌐 Aktuelle Nintendo-News</h3>
-      <div class="filter-reihe" style="margin-bottom:10px;">
-        <button type="button" class="filter-chip active" id="btnFeedQuelleNtower">🇩🇪 Fanmagazin (Nintendo-Online)</button>
-        <button type="button" class="filter-chip" id="btnFeedQuelleOffiziell">🎮 Offiziell (Nintendo)</button>
-      </div>
-      <div id="gamingFeedInhalt" style="font-size:0.85rem;">Lädt…</div>
+<div class="modal-bg" id="newsModal">
+  <div class="modal">
+    <h2>🌐 Aktuelle Nintendo-News</h2>
+    <div class="filter-reihe" style="margin-bottom:10px;">
+      <button type="button" class="filter-chip active" id="btnFeedQuelleNtower">🇩🇪 Fanmagazin (Nintendo-Online)</button>
+      <button type="button" class="filter-chip" id="btnFeedQuelleOffiziell">🎮 Offiziell (Nintendo)</button>
     </div>
-    <div class="karte">
-      <h3>🔗 Weitere Quellen</h3>
+    <div id="gamingFeedInhalt" style="font-size:0.85rem;">Lädt…</div>
+    <div style="margin-top:14px;">
+      <div style="font-weight:700;margin-bottom:8px;font-size:0.9rem;">🔗 Weitere Quellen</div>
       <p style="font-size:0.72rem;color:var(--bark);margin-top:-4px;margin-bottom:10px;">Kein eingebetteter Feed möglich (Bot-Schutz der Seiten) – aber ein Klick öffnet die News direkt.</p>
       <a href="https://www.ntower.de/newsarchiv/" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--white);border:1px solid var(--sage);border-radius:var(--radius-md);color:var(--moss);font-weight:600;text-decoration:none;margin-bottom:8px;">🕹️ ntower.de – Community-News <span>↗</span></a>
       <a href="https://www.nintendolife.com/news" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--white);border:1px solid var(--sage);border-radius:var(--radius-md);color:var(--moss);font-weight:600;text-decoration:none;">🌍 Nintendo Life – News (EN) <span>↗</span></a>
     </div>
-  </section>
-</main>
+    <div class="modal-btns" style="margin-top:14px;">
+      <button class="btn btn-secondary" id="btnNewsSchliessen">Schließen</button>
+    </div>
+  </div>
+</div>
 
 <div class="modal-bg" id="modalSitzung">
   <div class="modal">
@@ -694,27 +697,27 @@
 
   const btnViewBibliothek = document.getElementById('btnViewBibliothek');
   const btnViewStatistik = document.getElementById('btnViewStatistik');
-  const btnViewNews = document.getElementById('btnViewNews');
   function zeigeAnsicht(name) {
     aktiveAnsicht = name;
     document.getElementById('ansichtBibliothek').style.display = name === 'bibliothek' ? '' : 'none';
     document.getElementById('ansichtStatistik').style.display = name === 'statistik' ? '' : 'none';
-    document.getElementById('ansichtNews').style.display = name === 'news' ? '' : 'none';
     btnViewBibliothek.classList.toggle('active', name === 'bibliothek');
     btnViewStatistik.classList.toggle('active', name === 'statistik');
-    btnViewNews.classList.toggle('active', name === 'news');
     btnViewBibliothek.setAttribute('aria-selected', name === 'bibliothek');
     btnViewStatistik.setAttribute('aria-selected', name === 'statistik');
-    btnViewNews.setAttribute('aria-selected', name === 'news');
     if (name === 'statistik') renderStatistik();
-    if (name === 'news' && !document.getElementById('gamingFeedInhalt').dataset.built) {
-      document.getElementById('gamingFeedInhalt').dataset.built = '1';
-      ladeGamingFeed();
-    }
   }
   btnViewBibliothek.addEventListener('click', () => zeigeAnsicht('bibliothek'));
   btnViewStatistik.addEventListener('click', () => zeigeAnsicht('statistik'));
-  btnViewNews.addEventListener('click', () => zeigeAnsicht('news'));
+  document.getElementById('btnNews').addEventListener('click', () => {
+    document.getElementById('newsModal').classList.add('zeigen');
+    if (!document.getElementById('gamingFeedInhalt').dataset.built) {
+      document.getElementById('gamingFeedInhalt').dataset.built = '1';
+      ladeGamingFeed();
+    }
+  });
+  document.getElementById('btnNewsSchliessen').addEventListener('click', () => document.getElementById('newsModal').classList.remove('zeigen'));
+  document.getElementById('newsModal').addEventListener('click', (e) => { if (e.target.id === 'newsModal') e.currentTarget.classList.remove('zeigen'); });
 
   function renderAlles() {
     renderStats();
