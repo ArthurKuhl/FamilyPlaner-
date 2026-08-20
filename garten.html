@@ -409,11 +409,6 @@
         <h3>Verwertung &amp; Haltbarmachen</h3>
         <p>Welche Methode passt zu welchem Gemüse, Obst oder Beeren? Einkochen, Einfrieren, Fermentieren &amp; Co. im Überblick.</p>
       </div>
-      <div class="home-card" onclick="showView('album')" tabindex="0" role="button" onkeydown="if(event.key==='Enter'){this.click()}">
-        <div class="hc-icon">📸</div>
-        <h3>Fotoalbum</h3>
-        <p>Dein Foto-Tagebuch aus dem Garten – nach Beeten und Zeitpunkt sortiert.</p>
-      </div>
     </div>
   </div>
 </div>
@@ -6950,6 +6945,10 @@ const TIPS_TOPICS = [
 function renderTips() {
   const box = document.getElementById('tipsWrap');
   let html = `<div class="home-intro" style="margin-bottom:22px"><h2>📖 Tipps &amp; Tricks</h2><p>Grundlagenwissen für den Einstieg – zum Nachschlagen, nicht zum Auswendiglernen.</p></div>`;
+  html += `<div class="tips-topic" id="gartenFeedBox" style="margin-bottom:22px">
+    <div class="tips-topic-hd"><span class="tt-icon">🌐</span><h3>Aktuelles aus Garten-Blogs</h3></div>
+    <div id="gartenFeedInhalt" style="font-size:0.82rem;color:var(--bark)">Lädt…</div>
+  </div>`;
   TIPS_TOPICS.forEach((topic, ti) => {
     html += `<div class="tips-topic">
       <div class="tips-topic-hd"><span class="tt-icon">${topic.icon}</span><h3>${escapeHtml(topic.title)}</h3></div>`;
@@ -6966,6 +6965,56 @@ function renderTips() {
   });
   box.innerHTML = html;
   box.dataset.built = '1';
+  ladeGartenFeed();
+}
+
+// ==================== NEWSFEED: Garten-Blog (Plantura) ====================
+// Nutzt rss2json.com (kostenloser Dienst, wandelt RSS in JSON um, wird per fetch()
+// direkt aus dem Browser abgerufen – wie beim Wetter, nur ohne eigenen API-Key).
+// Ergebnis wird 3 Std. lokal zwischengespeichert (kein Cloud-Sync, jedes Gerät holt selbst).
+// HINWEIS: Der anonyme rss2json-Zugang ist ein geteiltes Kontingent für alle Nutzer weltweit
+// und kann daher gelegentlich überlastet sein ("bitte später erneut versuchen"-Meldung).
+// Für zuverlässigeren Betrieb: kostenlosen eigenen API-Key auf rss2json.com/docs holen und
+// unten bei RSS2JSON_KEY eintragen.
+const RSS2JSON_KEY = ''; // optional: eigener kostenloser Key von rss2json.com
+const GARTEN_FEED_URL = 'https://www.plantura.garden/feed';
+const GARTEN_FEED_CACHE_KEY = 'garten_newsfeedCache';
+async function ladeGartenFeed(forceRefresh) {
+  const el = document.getElementById('gartenFeedInhalt');
+  if (!el) return;
+  try {
+    if (!forceRefresh) {
+      const cache = JSON.parse(localStorage.getItem(GARTEN_FEED_CACHE_KEY) || 'null');
+      if (cache && (Date.now() - cache.fetchedAt) < 3 * 60 * 60 * 1000) {
+        renderGartenFeed(cache.items);
+        return;
+      }
+    }
+  } catch (e) {}
+  try {
+    let url = 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(GARTEN_FEED_URL) + '&count=5';
+    if (RSS2JSON_KEY) url += '&api_key=' + encodeURIComponent(RSS2JSON_KEY);
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.status !== 'ok') throw new Error(data.message || 'Fehler');
+    const items = data.items.map(i => ({ title: i.title, link: i.link, pubDate: i.pubDate }));
+    try { localStorage.setItem(GARTEN_FEED_CACHE_KEY, JSON.stringify({ items, fetchedAt: Date.now() })); } catch (e) {}
+    renderGartenFeed(items);
+  } catch (e) {
+    el.innerHTML = `⚠ Beiträge konnten gerade nicht geladen werden. <a href="${GARTEN_FEED_URL.replace('/feed','')}" target="_blank" rel="noopener">Direkt zum Blog →</a> <button type="button" onclick="ladeGartenFeed(true)" style="margin-left:6px;background:none;border:1px solid var(--sage);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:0.78rem;">🔄 erneut versuchen</button>`;
+  }
+}
+function renderGartenFeed(items) {
+  const el = document.getElementById('gartenFeedInhalt');
+  if (!el) return;
+  if (!items || !items.length) { el.textContent = 'Aktuell keine Beiträge verfügbar.'; return; }
+  el.innerHTML = items.map(i => {
+    const datum = i.pubDate ? new Date(i.pubDate.replace(' ', 'T')).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '';
+    return `<div style="padding:7px 0;border-bottom:1px solid #eee5d0;">
+      <a href="${i.link}" target="_blank" rel="noopener" style="color:var(--moss);font-weight:600;text-decoration:none;">${escapeHtml(i.title)}</a>
+      ${datum ? `<div style="font-size:0.7rem;color:var(--bark);opacity:0.75;margin-top:2px;">${datum}</div>` : ''}
+    </div>`;
+  }).join('') + `<div style="margin-top:8px;font-size:0.68rem;color:var(--bark);opacity:0.7;">Quelle: plantura.garden · <button type="button" onclick="ladeGartenFeed(true)" style="background:none;border:none;color:inherit;text-decoration:underline;cursor:pointer;padding:0;font-size:inherit;">aktualisieren</button></div>`;
 }
 function toggleAccordion(id) {
   const el = document.getElementById(id);

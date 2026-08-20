@@ -303,6 +303,11 @@
     </div>
 
     <details class="info-karte" open>
+      <summary>🌐 Aktuelle Rezept-Ideen (Web)</summary>
+      <div class="info-inhalt" id="kochenFeedInhalt">Lädt…</div>
+    </details>
+
+    <details class="info-karte" open>
       <summary>🔥 Grundtechniken kurz erklärt</summary>
       <div class="info-inhalt">
         <ul>
@@ -1308,6 +1313,10 @@
     btnViewInfos.setAttribute('aria-selected', name === 'infos');
     document.getElementById('btnNeu').style.display = name === 'infos' ? 'none' : '';
     if (name === 'wochenplan') renderWochenplan();
+    if (name === 'infos' && !document.getElementById('kochenFeedInhalt').dataset.built) {
+      document.getElementById('kochenFeedInhalt').dataset.built = '1';
+      ladeKochenFeed();
+    }
   }
   btnViewRezepte.addEventListener('click', () => zeigeKochenAnsicht('rezepte'));
   btnViewWochenplan.addEventListener('click', () => zeigeKochenAnsicht('wochenplan'));
@@ -1328,6 +1337,50 @@
         if (document.getElementById('ansichtWochenplan').style.display !== 'none') renderWochenplan();
       },
     });
+  }
+
+  // ==================== NEWSFEED: Rezept-Ideen (GuteKüche.de) ====================
+  // Selbes Prinzip wie beim Garten-Blog-Feed: rss2json.com wandelt RSS in JSON,
+  // wird per fetch() direkt aus dem Browser geholt, 3 Std. lokal zwischengespeichert.
+  const RSS2JSON_KEY = ''; // optional: eigener kostenloser Key von rss2json.com/docs
+  const KOCHEN_FEED_URL = 'https://www.gutekueche.de/feed/wochenrezepte';
+  const KOCHEN_FEED_CACHE_KEY = 'kochen_newsfeedCache';
+  async function ladeKochenFeed(forceRefresh) {
+    const el = document.getElementById('kochenFeedInhalt');
+    if (!el) return;
+    try {
+      if (!forceRefresh) {
+        const cache = JSON.parse(localStorage.getItem(KOCHEN_FEED_CACHE_KEY) || 'null');
+        if (cache && (Date.now() - cache.fetchedAt) < 3 * 60 * 60 * 1000) {
+          renderKochenFeed(cache.items);
+          return;
+        }
+      }
+    } catch (e) {}
+    try {
+      let url = 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(KOCHEN_FEED_URL) + '&count=5';
+      if (RSS2JSON_KEY) url += '&api_key=' + encodeURIComponent(RSS2JSON_KEY);
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.status !== 'ok') throw new Error(data.message || 'Fehler');
+      const items = data.items.map(i => ({ title: i.title, link: i.link, pubDate: i.pubDate }));
+      try { localStorage.setItem(KOCHEN_FEED_CACHE_KEY, JSON.stringify({ items, fetchedAt: Date.now() })); } catch (e) {}
+      renderKochenFeed(items);
+    } catch (e) {
+      el.innerHTML = '⚠ Rezepte konnten gerade nicht geladen werden. <a href="https://www.gutekueche.de" target="_blank" rel="noopener">Direkt zur Seite →</a> <button type="button" onclick="ladeKochenFeed(true)" style="margin-left:6px;background:none;border:1px solid var(--sage);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:0.78rem;">🔄 erneut versuchen</button>';
+    }
+  }
+  function renderKochenFeed(items) {
+    const el = document.getElementById('kochenFeedInhalt');
+    if (!el) return;
+    if (!items || !items.length) { el.textContent = 'Aktuell keine Rezepte verfügbar.'; return; }
+    el.innerHTML = items.map(i => {
+      const datum = i.pubDate ? new Date(i.pubDate.replace(' ', 'T')).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '';
+      return '<div style="padding:7px 0;border-bottom:1px solid #eee5d0;">' +
+        '<a href="' + i.link + '" target="_blank" rel="noopener" style="color:var(--moss);font-weight:600;text-decoration:none;">' + escapeHtml(i.title) + '</a>' +
+        (datum ? '<div style="font-size:0.7rem;color:var(--bark);opacity:0.75;margin-top:2px;">' + datum + '</div>' : '') +
+        '</div>';
+    }).join('') + '<div style="margin-top:8px;font-size:0.68rem;color:var(--bark);opacity:0.7;">Quelle: gutekueche.de · <button type="button" onclick="ladeKochenFeed(true)" style="background:none;border:none;color:inherit;text-decoration:underline;cursor:pointer;padding:0;font-size:inherit;">aktualisieren</button></div>';
   }
 })();
 </script>
