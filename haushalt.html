@@ -144,6 +144,7 @@
 <header class="top">
   <div class="titel-zeile">
     <h1>🧹 Haushalt</h1>
+    <button class="theme-btn" id="btnInfosModal" title="Infos">ℹ️</button>
     <button class="theme-btn" id="btnNews" title="Aktuelle Haushaltstipps">🌐</button>
     <button class="theme-btn" id="btnThemeAuswahl" title="Hintergrundmuster wählen">🎨</button>
     <button class="add-btn" id="btnNeu">＋ Neu</button>
@@ -174,7 +175,6 @@
 <main>
   <div class="ansicht-tabs">
     <button class="ansicht-tab active" id="tabAufgaben">🧹 Aufgaben</button>
-    <button class="ansicht-tab" id="tabInfos">ℹ️ Infos</button>
   </div>
 
   <div id="ansichtAufgaben">
@@ -185,7 +185,9 @@
     </div>
   </div>
 
-  <div id="ansichtInfos" style="display:none;">
+  <div class="modal-bg" id="infosModal">
+    <div class="modal" style="width:min(560px,96vw);max-height:88vh;overflow-y:auto">
+    <h2>ℹ️ Infos</h2>
     <div class="info-disclaimer">
       ⚠️ Allgemeine Hausmittel-Tipps – bei empfindlichen Materialien (Seide, Leder, alte/wertvolle Textilien) vorher an unauffälliger Stelle testen oder professionelle Reinigung nutzen.
     </div>
@@ -245,6 +247,10 @@
         <p>Ein fester Rhythmus (z.B. mit dem 🧹 Aufgaben-Tab hier im Modul geplant) verhindert, dass sich große Putzaktionen aufstauen.</p>
       </div>
     </details>
+    <div class="modal-btns" style="margin-top:14px;">
+      <button class="btn btn-secondary" id="btnInfosModalSchliessen">Schließen</button>
+    </div>
+    </div>
   </div>
 </main>
 
@@ -676,18 +682,21 @@
   }
   document.getElementById('btnNeu').addEventListener('click', () => editOeffnen(null));
 
-  // ---------- Ansicht umschalten: Aufgaben / Infos ----------
+  // ---------- Ansicht umschalten: Aufgaben ----------
   function haushaltAnsichtAnwenden(name) {
     document.getElementById('tabAufgaben').classList.toggle('active', name === 'aufgaben');
-    document.getElementById('tabInfos').classList.toggle('active', name === 'infos');
     document.getElementById('ansichtAufgaben').style.display = name === 'aufgaben' ? '' : 'none';
-    document.getElementById('ansichtInfos').style.display = name === 'infos' ? '' : 'none';
-    document.getElementById('btnNeu').style.display = name === 'infos' ? 'none' : '';
-    const filterReihe = document.getElementById('filterReihe');
-    if (filterReihe) filterReihe.style.display = name === 'infos' ? 'none' : '';
   }
   document.getElementById('tabAufgaben').addEventListener('click', () => haushaltAnsichtAnwenden('aufgaben'));
-  document.getElementById('tabInfos').addEventListener('click', () => haushaltAnsichtAnwenden('infos'));
+  document.getElementById('btnInfosModal').addEventListener('click', () => {
+    document.getElementById('infosModal').classList.add('zeigen');
+  });
+  document.getElementById('btnInfosModalSchliessen').addEventListener('click', () => {
+    document.getElementById('infosModal').classList.remove('zeigen');
+  });
+  document.getElementById('infosModal').addEventListener('click', (e) => {
+    if (e.target.id === 'infosModal') e.currentTarget.classList.remove('zeigen');
+  });
   document.getElementById('btnNews').addEventListener('click', () => {
     document.getElementById('newsModal').classList.add('zeigen');
     if (!document.getElementById('haushaltFeedInhalt').dataset.built) {

@@ -300,6 +300,7 @@
     <h1 style="margin:0;">🏃 Gesundheit &amp; Sport</h1>
     <div style="display:flex;align-items:center;gap:2px;">
       <button class="theme-btn" id="btnTabsAnpassen" title="Tabs anpassen">⚙️</button>
+      <button class="theme-btn" id="btnInfosModal" title="Infos">ℹ️</button>
       <button class="theme-btn" id="btnNews" title="Aktuelle Fitness- &amp; Gesundheits-News">🌐</button>
       <button class="theme-btn" id="btnThemeAuswahl" title="Hintergrundmuster wählen">🎨</button>
     </div>
@@ -315,7 +316,6 @@
     <button id="btnViewZyklus" role="tab" aria-selected="false">🌙 Zyklus</button>
     <button id="btnViewTrainingsplan" role="tab" aria-selected="false">🗓️ Trainingsplan</button>
     <button id="btnViewKoerperlexikon" role="tab" aria-selected="false">🦴 Körperlexikon</button>
-    <button id="btnViewInfos" role="tab" aria-selected="false">ℹ️ Infos</button>
     <button id="btnViewErnaehrung" role="tab" aria-selected="false">🍽️ Ernährung</button>
   </div>
 </header>
@@ -1084,14 +1084,14 @@
     </div>
   </section>
 
-  <section id="ansichtInfos" style="display:none;">
+  <div class="modal-bg" id="infosModal">
+    <div class="modal" style="width:min(560px,96vw);max-height:88vh;overflow-y:auto">
+    <h2>ℹ️ Infos</h2>
     <div class="disclaimer-box" style="margin-bottom:14px;">
       ⚠️ <strong>Allgemeine Grundlagen-Infos, keine individuelle Beratung.</strong> Jeder Körper reagiert unterschiedlich – auf Genetik, Vorerkrankungen, Medikamente, Stresslevel, Hormone und vieles mehr. Was bei einer Person funktioniert, muss bei einer anderen nicht wirken. Bei konkreten Zielen (Abnehmen, Muskelaufbau, Ernährungsumstellung) lohnt sich eine persönliche Beratung durch Arzt, Ernährungsberatung oder qualifizierte Trainer – besonders bei bestehenden gesundheitlichen Einschränkungen.
     </div>
     <div class="disclaimer-box" style="margin-bottom:14px;">
       🔒 <strong>Datenschutz:</strong> Dieses Modul kann sensible Gesundheitsdaten enthalten (z. B. Blutdruck, Gewicht, Zyklus, Medikamente). Alle Einträge werden – wie in jedem Modul dieser App – über die gemeinsame Familien-Cloud synchronisiert und sind für alle Mitglieder deiner Familiengruppe sichtbar. Es gibt keine separate Zugriffsbeschränkung innerhalb der Familie. Trage hier nur ein, was du mit den anderen teilen möchtest.
-    </div>
-
     </div>
 
     <details class="info-karte" open>
@@ -1177,7 +1177,11 @@
         </ul>
       </div>
     </details>
-  </section>
+    <div class="modal-btns" style="margin-top:14px;">
+      <button class="btn btn-secondary" id="btnInfosModalSchliessen">Schließen</button>
+    </div>
+    </div>
+  </div>
 
   <section id="ansichtErnaehrung" style="display:none;">
     <div class="disclaimer-box" style="margin-bottom:14px;">
@@ -2333,9 +2337,8 @@
   const btnZyklus = document.getElementById('btnViewZyklus');
   const btnTrainingsplan = document.getElementById('btnViewTrainingsplan');
   const btnKoerperlexikon = document.getElementById('btnViewKoerperlexikon');
-  const btnInfos = document.getElementById('btnViewInfos');
   const btnErnaehrung = document.getElementById('btnViewErnaehrung');
-  const alleTabs = { heute: btnHeute, verlauf: btnVerlauf, rechner: btnRechner, kraft: btnKraft, dehnen: btnDehnen, balance: btnBalance, zyklus: btnZyklus, trainingsplan: btnTrainingsplan, koerperlexikon: btnKoerperlexikon, infos: btnInfos, ernaehrung: btnErnaehrung };
+  const alleTabs = { heute: btnHeute, verlauf: btnVerlauf, rechner: btnRechner, kraft: btnKraft, dehnen: btnDehnen, balance: btnBalance, zyklus: btnZyklus, trainingsplan: btnTrainingsplan, koerperlexikon: btnKoerperlexikon, ernaehrung: btnErnaehrung };
   function zeigeAnsicht(name) {
     aktiveAnsicht = name;
     document.getElementById('ansichtHeute').style.display = name === 'heute' ? '' : 'none';
@@ -2347,7 +2350,6 @@
     document.getElementById('ansichtZyklus').style.display = name === 'zyklus' ? '' : 'none';
     document.getElementById('ansichtTrainingsplan').style.display = name === 'trainingsplan' ? '' : 'none';
     document.getElementById('ansichtKoerperlexikon').style.display = name === 'koerperlexikon' ? '' : 'none';
-    document.getElementById('ansichtInfos').style.display = name === 'infos' ? '' : 'none';
     document.getElementById('ansichtErnaehrung').style.display = name === 'ernaehrung' ? '' : 'none';
     Object.keys(alleTabs).forEach((k) => {
       alleTabs[k].classList.toggle('active', k === name);
@@ -2371,8 +2373,16 @@
   btnZyklus.addEventListener('click', () => zeigeAnsicht('zyklus'));
   btnTrainingsplan.addEventListener('click', () => zeigeAnsicht('trainingsplan'));
   btnKoerperlexikon.addEventListener('click', () => zeigeAnsicht('koerperlexikon'));
-  btnInfos.addEventListener('click', () => zeigeAnsicht('infos'));
   btnErnaehrung.addEventListener('click', () => zeigeAnsicht('ernaehrung'));
+  document.getElementById('btnInfosModal').addEventListener('click', () => {
+    document.getElementById('infosModal').classList.add('zeigen');
+  });
+  document.getElementById('btnInfosModalSchliessen').addEventListener('click', () => {
+    document.getElementById('infosModal').classList.remove('zeigen');
+  });
+  document.getElementById('infosModal').addEventListener('click', (e) => {
+    if (e.target.id === 'infosModal') e.currentTarget.classList.remove('zeigen');
+  });
 
   // ============================================================
   // TABS ANPASSEN – Reihenfolge & Sichtbarkeit, geräte-lokal (Einstellungen ⚙️)
