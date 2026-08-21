@@ -687,6 +687,12 @@
           </div>
           <div id="climateZoneHint" style="font-size:0.68rem;color:var(--bark);margin-top:4px"></div>
         </div>
+
+        <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--parchment)">
+          <div class="sidebar-title">📅 Für nächstes Jahr übernehmen</div>
+          <p style="font-size:0.72rem;color:var(--bark);margin-bottom:8px">Legt eine Kopie dieses Gartens an (Beete, Strukturen, Maße, Foto, Klimazone) – ideal, um die Grundplanung jedes Jahr weiterzuverwenden, statt neu zu zeichnen.</p>
+          <button class="btn-primary" onclick="openJahresUebernahmeModal()">📅 Garten für nächstes Jahr kopieren</button>
+        </div>
       </div>
 
       <!-- BULK SELECTION BAR -->
@@ -1000,6 +1006,28 @@
     </div>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="document.getElementById('newsModal').style.display='none'">Schließen</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="jahresUebernahmeModal" style="display:none">
+  <div class="modal" style="width:min(480px,96vw)">
+    <h2>📅 Für nächstes Jahr übernehmen</h2>
+    <div class="form-row">
+      <label>Name des neuen Gartens</label>
+      <input type="text" id="jahresUebernahmeName" />
+    </div>
+    <div class="form-row">
+      <label>Pflanzen übernehmen</label>
+      <select id="jahresUebernahmeModus">
+        <option value="alle">🌱 Mit allen aktuellen Pflanzen (1:1-Kopie)</option>
+        <option value="mehrjaehrig" selected>🌳 Nur mehrjährige Pflanzen (Bäume, Sträucher, Stauden) – einjährige wandern in die Fruchtfolge-Historie</option>
+      </select>
+      <p style="font-size:0.7rem;color:var(--bark);margin-top:6px">Bei der zweiten Option bleiben Beete, Strukturen, Maße und mehrjährige Pflanzen erhalten. Einjährige Pflanzen (z.B. Tomaten, Salat) werden aus den Beeten entfernt, zählen aber weiterhin für die Fruchtfolge-Warnungen – so siehst du beim Neubepflanzen direkt, was letztes Jahr wo stand.</p>
+    </div>
+    <div class="modal-btns" style="margin-top:14px;">
+      <button class="btn-secondary" onclick="document.getElementById('jahresUebernahmeModal').style.display='none'">Abbrechen</button>
+      <button class="btn-primary" onclick="jahresUebernahmeAusfuehren()">📅 Garten anlegen</button>
     </div>
   </div>
 </div>
@@ -4497,6 +4525,81 @@ function confirmAddGarden() {
   switchGarden(id);
   renderGardenTabs();
   closeModal();
+}
+
+// ==================== GARTEN FÜR NÄCHSTES JAHR ÜBERNEHMEN ====================
+function openJahresUebernahmeModal() {
+  if (!gardens[currentGardenId]) return;
+  const aktuellerName = gardens[currentGardenId].name || 'Mein Garten';
+  const naechstesJahr = new Date().getFullYear() + 1;
+  // Falls der Name bereits auf eine Jahreszahl endet, diese für den Vorschlag hochzählen, sonst Jahr anhängen
+  const jahrMatch = aktuellerName.match(/(\d{4})\s*$/);
+  const vorschlag = jahrMatch
+    ? aktuellerName.replace(/\d{4}\s*$/, naechstesJahr)
+    : `${aktuellerName} ${naechstesJahr}`;
+  document.getElementById('jahresUebernahmeName').value = vorschlag;
+  document.getElementById('jahresUebernahmeModus').value = 'mehrjaehrig';
+  document.getElementById('jahresUebernahmeModal').style.display = 'flex';
+}
+
+function jahresUebernahmeAusfuehren() {
+  const quelle = gardens[currentGardenId];
+  if (!quelle) return;
+  const name = document.getElementById('jahresUebernahmeName').value.trim() || (quelle.name + ' (Kopie)');
+  const modus = document.getElementById('jahresUebernahmeModus').value; // 'alle' | 'mehrjaehrig'
+  const heuteISO = new Date().toISOString().slice(0,10);
+
+  // Tiefe Kopie der Beete/Strukturen, jedes mit neuer eindeutiger ID
+  const neueBeete = JSON.parse(JSON.stringify(quelle.beds || []));
+  let mehrjaehrigBehalten = 0, einjaehrigVerschoben = 0;
+  neueBeete.forEach((bed, i) => {
+    bed.id = Date.now() + i; // neue eindeutige ID im neuen Garten
+    if (bed.kind === 'struktur') return; // Strukturen haben keine Pflanzen
+    if (modus === 'alle') {
+      mehrjaehrigBehalten += (bed.plants||[]).length;
+      return;
+    }
+    const behalten = [];
+    const entfernt = [];
+    (bed.plants || []).forEach(p => {
+      if (isPerennial(p.name)) { behalten.push(p); mehrjaehrigBehalten++; }
+      else { entfernt.push(p); einjaehrigVerschoben++; }
+    });
+    bed.plants = behalten;
+    if (entfernt.length) {
+      if (!bed.history) bed.history = [];
+      entfernt.forEach(p => {
+        bed.history.push({ name: p.name, variety: p.variety, date: p.date, removedAt: heuteISO });
+      });
+    }
+  });
+
+  const neueFreiPflanzen = JSON.parse(JSON.stringify(quelle.freiPflanzen || []));
+
+  const id = 'g_' + Date.now();
+  gardens[id] = {
+    name,
+    beds: neueBeete,
+    freiPflanzen: neueFreiPflanzen,
+    sizeM: quelle.sizeM,
+    scaleCmPerPx: quelle.scaleCmPerPx,
+    bgColor: quelle.bgColor,
+    bgImage: quelle.bgImage,
+    bgImageOpacity: quelle.bgImageOpacity,
+    climateZone: quelle.climateZone,
+    climateZoneManual: quelle.climateZoneManual,
+    weatherLoc: quelle.weatherLoc,
+  };
+  pushUndo();
+  saveData();
+  switchGarden(id);
+  renderGardenTabs();
+  document.getElementById('jahresUebernahmeModal').style.display = 'none';
+  switchTab('beds');
+  const meldung = modus === 'alle'
+    ? `✓ „${name}" angelegt – alle Pflanzen übernommen.`
+    : `✓ „${name}" angelegt – ${mehrjaehrigBehalten} mehrjährige Pflanze(n) übernommen, ${einjaehrigVerschoben} einjährige in die Fruchtfolge-Historie verschoben.`;
+  showTempStatus(meldung, 7);
 }
 
 function deleteGarden(e, id) {
