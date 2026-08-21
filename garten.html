@@ -523,7 +523,17 @@
 
       <!-- TAB: Neues Beet -->
       <div class="tab-content sidebar-section" id="tab-new">
-        <div class="sidebar-title">➕ Neues Beet</div>
+        <div class="sidebar-title">➕ Neues Element</div>
+        <div class="form-row">
+          <label>Element-Typ</label>
+          <select id="newElementTyp" onchange="applyElementTypPreset()">
+            <option value="beet">🌱 Beet</option>
+            <option value="weg">🚶 Weg</option>
+            <option value="mauer">🧱 Mauer</option>
+            <option value="gebaeude">🏠 Gebäude</option>
+            <option value="sonstiges">⬛ Sonstiges (Struktur)</option>
+          </select>
+        </div>
         <div class="form-row">
           <label>Form</label>
           <select id="newShape" onchange="updateShapeControls()">
@@ -574,6 +584,10 @@
             <div class="color-swatch" style="background:#4a6741" data-color="#4a6741" onclick="selectColor(this)"></div>
             <div class="color-swatch" style="background:#d6a84a" data-color="#d6a84a" onclick="selectColor(this)"></div>
             <div class="color-swatch" style="background:#5b8bb5" data-color="#5b8bb5" onclick="selectColor(this)"></div>
+            <div class="color-swatch" style="background:#c9c2ba" data-color="#c9c2ba" title="Weg" onclick="selectColor(this)"></div>
+            <div class="color-swatch" style="background:#9c8c78" data-color="#9c8c78" title="Mauer" onclick="selectColor(this)"></div>
+            <div class="color-swatch" style="background:#b5651d" data-color="#b5651d" title="Gebäude" onclick="selectColor(this)"></div>
+            <div class="color-swatch" style="background:#8d99a6" data-color="#8d99a6" title="Sonstiges" onclick="selectColor(this)"></div>
           </div>
         </div>
         <p style="font-size:0.7rem;color:var(--bark);margin-bottom:8px">👆 Dann auf die Fläche klicken zum Platzieren</p>
@@ -685,7 +699,7 @@
 
       <!-- BED EDITOR (selected) -->
       <div class="sidebar-section" id="selectedBedEditor" style="display:none">
-        <div class="sidebar-title">✏️ Beet bearbeiten</div>
+        <div class="sidebar-title" id="editorTitel">✏️ Beet bearbeiten</div>
         <div class="form-row">
           <label>Name</label>
           <input type="text" id="editName" oninput="updateSelectedBed()" />
@@ -728,28 +742,32 @@
             <div class="color-swatch" style="background:#4a6741" data-color="#4a6741" onclick="setSelectedBedColor('#4a6741',this)"></div>
             <div class="color-swatch" style="background:#d6a84a" data-color="#d6a84a" onclick="setSelectedBedColor('#d6a84a',this)"></div>
             <div class="color-swatch" style="background:#5b8bb5" data-color="#5b8bb5" onclick="setSelectedBedColor('#5b8bb5',this)"></div>
+            <div class="color-swatch" style="background:#c9c2ba" data-color="#c9c2ba" title="Weg" onclick="setSelectedBedColor('#c9c2ba',this)"></div>
+            <div class="color-swatch" style="background:#9c8c78" data-color="#9c8c78" title="Mauer" onclick="setSelectedBedColor('#9c8c78',this)"></div>
+            <div class="color-swatch" style="background:#b5651d" data-color="#b5651d" title="Gebäude" onclick="setSelectedBedColor('#b5651d',this)"></div>
+            <div class="color-swatch" style="background:#8d99a6" data-color="#8d99a6" title="Sonstiges" onclick="setSelectedBedColor('#8d99a6',this)"></div>
           </div>
           <input type="color" id="editColorCustom" value="#7a9e72" oninput="setSelectedBedColor(this.value,null)" style="height:30px;padding:2px;cursor:pointer;margin-top:6px;width:100%">
         </div>
         <div id="bedAreaDisplay" style="font-size:0.74rem;color:var(--bark);margin:4px 0 8px"></div>
-        <div class="form-row" style="margin-bottom:10px">
+        <div id="editDensityRow" class="form-row" style="margin-bottom:10px">
           <label>📏 Pflanzdichte berechnen</label>
           <select id="densityPlantSel" onchange="renderBedArea(selectedBed)">
             <option value="">– Pflanze wählen –</option>
           </select>
           <div id="densityResult" style="font-size:0.74rem;color:var(--bark);margin-top:4px"></div>
         </div>
-        <button class="btn-secondary" onclick="duplicateBed()" style="margin-top:4px">📋 Beet duplizieren</button>
+        <button class="btn-secondary" onclick="duplicateBed()" style="margin-top:4px">📋 Element duplizieren</button>
         <button class="btn-secondary" onclick="saveBedAsTemplate()" style="margin-top:4px">💾 Als Vorlage speichern</button>
-        <button class="btn-secondary" onclick="deleteSelected()" style="color:#c05030;border-color:#c05030;margin-top:4px">🗑 Beet löschen</button>
+        <button class="btn-secondary" id="btnDeleteSelected" onclick="deleteSelected()" style="color:#c05030;border-color:#c05030;margin-top:4px">🗑 Element löschen</button>
 
-        <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--parchment)">
+        <div id="editPlantSection" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--parchment)">
           <div class="sidebar-title" style="margin-bottom:8px">🌱 Pflanzen in diesem Beet</div>
           <input type="text" id="bedPlantSearch" placeholder="🔍 Pflanze suchen..." oninput="renderBedPlantList(selectedBed, this.value)" style="margin-bottom:8px"/>
           <div class="bed-list" id="bedPlantList"></div>
         </div>
 
-        <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--parchment)">
+        <div id="editFruchtfolgeSection" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--parchment)">
           <div class="sidebar-title" style="margin-bottom:8px">📜 Fruchtfolge</div>
           <div id="fruchtfolgeBox"></div>
         </div>
@@ -4824,7 +4842,9 @@ function onDown(e) {
     }
     draw(); renderBedList();
   } else if (['circle','rect','tri','lshape'].includes(mode)) {
-    const name=document.getElementById('newName').value||`Beet ${getCurrentBeds().length+1}`;
+    const elementTyp = document.getElementById('newElementTyp')?.value || 'beet';
+    const preset = STRUKTUR_PRESETS[elementTyp] || STRUKTUR_PRESETS.beet;
+    const name=document.getElementById('newName').value||`${preset.label} ${getCurrentBeds().length+1}`;
     const w=parseInt(document.getElementById('newW').value)||120;
     const h=parseInt(document.getElementById('newH').value)||80;
     const shape=mode;
@@ -4833,6 +4853,7 @@ function onDown(e) {
       w:shape!=='circle'?w:undefined, h:shape!=='circle'?h:undefined,
       apexOffset:shape==='tri'?(parseInt(document.getElementById('newApex').value)||0)/100:undefined,
       color:bedColor,name,rotation:0,plants:[]};
+    if (elementTyp !== 'beet') { bed.kind = 'struktur'; bed.strukturTyp = elementTyp; }
     if (shape==='lshape') {
       const cutW=parseInt(document.getElementById('newCutW').value)||60;
       const cutH=parseInt(document.getElementById('newCutH').value)||40;
@@ -4843,7 +4864,7 @@ function onDown(e) {
     getCurrentBeds().push(bed);
     selectedBed=bed; selectedBeds=[bed]; showBedEditor(bed); hideBulkBar(); draw(); renderBedList(); saveData(); updateStatus();
     setMode('select');
-    showTempStatus('✓ Beet angelegt – zum Zeichnen eines weiteren Beets unten „➕ Neu" erneut öffnen', 5);
+    showTempStatus(elementTyp === 'beet' ? '✓ Beet angelegt – zum Zeichnen eines weiteren Beets unten „➕ Neu" erneut öffnen' : `✓ ${preset.label} angelegt – zum Zeichnen eines weiteren Elements unten „➕ Neu" erneut öffnen`, 5);
   } else if (mode==='freehand') {
     if (!freehandDrawing) {
       freehandDrawing = true;
@@ -4859,6 +4880,10 @@ function onDown(e) {
     draw();
   } else if (mode==='plant') {
     const hit=hitTest(x,y);
+    if (hit && hit.kind==='struktur') {
+      showTempStatus('⚠ Pflanzen können nur in Beeten platziert werden, nicht in Strukturen (Weg/Mauer/Gebäude).', 4);
+      return;
+    }
     if (hit) {
       if (!hit.plants) hit.plants=[];
       const angle=-(hit.rotation||0)*Math.PI/180;
@@ -5018,19 +5043,22 @@ function finishFreehand() {
   if (freehandPoints.length < 3) { cancelFreehand(); return; }
   const cx = freehandPoints.reduce((s,p)=>s+p.x,0) / freehandPoints.length;
   const cy = freehandPoints.reduce((s,p)=>s+p.y,0) / freehandPoints.length;
-  const name = document.getElementById('newName').value || `Beet ${getCurrentBeds().length+1}`;
+  const elementTyp = document.getElementById('newElementTyp')?.value || 'beet';
+  const preset = STRUKTUR_PRESETS[elementTyp] || STRUKTUR_PRESETS.beet;
+  const name = document.getElementById('newName').value || `${preset.label} ${getCurrentBeds().length+1}`;
   const bed = {
     id: Date.now(), shape: 'freehand', x: cx, y: cy,
     points: freehandPoints.map(p => ({ x: p.x-cx, y: p.y-cy })),
     color: bedColor, name, rotation: 0, plants: []
   };
+  if (elementTyp !== 'beet') { bed.kind = 'struktur'; bed.strukturTyp = elementTyp; }
   pushUndo();
   getCurrentBeds().push(bed);
   freehandDrawing = false; freehandPoints = [];
   selectedBed = bed; selectedBeds = [bed];
   setMode('select');
   showBedEditor(bed); hideBulkBar(); draw(); renderBedList(); saveData(); updateStatus();
-  showTempStatus('✓ Freiform-Beet angelegt', 3);
+  showTempStatus(elementTyp === 'beet' ? '✓ Freiform-Beet angelegt' : `✓ Freiform-${preset.label} angelegt`, 3);
 }
 function cancelFreehand() {
   freehandDrawing = false; freehandPoints = [];
@@ -5160,6 +5188,24 @@ function updateShapeControls() {
   document.getElementById('rowFreehandHint').style.display=shape==='freehand'?'':'none';
 }
 
+const STRUKTUR_PRESETS = {
+  beet: { farbe: '#7a9e72', icon: '🌱', label: 'Beet', platzhalter: 'z.B. Tomaten-Beet' },
+  weg: { farbe: '#c9c2ba', icon: '🚶', label: 'Weg', platzhalter: 'z.B. Gartenweg' },
+  mauer: { farbe: '#9c8c78', icon: '🧱', label: 'Mauer', platzhalter: 'z.B. Gartenmauer' },
+  gebaeude: { farbe: '#b5651d', icon: '🏠', label: 'Gebäude', platzhalter: 'z.B. Gartenhaus' },
+  sonstiges: { farbe: '#8d99a6', icon: '⬛', label: 'Sonstiges', platzhalter: 'z.B. Terrasse' },
+};
+function applyElementTypPreset() {
+  const typ = document.getElementById('newElementTyp').value;
+  const preset = STRUKTUR_PRESETS[typ];
+  if (!preset) return;
+  document.getElementById('newName').placeholder = preset.platzhalter;
+  bedColor = preset.farbe;
+  document.querySelectorAll('#colorPicker .color-swatch').forEach(s => {
+    s.classList.toggle('selected', s.dataset.color === preset.farbe);
+  });
+}
+
 function selectColor(el) {
   document.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('selected'));
   el.classList.add('selected'); bedColor=el.dataset.color;
@@ -5168,6 +5214,13 @@ function selectColor(el) {
 // ==================== BED EDITOR ====================
 function showBedEditor(bed) {
   document.getElementById('selectedBedEditor').style.display='block';
+  const istStruktur = bed.kind === 'struktur';
+  const preset = STRUKTUR_PRESETS[bed.strukturTyp] || null;
+  document.getElementById('editorTitel').textContent = istStruktur ? `✏️ ${preset ? preset.icon + ' ' + preset.label : 'Element'} bearbeiten` : '✏️ Beet bearbeiten';
+  document.getElementById('editPlantSection').style.display = istStruktur ? 'none' : '';
+  document.getElementById('editFruchtfolgeSection').style.display = istStruktur ? 'none' : '';
+  document.getElementById('editDensityRow').style.display = istStruktur ? 'none' : '';
+  document.getElementById('btnDeleteSelected').textContent = istStruktur ? '🗑 Element löschen' : '🗑 Beet löschen';
   document.getElementById('editName').value=bed.name||'';
   document.getElementById('editRot').value=bed.rotation||0;
   document.getElementById('rotVal').textContent=(bed.rotation||0)+'°';
@@ -5347,15 +5400,21 @@ function renderBedList() {
   const list=document.getElementById('bedList');
   const beds=getCurrentBeds();
   if(!beds.length){list.innerHTML='<div class="empty-state">Noch keine Beete. Zeichne eins!</div>';return;}
-  list.innerHTML=sortedBedsWithIndex(beds).map(({bed,i})=>`
-    <div class="bed-item ${selectedBeds.includes(bed)?'active':''}" style="border-left-color:${bed.color||'#7a9e72'}" tabindex="0" role="button" aria-label="Beet ${bed.name||i+1} auswählen" onclick="selectBedFromList(${i}, event)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectBedFromList(${i}, event);}">
+  list.innerHTML=sortedBedsWithIndex(beds).map(({bed,i})=>{
+    const istStruktur = bed.kind === 'struktur';
+    const preset = STRUKTUR_PRESETS[bed.strukturTyp] || null;
+    const icon = istStruktur ? (preset ? preset.icon : '⬛') : null;
+    return `
+    <div class="bed-item ${selectedBeds.includes(bed)?'active':''}" style="border-left-color:${bed.color||'#7a9e72'}" tabindex="0" role="button" aria-label="${istStruktur?'Element':'Beet'} ${bed.name||i+1} auswählen" onclick="selectBedFromList(${i}, event)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectBedFromList(${i}, event);}">
       <div class="bed-color-dot" style="background:${bed.color}"></div>
-      <span>${bed.name||'Beet '+(i+1)}</span>
-      ${getBedConflicts(bed).length ? '<span title="Mischkultur-Konflikt" style="color:#c05030;margin-left:4px">⚠️</span>' : ''}
-      ${bedHasFruchtfolgeConflict(bed) ? '<span title="Fruchtfolge-Warnung" style="color:#a8621a;margin-left:4px">🔄⚠️</span>' : ''}
-      <span style="font-size:0.63rem;color:var(--bark);margin-left:auto;margin-right:4px">${(bed.plants||[]).length}🌱</span>
-      <button class="bed-item-del" aria-label="Beet ${bed.name||i+1} löschen" title="Beet löschen" onclick="deleteBedIdx(event,${i})">✕</button>
-    </div>`).join('');
+      ${icon ? `<span style="margin-right:2px">${icon}</span>` : ''}
+      <span>${bed.name||(istStruktur?'Element ':'Beet ')+(i+1)}</span>
+      ${!istStruktur && getBedConflicts(bed).length ? '<span title="Mischkultur-Konflikt" style="color:#c05030;margin-left:4px">⚠️</span>' : ''}
+      ${!istStruktur && bedHasFruchtfolgeConflict(bed) ? '<span title="Fruchtfolge-Warnung" style="color:#a8621a;margin-left:4px">🔄⚠️</span>' : ''}
+      ${!istStruktur ? `<span style="font-size:0.63rem;color:var(--bark);margin-left:auto;margin-right:4px">${(bed.plants||[]).length}🌱</span>` : ''}
+      <button class="bed-item-del" aria-label="${istStruktur?'Element':'Beet'} ${bed.name||i+1} löschen" title="Löschen" onclick="deleteBedIdx(event,${i})">✕</button>
+    </div>`;
+  }).join('');
 }
 function selectBedFromList(i, e){
   const bed = getCurrentBeds()[i];
