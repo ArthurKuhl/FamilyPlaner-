@@ -87,6 +87,8 @@
   }
   .cal-day.andermonat { opacity: 0.35; }
   .cal-day.heute { border: 2px solid var(--terracotta); font-weight: 700; }
+  .cal-day.feiertag span:first-child { color: #c0392b; font-weight: 700; }
+  .cal-day.feiertag { background: #fdf1ee; }
   .cal-day:hover { box-shadow: var(--shadow-soft); }
   .cal-dots { display: flex; gap: 2px; margin-top: 3px; flex-wrap: wrap; justify-content: center; }
   .cal-dot { width: 6px; height: 6px; border-radius: 50%; }
@@ -311,6 +313,7 @@
   <div class="modal-bg" id="modalTag">
     <div class="modal">
       <h2 id="tagModalTitel">Termine</h2>
+      <div id="tagModalFeiertag" style="display:none;color:#c0392b;font-weight:700;font-size:0.85rem;margin:-6px 0 10px;">🎉</div>
       <div id="tagModalListe"></div>
       <button class="btn-primary" id="btnTagNeuerTermin" style="margin-top:12px;">+ Termin an diesem Tag</button>
       <button class="btn-secondary" data-close="modalTag">Schließen</button>
@@ -474,12 +477,37 @@
       });
     }
 
-    // --- Kalenderansicht ---
+    // --- Feiertage (Baden-Württemberg) via feiertage-api.de, jahresweise gecacht ---
+    // Offene, kostenlose API ohne Key (bundesAPI-Projekt), Feiertage ändern sich für ein Jahr nicht mehr,
+    // daher unbegrenzt lokal gecacht (kein Cloud-Sync, jedes Gerät holt selbst).
+    const FEIERTAGE_BUNDESLAND = 'BW';
+    const feiertageCache = {}; // { jahr: { 'YYYY-MM-DD': name } }
+    function feiertageCacheKey(jahr) { return 'termine_feiertage_' + FEIERTAGE_BUNDESLAND + '_' + jahr; }
+    async function ladeFeiertage(jahr) {
+      if (feiertageCache[jahr]) return feiertageCache[jahr];
+      try {
+        const gespeichert = JSON.parse(localStorage.getItem(feiertageCacheKey(jahr)) || 'null');
+        if (gespeichert) { feiertageCache[jahr] = gespeichert; return gespeichert; }
+      } catch (e) {}
+      try {
+        const res = await fetch('https://feiertage-api.de/api/?jahr=' + jahr + '&nur_land=' + FEIERTAGE_BUNDESLAND);
+        const data = await res.json();
+        const map = {};
+        Object.keys(data).forEach(name => { if (data[name] && data[name].datum) map[data[name].datum] = name; });
+        feiertageCache[jahr] = map;
+        try { localStorage.setItem(feiertageCacheKey(jahr), JSON.stringify(map)); } catch (e) {}
+        return map;
+      } catch (e) {
+        return {};
+      }
+    }
+
+
     const calGrid = document.getElementById('calGrid');
     const monatLabel = document.getElementById('monatLabel');
     const MONATSNAMEN = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 
-    function renderKalender() {
+    async function renderKalender() {
       monatLabel.textContent = MONATSNAMEN[kalenderMonat] + ' ' + kalenderJahr;
       calGrid.innerHTML = '';
       WOCHENTAGE.forEach(wd => {
@@ -489,12 +517,18 @@
       let startOffset = ersterTag.getDay() - 1; if (startOffset < 0) startOffset = 6;
       const start = new Date(kalenderJahr, kalenderMonat, 1 - startOffset);
       const heuteISO = toISO(heute());
+      // Feiertage für alle im Grid sichtbaren Jahre laden (Vor-/Nachmonat kann ins Nachbarjahr reichen)
+      const sichtbareJahre = new Set([kalenderJahr, start.getFullYear(), new Date(start.getFullYear(), start.getMonth(), start.getDate()+41).getFullYear()]);
+      const feiertagsMaps = {};
+      for (const j of sichtbareJahre) feiertagsMaps[j] = await ladeFeiertage(j);
 
       for (let i=0; i<42; i++) {
         const tag = new Date(start.getFullYear(), start.getMonth(), start.getDate()+i);
         const tagISO = toISO(tag);
         const zelle = document.createElement('div');
-        zelle.className = 'cal-day' + (tag.getMonth()!==kalenderMonat ? ' andermonat':'') + (tagISO===heuteISO ? ' heute':'');
+        const feiertagName = (feiertagsMaps[tag.getFullYear()] || {})[tagISO];
+        zelle.className = 'cal-day' + (tag.getMonth()!==kalenderMonat ? ' andermonat':'') + (tagISO===heuteISO ? ' heute':'') + (feiertagName ? ' feiertag':'');
+        if (feiertagName) zelle.title = feiertagName;
         zelle.innerHTML = `<span>${tag.getDate()}</span>`;
         const treffer = alleVorkommen(tagISO, tagISO);
         if (treffer.length) {
@@ -859,10 +893,20 @@
 
     // --- Tagesdetail-Modal ---
     let tagDetailDatum = null;
-    function tagDetailOeffnen(tagISO) {
+    async function tagDetailOeffnen(tagISO) {
       tagDetailDatum = tagISO;
       const treffer = alleVorkommen(tagISO, tagISO);
       document.getElementById('tagModalTitel').textContent = new Date(tagISO).toLocaleDateString('de-DE', { weekday:'long', day:'numeric', month:'long' });
+      const feiertagBox = document.getElementById('tagModalFeiertag');
+      const jahrDesTags = parseInt(tagISO.slice(0,4), 10);
+      const feiertageDesJahres = await ladeFeiertage(jahrDesTags);
+      const feiertagName = feiertageDesJahres[tagISO];
+      if (feiertagName) {
+        feiertagBox.textContent = '🎉 ' + feiertagName;
+        feiertagBox.style.display = '';
+      } else {
+        feiertagBox.style.display = 'none';
+      }
       const liste = document.getElementById('tagModalListe');
       liste.innerHTML = '';
       if (!treffer.length) {
