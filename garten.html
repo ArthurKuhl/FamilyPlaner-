@@ -550,12 +550,12 @@
         </div>
         <div class="form-row" id="rowW" style="display:none">
           <label id="rowWLabel">Breite</label>
-          <input type="range" id="newW" min="40" max="300" value="120" oninput="document.getElementById('wVal').textContent=this.value">
+          <input type="range" id="newW" min="40" max="1500" step="10" value="120" oninput="document.getElementById('wVal').textContent=this.value">
           <span id="wVal" style="font-size:0.72rem;color:var(--bark)">120</span>
         </div>
         <div class="form-row" id="rowH" style="display:none">
           <label id="rowHLabel">Höhe</label>
-          <input type="range" id="newH" min="40" max="200" value="80" oninput="document.getElementById('hVal').textContent=this.value">
+          <input type="range" id="newH" min="40" max="1500" step="10" value="80" oninput="document.getElementById('hVal').textContent=this.value">
           <span id="hVal" style="font-size:0.72rem;color:var(--bark)">80</span>
         </div>
         <div class="form-row" id="rowApex" style="display:none">
@@ -584,10 +584,10 @@
             <div class="color-swatch" style="background:#4a6741" data-color="#4a6741" onclick="selectColor(this)"></div>
             <div class="color-swatch" style="background:#d6a84a" data-color="#d6a84a" onclick="selectColor(this)"></div>
             <div class="color-swatch" style="background:#5b8bb5" data-color="#5b8bb5" onclick="selectColor(this)"></div>
-            <div class="color-swatch" style="background:#c9c2ba" data-color="#c9c2ba" title="Weg" onclick="selectColor(this)"></div>
-            <div class="color-swatch" style="background:#9c8c78" data-color="#9c8c78" title="Mauer" onclick="selectColor(this)"></div>
-            <div class="color-swatch" style="background:#b5651d" data-color="#b5651d" title="Gebäude" onclick="selectColor(this)"></div>
-            <div class="color-swatch" style="background:#8d99a6" data-color="#8d99a6" title="Sonstiges" onclick="selectColor(this)"></div>
+            <div class="color-swatch" style="background:#7d7466" data-color="#7d7466" title="Weg" onclick="selectColor(this)"></div>
+            <div class="color-swatch" style="background:#5c4f3f" data-color="#5c4f3f" title="Mauer" onclick="selectColor(this)"></div>
+            <div class="color-swatch" style="background:#7a3a12" data-color="#7a3a12" title="Gebäude" onclick="selectColor(this)"></div>
+            <div class="color-swatch" style="background:#4a545e" data-color="#4a545e" title="Sonstiges" onclick="selectColor(this)"></div>
           </div>
         </div>
         <p style="font-size:0.7rem;color:var(--bark);margin-bottom:8px">👆 Dann auf die Fläche klicken zum Platzieren</p>
@@ -713,11 +713,11 @@
         </div>
         <div class="form-row" id="editWRow">
           <label id="editWLabel">Breite <span id="editWReal" style="font-weight:400;opacity:0.7"></span></label>
-          <input type="range" id="editW" min="40" max="400" value="120" oninput="updateSelectedBed()">
+          <input type="range" id="editW" min="40" max="1500" step="10" value="120" oninput="updateSelectedBed()">
         </div>
         <div class="form-row" id="editHRow">
           <label id="editHLabel">Höhe <span id="editHReal" style="font-weight:400;opacity:0.7"></span></label>
-          <input type="range" id="editH" min="40" max="300" value="80" oninput="updateSelectedBed()">
+          <input type="range" id="editH" min="40" max="1500" step="10" value="80" oninput="updateSelectedBed()">
         </div>
         <div class="form-row" id="editApexRow" style="display:none">
           <label>Spitze versetzt <span id="editApexReal" style="font-weight:400;opacity:0.7"></span></label>
@@ -742,10 +742,10 @@
             <div class="color-swatch" style="background:#4a6741" data-color="#4a6741" onclick="setSelectedBedColor('#4a6741',this)"></div>
             <div class="color-swatch" style="background:#d6a84a" data-color="#d6a84a" onclick="setSelectedBedColor('#d6a84a',this)"></div>
             <div class="color-swatch" style="background:#5b8bb5" data-color="#5b8bb5" onclick="setSelectedBedColor('#5b8bb5',this)"></div>
-            <div class="color-swatch" style="background:#c9c2ba" data-color="#c9c2ba" title="Weg" onclick="setSelectedBedColor('#c9c2ba',this)"></div>
-            <div class="color-swatch" style="background:#9c8c78" data-color="#9c8c78" title="Mauer" onclick="setSelectedBedColor('#9c8c78',this)"></div>
-            <div class="color-swatch" style="background:#b5651d" data-color="#b5651d" title="Gebäude" onclick="setSelectedBedColor('#b5651d',this)"></div>
-            <div class="color-swatch" style="background:#8d99a6" data-color="#8d99a6" title="Sonstiges" onclick="setSelectedBedColor('#8d99a6',this)"></div>
+            <div class="color-swatch" style="background:#7d7466" data-color="#7d7466" title="Weg" onclick="setSelectedBedColor('#7d7466',this)"></div>
+            <div class="color-swatch" style="background:#5c4f3f" data-color="#5c4f3f" title="Mauer" onclick="setSelectedBedColor('#5c4f3f',this)"></div>
+            <div class="color-swatch" style="background:#7a3a12" data-color="#7a3a12" title="Gebäude" onclick="setSelectedBedColor('#7a3a12',this)"></div>
+            <div class="color-swatch" style="background:#4a545e" data-color="#4a545e" title="Sonstiges" onclick="setSelectedBedColor('#4a545e',this)"></div>
           </div>
           <input type="color" id="editColorCustom" value="#7a9e72" oninput="setSelectedBedColor(this.value,null)" style="height:30px;padding:2px;cursor:pointer;margin-top:6px;width:100%">
         </div>
@@ -4646,7 +4646,7 @@ function drawBed(bed, selected) {
   ctx.save();
   ctx.translate(bed.x, bed.y);
   ctx.rotate((bed.rotation || 0) * Math.PI / 180);
-  ctx.fillStyle = bed.color + 'aa';
+  ctx.fillStyle = bed.kind === 'struktur' ? bed.color : bed.color + 'aa';
   ctx.strokeStyle = selected ? '#3b2f1e' : bed.color;
   ctx.lineWidth = selected ? 2.5 : 1.5;
   ctx.beginPath();
@@ -4674,7 +4674,7 @@ function drawBed(bed, selected) {
   }
   ctx.fill(); ctx.stroke();
   if (bed.name) {
-    ctx.fillStyle = '#3b2f1e'; ctx.font = '500 11px Inter,sans-serif';
+    ctx.fillStyle = bed.kind === 'struktur' ? '#f5f0e6' : '#3b2f1e'; ctx.font = '500 11px Inter,sans-serif';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     const ty = bed.shape === 'tri' ? bed.h/6 : 0;
     ctx.fillText(bed.name, 0, ty);
@@ -5190,10 +5190,10 @@ function updateShapeControls() {
 
 const STRUKTUR_PRESETS = {
   beet: { farbe: '#7a9e72', icon: '🌱', label: 'Beet', platzhalter: 'z.B. Tomaten-Beet' },
-  weg: { farbe: '#c9c2ba', icon: '🚶', label: 'Weg', platzhalter: 'z.B. Gartenweg' },
-  mauer: { farbe: '#9c8c78', icon: '🧱', label: 'Mauer', platzhalter: 'z.B. Gartenmauer' },
-  gebaeude: { farbe: '#b5651d', icon: '🏠', label: 'Gebäude', platzhalter: 'z.B. Gartenhaus' },
-  sonstiges: { farbe: '#8d99a6', icon: '⬛', label: 'Sonstiges', platzhalter: 'z.B. Terrasse' },
+  weg: { farbe: '#7d7466', icon: '🚶', label: 'Weg', platzhalter: 'z.B. Gartenweg' },
+  mauer: { farbe: '#5c4f3f', icon: '🧱', label: 'Mauer', platzhalter: 'z.B. Gartenmauer' },
+  gebaeude: { farbe: '#7a3a12', icon: '🏠', label: 'Gebäude', platzhalter: 'z.B. Gartenhaus' },
+  sonstiges: { farbe: '#4a545e', icon: '⬛', label: 'Sonstiges', platzhalter: 'z.B. Terrasse' },
 };
 function applyElementTypPreset() {
   const typ = document.getElementById('newElementTyp').value;
