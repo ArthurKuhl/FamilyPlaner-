@@ -6705,6 +6705,8 @@ function showView(name) {
     b.setAttribute('aria-selected', active ? 'true' : 'false');
   });
   if (name === 'garden') { resizeCanvas(); }
+  const statusMsgEl = document.getElementById('statusMsg');
+  if (statusMsgEl) statusMsgEl.style.display = (name === 'garden') ? '' : 'none';
   if (name === 'shops') { renderShops(); }
   if (name === 'tips' && !document.getElementById('tipsWrap').dataset.built) { renderTips(); }
   if (name === 'preserve') { renderPreserveView(); }
