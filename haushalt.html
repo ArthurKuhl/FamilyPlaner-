@@ -257,7 +257,14 @@
 <!-- Neu / Bearbeiten -->
 <div class="modal-bg" id="newsModal">
   <div class="modal">
-    <h2>🌐 Aktuelle Haushaltstipps</h2>
+    <h2 style="display:flex;align-items:center;justify-content:space-between;">🌐 Aktuelle Haushaltstipps <button type="button" onclick="toggleHaushaltFeedEinstellungen()" title="Quellen anpassen" style="background:none;border:1px solid var(--sage);border-radius:8px;font-size:0.85rem;padding:4px 8px;cursor:pointer;">⚙️</button></h2>
+    <div id="haushaltFeedEinstellungen" style="display:none;background:var(--parchment);border-radius:var(--radius-md);padding:10px 12px;margin-bottom:10px;">
+      <div style="font-weight:700;font-size:0.85rem;margin-bottom:6px;">Quellen anzeigen (nur auf diesem Gerät)</div>
+      <label style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:0.85rem;"><input type="checkbox" data-haushaltquelle="haushaltsblog" onchange="haushaltFeedQuelleSichtbarkeitAendern(this)"> haushalts-blog.de</label>
+    </div>
+    <div class="filter-reihe" style="margin-bottom:10px;">
+      <button type="button" class="filter-chip active" id="btnHaushaltFeedQuelleHaushaltsblog">haushalts-blog.de</button>
+    </div>
     <div id="haushaltFeedInhalt" style="font-size:0.85rem;">Lädt…</div>
     <div style="margin-top:14px;">
       <div style="font-weight:700;margin-bottom:8px;font-size:0.9rem;">🔗 Weitere Quellen</div>
@@ -699,6 +706,7 @@
   });
   document.getElementById('btnNews').addEventListener('click', () => {
     document.getElementById('newsModal').classList.add('zeigen');
+    haushaltFeedButtonsSichtbarkeitAnwenden();
     if (!document.getElementById('haushaltFeedInhalt').dataset.built) {
       document.getElementById('haushaltFeedInhalt').dataset.built = '1';
       ladeHaushaltFeed();
@@ -834,22 +842,37 @@
   // ==================== NEWSFEED: Haushaltstipps (Haushalts-Blog.de) ====================
   const RSS2JSON_KEY = 'gzgrcvnabxmmjjevo0nlsuucc1bl9qzizlvuzjkq'; // eigener kostenloser Key von rss2json.com
   function entitiesDekodieren(str) { if (!str) return str; const ta = document.createElement('textarea'); ta.innerHTML = str; return ta.value; }
-  const HAUSHALT_FEED_URL = 'https://haushalts-blog.de/feed/';
-  const HAUSHALT_FEED_CACHE_KEY = 'haushalt_newsfeedCache';
+  const HAUSHALT_FEED_QUELLEN = {
+    haushaltsblog: {
+      url: 'https://haushalts-blog.de/feed/',
+      cacheKey: 'haushalt_newsfeedCache',
+      label: 'haushalts-blog.de',
+      linkZielseite: 'https://haushalts-blog.de',
+      btnId: 'btnHaushaltFeedQuelleHaushaltsblog',
+    },
+  };
+  const HAUSHALT_FEED_QUELLE_KEY = 'haushalt_newsfeedQuelle';
+  let haushaltFeedQuelle = 'haushaltsblog';
+  try {
+    const gespeicherteQuelle = localStorage.getItem(HAUSHALT_FEED_QUELLE_KEY);
+    if (gespeicherteQuelle && HAUSHALT_FEED_QUELLEN[gespeicherteQuelle]) haushaltFeedQuelle = gespeicherteQuelle;
+  } catch (e) {}
   async function ladeHaushaltFeed(forceRefresh) {
     const el = document.getElementById('haushaltFeedInhalt');
     if (!el) return;
+    const quelle = HAUSHALT_FEED_QUELLEN[haushaltFeedQuelle];
+    el.textContent = 'Lädt…';
     try {
       if (!forceRefresh) {
-        const cache = JSON.parse(localStorage.getItem(HAUSHALT_FEED_CACHE_KEY) || 'null');
+        const cache = JSON.parse(localStorage.getItem(quelle.cacheKey) || 'null');
         if (cache && (Date.now() - cache.fetchedAt) < 3 * 60 * 60 * 1000) {
-          renderHaushaltFeed(cache.items);
+          renderHaushaltFeed(cache.items, quelle);
           return;
         }
       }
     } catch (e) {}
     try {
-      let url = 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(HAUSHALT_FEED_URL) + '&count=6';
+      let url = 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(quelle.url) + '&count=6';
       if (RSS2JSON_KEY) url += '&api_key=' + encodeURIComponent(RSS2JSON_KEY);
       const res = await fetch(url);
       const data = await res.json();
@@ -857,19 +880,19 @@
       const items = data.items.map(i => {
         let bild = i.thumbnail || (i.enclosure && i.enclosure.link) || i.image;
         if (!bild) {
-          const quelle = i.description || i.content || '';
-          const treffer = quelle.match(/<img[^>]+src=["']([^"']+)["']/i);
+          const quelleTxt = i.description || i.content || '';
+          const treffer = quelleTxt.match(/<img[^>]+src=["']([^"']+)["']/i);
           if (treffer) bild = treffer[1];
         }
         return { title: entitiesDekodieren(i.title), link: i.link, pubDate: i.pubDate, thumbnail: bild };
       });
-      try { localStorage.setItem(HAUSHALT_FEED_CACHE_KEY, JSON.stringify({ items, fetchedAt: Date.now() })); } catch (e) {}
-      renderHaushaltFeed(items);
+      try { localStorage.setItem(quelle.cacheKey, JSON.stringify({ items, fetchedAt: Date.now() })); } catch (e) {}
+      renderHaushaltFeed(items, quelle);
     } catch (e) {
-      el.innerHTML = '⚠ Tipps konnten gerade nicht geladen werden (' + escapeHtml(String(e.message || e)) + '). <a href="https://haushalts-blog.de" target="_blank" rel="noopener">Direkt zur Seite →</a> <button type="button" onclick="ladeHaushaltFeed(true)" style="margin-left:6px;background:none;border:1px solid var(--sage);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:0.78rem;">🔄 erneut versuchen</button>';
+      el.innerHTML = '⚠ Tipps konnten gerade nicht geladen werden (' + escapeHtml(String(e.message || e)) + '). <a href="' + quelle.linkZielseite + '" target="_blank" rel="noopener">Direkt zur Seite →</a> <button type="button" onclick="ladeHaushaltFeed(true)" style="margin-left:6px;background:none;border:1px solid var(--sage);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:0.78rem;">🔄 erneut versuchen</button>';
     }
   }
-  function renderHaushaltFeed(items) {
+  function renderHaushaltFeed(items, quelle) {
     const el = document.getElementById('haushaltFeedInhalt');
     if (!el) return;
     if (!items || !items.length) { el.textContent = 'Aktuell keine Tipps verfügbar.'; return; }
@@ -882,9 +905,67 @@
         '<a href="' + i.link + '" target="_blank" rel="noopener" style="color:var(--moss);font-weight:600;text-decoration:none;">' + escapeHtml(i.title) + '</a>' +
         (datum ? '<div style="font-size:0.7rem;color:var(--bark);opacity:0.75;margin-top:2px;">' + datum + '</div>' : '') +
         '</div></div>';
-    }).join('') + '<div style="margin-top:8px;font-size:0.68rem;color:var(--bark);opacity:0.7;">Quelle: haushalts-blog.de · <button type="button" onclick="ladeHaushaltFeed(true)" style="background:none;border:none;color:inherit;text-decoration:underline;cursor:pointer;padding:0;font-size:inherit;">aktualisieren</button></div>';
+    }).join('') + '<div style="margin-top:8px;font-size:0.68rem;color:var(--bark);opacity:0.7;">Quelle: ' + quelle.label + ' · <button type="button" onclick="ladeHaushaltFeed(true)" style="background:none;border:none;color:inherit;text-decoration:underline;cursor:pointer;padding:0;font-size:inherit;">aktualisieren</button></div>';
   }
+  function haushaltFeedQuelleAktualisierenButtons() {
+    Object.keys(HAUSHALT_FEED_QUELLEN).forEach(key => {
+      const btn = document.getElementById(HAUSHALT_FEED_QUELLEN[key].btnId);
+      if (btn) btn.classList.toggle('active', key === haushaltFeedQuelle);
+    });
+  }
+  function haushaltFeedQuelleUmschalten(neueQuelle) {
+    if (haushaltFeedQuelle === neueQuelle) return;
+    haushaltFeedQuelle = neueQuelle;
+    try { localStorage.setItem(HAUSHALT_FEED_QUELLE_KEY, neueQuelle); } catch (e) {}
+    haushaltFeedQuelleAktualisierenButtons();
+    ladeHaushaltFeed();
+  }
+  Object.keys(HAUSHALT_FEED_QUELLEN).forEach(key => {
+    const btn = document.getElementById(HAUSHALT_FEED_QUELLEN[key].btnId);
+    if (btn) btn.addEventListener('click', () => haushaltFeedQuelleUmschalten(key));
+  });
+  haushaltFeedQuelleAktualisierenButtons();
   window.ladeHaushaltFeed = ladeHaushaltFeed;
+
+  // ==================== Quellen ein-/ausblenden (geräte-lokal) ====================
+  const HAUSHALT_FEED_VERSTECKT_KEY = 'haushalt_versteckteNewsQuellen';
+  function haushaltVersteckteQuellen() {
+    try { return JSON.parse(localStorage.getItem(HAUSHALT_FEED_VERSTECKT_KEY) || '[]'); } catch (e) { return []; }
+  }
+  function haushaltFeedButtonsSichtbarkeitAnwenden() {
+    const versteckt = haushaltVersteckteQuellen();
+    Object.keys(HAUSHALT_FEED_QUELLEN).forEach(key => {
+      const btn = document.getElementById(HAUSHALT_FEED_QUELLEN[key].btnId);
+      if (btn) btn.style.display = versteckt.includes(key) ? 'none' : '';
+      const cb = document.querySelector('[data-haushaltquelle="' + key + '"]');
+      if (cb) cb.checked = !versteckt.includes(key);
+    });
+    if (versteckt.includes(haushaltFeedQuelle)) {
+      const sichtbareKeys = Object.keys(HAUSHALT_FEED_QUELLEN).filter(k => !versteckt.includes(k));
+      if (sichtbareKeys.length) {
+        haushaltFeedQuelle = sichtbareKeys[0];
+        try { localStorage.setItem(HAUSHALT_FEED_QUELLE_KEY, haushaltFeedQuelle); } catch (e) {}
+        haushaltFeedQuelleAktualisierenButtons();
+        ladeHaushaltFeed();
+      } else {
+        document.getElementById('haushaltFeedInhalt').innerHTML = 'Keine Quelle ausgewählt – über ⚙️ oben mindestens eine aktivieren.';
+      }
+    }
+  }
+  function haushaltFeedQuelleSichtbarkeitAendern(checkbox) {
+    const key = checkbox.dataset.haushaltquelle;
+    let versteckt = haushaltVersteckteQuellen();
+    if (checkbox.checked) versteckt = versteckt.filter(k => k !== key);
+    else if (!versteckt.includes(key)) versteckt.push(key);
+    try { localStorage.setItem(HAUSHALT_FEED_VERSTECKT_KEY, JSON.stringify(versteckt)); } catch (e) {}
+    haushaltFeedButtonsSichtbarkeitAnwenden();
+  }
+  function toggleHaushaltFeedEinstellungen() {
+    const box = document.getElementById('haushaltFeedEinstellungen');
+    box.style.display = box.style.display === 'none' ? '' : 'none';
+  }
+  window.haushaltFeedQuelleSichtbarkeitAendern = haushaltFeedQuelleSichtbarkeitAendern;
+  window.toggleHaushaltFeedEinstellungen = toggleHaushaltFeedEinstellungen;
 })();
 </script>
 </body>

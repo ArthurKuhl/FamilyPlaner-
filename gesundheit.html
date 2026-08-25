@@ -1230,7 +1230,14 @@
 
 <div class="modal-bg" id="newsModal">
   <div class="modal">
-    <h2>🌐 Aktuelle Fitness- &amp; Gesundheits-News</h2>
+    <h2 style="display:flex;align-items:center;justify-content:space-between;">🌐 Aktuelle Fitness- &amp; Gesundheits-News <button type="button" onclick="toggleGesundheitFeedEinstellungen()" title="Quellen anpassen" style="background:none;border:1px solid var(--sage);border-radius:8px;font-size:0.85rem;padding:4px 8px;cursor:pointer;">⚙️</button></h2>
+    <div id="gesundheitFeedEinstellungen" style="display:none;background:var(--parchment);border-radius:var(--radius-md);padding:10px 12px;margin-bottom:10px;">
+      <div style="font-weight:700;font-size:0.85rem;margin-bottom:6px;">Quellen anzeigen (nur auf diesem Gerät)</div>
+      <label style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:0.85rem;"><input type="checkbox" data-gesundheitquelle="menshealth" onchange="gesundheitFeedQuelleSichtbarkeitAendern(this)"> menshealth.de</label>
+    </div>
+    <div class="filter-reihe" style="margin-bottom:10px;">
+      <button type="button" class="filter-chip active" id="btnGesundheitFeedQuelleMenshealth">menshealth.de</button>
+    </div>
     <div id="gesundheitFeedInhalt" style="font-size:0.85rem;">Lädt…</div>
     <div style="margin-top:14px;">
       <div style="font-weight:700;margin-bottom:8px;font-size:0.9rem;">🔗 Weitere Quellen</div>
@@ -3535,22 +3542,37 @@
   // ==================== NEWSFEED: Fitness & Gesundheit (Men's Health) ====================
   const RSS2JSON_KEY = 'gzgrcvnabxmmjjevo0nlsuucc1bl9qzizlvuzjkq'; // eigener kostenloser Key von rss2json.com
   function entitiesDekodieren(str) { if (!str) return str; const ta = document.createElement('textarea'); ta.innerHTML = str; return ta.value; }
-  const GESUNDHEIT_FEED_URL = 'https://www.menshealth.de/rss/alle';
-  const GESUNDHEIT_FEED_CACHE_KEY = 'gesundheit_newsfeedCache';
+  const GESUNDHEIT_FEED_QUELLEN = {
+    menshealth: {
+      url: 'https://www.menshealth.de/rss/alle',
+      cacheKey: 'gesundheit_newsfeedCache',
+      label: 'menshealth.de',
+      linkZielseite: 'https://www.menshealth.de',
+      btnId: 'btnGesundheitFeedQuelleMenshealth',
+    },
+  };
+  const GESUNDHEIT_FEED_QUELLE_KEY = 'gesundheit_newsfeedQuelle';
+  let gesundheitFeedQuelle = 'menshealth';
+  try {
+    const gespeicherteQuelle = localStorage.getItem(GESUNDHEIT_FEED_QUELLE_KEY);
+    if (gespeicherteQuelle && GESUNDHEIT_FEED_QUELLEN[gespeicherteQuelle]) gesundheitFeedQuelle = gespeicherteQuelle;
+  } catch (e) {}
   async function ladeGesundheitFeed(forceRefresh) {
     const el = document.getElementById('gesundheitFeedInhalt');
     if (!el) return;
+    const quelle = GESUNDHEIT_FEED_QUELLEN[gesundheitFeedQuelle];
+    el.textContent = 'Lädt…';
     try {
       if (!forceRefresh) {
-        const cache = JSON.parse(localStorage.getItem(GESUNDHEIT_FEED_CACHE_KEY) || 'null');
+        const cache = JSON.parse(localStorage.getItem(quelle.cacheKey) || 'null');
         if (cache && (Date.now() - cache.fetchedAt) < 3 * 60 * 60 * 1000) {
-          renderGesundheitFeed(cache.items);
+          renderGesundheitFeed(cache.items, quelle);
           return;
         }
       }
     } catch (e) {}
     try {
-      let url = 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(GESUNDHEIT_FEED_URL) + '&count=6';
+      let url = 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(quelle.url) + '&count=6';
       if (RSS2JSON_KEY) url += '&api_key=' + encodeURIComponent(RSS2JSON_KEY);
       const res = await fetch(url);
       const data = await res.json();
@@ -3558,19 +3580,19 @@
       const items = data.items.map(i => {
         let bild = i.thumbnail || (i.enclosure && i.enclosure.link) || i.image;
         if (!bild) {
-          const quelle = i.description || i.content || '';
-          const treffer = quelle.match(/<img[^>]+src=["']([^"']+)["']/i);
+          const quelleTxt = i.description || i.content || '';
+          const treffer = quelleTxt.match(/<img[^>]+src=["']([^"']+)["']/i);
           if (treffer) bild = treffer[1];
         }
         return { title: entitiesDekodieren(i.title), link: i.link, pubDate: i.pubDate, thumbnail: bild };
       });
-      try { localStorage.setItem(GESUNDHEIT_FEED_CACHE_KEY, JSON.stringify({ items, fetchedAt: Date.now() })); } catch (e) {}
-      renderGesundheitFeed(items);
+      try { localStorage.setItem(quelle.cacheKey, JSON.stringify({ items, fetchedAt: Date.now() })); } catch (e) {}
+      renderGesundheitFeed(items, quelle);
     } catch (e) {
-      el.innerHTML = '⚠ News konnten gerade nicht geladen werden (' + escapeHtml(String(e.message || e)) + '). <a href="https://www.menshealth.de" target="_blank" rel="noopener">Direkt zu menshealth.de →</a> <button type="button" onclick="ladeGesundheitFeed(true)" style="margin-left:6px;background:none;border:1px solid var(--sage);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:0.78rem;">🔄 erneut versuchen</button>';
+      el.innerHTML = '⚠ News konnten gerade nicht geladen werden (' + escapeHtml(String(e.message || e)) + '). <a href="' + quelle.linkZielseite + '" target="_blank" rel="noopener">Direkt zu ' + quelle.label + ' →</a> <button type="button" onclick="ladeGesundheitFeed(true)" style="margin-left:6px;background:none;border:1px solid var(--sage);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:0.78rem;">🔄 erneut versuchen</button>';
     }
   }
-  function renderGesundheitFeed(items) {
+  function renderGesundheitFeed(items, quelle) {
     const el = document.getElementById('gesundheitFeedInhalt');
     if (!el) return;
     if (!items || !items.length) { el.textContent = 'Aktuell keine News verfügbar.'; return; }
@@ -3583,11 +3605,71 @@
         '<a href="' + i.link + '" target="_blank" rel="noopener" style="color:var(--moss);font-weight:600;text-decoration:none;">' + escapeHtml(i.title) + '</a>' +
         (datum ? '<div style="font-size:0.7rem;color:var(--bark);opacity:0.75;margin-top:2px;">' + datum + '</div>' : '') +
         '</div></div>';
-    }).join('') + '<div style="margin-top:8px;font-size:0.68rem;color:var(--bark);opacity:0.7;">Quelle: menshealth.de · <button type="button" onclick="ladeGesundheitFeed(true)" style="background:none;border:none;color:inherit;text-decoration:underline;cursor:pointer;padding:0;font-size:inherit;">aktualisieren</button></div>';
+    }).join('') + '<div style="margin-top:8px;font-size:0.68rem;color:var(--bark);opacity:0.7;">Quelle: ' + quelle.label + ' · <button type="button" onclick="ladeGesundheitFeed(true)" style="background:none;border:none;color:inherit;text-decoration:underline;cursor:pointer;padding:0;font-size:inherit;">aktualisieren</button></div>';
   }
+  function gesundheitFeedQuelleAktualisierenButtons() {
+    Object.keys(GESUNDHEIT_FEED_QUELLEN).forEach(key => {
+      const btn = document.getElementById(GESUNDHEIT_FEED_QUELLEN[key].btnId);
+      if (btn) btn.classList.toggle('active', key === gesundheitFeedQuelle);
+    });
+  }
+  function gesundheitFeedQuelleUmschalten(neueQuelle) {
+    if (gesundheitFeedQuelle === neueQuelle) return;
+    gesundheitFeedQuelle = neueQuelle;
+    try { localStorage.setItem(GESUNDHEIT_FEED_QUELLE_KEY, neueQuelle); } catch (e) {}
+    gesundheitFeedQuelleAktualisierenButtons();
+    ladeGesundheitFeed();
+  }
+  Object.keys(GESUNDHEIT_FEED_QUELLEN).forEach(key => {
+    const btn = document.getElementById(GESUNDHEIT_FEED_QUELLEN[key].btnId);
+    if (btn) btn.addEventListener('click', () => gesundheitFeedQuelleUmschalten(key));
+  });
+  gesundheitFeedQuelleAktualisierenButtons();
   window.ladeGesundheitFeed = ladeGesundheitFeed;
+
+  // ==================== Quellen ein-/ausblenden (geräte-lokal) ====================
+  const GESUNDHEIT_FEED_VERSTECKT_KEY = 'gesundheit_versteckteNewsQuellen';
+  function gesundheitVersteckteQuellen() {
+    try { return JSON.parse(localStorage.getItem(GESUNDHEIT_FEED_VERSTECKT_KEY) || '[]'); } catch (e) { return []; }
+  }
+  function gesundheitFeedButtonsSichtbarkeitAnwenden() {
+    const versteckt = gesundheitVersteckteQuellen();
+    Object.keys(GESUNDHEIT_FEED_QUELLEN).forEach(key => {
+      const btn = document.getElementById(GESUNDHEIT_FEED_QUELLEN[key].btnId);
+      if (btn) btn.style.display = versteckt.includes(key) ? 'none' : '';
+      const cb = document.querySelector('[data-gesundheitquelle="' + key + '"]');
+      if (cb) cb.checked = !versteckt.includes(key);
+    });
+    if (versteckt.includes(gesundheitFeedQuelle)) {
+      const sichtbareKeys = Object.keys(GESUNDHEIT_FEED_QUELLEN).filter(k => !versteckt.includes(k));
+      if (sichtbareKeys.length) {
+        gesundheitFeedQuelle = sichtbareKeys[0];
+        try { localStorage.setItem(GESUNDHEIT_FEED_QUELLE_KEY, gesundheitFeedQuelle); } catch (e) {}
+        gesundheitFeedQuelleAktualisierenButtons();
+        ladeGesundheitFeed();
+      } else {
+        document.getElementById('gesundheitFeedInhalt').innerHTML = 'Keine Quelle ausgewählt – über ⚙️ oben mindestens eine aktivieren.';
+      }
+    }
+  }
+  function gesundheitFeedQuelleSichtbarkeitAendern(checkbox) {
+    const key = checkbox.dataset.gesundheitquelle;
+    let versteckt = gesundheitVersteckteQuellen();
+    if (checkbox.checked) versteckt = versteckt.filter(k => k !== key);
+    else if (!versteckt.includes(key)) versteckt.push(key);
+    try { localStorage.setItem(GESUNDHEIT_FEED_VERSTECKT_KEY, JSON.stringify(versteckt)); } catch (e) {}
+    gesundheitFeedButtonsSichtbarkeitAnwenden();
+  }
+  function toggleGesundheitFeedEinstellungen() {
+    const box = document.getElementById('gesundheitFeedEinstellungen');
+    box.style.display = box.style.display === 'none' ? '' : 'none';
+  }
+  window.gesundheitFeedQuelleSichtbarkeitAendern = gesundheitFeedQuelleSichtbarkeitAendern;
+  window.toggleGesundheitFeedEinstellungen = toggleGesundheitFeedEinstellungen;
+
   document.getElementById('btnNews').addEventListener('click', () => {
     document.getElementById('newsModal').classList.add('zeigen');
+    gesundheitFeedButtonsSichtbarkeitAnwenden();
     if (!document.getElementById('gesundheitFeedInhalt').dataset.built) {
       document.getElementById('gesundheitFeedInhalt').dataset.built = '1';
       ladeGesundheitFeed();

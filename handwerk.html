@@ -287,7 +287,14 @@
 <!-- Detailansicht -->
 <div class="modal-bg" id="newsModal">
   <div class="modal">
-    <h2>🌐 Aktuelle Handwerk- &amp; Heimwerker-News</h2>
+    <h2 style="display:flex;align-items:center;justify-content:space-between;">🌐 Aktuelle Handwerk- &amp; Heimwerker-News <button type="button" onclick="toggleHandwerkFeedEinstellungen()" title="Quellen anpassen" style="background:none;border:1px solid var(--sage);border-radius:8px;font-size:0.85rem;padding:4px 8px;cursor:pointer;">⚙️</button></h2>
+    <div id="handwerkFeedEinstellungen" style="display:none;background:var(--parchment);border-radius:var(--radius-md);padding:10px 12px;margin-bottom:10px;">
+      <div style="font-weight:700;font-size:0.85rem;margin-bottom:6px;">Quellen anzeigen (nur auf diesem Gerät)</div>
+      <label style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:0.85rem;"><input type="checkbox" data-handwerkquelle="heimwerkertest" onchange="handwerkFeedQuelleSichtbarkeitAendern(this)"> heimwerker-test.de</label>
+    </div>
+    <div class="filter-reihe" style="margin-bottom:10px;">
+      <button type="button" class="filter-chip active" id="btnHandwerkFeedQuelleHeimwerkertest">heimwerker-test.de</button>
+    </div>
     <div id="handwerkFeedInhalt" style="font-size:0.85rem;">Lädt…</div>
     <div style="margin-top:14px;">
       <div style="font-weight:700;margin-bottom:8px;font-size:0.9rem;">🔗 Weitere Quellen</div>
@@ -1027,6 +1034,7 @@
   });
   document.getElementById('btnNews').addEventListener('click', () => {
     document.getElementById('newsModal').classList.add('zeigen');
+    handwerkFeedButtonsSichtbarkeitAnwenden();
     if (!document.getElementById('handwerkFeedInhalt').dataset.built) {
       document.getElementById('handwerkFeedInhalt').dataset.built = '1';
       ladeHandwerkFeed();
@@ -1305,22 +1313,37 @@
   // ==================== NEWSFEED: Handwerk & Heimwerken (heimwerker-test.de) ====================
   const RSS2JSON_KEY = 'gzgrcvnabxmmjjevo0nlsuucc1bl9qzizlvuzjkq'; // eigener kostenloser Key von rss2json.com
   function entitiesDekodieren(str) { if (!str) return str; const ta = document.createElement('textarea'); ta.innerHTML = str; return ta.value; }
-  const HANDWERK_FEED_URL = 'https://www.heimwerker-test.de/rss/news';
-  const HANDWERK_FEED_CACHE_KEY = 'handwerk_newsfeedCache';
+  const HANDWERK_FEED_QUELLEN = {
+    heimwerkertest: {
+      url: 'https://www.heimwerker-test.de/rss/news',
+      cacheKey: 'handwerk_newsfeedCache',
+      label: 'heimwerker-test.de',
+      linkZielseite: 'https://www.heimwerker-test.de',
+      btnId: 'btnHandwerkFeedQuelleHeimwerkertest',
+    },
+  };
+  const HANDWERK_FEED_QUELLE_KEY = 'handwerk_newsfeedQuelle';
+  let handwerkFeedQuelle = 'heimwerkertest';
+  try {
+    const gespeicherteQuelle = localStorage.getItem(HANDWERK_FEED_QUELLE_KEY);
+    if (gespeicherteQuelle && HANDWERK_FEED_QUELLEN[gespeicherteQuelle]) handwerkFeedQuelle = gespeicherteQuelle;
+  } catch (e) {}
   async function ladeHandwerkFeed(forceRefresh) {
     const el = document.getElementById('handwerkFeedInhalt');
     if (!el) return;
+    const quelle = HANDWERK_FEED_QUELLEN[handwerkFeedQuelle];
+    el.textContent = 'Lädt…';
     try {
       if (!forceRefresh) {
-        const cache = JSON.parse(localStorage.getItem(HANDWERK_FEED_CACHE_KEY) || 'null');
+        const cache = JSON.parse(localStorage.getItem(quelle.cacheKey) || 'null');
         if (cache && (Date.now() - cache.fetchedAt) < 3 * 60 * 60 * 1000) {
-          renderHandwerkFeed(cache.items);
+          renderHandwerkFeed(cache.items, quelle);
           return;
         }
       }
     } catch (e) {}
     try {
-      let url = 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(HANDWERK_FEED_URL) + '&count=6';
+      let url = 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(quelle.url) + '&count=6';
       if (RSS2JSON_KEY) url += '&api_key=' + encodeURIComponent(RSS2JSON_KEY);
       const res = await fetch(url);
       const data = await res.json();
@@ -1328,19 +1351,19 @@
       const items = data.items.map(i => {
         let bild = i.thumbnail || (i.enclosure && i.enclosure.link) || i.image;
         if (!bild) {
-          const quelle = i.description || i.content || '';
-          const treffer = quelle.match(/<img[^>]+src=["']([^"']+)["']/i);
+          const quelleTxt = i.description || i.content || '';
+          const treffer = quelleTxt.match(/<img[^>]+src=["']([^"']+)["']/i);
           if (treffer) bild = treffer[1];
         }
         return { title: entitiesDekodieren(i.title), link: i.link, pubDate: i.pubDate, thumbnail: bild };
       });
-      try { localStorage.setItem(HANDWERK_FEED_CACHE_KEY, JSON.stringify({ items, fetchedAt: Date.now() })); } catch (e) {}
-      renderHandwerkFeed(items);
+      try { localStorage.setItem(quelle.cacheKey, JSON.stringify({ items, fetchedAt: Date.now() })); } catch (e) {}
+      renderHandwerkFeed(items, quelle);
     } catch (e) {
-      el.innerHTML = '⚠ News konnten gerade nicht geladen werden (' + escapeHtml(String(e.message || e)) + '). <a href="https://www.heimwerker-test.de" target="_blank" rel="noopener">Direkt zur Seite →</a> <button type="button" onclick="ladeHandwerkFeed(true)" style="margin-left:6px;background:none;border:1px solid var(--sage);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:0.78rem;">🔄 erneut versuchen</button>';
+      el.innerHTML = '⚠ News konnten gerade nicht geladen werden (' + escapeHtml(String(e.message || e)) + '). <a href="' + quelle.linkZielseite + '" target="_blank" rel="noopener">Direkt zur Seite →</a> <button type="button" onclick="ladeHandwerkFeed(true)" style="margin-left:6px;background:none;border:1px solid var(--sage);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:0.78rem;">🔄 erneut versuchen</button>';
     }
   }
-  function renderHandwerkFeed(items) {
+  function renderHandwerkFeed(items, quelle) {
     const el = document.getElementById('handwerkFeedInhalt');
     if (!el) return;
     if (!items || !items.length) { el.textContent = 'Aktuell keine News verfügbar.'; return; }
@@ -1353,9 +1376,67 @@
         '<a href="' + i.link + '" target="_blank" rel="noopener" style="color:var(--moss);font-weight:600;text-decoration:none;">' + escapeHtml(i.title) + '</a>' +
         (datum ? '<div style="font-size:0.7rem;color:var(--bark);opacity:0.75;margin-top:2px;">' + datum + '</div>' : '') +
         '</div></div>';
-    }).join('') + '<div style="margin-top:8px;font-size:0.68rem;color:var(--bark);opacity:0.7;">Quelle: heimwerker-test.de · <button type="button" onclick="ladeHandwerkFeed(true)" style="background:none;border:none;color:inherit;text-decoration:underline;cursor:pointer;padding:0;font-size:inherit;">aktualisieren</button></div>';
+    }).join('') + '<div style="margin-top:8px;font-size:0.68rem;color:var(--bark);opacity:0.7;">Quelle: ' + quelle.label + ' · <button type="button" onclick="ladeHandwerkFeed(true)" style="background:none;border:none;color:inherit;text-decoration:underline;cursor:pointer;padding:0;font-size:inherit;">aktualisieren</button></div>';
   }
+  function handwerkFeedQuelleAktualisierenButtons() {
+    Object.keys(HANDWERK_FEED_QUELLEN).forEach(key => {
+      const btn = document.getElementById(HANDWERK_FEED_QUELLEN[key].btnId);
+      if (btn) btn.classList.toggle('active', key === handwerkFeedQuelle);
+    });
+  }
+  function handwerkFeedQuelleUmschalten(neueQuelle) {
+    if (handwerkFeedQuelle === neueQuelle) return;
+    handwerkFeedQuelle = neueQuelle;
+    try { localStorage.setItem(HANDWERK_FEED_QUELLE_KEY, neueQuelle); } catch (e) {}
+    handwerkFeedQuelleAktualisierenButtons();
+    ladeHandwerkFeed();
+  }
+  Object.keys(HANDWERK_FEED_QUELLEN).forEach(key => {
+    const btn = document.getElementById(HANDWERK_FEED_QUELLEN[key].btnId);
+    if (btn) btn.addEventListener('click', () => handwerkFeedQuelleUmschalten(key));
+  });
+  handwerkFeedQuelleAktualisierenButtons();
   window.ladeHandwerkFeed = ladeHandwerkFeed;
+
+  // ==================== Quellen ein-/ausblenden (geräte-lokal) ====================
+  const HANDWERK_FEED_VERSTECKT_KEY = 'handwerk_versteckteNewsQuellen';
+  function handwerkVersteckteQuellen() {
+    try { return JSON.parse(localStorage.getItem(HANDWERK_FEED_VERSTECKT_KEY) || '[]'); } catch (e) { return []; }
+  }
+  function handwerkFeedButtonsSichtbarkeitAnwenden() {
+    const versteckt = handwerkVersteckteQuellen();
+    Object.keys(HANDWERK_FEED_QUELLEN).forEach(key => {
+      const btn = document.getElementById(HANDWERK_FEED_QUELLEN[key].btnId);
+      if (btn) btn.style.display = versteckt.includes(key) ? 'none' : '';
+      const cb = document.querySelector('[data-handwerkquelle="' + key + '"]');
+      if (cb) cb.checked = !versteckt.includes(key);
+    });
+    if (versteckt.includes(handwerkFeedQuelle)) {
+      const sichtbareKeys = Object.keys(HANDWERK_FEED_QUELLEN).filter(k => !versteckt.includes(k));
+      if (sichtbareKeys.length) {
+        handwerkFeedQuelle = sichtbareKeys[0];
+        try { localStorage.setItem(HANDWERK_FEED_QUELLE_KEY, handwerkFeedQuelle); } catch (e) {}
+        handwerkFeedQuelleAktualisierenButtons();
+        ladeHandwerkFeed();
+      } else {
+        document.getElementById('handwerkFeedInhalt').innerHTML = 'Keine Quelle ausgewählt – über ⚙️ oben mindestens eine aktivieren.';
+      }
+    }
+  }
+  function handwerkFeedQuelleSichtbarkeitAendern(checkbox) {
+    const key = checkbox.dataset.handwerkquelle;
+    let versteckt = handwerkVersteckteQuellen();
+    if (checkbox.checked) versteckt = versteckt.filter(k => k !== key);
+    else if (!versteckt.includes(key)) versteckt.push(key);
+    try { localStorage.setItem(HANDWERK_FEED_VERSTECKT_KEY, JSON.stringify(versteckt)); } catch (e) {}
+    handwerkFeedButtonsSichtbarkeitAnwenden();
+  }
+  function toggleHandwerkFeedEinstellungen() {
+    const box = document.getElementById('handwerkFeedEinstellungen');
+    box.style.display = box.style.display === 'none' ? '' : 'none';
+  }
+  window.handwerkFeedQuelleSichtbarkeitAendern = handwerkFeedQuelleSichtbarkeitAendern;
+  window.toggleHandwerkFeedEinstellungen = toggleHandwerkFeedEinstellungen;
 })();
 </script>
 

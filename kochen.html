@@ -365,7 +365,14 @@
 <!-- Detailansicht -->
 <div class="modal-bg" id="newsModal">
   <div class="modal">
-    <h2>🌐 Aktuelle Rezept-Ideen</h2>
+    <h2 style="display:flex;align-items:center;justify-content:space-between;">🌐 Aktuelle Rezept-Ideen <button type="button" onclick="toggleKochenFeedEinstellungen()" title="Quellen anpassen" style="background:none;border:1px solid var(--sage);border-radius:8px;font-size:0.85rem;padding:4px 8px;cursor:pointer;">⚙️</button></h2>
+    <div id="kochenFeedEinstellungen" style="display:none;background:var(--parchment);border-radius:var(--radius-md);padding:10px 12px;margin-bottom:10px;">
+      <div style="font-weight:700;font-size:0.85rem;margin-bottom:6px;">Quellen anzeigen (nur auf diesem Gerät)</div>
+      <label style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:0.85rem;"><input type="checkbox" data-kochenquelle="gutekueche" onchange="kochenFeedQuelleSichtbarkeitAendern(this)"> gutekueche.de</label>
+    </div>
+    <div class="filter-reihe" style="margin-bottom:10px;">
+      <button type="button" class="filter-chip active" id="btnKochenFeedQuelleGutekueche">gutekueche.de</button>
+    </div>
     <div id="kochenFeedInhalt" style="font-size:0.85rem;">Lädt…</div>
     <div style="margin-top:14px;">
       <div style="font-weight:700;margin-bottom:8px;font-size:0.9rem;">🔗 Weitere Quellen</div>
@@ -1362,22 +1369,37 @@
   // wird per fetch() direkt aus dem Browser geholt, 3 Std. lokal zwischengespeichert.
   const RSS2JSON_KEY = 'gzgrcvnabxmmjjevo0nlsuucc1bl9qzizlvuzjkq'; // eigener kostenloser Key von rss2json.com/docs
   function entitiesDekodieren(str) { if (!str) return str; const ta = document.createElement('textarea'); ta.innerHTML = str; return ta.value; }
-  const KOCHEN_FEED_URL = 'https://www.gutekueche.de/feed/wochenrezepte';
-  const KOCHEN_FEED_CACHE_KEY = 'kochen_newsfeedCache';
+  const KOCHEN_FEED_QUELLEN = {
+    gutekueche: {
+      url: 'https://www.gutekueche.de/feed/wochenrezepte',
+      cacheKey: 'kochen_newsfeedCache',
+      label: 'gutekueche.de',
+      linkZielseite: 'https://www.gutekueche.de',
+      btnId: 'btnKochenFeedQuelleGutekueche',
+    },
+  };
+  const KOCHEN_FEED_QUELLE_KEY = 'kochen_newsfeedQuelle';
+  let kochenFeedQuelle = 'gutekueche';
+  try {
+    const gespeicherteQuelle = localStorage.getItem(KOCHEN_FEED_QUELLE_KEY);
+    if (gespeicherteQuelle && KOCHEN_FEED_QUELLEN[gespeicherteQuelle]) kochenFeedQuelle = gespeicherteQuelle;
+  } catch (e) {}
   async function ladeKochenFeed(forceRefresh) {
     const el = document.getElementById('kochenFeedInhalt');
     if (!el) return;
+    const quelle = KOCHEN_FEED_QUELLEN[kochenFeedQuelle];
+    el.textContent = 'Lädt…';
     try {
       if (!forceRefresh) {
-        const cache = JSON.parse(localStorage.getItem(KOCHEN_FEED_CACHE_KEY) || 'null');
+        const cache = JSON.parse(localStorage.getItem(quelle.cacheKey) || 'null');
         if (cache && (Date.now() - cache.fetchedAt) < 3 * 60 * 60 * 1000) {
-          renderKochenFeed(cache.items);
+          renderKochenFeed(cache.items, quelle);
           return;
         }
       }
     } catch (e) {}
     try {
-      let url = 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(KOCHEN_FEED_URL) + '&count=5';
+      let url = 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(quelle.url) + '&count=5';
       if (RSS2JSON_KEY) url += '&api_key=' + encodeURIComponent(RSS2JSON_KEY);
       const res = await fetch(url);
       const data = await res.json();
@@ -1385,19 +1407,19 @@
       const items = data.items.map(i => {
         let bild = i.thumbnail || (i.enclosure && i.enclosure.link) || i.image;
         if (!bild) {
-          const quelle = i.description || i.content || '';
-          const treffer = quelle.match(/<img[^>]+src=["']([^"']+)["']/i);
+          const quelleTxt = i.description || i.content || '';
+          const treffer = quelleTxt.match(/<img[^>]+src=["']([^"']+)["']/i);
           if (treffer) bild = treffer[1];
         }
         return { title: entitiesDekodieren(i.title), link: i.link, pubDate: i.pubDate, thumbnail: bild };
       });
-      try { localStorage.setItem(KOCHEN_FEED_CACHE_KEY, JSON.stringify({ items, fetchedAt: Date.now() })); } catch (e) {}
-      renderKochenFeed(items);
+      try { localStorage.setItem(quelle.cacheKey, JSON.stringify({ items, fetchedAt: Date.now() })); } catch (e) {}
+      renderKochenFeed(items, quelle);
     } catch (e) {
-      el.innerHTML = '⚠ Rezepte konnten gerade nicht geladen werden (' + escapeHtml(String(e.message || e)) + '). <a href="https://www.gutekueche.de" target="_blank" rel="noopener">Direkt zur Seite →</a> <button type="button" onclick="ladeKochenFeed(true)" style="margin-left:6px;background:none;border:1px solid var(--sage);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:0.78rem;">🔄 erneut versuchen</button>';
+      el.innerHTML = '⚠ Rezepte konnten gerade nicht geladen werden (' + escapeHtml(String(e.message || e)) + '). <a href="' + quelle.linkZielseite + '" target="_blank" rel="noopener">Direkt zur Seite →</a> <button type="button" onclick="ladeKochenFeed(true)" style="margin-left:6px;background:none;border:1px solid var(--sage);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:0.78rem;">🔄 erneut versuchen</button>';
     }
   }
-  function renderKochenFeed(items) {
+  function renderKochenFeed(items, quelle) {
     const el = document.getElementById('kochenFeedInhalt');
     if (!el) return;
     if (!items || !items.length) { el.textContent = 'Aktuell keine Rezepte verfügbar.'; return; }
@@ -1410,11 +1432,71 @@
         '<a href="' + i.link + '" target="_blank" rel="noopener" style="color:var(--moss);font-weight:600;text-decoration:none;">' + escapeHtml(i.title) + '</a>' +
         (datum ? '<div style="font-size:0.7rem;color:var(--bark);opacity:0.75;margin-top:2px;">' + datum + '</div>' : '') +
         '</div></div>';
-    }).join('') + '<div style="margin-top:8px;font-size:0.68rem;color:var(--bark);opacity:0.7;">Quelle: gutekueche.de · <button type="button" onclick="ladeKochenFeed(true)" style="background:none;border:none;color:inherit;text-decoration:underline;cursor:pointer;padding:0;font-size:inherit;">aktualisieren</button></div>';
+    }).join('') + '<div style="margin-top:8px;font-size:0.68rem;color:var(--bark);opacity:0.7;">Quelle: ' + quelle.label + ' · <button type="button" onclick="ladeKochenFeed(true)" style="background:none;border:none;color:inherit;text-decoration:underline;cursor:pointer;padding:0;font-size:inherit;">aktualisieren</button></div>';
   }
+  function kochenFeedQuelleAktualisierenButtons() {
+    Object.keys(KOCHEN_FEED_QUELLEN).forEach(key => {
+      const btn = document.getElementById(KOCHEN_FEED_QUELLEN[key].btnId);
+      if (btn) btn.classList.toggle('active', key === kochenFeedQuelle);
+    });
+  }
+  function kochenFeedQuelleUmschalten(neueQuelle) {
+    if (kochenFeedQuelle === neueQuelle) return;
+    kochenFeedQuelle = neueQuelle;
+    try { localStorage.setItem(KOCHEN_FEED_QUELLE_KEY, neueQuelle); } catch (e) {}
+    kochenFeedQuelleAktualisierenButtons();
+    ladeKochenFeed();
+  }
+  Object.keys(KOCHEN_FEED_QUELLEN).forEach(key => {
+    const btn = document.getElementById(KOCHEN_FEED_QUELLEN[key].btnId);
+    if (btn) btn.addEventListener('click', () => kochenFeedQuelleUmschalten(key));
+  });
+  kochenFeedQuelleAktualisierenButtons();
   window.ladeKochenFeed = ladeKochenFeed;
+
+  // ==================== Quellen ein-/ausblenden (geräte-lokal) ====================
+  const KOCHEN_FEED_VERSTECKT_KEY = 'kochen_versteckteNewsQuellen';
+  function kochenVersteckteQuellen() {
+    try { return JSON.parse(localStorage.getItem(KOCHEN_FEED_VERSTECKT_KEY) || '[]'); } catch (e) { return []; }
+  }
+  function kochenFeedButtonsSichtbarkeitAnwenden() {
+    const versteckt = kochenVersteckteQuellen();
+    Object.keys(KOCHEN_FEED_QUELLEN).forEach(key => {
+      const btn = document.getElementById(KOCHEN_FEED_QUELLEN[key].btnId);
+      if (btn) btn.style.display = versteckt.includes(key) ? 'none' : '';
+      const cb = document.querySelector('[data-kochenquelle="' + key + '"]');
+      if (cb) cb.checked = !versteckt.includes(key);
+    });
+    if (versteckt.includes(kochenFeedQuelle)) {
+      const sichtbareKeys = Object.keys(KOCHEN_FEED_QUELLEN).filter(k => !versteckt.includes(k));
+      if (sichtbareKeys.length) {
+        kochenFeedQuelle = sichtbareKeys[0];
+        try { localStorage.setItem(KOCHEN_FEED_QUELLE_KEY, kochenFeedQuelle); } catch (e) {}
+        kochenFeedQuelleAktualisierenButtons();
+        ladeKochenFeed();
+      } else {
+        document.getElementById('kochenFeedInhalt').innerHTML = 'Keine Quelle ausgewählt – über ⚙️ oben mindestens eine aktivieren.';
+      }
+    }
+  }
+  function kochenFeedQuelleSichtbarkeitAendern(checkbox) {
+    const key = checkbox.dataset.kochenquelle;
+    let versteckt = kochenVersteckteQuellen();
+    if (checkbox.checked) versteckt = versteckt.filter(k => k !== key);
+    else if (!versteckt.includes(key)) versteckt.push(key);
+    try { localStorage.setItem(KOCHEN_FEED_VERSTECKT_KEY, JSON.stringify(versteckt)); } catch (e) {}
+    kochenFeedButtonsSichtbarkeitAnwenden();
+  }
+  function toggleKochenFeedEinstellungen() {
+    const box = document.getElementById('kochenFeedEinstellungen');
+    box.style.display = box.style.display === 'none' ? '' : 'none';
+  }
+  window.kochenFeedQuelleSichtbarkeitAendern = kochenFeedQuelleSichtbarkeitAendern;
+  window.toggleKochenFeedEinstellungen = toggleKochenFeedEinstellungen;
+
   document.getElementById('btnNews').addEventListener('click', () => {
     document.getElementById('newsModal').classList.add('zeigen');
+    kochenFeedButtonsSichtbarkeitAnwenden();
     if (!document.getElementById('kochenFeedInhalt').dataset.built) {
       document.getElementById('kochenFeedInhalt').dataset.built = '1';
       ladeKochenFeed();

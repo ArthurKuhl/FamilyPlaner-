@@ -380,7 +380,14 @@
 <!-- Vorlagen -->
 <div class="modal-bg" id="modalDeals">
   <div class="modal">
-    <h2>🌐 Aktuelle Schnäppchen</h2>
+    <h2 style="display:flex;align-items:center;justify-content:space-between;">🌐 Aktuelle Schnäppchen <button type="button" onclick="toggleDealsFeedEinstellungen()" title="Quellen anpassen" style="background:none;border:1px solid var(--sage);border-radius:8px;font-size:0.85rem;padding:4px 8px;cursor:pointer;">⚙️</button></h2>
+    <div id="dealsFeedEinstellungen" style="display:none;background:var(--parchment);border-radius:var(--radius-md);padding:10px 12px;margin-bottom:10px;">
+      <div style="font-weight:700;font-size:0.85rem;margin-bottom:6px;">Quellen anzeigen (nur auf diesem Gerät)</div>
+      <label style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:0.85rem;"><input type="checkbox" data-dealsquelle="mydealz" onchange="dealsFeedQuelleSichtbarkeitAendern(this)"> mydealz.de</label>
+    </div>
+    <div class="filter-reihe" style="margin-bottom:10px;">
+      <button type="button" class="filter-chip active" id="btnDealsFeedQuelleMydealz">mydealz.de</button>
+    </div>
     <div id="dealsFeedInhalt" style="font-size:0.85rem;">Lädt…</div>
     <div style="margin-top:14px;">
       <div style="font-weight:700;margin-bottom:8px;font-size:0.9rem;">🔗 Weitere Quellen</div>
@@ -989,10 +996,24 @@
   // ==================== NEWSFEED: Aktuelle Schnäppchen (mydealz.de) ====================
   const RSS2JSON_KEY = 'gzgrcvnabxmmjjevo0nlsuucc1bl9qzizlvuzjkq'; // eigener kostenloser Key von rss2json.com
   function entitiesDekodieren(str) { if (!str) return str; const ta = document.createElement('textarea'); ta.innerHTML = str; return ta.value; }
-  const DEALS_FEED_URL = 'http://feeds.feedburner.com/mydealz';
-  const DEALS_FEED_CACHE_KEY = 'einkauf_newsfeedCache';
+  const DEALS_FEED_QUELLEN = {
+    mydealz: {
+      url: 'http://feeds.feedburner.com/mydealz',
+      cacheKey: 'einkauf_newsfeedCache',
+      label: 'mydealz.de',
+      linkZielseite: 'https://www.mydealz.de',
+      btnId: 'btnDealsFeedQuelleMydealz',
+    },
+  };
+  const DEALS_FEED_QUELLE_KEY = 'einkauf_newsfeedQuelle';
+  let dealsFeedQuelle = 'mydealz';
+  try {
+    const gespeicherteQuelle = localStorage.getItem(DEALS_FEED_QUELLE_KEY);
+    if (gespeicherteQuelle && DEALS_FEED_QUELLEN[gespeicherteQuelle]) dealsFeedQuelle = gespeicherteQuelle;
+  } catch (e) {}
   document.getElementById('btnDeals').addEventListener('click', () => {
     document.getElementById('modalDeals').classList.add('zeigen');
+    dealsFeedButtonsSichtbarkeitAnwenden();
     if (!document.getElementById('dealsFeedInhalt').dataset.built) {
       document.getElementById('dealsFeedInhalt').dataset.built = '1';
       ladeDealsFeed();
@@ -1003,17 +1024,19 @@
   async function ladeDealsFeed(forceRefresh) {
     const el = document.getElementById('dealsFeedInhalt');
     if (!el) return;
+    const quelle = DEALS_FEED_QUELLEN[dealsFeedQuelle];
+    el.textContent = 'Lädt…';
     try {
       if (!forceRefresh) {
-        const cache = JSON.parse(localStorage.getItem(DEALS_FEED_CACHE_KEY) || 'null');
+        const cache = JSON.parse(localStorage.getItem(quelle.cacheKey) || 'null');
         if (cache && (Date.now() - cache.fetchedAt) < 3 * 60 * 60 * 1000) {
-          renderDealsFeed(cache.items);
+          renderDealsFeed(cache.items, quelle);
           return;
         }
       }
     } catch (e) {}
     try {
-      let url = 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(DEALS_FEED_URL) + '&count=8';
+      let url = 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(quelle.url) + '&count=8';
       if (RSS2JSON_KEY) url += '&api_key=' + encodeURIComponent(RSS2JSON_KEY);
       const res = await fetch(url);
       const data = await res.json();
@@ -1021,19 +1044,19 @@
       const items = data.items.map(i => {
         let bild = i.thumbnail || (i.enclosure && i.enclosure.link) || i.image;
         if (!bild) {
-          const quelle = i.description || i.content || '';
-          const treffer = quelle.match(/<img[^>]+src=["']([^"']+)["']/i);
+          const quelleTxt = i.description || i.content || '';
+          const treffer = quelleTxt.match(/<img[^>]+src=["']([^"']+)["']/i);
           if (treffer) bild = treffer[1];
         }
         return { title: entitiesDekodieren(i.title), link: i.link, pubDate: i.pubDate, thumbnail: bild };
       });
-      try { localStorage.setItem(DEALS_FEED_CACHE_KEY, JSON.stringify({ items, fetchedAt: Date.now() })); } catch (e) {}
-      renderDealsFeed(items);
+      try { localStorage.setItem(quelle.cacheKey, JSON.stringify({ items, fetchedAt: Date.now() })); } catch (e) {}
+      renderDealsFeed(items, quelle);
     } catch (e) {
-      el.innerHTML = '⚠ Deals konnten gerade nicht geladen werden (' + escapeHtml(String(e.message || e)) + '). <a href="https://www.mydealz.de" target="_blank" rel="noopener">Direkt zu mydealz.de →</a> <button type="button" onclick="ladeDealsFeed(true)" style="margin-left:6px;background:none;border:1px solid var(--sage);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:0.78rem;">🔄 erneut versuchen</button>';
+      el.innerHTML = '⚠ Deals konnten gerade nicht geladen werden (' + escapeHtml(String(e.message || e)) + '). <a href="' + quelle.linkZielseite + '" target="_blank" rel="noopener">Direkt zu ' + quelle.label + ' →</a> <button type="button" onclick="ladeDealsFeed(true)" style="margin-left:6px;background:none;border:1px solid var(--sage);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:0.78rem;">🔄 erneut versuchen</button>';
     }
   }
-  function renderDealsFeed(items) {
+  function renderDealsFeed(items, quelle) {
     const el = document.getElementById('dealsFeedInhalt');
     if (!el) return;
     if (!items || !items.length) { el.textContent = 'Aktuell keine Deals verfügbar.'; return; }
@@ -1046,8 +1069,66 @@
         '<a href="' + i.link + '" target="_blank" rel="noopener" style="color:var(--moss);font-weight:600;text-decoration:none;">' + escapeHtml(i.title) + '</a>' +
         (datum ? '<div style="font-size:0.7rem;color:var(--bark);opacity:0.75;margin-top:2px;">' + datum + '</div>' : '') +
         '</div></div>';
-    }).join('') + '<div style="margin-top:8px;font-size:0.68rem;color:var(--bark);opacity:0.7;">Quelle: mydealz.de · <button type="button" onclick="ladeDealsFeed(true)" style="background:none;border:none;color:inherit;text-decoration:underline;cursor:pointer;padding:0;font-size:inherit;">aktualisieren</button></div>';
+    }).join('') + '<div style="margin-top:8px;font-size:0.68rem;color:var(--bark);opacity:0.7;">Quelle: ' + quelle.label + ' · <button type="button" onclick="ladeDealsFeed(true)" style="background:none;border:none;color:inherit;text-decoration:underline;cursor:pointer;padding:0;font-size:inherit;">aktualisieren</button></div>';
   }
+  function dealsFeedQuelleAktualisierenButtons() {
+    Object.keys(DEALS_FEED_QUELLEN).forEach(key => {
+      const btn = document.getElementById(DEALS_FEED_QUELLEN[key].btnId);
+      if (btn) btn.classList.toggle('active', key === dealsFeedQuelle);
+    });
+  }
+  function dealsFeedQuelleUmschalten(neueQuelle) {
+    if (dealsFeedQuelle === neueQuelle) return;
+    dealsFeedQuelle = neueQuelle;
+    try { localStorage.setItem(DEALS_FEED_QUELLE_KEY, neueQuelle); } catch (e) {}
+    dealsFeedQuelleAktualisierenButtons();
+    ladeDealsFeed();
+  }
+  Object.keys(DEALS_FEED_QUELLEN).forEach(key => {
+    const btn = document.getElementById(DEALS_FEED_QUELLEN[key].btnId);
+    if (btn) btn.addEventListener('click', () => dealsFeedQuelleUmschalten(key));
+  });
+  dealsFeedQuelleAktualisierenButtons();
+
+  // ==================== Quellen ein-/ausblenden (geräte-lokal) ====================
+  const DEALS_FEED_VERSTECKT_KEY = 'einkauf_versteckteNewsQuellen';
+  function dealsVersteckteQuellen() {
+    try { return JSON.parse(localStorage.getItem(DEALS_FEED_VERSTECKT_KEY) || '[]'); } catch (e) { return []; }
+  }
+  function dealsFeedButtonsSichtbarkeitAnwenden() {
+    const versteckt = dealsVersteckteQuellen();
+    Object.keys(DEALS_FEED_QUELLEN).forEach(key => {
+      const btn = document.getElementById(DEALS_FEED_QUELLEN[key].btnId);
+      if (btn) btn.style.display = versteckt.includes(key) ? 'none' : '';
+      const cb = document.querySelector('[data-dealsquelle="' + key + '"]');
+      if (cb) cb.checked = !versteckt.includes(key);
+    });
+    if (versteckt.includes(dealsFeedQuelle)) {
+      const sichtbareKeys = Object.keys(DEALS_FEED_QUELLEN).filter(k => !versteckt.includes(k));
+      if (sichtbareKeys.length) {
+        dealsFeedQuelle = sichtbareKeys[0];
+        try { localStorage.setItem(DEALS_FEED_QUELLE_KEY, dealsFeedQuelle); } catch (e) {}
+        dealsFeedQuelleAktualisierenButtons();
+        ladeDealsFeed();
+      } else {
+        document.getElementById('dealsFeedInhalt').innerHTML = 'Keine Quelle ausgewählt – über ⚙️ oben mindestens eine aktivieren.';
+      }
+    }
+  }
+  function dealsFeedQuelleSichtbarkeitAendern(checkbox) {
+    const key = checkbox.dataset.dealsquelle;
+    let versteckt = dealsVersteckteQuellen();
+    if (checkbox.checked) versteckt = versteckt.filter(k => k !== key);
+    else if (!versteckt.includes(key)) versteckt.push(key);
+    try { localStorage.setItem(DEALS_FEED_VERSTECKT_KEY, JSON.stringify(versteckt)); } catch (e) {}
+    dealsFeedButtonsSichtbarkeitAnwenden();
+  }
+  function toggleDealsFeedEinstellungen() {
+    const box = document.getElementById('dealsFeedEinstellungen');
+    box.style.display = box.style.display === 'none' ? '' : 'none';
+  }
+  window.dealsFeedQuelleSichtbarkeitAendern = dealsFeedQuelleSichtbarkeitAendern;
+  window.toggleDealsFeedEinstellungen = toggleDealsFeedEinstellungen;
   window.ladeDealsFeed = ladeDealsFeed;
 
   // ============================================================
