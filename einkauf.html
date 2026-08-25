@@ -384,9 +384,11 @@
     <div id="dealsFeedEinstellungen" style="display:none;background:var(--parchment);border-radius:var(--radius-md);padding:10px 12px;margin-bottom:10px;">
       <div style="font-weight:700;font-size:0.85rem;margin-bottom:6px;">Quellen anzeigen (nur auf diesem Gerät)</div>
       <label style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:0.85rem;"><input type="checkbox" data-dealsquelle="mydealz" onchange="dealsFeedQuelleSichtbarkeitAendern(this)"> mydealz.de</label>
+      <label style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:0.85rem;"><input type="checkbox" data-dealsquelle="monsterdealz" onchange="dealsFeedQuelleSichtbarkeitAendern(this)"> monsterdealz.de</label>
     </div>
     <div class="filter-reihe" style="margin-bottom:10px;">
       <button type="button" class="filter-chip active" id="btnDealsFeedQuelleMydealz">mydealz.de</button>
+      <button type="button" class="filter-chip" id="btnDealsFeedQuelleMonsterdealz">monsterdealz.de</button>
     </div>
     <div id="dealsFeedInhalt" style="font-size:0.85rem;">Lädt…</div>
     <div style="margin-top:14px;">
@@ -1003,6 +1005,13 @@
       label: 'mydealz.de',
       linkZielseite: 'https://www.mydealz.de',
       btnId: 'btnDealsFeedQuelleMydealz',
+    },
+    monsterdealz: {
+      url: 'https://feeds.feedburner.com/MonsterDealz',
+      cacheKey: 'einkauf_newsfeedCacheMonsterdealz',
+      label: 'monsterdealz.de',
+      linkZielseite: 'https://www.monsterdealz.de',
+      btnId: 'btnDealsFeedQuelleMonsterdealz',
     },
   };
   const DEALS_FEED_QUELLE_KEY = 'einkauf_newsfeedQuelle';
