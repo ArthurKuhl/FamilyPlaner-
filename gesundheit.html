@@ -3554,7 +3554,15 @@
       const res = await fetch(url);
       const data = await res.json();
       if (data.status !== 'ok') throw new Error(data.message || 'Fehler');
-      const items = data.items.map(i => ({ title: i.title, link: i.link, pubDate: i.pubDate, thumbnail: i.thumbnail }));
+      const items = data.items.map(i => {
+        let bild = i.thumbnail;
+        if (!bild) {
+          const quelle = i.description || i.content || '';
+          const treffer = quelle.match(/<img[^>]+src=["']([^"']+)["']/i);
+          if (treffer) bild = treffer[1];
+        }
+        return { title: i.title, link: i.link, pubDate: i.pubDate, thumbnail: bild };
+      });
       try { localStorage.setItem(GESUNDHEIT_FEED_CACHE_KEY, JSON.stringify({ items, fetchedAt: Date.now() })); } catch (e) {}
       renderGesundheitFeed(items);
     } catch (e) {
