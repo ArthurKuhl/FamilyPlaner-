@@ -153,10 +153,6 @@
 
   .erledigt-section { margin-top: 18px; border-top: 1px solid var(--parchment); padding-top: 12px; }
   .erledigt-kopf { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-  .erledigt-kopf button.aufklappen {
-    background: none; border: none; color: var(--soil); font-size: 0.78rem; font-weight: 700; cursor: pointer;
-    display: flex; align-items: center; gap: 4px;
-  }
   .erledigt-loeschen-btn {
     background: none; border: 1px solid var(--terracotta); color: var(--terracotta-text); border-radius: var(--radius-pill);
     font-size: 0.7rem; font-weight: 700; padding: 4px 12px; cursor: pointer;
@@ -263,7 +259,7 @@
     <input type="text" id="fSchnellEingabe" placeholder="z.B. 500g Mehl, 3 Äpfel, Zahnpasta ..." autocomplete="off">
     <button id="btnHinzufuegen">＋</button>
   </div>
-  <button type="button" id="btnAlleVorschlaegeToggle" style="background:none;border:none;color:var(--moss);font-size:0.75rem;font-weight:600;padding:0 0 8px;cursor:pointer;text-align:left;">▸ Alle Vorschläge verwalten</button>
+  <button type="button" id="btnAlleVorschlaegeToggle" class="filter-chip" style="margin-bottom:10px;">▸ Alle Vorschläge verwalten</button>
   <div id="alleVorschlaegeBox" style="display:none;margin-bottom:12px;background:var(--white);border-radius:var(--radius-md);padding:10px 12px;"></div>
   <div style="display:flex; justify-content:flex-end; margin-bottom:6px;">
     <button class="filter-chip" id="btnSortRichtung">🔤 A–Z</button>
@@ -271,7 +267,7 @@
   <div id="offeneItems"></div>
   <div id="erledigtSection" class="erledigt-section" style="display:none;">
     <div class="erledigt-kopf">
-      <button class="aufklappen" id="btnErledigtToggle">▸ Erledigt (<span id="erledigtAnzahl">0</span>)</button>
+      <button class="filter-chip" id="btnErledigtToggle">▸ Erledigt (<span id="erledigtAnzahl">0</span>)</button>
       <button class="erledigt-loeschen-btn" id="btnErledigtLoeschen">Entfernen</button>
     </div>
     <div id="erledigtItems" style="display:none;"></div>
