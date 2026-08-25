@@ -387,11 +387,13 @@
       <label style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:0.85rem;"><input type="checkbox" data-dealsquelle="mydealz" onchange="dealsFeedQuelleSichtbarkeitAendern(this)"> mydealz.de</label>
       <label style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:0.85rem;"><input type="checkbox" data-dealsquelle="monsterdealz" onchange="dealsFeedQuelleSichtbarkeitAendern(this)"> monsterdealz.de</label>
       <label style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:0.85rem;"><input type="checkbox" data-dealsquelle="alternate" onchange="dealsFeedQuelleSichtbarkeitAendern(this)"> Alternate Newsletter</label>
+      <label style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:0.85rem;"><input type="checkbox" data-dealsquelle="lidl" onchange="dealsFeedQuelleSichtbarkeitAendern(this)"> Lidl Newsletter</label>
     </div>
     <div class="filter-reihe" style="margin-bottom:10px;">
       <button type="button" class="filter-chip active" id="btnDealsFeedQuelleMydealz">mydealz.de</button>
       <button type="button" class="filter-chip" id="btnDealsFeedQuelleMonsterdealz">monsterdealz.de</button>
       <button type="button" class="filter-chip" id="btnDealsFeedQuelleAlternate">Alternate</button>
+      <button type="button" class="filter-chip" id="btnDealsFeedQuelleLidl">Lidl</button>
     </div>
     <div id="dealsFeedInhalt" style="font-size:0.85rem;">Lädt…</div>
     <div style="margin-top:14px;">
@@ -1040,6 +1042,13 @@
       label: 'Alternate Newsletter',
       linkZielseite: 'https://www.alternate.de',
       btnId: 'btnDealsFeedQuelleAlternate',
+    },
+    lidl: {
+      url: 'https://kill-the-newsletter.com/feeds/vpsvkxznktnpysgsmdoa.xml',
+      cacheKey: 'einkauf_newsfeedCacheLidl',
+      label: 'Lidl Newsletter',
+      linkZielseite: 'https://www.lidl.de',
+      btnId: 'btnDealsFeedQuelleLidl',
     },
   };
   const DEALS_FEED_QUELLE_KEY = 'einkauf_newsfeedQuelle';
