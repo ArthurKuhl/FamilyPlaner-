@@ -263,6 +263,8 @@
     <button id="btnHinzufuegen">＋</button>
   </div>
   <div class="favoriten-reihe" id="favoritenReihe"></div>
+  <button type="button" id="btnAlleVorschlaegeToggle" style="background:none;border:none;color:var(--sage);font-size:0.75rem;padding:0 0 8px;cursor:pointer;text-align:left;">▸ Alle Vorschläge verwalten</button>
+  <div id="alleVorschlaegeBox" style="display:none;margin-bottom:12px;background:var(--white);border-radius:var(--radius-md);padding:10px 12px;"></div>
   <div style="display:flex; justify-content:flex-end; margin-bottom:6px;">
     <button class="filter-chip" id="btnSortRichtung">🔤 A–Z</button>
   </div>
@@ -608,6 +610,37 @@
     renderAlles();
   }
 
+  // --- Alle Vorschläge verwalten (aufklappbar, alphabetisch, löschbar) ---
+  function renderAlleVorschlaege() {
+    const box = document.getElementById('alleVorschlaegeBox');
+    if (!box) return;
+    const alle = Object.entries(favoriten).sort((a, b) => a[1].name.localeCompare(b[1].name, 'de'));
+    document.getElementById('btnAlleVorschlaegeToggle').textContent =
+      (box.style.display === 'none' ? '▸' : '▾') + ' Alle Vorschläge verwalten (' + alle.length + ')';
+    if (!alle.length) {
+      box.innerHTML = '<div style="font-size:0.78rem;color:var(--bark);">Noch keine gespeicherten Vorschläge.</div>';
+      return;
+    }
+    box.innerHTML = alle.map(([key, f]) =>
+      '<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--parchment);">' +
+      '<span style="font-size:0.85rem;">' + escapeHtml(f.name) + '</span>' +
+      '<button type="button" onclick="vorschlagLoeschen(\'' + key.replace(/'/g, "\\'") + '\')" style="background:none;border:none;color:#c05030;font-size:0.85rem;cursor:pointer;padding:2px 8px;" aria-label="Vorschlag löschen">✕</button>' +
+      '</div>'
+    ).join('');
+  }
+  function vorschlagLoeschen(key) {
+    delete favoriten[key];
+    speichernFavoriten();
+    renderFavoriten();
+    renderAlleVorschlaege();
+  }
+  window.vorschlagLoeschen = vorschlagLoeschen;
+  document.getElementById('btnAlleVorschlaegeToggle').addEventListener('click', () => {
+    const box = document.getElementById('alleVorschlaegeBox');
+    box.style.display = box.style.display === 'none' ? '' : 'none';
+    renderAlleVorschlaege();
+  });
+
   // --- Schnelleingabe mit einfachem Mengen-Parsing ---
   function parseSchnellEingabe(text) {
     const t = text.trim();
@@ -933,6 +966,7 @@
   function renderAlles() {
     renderTabs();
     renderFavoriten();
+    renderAlleVorschlaege();
     renderOffeneItems();
     renderErledigt();
   }
