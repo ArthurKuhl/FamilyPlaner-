@@ -992,7 +992,14 @@
 <!-- MODAL: Jetzt pflanzen & ernten -->
 <div class="modal-bg" id="newsModal" style="display:none">
   <div class="modal" style="width:min(560px,96vw);max-height:88vh;overflow-y:auto">
-    <h2>🌐 Aktuelle Garten-News</h2>
+    <h2 style="display:flex;align-items:center;justify-content:space-between;">🌐 Aktuelle Garten-News <button type="button" onclick="toggleGartenFeedEinstellungen()" title="Quellen anpassen" style="background:none;border:1px solid var(--sage);border-radius:8px;font-size:0.85rem;padding:4px 8px;cursor:pointer;">⚙️</button></h2>
+    <div id="gartenFeedEinstellungen" style="display:none;background:var(--parchment);border-radius:var(--radius-md);padding:10px 12px;margin-bottom:10px;">
+      <div style="font-weight:700;font-size:0.85rem;margin-bottom:6px;">Quellen anzeigen (nur auf diesem Gerät)</div>
+      <label style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:0.85rem;"><input type="checkbox" data-gartenquelle="plantura" onchange="gartenFeedQuelleSichtbarkeitAendern(this)"> Plantura</label>
+      <label style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:0.85rem;"><input type="checkbox" data-gartenquelle="gig" onchange="gartenFeedQuelleSichtbarkeitAendern(this)"> Gern im Garten</label>
+      <label style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:0.85rem;"><input type="checkbox" data-gartenquelle="lubera" onchange="gartenFeedQuelleSichtbarkeitAendern(this)"> 🌿 Lubera</label>
+      <label style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:0.85rem;"><input type="checkbox" data-gartenquelle="horstmann" onchange="gartenFeedQuelleSichtbarkeitAendern(this)"> 🌳 Baumschule Horstmann</label>
+    </div>
     <div class="filter-reihe" style="margin-bottom:10px;">
       <button type="button" class="filter-chip active" id="btnGartenFeedQuellePlantura" onclick="gartenFeedQuelleUmschalten('plantura')">Plantura</button>
       <button type="button" class="filter-chip" id="btnGartenFeedQuelleGig" onclick="gartenFeedQuelleUmschalten('gig')">Gern im Garten</button>
@@ -7265,10 +7272,52 @@ function gartenFeedQuelleUmschalten(neueQuelle) {
   gartenFeedQuelleAktualisierenButtons();
   ladeGartenFeed();
 }
+
+// ==================== Quellen ein-/ausblenden (geräte-lokal) ====================
+const GARTEN_FEED_VERSTECKT_KEY = 'garten_versteckteNewsQuellen';
+function gartenVersteckteQuellen() {
+  try { return JSON.parse(localStorage.getItem(GARTEN_FEED_VERSTECKT_KEY) || '[]'); } catch (e) { return []; }
+}
+function gartenFeedButtonsSichtbarkeitAnwenden() {
+  const versteckt = gartenVersteckteQuellen();
+  Object.keys(GARTEN_FEED_QUELLEN).forEach(key => {
+    const btn = document.getElementById(GARTEN_FEED_QUELLEN[key].btnId);
+    if (btn) btn.style.display = versteckt.includes(key) ? 'none' : '';
+    const cb = document.querySelector('[data-gartenquelle="' + key + '"]');
+    if (cb) cb.checked = !versteckt.includes(key);
+  });
+  // Falls die aktuell aktive Quelle versteckt wurde, zur ersten sichtbaren wechseln
+  if (versteckt.includes(gartenFeedQuelle)) {
+    const sichtbareKeys = Object.keys(GARTEN_FEED_QUELLEN).filter(k => !versteckt.includes(k));
+    if (sichtbareKeys.length) {
+      gartenFeedQuelle = sichtbareKeys[0];
+      try { localStorage.setItem(GARTEN_FEED_QUELLE_KEY, gartenFeedQuelle); } catch (e) {}
+      gartenFeedQuelleAktualisierenButtons();
+      ladeGartenFeed();
+    } else {
+      document.getElementById('gartenFeedInhalt').innerHTML = 'Keine Quelle ausgewählt – über ⚙️ oben mindestens eine aktivieren.';
+    }
+  }
+}
+function gartenFeedQuelleSichtbarkeitAendern(checkbox) {
+  const key = checkbox.dataset.gartenquelle;
+  let versteckt = gartenVersteckteQuellen();
+  if (checkbox.checked) versteckt = versteckt.filter(k => k !== key);
+  else if (!versteckt.includes(key)) versteckt.push(key);
+  try { localStorage.setItem(GARTEN_FEED_VERSTECKT_KEY, JSON.stringify(versteckt)); } catch (e) {}
+  gartenFeedButtonsSichtbarkeitAnwenden();
+}
+function toggleGartenFeedEinstellungen() {
+  const box = document.getElementById('gartenFeedEinstellungen');
+  box.style.display = box.style.display === 'none' ? '' : 'none';
+}
+window.gartenFeedQuelleSichtbarkeitAendern = gartenFeedQuelleSichtbarkeitAendern;
+window.toggleGartenFeedEinstellungen = toggleGartenFeedEinstellungen;
 window.ladeGartenFeed = ladeGartenFeed;
 window.gartenFeedQuelleUmschalten = gartenFeedQuelleUmschalten;
 document.getElementById('btnNews').addEventListener('click', () => {
   document.getElementById('newsModal').style.display = 'flex';
+  gartenFeedButtonsSichtbarkeitAnwenden();
   if (!document.getElementById('gartenFeedInhalt').dataset.built) {
     document.getElementById('gartenFeedInhalt').dataset.built = '1';
     ladeGartenFeed();
