@@ -277,7 +277,12 @@
 
   // ==================== QUELLEN je Kategorie (werden in den nächsten Etappen befüllt) ====================
   const REGIONAL_QUELLEN = {};
-  const NATIONAL_QUELLEN = {};
+  const NATIONAL_QUELLEN = {
+    tagesschau: { url: 'https://www.tagesschau.de/xml/rss2', cacheKey: 'nachrichten_national_tagesschau', label: 'Tagesschau', linkZielseite: 'https://www.tagesschau.de' },
+    spiegel: { url: 'https://www.spiegel.de/schlagzeilen/index.rss', cacheKey: 'nachrichten_national_spiegel', label: 'Spiegel', linkZielseite: 'https://www.spiegel.de' },
+    faz: { url: 'https://www.faz.net/rss/aktuell/', cacheKey: 'nachrichten_national_faz', label: 'FAZ', linkZielseite: 'https://www.faz.net' },
+    welt: { url: 'https://www.welt.de/feeds/latest.rss', cacheKey: 'nachrichten_national_welt', label: 'Welt', linkZielseite: 'https://www.welt.de' },
+  };
   const INTERNATIONAL_QUELLEN = {};
 
   const kategorien = {
