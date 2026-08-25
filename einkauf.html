@@ -228,6 +228,7 @@
     </div>
   </div>
   <div class="listen-tabs" id="listenTabs"></div>
+  <div id="marktDropdownBox" style="display:none;background:var(--white);border-radius:var(--radius-md);padding:8px;margin:-4px 0 8px;max-height:200px;overflow-y:auto;"></div>
   <div class="ich-bin-reihe" id="ichBinReihe"></div>
 </header>
   <div class="theme-popup" id="themePopup">
@@ -353,6 +354,10 @@
       <label for="fListeName">Name der Liste</label>
       <input type="text" id="fListeName">
     </div>
+    <div class="feld" style="display:flex;align-items:center;gap:8px;">
+      <input type="checkbox" id="fListeIstMarkt" style="width:20px;height:20px;">
+      <label for="fListeIstMarkt" style="margin:0;">🏪 Ist ein Markt/Discounter</label>
+    </div>
     <div class="modal-btns">
       <button class="btn btn-secondary" id="btnListeAbbrechen">Abbrechen</button>
       <button class="btn btn-primary" id="btnListeUmbenennen">Umbenennen</button>
@@ -370,6 +375,10 @@
     <div class="feld">
       <label for="fNeueListeName">Name</label>
       <input type="text" id="fNeueListeName" placeholder="z.B. Wocheneinkauf, Baumarkt ...">
+    </div>
+    <div class="feld" style="display:flex;align-items:center;gap:8px;">
+      <input type="checkbox" id="fNeueListeIstMarkt" style="width:20px;height:20px;">
+      <label for="fNeueListeIstMarkt" style="margin:0;">🏪 Ist ein Markt/Discounter</label>
     </div>
     <div class="modal-btns">
       <button class="btn btn-secondary" id="btnNeueListeAbbrechen">Abbrechen</button>
@@ -525,6 +534,16 @@
     listen = [{ id: neueId('l'), name: 'Wocheneinkauf', items: [] }];
     speichern(KEY_LISTEN, listen);
   }
+  // Einmalige Migration: bestehende Listen ohne istMarkt-Flag anhand bekannter Marktnamen erkennen
+  const BEKANNTE_MAERKTE = ['kaufland','lidl','aldi','rewe','edeka','penny','netto','real','marktkauf','dm','rossmann','globus','famila','tegut','norma','denns'];
+  let migrationNoetig = false;
+  listen.forEach(l => {
+    if (l.istMarkt === undefined) {
+      l.istMarkt = BEKANNTE_MAERKTE.includes(l.name.trim().toLowerCase());
+      migrationNoetig = true;
+    }
+  });
+  if (migrationNoetig) speichern(KEY_LISTEN, listen);
   let aktiveListeId = localStorage.getItem(KEY_AKTIV);
   if (!aktiveListeId || !listen.some(l => l.id === aktiveListeId)) aktiveListeId = listen[0].id;
   let favoriten = laden(KEY_FAVORITEN, {});
@@ -557,30 +576,63 @@
   }
 
   // --- Listen-Tabs ---
+  let marktDropdownOffen = false;
   function renderTabs() {
     const box = document.getElementById('listenTabs');
     box.innerHTML = '';
-    listen.forEach(l => {
+    const allgemeineListen = listen.filter(l => !l.istMarkt);
+    const maerkte = listen.filter(l => l.istMarkt);
+    allgemeineListen.forEach(l => {
       const offen = l.items.filter(i => !i.erledigt).length;
       const tab = document.createElement('button');
       tab.className = 'listen-tab' + (l.id === aktiveListeId ? ' active' : '');
       tab.innerHTML = escapeHtml(l.name) + (offen ? ' <span class="anzahl">(' + offen + ')</span>' : '');
-      tab.addEventListener('click', () => { aktiveListeId = l.id; localStorage.setItem(KEY_AKTIV, aktiveListeId); erledigtOffen = false; renderAlles(); });
+      tab.addEventListener('click', () => { aktiveListeId = l.id; localStorage.setItem(KEY_AKTIV, aktiveListeId); erledigtOffen = false; marktDropdownOffen = false; renderAlles(); });
       box.appendChild(tab);
     });
+    if (maerkte.length) {
+      const aktiverMarkt = maerkte.find(l => l.id === aktiveListeId);
+      const marktTab = document.createElement('button');
+      marktTab.className = 'listen-tab' + (aktiverMarkt ? ' active' : '');
+      const label = aktiverMarkt ? aktiverMarkt.name : 'Markt wählen';
+      const offenAktiv = aktiverMarkt ? aktiverMarkt.items.filter(i => !i.erledigt).length : 0;
+      marktTab.innerHTML = '🏪 ' + escapeHtml(label) + (offenAktiv ? ' <span class="anzahl">(' + offenAktiv + ')</span>' : '') + ' ' + (marktDropdownOffen ? '▴' : '▾');
+      marktTab.addEventListener('click', () => { marktDropdownOffen = !marktDropdownOffen; renderTabs(); renderMarktDropdown(); });
+      box.appendChild(marktTab);
+    }
     const neu = document.createElement('button');
     neu.className = 'listen-tab-neu';
     neu.textContent = '＋';
     neu.title = 'Neue Liste';
     neu.addEventListener('click', () => {
       document.getElementById('fNeueListeName').value = '';
+      document.getElementById('fNeueListeIstMarkt').checked = false;
       document.getElementById('modalNeueListe').classList.add('zeigen');
       document.getElementById('fNeueListeName').focus();
     });
     box.appendChild(neu);
+    renderMarktDropdown();
   }
-
-
+  function renderMarktDropdown() {
+    const dropBox = document.getElementById('marktDropdownBox');
+    if (!marktDropdownOffen) { dropBox.style.display = 'none'; dropBox.innerHTML = ''; return; }
+    const maerkte = listen.filter(l => l.istMarkt).sort((a, b) => a.name.localeCompare(b.name, 'de'));
+    dropBox.innerHTML = maerkte.map(l => {
+      const offen = l.items.filter(i => !i.erledigt).length;
+      return '<button type="button" class="listen-tab' + (l.id === aktiveListeId ? ' active' : '') + '" style="display:block;width:100%;text-align:left;margin-bottom:4px;" onclick="marktAuswaehlen(\'' + l.id + '\')">' +
+        escapeHtml(l.name) + (offen ? ' <span class="anzahl">(' + offen + ')</span>' : '') +
+        '</button>';
+    }).join('');
+    dropBox.style.display = '';
+  }
+  function marktAuswaehlen(id) {
+    aktiveListeId = id;
+    localStorage.setItem(KEY_AKTIV, aktiveListeId);
+    erledigtOffen = false;
+    marktDropdownOffen = false;
+    renderAlles();
+  }
+  window.marktAuswaehlen = marktAuswaehlen;
 
   function itemHinzufuegenAusFavorit(f) {
     const liste = aktiveListe();
@@ -912,6 +964,7 @@
   // --- Liste verwalten (umbenennen/löschen) ---
   document.getElementById('btnListeVerwalten').addEventListener('click', () => {
     document.getElementById('fListeName').value = aktiveListe().name;
+    document.getElementById('fListeIstMarkt').checked = !!aktiveListe().istMarkt;
     document.getElementById('modalListe').classList.add('zeigen');
   });
   document.getElementById('btnListeAbbrechen').addEventListener('click', () => document.getElementById('modalListe').classList.remove('zeigen'));
@@ -920,6 +973,7 @@
     const neuerName = document.getElementById('fListeName').value.trim();
     if (!neuerName) { alert('Bitte einen Namen eingeben.'); return; }
     aktiveListe().name = neuerName;
+    aktiveListe().istMarkt = document.getElementById('fListeIstMarkt').checked;
     speichernListen();
     document.getElementById('modalListe').classList.remove('zeigen');
     renderAlles();
@@ -941,7 +995,8 @@
   document.getElementById('btnNeueListeAnlegen').addEventListener('click', () => {
     const name = document.getElementById('fNeueListeName').value.trim();
     if (!name) { alert('Bitte einen Namen eingeben.'); return; }
-    const neu = { id: neueId('l'), name, items: [] };
+    const istMarkt = document.getElementById('fNeueListeIstMarkt').checked;
+    const neu = { id: neueId('l'), name, items: [], istMarkt };
     listen.push(neu);
     aktiveListeId = neu.id;
     localStorage.setItem(KEY_AKTIV, aktiveListeId);
