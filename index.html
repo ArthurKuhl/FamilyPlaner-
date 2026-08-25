@@ -228,12 +228,6 @@
       </div>
 
       <div style="border-top:1px solid #e5ddc8;padding-top:14px;margin-bottom:16px;">
-        <div style="font-weight:700;color:var(--soil);margin-bottom:8px;">🙈 Module ausblenden</div>
-        <p style="font-size:0.72rem;color:var(--bark);margin-top:-4px;margin-bottom:8px;">Nur für dieses Gerät – für die Übersicht. Deine Daten bleiben erhalten und werden weiter synchronisiert.</p>
-        <div id="versteckteModuleListe"></div>
-      </div>
-
-      <div style="border-top:1px solid #e5ddc8;padding-top:14px;margin-bottom:16px;">
         <div style="font-weight:700;color:var(--soil);margin-bottom:8px;">🎨 Darstellung</div>
         <div style="margin-bottom:10px;">
           <label style="font-size:0.8rem;color:var(--bark);display:block;margin-bottom:4px;">Farbschema</label>
@@ -306,17 +300,10 @@
       { id: 'geldgeschenke', label: 'Geldgeschenke', emoji: '💶', src: 'geldgeschenke.html', syncKeys: ['geldgeschenke_liste'] },
       { id: 'notizblock',  label: 'Notizblock', emoji: '📝', src: 'notizblock.html', syncKeys: ['notizblock_liste'] },
       { id: 'ausfluege',   label: 'Ausflüge', emoji: '🧭', src: 'ausfluege.html', syncKeys: ['ausfluege_planung', 'ausfluege_erlebt'] },
+      { id: 'nachrichten', label: 'Nachrichten', emoji: '📰', src: 'nachrichten.html', syncKeys: [] },
     ];
     const STORAGE_KEY = 'planer_aktiverBereich';
     const REIHENFOLGE_KEY = 'planer_modulReihenfolge';
-    const VERSTECKT_KEY = 'planer_versteckteModule';
-    function versteckteModule() {
-      try { return JSON.parse(localStorage.getItem(VERSTECKT_KEY) || '[]'); } catch (e) { return []; }
-    }
-    function sichtbareModule(liste) {
-      const versteckt = versteckteModule();
-      return liste.filter(m => m.id === 'home' || !versteckt.includes(m.id));
-    }
     function moduleInGespeicherterReihenfolge() {
       let reihenfolge = [];
       try { reihenfolge = JSON.parse(localStorage.getItem(REIHENFOLGE_KEY) || '[]'); } catch (e) {}
@@ -530,44 +517,17 @@
       });
     }
 
-    function renderVersteckteModuleListe() {
-      const box = document.getElementById('versteckteModuleListe');
-      const versteckt = versteckteModule();
-      const liste = MODULE.filter(m => m.id !== 'home');
-      box.innerHTML = liste.map(mod => `
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid #f0ead9;">
-          <span style="font-size:0.85rem;">${mod.emoji} ${mod.label}</span>
-          <input type="checkbox" data-id="${mod.id}" class="versteckModulCheckbox" style="width:20px;height:20px;" ${versteckt.includes(mod.id) ? 'checked' : ''}>
-        </div>`).join('');
-      box.querySelectorAll('.versteckModulCheckbox').forEach(cb => {
-        cb.addEventListener('change', () => {
-          let arr = versteckteModule();
-          if (cb.checked) {
-            if (!arr.includes(cb.dataset.id)) arr.push(cb.dataset.id);
-          } else {
-            arr = arr.filter(id => id !== cb.dataset.id);
-          }
-          try { localStorage.setItem(VERSTECKT_KEY, JSON.stringify(arr)); } catch (e) {}
-          const warAktiv = aktuellerBereichId() === cb.dataset.id;
-          starteBereiche();
-          startModulAuswahlBefuellen();
-          if (cb.checked && warAktiv) bereichLaden('home');
-        });
-      });
-    }
-
     function startModulAuswahlBefuellen() {
       const sel = document.getElementById('einstStartModul');
       let aktuell = '';
       try { aktuell = localStorage.getItem('planer_startModul') || ''; } catch (e) {}
       sel.innerHTML = '<option value="">Zuletzt geöffneter Bereich</option>' +
-        sichtbareModule(MODULE).map(m => `<option value="${m.id}">${m.emoji} ${m.label}</option>`).join('');
+        MODULE.map(m => `<option value="${m.id}">${m.emoji} ${m.label}</option>`).join('');
       sel.value = aktuell;
     }
 
     function einstellungenBefuellen() {
       renderReihenfolgeListe();
-      renderVersteckteModuleListe();
       let darkMode = 'hell';
       try { darkMode = localStorage.getItem('planer_darkMode') || 'hell'; } catch (e) {}
       document.getElementById('einstDarkMode').value = darkMode;
@@ -672,7 +632,7 @@
 
     function starteBereiche() {
       nav.querySelectorAll('.modul-btn').forEach(b => b.remove());
-      sichtbareModule(moduleInGespeicherterReihenfolge()).forEach(mod => {
+      moduleInGespeicherterReihenfolge().forEach(mod => {
         const btn = document.createElement('button');
         btn.className = 'modul-btn';
         btn.dataset.id = mod.id;
@@ -692,7 +652,6 @@
           if (gespeichert && MODULE.some(m => m.id === gespeichert)) start = gespeichert;
         }
       } catch (e) {}
-      if (versteckteModule().includes(start)) start = 'home';
       bereichLaden(start, { schreiben: false });
     }
 

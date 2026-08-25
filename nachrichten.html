@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<script>(function(){try{var m=localStorage.getItem('planer_darkMode');if(m==='dunkel'||(m==='auto'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.setAttribute('data-dark','1');}var s=localStorage.getItem('planer_schriftgroesse');if(s==='gross'){document.documentElement.style.fontSize='19px';}}catch(e){}})();</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nachrichten</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap');
+  :root {
+    --soil: #3a2e1f; --moss: #4f6f45; --sage: #7fa476; --leaf: #bcd196;
+    --cream: #faf6ec; --parchment: #ece0c7; --bark: #7d6339;
+    --terracotta: #c46b41; --terracotta-text: #a8532e; --sky: #5b8bb5;
+    --white: #fffdf8; --navbg: #2a2016; --navbg2: #3a2e1f;
+    --radius-sm: 8px; --radius-md: 12px; --radius-lg: 18px; --radius-pill: 22px;
+    --shadow-soft: 0 2px 10px rgba(59,47,30,0.08); --shadow-md: 0 8px 26px rgba(59,47,30,0.2);
+  }
+  html[data-dark="1"] {
+    --soil: #f0e8d8; --moss: #6fae5e; --sage: #9bc98a; --leaf: #cfe3b8;
+    --cream: #1e1b16; --parchment: #2b261e; --bark: #c2b393;
+    --terracotta: #d9855a; --terracotta-text: #e8a37e; --sky: #7fa8cc; --gold: #dcb158;
+    --white: #2f2a22; --navbg: #14100c; --navbg2: #221a12;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--cream); color: var(--soil); min-height: 100vh; padding-bottom: 40px; }
+
+  header.top { position: relative; background: linear-gradient(135deg, var(--navbg2), var(--navbg)); color: var(--leaf); padding: 10px 12px 0; }
+  header.top h1 { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 700; }
+  .titel-zeile { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-bottom: 8px; }
+  .theme-btn { background: none; border: none; color: var(--leaf); font-size: 1.1rem; cursor: pointer; padding: 4px 6px; flex-shrink: 0; }
+  .theme-popup { display: none; position: absolute; right: 12px; top: 54px; background: var(--white); border-radius: var(--radius-md); box-shadow: var(--shadow-md); padding: 10px; z-index: 50; }
+  .theme-popup.zeigen { display: flex; gap: 8px; flex-wrap: wrap; max-width: 216px; }
+  .theme-swatch { width: 40px; height: 40px; border-radius: var(--radius-sm); border: 2px solid transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; background: var(--cream); }
+  .theme-swatch.aktiv { border-color: var(--moss); }
+  .theme-farbe-trenner { flex-basis: 100%; height: 1px; background: rgba(0,0,0,0.08); margin: 2px 0; }
+  .theme-swatch.farbe { border: 2px solid rgba(0,0,0,0.1); }
+  .theme-swatch.farbe.aktiv { border-color: var(--moss); border-width: 3px; }
+  .theme-farbe-custom { position: relative; overflow: hidden; background: conic-gradient(red,yellow,lime,cyan,blue,magenta,red); }
+  .theme-farbe-custom-input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; border: none; padding: 0; }
+
+  .view-toggle { display: flex; gap: 6px; margin-bottom: 10px; }
+  .view-toggle button {
+    flex: 1; padding: 8px; border-radius: var(--radius-pill); border: 1px solid #4a3a28;
+    background: transparent; color: var(--sage); font-size: 0.78rem; font-weight: 600;
+    font-family: 'Inter', sans-serif; cursor: pointer;
+  }
+  .view-toggle button.active { background: var(--moss); color: var(--leaf); border-color: var(--moss); }
+
+  main { padding: 14px; }
+  .filter-chip { flex: 0 0 auto; background: transparent; border: 1px solid var(--parchment); color: var(--bark); font-size: 0.72rem; font-weight: 600; padding: 6px 13px; border-radius: var(--radius-pill); cursor: pointer; white-space: nowrap; }
+  .filter-chip.active { background: var(--moss); color: var(--leaf); border-color: var(--moss); }
+  .filter-reihe { display: flex; gap: 6px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; scrollbar-width: none; margin-bottom: 10px; }
+  .filter-reihe::-webkit-scrollbar { display: none; }
+
+  .einstellungen-box { display:none; background: var(--parchment); border-radius: var(--radius-md); padding: 10px 12px; margin-bottom: 10px; }
+  .einstellungen-box label { display:flex; align-items:center; gap:8px; padding:4px 0; font-size:0.85rem; }
+
+  .leer-hinweis { text-align: center; color: var(--soil); font-size: 0.85rem; padding: 46px 16px; font-weight: 500; }
+  .leer-hinweis .em { font-size: 2.2rem; display: block; margin-bottom: 8px; }
+
+  .news-eintrag { display:flex; gap:10px; align-items:flex-start; padding:9px 0; border-bottom:1px solid var(--parchment); }
+  .news-eintrag img { width:56px; height:56px; object-fit:cover; border-radius:8px; flex-shrink:0; }
+  .news-eintrag a { color: var(--moss); font-weight:600; text-decoration:none; font-size:0.9rem; }
+  .news-eintrag .datum { font-size:0.7rem; color: var(--bark); opacity:0.85; margin-top:2px; }
+  .quelle-fuszeile { margin-top:8px; font-size:0.68rem; color: var(--bark); opacity:0.85; }
+  .quelle-fuszeile button { background:none; border:none; color:inherit; text-decoration:underline; cursor:pointer; padding:0; font-size:inherit; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="titel-zeile">
+    <h1>📰 Nachrichten</h1>
+    <div style="display:flex;align-items:center;gap:2px;">
+      <button class="theme-btn" id="btnThemeAuswahl" title="Hintergrundmuster wählen">🎨</button>
+    </div>
+  </div>
+  <div class="view-toggle" role="tablist">
+    <button id="btnViewRegional" role="tab" aria-selected="true">📍 Regional</button>
+    <button id="btnViewNational" role="tab" aria-selected="false">🇩🇪 National</button>
+    <button id="btnViewInternational" role="tab" aria-selected="false">🌍 International</button>
+  </div>
+</header>
+<div class="theme-popup" id="themePopup">
+  <div class="theme-swatch" data-theme="" title="Kein Muster">✕</div>
+  <div class="theme-farbe-trenner"></div>
+  <div class="theme-swatch farbe" data-theme="farbe:#f7d9dd" style="background:#f7d9dd" title="Pastell Rosa"></div>
+  <div class="theme-swatch farbe" data-theme="farbe:#d9ebf7" style="background:#d9ebf7" title="Pastell Blau"></div>
+  <div class="theme-swatch farbe" data-theme="farbe:#dcefd9" style="background:#dcefd9" title="Pastell Grün"></div>
+  <div class="theme-swatch farbe" data-theme="farbe:#f7ecd9" style="background:#f7ecd9" title="Pastell Gelb"></div>
+  <div class="theme-swatch farbe" data-theme="farbe:#e8d9f7" style="background:#e8d9f7" title="Pastell Lila"></div>
+  <div class="theme-swatch farbe" data-theme="farbe:#f7d9c4" style="background:#f7d9c4" title="Pastell Pfirsich"></div>
+  <div class="theme-swatch farbe" data-theme="farbe:#a8dadc" style="background:#a8dadc" title="Türkis"></div>
+  <div class="theme-swatch farbe" data-theme="farbe:#f4a261" style="background:#f4a261" title="Koralle"></div>
+  <label class="theme-swatch farbe theme-farbe-custom" title="Eigene Farbe">
+    <input type="color" class="theme-farbe-custom-input" value="#f7d9dd">
+  </label>
+</div>
+
+<main>
+  <section id="ansichtRegional">
+    <button type="button" class="filter-chip" id="btnRegionalEinstellungenToggle" style="margin-bottom:10px;">⚙️ Quellen anpassen</button>
+    <div class="einstellungen-box" id="regionalEinstellungenBox"></div>
+    <div class="filter-reihe" id="regionalQuellenReihe"></div>
+    <div id="regionalInhalt"><div class="leer-hinweis"><span class="em">📍</span>Noch keine regionalen Quellen eingerichtet.</div></div>
+  </section>
+
+  <section id="ansichtNational" style="display:none;">
+    <button type="button" class="filter-chip" id="btnNationalEinstellungenToggle" style="margin-bottom:10px;">⚙️ Quellen anpassen</button>
+    <div class="einstellungen-box" id="nationalEinstellungenBox"></div>
+    <div class="filter-reihe" id="nationalQuellenReihe"></div>
+    <div id="nationalInhalt"><div class="leer-hinweis"><span class="em">🇩🇪</span>Noch keine nationalen Quellen eingerichtet.</div></div>
+  </section>
+
+  <section id="ansichtInternational" style="display:none;">
+    <button type="button" class="filter-chip" id="btnInternationalEinstellungenToggle" style="margin-bottom:10px;">⚙️ Quellen anpassen</button>
+    <div class="einstellungen-box" id="internationalEinstellungenBox"></div>
+    <div class="filter-reihe" id="internationalQuellenReihe"></div>
+    <div id="internationalInhalt"><div class="leer-hinweis"><span class="em">🌍</span>Noch keine internationalen Quellen eingerichtet.</div></div>
+  </section>
+</main>
+
+<script>
+(function(){
+  function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function entitiesDekodieren(str) { if (!str) return str; const ta = document.createElement('textarea'); ta.innerHTML = str; return ta.value; }
+
+  // ---------- Ansicht umschalten: Regional / National / International ----------
+  const btnViewRegional = document.getElementById('btnViewRegional');
+  const btnViewNational = document.getElementById('btnViewNational');
+  const btnViewInternational = document.getElementById('btnViewInternational');
+  function zeigeAnsicht(name) {
+    document.getElementById('ansichtRegional').style.display = name === 'regional' ? '' : 'none';
+    document.getElementById('ansichtNational').style.display = name === 'national' ? '' : 'none';
+    document.getElementById('ansichtInternational').style.display = name === 'international' ? '' : 'none';
+    btnViewRegional.classList.toggle('active', name === 'regional');
+    btnViewNational.classList.toggle('active', name === 'national');
+    btnViewInternational.classList.toggle('active', name === 'international');
+    btnViewRegional.setAttribute('aria-selected', name === 'regional');
+    btnViewNational.setAttribute('aria-selected', name === 'national');
+    btnViewInternational.setAttribute('aria-selected', name === 'international');
+    try { localStorage.setItem('nachrichten_aktiveAnsicht', name); } catch (e) {}
+  }
+  btnViewRegional.addEventListener('click', () => zeigeAnsicht('regional'));
+  btnViewNational.addEventListener('click', () => zeigeAnsicht('national'));
+  btnViewInternational.addEventListener('click', () => zeigeAnsicht('international'));
+  let startAnsicht = 'regional';
+  try { const g = localStorage.getItem('nachrichten_aktiveAnsicht'); if (g) startAnsicht = g; } catch (e) {}
+  zeigeAnsicht(startAnsicht);
+
+  // ---------- Hintergrundmuster (🎨) ----------
+  const themeBtn = document.getElementById('btnThemeAuswahl');
+  const themePopup = document.getElementById('themePopup');
+  themeBtn.addEventListener('click', () => themePopup.classList.toggle('zeigen'));
+  document.addEventListener('click', (e) => { if (!themePopup.contains(e.target) && e.target !== themeBtn) themePopup.classList.remove('zeigen'); });
+  function themeAnwenden(id) {
+    document.body.style.backgroundColor = '';
+    if (id && id.indexOf('farbe:') === 0) { document.body.style.backgroundColor = id.slice(6) + 'b3'; }
+    try { localStorage.setItem('nachrichten_hintergrundThema', id || ''); } catch (e) {}
+    document.querySelectorAll('.theme-swatch').forEach(s => s.classList.toggle('aktiv', s.dataset.theme === id));
+  }
+  document.querySelectorAll('.theme-swatch[data-theme]').forEach(s => s.addEventListener('click', () => themeAnwenden(s.dataset.theme)));
+  const customFarbeInput = document.querySelector('.theme-farbe-custom-input');
+  if (customFarbeInput) customFarbeInput.addEventListener('input', () => themeAnwenden('farbe:' + customFarbeInput.value));
+  try { const gespeichertesTheme = localStorage.getItem('nachrichten_hintergrundThema'); if (gespeichertesTheme) themeAnwenden(gespeichertesTheme); } catch (e) {}
+
+  // ---------- Generisches News-Kategorie-System (Regional / National / International) ----------
+  const RSS2JSON_KEY = 'gzgrcvnabxmmjjevo0nlsuucc1bl9qzizlvuzjkq';
+
+  function erstelleKategorie(config) {
+    const { name, quellen, inhaltId, reiheId, einstellungenBoxId, einstellungenToggleId } = config;
+    const quelleKeyStorage = 'nachrichten_' + name + '_quelle';
+    const versrecktStorage = 'nachrichten_' + name + '_versteckt';
+    const keys = Object.keys(quellen);
+    let aktiveQuelle = keys[0] || null;
+    try {
+      const g = localStorage.getItem(quelleKeyStorage);
+      if (g && quellen[g]) aktiveQuelle = g;
+    } catch (e) {}
+
+    function versteckteQuellen() {
+      try { return JSON.parse(localStorage.getItem(versrecktStorage) || '[]'); } catch (e) { return []; }
+    }
+    function renderQuellenReihe() {
+      const box = document.getElementById(reiheId);
+      if (!box) return;
+      const versteckt = versteckteQuellen();
+      const sichtbareKeys = keys.filter(k => !versteckt.includes(k));
+      box.innerHTML = sichtbareKeys.map(k =>
+        '<button type="button" class="filter-chip' + (k === aktiveQuelle ? ' active' : '') + '" onclick="nachrichtenQuelleUmschalten(\'' + name + '\',\'' + k + '\')">' + escapeHtml(quellen[k].label) + '</button>'
+      ).join('');
+      if (versteckt.includes(aktiveQuelle) || !aktiveQuelle) {
+        if (sichtbareKeys.length) { aktiveQuelle = sichtbareKeys[0]; try { localStorage.setItem(quelleKeyStorage, aktiveQuelle); } catch (e) {} }
+        else aktiveQuelle = null;
+      }
+    }
+    function renderEinstellungenBox() {
+      const box = document.getElementById(einstellungenBoxId);
+      if (!box) return;
+      const versteckt = versteckteQuellen();
+      if (!keys.length) { box.innerHTML = '<div style="font-size:0.82rem;">Für diese Kategorie sind noch keine Quellen eingerichtet.</div>'; return; }
+      box.innerHTML = '<div style="font-weight:700;font-size:0.85rem;margin-bottom:6px;">Quellen anzeigen (nur auf diesem Gerät)</div>' +
+        keys.map(k => '<label><input type="checkbox" data-quelle="' + k + '" ' + (versteckt.includes(k) ? '' : 'checked') + ' onchange="nachrichtenSichtbarkeitAendern(\'' + name + '\',this)"> ' + escapeHtml(quellen[k].label) + '</label>').join('');
+    }
+    async function ladeFeed(forceRefresh) {
+      const el = document.getElementById(inhaltId);
+      if (!el) return;
+      if (!aktiveQuelle || !quellen[aktiveQuelle]) {
+        el.innerHTML = '<div class="leer-hinweis"><span class="em">🙈</span>Keine Quelle ausgewählt.</div>';
+        return;
+      }
+      const quelle = quellen[aktiveQuelle];
+      el.innerHTML = '<div class="leer-hinweis">Lädt…</div>';
+      try {
+        if (!forceRefresh) {
+          const cache = JSON.parse(localStorage.getItem(quelle.cacheKey) || 'null');
+          if (cache && (Date.now() - cache.fetchedAt) < 3 * 60 * 60 * 1000) { renderFeed(cache.items, quelle); return; }
+        }
+      } catch (e) {}
+      try {
+        let url = 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(quelle.url) + '&count=' + (quelle.count || 8);
+        if (RSS2JSON_KEY) url += '&api_key=' + encodeURIComponent(RSS2JSON_KEY);
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data.status !== 'ok') throw new Error(data.message || 'Fehler');
+        const items = data.items.map(i => {
+          let bild = i.thumbnail || (i.enclosure && i.enclosure.link) || i.image;
+          if (!bild) {
+            const txt = i.description || i.content || '';
+            const treffer = txt.match(/<img[^>]+src=["']([^"']+)["']/i);
+            if (treffer) bild = treffer[1];
+          }
+          return { title: entitiesDekodieren(i.title), link: i.link, pubDate: i.pubDate, thumbnail: bild };
+        });
+        try { localStorage.setItem(quelle.cacheKey, JSON.stringify({ items, fetchedAt: Date.now() })); } catch (e) {}
+        renderFeed(items, quelle);
+      } catch (e) {
+        el.innerHTML = '<div style="padding:8px 0;">⚠ News konnten gerade nicht geladen werden (' + escapeHtml(String(e.message || e)) + '). <a href="' + quelle.linkZielseite + '" target="_blank" rel="noopener">Direkt zu ' + escapeHtml(quelle.label) + ' →</a> <button type="button" onclick="nachrichtenFeedAktualisieren(\'' + name + '\')" style="margin-left:6px;background:none;border:1px solid var(--sage);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:0.78rem;">🔄 erneut versuchen</button></div>';
+      }
+    }
+    function renderFeed(items, quelle) {
+      const el = document.getElementById(inhaltId);
+      if (!el) return;
+      if (!items || !items.length) { el.innerHTML = '<div class="leer-hinweis">Aktuell keine News verfügbar.</div>'; return; }
+      el.innerHTML = items.map(i => {
+        const datum = i.pubDate ? new Date(i.pubDate.replace(' ', 'T')).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '';
+        const bild = i.thumbnail ? '<img src="' + i.thumbnail + '" alt="">' : '';
+        return '<div class="news-eintrag">' + bild +
+          '<div><a href="' + i.link + '" target="_blank" rel="noopener">' + escapeHtml(i.title) + '</a>' +
+          (datum ? '<div class="datum">' + datum + '</div>' : '') + '</div></div>';
+      }).join('') + '<div class="quelle-fuszeile">Quelle: ' + escapeHtml(quelle.label) + ' · <button type="button" onclick="nachrichtenFeedAktualisieren(\'' + name + '\')">aktualisieren</button></div>';
+    }
+
+    renderQuellenReihe();
+    renderEinstellungenBox();
+    if (keys.length) ladeFeed();
+
+    document.getElementById(einstellungenToggleId).addEventListener('click', () => {
+      const box = document.getElementById(einstellungenBoxId);
+      box.style.display = box.style.display === 'none' || !box.style.display ? 'block' : 'none';
+    });
+
+    return {
+      umschalten: (k) => { if (k === aktiveQuelle) return; aktiveQuelle = k; try { localStorage.setItem(quelleKeyStorage, k); } catch (e) {} renderQuellenReihe(); ladeFeed(); },
+      sichtbarkeitAendern: (checkbox) => {
+        const k = checkbox.dataset.quelle;
+        let versteckt = versteckteQuellen();
+        if (checkbox.checked) versteckt = versteckt.filter(x => x !== k);
+        else if (!versteckt.includes(k)) versteckt.push(k);
+        try { localStorage.setItem(versrecktStorage, JSON.stringify(versteckt)); } catch (e) {}
+        renderQuellenReihe();
+        if (!versteckteQuellen().includes(aktiveQuelle)) ladeFeed();
+      },
+      aktualisieren: () => ladeFeed(true),
+    };
+  }
+
+  // ==================== QUELLEN je Kategorie (werden in den nächsten Etappen befüllt) ====================
+  const REGIONAL_QUELLEN = {};
+  const NATIONAL_QUELLEN = {};
+  const INTERNATIONAL_QUELLEN = {};
+
+  const kategorien = {
+    regional: erstelleKategorie({ name: 'regional', quellen: REGIONAL_QUELLEN, inhaltId: 'regionalInhalt', reiheId: 'regionalQuellenReihe', einstellungenBoxId: 'regionalEinstellungenBox', einstellungenToggleId: 'btnRegionalEinstellungenToggle' }),
+    national: erstelleKategorie({ name: 'national', quellen: NATIONAL_QUELLEN, inhaltId: 'nationalInhalt', reiheId: 'nationalQuellenReihe', einstellungenBoxId: 'nationalEinstellungenBox', einstellungenToggleId: 'btnNationalEinstellungenToggle' }),
+    international: erstelleKategorie({ name: 'international', quellen: INTERNATIONAL_QUELLEN, inhaltId: 'internationalInhalt', reiheId: 'internationalQuellenReihe', einstellungenBoxId: 'internationalEinstellungenBox', einstellungenToggleId: 'btnInternationalEinstellungenToggle' }),
+  };
+  window.nachrichtenQuelleUmschalten = (name, k) => kategorien[name].umschalten(k);
+  window.nachrichtenSichtbarkeitAendern = (name, cb) => kategorien[name].sichtbarkeitAendern(cb);
+  window.nachrichtenFeedAktualisieren = (name) => kategorien[name].aktualisieren();
+})();
+</script>
+</body>
+</html>
