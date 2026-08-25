@@ -1018,7 +1018,7 @@
       const data = await res.json();
       if (data.status !== 'ok') throw new Error(data.message || 'Fehler');
       const items = data.items.map(i => {
-        let bild = i.thumbnail;
+        let bild = i.thumbnail || (i.enclosure && i.enclosure.link) || i.image;
         if (!bild) {
           const quelle = i.description || i.content || '';
           const treffer = quelle.match(/<img[^>]+src=["']([^"']+)["']/i);
