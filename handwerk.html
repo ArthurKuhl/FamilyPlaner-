@@ -1304,6 +1304,7 @@
 
   // ==================== NEWSFEED: Handwerk & Heimwerken (heimwerker-test.de) ====================
   const RSS2JSON_KEY = 'gzgrcvnabxmmjjevo0nlsuucc1bl9qzizlvuzjkq'; // eigener kostenloser Key von rss2json.com
+  function entitiesDekodieren(str) { if (!str) return str; const ta = document.createElement('textarea'); ta.innerHTML = str; return ta.value; }
   const HANDWERK_FEED_URL = 'https://www.heimwerker-test.de/rss/news';
   const HANDWERK_FEED_CACHE_KEY = 'handwerk_newsfeedCache';
   async function ladeHandwerkFeed(forceRefresh) {
@@ -1331,7 +1332,7 @@
           const treffer = quelle.match(/<img[^>]+src=["']([^"']+)["']/i);
           if (treffer) bild = treffer[1];
         }
-        return { title: i.title, link: i.link, pubDate: i.pubDate, thumbnail: bild };
+        return { title: entitiesDekodieren(i.title), link: i.link, pubDate: i.pubDate, thumbnail: bild };
       });
       try { localStorage.setItem(HANDWERK_FEED_CACHE_KEY, JSON.stringify({ items, fetchedAt: Date.now() })); } catch (e) {}
       renderHandwerkFeed(items);

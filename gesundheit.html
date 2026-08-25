@@ -3534,6 +3534,7 @@
 
   // ==================== NEWSFEED: Fitness & Gesundheit (Men's Health) ====================
   const RSS2JSON_KEY = 'gzgrcvnabxmmjjevo0nlsuucc1bl9qzizlvuzjkq'; // eigener kostenloser Key von rss2json.com
+  function entitiesDekodieren(str) { if (!str) return str; const ta = document.createElement('textarea'); ta.innerHTML = str; return ta.value; }
   const GESUNDHEIT_FEED_URL = 'https://www.menshealth.de/rss/alle';
   const GESUNDHEIT_FEED_CACHE_KEY = 'gesundheit_newsfeedCache';
   async function ladeGesundheitFeed(forceRefresh) {
@@ -3561,7 +3562,7 @@
           const treffer = quelle.match(/<img[^>]+src=["']([^"']+)["']/i);
           if (treffer) bild = treffer[1];
         }
-        return { title: i.title, link: i.link, pubDate: i.pubDate, thumbnail: bild };
+        return { title: entitiesDekodieren(i.title), link: i.link, pubDate: i.pubDate, thumbnail: bild };
       });
       try { localStorage.setItem(GESUNDHEIT_FEED_CACHE_KEY, JSON.stringify({ items, fetchedAt: Date.now() })); } catch (e) {}
       renderGesundheitFeed(items);

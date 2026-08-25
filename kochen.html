@@ -1361,6 +1361,7 @@
   // Selbes Prinzip wie beim Garten-Blog-Feed: rss2json.com wandelt RSS in JSON,
   // wird per fetch() direkt aus dem Browser geholt, 3 Std. lokal zwischengespeichert.
   const RSS2JSON_KEY = 'gzgrcvnabxmmjjevo0nlsuucc1bl9qzizlvuzjkq'; // eigener kostenloser Key von rss2json.com/docs
+  function entitiesDekodieren(str) { if (!str) return str; const ta = document.createElement('textarea'); ta.innerHTML = str; return ta.value; }
   const KOCHEN_FEED_URL = 'https://www.gutekueche.de/feed/wochenrezepte';
   const KOCHEN_FEED_CACHE_KEY = 'kochen_newsfeedCache';
   async function ladeKochenFeed(forceRefresh) {
@@ -1388,7 +1389,7 @@
           const treffer = quelle.match(/<img[^>]+src=["']([^"']+)["']/i);
           if (treffer) bild = treffer[1];
         }
-        return { title: i.title, link: i.link, pubDate: i.pubDate, thumbnail: bild };
+        return { title: entitiesDekodieren(i.title), link: i.link, pubDate: i.pubDate, thumbnail: bild };
       });
       try { localStorage.setItem(KOCHEN_FEED_CACHE_KEY, JSON.stringify({ items, fetchedAt: Date.now() })); } catch (e) {}
       renderKochenFeed(items);

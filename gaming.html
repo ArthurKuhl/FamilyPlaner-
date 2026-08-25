@@ -223,7 +223,12 @@
 
 <div class="modal-bg" id="newsModal">
   <div class="modal">
-    <h2>🌐 Aktuelle Nintendo-News</h2>
+    <h2 style="display:flex;align-items:center;justify-content:space-between;">🌐 Aktuelle Nintendo-News <button type="button" onclick="toggleGamingFeedEinstellungen()" title="Quellen anpassen" style="background:none;border:1px solid var(--sage);border-radius:8px;font-size:0.85rem;padding:4px 8px;cursor:pointer;">⚙️</button></h2>
+    <div id="gamingFeedEinstellungen" style="display:none;background:var(--parchment);border-radius:var(--radius-md);padding:10px 12px;margin-bottom:10px;">
+      <div style="font-weight:700;font-size:0.85rem;margin-bottom:6px;">Quellen anzeigen (nur auf diesem Gerät)</div>
+      <label style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:0.85rem;"><input type="checkbox" data-gamingquelle="ntower" onchange="gamingFeedQuelleSichtbarkeitAendern(this)"> 🇩🇪 Fanmagazin (Nintendo-Online)</label>
+      <label style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:0.85rem;"><input type="checkbox" data-gamingquelle="offiziell" onchange="gamingFeedQuelleSichtbarkeitAendern(this)"> 🎮 Offiziell (Nintendo)</label>
+    </div>
     <div class="filter-reihe" style="margin-bottom:10px;">
       <button type="button" class="filter-chip active" id="btnFeedQuelleNtower">🇩🇪 Fanmagazin (Nintendo-Online)</button>
       <button type="button" class="filter-chip" id="btnFeedQuelleOffiziell">🎮 Offiziell (Nintendo)</button>
@@ -711,6 +716,7 @@
   btnViewStatistik.addEventListener('click', () => zeigeAnsicht('statistik'));
   document.getElementById('btnNews').addEventListener('click', () => {
     document.getElementById('newsModal').classList.add('zeigen');
+    gamingFeedButtonsSichtbarkeitAnwenden();
     if (!document.getElementById('gamingFeedInhalt').dataset.built) {
       document.getElementById('gamingFeedInhalt').dataset.built = '1';
       ladeGamingFeed();
@@ -747,6 +753,7 @@
   // Gleiches Prinzip wie Garten/Kochen: rss2json.com wandelt RSS in JSON,
   // Ergebnis 3 Std. lokal zwischengespeichert (kein Cloud-Sync).
   const RSS2JSON_KEY = 'gzgrcvnabxmmjjevo0nlsuucc1bl9qzizlvuzjkq'; // eigener kostenloser Key von rss2json.com
+  function entitiesDekodieren(str) { if (!str) return str; const ta = document.createElement('textarea'); ta.innerHTML = str; return ta.value; }
   const GAMING_FEED_QUELLEN = {
     ntower: {
       url: 'https://nintendo-online.de/rss.xml',
@@ -797,7 +804,7 @@
           const treffer = quelle.match(/<img[^>]+src=["']([^"']+)["']/i);
           if (treffer) bild = treffer[1];
         }
-        return { title: i.title, link: i.link, pubDate: i.pubDate, thumbnail: bild };
+        return { title: entitiesDekodieren(i.title), link: i.link, pubDate: i.pubDate, thumbnail: bild };
       });
       try { localStorage.setItem(quelle.cacheKey, JSON.stringify({ items, fetchedAt: Date.now() })); } catch (e) {}
       renderGamingFeed(items, quelle);
@@ -839,6 +846,46 @@
   });
   gamingFeedQuelleAktualisierenButtons();
   window.ladeGamingFeed = ladeGamingFeed;
+
+  // ==================== Quellen ein-/ausblenden (geräte-lokal) ====================
+  const GAMING_FEED_VERSTECKT_KEY = 'gaming_versteckteNewsQuellen';
+  function gamingVersteckteQuellen() {
+    try { return JSON.parse(localStorage.getItem(GAMING_FEED_VERSTECKT_KEY) || '[]'); } catch (e) { return []; }
+  }
+  function gamingFeedButtonsSichtbarkeitAnwenden() {
+    const versteckt = gamingVersteckteQuellen();
+    Object.keys(GAMING_FEED_QUELLEN).forEach(key => {
+      const btn = document.getElementById(GAMING_FEED_QUELLEN[key].btnId);
+      if (btn) btn.style.display = versteckt.includes(key) ? 'none' : '';
+      const cb = document.querySelector('[data-gamingquelle="' + key + '"]');
+      if (cb) cb.checked = !versteckt.includes(key);
+    });
+    if (versteckt.includes(gamingFeedQuelle)) {
+      const sichtbareKeys = Object.keys(GAMING_FEED_QUELLEN).filter(k => !versteckt.includes(k));
+      if (sichtbareKeys.length) {
+        gamingFeedQuelle = sichtbareKeys[0];
+        try { localStorage.setItem(GAMING_FEED_QUELLE_KEY, gamingFeedQuelle); } catch (e) {}
+        gamingFeedQuelleAktualisierenButtons();
+        ladeGamingFeed();
+      } else {
+        document.getElementById('gamingFeedInhalt').innerHTML = 'Keine Quelle ausgewählt – über ⚙️ oben mindestens eine aktivieren.';
+      }
+    }
+  }
+  function gamingFeedQuelleSichtbarkeitAendern(checkbox) {
+    const key = checkbox.dataset.gamingquelle;
+    let versteckt = gamingVersteckteQuellen();
+    if (checkbox.checked) versteckt = versteckt.filter(k => k !== key);
+    else if (!versteckt.includes(key)) versteckt.push(key);
+    try { localStorage.setItem(GAMING_FEED_VERSTECKT_KEY, JSON.stringify(versteckt)); } catch (e) {}
+    gamingFeedButtonsSichtbarkeitAnwenden();
+  }
+  function toggleGamingFeedEinstellungen() {
+    const box = document.getElementById('gamingFeedEinstellungen');
+    box.style.display = box.style.display === 'none' ? '' : 'none';
+  }
+  window.gamingFeedQuelleSichtbarkeitAendern = gamingFeedQuelleSichtbarkeitAendern;
+  window.toggleGamingFeedEinstellungen = toggleGamingFeedEinstellungen;
 })();
 </script>
 

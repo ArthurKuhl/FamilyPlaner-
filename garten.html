@@ -7171,6 +7171,7 @@ function renderTips() {
 // Für zuverlässigeren Betrieb: kostenlosen eigenen API-Key auf rss2json.com/docs holen und
 // unten bei RSS2JSON_KEY eintragen.
 const RSS2JSON_KEY = 'gzgrcvnabxmmjjevo0nlsuucc1bl9qzizlvuzjkq'; // eigener kostenloser Key von rss2json.com
+function entitiesDekodieren(str) { if (!str) return str; const ta = document.createElement('textarea'); ta.innerHTML = str; return ta.value; }
 const GARTEN_FEED_QUELLEN = {
   plantura: {
     url: 'https://www.plantura.garden/feed',
@@ -7235,7 +7236,7 @@ async function ladeGartenFeed(forceRefresh) {
         const treffer = quelle.match(/<img[^>]+src=["']([^"']+)["']/i);
         if (treffer) bild = treffer[1];
       }
-      return { title: i.title, link: i.link, pubDate: i.pubDate, thumbnail: bild };
+      return { title: entitiesDekodieren(i.title), link: i.link, pubDate: i.pubDate, thumbnail: bild };
     });
     try { localStorage.setItem(quelle.cacheKey, JSON.stringify({ items, fetchedAt: Date.now() })); } catch (e) {}
     renderGartenFeed(items, quelle);
