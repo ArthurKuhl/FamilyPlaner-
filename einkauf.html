@@ -385,10 +385,12 @@
       <div style="font-weight:700;font-size:0.85rem;margin-bottom:6px;">Quellen anzeigen (nur auf diesem Gerät)</div>
       <label style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:0.85rem;"><input type="checkbox" data-dealsquelle="mydealz" onchange="dealsFeedQuelleSichtbarkeitAendern(this)"> mydealz.de</label>
       <label style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:0.85rem;"><input type="checkbox" data-dealsquelle="monsterdealz" onchange="dealsFeedQuelleSichtbarkeitAendern(this)"> monsterdealz.de</label>
+      <label style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:0.85rem;"><input type="checkbox" data-dealsquelle="alternate" onchange="dealsFeedQuelleSichtbarkeitAendern(this)"> Alternate Newsletter</label>
     </div>
     <div class="filter-reihe" style="margin-bottom:10px;">
       <button type="button" class="filter-chip active" id="btnDealsFeedQuelleMydealz">mydealz.de</button>
       <button type="button" class="filter-chip" id="btnDealsFeedQuelleMonsterdealz">monsterdealz.de</button>
+      <button type="button" class="filter-chip" id="btnDealsFeedQuelleAlternate">Alternate</button>
     </div>
     <div id="dealsFeedInhalt" style="font-size:0.85rem;">Lädt…</div>
     <div style="margin-top:14px;">
@@ -1012,6 +1014,13 @@
       label: 'monsterdealz.de',
       linkZielseite: 'https://www.monsterdealz.de',
       btnId: 'btnDealsFeedQuelleMonsterdealz',
+    },
+    alternate: {
+      url: 'https://kill-the-newsletter.com/feeds/hlw4vre37x60xm6lx7ky.xml',
+      cacheKey: 'einkauf_newsfeedCacheAlternate',
+      label: 'Alternate Newsletter',
+      linkZielseite: 'https://www.alternate.de',
+      btnId: 'btnDealsFeedQuelleAlternate',
     },
   };
   const DEALS_FEED_QUELLE_KEY = 'einkauf_newsfeedQuelle';
