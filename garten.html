@@ -996,6 +996,7 @@
     <div class="filter-reihe" style="margin-bottom:10px;">
       <button type="button" class="filter-chip active" id="btnGartenFeedQuellePlantura" onclick="gartenFeedQuelleUmschalten('plantura')">Plantura</button>
       <button type="button" class="filter-chip" id="btnGartenFeedQuelleGig" onclick="gartenFeedQuelleUmschalten('gig')">Gern im Garten</button>
+      <button type="button" class="filter-chip" id="btnGartenFeedQuelleLubera" onclick="gartenFeedQuelleUmschalten('lubera')">🌿 Lubera</button>
     </div>
     <div id="gartenFeedInhalt" style="font-size:0.85rem;color:var(--bark)">Lädt…</div>
     <div style="margin-top:14px;">
@@ -7176,6 +7177,13 @@ const GARTEN_FEED_QUELLEN = {
     label: 'gern-im-garten.de',
     linkZielseite: 'https://www.gern-im-garten.de',
     btnId: 'btnGartenFeedQuelleGig',
+  },
+  lubera: {
+    url: 'https://kill-the-newsletter.com/feeds/yfx3iz7bpha23aaxuqig.xml',
+    cacheKey: 'garten_newsfeedCacheLubera',
+    label: 'Lubera Gartenbrief',
+    linkZielseite: 'https://www.lubera.com',
+    btnId: 'btnGartenFeedQuelleLubera',
   },
 };
 const GARTEN_FEED_QUELLE_KEY = 'garten_newsfeedQuelle';
