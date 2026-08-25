@@ -262,7 +262,6 @@
     <input type="text" id="fSchnellEingabe" placeholder="z.B. 500g Mehl, 3 Äpfel, Zahnpasta ..." autocomplete="off">
     <button id="btnHinzufuegen">＋</button>
   </div>
-  <div class="favoriten-reihe" id="favoritenReihe"></div>
   <button type="button" id="btnAlleVorschlaegeToggle" style="background:none;border:none;color:var(--sage);font-size:0.75rem;padding:0 0 8px;cursor:pointer;text-align:left;">▸ Alle Vorschläge verwalten</button>
   <div id="alleVorschlaegeBox" style="display:none;margin-bottom:12px;background:var(--white);border-radius:var(--radius-md);padding:10px 12px;"></div>
   <div style="display:flex; justify-content:flex-end; margin-bottom:6px;">
@@ -579,24 +578,7 @@
     box.appendChild(neu);
   }
 
-  // --- Favoriten-Chips ---
-  function renderFavoriten() {
-    const box = document.getElementById('favoritenReihe');
-    box.innerHTML = '';
-    const liste = aktiveListe();
-    const vorhandenNamen = new Set(liste.items.filter(i => !i.erledigt).map(i => i.name.toLowerCase()));
-    const top = Object.values(favoriten)
-      .filter(f => !vorhandenNamen.has(f.name.toLowerCase()))
-      .sort((a,b) => b.anzahl - a.anzahl)
-      .slice(0, 8);
-    top.forEach(f => {
-      const chip = document.createElement('button');
-      chip.className = 'favorit-chip';
-      chip.textContent = '＋ ' + f.name;
-      chip.addEventListener('click', () => { itemHinzufuegenAusFavorit(f); });
-      box.appendChild(chip);
-    });
-  }
+
 
   function itemHinzufuegenAusFavorit(f) {
     const liste = aktiveListe();
@@ -610,7 +592,7 @@
     renderAlles();
   }
 
-  // --- Alle Vorschläge verwalten (aufklappbar, alphabetisch, löschbar) ---
+  // --- Alle Vorschläge verwalten (aufklappbar, alphabetisch, antippbar zum Hinzufügen, löschbar) ---
   function renderAlleVorschlaege() {
     const box = document.getElementById('alleVorschlaegeBox');
     if (!box) return;
@@ -623,15 +605,19 @@
     }
     box.innerHTML = alle.map(([key, f]) =>
       '<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--parchment);">' +
-      '<span style="font-size:0.85rem;">' + escapeHtml(f.name) + '</span>' +
+      '<span onclick="vorschlagHinzufuegen(\'' + key.replace(/'/g, "\\'") + '\')" style="font-size:0.85rem;flex:1;cursor:pointer;color:var(--moss);" role="button">＋ ' + escapeHtml(f.name) + '</span>' +
       '<button type="button" onclick="vorschlagLoeschen(\'' + key.replace(/'/g, "\\'") + '\')" style="background:none;border:none;color:#c05030;font-size:0.85rem;cursor:pointer;padding:2px 8px;" aria-label="Vorschlag löschen">✕</button>' +
       '</div>'
     ).join('');
   }
+  function vorschlagHinzufuegen(key) {
+    const f = favoriten[key];
+    if (f) itemHinzufuegenAusFavorit(f);
+  }
+  window.vorschlagHinzufuegen = vorschlagHinzufuegen;
   function vorschlagLoeschen(key) {
     delete favoriten[key];
     speichernFavoriten();
-    renderFavoriten();
     renderAlleVorschlaege();
   }
   window.vorschlagLoeschen = vorschlagLoeschen;
@@ -965,7 +951,6 @@
 
   function renderAlles() {
     renderTabs();
-    renderFavoriten();
     renderAlleVorschlaege();
     renderOffeneItems();
     renderErledigt();
