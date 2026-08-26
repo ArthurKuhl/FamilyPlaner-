@@ -214,7 +214,7 @@
       try {
         if (!forceRefresh) {
           const cache = JSON.parse(localStorage.getItem(quelle.cacheKey) || 'null');
-          if (cache && (Date.now() - cache.fetchedAt) < 3 * 60 * 60 * 1000) { renderFeed(cache.items, quelle); return; }
+          if (cache && cache.items && cache.items.length && (Date.now() - cache.fetchedAt) < 3 * 60 * 60 * 1000) { renderFeed(cache.items, quelle); return; }
         }
       } catch (e) {}
       try {
