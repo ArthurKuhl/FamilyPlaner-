@@ -289,7 +289,13 @@
     faz: { url: 'https://www.faz.net/rss/aktuell/', cacheKey: 'nachrichten_national_faz', label: 'FAZ', linkZielseite: 'https://www.faz.net' },
     welt: { url: 'https://www.welt.de/feeds/latest.rss', cacheKey: 'nachrichten_national_welt', label: 'Welt', linkZielseite: 'https://www.welt.de' },
   };
-  const INTERNATIONAL_QUELLEN = {};
+  const INTERNATIONAL_QUELLEN = {
+    bbc: { url: 'https://feeds.bbci.co.uk/news/rss.xml', cacheKey: 'nachrichten_international_bbc', label: '🇬🇧 BBC (Englisch)', linkZielseite: 'https://www.bbc.com/news' },
+    bbcarabic: { url: 'https://feeds.bbci.co.uk/arabic/rss.xml', cacheKey: 'nachrichten_international_bbcarabic', label: '🇸🇦 BBC Arabic', linkZielseite: 'https://www.bbc.com/arabic' },
+    bbcchina: { url: 'https://feeds.bbci.co.uk/news/world/asia/china/rss.xml', cacheKey: 'nachrichten_international_bbcchina', label: '🇨🇳 China (Englisch)', linkZielseite: 'https://www.bbc.com/news/world/asia/china' },
+    ria: { url: 'https://ria.ru/export/rss2/index.xml', cacheKey: 'nachrichten_international_ria', label: '🇷🇺 RIA Nowosti', linkZielseite: 'https://ria.ru' },
+    nhk: { url: 'https://www3.nhk.or.jp/rss/news/cat0.xml', cacheKey: 'nachrichten_international_nhk', label: '🇯🇵 NHK', linkZielseite: 'https://www3.nhk.or.jp/news/' },
+  };
 
   const kategorien = {
     regional: erstelleKategorie({ name: 'regional', quellen: REGIONAL_QUELLEN, inhaltId: 'regionalInhalt', reiheId: 'regionalQuellenReihe', einstellungenBoxId: 'regionalEinstellungenBox', einstellungenToggleId: 'btnRegionalEinstellungenToggle' }),
