@@ -276,7 +276,13 @@
   }
 
   // ==================== QUELLEN je Kategorie (werden in den nächsten Etappen befüllt) ====================
-  const REGIONAL_QUELLEN = {};
+  const REGIONAL_QUELLEN = {
+    pforzheim: { url: 'https://news.google.com/rss/search?q=Pforzheim&hl=de&gl=DE&ceid=DE:de', cacheKey: 'nachrichten_regional_pforzheim', label: 'Pforzheim', linkZielseite: 'https://news.google.com/search?q=Pforzheim&hl=de&gl=DE' },
+    calw: { url: 'https://news.google.com/rss/search?q=Calw&hl=de&gl=DE&ceid=DE:de', cacheKey: 'nachrichten_regional_calw', label: 'Calw', linkZielseite: 'https://news.google.com/search?q=Calw&hl=de&gl=DE' },
+    karlsruhe: { url: 'https://news.google.com/rss/search?q=Karlsruhe&hl=de&gl=DE&ceid=DE:de', cacheKey: 'nachrichten_regional_karlsruhe', label: 'Karlsruhe', linkZielseite: 'https://news.google.com/search?q=Karlsruhe&hl=de&gl=DE' },
+    stuttgart: { url: 'https://news.google.com/rss/search?q=Stuttgart&hl=de&gl=DE&ceid=DE:de', cacheKey: 'nachrichten_regional_stuttgart', label: 'Stuttgart', linkZielseite: 'https://news.google.com/search?q=Stuttgart&hl=de&gl=DE' },
+    sindelfingen: { url: 'https://news.google.com/rss/search?q=Sindelfingen&hl=de&gl=DE&ceid=DE:de', cacheKey: 'nachrichten_regional_sindelfingen', label: 'Sindelfingen', linkZielseite: 'https://news.google.com/search?q=Sindelfingen&hl=de&gl=DE' },
+  };
   const NATIONAL_QUELLEN = {
     tagesschau: { url: 'https://www.tagesschau.de/xml/rss2', cacheKey: 'nachrichten_national_tagesschau', label: 'Tagesschau', linkZielseite: 'https://www.tagesschau.de' },
     spiegel: { url: 'https://www.spiegel.de/schlagzeilen/index.rss', cacheKey: 'nachrichten_national_spiegel', label: 'Spiegel', linkZielseite: 'https://www.spiegel.de' },
