@@ -259,6 +259,9 @@
     <input type="text" id="fSchnellEingabe" placeholder="z.B. 500g Mehl, 3 Äpfel, Zahnpasta ..." autocomplete="off">
     <button id="btnHinzufuegen">＋</button>
   </div>
+  <select id="fWocheneinkaufMarkt" style="display:none;width:100%;margin:-6px 0 12px;padding:8px 10px;border-radius:var(--radius-md);border:1px solid var(--parchment);background:var(--white);color:var(--soil);font-size:0.85rem;">
+    <option value="">📥 Ohne Markt (später zuordnen)</option>
+  </select>
   <button type="button" id="btnAlleVorschlaegeToggle" class="filter-chip" style="margin-bottom:10px;">▸ Alle Vorschläge verwalten</button>
   <div id="alleVorschlaegeBox" style="display:none;margin-bottom:12px;background:var(--white);border-radius:var(--radius-md);padding:10px 12px;"></div>
   <div style="display:flex; justify-content:flex-end; margin-bottom:6px;">
@@ -354,6 +357,10 @@
       <input type="checkbox" id="fListeIstMarkt" style="width:20px;height:20px;">
       <label for="fListeIstMarkt" style="margin:0;">🏪 Ist ein Markt/Discounter</label>
     </div>
+    <div class="feld" style="display:flex;align-items:center;gap:8px;">
+      <input type="checkbox" id="fListeIstUebersicht" style="width:20px;height:20px;">
+      <label for="fListeIstUebersicht" style="margin:0;">📋 Ist die Gesamtübersicht aller Märkte</label>
+    </div>
     <div class="modal-btns">
       <button class="btn btn-secondary" id="btnListeAbbrechen">Abbrechen</button>
       <button class="btn btn-primary" id="btnListeUmbenennen">Umbenennen</button>
@@ -375,6 +382,10 @@
     <div class="feld" style="display:flex;align-items:center;gap:8px;">
       <input type="checkbox" id="fNeueListeIstMarkt" style="width:20px;height:20px;">
       <label for="fNeueListeIstMarkt" style="margin:0;">🏪 Ist ein Markt/Discounter</label>
+    </div>
+    <div class="feld" style="display:flex;align-items:center;gap:8px;">
+      <input type="checkbox" id="fNeueListeIstUebersicht" style="width:20px;height:20px;">
+      <label for="fNeueListeIstUebersicht" style="margin:0;">📋 Ist die Gesamtübersicht aller Märkte</label>
     </div>
     <div class="modal-btns">
       <button class="btn btn-secondary" id="btnNeueListeAbbrechen">Abbrechen</button>
@@ -540,6 +551,13 @@
     }
   });
   if (migrationNoetig) speichern(KEY_LISTEN, listen);
+  // Einmalige Migration: die Liste "Wocheneinkauf" wird zur Gesamtübersicht, falls noch keine existiert
+  if (!listen.some(l => l.istUebersicht)) {
+    const wl = listen.find(l => l.name.trim().toLowerCase() === 'wocheneinkauf');
+    if (wl) { wl.istUebersicht = true; speichern(KEY_LISTEN, listen); }
+  }
+  function listeById(id) { return listen.find(l => l.id === id); }
+  function istUebersichtAktiv() { return !!aktiveListe().istUebersicht; }
   let aktiveListeId = localStorage.getItem(KEY_AKTIV);
   if (!aktiveListeId || !listen.some(l => l.id === aktiveListeId)) aktiveListeId = listen[0].id;
   let favoriten = laden(KEY_FAVORITEN, {});
@@ -603,6 +621,7 @@
     neu.addEventListener('click', () => {
       document.getElementById('fNeueListeName').value = '';
       document.getElementById('fNeueListeIstMarkt').checked = false;
+      document.getElementById('fNeueListeIstUebersicht').checked = false;
       document.getElementById('modalNeueListe').classList.add('zeigen');
       document.getElementById('fNeueListeName').focus();
     });
@@ -735,7 +754,11 @@
     const text = eingabe.value.trim();
     if (!text) return;
     const { menge, einheit, name } = parseSchnellEingabe(text);
-    const liste = aktiveListe();
+    let liste = aktiveListe();
+    if (istUebersichtAktiv()) {
+      const gewaehlterMarktId = document.getElementById('fWocheneinkaufMarkt').value;
+      if (gewaehlterMarktId) liste = listeById(gewaehlterMarktId) || liste;
+    }
     const kandidat = findeZusammenfuehrbaresItem(liste, name);
     if (kandidat && versucheMengeZusammenfuehren(kandidat, menge, einheit)) {
       kandidat.hinzugefuegtVon = aktuellePerson;
@@ -756,7 +779,8 @@
   document.getElementById('fSchnellEingabe').addEventListener('keydown', (e) => { if (e.key === 'Enter') itemHinzufuegen(); });
 
   // --- Item-Zeilen rendern ---
-  function itemZeile(item) {
+  function itemZeile(item, listeId) {
+    listeId = listeId || aktiveListeId;
     const zeile = document.createElement('div');
     zeile.className = 'item-zeile' + (item.erledigt ? ' erledigt' : '');
     const mengeText = [item.menge, item.einheit].filter(Boolean).join(' ');
@@ -771,7 +795,7 @@
     zeile.querySelector('.item-checkbox').addEventListener('click', (e) => {
       e.stopPropagation();
       if (!item.erledigt) {
-        preisAbhakenOeffnen(item);
+        preisAbhakenOeffnen(item, listeId);
       } else {
         item.erledigt = false;
         speichernListen();
@@ -780,12 +804,12 @@
     });
     zeile.querySelector('.item-loeschen').addEventListener('click', (e) => {
       e.stopPropagation();
-      const liste = aktiveListe();
+      const liste = listeById(listeId);
       liste.items = liste.items.filter(i => i.id !== item.id);
       speichernListen();
       renderAlles();
     });
-    zeile.addEventListener('click', () => itemModalOeffnen(item));
+    zeile.addEventListener('click', () => itemModalOeffnen(item, listeId));
     return zeile;
   }
 
@@ -805,15 +829,17 @@
 
   // ---------- Preis beim Abhaken (optional) ----------
   let preisAbhakenItemId = null;
-  function preisAbhakenOeffnen(item) {
+  let preisAbhakenListeId = null;
+  function preisAbhakenOeffnen(item, listeId) {
     preisAbhakenItemId = item.id;
+    preisAbhakenListeId = listeId || aktiveListeId;
     document.getElementById('preisAbhakenTitel').textContent = 'Preis für „' + item.name + '“ notieren?';
     document.getElementById('preisAbhakenTrend').innerHTML = preisTrendHtml(item.name);
     document.getElementById('fPreisAbhaken').value = '';
     document.getElementById('modalPreisAbhaken').classList.add('zeigen');
   }
   function preisAbhakenAbschliessen(mitPreis) {
-    const liste = aktiveListe();
+    const liste = listeById(preisAbhakenListeId);
     const item = liste.items.find(i => i.id === preisAbhakenItemId);
     if (item) {
       if (mitPreis) {
@@ -831,6 +857,7 @@
   document.getElementById('modalPreisAbhaken').addEventListener('click', (e) => { if (e.target.id === 'modalPreisAbhaken') preisAbhakenAbschliessen(false); });
 
   function renderOffeneItems() {
+    if (istUebersichtAktiv()) { renderWocheneinkaufUebersicht(); return; }
     const box = document.getElementById('offeneItems');
     box.innerHTML = '';
     const liste = aktiveListe();
@@ -847,30 +874,59 @@
     });
   }
 
+  // ---------- Wocheneinkauf: Gesamtübersicht aller Märkte ----------
+  function relevanteListenFuerUebersicht() {
+    const uebersicht = aktiveListe();
+    const maerkte = listen.filter(l => l.istMarkt);
+    return [...maerkte, uebersicht]; // Märkte zuerst, "Ohne Markt" (= Übersicht-Liste selbst) zuletzt
+  }
+  function renderWocheneinkaufUebersicht() {
+    const box = document.getElementById('offeneItems');
+    box.innerHTML = '';
+    const uebersicht = aktiveListe();
+    const relevant = relevanteListenFuerUebersicht();
+    const gesamtAnzahl = relevant.reduce((s, l) => s + l.items.length, 0);
+    document.getElementById('leerHinweis').style.display = gesamtAnzahl === 0 ? '' : 'none';
+    relevant.forEach(liste => {
+      const offene = sortiereItems(liste.items.filter(i => !i.erledigt));
+      if (!offene.length) return;
+      const wrap = document.createElement('div');
+      wrap.className = 'kategorie-gruppe';
+      const istOhneMarkt = liste.id === uebersicht.id;
+      const titel = istOhneMarkt ? '📥 Ohne Markt' : '🏪 ' + escapeHtml(liste.name);
+      wrap.innerHTML = '<div class="kategorie-titel">' + titel + ' <span class="count">(' + offene.length + ')</span></div>';
+      offene.forEach(item => wrap.appendChild(itemZeile(item, liste.id)));
+      box.appendChild(wrap);
+    });
+  }
+
   function renderErledigt() {
-    const liste = aktiveListe();
-    const erledigt = liste.items.filter(i => i.erledigt);
+    const relevant = istUebersichtAktiv() ? relevanteListenFuerUebersicht() : [aktiveListe()];
+    const erledigt = relevant.flatMap(l => l.items.filter(i => i.erledigt).map(i => ({ item: i, listeId: l.id })));
     const section = document.getElementById('erledigtSection');
     section.style.display = erledigt.length ? '' : 'none';
     document.getElementById('btnErledigtToggle').innerHTML = (erledigtOffen ? '▾' : '▸') + ' Erledigt (<span id="erledigtAnzahl">' + erledigt.length + '</span>)';
     const box = document.getElementById('erledigtItems');
     box.style.display = erledigtOffen ? '' : 'none';
     box.innerHTML = '';
-    sortiereItems(erledigt).forEach(item => box.appendChild(itemZeile(item)));
+    erledigt
+      .sort((a, b) => sortRichtung === 'za' ? b.item.name.localeCompare(a.item.name) : a.item.name.localeCompare(b.item.name))
+      .forEach(({ item, listeId }) => box.appendChild(itemZeile(item, listeId)));
   }
   document.getElementById('btnErledigtToggle').addEventListener('click', () => { erledigtOffen = !erledigtOffen; renderErledigt(); });
   document.getElementById('btnErledigtLoeschen').addEventListener('click', () => {
-    const liste = aktiveListe();
-    const anzahl = liste.items.filter(i => i.erledigt).length;
+    const relevant = istUebersichtAktiv() ? relevanteListenFuerUebersicht() : [aktiveListe()];
+    const anzahl = relevant.reduce((s, l) => s + l.items.filter(i => i.erledigt).length, 0);
     if (!anzahl) return;
-    if (!confirm(anzahl + ' erledigte Produkt(e) aus dieser Liste entfernen?')) return;
-    liste.items = liste.items.filter(i => !i.erledigt);
+    if (!confirm(anzahl + ' erledigte Produkt(e) entfernen?')) return;
+    relevant.forEach(l => { l.items = l.items.filter(i => !i.erledigt); });
     speichernListen();
     renderAlles();
   });
 
   // --- Item bearbeiten ---
   let bearbeitetesItemId = null;
+  let bearbeitetesItemListeId = null;
   function itemKategorieReiheRendern(ausgewaehlt) {
     const reihe = document.getElementById('itemKategorieReihe');
     reihe.innerHTML = '';
@@ -906,8 +962,9 @@
       reihe.appendChild(opt);
     });
   }
-  function itemModalOeffnen(item) {
+  function itemModalOeffnen(item, listeId) {
     bearbeitetesItemId = item.id;
+    bearbeitetesItemListeId = listeId || aktiveListeId;
     document.getElementById('fItemName').value = item.name;
     document.getElementById('fItemMenge').value = item.menge || '';
     document.getElementById('fItemEinheit').value = item.einheit || '';
@@ -930,7 +987,7 @@
     preisVerlaufRendern(item.name);
   });
   document.getElementById('btnItemSpeichern').addEventListener('click', () => {
-    const liste = aktiveListe();
+    const liste = listeById(bearbeitetesItemListeId);
     const item = liste.items.find(i => i.id === bearbeitetesItemId);
     if (!item) return;
     const name = document.getElementById('fItemName').value.trim();
@@ -950,7 +1007,7 @@
     renderAlles();
   });
   document.getElementById('btnItemLoeschen').addEventListener('click', () => {
-    const liste = aktiveListe();
+    const liste = listeById(bearbeitetesItemListeId);
     liste.items = liste.items.filter(i => i.id !== bearbeitetesItemId);
     speichernListen();
     document.getElementById('modalItem').classList.remove('zeigen');
@@ -961,8 +1018,11 @@
   document.getElementById('btnListeVerwalten').addEventListener('click', () => {
     document.getElementById('fListeName').value = aktiveListe().name;
     document.getElementById('fListeIstMarkt').checked = !!aktiveListe().istMarkt;
+    document.getElementById('fListeIstUebersicht').checked = !!aktiveListe().istUebersicht;
     document.getElementById('modalListe').classList.add('zeigen');
   });
+  document.getElementById('fListeIstMarkt').addEventListener('change', function () { if (this.checked) document.getElementById('fListeIstUebersicht').checked = false; });
+  document.getElementById('fListeIstUebersicht').addEventListener('change', function () { if (this.checked) document.getElementById('fListeIstMarkt').checked = false; });
   document.getElementById('btnListeAbbrechen').addEventListener('click', () => document.getElementById('modalListe').classList.remove('zeigen'));
   document.getElementById('modalListe').addEventListener('click', (e) => { if (e.target.id === 'modalListe') e.currentTarget.classList.remove('zeigen'); });
   document.getElementById('btnListeUmbenennen').addEventListener('click', () => {
@@ -970,6 +1030,9 @@
     if (!neuerName) { alert('Bitte einen Namen eingeben.'); return; }
     aktiveListe().name = neuerName;
     aktiveListe().istMarkt = document.getElementById('fListeIstMarkt').checked;
+    const neuIstUebersicht = document.getElementById('fListeIstUebersicht').checked;
+    if (neuIstUebersicht) listen.forEach(l => { if (l.id !== aktiveListeId) l.istUebersicht = false; });
+    aktiveListe().istUebersicht = neuIstUebersicht;
     speichernListen();
     document.getElementById('modalListe').classList.remove('zeigen');
     renderAlles();
@@ -988,11 +1051,15 @@
   // --- Neue Liste anlegen ---
   document.getElementById('btnNeueListeAbbrechen').addEventListener('click', () => document.getElementById('modalNeueListe').classList.remove('zeigen'));
   document.getElementById('modalNeueListe').addEventListener('click', (e) => { if (e.target.id === 'modalNeueListe') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('fNeueListeIstMarkt').addEventListener('change', function () { if (this.checked) document.getElementById('fNeueListeIstUebersicht').checked = false; });
+  document.getElementById('fNeueListeIstUebersicht').addEventListener('change', function () { if (this.checked) document.getElementById('fNeueListeIstMarkt').checked = false; });
   document.getElementById('btnNeueListeAnlegen').addEventListener('click', () => {
     const name = document.getElementById('fNeueListeName').value.trim();
     if (!name) { alert('Bitte einen Namen eingeben.'); return; }
     const istMarkt = document.getElementById('fNeueListeIstMarkt').checked;
-    const neu = { id: neueId('l'), name, items: [], istMarkt };
+    const istUebersicht = document.getElementById('fNeueListeIstUebersicht').checked;
+    if (istUebersicht) listen.forEach(l => { l.istUebersicht = false; });
+    const neu = { id: neueId('l'), name, items: [], istMarkt, istUebersicht };
     listen.push(neu);
     aktiveListeId = neu.id;
     localStorage.setItem(KEY_AKTIV, aktiveListeId);
@@ -1004,9 +1071,20 @@
 
   function renderAlles() {
     renderTabs();
+    renderWocheneinkaufMarktAuswahl();
     renderAlleVorschlaege();
     renderOffeneItems();
     renderErledigt();
+  }
+  function renderWocheneinkaufMarktAuswahl() {
+    const select = document.getElementById('fWocheneinkaufMarkt');
+    const istUebersicht = istUebersichtAktiv();
+    select.style.display = istUebersicht ? '' : 'none';
+    if (!istUebersicht) return;
+    const bisherigerWert = select.value;
+    select.innerHTML = '<option value="">📥 Ohne Markt (später zuordnen)</option>' +
+      listen.filter(l => l.istMarkt).map(l => '<option value="' + l.id + '">🏪 ' + escapeHtml(l.name) + '</option>').join('');
+    if (listen.some(l => l.id === bisherigerWert)) select.value = bisherigerWert;
   }
 
   // ============================================================
