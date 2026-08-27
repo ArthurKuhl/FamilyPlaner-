@@ -880,6 +880,18 @@
     const maerkte = listen.filter(l => l.istMarkt);
     return [...maerkte, uebersicht]; // Märkte zuerst, "Ohne Markt" (= Übersicht-Liste selbst) zuletzt
   }
+  const UEBERSICHT_EINGEKLAPPT_KEY = 'einkauf_uebersichtEingeklappt';
+  function uebersichtEingeklappteListen() {
+    try { return JSON.parse(localStorage.getItem(UEBERSICHT_EINGEKLAPPT_KEY) || '[]'); } catch (e) { return []; }
+  }
+  function uebersichtGruppeUmschalten(listeId) {
+    let eingeklappt = uebersichtEingeklappteListen();
+    if (eingeklappt.includes(listeId)) eingeklappt = eingeklappt.filter(id => id !== listeId);
+    else eingeklappt.push(listeId);
+    try { localStorage.setItem(UEBERSICHT_EINGEKLAPPT_KEY, JSON.stringify(eingeklappt)); } catch (e) {}
+    renderWocheneinkaufUebersicht();
+  }
+  window.uebersichtGruppeUmschalten = uebersichtGruppeUmschalten;
   function renderWocheneinkaufUebersicht() {
     const box = document.getElementById('offeneItems');
     box.innerHTML = '';
@@ -887,15 +899,22 @@
     const relevant = relevanteListenFuerUebersicht();
     const gesamtAnzahl = relevant.reduce((s, l) => s + l.items.length, 0);
     document.getElementById('leerHinweis').style.display = gesamtAnzahl === 0 ? '' : 'none';
+    const eingeklappt = uebersichtEingeklappteListen();
     relevant.forEach(liste => {
       const offene = sortiereItems(liste.items.filter(i => !i.erledigt));
       if (!offene.length) return;
+      const istOhneMarkt = liste.id === uebersicht.id;
       const wrap = document.createElement('div');
       wrap.className = 'kategorie-gruppe';
-      const istOhneMarkt = liste.id === uebersicht.id;
       const titel = istOhneMarkt ? '📥 Ohne Markt' : '🏪 ' + escapeHtml(liste.name);
-      wrap.innerHTML = '<div class="kategorie-titel">' + titel + ' <span class="count">(' + offene.length + ')</span></div>';
-      offene.forEach(item => wrap.appendChild(itemZeile(item, liste.id)));
+      const istZu = eingeklappt.includes(liste.id);
+      const kopf = document.createElement('div');
+      kopf.className = 'kategorie-titel';
+      kopf.style.cssText = 'color:var(--moss);cursor:pointer;font-size:0.8rem;';
+      kopf.innerHTML = (istZu ? '▸' : '▾') + ' ' + titel + ' <span class="count">(' + offene.length + ')</span>';
+      kopf.addEventListener('click', () => uebersichtGruppeUmschalten(liste.id));
+      wrap.appendChild(kopf);
+      if (!istZu) offene.forEach(item => wrap.appendChild(itemZeile(item, liste.id)));
       box.appendChild(wrap);
     });
   }
