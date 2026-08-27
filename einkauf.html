@@ -900,9 +900,12 @@
     const gesamtAnzahl = relevant.reduce((s, l) => s + l.items.length, 0);
     document.getElementById('leerHinweis').style.display = gesamtAnzahl === 0 ? '' : 'none';
     const eingeklappt = uebersichtEingeklappteListen();
+    let offeneGesamt = 0, sichtbareMaerkte = 0;
     relevant.forEach(liste => {
       const offene = sortiereItems(liste.items.filter(i => !i.erledigt));
       if (!offene.length) return;
+      offeneGesamt += offene.length;
+      sichtbareMaerkte++;
       const istOhneMarkt = liste.id === uebersicht.id;
       const wrap = document.createElement('div');
       wrap.className = 'kategorie-gruppe';
@@ -910,13 +913,19 @@
       const istZu = eingeklappt.includes(liste.id);
       const kopf = document.createElement('div');
       kopf.className = 'kategorie-titel';
-      kopf.style.cssText = 'color:var(--moss);cursor:pointer;font-size:0.8rem;';
-      kopf.innerHTML = (istZu ? '▸' : '▾') + ' ' + titel + ' <span class="count">(' + offene.length + ')</span>';
+      kopf.style.cssText = 'color:var(--leaf);background:var(--moss);cursor:pointer;font-size:0.82rem;padding:8px 12px;border-radius:var(--radius-md);margin-bottom:8px;';
+      kopf.innerHTML = (istZu ? '▸' : '▾') + ' ' + titel + ' <span class="count" style="opacity:0.85;">(' + offene.length + ')</span>';
       kopf.addEventListener('click', () => uebersichtGruppeUmschalten(liste.id));
       wrap.appendChild(kopf);
       if (!istZu) offene.forEach(item => wrap.appendChild(itemZeile(item, liste.id)));
       box.appendChild(wrap);
     });
+    if (offeneGesamt > 0) {
+      const zusammenfassung = document.createElement('div');
+      zusammenfassung.style.cssText = 'text-align:center;font-size:0.8rem;color:var(--bark);padding:16px 8px 4px;border-top:1px solid var(--parchment);margin-top:8px;';
+      zusammenfassung.textContent = '🛒 ' + offeneGesamt + ' Artikel offen · ' + sichtbareMaerkte + (sichtbareMaerkte === 1 ? ' Markt' : ' Märkte');
+      box.appendChild(zusammenfassung);
+    }
   }
 
   function renderErledigt() {
