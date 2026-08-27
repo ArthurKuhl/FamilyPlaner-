@@ -608,6 +608,7 @@
             <div class="color-swatch" style="background:#5c4f3f" data-color="#5c4f3f" title="Mauer" onclick="selectColor(this)"></div>
             <div class="color-swatch" style="background:#7a3a12" data-color="#7a3a12" title="Gebäude" onclick="selectColor(this)"></div>
             <div class="color-swatch" style="background:#4a545e" data-color="#4a545e" title="Sonstiges" onclick="selectColor(this)"></div>
+            <div class="color-swatch" style="background:#1a1a1a" data-color="#1a1a1a" title="Schwarz" onclick="selectColor(this)"></div>
           </div>
         </div>
         <p style="font-size:0.7rem;color:var(--bark);margin-bottom:8px">👆 Dann auf die Fläche klicken zum Platzieren</p>
@@ -726,7 +727,7 @@
       <!-- BED EDITOR (selected) -->
       <div class="sidebar-section" id="selectedBedEditor" style="display:none">
         <div class="sidebar-title" id="editorTitel">✏️ Beet bearbeiten</div>
-        <div class="tabs" role="tablist" style="margin-bottom:12px;border-radius:var(--radius-sm);overflow:hidden;">
+        <div class="tabs" id="bedEditorTabs" role="tablist" style="margin-bottom:12px;border-radius:var(--radius-sm);overflow:hidden;">
           <button type="button" id="btnBedTabEigenschaften" class="tab active" role="tab" aria-selected="true" onclick="switchBedEditorTab('eigenschaften')">⚙️ Eigenschaften</button>
           <button type="button" id="btnBedTabUebersicht" class="tab" role="tab" aria-selected="false" onclick="switchBedEditorTab('uebersicht')">🌱 Übersicht</button>
         </div>
@@ -778,6 +779,7 @@
               <div class="color-swatch" style="background:#5c4f3f" data-color="#5c4f3f" title="Mauer" onclick="setSelectedBedColor('#5c4f3f',this)"></div>
               <div class="color-swatch" style="background:#7a3a12" data-color="#7a3a12" title="Gebäude" onclick="setSelectedBedColor('#7a3a12',this)"></div>
               <div class="color-swatch" style="background:#4a545e" data-color="#4a545e" title="Sonstiges" onclick="setSelectedBedColor('#4a545e',this)"></div>
+              <div class="color-swatch" style="background:#1a1a1a" data-color="#1a1a1a" title="Schwarz" onclick="setSelectedBedColor('#1a1a1a',this)"></div>
             </div>
             <input type="color" id="editColorCustom" value="#7a9e72" oninput="setSelectedBedColor(this.value,null)" style="height:30px;padding:2px;cursor:pointer;margin-top:6px;width:100%">
           </div>
@@ -5431,7 +5433,7 @@ function showBedEditor(bed) {
   document.getElementById('editPlantSection').style.display = istStruktur ? 'none' : '';
   document.getElementById('editFruchtfolgeSection').style.display = istStruktur ? 'none' : '';
   document.getElementById('editDensityRow').style.display = istStruktur ? 'none' : '';
-  document.getElementById('btnBedTabUebersicht').style.display = istStruktur ? 'none' : '';
+  document.getElementById('bedEditorTabs').style.display = istStruktur ? 'none' : '';
   document.getElementById('bedPlantAddSearch').value = '';
   document.getElementById('bedPlantAddSuggestions').innerHTML = '';
   switchBedEditorTab('eigenschaften');
