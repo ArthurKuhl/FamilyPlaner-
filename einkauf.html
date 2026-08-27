@@ -922,7 +922,7 @@
     });
     if (offeneGesamt > 0) {
       const zusammenfassung = document.createElement('div');
-      zusammenfassung.style.cssText = 'text-align:center;font-size:0.8rem;color:var(--bark);padding:16px 8px 4px;border-top:1px solid var(--parchment);margin-top:8px;';
+      zusammenfassung.style.cssText = 'text-align:center;font-size:0.85rem;font-weight:600;color:var(--soil);padding:16px 8px 4px;border-top:1px solid var(--parchment);margin-top:8px;';
       zusammenfassung.textContent = '🛒 ' + offeneGesamt + ' Artikel offen · ' + sichtbareMaerkte + (sichtbareMaerkte === 1 ? ' Markt' : ' Märkte');
       box.appendChild(zusammenfassung);
     }
