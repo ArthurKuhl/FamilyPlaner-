@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<script>(function(){try{var m=localStorage.getItem('planer_darkMode');if(m==='dunkel'||(m==='auto'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.setAttribute('data-dark','1');}var s=localStorage.getItem('planer_schriftgroesse');if(s==='gross'){document.documentElement.style.fontSize='19px';}}catch(e){}})();</script>
+<script>(function(){try{var m=localStorage.getItem('planer_darkMode');if(m==='dunkel'||(m==='auto'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.setAttribute('data-dark','1');}var s=localStorage.getItem('planer_schriftgroesse');if(s==='gross'){document.documentElement.style.fontSize='19px';}var f=localStorage.getItem('planer_farbschema');if(f&&f!=='wald'){document.documentElement.setAttribute('data-farbschema',f);}}catch(e){}})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Familienplaner</title>
@@ -30,6 +30,19 @@
     --cream: #1e1b16; --parchment: #2b261e; --bark: #c2b393;
     --terracotta: #d9855a; --terracotta-text: #e8a37e; --sky: #7fa8cc; --gold: #dcb158;
     --white: #2f2a22; --navbg: #14100c; --navbg2: #221a12;
+  }
+  /* ---- Farbschemata (global, familienweit synchronisiert) ---- */
+  html[data-farbschema="ozean"] {
+    --navbg: #1c1f24; --navbg2: #2b2f36; --sage: #8fd4c9; --leaf: #8fd4c9; --moss: #4fa89c;
+  }
+  html[data-farbschema="schnee"] {
+    --navbg: #1c1f24; --navbg2: #2b2f36; --sage: #f2f2f2; --leaf: #f2f2f2; --moss: #e8e8e8;
+  }
+  html[data-farbschema="fjord"] {
+    --navbg: #1c1f24; --navbg2: #2b2f36; --sage: #9cc0ec; --leaf: #9cc0ec; --moss: #5b8bc9;
+  }
+  html[data-farbschema="bernstein"] {
+    --navbg: #1c1f24; --navbg2: #2b2f36; --sage: #e6c878; --leaf: #e6c878; --moss: #c9a24d;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body {
@@ -230,11 +243,21 @@
       <div style="border-top:1px solid #e5ddc8;padding-top:14px;margin-bottom:16px;">
         <div style="font-weight:700;color:var(--soil);margin-bottom:8px;">🎨 Darstellung</div>
         <div style="margin-bottom:10px;">
-          <label style="font-size:0.8rem;color:var(--bark);display:block;margin-bottom:4px;">Farbschema</label>
+          <label style="font-size:0.8rem;color:var(--bark);display:block;margin-bottom:4px;">Hell/Dunkel-Modus</label>
           <select id="einstDarkMode" style="width:100%;padding:9px 10px;border-radius:10px;border:1px solid #ddd;font-family:'Inter',sans-serif;font-size:0.85rem;">
             <option value="hell">☀️ Hell</option>
             <option value="dunkel">🌙 Dunkel</option>
             <option value="auto">🔄 Automatisch (Systemeinstellung)</option>
+          </select>
+        </div>
+        <div style="margin-bottom:10px;">
+          <label style="font-size:0.8rem;color:var(--bark);display:block;margin-bottom:4px;">Farbthema (gilt für die ganze Familie)</label>
+          <select id="einstFarbschema" style="width:100%;padding:9px 10px;border-radius:10px;border:1px solid #ddd;font-family:'Inter',sans-serif;font-size:0.85rem;">
+            <option value="wald">🌲 Wald (Grün/Braun, Standard)</option>
+            <option value="ozean">🌊 Ozean (Anthrazit/Türkis)</option>
+            <option value="schnee">❄️ Schnee (Anthrazit/Weiß)</option>
+            <option value="fjord">🌌 Fjord (Anthrazit/Blau)</option>
+            <option value="bernstein">🟡 Bernstein (Anthrazit/Gold)</option>
           </select>
         </div>
         <div>
@@ -352,6 +375,7 @@
       codeAnzeigenAktualisieren();
       starteBereiche();
       starteePersonenSync();
+      starteFarbschemaSync();
     }
 
     // ============================================================
@@ -410,6 +434,20 @@
         modul: 'personen',
         keys: [PERSONEN_KEY],
         onRemoteChange: () => renderPersonenListe(),
+      });
+    }
+    let farbschemaSyncHandle = null;
+    function starteFarbschemaSync() {
+      if (typeof PlanerSync === 'undefined' || !familienId()) return;
+      farbschemaSyncHandle = PlanerSync.starteSync({
+        modul: 'farbschema',
+        keys: ['planer_farbschema'],
+        onRemoteChange: () => {
+          let schema = 'wald';
+          try { schema = localStorage.getItem('planer_farbschema') || 'wald'; } catch (e) {}
+          farbschemaAnwenden(schema);
+          bereichLaden(aktuellerBereichId(), { schreiben: false });
+        },
       });
     }
     function slugifiziere(name) {
@@ -534,6 +572,9 @@
       let schrift = 'normal';
       try { schrift = localStorage.getItem('planer_schriftgroesse') || 'normal'; } catch (e) {}
       document.getElementById('einstSchriftgroesse').value = schrift;
+      let farbschema = 'wald';
+      try { farbschema = localStorage.getItem('planer_farbschema') || 'wald'; } catch (e) {}
+      document.getElementById('einstFarbschema').value = farbschema;
       startModulAuswahlBefuellen();
       try { document.getElementById('einstErinnWasser').checked = (JSON.parse(localStorage.getItem('gesundheit_wasserErinnerung') || '{}').aktiv) || false; } catch (e) { document.getElementById('einstErinnWasser').checked = false; }
       try { document.getElementById('einstErinnTermine').checked = localStorage.getItem('planer_terminErinnerungenAktiv') !== '0'; } catch (e) {}
@@ -547,6 +588,10 @@
       const dunkel = modus === 'dunkel' || (modus === 'auto' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
       if (dunkel) document.documentElement.setAttribute('data-dark', '1');
       else document.documentElement.removeAttribute('data-dark');
+    }
+    function farbschemaAnwenden(schema) {
+      if (schema && schema !== 'wald') document.documentElement.setAttribute('data-farbschema', schema);
+      else document.documentElement.removeAttribute('data-farbschema');
     }
 
     document.getElementById('btnEinstellungen').addEventListener('click', () => {
@@ -566,6 +611,12 @@
     document.getElementById('einstSchriftgroesse').addEventListener('change', (e) => {
       try { localStorage.setItem('planer_schriftgroesse', e.target.value); } catch (err) {}
       document.documentElement.style.fontSize = e.target.value === 'gross' ? '19px' : '';
+      bereichLaden(aktuellerBereichId(), { schreiben: false });
+    });
+    document.getElementById('einstFarbschema').addEventListener('change', (e) => {
+      try { localStorage.setItem('planer_farbschema', e.target.value); } catch (err) {}
+      farbschemaAnwenden(e.target.value);
+      if (farbschemaSyncHandle) farbschemaSyncHandle.melde();
       bereichLaden(aktuellerBereichId(), { schreiben: false });
     });
     document.getElementById('einstStartModul').addEventListener('change', (e) => {
