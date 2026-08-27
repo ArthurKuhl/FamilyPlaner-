@@ -726,90 +726,106 @@
       <!-- BED EDITOR (selected) -->
       <div class="sidebar-section" id="selectedBedEditor" style="display:none">
         <div class="sidebar-title" id="editorTitel">✏️ Beet bearbeiten</div>
-        <div class="form-row">
-          <label>Name</label>
-          <input type="text" id="editName" oninput="updateSelectedBed()" />
-        </div>
-        <div class="form-row">
-          <label>Rotation</label>
-          <div class="rotation-wrap">
-            <input type="range" id="editRot" min="0" max="360" value="0" oninput="updateSelectedBed()">
-            <span class="rotation-val" id="rotVal">0°</span>
-          </div>
-        </div>
-        <div class="form-row" id="editWRow">
-          <label id="editWLabel">Breite <span id="editWReal" style="font-weight:400;opacity:0.7"></span></label>
-          <input type="range" id="editW" min="40" max="1500" step="10" value="120" oninput="updateSelectedBed()">
-        </div>
-        <div class="form-row" id="editHRow">
-          <label id="editHLabel">Höhe <span id="editHReal" style="font-weight:400;opacity:0.7"></span></label>
-          <input type="range" id="editH" min="40" max="1500" step="10" value="80" oninput="updateSelectedBed()">
-        </div>
-        <div class="form-row" id="editApexRow" style="display:none">
-          <label>Spitze versetzt <span id="editApexReal" style="font-weight:400;opacity:0.7"></span></label>
-          <input type="range" id="editApex" min="-100" max="100" value="0" oninput="updateSelectedBed()">
-          <button type="button" class="btn-secondary" style="margin-top:4px" onclick="setzeRechtwinkligesDreieck()">📐 Rechtwinklig-gleichschenklig</button>
-        </div>
-        <div class="form-row" id="editCutWRow" style="display:none">
-          <label>Ausschnitt-Breite</label>
-          <input type="range" id="editCutW" min="10" max="200" value="60" oninput="updateSelectedBed()">
-        </div>
-        <div class="form-row" id="editCutHRow" style="display:none">
-          <label>Ausschnitt-Höhe</label>
-          <input type="range" id="editCutH" min="10" max="150" value="40" oninput="updateSelectedBed()">
-        </div>
-        <p id="editFreehandNote" style="display:none;font-size:0.7rem;color:var(--bark);margin:-4px 0 8px">✏️ Freiform-Umriss – Größe/Form nicht per Regler änderbar. Zum Ändern Beet löschen und neu zeichnen.</p>
-        <div class="form-row">
-          <label>Farbe</label>
-          <div class="color-row" id="editColorPicker">
-            <div class="color-swatch" style="background:#7a9e72" data-color="#7a9e72" onclick="setSelectedBedColor('#7a9e72',this)"></div>
-            <div class="color-swatch" style="background:#c0633a" data-color="#c0633a" onclick="setSelectedBedColor('#c0633a',this)"></div>
-            <div class="color-swatch" style="background:#8b6f47" data-color="#8b6f47" onclick="setSelectedBedColor('#8b6f47',this)"></div>
-            <div class="color-swatch" style="background:#4a6741" data-color="#4a6741" onclick="setSelectedBedColor('#4a6741',this)"></div>
-            <div class="color-swatch" style="background:#d6a84a" data-color="#d6a84a" onclick="setSelectedBedColor('#d6a84a',this)"></div>
-            <div class="color-swatch" style="background:#5b8bb5" data-color="#5b8bb5" onclick="setSelectedBedColor('#5b8bb5',this)"></div>
-            <div class="color-swatch" style="background:#7d7466" data-color="#7d7466" title="Weg" onclick="setSelectedBedColor('#7d7466',this)"></div>
-            <div class="color-swatch" style="background:#5c4f3f" data-color="#5c4f3f" title="Mauer" onclick="setSelectedBedColor('#5c4f3f',this)"></div>
-            <div class="color-swatch" style="background:#7a3a12" data-color="#7a3a12" title="Gebäude" onclick="setSelectedBedColor('#7a3a12',this)"></div>
-            <div class="color-swatch" style="background:#4a545e" data-color="#4a545e" title="Sonstiges" onclick="setSelectedBedColor('#4a545e',this)"></div>
-          </div>
-          <input type="color" id="editColorCustom" value="#7a9e72" oninput="setSelectedBedColor(this.value,null)" style="height:30px;padding:2px;cursor:pointer;margin-top:6px;width:100%">
-        </div>
-        <div id="bedAreaDisplay" style="font-size:0.74rem;color:var(--bark);margin:4px 0 8px"></div>
-        <div id="editDensityRow" class="form-row" style="margin-bottom:10px">
-          <label>📏 Pflanzdichte berechnen</label>
-          <select id="densityPlantSel" onchange="renderBedArea(selectedBed)">
-            <option value="">– Pflanze wählen –</option>
-          </select>
-          <div id="densityResult" style="font-size:0.74rem;color:var(--bark);margin-top:4px"></div>
-        </div>
-        <button class="btn-secondary" onclick="duplicateBed()" style="margin-top:4px">📋 Element duplizieren</button>
-        <button class="btn-secondary" onclick="saveBedAsTemplate()" style="margin-top:4px">💾 Als Vorlage speichern</button>
-        <button class="btn-secondary" id="btnDeleteSelected" onclick="deleteSelected()" style="color:#c05030;border-color:#c05030;margin-top:4px">🗑 Element löschen</button>
-
-        <div id="editPlantSection" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--parchment)">
-          <div class="sidebar-title" style="margin-bottom:8px">🌱 Pflanzen in diesem Beet</div>
-          <input type="text" id="bedPlantSearch" placeholder="🔍 Pflanze suchen..." oninput="renderBedPlantList(selectedBed, this.value)" style="margin-bottom:8px"/>
-          <div class="bed-list" id="bedPlantList"></div>
+        <div class="tabs" role="tablist" style="margin-bottom:12px;border-radius:var(--radius-sm);overflow:hidden;">
+          <button type="button" id="btnBedTabEigenschaften" class="tab active" role="tab" aria-selected="true" onclick="switchBedEditorTab('eigenschaften')">⚙️ Eigenschaften</button>
+          <button type="button" id="btnBedTabUebersicht" class="tab" role="tab" aria-selected="false" onclick="switchBedEditorTab('uebersicht')">🌱 Übersicht</button>
         </div>
 
-        <div id="editFruchtfolgeSection" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--parchment)">
-          <div class="sidebar-title" style="margin-bottom:8px">📜 Fruchtfolge</div>
-          <div id="fruchtfolgeBox"></div>
+        <div id="bedTabEigenschaften">
+          <div class="form-row">
+            <label>Name</label>
+            <input type="text" id="editName" oninput="updateSelectedBed()" />
+          </div>
+          <div class="form-row">
+            <label>Rotation</label>
+            <div class="rotation-wrap">
+              <input type="range" id="editRot" min="0" max="360" value="0" oninput="updateSelectedBed()">
+              <span class="rotation-val" id="rotVal">0°</span>
+            </div>
+          </div>
+          <div class="form-row" id="editWRow">
+            <label id="editWLabel">Breite <span id="editWReal" style="font-weight:400;opacity:0.7"></span></label>
+            <input type="range" id="editW" min="40" max="1500" step="10" value="120" oninput="updateSelectedBed()">
+          </div>
+          <div class="form-row" id="editHRow">
+            <label id="editHLabel">Höhe <span id="editHReal" style="font-weight:400;opacity:0.7"></span></label>
+            <input type="range" id="editH" min="40" max="1500" step="10" value="80" oninput="updateSelectedBed()">
+          </div>
+          <div class="form-row" id="editApexRow" style="display:none">
+            <label>Spitze versetzt <span id="editApexReal" style="font-weight:400;opacity:0.7"></span></label>
+            <input type="range" id="editApex" min="-100" max="100" value="0" oninput="updateSelectedBed()">
+            <button type="button" class="btn-secondary" style="margin-top:4px" onclick="setzeRechtwinkligesDreieck()">📐 Rechtwinklig-gleichschenklig</button>
+          </div>
+          <div class="form-row" id="editCutWRow" style="display:none">
+            <label>Ausschnitt-Breite</label>
+            <input type="range" id="editCutW" min="10" max="200" value="60" oninput="updateSelectedBed()">
+          </div>
+          <div class="form-row" id="editCutHRow" style="display:none">
+            <label>Ausschnitt-Höhe</label>
+            <input type="range" id="editCutH" min="10" max="150" value="40" oninput="updateSelectedBed()">
+          </div>
+          <p id="editFreehandNote" style="display:none;font-size:0.7rem;color:var(--bark);margin:-4px 0 8px">✏️ Freiform-Umriss – Größe/Form nicht per Regler änderbar. Zum Ändern Beet löschen und neu zeichnen.</p>
+          <div class="form-row">
+            <label>Farbe</label>
+            <div class="color-row" id="editColorPicker">
+              <div class="color-swatch" style="background:#7a9e72" data-color="#7a9e72" onclick="setSelectedBedColor('#7a9e72',this)"></div>
+              <div class="color-swatch" style="background:#c0633a" data-color="#c0633a" onclick="setSelectedBedColor('#c0633a',this)"></div>
+              <div class="color-swatch" style="background:#8b6f47" data-color="#8b6f47" onclick="setSelectedBedColor('#8b6f47',this)"></div>
+              <div class="color-swatch" style="background:#4a6741" data-color="#4a6741" onclick="setSelectedBedColor('#4a6741',this)"></div>
+              <div class="color-swatch" style="background:#d6a84a" data-color="#d6a84a" onclick="setSelectedBedColor('#d6a84a',this)"></div>
+              <div class="color-swatch" style="background:#5b8bb5" data-color="#5b8bb5" onclick="setSelectedBedColor('#5b8bb5',this)"></div>
+              <div class="color-swatch" style="background:#7d7466" data-color="#7d7466" title="Weg" onclick="setSelectedBedColor('#7d7466',this)"></div>
+              <div class="color-swatch" style="background:#5c4f3f" data-color="#5c4f3f" title="Mauer" onclick="setSelectedBedColor('#5c4f3f',this)"></div>
+              <div class="color-swatch" style="background:#7a3a12" data-color="#7a3a12" title="Gebäude" onclick="setSelectedBedColor('#7a3a12',this)"></div>
+              <div class="color-swatch" style="background:#4a545e" data-color="#4a545e" title="Sonstiges" onclick="setSelectedBedColor('#4a545e',this)"></div>
+            </div>
+            <input type="color" id="editColorCustom" value="#7a9e72" oninput="setSelectedBedColor(this.value,null)" style="height:30px;padding:2px;cursor:pointer;margin-top:6px;width:100%">
+          </div>
+          <button class="btn-secondary" onclick="duplicateBed()" style="margin-top:4px">📋 Element duplizieren</button>
+          <button class="btn-secondary" onclick="saveBedAsTemplate()" style="margin-top:4px">💾 Als Vorlage speichern</button>
+          <button class="btn-secondary" id="btnDeleteSelected" onclick="deleteSelected()" style="color:#c05030;border-color:#c05030;margin-top:4px">🗑 Element löschen</button>
         </div>
 
-        <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--parchment)">
-          <div class="sidebar-title" style="margin-bottom:8px">📷 Foto-Tagebuch</div>
-          <div class="form-row" style="margin-bottom:6px">
-            <label>Datum</label>
-            <input type="date" id="bedPhotoDate"/>
+        <div id="bedTabUebersicht" style="display:none">
+          <div id="bedAreaDisplay" style="font-size:0.74rem;color:var(--bark);margin:4px 0 8px"></div>
+          <div id="editDensityRow" class="form-row" style="margin-bottom:10px">
+            <label>📏 Pflanzdichte berechnen</label>
+            <select id="densityPlantSel" onchange="renderBedArea(selectedBed)">
+              <option value="">– Pflanze wählen –</option>
+            </select>
+            <div id="densityResult" style="font-size:0.74rem;color:var(--bark);margin-top:4px"></div>
           </div>
-          <div class="form-row" style="margin-bottom:6px">
-            <label>Notiz (optional)</label>
-            <input type="text" id="bedPhotoNote" placeholder="z.B. nach dem Auspflanzen, erste Blüte..."/>
+
+          <div id="editPlantSection" style="margin-top:6px;padding-top:12px;border-top:1px solid var(--parchment)">
+            <div class="sidebar-title" style="margin-bottom:8px">➕ Pflanze direkt hinzufügen</div>
+            <input type="text" id="bedPlantAddSearch" placeholder="🔍 z.B. Tomate, Karotte ..." oninput="renderBedPlantAddSuggestions(this.value)" style="margin-bottom:6px"/>
+            <div class="bed-list" id="bedPlantAddSuggestions"></div>
           </div>
-          <input type="file" id="bedPhotoInput" accept="image/*" onchange="handleBedPhoto(event)"/>
-          <div id="bedPhotoGallery" style="margin-top:10px;display:flex;flex-direction:column;gap:8px"></div>
+
+          <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--parchment)">
+            <div class="sidebar-title" style="margin-bottom:8px">🌱 Pflanzen in diesem Beet</div>
+            <input type="text" id="bedPlantSearch" placeholder="🔍 In dieser Liste filtern..." oninput="renderBedPlantList(selectedBed, this.value)" style="margin-bottom:8px"/>
+            <div class="bed-list" id="bedPlantList"></div>
+          </div>
+
+          <div id="editFruchtfolgeSection" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--parchment)">
+            <div class="sidebar-title" style="margin-bottom:8px">📜 Fruchtfolge</div>
+            <div id="fruchtfolgeBox"></div>
+          </div>
+
+          <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--parchment)">
+            <div class="sidebar-title" style="margin-bottom:8px">📷 Foto-Tagebuch</div>
+            <div class="form-row" style="margin-bottom:6px">
+              <label>Datum</label>
+              <input type="date" id="bedPhotoDate"/>
+            </div>
+            <div class="form-row" style="margin-bottom:6px">
+              <label>Notiz (optional)</label>
+              <input type="text" id="bedPhotoNote" placeholder="z.B. nach dem Auspflanzen, erste Blüte..."/>
+            </div>
+            <input type="file" id="bedPhotoInput" accept="image/*" onchange="handleBedPhoto(event)"/>
+            <div id="bedPhotoGallery" style="margin-top:10px;display:flex;flex-direction:column;gap:8px"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -5344,6 +5360,69 @@ function selectColor(el) {
 }
 
 // ==================== BED EDITOR ====================
+function switchBedEditorTab(name) {
+  document.getElementById('bedTabEigenschaften').style.display = name === 'eigenschaften' ? '' : 'none';
+  document.getElementById('bedTabUebersicht').style.display = name === 'uebersicht' ? '' : 'none';
+  document.getElementById('btnBedTabEigenschaften').classList.toggle('active', name === 'eigenschaften');
+  document.getElementById('btnBedTabUebersicht').classList.toggle('active', name === 'uebersicht');
+  document.getElementById('btnBedTabEigenschaften').setAttribute('aria-selected', name === 'eigenschaften');
+  document.getElementById('btnBedTabUebersicht').setAttribute('aria-selected', name === 'uebersicht');
+}
+function renderBedPlantAddSuggestions(filter) {
+  const box = document.getElementById('bedPlantAddSuggestions');
+  if (!box) return;
+  filter = (filter || '').trim().toLowerCase();
+  if (!filter) { box.innerHTML = ''; return; }
+  const treffer = PLANTS.filter(p => p.name.toLowerCase().includes(filter)).slice(0, 12);
+  if (!treffer.length) { box.innerHTML = '<div class="empty-state" style="font-size:0.72rem">Keine Treffer.</div>'; return; }
+  box.innerHTML = treffer.map((p, i) =>
+    `<div class="bed-item" onclick="fuegePflanzeUeberSucheHinzu(${i})">
+      <span style="font-size:1rem">${p.sym}</span>
+      <span style="flex:1">${escapeHtml(p.name)}</span>
+      <span style="color:var(--moss);font-weight:600;">＋</span>
+    </div>`
+  ).join('');
+  window._bedPlantAddTreffer = treffer;
+}
+function fuegePflanzeUeberSucheHinzu(i) {
+  const treffer = window._bedPlantAddTreffer;
+  if (!treffer || !treffer[i] || !selectedBed) return;
+  const p = treffer[i];
+  const bed = selectedBed;
+  if (!bed.plants) bed.plants = [];
+  // Einfache Rasterplatzierung im Beet, damit mehrfach hinzugefügte Pflanzen nicht exakt übereinanderliegen
+  const halbW = bed.shape === 'circle' ? (bed.rx ?? 60) : (bed.w || 120) / 2;
+  const halbH = bed.shape === 'circle' ? (bed.ry ?? 60) : (bed.h || 80) / 2;
+  const spaltenBreite = 32;
+  const spalten = Math.max(1, Math.floor((halbW * 2 * 0.8) / spaltenBreite));
+  const index = bed.plants.length;
+  const spalte = index % spalten;
+  const zeile = Math.floor(index / spalten);
+  const rx = -halbW * 0.8 + spalte * spaltenBreite;
+  const ry = -halbH * 0.8 + zeile * spaltenBreite;
+  pushUndo();
+  bed.plants.push({ sym: p.sym, name: p.name, variety: '', rx, ry, notes: '', date: '', location: '', pest: '', solution: '' });
+  saveData(); draw(); updateStatus();
+  const newIdx = bed.plants.length - 1;
+  renderBedPlantList(bed, document.getElementById('bedPlantSearch')?.value || '');
+  document.getElementById('bedPlantAddSearch').value = '';
+  document.getElementById('bedPlantAddSuggestions').innerHTML = '';
+  const mischConflict = plantHasConflict(bed, newIdx);
+  const rotConflict = getFruchtfolgeWarning(bed, p.name);
+  if (mischConflict && rotConflict) {
+    showTempStatus(`✓ ${p.name} hinzugefügt – ⚠ Mischkultur-Konflikt UND Familie ${rotConflict.fam} stand ${rotConflict.yearsAgo===1?'letztes Jahr':`vor ${rotConflict.yearsAgo} Jahren`} hier.`, 8);
+  } else if (mischConflict) {
+    showTempStatus(`✓ ${p.name} hinzugefügt – ⚠ Mischkultur-Konflikt mit Nachbarn im Beet.`, 6);
+  } else if (rotConflict) {
+    showTempStatus(`✓ ${p.name} hinzugefügt – ⚠ Familie ${rotConflict.fam} stand ${rotConflict.yearsAgo===1?'letztes Jahr':`vor ${rotConflict.yearsAgo} Jahren`} hier – Fruchtfolge-Pause empfohlen.`, 7);
+  } else {
+    showTempStatus(`✓ ${p.name} zum Beet hinzugefügt.`, 3);
+  }
+}
+window.switchBedEditorTab = switchBedEditorTab;
+window.renderBedPlantAddSuggestions = renderBedPlantAddSuggestions;
+window.fuegePflanzeUeberSucheHinzu = fuegePflanzeUeberSucheHinzu;
+
 function showBedEditor(bed) {
   document.getElementById('selectedBedEditor').style.display='block';
   const istStruktur = bed.kind === 'struktur';
@@ -5352,6 +5431,10 @@ function showBedEditor(bed) {
   document.getElementById('editPlantSection').style.display = istStruktur ? 'none' : '';
   document.getElementById('editFruchtfolgeSection').style.display = istStruktur ? 'none' : '';
   document.getElementById('editDensityRow').style.display = istStruktur ? 'none' : '';
+  document.getElementById('btnBedTabUebersicht').style.display = istStruktur ? 'none' : '';
+  document.getElementById('bedPlantAddSearch').value = '';
+  document.getElementById('bedPlantAddSuggestions').innerHTML = '';
+  switchBedEditorTab('eigenschaften');
   document.getElementById('btnDeleteSelected').textContent = istStruktur ? '🗑 Element löschen' : '🗑 Beet löschen';
   document.getElementById('editName').value=bed.name||'';
   document.getElementById('editRot').value=bed.rotation||0;
