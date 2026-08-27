@@ -100,7 +100,9 @@
   .btn-help { background: transparent; border: 1px solid rgba(255,255,255,0.18); color: var(--leaf); width: 26px; height: 26px; border-radius: 50%; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; font-family: 'Inter', sans-serif; }
   .btn-help:hover { background: var(--moss); border-color: var(--moss); }
 
-  .toolbar { background: linear-gradient(135deg, var(--soil), #302512); border-bottom: none; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 10px 16px; display: flex; flex-wrap: wrap; gap: 7px; align-items: center; }
+  .toolbar { background: linear-gradient(135deg, var(--soil), #302512); border-bottom: none; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 10px 16px; display: flex; flex-wrap: nowrap; gap: 7px; align-items: center; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .toolbar::-webkit-scrollbar { display: none; }
+  .toolbar > * { flex-shrink: 0; }
   @media (max-width: 700px) {
     .tool-btn { padding: 7px 12px; font-size: 0.78rem; }
   }
@@ -502,8 +504,8 @@
       </div>
     </div>
     <div class="tool-sep"></div>
-    <button class="tool-btn" id="btnUndo" onclick="undo()" disabled title="Letzte Änderung rückgängig machen (Strg+Z)">↩ Undo</button>
-    <button class="tool-btn" id="btnRedo" onclick="redo()" disabled title="Rückgängig gemachte Änderung wiederherstellen (Strg+Umschalt+Z)">↪ Redo</button>
+    <button class="tool-btn" id="btnUndo" onclick="undo()" disabled title="Letzte Änderung rückgängig machen (Strg+Z)">↩ Rückgängig</button>
+    <button class="tool-btn" id="btnRedo" onclick="redo()" disabled title="Rückgängig gemachte Änderung wiederherstellen (Strg+Umschalt+Z)">↪ Wiederholen</button>
   </div>
 
   <div class="main">
@@ -5684,6 +5686,7 @@ function deleteFreiPflanzeIdx(e, i) {
 }
 function openFreiPflanzePanel(fp) {
   activeFreiPflanzeId = fp.id;
+  springeZuBeet(fp);
   document.getElementById('freiPflanzeTitel').textContent = (fp.sym||'🌳') + ' ' + (fp.name || 'Baum/Strauch');
   document.getElementById('fpName').value = fp.name || '';
   document.getElementById('fpSorte').value = fp.sorte || '';
