@@ -159,7 +159,7 @@
   .sidebar::-webkit-scrollbar-track, .modal::-webkit-scrollbar-track, .plant-panel::-webkit-scrollbar-track { background: transparent; }
   .sidebar::-webkit-scrollbar-thumb, .modal::-webkit-scrollbar-thumb, .plant-panel::-webkit-scrollbar-thumb { background: var(--parchment); border-radius: 10px; }
   .sidebar::-webkit-scrollbar-thumb:hover, .modal::-webkit-scrollbar-thumb:hover, .plant-panel::-webkit-scrollbar-thumb:hover { background: var(--bark); }
-  .sidebar-section { border-bottom: 1px solid var(--parchment); padding: 15px 16px; }
+  .sidebar-section { border-bottom: 1px solid var(--parchment); padding: 15px 20px; }
   .sidebar-title { font-family: 'Playfair Display', serif; font-size: 0.9rem; color: var(--moss); margin-bottom: 11px; }
   .form-row { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
   .form-row label { font-size: 0.7rem; color: var(--bark); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
@@ -171,7 +171,9 @@
   .btn-secondary { background: transparent; color: var(--moss); border: 1px solid var(--moss); border-radius: var(--radius-pill); padding: 8px 12px; font-size: 0.78rem; font-family: 'Inter', sans-serif; font-weight: 700; cursor: pointer; width: 100%; margin-top: 5px; transition: all 0.15s; }
   .btn-secondary:hover { background: var(--moss); color: white; box-shadow: var(--shadow-soft); }
 
-  .color-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+  .color-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; padding: 2px 6px; }
+  .sidebar-section input[type="range"] { margin: 0 10px; }
+  .rotation-wrap input[type="range"] { flex: 1; min-width: 0; }
   .color-swatch { width: 24px; height: 24px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: transform 0.1s, border-color 0.1s; }
   .color-swatch:hover { transform: scale(1.15); }
   .color-swatch.selected { border-color: var(--soil); }
