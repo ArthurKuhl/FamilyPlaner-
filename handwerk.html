@@ -1369,7 +1369,7 @@
     if (!items || !items.length) { el.textContent = 'Aktuell keine News verfügbar.'; return; }
     el.innerHTML = items.map(i => {
       const datum = i.pubDate ? new Date(i.pubDate.replace(' ', 'T')).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '';
-      const bild = i.thumbnail ? '<img src="' + i.thumbnail + '" alt="" style="width:56px;height:56px;object-fit:cover;border-radius:8px;flex-shrink:0;">' : '';
+      const bild = i.thumbnail ? '<img src="' + i.thumbnail + '" alt="" onerror="this.remove()" style="width:56px;height:56px;object-fit:cover;border-radius:8px;flex-shrink:0;">' : '';
       return '<div style="display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid #eee5d0;">' +
         bild +
         '<div style="flex:1;min-width:0;">' +

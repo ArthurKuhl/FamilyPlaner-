@@ -244,7 +244,7 @@
       if (!items || !items.length) { el.innerHTML = '<div class="leer-hinweis">Aktuell keine News verfügbar.</div>'; return; }
       el.innerHTML = items.map(i => {
         const datum = i.pubDate ? new Date(i.pubDate.replace(' ', 'T')).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '';
-        const bild = i.thumbnail ? '<img src="' + i.thumbnail + '" alt="">' : '';
+        const bild = i.thumbnail ? '<img src="' + i.thumbnail + '" alt="" onerror="this.remove()">' : '';
         return '<div class="news-eintrag">' + bild +
           '<div><a href="' + i.link + '" target="_blank" rel="noopener">' + escapeHtml(i.title) + '</a>' +
           (datum ? '<div class="datum">' + datum + '</div>' : '') + '</div></div>';
@@ -281,7 +281,6 @@
     calw: { url: 'https://news.google.com/rss/search?q=Calw&hl=de&gl=DE&ceid=DE:de', cacheKey: 'nachrichten_regional_calw', label: 'Calw', linkZielseite: 'https://news.google.com/search?q=Calw&hl=de&gl=DE' },
     karlsruhe: { url: 'https://news.google.com/rss/search?q=Karlsruhe&hl=de&gl=DE&ceid=DE:de', cacheKey: 'nachrichten_regional_karlsruhe', label: 'Karlsruhe', linkZielseite: 'https://news.google.com/search?q=Karlsruhe&hl=de&gl=DE' },
     stuttgart: { url: 'https://news.google.com/rss/search?q=Stuttgart&hl=de&gl=DE&ceid=DE:de', cacheKey: 'nachrichten_regional_stuttgart', label: 'Stuttgart', linkZielseite: 'https://news.google.com/search?q=Stuttgart&hl=de&gl=DE' },
-    sindelfingen: { url: 'https://news.google.com/rss/search?q=Sindelfingen&hl=de&gl=DE&ceid=DE:de', cacheKey: 'nachrichten_regional_sindelfingen', label: 'Sindelfingen', linkZielseite: 'https://news.google.com/search?q=Sindelfingen&hl=de&gl=DE' },
   };
   const NATIONAL_QUELLEN = {
     tagesschau: { url: 'https://www.tagesschau.de/xml/rss2', cacheKey: 'nachrichten_national_tagesschau', label: 'Tagesschau', linkZielseite: 'https://www.tagesschau.de' },
@@ -301,7 +300,6 @@
     nhk: { url: 'https://www3.nhk.or.jp/rss/news/cat0.xml', cacheKey: 'nachrichten_international_nhk', label: '🇯🇵 NHK', linkZielseite: 'https://www3.nhk.or.jp/news/' },
     nhkworld: { url: 'https://www3.nhk.or.jp/nhkworld/en/news/feeds/', cacheKey: 'nachrichten_international_nhkworld', label: '🇯🇵 NHK World Japan', linkZielseite: 'https://www3.nhk.or.jp/nhkworld/en/news/' },
     kyodo: { url: 'https://english.kyodonews.net/rss/news.xml', cacheKey: 'nachrichten_international_kyodo', label: '🇯🇵 Kyodo News', linkZielseite: 'https://english.kyodonews.net' },
-    jiji: { url: 'https://www.jiji.com/rss/ranking.rdf', cacheKey: 'nachrichten_international_jiji', label: '🇯🇵 Jiji Press', linkZielseite: 'https://www.jiji.com' },
   };
 
   const kategorien = {
