@@ -40,6 +40,12 @@
   html[data-farbschema="bernstein"] {
     --navbg: #1c1f24; --navbg2: #2b2f36; --sage: #e6c878; --leaf: #e6c878; --moss: #c9a24d;
   }
+  /* Im Dunkelmodus soll der Hauptbereich bei allen Nicht-Wald-Farbthemen ebenfalls
+     neutral-anthrazit statt warm-braun sein, damit Header und Inhalt zusammenpassen. */
+  html[data-dark="1"][data-farbschema] {
+    --cream: #191b1f; --parchment: #24262c; --white: #2a2d33;
+    --soil: #eceef0; --bark: #a7acb5;
+  }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Inter', sans-serif; background: var(--cream); color: var(--soil); min-height: 100vh; padding-bottom: 40px; }
 
