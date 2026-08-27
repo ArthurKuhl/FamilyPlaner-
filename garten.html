@@ -5635,10 +5635,22 @@ function renderBedList() {
     </div>`;
   }).join('');
 }
+function springeZuBeet(bed) {
+  const ZIEL_ZOOM = 1.5; // fester, gut lesbarer Zoom beim Springen aus der Liste
+  gartenZoomSetzen(ZIEL_ZOOM);
+  setTimeout(() => {
+    const wrap = document.getElementById('canvasWrap');
+    if (!wrap) return;
+    const zielX = bed.x * gartenZoom - wrap.clientWidth / 2;
+    const zielY = bed.y * gartenZoom - wrap.clientHeight / 2;
+    wrap.scrollTo({ left: Math.max(0, zielX), top: Math.max(0, zielY), behavior: 'smooth' });
+  }, 50);
+}
 function selectBedFromList(i, e){
   const bed = getCurrentBeds()[i];
   if (e && e.shiftKey) { toggleBedSelection(bed); draw(); renderBedList(); switchTab('beds'); return; }
   selectedBed=bed; selectedBeds=[bed]; showBedEditor(bed); hideBulkBar(); draw(); switchTab('beds'); renderBedList();
+  springeZuBeet(bed);
 }
 function deleteBedIdx(e,i){
   e.stopPropagation();
