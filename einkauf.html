@@ -1070,7 +1070,7 @@
   document.getElementById('modalVorlagen').addEventListener('click', (e) => { if (e.target.id === 'modalVorlagen') e.currentTarget.classList.remove('zeigen'); });
 
   // ==================== NEWSFEED: Aktuelle Schnäppchen (mydealz.de) ====================
-  const RSS2JSON_KEY = 'gzgrcvnabxmmjjevo0nlsuucc1bl9qzizlvuzjkq'; // eigener kostenloser Key von rss2json.com
+  const RSS2JSON_KEY = '6zx19ykzlwnfnczhqsz0l5pwnibgohck0sfbxhro'; // eigener Key, separat vom Rest der App, wegen Kontingent-Trennung
   function entitiesDekodieren(str) { if (!str) return str; const ta = document.createElement('textarea'); ta.innerHTML = str; return ta.value; }
   const DEALS_FEED_QUELLEN = {
     mydealz: {
