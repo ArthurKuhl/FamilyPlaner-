@@ -95,11 +95,11 @@
   header::after { content: ''; position: absolute; left: 0; right: 0; bottom: -3px; height: 3px; background: linear-gradient(90deg, var(--moss), var(--sage) 35%, var(--leaf) 65%, var(--moss)); opacity: 0.85; }
   header h1 { font-family: 'Playfair Display', serif; font-size: 1.32rem; letter-spacing: 0.02em; display: flex; align-items: baseline; gap: 8px; }
   header h1 .hdr-sub { font-family: 'Inter', sans-serif; font-size: 0.66rem; font-weight: 500; color: var(--sage); letter-spacing: 0.03em; text-transform: uppercase; }
-  header .hdr-right { display: flex; align-items: center; gap: 10px; min-width: 0; }
-  #statusMsg { font-size: 0.72rem; color: var(--leaf); background: rgba(255,255,255,0.08); padding: 4px 12px; border-radius: var(--radius-pill); transition: all 0.2s; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 46vw; }
+  header .hdr-right { display: flex; align-items: center; gap: 10px; min-width: 0; flex-wrap: nowrap; }
+  #statusMsg { font-size: 0.72rem; color: var(--leaf); background: rgba(255,255,255,0.08); padding: 4px 12px; border-radius: var(--radius-pill); transition: all 0.2s; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 120px; align-self: center; }
   @media (max-width: 360px) {
     header h1 .hdr-sub { display: none; }
-    #statusMsg { max-width: 36vw; padding: 4px 8px; font-size: 0.66rem; }
+    #statusMsg { max-width: 90px; padding: 4px 8px; font-size: 0.66rem; }
   }
   .btn-help { background: transparent; border: 1px solid rgba(255,255,255,0.18); color: var(--leaf); width: 26px; height: 26px; border-radius: 50%; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; font-family: 'Inter', sans-serif; }
   .btn-help:hover { background: var(--moss); border-color: var(--moss); }
