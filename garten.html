@@ -375,6 +375,13 @@
   /* KOSTEN / VORRAT (nutzen shop-entry/seed-entry Struktur) */
   .shop-entry.pantry-consumed { opacity: 0.5; border-left-color: var(--parchment); }
   .pantry-tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+
+  /* Kopfzeile kompakter: Icons rücken näher zusammen, Titel bekommt den
+     verfügbaren Platz zugewiesen. Kein overflow/ellipsis hier, da h1 in
+     diesem Modul selbst ein Flex-Container ist (Blatt+Titel+Untertitel) –
+     das verträgt sich nicht mit text-overflow und würde die Zeile umbrechen. */
+  header .hdr-right { gap: 4px !important; }
+  header h1 { flex: 1 1 auto; min-width: 0; }
 </style>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
@@ -3900,13 +3907,7 @@ function exportLabels() {
     .label-date{font-size:0.68rem;color:#6b5d4a;margin-top:2px;}
     .label-bed{font-size:0.62rem;color:#9a8a72;margin-top:3px;border-top:1px solid #e8e0c8;padding-top:2px;width:80%;}
     @media print{ body{margin:8mm;} .label-card{border:1px dashed #aaa;} }
-  
-  /* Kopfzeile kompakter: Modulname bleibt immer einzeilig (notfalls mit ...),
-     Icons rücken näher zusammen. Ergänzt auf Arthurs Wunsch, robust über alle
-     leicht unterschiedlichen Header-Varianten der Module hinweg. */
-  header.top .titel-zeile, header .hdr-right { gap: 4px !important; }
-  header.top .titel-zeile h1, header h1 { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-</style></head><body>
+  </style></head><body>
     <div class="label-grid">${cardsHtml}</div>
   </body></html>`;
 
