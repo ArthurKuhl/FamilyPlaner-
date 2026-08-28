@@ -402,6 +402,7 @@
       <input type="text" id="fSkizzeName" placeholder="z.B. Grundriss, Seitenansicht...">
     </div>
     <div id="skizzeToolbar" style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px"></div>
+    <div id="skizzeAuswahlleiste" style="display:none;gap:6px;margin-bottom:8px"></div>
     <div style="border:1px solid var(--parchment);border-radius:8px;overflow:hidden;touch-action:none">
       <canvas id="skizzeCanvas" width="800" height="500" style="width:100%;height:auto;display:block;background:#fff;cursor:crosshair"></canvas>
     </div>
@@ -776,6 +777,9 @@
   let skizzeRasterAn = false;
   let skizzeZeichnung = null;
   let skizzeZeichnet = false;
+  let skizzeAusgewaehlt = null;
+  let skizzeZiehStart = null;
+  let skizzeZiehtGerade = false;
 
   const skizzeCanvas = document.getElementById('skizzeCanvas');
   const skizzeCtx = skizzeCanvas.getContext('2d');
@@ -824,6 +828,61 @@
     }
   }
 
+  function skizzeDistanzPunktZuStrecke(p, a, b) {
+    const dx = b.x - a.x, dy = b.y - a.y;
+    const len2 = dx * dx + dy * dy;
+    if (len2 === 0) return Math.hypot(p.x - a.x, p.y - a.y);
+    let t = ((p.x - a.x) * dx + (p.y - a.y) * dy) / len2;
+    t = Math.max(0, Math.min(1, t));
+    return Math.hypot(p.x - (a.x + t * dx), p.y - (a.y + t * dy));
+  }
+  function skizzeShapeBounds(s) {
+    if (s.type === 'text') {
+      skizzeCtx.font = (s.width * 6 + 10) + 'px sans-serif';
+      const w = skizzeCtx.measureText(s.text || '').width;
+      const h = s.width * 6 + 10;
+      return { minX: s.points[0].x - 2, minY: s.points[0].y - h, maxX: s.points[0].x + w + 2, maxY: s.points[0].y + 4 };
+    }
+    const xs = s.points.map(p => p.x), ys = s.points.map(p => p.y);
+    const pad = Math.max(10, s.width);
+    return { minX: Math.min(...xs) - pad, minY: Math.min(...ys) - pad, maxX: Math.max(...xs) + pad, maxY: Math.max(...ys) + pad };
+  }
+  function skizzeShapeTreffer(s, pos) {
+    const b = skizzeShapeBounds(s);
+    if (pos.x < b.minX || pos.x > b.maxX || pos.y < b.minY || pos.y > b.maxY) return false;
+    if (s.type === 'rect' || s.type === 'text') return true;
+    if (s.type === 'circle') {
+      const [a, b2] = s.points;
+      const rx = Math.abs(b2.x - a.x) / 2, ry = Math.abs(b2.y - a.y) / 2;
+      const cx = (a.x + b2.x) / 2, cy = (a.y + b2.y) / 2;
+      const dx = (pos.x - cx) / Math.max(rx, 1), dy = (pos.y - cy) / Math.max(ry, 1);
+      return (dx * dx + dy * dy) <= 1.25;
+    }
+    const toleranz = Math.max(12, s.width * 2);
+    for (let i = 1; i < s.points.length; i++) {
+      if (skizzeDistanzPunktZuStrecke(pos, s.points[i - 1], s.points[i]) <= toleranz) return true;
+    }
+    return s.points.length === 1;
+  }
+  function skizzeShapeAnPosition(pos) {
+    for (let i = skizzeShapes.length - 1; i >= 0; i--) {
+      if (skizzeShapeTreffer(skizzeShapes[i], pos)) return skizzeShapes[i];
+    }
+    return null;
+  }
+  function skizzeVerschiebe(s, dx, dy) {
+    s.points.forEach(p => { p.x += dx; p.y += dy; });
+  }
+  function skizzeZeichneAuswahlrahmen(s) {
+    const b = skizzeShapeBounds(s);
+    skizzeCtx.save();
+    skizzeCtx.strokeStyle = '#c46b41';
+    skizzeCtx.lineWidth = 1.5;
+    skizzeCtx.setLineDash([6, 4]);
+    skizzeCtx.strokeRect(b.minX, b.minY, b.maxX - b.minX, b.maxY - b.minY);
+    skizzeCtx.restore();
+  }
+
   function skizzeNeuZeichnen() {
     skizzeCtx.clearRect(0, 0, skizzeCanvas.width, skizzeCanvas.height);
     skizzeCtx.fillStyle = '#ffffff';
@@ -831,11 +890,20 @@
     skizzeZeichneRaster();
     skizzeShapes.forEach(skizzeZeichneShape);
     if (skizzeZeichnung) skizzeZeichneShape(skizzeZeichnung);
+    if (skizzeAusgewaehlt) skizzeZeichneAuswahlrahmen(skizzeAusgewaehlt);
   }
 
   function skizzeStart(e) {
     e.preventDefault();
     const pos = skizzeCanvasPos(e);
+    if (skizzeTool === 'select') {
+      const treffer = skizzeShapeAnPosition(pos);
+      skizzeAusgewaehlt = treffer;
+      if (treffer) { skizzeZiehStart = pos; skizzeZiehtGerade = true; }
+      skizzeNeuZeichnen();
+      skizzeAuswahlleisteRendern();
+      return;
+    }
     if (skizzeTool === 'text') {
       const text = prompt('Text eingeben:');
       if (text) { skizzeShapes.push({ type: 'text', points: [pos], text, color: skizzeFarbe, width: skizzeStrichstaerke }); skizzeNeuZeichnen(); }
@@ -846,6 +914,15 @@
     skizzeZeichnung = { type: typ, points: [pos], color: skizzeFarbe, width: skizzeTool === 'radierer' ? skizzeStrichstaerke * 4 : skizzeStrichstaerke };
   }
   function skizzeMove(e) {
+    if (skizzeTool === 'select') {
+      if (!skizzeZiehtGerade || !skizzeAusgewaehlt || !skizzeZiehStart) return;
+      e.preventDefault();
+      const pos = skizzeCanvasPos(e);
+      skizzeVerschiebe(skizzeAusgewaehlt, pos.x - skizzeZiehStart.x, pos.y - skizzeZiehStart.y);
+      skizzeZiehStart = pos;
+      skizzeNeuZeichnen();
+      return;
+    }
     if (!skizzeZeichnet || !skizzeZeichnung) return;
     e.preventDefault();
     const pos = skizzeCanvasPos(e);
@@ -854,6 +931,7 @@
     skizzeNeuZeichnen();
   }
   function skizzeEnde() {
+    if (skizzeTool === 'select') { skizzeZiehtGerade = false; skizzeZiehStart = null; return; }
     if (!skizzeZeichnet || !skizzeZeichnung) { skizzeZeichnet = false; return; }
     skizzeZeichnet = false;
     if (skizzeZeichnung.points.length >= 2 || skizzeZeichnung.type === 'freehand' || skizzeZeichnung.type === 'eraser') skizzeShapes.push(skizzeZeichnung);
@@ -868,6 +946,7 @@
     const box = document.getElementById('skizzeToolbar');
     box.innerHTML = '';
     const werkzeuge = [
+      { id: 'select', label: '🖐 Auswählen' },
       { id: 'stift', label: '✏️ Stift' },
       { id: 'line', label: '／ Linie' },
       { id: 'rect', label: '▭ Rechteck' },
@@ -882,7 +961,12 @@
       btn.className = 'opt' + (aktiv ? ' aktiv' : '');
       if (aktiv) btn.style.background = 'var(--moss)';
       btn.textContent = w.label;
-      btn.addEventListener('click', () => { skizzeTool = w.id; skizzeToolbarRendern(); });
+      btn.addEventListener('click', () => {
+        skizzeTool = w.id;
+        if (w.id !== 'select') { skizzeAusgewaehlt = null; skizzeNeuZeichnen(); }
+        skizzeToolbarRendern();
+        skizzeAuswahlleisteRendern();
+      });
       box.appendChild(btn);
     });
     const farbe = document.createElement('input');
@@ -918,6 +1002,36 @@
     box.appendChild(clearBtn);
   }
 
+  function skizzeAuswahlleisteRendern() {
+    const box = document.getElementById('skizzeAuswahlleiste');
+    if (skizzeTool !== 'select' || !skizzeAusgewaehlt) { box.style.display = 'none'; box.innerHTML = ''; return; }
+    box.style.display = 'flex';
+    box.innerHTML = '';
+    const dupBtn = document.createElement('button');
+    dupBtn.type = 'button'; dupBtn.className = 'opt';
+    dupBtn.textContent = '📋 Duplizieren';
+    dupBtn.addEventListener('click', () => {
+      const kopie = JSON.parse(JSON.stringify(skizzeAusgewaehlt));
+      skizzeVerschiebe(kopie, 16, 16);
+      skizzeShapes.push(kopie);
+      skizzeAusgewaehlt = kopie;
+      skizzeNeuZeichnen();
+      skizzeAuswahlleisteRendern();
+    });
+    box.appendChild(dupBtn);
+    const delBtn = document.createElement('button');
+    delBtn.type = 'button'; delBtn.className = 'opt';
+    delBtn.style.color = '#c46b41';
+    delBtn.textContent = '🗑 Löschen';
+    delBtn.addEventListener('click', () => {
+      skizzeShapes = skizzeShapes.filter(s => s !== skizzeAusgewaehlt);
+      skizzeAusgewaehlt = null;
+      skizzeNeuZeichnen();
+      skizzeAuswahlleisteRendern();
+    });
+    box.appendChild(delBtn);
+  }
+
   function skizzeOeffnen(projektId, skizzeId) {
     skizzeProjektId = projektId;
     skizzeBearbeiteId = skizzeId || null;
@@ -928,7 +1042,9 @@
     document.getElementById('skizzeTitelKopf').textContent = bestehend ? 'Skizze bearbeiten' : 'Neue Skizze';
     document.getElementById('skizzeLoeschZeile').style.display = bestehend ? '' : 'none';
     skizzeTool = 'stift';
+    skizzeAusgewaehlt = null;
     skizzeToolbarRendern();
+    skizzeAuswahlleisteRendern();
     skizzeNeuZeichnen();
     document.getElementById('modalSkizze').classList.add('zeigen');
   }
