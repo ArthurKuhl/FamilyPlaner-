@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<script>(function(){try{var m=localStorage.getItem('planer_darkMode');if(m==='dunkel'||(m==='auto'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.setAttribute('data-dark','1');}var s=localStorage.getItem('planer_schriftgroesse');if(s==='gross'){document.documentElement.style.fontSize='19px';}var f=localStorage.getItem('planer_farbschema');if(f&&f!=='wald'){document.documentElement.setAttribute('data-farbschema',f);}}catch(e){}})();</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finanzen</title>
+<script src="personen.js"></script>
+<script src="sync.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap');
+  :root {
+    --soil: #3a2e1f; --moss: #4f6f45; --sage: #7fa476; --leaf: #bcd196;
+    --cream: #faf6ec; --parchment: #ece0c7; --bark: #7d6339;
+    --terracotta: #c46b41; --terracotta-text: #a8532e; --sky: #5b8bb5;
+    --white: #fffdf8; --navbg: #2a2016; --navbg2: #3a2e1f;
+    --radius-sm: 8px; --radius-md: 12px; --radius-lg: 18px; --radius-pill: 22px;
+    --shadow-soft: 0 2px 10px rgba(59,47,30,0.08); --shadow-md: 0 8px 26px rgba(59,47,30,0.2);
+  }
+  html[data-dark="1"] {
+    --soil: #f0e8d8; --moss: #6fae5e; --sage: #9bc98a; --leaf: #cfe3b8;
+    --cream: #1e1b16; --parchment: #2b261e; --bark: #c2b393;
+    --terracotta: #d9855a; --terracotta-text: #e8a37e; --sky: #7fa8cc; --gold: #dcb158;
+    --white: #2f2a22; --navbg: #14100c; --navbg2: #221a12;
+  }
+  html[data-farbschema="ozean"] { --navbg: #1c1f24; --navbg2: #2b2f36; --sage: #8fd4c9; --leaf: #8fd4c9; --moss: #4fa89c; }
+  html[data-farbschema="schnee"] { --navbg: #1c1f24; --navbg2: #2b2f36; --sage: #c9cdd3; --leaf: #f0f0f2; --moss: #5b5f66; }
+  html[data-farbschema="fjord"] { --navbg: #1c1f24; --navbg2: #2b2f36; --sage: #9cc0ec; --leaf: #9cc0ec; --moss: #5b8bc9; }
+  html[data-farbschema="bernstein"] { --navbg: #1c1f24; --navbg2: #2b2f36; --sage: #e6c878; --leaf: #e6c878; --moss: #c9a24d; }
+  html[data-dark="1"][data-farbschema] { --cream: #191b1f; --parchment: #24262c; --white: #2a2d33; --soil: #eceef0; --bark: #a7acb5; }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--cream); color: var(--soil); min-height: 100vh; padding-bottom: 40px; }
+  button, input, select, textarea { font-family: inherit; -webkit-tap-highlight-color: transparent; }
+  :focus-visible { outline: 2px solid var(--terracotta); outline-offset: 2px; border-radius: 4px; }
+
+  .theme-btn { background: none; border: none; color: var(--leaf); font-size: 0.95rem; cursor: pointer; padding: 3px 4px; flex-shrink: 0; }
+  .theme-popup { display: none; position: absolute; right: 12px; top: 54px; background: var(--white); border-radius: var(--radius-md); box-shadow: var(--shadow-md); padding: 10px; z-index: 50; }
+  .theme-popup.zeigen { display: flex; gap: 8px; flex-wrap: wrap; max-width: 216px; }
+  .theme-swatch { width: 40px; height: 40px; border-radius: var(--radius-sm); border: 2px solid transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; background: var(--cream); }
+  .theme-swatch.aktiv { border-color: var(--moss); }
+  .theme-farbe-trenner { flex-basis: 100%; height: 1px; background: rgba(0,0,0,0.08); margin: 2px 0; }
+  .theme-swatch.farbe { border: 2px solid rgba(0,0,0,0.1); }
+  .theme-swatch.farbe.aktiv { border-color: var(--moss); border-width: 3px; }
+  .theme-farbe-custom { position: relative; overflow: hidden; background: conic-gradient(red,yellow,lime,cyan,blue,magenta,red); }
+  .theme-farbe-custom-input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; border: none; padding: 0; }
+
+  header.top { position: relative; background: linear-gradient(135deg, var(--navbg2), var(--navbg)); color: var(--leaf); padding: 10px 12px; }
+  header.top::after { content: ''; position: absolute; left: 0; right: 0; bottom: -3px; height: 3px; background: linear-gradient(90deg, var(--moss), var(--sage) 35%, var(--leaf) 65%, var(--moss)); opacity: 0.85; z-index: 1; }
+  .titel-zeile { display: flex; align-items: center; justify-content: flex-end; gap: 4px; margin-bottom: 8px; }
+  .titel-zeile h1 { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 700; flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .view-toggle { background: #1e160f; border-radius: var(--radius-pill); padding: 3px; display: flex; gap: 2px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; max-width: 100%; }
+  .view-toggle::-webkit-scrollbar { display: none; }
+  .view-toggle button { border: none; background: transparent; color: var(--sage); font-size: 0.75rem; font-weight: 600; padding: 6px 14px; border-radius: var(--radius-pill); cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+  .view-toggle button.active { background: var(--moss); color: var(--leaf); }
+
+  main { padding: 12px 14px; max-width: 640px; margin: 0 auto; }
+  @media (min-width: 1000px) { main { max-width: 900px; } }
+
+  .karte { background: var(--white); border-radius: var(--radius-md); padding: 14px; margin-bottom: 12px; box-shadow: var(--shadow-soft); }
+  .karte h3 { font-family: 'Playfair Display', serif; font-size: 0.95rem; margin-bottom: 10px; color: var(--soil); }
+  .feld { margin-bottom: 10px; }
+  .feld label { display: block; font-size: 0.78rem; color: var(--bark); margin-bottom: 4px; font-weight: 600; }
+  .feld input, .feld select, .feld textarea { width: 100%; padding: 9px 10px; border-radius: var(--radius-sm); border: 1px solid var(--parchment); font-size: 0.88rem; background: var(--cream); color: var(--soil); }
+  .btn { padding: 9px 16px; border-radius: var(--radius-pill); border: none; font-weight: 600; font-size: 0.85rem; cursor: pointer; }
+  .btn-primary { background: var(--moss); color: var(--leaf); }
+  .btn-secondary { background: var(--parchment); color: var(--soil); }
+  .btn-danger { background: none; border: 1px solid var(--terracotta-text); color: var(--terracotta-text); }
+  .fab { position: fixed; right: 18px; bottom: 24px; width: 54px; height: 54px; border-radius: 50%; background: var(--terracotta); color: #fff; border: none; font-size: 1.6rem; box-shadow: var(--shadow-md); cursor: pointer; z-index: 40; }
+
+  .kat-zeile { padding: 10px 0; border-bottom: 1px solid var(--parchment); }
+  .kat-zeile:last-child { border-bottom: none; }
+  .kat-kopf { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .kat-name { font-weight: 700; font-size: 0.88rem; }
+  .kat-betrag { font-size: 0.78rem; color: var(--bark); }
+  .kat-betrag.ueber { color: var(--terracotta-text); font-weight: 700; }
+  .balken-wrap { height: 8px; background: var(--parchment); border-radius: 5px; overflow: hidden; }
+  .balken { height: 100%; background: var(--moss); border-radius: 5px; transition: width 0.2s; }
+  .balken.ueber { background: var(--terracotta); }
+
+  .konto-karte { background: linear-gradient(135deg, var(--moss), var(--sage)); color: var(--leaf); border-radius: var(--radius-lg); padding: 18px; margin-bottom: 12px; }
+  .konto-karte .konto-name { font-size: 0.85rem; font-weight: 600; opacity: 0.9; }
+  .konto-karte .konto-stand { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 700; margin: 4px 0; }
+  .konto-karte .konto-info { font-size: 0.7rem; opacity: 0.85; }
+
+  .buchungs-zeile { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--parchment); gap: 8px; }
+  .buchungs-zeile:last-child { border-bottom: none; }
+  .buchungs-info { flex: 1; min-width: 0; }
+  .buchungs-titel { font-size: 0.85rem; font-weight: 600; }
+  .buchungs-datum { font-size: 0.7rem; color: var(--bark); }
+  .buchungs-betrag { font-weight: 700; font-size: 0.9rem; white-space: nowrap; }
+  .buchungs-betrag.plus { color: var(--moss); }
+  .buchungs-betrag.minus { color: var(--terracotta-text); }
+  .loeschen-btn { background: none; border: none; color: var(--bark); font-size: 0.9rem; cursor: pointer; padding: 2px 6px; flex-shrink: 0; }
+
+  .abo-zeile { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--parchment); gap: 8px; }
+  .abo-zeile:last-child { border-bottom: none; }
+  .abo-info { flex: 1; min-width: 0; }
+  .abo-name { font-weight: 700; font-size: 0.88rem; }
+  .abo-details { font-size: 0.74rem; color: var(--bark); }
+  .abo-betrag { font-weight: 700; font-size: 0.9rem; white-space: nowrap; }
+
+  .leer-hinweis { text-align: center; color: var(--soil); font-size: 0.85rem; padding: 40px 16px; font-weight: 500; }
+  .leer-hinweis .em { font-size: 2.2rem; display: block; margin-bottom: 8px; }
+
+  .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center; padding: 16px; }
+  .modal-bg.zeigen { display: flex; }
+  .modal { background: var(--white); border-radius: var(--radius-lg); padding: 20px; max-width: 420px; width: 100%; max-height: 88vh; overflow-y: auto; }
+  .modal h2 { font-family: 'Playfair Display', serif; font-size: 1.1rem; margin-bottom: 14px; }
+  .modal-btns { display: flex; gap: 8px; margin-top: 14px; justify-content: flex-end; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="titel-zeile">
+    <h1>💶 Finanzen</h1>
+    <button class="theme-btn" id="btnThemeAuswahl" title="Hintergrundmuster wählen">🎨</button>
+  </div>
+  <div class="view-toggle" role="tablist">
+    <button id="btnTabBudget" class="active" role="tab" aria-selected="true">📊 Budget</button>
+    <button id="btnTabTaschengeld" role="tab" aria-selected="false">💰 Taschengeld</button>
+    <button id="btnTabAbos" role="tab" aria-selected="false">🔁 Abos & Rechnungen</button>
+  </div>
+</header>
+<div class="theme-popup" id="themePopup">
+  <div class="theme-swatch" data-theme="" title="Kein Muster">✕</div>
+  <div class="theme-farbe-trenner"></div>
+  <div class="theme-swatch farbe" data-theme="farbe:#f7d9dd" style="background:#f7d9dd" title="Pastell Rosa"></div>
+  <div class="theme-swatch farbe" data-theme="farbe:#d9ebf7" style="background:#d9ebf7" title="Pastell Blau"></div>
+  <div class="theme-swatch farbe" data-theme="farbe:#dcefd9" style="background:#dcefd9" title="Pastell Grün"></div>
+  <div class="theme-swatch farbe" data-theme="farbe:#f7ecd9" style="background:#f7ecd9" title="Pastell Gelb"></div>
+  <div class="theme-swatch farbe" data-theme="farbe:#e8d9f7" style="background:#e8d9f7" title="Pastell Lila"></div>
+  <div class="theme-swatch farbe" data-theme="farbe:#f7d9c4" style="background:#f7d9c4" title="Pastell Pfirsich"></div>
+  <div class="theme-swatch farbe" data-theme="farbe:#a8dadc" style="background:#a8dadc" title="Türkis"></div>
+  <div class="theme-swatch farbe" data-theme="farbe:#f4a261" style="background:#f4a261" title="Koralle"></div>
+  <label class="theme-swatch farbe theme-farbe-custom" title="Eigene Farbe">
+    <input type="color" class="theme-farbe-custom-input" value="#f7d9dd">
+  </label>
+</div>
+
+<main>
+  <!-- BUDGET -->
+  <section id="ansichtBudget">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
+      <button class="btn btn-secondary" id="btnKategorieNeu" style="font-size:0.76rem;padding:6px 12px;">＋ Kategorie</button>
+    </div>
+    <div class="karte">
+      <h3>Kategorien diesen Monat</h3>
+      <div id="kategorienListe"></div>
+      <div id="kategorienLeer" class="leer-hinweis" style="display:none;padding:16px 8px;"><span class="em">📊</span>Noch keine Kategorien angelegt.</div>
+    </div>
+    <div class="karte">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <h3 style="margin:0;">Letzte Ausgaben</h3>
+        <button class="btn btn-primary" id="btnAusgabeNeu" style="font-size:0.76rem;padding:6px 12px;">＋ Ausgabe</button>
+      </div>
+      <div id="ausgabenListe"></div>
+      <div id="ausgabenLeer" class="leer-hinweis" style="display:none;padding:16px 8px;"><span class="em">🧾</span>Noch keine Ausgaben erfasst.</div>
+    </div>
+  </section>
+
+  <!-- TASCHENGELD -->
+  <section id="ansichtTaschengeld" style="display:none;">
+    <div id="taschengeldKonten"></div>
+    <div id="taschengeldLeer" class="leer-hinweis" style="display:none;"><span class="em">💰</span>Noch kein Taschengeld-Konto eingerichtet.</div>
+    <div style="display:flex;justify-content:center;margin-top:8px;">
+      <button class="btn btn-secondary" id="btnTaschengeldKontoNeu">＋ Konto einrichten</button>
+    </div>
+  </section>
+
+  <!-- ABOS & RECHNUNGEN -->
+  <section id="ansichtAbos" style="display:none;">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
+      <button class="btn btn-primary" id="btnAboNeu" style="font-size:0.76rem;padding:6px 12px;">＋ Abo/Rechnung</button>
+    </div>
+    <div class="karte">
+      <h3>Wiederkehrende Zahlungen</h3>
+      <div id="abosListe"></div>
+      <div id="abosLeer" class="leer-hinweis" style="display:none;padding:16px 8px;"><span class="em">🔁</span>Noch keine Abos oder Rechnungen erfasst.</div>
+    </div>
+    <div class="karte" id="abosSummeKarte" style="display:none;">
+      <h3>Monatliche Gesamtbelastung</h3>
+      <div style="font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;" id="abosSumme"></div>
+    </div>
+  </section>
+</main>
+
+<!-- MODAL: Neue Kategorie -->
+<div class="modal-bg" id="modalKategorie">
+  <div class="modal">
+    <h2>Kategorie anlegen</h2>
+    <div class="feld"><label>Icon (Emoji)</label><input type="text" id="fKatIcon" placeholder="🛒" maxlength="4"></div>
+    <div class="feld"><label>Name</label><input type="text" id="fKatName" placeholder="z.B. Lebensmittel"></div>
+    <div class="feld"><label>Monatliches Limit (€, optional)</label><input type="number" id="fKatLimit" placeholder="z.B. 400" min="0" step="1"></div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnKategorieAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnKategorieSpeichern">Anlegen</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Neue Ausgabe -->
+<div class="modal-bg" id="modalAusgabe">
+  <div class="modal">
+    <h2>Ausgabe erfassen</h2>
+    <div class="feld"><label>Kategorie</label><select id="fAusgabeKategorie"></select></div>
+    <div class="feld"><label>Betrag (€)</label><input type="number" id="fAusgabeBetrag" min="0" step="0.01" placeholder="0,00"></div>
+    <div class="feld"><label>Beschreibung (optional)</label><input type="text" id="fAusgabeBeschreibung" placeholder="z.B. Wocheneinkauf"></div>
+    <div class="feld"><label>Datum</label><input type="date" id="fAusgabeDatum"></div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnAusgabeAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnAusgabeSpeichern">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Neues Taschengeld-Konto -->
+<div class="modal-bg" id="modalTaschengeldKonto">
+  <div class="modal">
+    <h2>Taschengeld-Konto einrichten</h2>
+    <div class="feld"><label>Person</label><select id="fTgPerson"></select></div>
+    <div class="feld"><label>Betrag pro Gutschrift (€)</label><input type="number" id="fTgBetrag" min="0" step="0.5" placeholder="z.B. 5"></div>
+    <div class="feld"><label>Rhythmus</label>
+      <select id="fTgRhythmus">
+        <option value="woechentlich">Wöchentlich</option>
+        <option value="monatlich">Monatlich</option>
+      </select>
+    </div>
+    <div class="feld" id="fTgTagWochenWrap"><label>Wochentag</label>
+      <select id="fTgTagWoche">
+        <option value="1">Montag</option><option value="2">Dienstag</option><option value="3">Mittwoch</option>
+        <option value="4">Donnerstag</option><option value="5">Freitag</option><option value="6">Samstag</option><option value="0">Sonntag</option>
+      </select>
+    </div>
+    <div class="feld" id="fTgTagMonatWrap" style="display:none;"><label>Tag im Monat</label><input type="number" id="fTgTagMonat" min="1" max="28" value="1"></div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnTgKontoAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnTgKontoSpeichern">Einrichten</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Taschengeld manuelle Buchung -->
+<div class="modal-bg" id="modalTgBuchung">
+  <div class="modal">
+    <h2 id="tgBuchungTitel">Buchung</h2>
+    <div class="feld"><label>Art</label>
+      <select id="fTgBuchungTyp"><option value="ausgabe">Ausgabe (abziehen)</option><option value="gutschrift">Extra-Gutschrift</option></select>
+    </div>
+    <div class="feld"><label>Betrag (€)</label><input type="number" id="fTgBuchungBetrag" min="0" step="0.5" placeholder="0,00"></div>
+    <div class="feld"><label>Beschreibung</label><input type="text" id="fTgBuchungBeschreibung" placeholder="z.B. Kino"></div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnTgBuchungAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnTgBuchungSpeichern">Buchen</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Neues Abo/Rechnung -->
+<div class="modal-bg" id="modalAbo">
+  <div class="modal">
+    <h2>Abo/Rechnung anlegen</h2>
+    <div class="feld"><label>Name</label><input type="text" id="fAboName" placeholder="z.B. Netflix, Miete, Strom"></div>
+    <div class="feld"><label>Betrag (€)</label><input type="number" id="fAboBetrag" min="0" step="0.01" placeholder="0,00"></div>
+    <div class="feld"><label>Rhythmus</label>
+      <select id="fAboRhythmus">
+        <option value="monatlich">Monatlich</option>
+        <option value="jaehrlich">Jährlich</option>
+        <option value="woechentlich">Wöchentlich</option>
+      </select>
+    </div>
+    <div class="feld"><label>Nächste Fälligkeit</label><input type="date" id="fAboFaelligkeit"></div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnAboAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnAboSpeichern">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function heute() { return new Date().toISOString().slice(0,10); }
+  function formatEuro(n) { return (Math.round(n*100)/100).toLocaleString('de-DE', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' €'; }
+  function formatDatum(iso) { if (!iso) return ''; const [j,m,t] = iso.split('-'); return t+'.'+m+'.'+j; }
+  function laden(key, fallback) { try { const r = localStorage.getItem(key); return r ? JSON.parse(r) : fallback; } catch(e) { return fallback; } }
+  function speichern(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch(e) {} }
+  function neueId(praefix) { return praefix + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+  function PERSONEN() { try { return (window.holePersonenListe && window.holePersonenListe()) || []; } catch(e) { return []; } }
+
+  // ---------- Theme-Popup ----------
+  const themeBtn = document.getElementById('btnThemeAuswahl');
+  const themePopup = document.getElementById('themePopup');
+  themeBtn.addEventListener('click', () => themePopup.classList.toggle('zeigen'));
+  document.addEventListener('click', (e) => { if (!themePopup.contains(e.target) && e.target !== themeBtn) themePopup.classList.remove('zeigen'); });
+  function themeAnwenden(id) {
+    document.body.style.backgroundColor = '';
+    if (id && id.indexOf('farbe:') === 0) { document.body.style.backgroundColor = id.slice(6) + 'b3'; }
+    try { localStorage.setItem('finanzen_hintergrundThema', id || ''); } catch (e) {}
+    document.querySelectorAll('.theme-swatch').forEach(s => s.classList.toggle('aktiv', s.dataset.theme === id));
+  }
+  document.querySelectorAll('.theme-swatch[data-theme]').forEach(s => s.addEventListener('click', () => themeAnwenden(s.dataset.theme)));
+  const customFarbeInput = document.querySelector('.theme-farbe-custom-input');
+  if (customFarbeInput) customFarbeInput.addEventListener('input', () => themeAnwenden('farbe:' + customFarbeInput.value));
+  try { const g = localStorage.getItem('finanzen_hintergrundThema'); if (g) themeAnwenden(g); } catch (e) {}
+
+  // ---------- Tabs ----------
+  function zeigeTab(name) {
+    document.getElementById('ansichtBudget').style.display = name === 'budget' ? '' : 'none';
+    document.getElementById('ansichtTaschengeld').style.display = name === 'taschengeld' ? '' : 'none';
+    document.getElementById('ansichtAbos').style.display = name === 'abos' ? '' : 'none';
+    document.getElementById('btnTabBudget').classList.toggle('active', name === 'budget');
+    document.getElementById('btnTabTaschengeld').classList.toggle('active', name === 'taschengeld');
+    document.getElementById('btnTabAbos').classList.toggle('active', name === 'abos');
+    try { localStorage.setItem('finanzen_aktiverTab', name); } catch(e) {}
+  }
+  document.getElementById('btnTabBudget').addEventListener('click', () => zeigeTab('budget'));
+  document.getElementById('btnTabTaschengeld').addEventListener('click', () => zeigeTab('taschengeld'));
+  document.getElementById('btnTabAbos').addEventListener('click', () => zeigeTab('abos'));
+
+  // ============================================================
+  // DATENMODELL
+  // ============================================================
+  const KEY_KATEGORIEN = 'finanzen_kategorien';
+  const KEY_AUSGABEN = 'finanzen_ausgaben';
+  const KEY_TG_KONTEN = 'finanzen_taschengeld_konten';
+  const KEY_TG_BUCHUNGEN = 'finanzen_taschengeld_buchungen';
+  const KEY_ABOS = 'finanzen_abos';
+
+  let kategorien = laden(KEY_KATEGORIEN, []);
+  let ausgaben = laden(KEY_AUSGABEN, []);
+  let tgKonten = laden(KEY_TG_KONTEN, []); // { id, personId, betrag, rhythmus, tagWoche, tagMonat, letzteGutschrift }
+  let tgBuchungen = laden(KEY_TG_BUCHUNGEN, []); // { id, kontoId, datum, betrag, beschreibung, typ }
+  let abos = laden(KEY_ABOS, []);
+
+  function speichernAlles() {
+    speichern(KEY_KATEGORIEN, kategorien);
+    speichern(KEY_AUSGABEN, ausgaben);
+    speichern(KEY_TG_KONTEN, tgKonten);
+    speichern(KEY_TG_BUCHUNGEN, tgBuchungen);
+    speichern(KEY_ABOS, abos);
+    if (finanzenSyncHandle) finanzenSyncHandle.melde();
+  }
+
+  // ============================================================
+  // BUDGET-TAB
+  // ============================================================
+  function aktuellerMonatSchluessel() { return heute().slice(0,7); } // "YYYY-MM"
+  function ausgabenDiesenMonat(katId) {
+    const monat = aktuellerMonatSchluessel();
+    return ausgaben.filter(a => a.kategorieId === katId && a.datum.slice(0,7) === monat).reduce((s,a) => s + a.betrag, 0);
+  }
+  function renderKategorien() {
+    const box = document.getElementById('kategorienListe');
+    document.getElementById('kategorienLeer').style.display = kategorien.length ? 'none' : '';
+    box.innerHTML = kategorien.map(k => {
+      const ausgegeben = ausgabenDiesenMonat(k.id);
+      const hatLimit = k.limit && k.limit > 0;
+      const prozent = hatLimit ? Math.min(100, (ausgegeben / k.limit) * 100) : 0;
+      const ueber = hatLimit && ausgegeben > k.limit;
+      return '<div class="kat-zeile">' +
+        '<div class="kat-kopf"><span class="kat-name">' + (k.icon||'💶') + ' ' + escapeHtml(k.name) + '</span>' +
+        '<span class="kat-betrag' + (ueber ? ' ueber' : '') + '">' + formatEuro(ausgegeben) + (hatLimit ? ' / ' + formatEuro(k.limit) : '') + '</span></div>' +
+        (hatLimit ? '<div class="balken-wrap"><div class="balken' + (ueber ? ' ueber' : '') + '" style="width:' + prozent + '%"></div></div>' : '') +
+        '</div>';
+    }).join('');
+  }
+  function renderAusgaben() {
+    const box = document.getElementById('ausgabenListe');
+    const letzte = [...ausgaben].sort((a,b) => b.datum.localeCompare(a.datum)).slice(0, 15);
+    document.getElementById('ausgabenLeer').style.display = letzte.length ? 'none' : '';
+    box.innerHTML = letzte.map(a => {
+      const kat = kategorien.find(k => k.id === a.kategorieId);
+      return '<div class="buchungs-zeile">' +
+        '<div class="buchungs-info"><div class="buchungs-titel">' + (kat ? kat.icon + ' ' + escapeHtml(kat.name) : '💶 Sonstiges') + (a.beschreibung ? ' · ' + escapeHtml(a.beschreibung) : '') + '</div>' +
+        '<div class="buchungs-datum">' + formatDatum(a.datum) + (a.quelle === 'einkauf' ? ' · aus Einkauf' : '') + '</div></div>' +
+        '<span class="buchungs-betrag minus">−' + formatEuro(a.betrag) + '</span>' +
+        '<button class="loeschen-btn" onclick="ausgabeLoeschen(\'' + a.id + '\')">✕</button></div>';
+    }).join('');
+  }
+  window.ausgabeLoeschen = function(id) { ausgaben = ausgaben.filter(a => a.id !== id); speichernAlles(); renderAlles(); };
+
+  document.getElementById('btnKategorieNeu').addEventListener('click', () => {
+    document.getElementById('fKatIcon').value = '';
+    document.getElementById('fKatName').value = '';
+    document.getElementById('fKatLimit').value = '';
+    document.getElementById('modalKategorie').classList.add('zeigen');
+  });
+  document.getElementById('btnKategorieAbbrechen').addEventListener('click', () => document.getElementById('modalKategorie').classList.remove('zeigen'));
+  document.getElementById('modalKategorie').addEventListener('click', (e) => { if (e.target.id === 'modalKategorie') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnKategorieSpeichern').addEventListener('click', () => {
+    const name = document.getElementById('fKatName').value.trim();
+    if (!name) { alert('Bitte einen Namen eingeben.'); return; }
+    const icon = document.getElementById('fKatIcon').value.trim() || '💶';
+    const limit = parseFloat(document.getElementById('fKatLimit').value) || 0;
+    kategorien.push({ id: neueId('kat'), name, icon, limit });
+    speichernAlles();
+    document.getElementById('modalKategorie').classList.remove('zeigen');
+    renderAlles();
+  });
+
+  document.getElementById('btnAusgabeNeu').addEventListener('click', () => {
+    if (!kategorien.length) { alert('Bitte zuerst eine Kategorie anlegen.'); return; }
+    const sel = document.getElementById('fAusgabeKategorie');
+    sel.innerHTML = kategorien.map(k => '<option value="' + k.id + '">' + k.icon + ' ' + escapeHtml(k.name) + '</option>').join('');
+    document.getElementById('fAusgabeBetrag').value = '';
+    document.getElementById('fAusgabeBeschreibung').value = '';
+    document.getElementById('fAusgabeDatum').value = heute();
+    document.getElementById('modalAusgabe').classList.add('zeigen');
+  });
+  document.getElementById('btnAusgabeAbbrechen').addEventListener('click', () => document.getElementById('modalAusgabe').classList.remove('zeigen'));
+  document.getElementById('modalAusgabe').addEventListener('click', (e) => { if (e.target.id === 'modalAusgabe') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnAusgabeSpeichern').addEventListener('click', () => {
+    const betrag = parseFloat(document.getElementById('fAusgabeBetrag').value.replace(',', '.'));
+    if (!(betrag > 0)) { alert('Bitte einen gültigen Betrag eingeben.'); return; }
+    ausgaben.push({
+      id: neueId('a'), kategorieId: document.getElementById('fAusgabeKategorie').value, betrag,
+      beschreibung: document.getElementById('fAusgabeBeschreibung').value.trim(),
+      datum: document.getElementById('fAusgabeDatum').value || heute(), quelle: 'manuell',
+    });
+    speichernAlles();
+    document.getElementById('modalAusgabe').classList.remove('zeigen');
+    renderAlles();
+  });
+
+  // ============================================================
+  // TASCHENGELD-TAB
+  // ============================================================
+  function kontoStand(kontoId) {
+    return tgBuchungen.filter(b => b.kontoId === kontoId).reduce((s,b) => s + (b.typ === 'ausgabe' ? -b.betrag : b.betrag), 0);
+  }
+  function renderTaschengeld() {
+    const box = document.getElementById('taschengeldKonten');
+    document.getElementById('taschengeldLeer').style.display = tgKonten.length ? 'none' : '';
+    const personen = PERSONEN();
+    box.innerHTML = tgKonten.map(k => {
+      const person = personen.find(p => p.id === k.personId);
+      const name = person ? person.label : '?';
+      const stand = kontoStand(k.id);
+      const rhythmusText = k.rhythmus === 'woechentlich'
+        ? formatEuro(k.betrag) + ' jeden ' + ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'][k.tagWoche]
+        : formatEuro(k.betrag) + ' am ' + k.tagMonat + '. jeden Monats';
+      const buchungenDiesesKonto = [...tgBuchungen].filter(b => b.kontoId === k.id).sort((a,b) => b.datum.localeCompare(a.datum)).slice(0, 8);
+      return '<div class="konto-karte">' +
+        '<div class="konto-name">💰 ' + escapeHtml(name) + '</div>' +
+        '<div class="konto-stand">' + formatEuro(stand) + '</div>' +
+        '<div class="konto-info">' + rhythmusText + '</div>' +
+        '</div>' +
+        '<div class="karte">' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">' +
+        '<h3 style="margin:0;">Verlauf</h3>' +
+        '<div style="display:flex;gap:6px;">' +
+        '<button class="btn btn-secondary" style="font-size:0.72rem;padding:5px 10px;" onclick="tgBuchungOeffnen(\'' + k.id + '\')">＋ Buchung</button>' +
+        '<button class="btn btn-danger" style="font-size:0.72rem;padding:5px 10px;" onclick="tgKontoLoeschen(\'' + k.id + '\')">🗑</button>' +
+        '</div></div>' +
+        (buchungenDiesesKonto.length ? buchungenDiesesKonto.map(b =>
+          '<div class="buchungs-zeile"><div class="buchungs-info"><div class="buchungs-titel">' + escapeHtml(b.beschreibung || (b.typ === 'gutschrift' ? 'Gutschrift' : 'Ausgabe')) + '</div>' +
+          '<div class="buchungs-datum">' + formatDatum(b.datum) + '</div></div>' +
+          '<span class="buchungs-betrag ' + (b.typ === 'ausgabe' ? 'minus">−' : 'plus">+') + formatEuro(b.betrag) + '</span></div>'
+        ).join('') : '<div class="leer-hinweis" style="padding:12px 8px;">Noch keine Buchungen.</div>') +
+        '</div>';
+    }).join('');
+  }
+  document.getElementById('btnTaschengeldKontoNeu').addEventListener('click', () => {
+    const personen = PERSONEN();
+    if (!personen.length) { alert('Keine Familienmitglieder gefunden. Bitte zuerst unter "👪 Personen verwalten" anlegen.'); return; }
+    const sel = document.getElementById('fTgPerson');
+    sel.innerHTML = personen.map(p => '<option value="' + p.id + '">' + escapeHtml(p.label) + '</option>').join('');
+    document.getElementById('fTgBetrag').value = '';
+    document.getElementById('fTgRhythmus').value = 'woechentlich';
+    document.getElementById('fTgTagWochenWrap').style.display = '';
+    document.getElementById('fTgTagMonatWrap').style.display = 'none';
+    document.getElementById('modalTaschengeldKonto').classList.add('zeigen');
+  });
+  document.getElementById('fTgRhythmus').addEventListener('change', (e) => {
+    document.getElementById('fTgTagWochenWrap').style.display = e.target.value === 'woechentlich' ? '' : 'none';
+    document.getElementById('fTgTagMonatWrap').style.display = e.target.value === 'monatlich' ? '' : 'none';
+  });
+  document.getElementById('btnTgKontoAbbrechen').addEventListener('click', () => document.getElementById('modalTaschengeldKonto').classList.remove('zeigen'));
+  document.getElementById('modalTaschengeldKonto').addEventListener('click', (e) => { if (e.target.id === 'modalTaschengeldKonto') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnTgKontoSpeichern').addEventListener('click', () => {
+    const betrag = parseFloat(document.getElementById('fTgBetrag').value.replace(',', '.'));
+    if (!(betrag > 0)) { alert('Bitte einen gültigen Betrag eingeben.'); return; }
+    const personId = document.getElementById('fTgPerson').value;
+    if (tgKonten.some(k => k.personId === personId)) { alert('Für diese Person existiert bereits ein Konto.'); return; }
+    tgKonten.push({
+      id: neueId('tgk'), personId, betrag, rhythmus: document.getElementById('fTgRhythmus').value,
+      tagWoche: parseInt(document.getElementById('fTgTagWoche').value, 10),
+      tagMonat: parseInt(document.getElementById('fTgTagMonat').value, 10) || 1,
+      letzteGutschrift: null,
+    });
+    speichernAlles();
+    document.getElementById('modalTaschengeldKonto').classList.remove('zeigen');
+    renderAlles();
+  });
+  window.tgKontoLoeschen = function(id) {
+    if (!confirm('Konto und gesamten Verlauf wirklich löschen?')) return;
+    tgKonten = tgKonten.filter(k => k.id !== id);
+    tgBuchungen = tgBuchungen.filter(b => b.kontoId !== id);
+    speichernAlles();
+    renderAlles();
+  };
+  let tgBuchungKontoId = null;
+  window.tgBuchungOeffnen = function(kontoId) {
+    tgBuchungKontoId = kontoId;
+    document.getElementById('fTgBuchungTyp').value = 'ausgabe';
+    document.getElementById('fTgBuchungBetrag').value = '';
+    document.getElementById('fTgBuchungBeschreibung').value = '';
+    document.getElementById('modalTgBuchung').classList.add('zeigen');
+  };
+  document.getElementById('btnTgBuchungAbbrechen').addEventListener('click', () => document.getElementById('modalTgBuchung').classList.remove('zeigen'));
+  document.getElementById('modalTgBuchung').addEventListener('click', (e) => { if (e.target.id === 'modalTgBuchung') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnTgBuchungSpeichern').addEventListener('click', () => {
+    const betrag = parseFloat(document.getElementById('fTgBuchungBetrag').value.replace(',', '.'));
+    if (!(betrag > 0)) { alert('Bitte einen gültigen Betrag eingeben.'); return; }
+    tgBuchungen.push({
+      id: neueId('tgb'), kontoId: tgBuchungKontoId, betrag,
+      typ: document.getElementById('fTgBuchungTyp').value,
+      beschreibung: document.getElementById('fTgBuchungBeschreibung').value.trim(),
+      datum: heute(),
+    });
+    speichernAlles();
+    document.getElementById('modalTgBuchung').classList.remove('zeigen');
+    renderAlles();
+  });
+
+  // ============================================================
+  // ABOS & RECHNUNGEN
+  // ============================================================
+  function naechsteFaelligkeitBerechnen(datumIso, rhythmus) {
+    const d = new Date(datumIso + 'T00:00:00');
+    if (rhythmus === 'woechentlich') d.setDate(d.getDate() + 7);
+    else if (rhythmus === 'jaehrlich') d.setFullYear(d.getFullYear() + 1);
+    else d.setMonth(d.getMonth() + 1);
+    return d.toISOString().slice(0,10);
+  }
+  function renderAbos() {
+    const box = document.getElementById('abosListe');
+    const sortiert = [...abos].sort((a,b) => a.faelligkeit.localeCompare(b.faelligkeit));
+    document.getElementById('abosLeer').style.display = sortiert.length ? 'none' : '';
+    box.innerHTML = sortiert.map(a => {
+      const rhythmusLabel = { monatlich: 'monatlich', jaehrlich: 'jährlich', woechentlich: 'wöchentlich' }[a.rhythmus];
+      return '<div class="abo-zeile"><div class="abo-info"><div class="abo-name">' + escapeHtml(a.name) + '</div>' +
+        '<div class="abo-details">' + rhythmusLabel + ' · nächste Fälligkeit ' + formatDatum(a.faelligkeit) + '</div></div>' +
+        '<span class="abo-betrag">' + formatEuro(a.betrag) + '</span>' +
+        '<button class="loeschen-btn" onclick="aboLoeschen(\'' + a.id + '\')">✕</button></div>';
+    }).join('');
+    const monatsSumme = abos.reduce((s,a) => {
+      if (a.rhythmus === 'monatlich') return s + a.betrag;
+      if (a.rhythmus === 'jaehrlich') return s + a.betrag / 12;
+      if (a.rhythmus === 'woechentlich') return s + a.betrag * 4.33;
+      return s;
+    }, 0);
+    document.getElementById('abosSummeKarte').style.display = abos.length ? '' : 'none';
+    document.getElementById('abosSumme').textContent = formatEuro(monatsSumme) + ' / Monat';
+  }
+  window.aboLoeschen = function(id) { abos = abos.filter(a => a.id !== id); speichernAlles(); renderAlles(); };
+
+  document.getElementById('btnAboNeu').addEventListener('click', () => {
+    document.getElementById('fAboName').value = '';
+    document.getElementById('fAboBetrag').value = '';
+    document.getElementById('fAboRhythmus').value = 'monatlich';
+    document.getElementById('fAboFaelligkeit').value = heute();
+    document.getElementById('modalAbo').classList.add('zeigen');
+  });
+  document.getElementById('btnAboAbbrechen').addEventListener('click', () => document.getElementById('modalAbo').classList.remove('zeigen'));
+  document.getElementById('modalAbo').addEventListener('click', (e) => { if (e.target.id === 'modalAbo') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnAboSpeichern').addEventListener('click', () => {
+    const name = document.getElementById('fAboName').value.trim();
+    const betrag = parseFloat(document.getElementById('fAboBetrag').value.replace(',', '.'));
+    if (!name || !(betrag > 0)) { alert('Bitte Name und gültigen Betrag eingeben.'); return; }
+    abos.push({
+      id: neueId('abo'), name, betrag, rhythmus: document.getElementById('fAboRhythmus').value,
+      faelligkeit: document.getElementById('fAboFaelligkeit').value || heute(),
+    });
+    speichernAlles();
+    document.getElementById('modalAbo').classList.remove('zeigen');
+    renderAlles();
+  });
+
+  // ============================================================
+  // GESAMT-RENDER & INIT
+  // ============================================================
+  function renderAlles() {
+    renderKategorien();
+    renderAusgaben();
+    renderTaschengeld();
+    renderAbos();
+  }
+
+  let finanzenSyncHandle = null;
+  function starteFinanzenSync() {
+    if (typeof PlanerSync === 'undefined') return;
+    finanzenSyncHandle = PlanerSync.starteSync({
+      modul: 'finanzen',
+      keys: [KEY_KATEGORIEN, KEY_AUSGABEN, KEY_TG_KONTEN, KEY_TG_BUCHUNGEN, KEY_ABOS],
+      onRemoteChange: () => {
+        kategorien = laden(KEY_KATEGORIEN, kategorien);
+        ausgaben = laden(KEY_AUSGABEN, ausgaben);
+        tgKonten = laden(KEY_TG_KONTEN, tgKonten);
+        tgBuchungen = laden(KEY_TG_BUCHUNGEN, tgBuchungen);
+        abos = laden(KEY_ABOS, abos);
+        renderAlles();
+      },
+    });
+  }
+
+  let startTab = 'budget';
+  try { const g = localStorage.getItem('finanzen_aktiverTab'); if (g) startTab = g; } catch(e) {}
+  zeigeTab(startTab);
+  renderAlles();
+  starteFinanzenSync();
+})();
+</script>
+</body>
+</html>
