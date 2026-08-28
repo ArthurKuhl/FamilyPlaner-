@@ -330,7 +330,7 @@
 
   let kategorien = laden(KEY_KATEGORIEN, []);
   let ausgaben = laden(KEY_AUSGABEN, []);
-  let tgKonten = laden(KEY_TG_KONTEN, []); // { id, personId, betrag, rhythmus, tagWoche, tagMonat, letzteGutschrift }
+  let tgKonten = laden(KEY_TG_KONTEN, []); // { id, personId, betrag, rhythmus, tagWoche, tagMonat, naechsteFaelligkeit }
   let tgBuchungen = laden(KEY_TG_BUCHUNGEN, []); // { id, kontoId, datum, betrag, beschreibung, typ }
   let abos = laden(KEY_ABOS, []);
 
@@ -430,6 +430,39 @@
   function kontoStand(kontoId) {
     return tgBuchungen.filter(b => b.kontoId === kontoId).reduce((s,b) => s + (b.typ === 'ausgabe' ? -b.betrag : b.betrag), 0);
   }
+  function tgErsteFaelligkeitBerechnen(konto) {
+    const heuteD = new Date(heute() + 'T00:00:00');
+    if (konto.rhythmus === 'woechentlich') {
+      const diff = (konto.tagWoche - heuteD.getDay() + 7) % 7;
+      const d = new Date(heuteD); d.setDate(d.getDate() + diff);
+      return d.toISOString().slice(0,10);
+    }
+    const d = new Date(heuteD.getFullYear(), heuteD.getMonth(), konto.tagMonat);
+    if (d < heuteD) d.setMonth(d.getMonth() + 1);
+    return d.toISOString().slice(0,10);
+  }
+  function tgNaechsteFaelligkeitBerechnen(konto, vonDatum) {
+    const d = new Date(vonDatum + 'T00:00:00');
+    if (konto.rhythmus === 'woechentlich') { d.setDate(d.getDate() + 7); }
+    else { d.setMonth(d.getMonth() + 1); d.setDate(konto.tagMonat); }
+    return d.toISOString().slice(0,10);
+  }
+  function taschengeldAutomatikPruefen() {
+    let geaendert = false;
+    const heuteStr = heute();
+    tgKonten.forEach(k => {
+      if (!k.naechsteFaelligkeit) { k.naechsteFaelligkeit = tgErsteFaelligkeitBerechnen(k); geaendert = true; }
+      let sicherheit = 0;
+      while (k.naechsteFaelligkeit <= heuteStr && sicherheit < 104) {
+        tgBuchungen.push({ id: neueId('tgb'), kontoId: k.id, betrag: k.betrag, typ: 'gutschrift', beschreibung: 'Automatische Gutschrift', datum: k.naechsteFaelligkeit });
+        k.naechsteFaelligkeit = tgNaechsteFaelligkeitBerechnen(k, k.naechsteFaelligkeit);
+        geaendert = true;
+        sicherheit++;
+      }
+    });
+    if (geaendert) speichernAlles();
+  }
+
   function renderTaschengeld() {
     const box = document.getElementById('taschengeldKonten');
     document.getElementById('taschengeldLeer').style.display = tgKonten.length ? 'none' : '';
@@ -441,11 +474,12 @@
       const rhythmusText = k.rhythmus === 'woechentlich'
         ? formatEuro(k.betrag) + ' jeden ' + ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'][k.tagWoche]
         : formatEuro(k.betrag) + ' am ' + k.tagMonat + '. jeden Monats';
+      const naechsteText = k.naechsteFaelligkeit ? ' · nächste Gutschrift: ' + formatDatum(k.naechsteFaelligkeit) : '';
       const buchungenDiesesKonto = [...tgBuchungen].filter(b => b.kontoId === k.id).sort((a,b) => b.datum.localeCompare(a.datum)).slice(0, 8);
       return '<div class="konto-karte">' +
         '<div class="konto-name">💰 ' + escapeHtml(name) + '</div>' +
         '<div class="konto-stand">' + formatEuro(stand) + '</div>' +
-        '<div class="konto-info">' + rhythmusText + '</div>' +
+        '<div class="konto-info">' + rhythmusText + naechsteText + '</div>' +
         '</div>' +
         '<div class="karte">' +
         '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">' +
@@ -484,12 +518,13 @@
     if (!(betrag > 0)) { alert('Bitte einen gültigen Betrag eingeben.'); return; }
     const personId = document.getElementById('fTgPerson').value;
     if (tgKonten.some(k => k.personId === personId)) { alert('Für diese Person existiert bereits ein Konto.'); return; }
-    tgKonten.push({
+    const neuesKonto = {
       id: neueId('tgk'), personId, betrag, rhythmus: document.getElementById('fTgRhythmus').value,
       tagWoche: parseInt(document.getElementById('fTgTagWoche').value, 10),
       tagMonat: parseInt(document.getElementById('fTgTagMonat').value, 10) || 1,
-      letzteGutschrift: null,
-    });
+    };
+    neuesKonto.naechsteFaelligkeit = tgErsteFaelligkeitBerechnen(neuesKonto);
+    tgKonten.push(neuesKonto);
     speichernAlles();
     document.getElementById('modalTaschengeldKonto').classList.remove('zeigen');
     renderAlles();
@@ -601,6 +636,7 @@
         tgKonten = laden(KEY_TG_KONTEN, tgKonten);
         tgBuchungen = laden(KEY_TG_BUCHUNGEN, tgBuchungen);
         abos = laden(KEY_ABOS, abos);
+        taschengeldAutomatikPruefen();
         renderAlles();
       },
     });
@@ -609,6 +645,7 @@
   let startTab = 'budget';
   try { const g = localStorage.getItem('finanzen_aktiverTab'); if (g) startTab = g; } catch(e) {}
   zeigeTab(startTab);
+  taschengeldAutomatikPruefen();
   renderAlles();
   starteFinanzenSync();
 })();

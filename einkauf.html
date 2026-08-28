@@ -521,6 +521,35 @@
     if (!preise[key]) preise[key] = [];
     preise[key].push({ datum: new Date().toISOString(), preis: Math.round(wert * 100) / 100 });
     speichern(KEY_PREISE, preise);
+    finanzenAusgabeErstellen(name, wert);
+  }
+  // ---- Etappe 3: Preise automatisch als Ausgabe ins Finanzen-Modul übernehmen ----
+  let finanzenSyncHandle = null;
+  function starteFinanzenSync() {
+    if (typeof PlanerSync === 'undefined') return;
+    finanzenSyncHandle = PlanerSync.starteSync({
+      modul: 'finanzen',
+      keys: ['finanzen_kategorien', 'finanzen_ausgaben', 'finanzen_taschengeld_konten', 'finanzen_taschengeld_buchungen', 'finanzen_abos'],
+    });
+  }
+  function finanzenAusgabeErstellen(beschreibung, betrag) {
+    try {
+      let kategorien = JSON.parse(localStorage.getItem('finanzen_kategorien') || '[]');
+      let kat = kategorien.find(k => k.id === 'kat_einkauf_auto');
+      if (!kat) {
+        kat = { id: 'kat_einkauf_auto', name: 'Einkauf', icon: '🛒', limit: 0 };
+        kategorien.push(kat);
+        localStorage.setItem('finanzen_kategorien', JSON.stringify(kategorien));
+      }
+      let ausgaben = JSON.parse(localStorage.getItem('finanzen_ausgaben') || '[]');
+      ausgaben.push({
+        id: 'a_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+        kategorieId: kat.id, betrag: Math.round(betrag * 100) / 100, beschreibung,
+        datum: new Date().toISOString().slice(0, 10), quelle: 'einkauf',
+      });
+      localStorage.setItem('finanzen_ausgaben', JSON.stringify(ausgaben));
+      if (finanzenSyncHandle) finanzenSyncHandle.melde();
+    } catch (e) {}
   }
   function preisFormatEuro(n) { return n.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' }); }
   function preisTrendHtml(name) {
@@ -1442,6 +1471,7 @@
         pruefeVorlagenErinnerung();
       },
     });
+    starteFinanzenSync();
   }
 })();
 </script>
