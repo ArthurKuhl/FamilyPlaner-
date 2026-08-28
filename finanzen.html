@@ -307,6 +307,7 @@
   <div class="modal">
     <h2>Preis aktualisieren</h2>
     <div class="feld"><label>Neuer Preis (€)</label><input type="number" id="fPreisNeu" min="0" step="0.01" placeholder="0,00"></div>
+    <div class="feld"><label>Laden (optional)</label><input type="text" id="fPreisNeuLaden" placeholder="z.B. IKEA, Netto"></div>
     <div class="modal-btns">
       <button class="btn btn-secondary" id="btnPreisUpdateAbbrechen">Abbrechen</button>
       <button class="btn btn-primary" id="btnPreisUpdateSpeichern">Speichern</button>
@@ -687,6 +688,16 @@
     const wert = parseFloat(roh);
     return (wert > 0) ? Math.round(wert * 100) / 100 : null;
   }
+  function ladenAusText(text) {
+    if (!text) return null;
+    // kaufDA-artige Feeds gliedern den Text in <b>-Abschnitte; der letzte Abschnitt
+    // ohne Preis/„gültig" ist meist der Laden-/Ortsname, z.B. „Netto Marken-Discount in Pforzheim"
+    const segmente = [...String(text).matchAll(/<b>([^<]*)<\/b>/g)].map(m => m[1].trim()).filter(Boolean);
+    for (let i = segmente.length - 1; i >= 0; i--) {
+      if (!/€|gültig/i.test(segmente[i])) return segmente[i];
+    }
+    return null;
+  }
   function renderPreise() {
     const box = document.getElementById('preisListe');
     document.getElementById('preisLeer').style.display = preisProdukte.length ? 'none' : '';
@@ -699,12 +710,13 @@
         else if (p.letzterPreis > vorheriger) trend = ' <span style="color:var(--terracotta-text);">▲ ' + formatEuro(p.letzterPreis - vorheriger) + ' teurer</span>';
       }
       const verlaufZeilen = [...verlauf].reverse().slice(0, 6).map(v =>
-        '<div style="display:flex;justify-content:space-between;font-size:0.76rem;color:var(--bark);padding:3px 0;"><span>' + formatDatum(v.datum) + '</span><span>' + formatEuro(v.preis) + '</span></div>'
+        '<div style="display:flex;justify-content:space-between;font-size:0.76rem;color:var(--bark);padding:3px 0;"><span>' + formatDatum(v.datum) + (v.laden ? ' · ' + escapeHtml(v.laden) : '') + '</span><span>' + formatEuro(v.preis) + '</span></div>'
       ).join('');
       return '<div class="karte">' +
         '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px;">' +
         '<div><h3 style="margin:0;"><a href="' + escapeHtml(p.url) + '" target="_blank" rel="noopener" style="color:var(--soil);text-decoration:none;">' + escapeHtml(p.name) + ' 🔗</a></h3>' +
         '<div style="font-family:\'Playfair Display\',serif;font-size:1.3rem;font-weight:700;margin-top:2px;">' + (p.letzterPreis != null ? formatEuro(p.letzterPreis) : '– noch kein Preis –') + trend + '</div>' +
+        (p.letzterLaden ? '<div style="font-size:0.76rem;color:var(--bark);">🏪 ' + escapeHtml(p.letzterLaden) + '</div>' : '') +
         (p.letztesUpdate ? '<div style="font-size:0.7rem;color:var(--bark);">zuletzt geprüft: ' + formatDatum(p.letztesUpdate) + (p.feedUrl ? ' · automatisch' : ' · manuell') + '</div>' : '') +
         '</div>' +
         '<button class="loeschen-btn" onclick="preisProduktLoeschen(\'' + p.id + '\')">✕</button>' +
@@ -727,6 +739,7 @@
   window.preisUpdateOeffnen = function(id) {
     preisAktiveId = id;
     document.getElementById('fPreisNeu').value = '';
+    document.getElementById('fPreisNeuLaden').value = '';
     document.getElementById('modalPreisUpdate').classList.add('zeigen');
   };
   window.preisFeedOeffnen = function(id) {
@@ -735,14 +748,15 @@
     document.getElementById('fPreisFeedUrl').value = (p && p.feedUrl) || '';
     document.getElementById('modalPreisFeed').classList.add('zeigen');
   };
-  function preisEintragen(id, wert) {
+  function preisEintragen(id, wert, laden) {
     const p = preisProdukte.find(x => x.id === id);
     if (!p) return;
     if (!p.verlauf) p.verlauf = [];
-    if (p.letzterPreis === wert) return; // keine Änderung, kein neuer Verlaufseintrag
-    p.verlauf.push({ datum: heute(), preis: wert });
+    if (p.letzterPreis === wert && (!laden || p.letzterLaden === laden)) return; // keine Änderung, kein neuer Verlaufseintrag
+    p.verlauf.push({ datum: heute(), preis: wert, laden: laden || null });
     p.letzterPreis = wert;
     p.letztesUpdate = heute();
+    if (laden) p.letzterLaden = laden;
   }
 
   document.getElementById('btnPreisProduktNeu').addEventListener('click', () => {
@@ -771,7 +785,8 @@
   document.getElementById('btnPreisUpdateSpeichern').addEventListener('click', () => {
     const wert = parseFloat(document.getElementById('fPreisNeu').value.replace(',', '.'));
     if (!(wert > 0)) { alert('Bitte einen gültigen Preis eingeben.'); return; }
-    preisEintragen(preisAktiveId, Math.round(wert * 100) / 100);
+    const laden = document.getElementById('fPreisNeuLaden').value.trim() || null;
+    preisEintragen(preisAktiveId, Math.round(wert * 100) / 100, laden);
     speichernAlles();
     document.getElementById('modalPreisUpdate').classList.remove('zeigen');
     renderAlles();
@@ -799,7 +814,8 @@
       if (data.status !== 'ok' || !data.items || !data.items.length) return;
       const item = data.items[0];
       const wert = preisAusText(item.description) || preisAusText(item.title);
-      if (wert) { preisEintragen(p.id, wert); speichernAlles(); renderAlles(); }
+      const laden = ladenAusText(item.description) || ladenAusText(item.title);
+      if (wert) { preisEintragen(p.id, wert, laden); speichernAlles(); renderAlles(); }
     } catch (e) { /* still, nächster Versuch beim nächsten Laden */ }
   }
   function preisAlleFeedsAbrufen() {
