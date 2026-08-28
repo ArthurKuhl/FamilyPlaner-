@@ -66,10 +66,12 @@
   /* GARDEN SWITCHER */
   .garden-bar {
     background: #2a2016; padding: 8px 16px;
-    display: flex; align-items: center; gap: 9px; flex-wrap: wrap;
+    display: flex; align-items: center; gap: 9px; flex-wrap: nowrap;
     border-bottom: none; box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
   }
-  .garden-bar-label { font-size: 0.65rem; color: var(--bark); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+  .garden-bar::-webkit-scrollbar { display: none; }
+  .garden-bar-label { font-size: 0.65rem; color: var(--bark); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; flex-shrink: 0; }
   .garden-tab {
     padding: 5px 13px; border-radius: var(--radius-pill); font-size: 0.75rem; font-weight: 600;
     background: transparent; color: var(--sage); border: 1px solid #4a3a28;
@@ -80,6 +82,8 @@
   .garden-tab.active { background: var(--moss); color: var(--leaf); border-color: var(--moss); box-shadow: var(--shadow-soft); }
   .garden-tab .del-g { font-size: 0.7rem; opacity: 0.5; margin-left: 2px; }
   .garden-tab .del-g:hover { opacity: 1; color: #f4a090; }
+  #gardenTabs { display: flex; gap: 9px; flex-shrink: 0; }
+  .garden-tab, .btn-add-garden { flex-shrink: 0; white-space: nowrap; }
   .btn-add-garden {
     padding: 5px 12px; border-radius: var(--radius-pill); font-size: 0.75rem; font-weight: 600;
     background: transparent; color: var(--leaf); border: 1px dashed var(--bark);
