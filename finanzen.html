@@ -121,6 +121,7 @@
     <button id="btnTabBudget" class="active" role="tab" aria-selected="true">📊 Budget</button>
     <button id="btnTabTaschengeld" role="tab" aria-selected="false">💰 Taschengeld</button>
     <button id="btnTabAbos" role="tab" aria-selected="false">🔁 Abos & Rechnungen</button>
+    <button id="btnTabPreise" role="tab" aria-selected="false">🔍 Preise</button>
   </div>
 </header>
 <div class="theme-popup" id="themePopup">
@@ -183,6 +184,15 @@
       <h3>Monatliche Gesamtbelastung</h3>
       <div style="font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;" id="abosSumme"></div>
     </div>
+  </section>
+
+  <!-- PREIS-BEOBACHTUNG -->
+  <section id="ansichtPreise" style="display:none;">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
+      <button class="btn btn-primary" id="btnPreisProduktNeu" style="font-size:0.76rem;padding:6px 12px;">＋ Produkt beobachten</button>
+    </div>
+    <div id="preisListe"></div>
+    <div id="preisLeer" class="leer-hinweis" style="display:none;"><span class="em">🔍</span>Noch keine Produkte werden beobachtet.</div>
   </section>
 </main>
 
@@ -278,6 +288,48 @@
   </div>
 </div>
 
+<!-- MODAL: Neues Produkt beobachten -->
+<div class="modal-bg" id="modalPreisProdukt">
+  <div class="modal">
+    <h2>Produkt beobachten</h2>
+    <div class="feld"><label>Name</label><input type="text" id="fPreisName" placeholder="z.B. IKEA Schreibtisch BERGLÄRKA"></div>
+    <div class="feld"><label>Link zur Produkt-/Angebotsseite</label><input type="url" id="fPreisUrl" placeholder="https://..."></div>
+    <div class="feld"><label>Aktueller Preis (€, optional)</label><input type="number" id="fPreisStart" min="0" step="0.01" placeholder="0,00"></div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnPreisProduktAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnPreisProduktSpeichern">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Preis manuell aktualisieren -->
+<div class="modal-bg" id="modalPreisUpdate">
+  <div class="modal">
+    <h2>Preis aktualisieren</h2>
+    <div class="feld"><label>Neuer Preis (€)</label><input type="number" id="fPreisNeu" min="0" step="0.01" placeholder="0,00"></div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnPreisUpdateAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnPreisUpdateSpeichern">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Automatische Aktualisierung einrichten -->
+<div class="modal-bg" id="modalPreisFeed">
+  <div class="modal">
+    <h2>Automatische Aktualisierung</h2>
+    <p style="font-size:0.8rem;color:var(--bark);margin-bottom:10px;">
+      Falls für diese Seite ein FetchRSS-Feed eingerichtet wurde (Titel = Produktname, Beschreibung = Preis),
+      hier die Feed-URL eintragen. Der Preis wird dann bei jedem Öffnen der App automatisch geprüft.
+    </p>
+    <div class="feld"><label>FetchRSS-Feed-URL</label><input type="url" id="fPreisFeedUrl" placeholder="https://fetchrss.com/feed/..."></div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnPreisFeedAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnPreisFeedSpeichern">Speichern</button>
+    </div>
+  </div>
+</div>
+
 <script>
 (function(){
   function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -310,14 +362,17 @@
     document.getElementById('ansichtBudget').style.display = name === 'budget' ? '' : 'none';
     document.getElementById('ansichtTaschengeld').style.display = name === 'taschengeld' ? '' : 'none';
     document.getElementById('ansichtAbos').style.display = name === 'abos' ? '' : 'none';
+    document.getElementById('ansichtPreise').style.display = name === 'preise' ? '' : 'none';
     document.getElementById('btnTabBudget').classList.toggle('active', name === 'budget');
     document.getElementById('btnTabTaschengeld').classList.toggle('active', name === 'taschengeld');
     document.getElementById('btnTabAbos').classList.toggle('active', name === 'abos');
+    document.getElementById('btnTabPreise').classList.toggle('active', name === 'preise');
     try { localStorage.setItem('finanzen_aktiverTab', name); } catch(e) {}
   }
   document.getElementById('btnTabBudget').addEventListener('click', () => zeigeTab('budget'));
   document.getElementById('btnTabTaschengeld').addEventListener('click', () => zeigeTab('taschengeld'));
   document.getElementById('btnTabAbos').addEventListener('click', () => zeigeTab('abos'));
+  document.getElementById('btnTabPreise').addEventListener('click', () => zeigeTab('preise'));
 
   // ============================================================
   // DATENMODELL
@@ -327,12 +382,14 @@
   const KEY_TG_KONTEN = 'finanzen_taschengeld_konten';
   const KEY_TG_BUCHUNGEN = 'finanzen_taschengeld_buchungen';
   const KEY_ABOS = 'finanzen_abos';
+  const KEY_PREISE = 'finanzen_preisbeobachtung';
 
   let kategorien = laden(KEY_KATEGORIEN, []);
   let ausgaben = laden(KEY_AUSGABEN, []);
   let tgKonten = laden(KEY_TG_KONTEN, []); // { id, personId, betrag, rhythmus, tagWoche, tagMonat, naechsteFaelligkeit }
   let tgBuchungen = laden(KEY_TG_BUCHUNGEN, []); // { id, kontoId, datum, betrag, beschreibung, typ }
   let abos = laden(KEY_ABOS, []);
+  let preisProdukte = laden(KEY_PREISE, []); // { id, name, url, feedUrl, letzterPreis, letztesUpdate, verlauf: [{datum, preis}] }
 
   function speichernAlles() {
     speichern(KEY_KATEGORIEN, kategorien);
@@ -340,6 +397,7 @@
     speichern(KEY_TG_KONTEN, tgKonten);
     speichern(KEY_TG_BUCHUNGEN, tgBuchungen);
     speichern(KEY_ABOS, abos);
+    speichern(KEY_PREISE, preisProdukte);
     if (finanzenSyncHandle) finanzenSyncHandle.melde();
   }
 
@@ -617,11 +675,143 @@
   // ============================================================
   // GESAMT-RENDER & INIT
   // ============================================================
+  // ============================================================
+  // PREIS-BEOBACHTUNG
+  // ============================================================
+  const PREIS_RSS2JSON_KEY = 'gzgrcvnabxmmjjevo0nlsuucc1bl9qzizlvuzjkq';
+  function preisAusText(text) {
+    if (!text) return null;
+    const treffer = String(text).match(/(\d{1,4}[.,]\d{2})\s?€|€\s?(\d{1,4}[.,]\d{2})/);
+    if (!treffer) return null;
+    const roh = (treffer[1] || treffer[2]).replace(',', '.');
+    const wert = parseFloat(roh);
+    return (wert > 0) ? Math.round(wert * 100) / 100 : null;
+  }
+  function renderPreise() {
+    const box = document.getElementById('preisListe');
+    document.getElementById('preisLeer').style.display = preisProdukte.length ? 'none' : '';
+    box.innerHTML = preisProdukte.map(p => {
+      const verlauf = p.verlauf || [];
+      const vorheriger = verlauf.length >= 2 ? verlauf[verlauf.length - 2].preis : null;
+      let trend = '';
+      if (vorheriger != null && p.letzterPreis != null) {
+        if (p.letzterPreis < vorheriger) trend = ' <span style="color:var(--moss);">▼ ' + formatEuro(vorheriger - p.letzterPreis) + ' günstiger</span>';
+        else if (p.letzterPreis > vorheriger) trend = ' <span style="color:var(--terracotta-text);">▲ ' + formatEuro(p.letzterPreis - vorheriger) + ' teurer</span>';
+      }
+      const verlaufZeilen = [...verlauf].reverse().slice(0, 6).map(v =>
+        '<div style="display:flex;justify-content:space-between;font-size:0.76rem;color:var(--bark);padding:3px 0;"><span>' + formatDatum(v.datum) + '</span><span>' + formatEuro(v.preis) + '</span></div>'
+      ).join('');
+      return '<div class="karte">' +
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px;">' +
+        '<div><h3 style="margin:0;"><a href="' + escapeHtml(p.url) + '" target="_blank" rel="noopener" style="color:var(--soil);text-decoration:none;">' + escapeHtml(p.name) + ' 🔗</a></h3>' +
+        '<div style="font-family:\'Playfair Display\',serif;font-size:1.3rem;font-weight:700;margin-top:2px;">' + (p.letzterPreis != null ? formatEuro(p.letzterPreis) : '– noch kein Preis –') + trend + '</div>' +
+        (p.letztesUpdate ? '<div style="font-size:0.7rem;color:var(--bark);">zuletzt geprüft: ' + formatDatum(p.letztesUpdate) + (p.feedUrl ? ' · automatisch' : ' · manuell') + '</div>' : '') +
+        '</div>' +
+        '<button class="loeschen-btn" onclick="preisProduktLoeschen(\'' + p.id + '\')">✕</button>' +
+        '</div>' +
+        '<div style="display:flex;gap:6px;margin-bottom:8px;">' +
+        '<button class="btn btn-secondary" style="font-size:0.72rem;padding:5px 10px;" onclick="preisUpdateOeffnen(\'' + p.id + '\')">✏️ Preis eintragen</button>' +
+        '<button class="btn btn-secondary" style="font-size:0.72rem;padding:5px 10px;" onclick="preisFeedOeffnen(\'' + p.id + '\')">' + (p.feedUrl ? '🔗 Feed ändern' : '🔗 Automatik einrichten') + '</button>' +
+        '</div>' +
+        (verlaufZeilen ? '<div style="border-top:1px solid var(--parchment);padding-top:6px;">' + verlaufZeilen + '</div>' : '') +
+        '</div>';
+    }).join('');
+  }
+  window.preisProduktLoeschen = function(id) {
+    if (!confirm('Beobachtung wirklich beenden?')) return;
+    preisProdukte = preisProdukte.filter(p => p.id !== id);
+    speichernAlles();
+    renderAlles();
+  };
+  let preisAktiveId = null;
+  window.preisUpdateOeffnen = function(id) {
+    preisAktiveId = id;
+    document.getElementById('fPreisNeu').value = '';
+    document.getElementById('modalPreisUpdate').classList.add('zeigen');
+  };
+  window.preisFeedOeffnen = function(id) {
+    preisAktiveId = id;
+    const p = preisProdukte.find(x => x.id === id);
+    document.getElementById('fPreisFeedUrl').value = (p && p.feedUrl) || '';
+    document.getElementById('modalPreisFeed').classList.add('zeigen');
+  };
+  function preisEintragen(id, wert) {
+    const p = preisProdukte.find(x => x.id === id);
+    if (!p) return;
+    if (!p.verlauf) p.verlauf = [];
+    if (p.letzterPreis === wert) return; // keine Änderung, kein neuer Verlaufseintrag
+    p.verlauf.push({ datum: heute(), preis: wert });
+    p.letzterPreis = wert;
+    p.letztesUpdate = heute();
+  }
+
+  document.getElementById('btnPreisProduktNeu').addEventListener('click', () => {
+    document.getElementById('fPreisName').value = '';
+    document.getElementById('fPreisUrl').value = '';
+    document.getElementById('fPreisStart').value = '';
+    document.getElementById('modalPreisProdukt').classList.add('zeigen');
+  });
+  document.getElementById('btnPreisProduktAbbrechen').addEventListener('click', () => document.getElementById('modalPreisProdukt').classList.remove('zeigen'));
+  document.getElementById('modalPreisProdukt').addEventListener('click', (e) => { if (e.target.id === 'modalPreisProdukt') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnPreisProduktSpeichern').addEventListener('click', () => {
+    const name = document.getElementById('fPreisName').value.trim();
+    const url = document.getElementById('fPreisUrl').value.trim();
+    if (!name || !url) { alert('Bitte Name und Link eingeben.'); return; }
+    const neu = { id: neueId('pp'), name, url, feedUrl: null, letzterPreis: null, letztesUpdate: null, verlauf: [] };
+    const startPreis = parseFloat(document.getElementById('fPreisStart').value.replace(',', '.'));
+    preisProdukte.push(neu);
+    if (startPreis > 0) { const w = Math.round(startPreis * 100) / 100; neu.verlauf.push({ datum: heute(), preis: w }); neu.letzterPreis = w; neu.letztesUpdate = heute(); }
+    speichernAlles();
+    document.getElementById('modalPreisProdukt').classList.remove('zeigen');
+    renderAlles();
+  });
+
+  document.getElementById('btnPreisUpdateAbbrechen').addEventListener('click', () => document.getElementById('modalPreisUpdate').classList.remove('zeigen'));
+  document.getElementById('modalPreisUpdate').addEventListener('click', (e) => { if (e.target.id === 'modalPreisUpdate') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnPreisUpdateSpeichern').addEventListener('click', () => {
+    const wert = parseFloat(document.getElementById('fPreisNeu').value.replace(',', '.'));
+    if (!(wert > 0)) { alert('Bitte einen gültigen Preis eingeben.'); return; }
+    preisEintragen(preisAktiveId, Math.round(wert * 100) / 100);
+    speichernAlles();
+    document.getElementById('modalPreisUpdate').classList.remove('zeigen');
+    renderAlles();
+  });
+
+  document.getElementById('btnPreisFeedAbbrechen').addEventListener('click', () => document.getElementById('modalPreisFeed').classList.remove('zeigen'));
+  document.getElementById('modalPreisFeed').addEventListener('click', (e) => { if (e.target.id === 'modalPreisFeed') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnPreisFeedSpeichern').addEventListener('click', () => {
+    const p = preisProdukte.find(x => x.id === preisAktiveId);
+    if (!p) return;
+    p.feedUrl = document.getElementById('fPreisFeedUrl').value.trim() || null;
+    speichernAlles();
+    document.getElementById('modalPreisFeed').classList.remove('zeigen');
+    renderAlles();
+    if (p.feedUrl) preisFeedAbrufen(p);
+  });
+
+  async function preisFeedAbrufen(p) {
+    if (!p.feedUrl) return;
+    try {
+      let url = 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(p.feedUrl) + '&count=1';
+      if (PREIS_RSS2JSON_KEY) url += '&api_key=' + encodeURIComponent(PREIS_RSS2JSON_KEY);
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.status !== 'ok' || !data.items || !data.items.length) return;
+      const item = data.items[0];
+      const wert = preisAusText(item.description) || preisAusText(item.title);
+      if (wert) { preisEintragen(p.id, wert); speichernAlles(); renderAlles(); }
+    } catch (e) { /* still, nächster Versuch beim nächsten Laden */ }
+  }
+  function preisAlleFeedsAbrufen() {
+    preisProdukte.filter(p => p.feedUrl).forEach(preisFeedAbrufen);
+  }
+
   function renderAlles() {
     renderKategorien();
     renderAusgaben();
     renderTaschengeld();
     renderAbos();
+    renderPreise();
   }
 
   let finanzenSyncHandle = null;
@@ -629,13 +819,14 @@
     if (typeof PlanerSync === 'undefined') return;
     finanzenSyncHandle = PlanerSync.starteSync({
       modul: 'finanzen',
-      keys: [KEY_KATEGORIEN, KEY_AUSGABEN, KEY_TG_KONTEN, KEY_TG_BUCHUNGEN, KEY_ABOS],
+      keys: [KEY_KATEGORIEN, KEY_AUSGABEN, KEY_TG_KONTEN, KEY_TG_BUCHUNGEN, KEY_ABOS, KEY_PREISE],
       onRemoteChange: () => {
         kategorien = laden(KEY_KATEGORIEN, kategorien);
         ausgaben = laden(KEY_AUSGABEN, ausgaben);
         tgKonten = laden(KEY_TG_KONTEN, tgKonten);
         tgBuchungen = laden(KEY_TG_BUCHUNGEN, tgBuchungen);
         abos = laden(KEY_ABOS, abos);
+        preisProdukte = laden(KEY_PREISE, preisProdukte);
         taschengeldAutomatikPruefen();
         renderAlles();
       },
@@ -648,6 +839,7 @@
   taschengeldAutomatikPruefen();
   renderAlles();
   starteFinanzenSync();
+  preisAlleFeedsAbrufen();
 })();
 </script>
 </body>
