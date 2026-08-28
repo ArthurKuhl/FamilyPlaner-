@@ -55,7 +55,7 @@
     background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22190%22%20height%3D%22190%22%20viewBox%3D%220%200%20190%20190%22%3E%3Cg%20opacity%3D%220.11%22%3E%3Cg%20transform%3D%22translate%2815%2C20%29%20scale%280.8%29%20rotate%280%29%22%3E%3Cline%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%224%22%20y2%3D%2220%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3Ccircle%20cx%3D%220%22%20cy%3D%220%22%20r%3D%226%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22/%3E%3Ccircle%20cx%3D%2210%22%20cy%3D%228%22%20r%3D%226%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22/%3E%3Ccircle%20cx%3D%222%22%20cy%3D%2216%22%20r%3D%226%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22/%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2222%22%20r%3D%226%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%28115%2C25%29%20scale%280.65%29%20rotate%28-20%29%22%3E%3Cpath%20d%3D%22M%200%200%20C%2020%20-4%2C%2030%2014%2C%200%2034%20C%20-30%2014%2C%20-20%20-4%2C%200%200%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22/%3E%3Cline%20x1%3D%220%22%20y1%3D%222%22%20x2%3D%220%22%20y2%3D%2232%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%2860%2C115%29%20scale%280.7%29%20rotate%2812%29%22%3E%3Cline%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%224%22%20y2%3D%2220%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3Ccircle%20cx%3D%220%22%20cy%3D%220%22%20r%3D%226%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22/%3E%3Ccircle%20cx%3D%2210%22%20cy%3D%228%22%20r%3D%226%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22/%3E%3Ccircle%20cx%3D%222%22%20cy%3D%2216%22%20r%3D%226%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22/%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2222%22%20r%3D%226%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
     background-repeat: repeat;
   }
-  .theme-btn { background: none; border: none; color: var(--leaf); font-size: 1.1rem; cursor: pointer; padding: 4px 6px; flex-shrink: 0; }
+  .theme-btn { background: none; border: none; color: var(--leaf); font-size: 0.95rem; cursor: pointer; padding: 3px 4px; flex-shrink: 0; }
   .theme-popup { display: none; position: absolute; right: 12px; top: 54px; background: var(--white); border-radius: var(--radius-md); box-shadow: var(--shadow-md); padding: 10px; z-index: 50; }
   .theme-popup.zeigen { display: flex; gap: 8px; flex-wrap: wrap; max-width: 216px; }
   .theme-swatch { width: 40px; height: 40px; border-radius: var(--radius-sm); border: 2px solid transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; background: var(--cream); }
@@ -246,6 +246,12 @@
   .info-inhalt li { margin-bottom: 5px; }
   .info-inhalt strong { color: var(--soil); }
   .info-disclaimer { background: #fff3d9; border: 1px solid #e0c27a; border-radius: var(--radius-md); padding: 12px 14px; font-size: 0.78rem; color: #6b5220; margin-bottom: 14px; line-height: 1.5; }
+
+  /* Kopfzeile kompakter: Modulname bleibt immer einzeilig (notfalls mit ...),
+     Icons rücken näher zusammen. Ergänzt auf Arthurs Wunsch, robust über alle
+     leicht unterschiedlichen Header-Varianten der Module hinweg. */
+  header.top .titel-zeile, header .hdr-right { gap: 4px !important; }
+  header.top .titel-zeile h1, header h1 { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 </style>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
