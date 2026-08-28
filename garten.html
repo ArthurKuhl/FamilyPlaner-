@@ -382,6 +382,7 @@
      das verträgt sich nicht mit text-overflow und würde die Zeile umbrechen. */
   header .hdr-right { gap: 4px !important; }
   header h1 { flex: 1 1 auto; min-width: 0; }
+  #statusMsg { display: none; }
 </style>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
@@ -7010,7 +7011,7 @@ function showView(name) {
   });
   if (name === 'garden') { resizeCanvas(); }
   const statusMsgEl = document.getElementById('statusMsg');
-  if (statusMsgEl) statusMsgEl.style.display = (name === 'garden') ? '' : 'none';
+  if (statusMsgEl) statusMsgEl.style.display = (name === 'garden') ? 'inline' : 'none';
   if (name === 'shops') { renderShops(); }
   if (name === 'tips' && !document.getElementById('tipsWrap').dataset.built) { renderTips(); }
   if (name === 'preserve') { renderPreserveView(); }
