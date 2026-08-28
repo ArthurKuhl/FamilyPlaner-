@@ -604,7 +604,6 @@
       const chip = document.createElement('button');
       chip.className = 'ich-bin-chip' + (p.id === aktuellePerson ? ' active' : '');
       chip.textContent = p.label;
-      if (p.id === aktuellePerson) chip.style.background = p.farbe;
       chip.addEventListener('click', () => {
         aktuellePerson = p.id;
         try { localStorage.setItem(KEY_AKTUELLE_PERSON, aktuellePerson); } catch (e) {}
