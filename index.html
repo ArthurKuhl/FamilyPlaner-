@@ -334,6 +334,10 @@
     ];
     const STORAGE_KEY = 'planer_aktiverBereich';
     const REIHENFOLGE_KEY = 'planer_modulReihenfolge';
+    const VERSTECKT_KEY = 'planer_versteckteModule';
+    function versteckteModule() {
+      try { return JSON.parse(localStorage.getItem(VERSTECKT_KEY) || '[]'); } catch (e) { return []; }
+    }
     function moduleInGespeicherterReihenfolge() {
       let reihenfolge = [];
       try { reihenfolge = JSON.parse(localStorage.getItem(REIHENFOLGE_KEY) || '[]'); } catch (e) {}
@@ -543,12 +547,29 @@
     function renderReihenfolgeListe() {
       const box = document.getElementById('reihenfolgeListe');
       const liste = moduleInGespeicherterReihenfolge();
+      const versteckt = versteckteModule();
       box.innerHTML = liste.map((mod, i) => `
         <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #f0ead9;">
-          <span style="flex:1;font-size:0.85rem;">${mod.emoji} ${mod.label}</span>
+          <input type="checkbox" data-hide-id="${mod.id}" ${versteckt.includes(mod.id) ? '' : 'checked'} title="Modul ein-/ausblenden" style="width:18px;height:18px;flex-shrink:0;">
+          <span style="flex:1;font-size:0.85rem;${versteckt.includes(mod.id) ? 'opacity:0.45;' : ''}">${mod.emoji} ${mod.label}</span>
           <button type="button" data-dir="up" data-i="${i}" ${i === 0 ? 'disabled' : ''} style="background:none;border:1px solid #ddd;border-radius:6px;width:30px;height:30px;cursor:pointer;opacity:${i === 0 ? 0.3 : 1};">▲</button>
           <button type="button" data-dir="down" data-i="${i}" ${i === liste.length - 1 ? 'disabled' : ''} style="background:none;border:1px solid #ddd;border-radius:6px;width:30px;height:30px;cursor:pointer;opacity:${i === liste.length - 1 ? 0.3 : 1};">▼</button>
         </div>`).join('');
+      box.querySelectorAll('input[data-hide-id]').forEach(cb => {
+        cb.addEventListener('change', () => {
+          let v = versteckteModule();
+          const id = cb.dataset.hideId;
+          if (cb.checked) {
+            v = v.filter(x => x !== id);
+          } else {
+            if (MODULE.length - v.length <= 1) { alert('Mindestens ein Modul muss sichtbar bleiben.'); cb.checked = true; return; }
+            if (!v.includes(id)) v.push(id);
+          }
+          try { localStorage.setItem(VERSTECKT_KEY, JSON.stringify(v)); } catch (e) {}
+          renderReihenfolgeListe();
+          starteBereiche();
+        });
+      });
       box.querySelectorAll('button').forEach(btn => {
         btn.addEventListener('click', () => {
           const i = parseInt(btn.dataset.i, 10);
@@ -690,7 +711,8 @@
 
     function starteBereiche() {
       nav.querySelectorAll('.modul-btn').forEach(b => b.remove());
-      moduleInGespeicherterReihenfolge().forEach(mod => {
+      const versteckt = versteckteModule();
+      moduleInGespeicherterReihenfolge().filter(mod => !versteckt.includes(mod.id)).forEach(mod => {
         const btn = document.createElement('button');
         btn.className = 'modul-btn';
         btn.dataset.id = mod.id;
@@ -699,15 +721,16 @@
         nav.insertBefore(btn, document.getElementById('btnBackup'));
       });
 
-      let start = 'home';
+      const sichtbareModule = moduleInGespeicherterReihenfolge().filter(mod => !versteckt.includes(mod.id));
+      let start = sichtbareModule.length ? sichtbareModule[0].id : 'home';
       try {
         let startModul = '';
         try { startModul = localStorage.getItem('planer_startModul') || ''; } catch (e) {}
-        if (startModul && MODULE.some(m => m.id === startModul)) {
+        if (startModul && MODULE.some(m => m.id === startModul) && !versteckt.includes(startModul)) {
           start = startModul;
         } else {
           const gespeichert = localStorage.getItem(STORAGE_KEY);
-          if (gespeichert && MODULE.some(m => m.id === gespeichert)) start = gespeichert;
+          if (gespeichert && MODULE.some(m => m.id === gespeichert) && !versteckt.includes(gespeichert)) start = gespeichert;
         }
       } catch (e) {}
       bereichLaden(start, { schreiben: false });
