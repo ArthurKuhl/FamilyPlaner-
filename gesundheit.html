@@ -1464,6 +1464,10 @@
       <datalist id="tlUebungListe"></datalist>
     </div>
     <div class="feld">
+      <label for="fTlMuskelgruppe">Muskelgruppe</label>
+      <select id="fTlMuskelgruppe"></select>
+    </div>
+    <div class="feld">
       <label for="fTlDatum">Datum</label>
       <input type="date" id="fTlDatum">
     </div>
@@ -2725,7 +2729,8 @@
     leer.style.display = eigene.length ? 'none' : '';
     const gruppen = {};
     eigene.forEach(t => {
-      const m = muskelgruppeFuerUebung(t.uebung);
+      let m = t.muskelgruppeId ? MUSKELGRUPPEN.find(x => x.id === t.muskelgruppeId) : null;
+      if (!m) m = muskelgruppeFuerUebung(t.uebung);
       const key = m ? m.id : '_sonstiges';
       if (!gruppen[key]) gruppen[key] = { info: m || { id: '_sonstiges', name: 'Sonstiges', icon: '🏋️' }, eintraege: [] };
       gruppen[key].eintraege.push(t);
@@ -2924,11 +2929,23 @@
     renderTlSaetzeListe();
   }
 
-  document.getElementById('fTlUebung').addEventListener('change', (e) => fTlSchnellausfuellenFuer(e.target.value));
+  function populiereMuskelgruppenAuswahl() {
+    const sel = document.getElementById('fTlMuskelgruppe');
+    sel.innerHTML = '<option value="">– automatisch erkennen / Sonstiges –</option>' +
+      MUSKELGRUPPEN.map(m => '<option value="' + m.id + '">' + m.icon + ' ' + m.name + '</option>').join('');
+  }
+
+  document.getElementById('fTlUebung').addEventListener('change', (e) => {
+    fTlSchnellausfuellenFuer(e.target.value);
+    const m = muskelgruppeFuerUebung(e.target.value);
+    document.getElementById('fTlMuskelgruppe').value = m ? m.id : '';
+  });
 
   document.getElementById('btnTrainingslogHinzufuegen').addEventListener('click', () => {
     aktualisiereUebungsliste();
+    populiereMuskelgruppenAuswahl();
     document.getElementById('fTlUebung').value = '';
+    document.getElementById('fTlMuskelgruppe').value = '';
     document.getElementById('fTlDatum').value = heuteISO();
     document.getElementById('fTlNotiz').value = '';
     tlSaetzeState = [{ gewicht: '', wiederholungen: 10 }, { gewicht: '', wiederholungen: 10 }, { gewicht: '', wiederholungen: 10 }];
@@ -2941,6 +2958,7 @@
   document.getElementById('btnTlSpeichern').addEventListener('click', () => {
     const uebung = document.getElementById('fTlUebung').value.trim();
     const datum = document.getElementById('fTlDatum').value;
+    const muskelgruppeId = document.getElementById('fTlMuskelgruppe').value || null;
     if (!uebung) { alert('Bitte einen Übungsnamen eingeben.'); return; }
     if (!datum) { alert('Bitte ein Datum wählen.'); return; }
     const gueltigeSaetze = tlSaetzeState
@@ -2955,8 +2973,9 @@
       bestehender.saetze = bestehender.saetze.concat(gueltigeSaetze);
       if (notiz && !bestehender.notiz) bestehender.notiz = notiz;
       else if (notiz && bestehender.notiz && !bestehender.notiz.includes(notiz)) bestehender.notiz += ' · ' + notiz;
+      if (muskelgruppeId) bestehender.muskelgruppeId = muskelgruppeId;
     } else {
-      trainingslog.push({ id: neueId('tl'), datum, person: aktivePerson, uebung, saetze: gueltigeSaetze, notiz });
+      trainingslog.push({ id: neueId('tl'), datum, person: aktivePerson, uebung, saetze: gueltigeSaetze, notiz, muskelgruppeId });
     }
     speichern(KEY_TRAININGSLOG, trainingslog);
     document.getElementById('modalTrainingslog').classList.remove('zeigen');
