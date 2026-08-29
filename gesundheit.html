@@ -2706,11 +2706,13 @@
   function trainingslogUebungZeile(t, mitLoeschen) {
     const zeile = document.createElement('div');
     zeile.className = 'sport-zeile';
+    zeile.style.cursor = 'pointer';
     zeile.innerHTML =
       '<span class="sport-icon">🏋️</span>' +
       '<div class="sport-info"><div class="sport-titel">' + escapeHtml(t.uebung.trim()) + ' – ' + escapeHtml(formatSaetzeKompakt(t.saetze)) + '</div>' +
       '<div class="sport-meta">' + ausISO(t.datum).toLocaleDateString('de-DE', { day: 'numeric', month: 'short' }) + (t.notiz ? ' · ' + escapeHtml(t.notiz) : '') + '</div></div>' +
       (mitLoeschen ? '<button class="sport-loeschen" aria-label="Löschen">✕</button>' : '');
+    zeile.addEventListener('click', () => trainingslogBearbeitenOeffnen(t));
     if (mitLoeschen) {
       zeile.querySelector('.sport-loeschen').addEventListener('click', (e) => {
         e.stopPropagation();
@@ -2935,6 +2937,21 @@
       MUSKELGRUPPEN.map(m => '<option value="' + m.id + '">' + m.icon + ' ' + m.name + '</option>').join('');
   }
 
+  let tlBearbeiteId = null;
+  function trainingslogBearbeitenOeffnen(t) {
+    tlBearbeiteId = t.id;
+    aktualisiereUebungsliste();
+    populiereMuskelgruppenAuswahl();
+    document.getElementById('fTlUebung').value = t.uebung;
+    document.getElementById('fTlMuskelgruppe').value = t.muskelgruppeId || '';
+    document.getElementById('fTlDatum').value = t.datum;
+    document.getElementById('fTlNotiz').value = t.notiz || '';
+    tlSaetzeState = (t.saetze && t.saetze.length ? t.saetze : [{ gewicht: '', wiederholungen: 10 }]).map(s => ({ gewicht: s.gewicht, wiederholungen: s.wiederholungen }));
+    renderTlSaetzeListe();
+    document.getElementById('modalTrainingslog').querySelector('h2').textContent = 'Trainingseintrag bearbeiten';
+    document.getElementById('modalTrainingslog').classList.add('zeigen');
+  }
+
   document.getElementById('fTlUebung').addEventListener('change', (e) => {
     fTlSchnellausfuellenFuer(e.target.value);
     const m = muskelgruppeFuerUebung(e.target.value);
@@ -2942,6 +2959,7 @@
   });
 
   document.getElementById('btnTrainingslogHinzufuegen').addEventListener('click', () => {
+    tlBearbeiteId = null;
     aktualisiereUebungsliste();
     populiereMuskelgruppenAuswahl();
     document.getElementById('fTlUebung').value = '';
@@ -2950,6 +2968,7 @@
     document.getElementById('fTlNotiz').value = '';
     tlSaetzeState = [{ gewicht: '', wiederholungen: 10 }, { gewicht: '', wiederholungen: 10 }, { gewicht: '', wiederholungen: 10 }];
     renderTlSaetzeListe();
+    document.getElementById('modalTrainingslog').querySelector('h2').textContent = 'Trainingseintrag';
     document.getElementById('modalTrainingslog').classList.add('zeigen');
     document.getElementById('fTlUebung').focus();
   });
@@ -2966,16 +2985,28 @@
       .map(s => ({ gewicht: s.gewicht === '' || s.gewicht === null ? '' : String(parseFloat(s.gewicht)), wiederholungen: Math.max(1, parseInt(s.wiederholungen, 10)) }));
     if (!gueltigeSaetze.length) { alert('Bitte mindestens einen Satz mit Wiederholungen eintragen.'); return; }
     const notiz = document.getElementById('fTlNotiz').value.trim();
-    const key = normUebung(uebung);
-    // Gibt es für diese Übung an diesem Tag schon einen Eintrag? Dann Sätze ergänzen statt einen weiteren Eintrag anzulegen.
-    const bestehender = trainingslog.find(t => t.person === aktivePerson && t.datum === datum && normUebung(t.uebung) === key);
-    if (bestehender) {
-      bestehender.saetze = bestehender.saetze.concat(gueltigeSaetze);
-      if (notiz && !bestehender.notiz) bestehender.notiz = notiz;
-      else if (notiz && bestehender.notiz && !bestehender.notiz.includes(notiz)) bestehender.notiz += ' · ' + notiz;
-      if (muskelgruppeId) bestehender.muskelgruppeId = muskelgruppeId;
+
+    if (tlBearbeiteId) {
+      const bearbeitet = trainingslog.find(t => t.id === tlBearbeiteId);
+      if (bearbeitet) {
+        bearbeitet.uebung = uebung;
+        bearbeitet.datum = datum;
+        bearbeitet.saetze = gueltigeSaetze;
+        bearbeitet.notiz = notiz;
+        bearbeitet.muskelgruppeId = muskelgruppeId;
+      }
     } else {
-      trainingslog.push({ id: neueId('tl'), datum, person: aktivePerson, uebung, saetze: gueltigeSaetze, notiz, muskelgruppeId });
+      const key = normUebung(uebung);
+      // Gibt es für diese Übung an diesem Tag schon einen Eintrag? Dann Sätze ergänzen statt einen weiteren Eintrag anzulegen.
+      const bestehender = trainingslog.find(t => t.person === aktivePerson && t.datum === datum && normUebung(t.uebung) === key);
+      if (bestehender) {
+        bestehender.saetze = bestehender.saetze.concat(gueltigeSaetze);
+        if (notiz && !bestehender.notiz) bestehender.notiz = notiz;
+        else if (notiz && bestehender.notiz && !bestehender.notiz.includes(notiz)) bestehender.notiz += ' · ' + notiz;
+        if (muskelgruppeId) bestehender.muskelgruppeId = muskelgruppeId;
+      } else {
+        trainingslog.push({ id: neueId('tl'), datum, person: aktivePerson, uebung, saetze: gueltigeSaetze, notiz, muskelgruppeId });
+      }
     }
     speichern(KEY_TRAININGSLOG, trainingslog);
     document.getElementById('modalTrainingslog').classList.remove('zeigen');
