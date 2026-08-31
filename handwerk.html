@@ -138,6 +138,7 @@
   .material-zeile input.menge { width: 60px; flex: 0 0 60px; }
   .material-zeile input.einheit { width: 68px; flex: 0 0 68px; }
   .material-zeile input.name { flex: 1; }
+  .material-zeile input.preis { width: 64px; flex: 0 0 64px; }
   .zeile-entfernen { background: none; border: none; color: var(--parchment); font-size: 1.05rem; padding: 4px 6px; cursor: pointer; flex: 0 0 auto; }
   .zeile-entfernen:hover { color: var(--terracotta-text); }
   .zeile-hinzufuegen { background: var(--white); border: 1px dashed var(--sage); color: var(--moss); border-radius: var(--radius-sm); padding: 7px 10px; font-size: 0.78rem; font-weight: 600; cursor: pointer; width: 100%; margin-top: 2px; }
@@ -153,6 +154,18 @@
   .detail-material-liste { list-style: none; margin: 8px 0 4px; }
   .detail-material-liste li { display: flex; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--parchment); font-size: 0.88rem; }
   .detail-material-liste .m-menge { font-weight: 700; color: var(--moss); min-width: 64px; }
+  .detail-material-liste .m-preis { margin-left: auto; color: var(--bark); font-weight: 600; }
+  .balken-wrap { height: 8px; background: var(--parchment); border-radius: 5px; overflow: hidden; }
+  .balken { height: 100%; background: var(--moss); border-radius: 5px; transition: width 0.2s; }
+  .balken.ueber { background: var(--terracotta); }
+  .budget-zeile { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; font-size: 0.85rem; }
+  .budget-betrag.ueber { color: var(--terracotta-text); font-weight: 700; }
+  .schritt-check-zeile { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--parchment); font-size: 0.88rem; }
+  .schritt-check-zeile.erledigt span { text-decoration: line-through; opacity: 0.55; }
+  .schritt-check-zeile input[type="checkbox"] { flex-shrink: 0; width: 17px; height: 17px; }
+  .schritt-edit-zeile { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+  .schritt-edit-zeile input[type="text"] { flex: 1; padding: 7px 10px; border: 1px solid var(--parchment); border-radius: var(--radius-sm); font-size: 0.85rem; }
+  .schritt-edit-zeile button { background: none; border: none; color: var(--terracotta-text); font-size: 1rem; cursor: pointer; padding: 2px 6px; }
   .detail-notiz-box { background: var(--parchment); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 0.82rem; margin-top: 10px; color: var(--bark); white-space: pre-wrap; }
 
   /* Sehr breite Bildschirme: Content etwas breiter + dezente Deko-Streifen im Rand */
@@ -341,8 +354,14 @@
     </div>
     <h2 id="detailTitel"></h2>
     <div class="projekt-meta" id="detailMeta" style="margin-bottom:6px;"></div>
+    <div id="detailBudgetBox" style="display:none;margin-bottom:10px;">
+      <div class="budget-zeile"><span>Kosten</span><span id="detailBudgetText"></span></div>
+      <div class="balken-wrap"><div class="balken" id="detailBudgetBalken"></div></div>
+    </div>
     <div class="unterliste-titel">Material</div>
     <ul class="detail-material-liste" id="detailMaterial"></ul>
+    <div class="unterliste-titel">✅ Arbeitsschritte</div>
+    <div id="detailSchritte"></div>
     <div class="unterliste-titel">📐 Skizzen</div>
     <div id="detailSkizzenGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;margin-bottom:8px"></div>
     <button class="zeile-hinzufuegen" id="btnNeueSkizze">＋ Neue Skizze</button>
@@ -373,10 +392,18 @@
       <label>Wer arbeitet dran (optional)</label>
       <div class="opt-reihe" id="editPersonReihe"></div>
     </div>
+    <div class="feld">
+      <label for="fBudget">Budget geplant (€, optional)</label>
+      <input type="number" id="fBudget" min="0" step="1" placeholder="z.B. 150">
+    </div>
 
     <div class="unterliste-titel">Material</div>
     <div id="editMaterialListe"></div>
     <button class="zeile-hinzufuegen" id="btnMaterialHinzufuegen">＋ Material hinzufügen</button>
+
+    <div class="unterliste-titel">Arbeitsschritte</div>
+    <div id="editSchritteListe"></div>
+    <button class="zeile-hinzufuegen" id="btnSchrittHinzufuegen">＋ Schritt hinzufügen</button>
 
     <div class="feld" style="margin-top:14px;">
       <label for="fNotiz">Notiz (optional)</label>
@@ -561,6 +588,12 @@
   function projektKarte(p) {
     const stat = statusInfo(p.status);
     const person = personInfo(p.person);
+    const kostenSumme = (p.material || []).reduce((s, m) => {
+      const preisZahl = parseFloat(String(m.preis || '').replace(',', '.'));
+      return s + (preisZahl > 0 ? preisZahl : 0);
+    }, 0);
+    const schritteErledigt = (p.schritte || []).filter(s => s.erledigt).length;
+    const schritteGesamt = (p.schritte || []).length;
     const karte = document.createElement('div');
     karte.className = 'projekt-karte';
     karte.style.borderTopColor = stat.farbe;
@@ -570,7 +603,10 @@
         '<span class="mini-chip" style="background:' + stat.farbe + '22; color:' + stat.farbe + ';">' + stat.icon + ' ' + stat.label + '</span>' +
         (person ? '<span class="mini-chip" style="background:' + person.farbe + '22; color:' + person.farbe + ';">' + escapeHtml(person.label) + '</span>' : '') +
       '</div>' +
-      '<div class="projekt-meta">' + (p.material || []).length + ' Material-Posten</div>';
+      '<div class="projekt-meta">' + (p.material || []).length + ' Material-Posten' +
+        (kostenSumme > 0 ? ' · ' + kostenSumme.toLocaleString('de-DE', {maximumFractionDigits:0}) + (p.budgetGeplant ? ' / ' + p.budgetGeplant.toLocaleString('de-DE', {maximumFractionDigits:0}) : '') + ' €' : '') +
+        (schritteGesamt ? ' · ' + schritteErledigt + '/' + schritteGesamt + ' Schritte' : '') +
+      '</div>';
     karte.addEventListener('click', () => detailOeffnen(p.id));
     return karte;
   }
@@ -609,10 +645,49 @@
       p.material.forEach(m => {
         const li = document.createElement('li');
         const mengeText = [m.menge, m.einheit].filter(Boolean).join(' ');
-        li.innerHTML = '<span class="m-menge">' + escapeHtml(mengeText) + '</span><span>' + escapeHtml(m.name) + '</span>';
+        const preisZahl = parseFloat(String(m.preis || '').replace(',', '.'));
+        li.innerHTML = '<span class="m-menge">' + escapeHtml(mengeText) + '</span><span>' + escapeHtml(m.name) + '</span>' +
+          (preisZahl > 0 ? '<span class="m-preis">' + preisZahl.toLocaleString('de-DE', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' €</span>' : '');
         matBox.appendChild(li);
       });
     }
+
+    // ---------- Budget-Anzeige ----------
+    const kostenSumme = (p.material || []).reduce((s, m) => {
+      const preisZahl = parseFloat(String(m.preis || '').replace(',', '.'));
+      return s + (preisZahl > 0 ? preisZahl : 0);
+    }, 0);
+    const budgetBox = document.getElementById('detailBudgetBox');
+    if (p.budgetGeplant || kostenSumme > 0) {
+      budgetBox.style.display = '';
+      const ueber = p.budgetGeplant && kostenSumme > p.budgetGeplant;
+      const prozent = p.budgetGeplant ? Math.min(100, (kostenSumme / p.budgetGeplant) * 100) : 100;
+      document.getElementById('detailBudgetText').innerHTML =
+        '<span class="budget-betrag' + (ueber ? ' ueber' : '') + '">' + kostenSumme.toLocaleString('de-DE', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' €' +
+        (p.budgetGeplant ? ' / ' + p.budgetGeplant.toLocaleString('de-DE', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' €' : '') + '</span>';
+      const balken = document.getElementById('detailBudgetBalken');
+      balken.style.width = prozent + '%';
+      balken.classList.toggle('ueber', ueber);
+    } else {
+      budgetBox.style.display = 'none';
+    }
+
+    // ---------- Arbeitsschritte-Checkliste ----------
+    const schrittBox = document.getElementById('detailSchritte');
+    if (!p.schritte || !p.schritte.length) {
+      schrittBox.innerHTML = '<div style="color:var(--bark);opacity:0.7;font-size:0.85rem;padding:4px 0;">Noch keine Arbeitsschritte eingetragen.</div>';
+    } else {
+      schrittBox.innerHTML = p.schritte.map((s, i) =>
+        '<div class="schritt-check-zeile' + (s.erledigt ? ' erledigt' : '') + '"><input type="checkbox" data-idx="' + i + '"' + (s.erledigt ? ' checked' : '') + '><span>' + escapeHtml(s.text) + '</span></div>'
+      ).join('');
+      schrittBox.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.addEventListener('change', () => {
+        const idx = parseInt(cb.dataset.idx, 10);
+        p.schritte[idx].erledigt = cb.checked;
+        speichernProjekte();
+        detailOeffnen(p.id);
+      }));
+    }
+
     document.getElementById('modalDetail').classList.add('zeigen');
     detailSkizzenRendern(p);
   }
@@ -690,13 +765,14 @@
   }
 
   function materialZeileErstellen(m) {
-    m = m || { menge: '', einheit: '', name: '' };
+    m = m || { menge: '', einheit: '', name: '', preis: '' };
     const zeile = document.createElement('div');
     zeile.className = 'material-zeile';
     zeile.innerHTML =
       '<input type="text" class="menge" placeholder="Menge" value="' + escapeHtml(m.menge || '') + '">' +
       '<input type="text" class="einheit" placeholder="Einheit" value="' + escapeHtml(m.einheit || '') + '">' +
       '<input type="text" class="name" placeholder="Material" value="' + escapeHtml(m.name || '') + '">' +
+      '<input type="number" class="preis" placeholder="€" min="0" step="0.01" value="' + escapeHtml(m.preis || '') + '">' +
       '<button type="button" class="zeile-entfernen" aria-label="Entfernen">✕</button>';
     zeile.querySelector('.zeile-entfernen').addEventListener('click', () => zeile.remove());
     return zeile;
@@ -705,11 +781,26 @@
     document.getElementById('editMaterialListe').appendChild(materialZeileErstellen());
   });
 
+  function schrittZeileErstellen(text, erledigt) {
+    const zeile = document.createElement('div');
+    zeile.className = 'schritt-edit-zeile';
+    zeile.innerHTML =
+      '<input type="checkbox"' + (erledigt ? ' checked' : '') + '>' +
+      '<input type="text" placeholder="z.B. Holz zuschneiden" value="' + escapeHtml(text || '') + '">' +
+      '<button type="button">✕</button>';
+    zeile.querySelector('button').addEventListener('click', () => zeile.remove());
+    return zeile;
+  }
+  document.getElementById('btnSchrittHinzufuegen').addEventListener('click', () => {
+    document.getElementById('editSchritteListe').appendChild(schrittZeileErstellen('', false));
+  });
+
   function editModalOeffnen(p) {
     bearbeiteId = p ? p.id : null;
     document.getElementById('editTitelKopf').textContent = p ? 'Projekt bearbeiten' : 'Neues Projekt';
     document.getElementById('fTitel').value = p ? p.titel : '';
     document.getElementById('fNotiz').value = p ? (p.notiz || '') : '';
+    document.getElementById('fBudget').value = p && p.budgetGeplant ? p.budgetGeplant : '';
     editStatus = p ? p.status : 'idee';
     editPerson = p ? (p.person || null) : null;
     renderEditStatusReihe();
@@ -717,7 +808,11 @@
 
     const matBox = document.getElementById('editMaterialListe');
     matBox.innerHTML = '';
-    (p && p.material && p.material.length ? p.material : [{menge:'',einheit:'',name:''}]).forEach(m => matBox.appendChild(materialZeileErstellen(m)));
+    (p && p.material && p.material.length ? p.material : [{menge:'',einheit:'',name:'',preis:''}]).forEach(m => matBox.appendChild(materialZeileErstellen(m)));
+
+    const schrittBox = document.getElementById('editSchritteListe');
+    schrittBox.innerHTML = '';
+    (p && p.schritte && p.schritte.length ? p.schritte : []).forEach(s => schrittBox.appendChild(schrittZeileErstellen(s.text, s.erledigt)));
 
     document.getElementById('editLoeschZeile').style.display = p ? '' : 'none';
     document.getElementById('modalEdit').classList.add('zeigen');
@@ -744,11 +839,20 @@
       menge: zeile.querySelector('.menge').value.trim(),
       einheit: zeile.querySelector('.einheit').value.trim(),
       name: zeile.querySelector('.name').value.trim(),
+      preis: zeile.querySelector('.preis').value.trim(),
     })).filter(m => m.name);
+
+    const schritte = Array.from(document.querySelectorAll('#editSchritteListe .schritt-edit-zeile')).map(zeile => ({
+      text: zeile.querySelector('input[type="text"]').value.trim(),
+      erledigt: zeile.querySelector('input[type="checkbox"]').checked,
+    })).filter(s => s.text);
+
+    const budgetGeplant = parseFloat(document.getElementById('fBudget').value.replace(',', '.'));
 
     const neu = {
       id: bearbeiteId || neueId('p'),
-      titel, status: editStatus, person: editPerson, material,
+      titel, status: editStatus, person: editPerson, material, schritte,
+      budgetGeplant: budgetGeplant > 0 ? Math.round(budgetGeplant * 100) / 100 : null,
       notiz: document.getElementById('fNotiz').value.trim(),
       erstelltAm: bearbeiteId ? (projekte.find(x => x.id === bearbeiteId)?.erstelltAm || new Date().toISOString()) : new Date().toISOString(),
     };
