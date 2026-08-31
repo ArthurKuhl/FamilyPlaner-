@@ -505,6 +505,11 @@
     <div class="rezept-abschluss">Guten Appetit ✎</div>
     <div class="notiz-box" id="detailNotizBox" style="display:none;"></div>
     <button class="btn-kochmodus" id="btnKochmodusStart">👨‍🍳 Koch-Modus</button>
+    <button type="button" id="btnAlsTerminPlanen" style="margin-top:8px;width:100%;background:var(--white);border:1px solid var(--parchment);border-radius:var(--radius-pill);padding:9px;font-size:0.8rem;font-weight:700;color:var(--bark);cursor:pointer;">📅 Als Termin planen</button>
+    <div id="terminPlanenBox" style="display:none;margin-top:8px;align-items:center;gap:8px;">
+      <input type="date" id="fTerminPlanenDatum" style="flex:1;padding:8px;border-radius:var(--radius-sm);border:1px solid var(--parchment);">
+      <button type="button" class="btn btn-primary" id="btnTerminPlanenSpeichern" style="padding:8px 14px;">Eintragen</button>
+    </div>
     <div class="modal-btns">
       <button class="btn btn-secondary" id="btnDetailSchliessen">Schließen</button>
       <button class="btn btn-primary" id="btnZumEinkauf">🛒 Zum Einkauf</button>
@@ -555,6 +560,21 @@
   </div>
 </div>
 
+<!-- Kurze Notiz-Abfrage nach dem Kochen -->
+<div class="modal-bg" id="modalKochNotizAbschluss">
+  <div class="modal">
+    <h2 id="kochNotizAbschlussTitel">Fertig gekocht!</h2>
+    <div class="feld">
+      <label for="fKochNotizAbschluss">Notiz zum Rezept (optional)</label>
+      <textarea id="fKochNotizAbschluss" placeholder="z.B. War zu süß, nächstes Mal weniger Zucker …"></textarea>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnKochNotizAbschlussUeberspringen">Überspringen</button>
+      <button class="btn btn-primary" id="btnKochNotizAbschlussSpeichern">Speichern</button>
+    </div>
+  </div>
+</div>
+
 <!-- Bearbeiten / Neu -->
 <div class="modal-bg" id="modalRezeptWaehlen">
   <div class="modal">
@@ -580,6 +600,10 @@
     <div class="feld">
       <label>Bewertung</label>
       <div class="sterne-eingabe" id="editSterneEingabe"></div>
+    </div>
+    <div class="feld">
+      <label>Aufwand</label>
+      <div class="kategorie-reihe" id="editAufwandReihe"></div>
     </div>
     <div class="zeile">
       <div class="feld">
@@ -665,6 +689,45 @@
     for (let i = 1; i <= 5; i++) html += '<span class="stern' + (i <= bewertung ? ' aktiv' : '') + '">★</span>';
     return html + '</div>';
   }
+
+  // ---------- AUFWAND (Schwierigkeitsgrad) ----------
+  const AUFWAND_STUFEN = {
+    einfach: { icon: '🟢', label: 'Einfach' },
+    mittel:  { icon: '🟡', label: 'Mittel' },
+    aufwendig: { icon: '🔴', label: 'Aufwendig' }
+  };
+  function aufwandBadgeHtml(aufwand) {
+    const stufe = AUFWAND_STUFEN[aufwand];
+    if (!stufe) return '';
+    return '<span title="' + stufe.label + '">' + stufe.icon + ' ' + stufe.label + '</span>';
+  }
+  let editAufwand = '';
+  function renderEditAufwandReihe() {
+    const box = document.getElementById('editAufwandReihe');
+    box.innerHTML = '';
+    Object.keys(AUFWAND_STUFEN).forEach(key => {
+      const stufe = AUFWAND_STUFEN[key];
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'kategorie-opt' + (editAufwand === key ? ' aktiv' : '');
+      if (editAufwand === key) btn.style.background = 'var(--moss)';
+      btn.textContent = stufe.icon + ' ' + stufe.label;
+      btn.addEventListener('click', () => {
+        editAufwand = (editAufwand === key) ? '' : key;
+        renderEditAufwandReihe();
+      });
+      box.appendChild(btn);
+    });
+  }
+
+  // ---------- ZULETZT GEKOCHT ----------
+  function formatDatumKurz(isoDatum) {
+    if (!isoDatum) return '';
+    const d = new Date(isoDatum);
+    if (isNaN(d)) return '';
+    return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  }
+
   let detailId = null;
   let detailPortionen = 1;
   let detailZutatenAusgewaehlt = new Set();
@@ -780,7 +843,7 @@
       '<button class="herz' + (r.favorit ? ' aktiv' : '') + '" data-id="' + r.id + '">' + (r.favorit ? '♥' : '♡') + '</button>' +
       (r.foto ? '<img class="rezept-foto-thumb" src="' + r.foto + '" alt="">' : '<div class="rezept-kat-icon">' + kat.icon + '</div>') +
       '<div class="rezept-titel">' + escapeHtml(r.titel) + '</div>' +
-      '<div class="rezept-meta"><span>⏱ ' + r.zeit + ' Min.</span><span>🍽 ' + r.portionenBasis + '</span></div>' +
+      '<div class="rezept-meta"><span>⏱ ' + r.zeit + ' Min.</span><span>🍽 ' + r.portionenBasis + '</span>' + (r.aufwand ? '<span>' + AUFWAND_STUFEN[r.aufwand].icon + '</span>' : '') + '</div>' +
       sterneAnzeige(r.bewertung) +
       zutatTrefferHtml +
       tagsHtml;
@@ -857,7 +920,11 @@
     document.getElementById('detailKatChip').style.background = kat.farbe + '22';
     document.getElementById('detailKatChip').style.color = kat.farbe;
     document.getElementById('detailTitel').textContent = r.titel;
-    document.getElementById('detailMeta').innerHTML = '<span>⏱ ' + r.zeit + ' Min.</span>' + (r.bewertung ? '<span style="display:inline-flex;vertical-align:middle;">' + sterneAnzeige(r.bewertung) + '</span>' : '');
+    document.getElementById('detailMeta').innerHTML =
+      '<span>⏱ ' + r.zeit + ' Min.</span>' +
+      (r.bewertung ? '<span style="display:inline-flex;vertical-align:middle;">' + sterneAnzeige(r.bewertung) + '</span>' : '') +
+      (r.aufwand ? aufwandBadgeHtml(r.aufwand) : '') +
+      (r.zuletztGekocht ? '<span style="font-size:0.7rem;color:var(--bark);">🕒 zuletzt gekocht: ' + formatDatumKurz(r.zuletztGekocht) + '</span>' : '');
     const herz = document.getElementById('detailHerz');
     herz.textContent = r.favorit ? '♥' : '♡';
     herz.classList.toggle('aktiv', !!r.favorit);
@@ -865,6 +932,7 @@
     document.getElementById('detailNotizBox').style.display = r.notiz ? '' : 'none';
     document.getElementById('detailNotizBox').textContent = r.notiz || '';
     renderDetailPortionenAbhaengig(r);
+    document.getElementById('terminPlanenBox').style.display = 'none';
     document.getElementById('modalDetail').classList.add('zeigen');
   }
   function renderDetailPortionenAbhaengig(r) {
@@ -1092,10 +1160,40 @@
   document.getElementById('btnKochmodusWeiter').addEventListener('click', () => {
     const r = rezepte.find(x => x.id === detailId);
     if (!r) return;
-    if (kochmodusSchrittIndex >= r.schritte.length - 1) { kochmodusSchliessen(); return; }
+    if (kochmodusSchrittIndex >= r.schritte.length - 1) { kochmodusAbschliessen(r); return; }
     kochmodusSchrittIndex++;
     kochmodusSchrittRendern(r);
   });
+  function kochmodusAbschliessen(r) {
+    r.zuletztGekocht = new Date().toISOString();
+    speichernRezepte();
+    kochmodusSchliessen();
+    renderGrid();
+    kochNotizAbschlussOeffnen(r);
+  }
+
+  // ---------- Kurze Notiz-Abfrage nach dem Kochen ----------
+  function kochNotizAbschlussOeffnen(r) {
+    document.getElementById('kochNotizAbschlussTitel').textContent = '„' + r.titel + '“ fertig gekocht!';
+    document.getElementById('fKochNotizAbschluss').value = '';
+    document.getElementById('modalKochNotizAbschluss').dataset.rezeptId = r.id;
+    document.getElementById('modalKochNotizAbschluss').classList.add('zeigen');
+  }
+  document.getElementById('btnKochNotizAbschlussUeberspringen').addEventListener('click', () => {
+    document.getElementById('modalKochNotizAbschluss').classList.remove('zeigen');
+  });
+  document.getElementById('btnKochNotizAbschlussSpeichern').addEventListener('click', () => {
+    const text = document.getElementById('fKochNotizAbschluss').value.trim();
+    const id = document.getElementById('modalKochNotizAbschluss').dataset.rezeptId;
+    const r = rezepte.find(x => x.id === id);
+    if (r && text) {
+      const datum = formatDatumKurz(new Date().toISOString());
+      r.notiz = (r.notiz ? r.notiz + '\n' : '') + '[' + datum + '] ' + text;
+      speichernRezepte();
+    }
+    document.getElementById('modalKochNotizAbschluss').classList.remove('zeigen');
+  });
+  document.getElementById('modalKochNotizAbschluss').addEventListener('click', (e) => { if (e.target.id === 'modalKochNotizAbschluss') e.currentTarget.classList.remove('zeigen'); });
   document.getElementById('btnKochmodusZutaten').addEventListener('click', () => {
     const box = document.getElementById('kochmodusZutatenListe');
     const zeigen = box.style.display === 'none';
@@ -1244,6 +1342,8 @@
     editKategorieReiheRendern(r ? r.kategorie : 'hauptspeise');
     editBewertung = r ? (r.bewertung || 0) : 0;
     renderEditSterneEingabe();
+    editAufwand = r ? (r.aufwand || '') : '';
+    renderEditAufwandReihe();
 
     const zutBox = document.getElementById('editZutatenListe');
     zutBox.innerHTML = '';
@@ -1343,6 +1443,39 @@
     const r = rezepte.find(x => x.id === detailId);
     if (r) editModalOeffnen(r);
   });
+
+  // ---------- Als Termin planen (Verknüpfung mit Termine-Modul) ----------
+  const KEY_TERMINE_EVENTS = 'termine_events_v1';
+  document.getElementById('btnAlsTerminPlanen').addEventListener('click', () => {
+    const box = document.getElementById('terminPlanenBox');
+    const zeigen = box.style.display === 'none';
+    box.style.display = zeigen ? 'flex' : 'none';
+    if (zeigen && !document.getElementById('fTerminPlanenDatum').value) {
+      const heute = new Date();
+      document.getElementById('fTerminPlanenDatum').value = heute.toISOString().slice(0, 10);
+    }
+  });
+  document.getElementById('btnTerminPlanenSpeichern').addEventListener('click', () => {
+    const r = rezepte.find(x => x.id === detailId);
+    const datum = document.getElementById('fTerminPlanenDatum').value;
+    if (!r || !datum) { alert('Bitte ein Datum wählen.'); return; }
+    const events = laden(KEY_TERMINE_EVENTS, []);
+    events.push({
+      id: 't_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+      title: '🍽 ' + r.titel,
+      date: datum,
+      allDay: true,
+      startTime: '', endTime: '',
+      wer: 'familie',
+      location: '',
+      notes: 'Aus dem Kochen-Modul geplant (' + detailPortionen + ' Portionen).',
+      erinnerung: 0,
+      recurrence: { freq: 'keine', until: null }
+    });
+    speichern(KEY_TERMINE_EVENTS, events);
+    document.getElementById('terminPlanenBox').style.display = 'none';
+    alert('„' + r.titel + '" wurde für den ' + formatDatumKurz(datum) + ' in die Termine eingetragen.');
+  });
   document.getElementById('btnEditAbbrechen').addEventListener('click', () => document.getElementById('modalEdit').classList.remove('zeigen'));
   document.getElementById('modalEdit').addEventListener('click', (e) => { if (e.target.id === 'modalEdit') e.currentTarget.classList.remove('zeigen'); });
 
@@ -1375,8 +1508,10 @@
       portionenBasis, zeit, zutaten, schritte, tags,
       notiz: document.getElementById('fNotiz').value.trim(),
       bewertung: editBewertung,
+      aufwand: editAufwand,
       favorit: bearbeiteId ? (rezepte.find(x => x.id === bearbeiteId)?.favorit || false) : false,
       foto: bearbeiteId ? (rezepte.find(x => x.id === bearbeiteId)?.foto || '') : '',
+      zuletztGekocht: bearbeiteId ? (rezepte.find(x => x.id === bearbeiteId)?.zuletztGekocht || null) : null,
     };
     if (bearbeiteId) rezepte = rezepte.map(r => r.id === bearbeiteId ? neu : r);
     else rezepte.push(neu);
