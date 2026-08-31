@@ -99,6 +99,7 @@
   .ak-meta { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 5px; }
   .mini-chip { font-size: 0.62rem; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-pill); white-space: nowrap; background: var(--parchment); color: var(--bark); }
   .mini-chip.person { color: var(--white); }
+  .ak-foto-btn { border: none; cursor: pointer; }
   .ak-check { flex-shrink: 0; width: 42px; height: 42px; border-radius: 50%; border: 2px solid var(--parchment); background: var(--white); font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
   .ak-check.erledigt { background: var(--moss); border-color: var(--moss); color: var(--white); }
   .ak-check.faellig-nicht { border-color: var(--parchment); color: var(--parchment); }
@@ -358,9 +359,27 @@
   <div class="modal" style="max-width:400px;">
     <h2>Wer hat's erledigt?</h2>
     <div class="opt-reihe" id="erledigtPersonReihe" style="margin-bottom:16px;"></div>
+    <div class="feld">
+      <label>Foto-Beweis (optional)</label>
+      <div id="erledigtFotoBox" style="border:2px dashed var(--parchment);border-radius:var(--radius-md);padding:10px;text-align:center;cursor:pointer;position:relative;">
+        <span id="erledigtFotoPlatzhalter" style="font-size:0.82rem;color:var(--bark);">📷 Foto aufnehmen/auswählen</span>
+        <img id="erledigtFotoImg" style="display:none;max-width:100%;max-height:160px;border-radius:8px;">
+        <input type="file" id="erledigtFotoInput" accept="image/*" capture="environment" style="position:absolute;inset:0;opacity:0;cursor:pointer;">
+      </div>
+    </div>
     <div class="modal-btns">
       <button class="btn btn-secondary" id="btnErledigtAbbrechen">Abbrechen</button>
       <button class="btn btn-primary" id="btnErledigtBestaetigen">✓ Bestätigen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Foto-Beweis Ansicht -->
+<div class="modal-bg" id="modalFotoAnsicht">
+  <div class="modal" style="max-width:480px;padding:12px;">
+    <img id="fotoAnsichtImg" style="width:100%;border-radius:var(--radius-md);display:block;">
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnFotoAnsichtSchliessen">Schließen</button>
     </div>
   </div>
 </div>
@@ -522,6 +541,8 @@
         metaHtml += '<span class="mini-chip">🙋 Jeder</span>';
       }
       if (a.pausiert) metaHtml += '<span class="mini-chip">⏸ Pausiert</span>';
+      const letzte = letzteErledigung(a);
+      if (letzte && letzte.foto) metaHtml += '<button type="button" class="mini-chip ak-foto-btn" title="Foto-Beweis ansehen">📷</button>';
 
       karte.innerHTML =
         '<div class="ak-icon">' + escapeHtml(a.icon || '🧹') + '</div>' +
@@ -531,7 +552,15 @@
         '</div>' +
         '<button class="ak-check' + (erledigtHeute ? ' erledigt' : (!faellig ? ' faellig-nicht' : '')) + '" title="' + (erledigtHeute ? 'Heute erledigt – Klick zum Rückgängigmachen' : 'Als erledigt markieren') + '">' + (erledigtHeute ? '✓' : '') + '</button>';
 
-      karte.querySelector('.ak-body').addEventListener('click', () => editOeffnen(a.id));
+      karte.querySelector('.ak-body').addEventListener('click', (e) => {
+        if (e.target.closest('.ak-foto-btn')) {
+          e.stopPropagation();
+          const letzte = letzteErledigung(a);
+          if (letzte && letzte.foto) fotoAnsichtOeffnen(letzte.foto);
+          return;
+        }
+        editOeffnen(a.id);
+      });
       karte.querySelector('.ak-check').addEventListener('click', (e) => {
         e.stopPropagation();
         if (erledigtHeute) {
@@ -544,13 +573,71 @@
           erledigtOeffnen(a.id);
         }
       });
+
+      // ---------- Swipe: nach rechts wischen markiert fällige Aufgaben als erledigt ----------
+      let swipeStartX = 0, swipeStartY = 0, swipeAktiv = false;
+      karte.addEventListener('touchstart', (e) => {
+        if (e.touches.length !== 1) return;
+        swipeStartX = e.touches[0].clientX;
+        swipeStartY = e.touches[0].clientY;
+        swipeAktiv = true;
+      }, { passive: true });
+      karte.addEventListener('touchend', (e) => {
+        if (!swipeAktiv) return;
+        swipeAktiv = false;
+        const deltaX = e.changedTouches[0].clientX - swipeStartX;
+        const deltaY = e.changedTouches[0].clientY - swipeStartY;
+        if (deltaX < 70 || Math.abs(deltaX) < Math.abs(deltaY) * 1.5) return;
+        if (faellig && !erledigtHeute) erledigtOeffnen(a.id);
+      }, { passive: true });
+
       box.appendChild(karte);
     });
   }
 
   // --- Erledigt-Modal ---
+  let erledigtFotoDataUrl = '';
+  function erledigtFotoZuruecksetzen() {
+    erledigtFotoDataUrl = '';
+    document.getElementById('erledigtFotoImg').style.display = 'none';
+    document.getElementById('erledigtFotoPlatzhalter').style.display = '';
+    document.getElementById('erledigtFotoInput').value = '';
+  }
+  document.getElementById('erledigtFotoInput').addEventListener('change', (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        const maxW = 640;
+        const scale = Math.min(1, maxW / img.width);
+        const c = document.createElement('canvas');
+        c.width = img.width * scale;
+        c.height = img.height * scale;
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        erledigtFotoDataUrl = c.toDataURL('image/jpeg', 0.7);
+        const fotoImg = document.getElementById('erledigtFotoImg');
+        fotoImg.src = erledigtFotoDataUrl;
+        fotoImg.style.display = '';
+        document.getElementById('erledigtFotoPlatzhalter').style.display = 'none';
+      };
+      img.onerror = () => alert('Datei ist kein gültiges Bild.');
+      img.src = ev.target.result;
+    };
+    reader.onerror = () => alert('Foto konnte nicht gelesen werden.');
+    reader.readAsDataURL(file);
+  });
+  document.getElementById('btnFotoAnsichtSchliessen').addEventListener('click', () => document.getElementById('modalFotoAnsicht').classList.remove('zeigen'));
+  document.getElementById('modalFotoAnsicht').addEventListener('click', (e) => { if (e.target.id === 'modalFotoAnsicht') e.currentTarget.classList.remove('zeigen'); });
+  function fotoAnsichtOeffnen(dataUrl) {
+    document.getElementById('fotoAnsichtImg').src = dataUrl;
+    document.getElementById('modalFotoAnsicht').classList.add('zeigen');
+  }
+
   function erledigtOeffnen(id) {
     erledigtZielId = id;
+    erledigtFotoZuruecksetzen();
     const a = aufgaben.find(x => x.id === id);
     const box = document.getElementById('erledigtPersonReihe');
     box.innerHTML = '';
@@ -577,7 +664,9 @@
     if (!a) return;
     const wer = gewaehlt ? gewaehlt.dataset.person : (personenListe()[0] || {}).id;
     if (!a.erledigt) a.erledigt = [];
-    a.erledigt.push({ datum: new Date().toISOString(), von: wer });
+    const eintrag = { datum: new Date().toISOString(), von: wer };
+    if (erledigtFotoDataUrl) eintrag.foto = erledigtFotoDataUrl;
+    a.erledigt.push(eintrag);
     if (a.zuweisung === 'rotation' && (a.rotationPersonen || []).length) {
       a.rotationIndex = ((a.rotationIndex || 0) + 1) % a.rotationPersonen.length;
     }
