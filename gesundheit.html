@@ -345,6 +345,7 @@
     <button id="btnViewTrainingsplan" role="tab" aria-selected="false">🗓️ Trainingsplan</button>
     <button id="btnViewKoerperlexikon" role="tab" aria-selected="false">🦴 Körperlexikon</button>
     <button id="btnViewErnaehrung" role="tab" aria-selected="false">🍽️ Ernährung</button>
+    <button id="btnViewKrankheiten" role="tab" aria-selected="false">🤒 Krankheiten</button>
   </div>
 </header>
   <div class="theme-popup" id="themePopup">
@@ -573,6 +574,17 @@
     </div>
     <div class="disclaimer-box">
       ℹ️ Die Phasen- und Trainingshinweise sind allgemeine, verbreitete Orientierung – die wissenschaftliche Studienlage zu zyklusbasiertem Training ist noch nicht eindeutig, und jeder Zyklus verläuft individuell. Kein Ersatz für ärztlichen Rat, besonders bei unregelmäßigen Zyklen oder Beschwerden.
+    </div>
+  </section>
+
+  <section id="ansichtKrankheiten" style="display:none;">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
+      <button class="add-sport-btn" id="btnKrankheitNeu">＋ Krankheit erfassen</button>
+    </div>
+    <div id="krankheitenListe"></div>
+    <div class="leer-hinweis" id="krankheitenLeer" style="display:none;padding:14px 0;">Noch keine Krankheit erfasst. Praktisch v.a. bei den Kindern, um Verlauf, Temperatur und gegebene Medikamente im Blick zu behalten.</div>
+    <div class="disclaimer-box">
+      ℹ️ Rein zur eigenen Dokumentation – kein Ersatz für ärztlichen Rat. Bei hohem Fieber, Verschlechterung oder Unsicherheit bitte ärztlich abklären lassen.
     </div>
   </section>
 
@@ -1518,6 +1530,66 @@
   </div>
 </div>
 
+<div class="modal-bg" id="modalKrankheit">
+  <div class="modal">
+    <h2 id="krankheitModalTitel">Krankheit erfassen</h2>
+    <div class="feld">
+      <label for="fKrankheitName">Bezeichnung</label>
+      <input type="text" id="fKrankheitName" placeholder="z.B. Erkältung, Mittelohrentzündung">
+    </div>
+    <div class="feld">
+      <label for="fKrankheitStart">Beginn</label>
+      <input type="date" id="fKrankheitStart">
+    </div>
+    <div class="feld">
+      <label for="fKrankheitEnde">Ende (optional, falls schon ausgestanden)</label>
+      <input type="date" id="fKrankheitEnde">
+    </div>
+    <div class="feld">
+      <label for="fKrankheitNotiz">Abschlussnotiz (optional)</label>
+      <textarea id="fKrankheitNotiz" rows="2" style="width:100%; box-sizing:border-box; border:1px solid var(--sand-dark); border-radius:var(--radius-md); padding:8px; font-family:inherit; font-size:0.85rem;" placeholder="z.B. gut ausgeheilt, Antibiotikum hat gut geholfen"></textarea>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnKrankheitAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnKrankheitSpeichern">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalKrankheitEintrag">
+  <div class="modal">
+    <h2 id="krankheitEintragModalTitel">Verlaufseintrag</h2>
+    <div class="feld">
+      <label for="fKeDatum">Datum</label>
+      <input type="date" id="fKeDatum">
+    </div>
+    <div class="feld">
+      <label for="fKeUhrzeit">Uhrzeit (optional)</label>
+      <input type="time" id="fKeUhrzeit">
+    </div>
+    <div class="feld">
+      <label for="fKeTemperatur">Temperatur °C (optional)</label>
+      <input type="number" id="fKeTemperatur" step="0.1" min="34" max="43" placeholder="z.B. 38.5">
+    </div>
+    <div class="feld">
+      <label for="fKeSymptome">Symptome (optional)</label>
+      <input type="text" id="fKeSymptome" placeholder="z.B. Husten, Halsschmerzen, Müdigkeit">
+    </div>
+    <div class="feld">
+      <label for="fKeMedikament">Medikament (optional)</label>
+      <input type="text" id="fKeMedikament" placeholder="z.B. Ibuprofen-Saft 5ml">
+    </div>
+    <div class="feld">
+      <label for="fKeNotiz">Notiz/Wirkung (optional)</label>
+      <input type="text" id="fKeNotiz" placeholder="z.B. Fieber nach 2 Std. gesunken">
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnKeAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnKeSpeichern">Speichern</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="modalExport">
   <div class="modal">
     <h2>Werte für Arzttermin</h2>
@@ -2410,10 +2482,11 @@
   const btnDehnen = document.getElementById('btnViewDehnen');
   const btnBalance = document.getElementById('btnViewBalance');
   const btnZyklus = document.getElementById('btnViewZyklus');
+  const btnKrankheiten = document.getElementById('btnViewKrankheiten');
   const btnTrainingsplan = document.getElementById('btnViewTrainingsplan');
   const btnKoerperlexikon = document.getElementById('btnViewKoerperlexikon');
   const btnErnaehrung = document.getElementById('btnViewErnaehrung');
-  const alleTabs = { heute: btnHeute, verlauf: btnVerlauf, rechner: btnRechner, kraft: btnKraft, dehnen: btnDehnen, balance: btnBalance, zyklus: btnZyklus, trainingsplan: btnTrainingsplan, koerperlexikon: btnKoerperlexikon, ernaehrung: btnErnaehrung };
+  const alleTabs = { heute: btnHeute, verlauf: btnVerlauf, rechner: btnRechner, kraft: btnKraft, dehnen: btnDehnen, balance: btnBalance, zyklus: btnZyklus, trainingsplan: btnTrainingsplan, koerperlexikon: btnKoerperlexikon, ernaehrung: btnErnaehrung, krankheiten: btnKrankheiten };
   function zeigeAnsicht(name) {
     aktiveAnsicht = name;
     document.getElementById('ansichtHeute').style.display = name === 'heute' ? '' : 'none';
@@ -2426,6 +2499,7 @@
     document.getElementById('ansichtTrainingsplan').style.display = name === 'trainingsplan' ? '' : 'none';
     document.getElementById('ansichtKoerperlexikon').style.display = name === 'koerperlexikon' ? '' : 'none';
     document.getElementById('ansichtErnaehrung').style.display = name === 'ernaehrung' ? '' : 'none';
+    document.getElementById('ansichtKrankheiten').style.display = name === 'krankheiten' ? '' : 'none';
     Object.keys(alleTabs).forEach((k) => {
       alleTabs[k].classList.toggle('active', k === name);
       alleTabs[k].setAttribute('aria-selected', k === name);
@@ -2438,6 +2512,7 @@
     if (name === 'trainingsplan') renderTrainingsplan();
     if (name === 'koerperlexikon') renderKoerperlexikon('muskeln');
     if (name === 'ernaehrung') renderErnaehrung();
+    if (name === 'krankheiten') renderKrankheiten();
   }
   btnHeute.addEventListener('click', () => zeigeAnsicht('heute'));
   btnVerlauf.addEventListener('click', () => zeigeAnsicht('verlauf'));
@@ -2449,6 +2524,7 @@
   btnTrainingsplan.addEventListener('click', () => zeigeAnsicht('trainingsplan'));
   btnKoerperlexikon.addEventListener('click', () => zeigeAnsicht('koerperlexikon'));
   btnErnaehrung.addEventListener('click', () => zeigeAnsicht('ernaehrung'));
+  btnKrankheiten.addEventListener('click', () => zeigeAnsicht('krankheiten'));
   document.getElementById('btnInfosModal').addEventListener('click', () => {
     document.getElementById('infosModal').classList.add('zeigen');
   });
@@ -3217,6 +3293,183 @@
   // ============================================================
   // ZYKLUS-BASIERTES TRAINING
   // ============================================================
+  // ============================================================
+  // KRANKHEITEN – Krankheitsverläufe pro Person, mit Temperatur-/Symptom-/
+  // Medikamenten-Verlauf, v.a. praktisch für die Dokumentation bei Kindern.
+  // ============================================================
+  const KEY_KRANKHEITEN = 'gesundheit_krankheiten';
+  let krankheiten = laden(KEY_KRANKHEITEN, []); // [{id, person, name, start, ende, notiz, verlauf: [{id, datum, uhrzeit, temperatur, symptome, medikament, notiz}]}]
+  function speichereKrankheiten() { speichern(KEY_KRANKHEITEN, krankheiten); }
+  let krankheitenOffen = new Set();
+
+  function renderKrankheiten() {
+    const box = document.getElementById('krankheitenListe');
+    const leer = document.getElementById('krankheitenLeer');
+    const eigene = krankheiten.filter(k => k.person === aktivePerson).sort((a, b) => b.start.localeCompare(a.start));
+    leer.style.display = eigene.length ? 'none' : '';
+    box.innerHTML = '';
+    eigene.forEach(k => {
+      const offen = krankheitenOffen.has(k.id);
+      const zeitraum = k.ende
+        ? ausISO(k.start).toLocaleDateString('de-DE', { day: 'numeric', month: 'short' }) + ' – ' + ausISO(k.ende).toLocaleDateString('de-DE', { day: 'numeric', month: 'short' })
+        : 'seit ' + ausISO(k.start).toLocaleDateString('de-DE', { day: 'numeric', month: 'short' }) + ' (läuft)';
+      const anzahl = (k.verlauf || []).length;
+      const wrap = document.createElement('div');
+      wrap.className = 'karte';
+      wrap.style.cssText = 'padding:0;overflow:hidden;margin-bottom:10px;';
+      const kopf = document.createElement('div');
+      kopf.style.cssText = 'display:flex;align-items:center;gap:8px;padding:12px 14px;cursor:pointer;';
+      kopf.innerHTML =
+        '<span style="font-size:1.1rem;flex-shrink:0;">🤒</span>' +
+        '<div style="flex:1;min-width:0;">' +
+          '<div style="font-weight:700;font-size:0.9rem;color:var(--soil);">' + escapeHtml(k.name) + '</div>' +
+          '<div style="font-size:0.75rem;color:var(--bark);">' + zeitraum + ' · ' + anzahl + (anzahl === 1 ? ' Eintrag' : ' Einträge') + '</div>' +
+        '</div>' +
+        '<button data-act="edit" style="background:none;border:none;color:var(--bark);font-size:0.9rem;cursor:pointer;padding:4px;" title="Bearbeiten">✏️</button>' +
+        '<button data-act="del" style="background:none;border:none;color:var(--terracotta-text);font-size:1rem;font-weight:700;cursor:pointer;padding:4px;" title="Löschen">✕</button>' +
+        '<span style="font-size:0.75rem;color:var(--moss);flex-shrink:0;transition:transform .15s;' + (offen ? 'transform:rotate(90deg);' : '') + '">▸</span>';
+      kopf.querySelector('[data-act="edit"]').addEventListener('click', (e) => { e.stopPropagation(); krankheitModalOeffnen(k.id); });
+      kopf.querySelector('[data-act="del"]').addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!confirm('„' + k.name + '" inkl. aller Verlaufseinträge wirklich löschen?')) return;
+        krankheiten = krankheiten.filter(x => x.id !== k.id);
+        speichereKrankheiten();
+        renderKrankheiten();
+      });
+      kopf.addEventListener('click', () => {
+        if (krankheitenOffen.has(k.id)) krankheitenOffen.delete(k.id); else krankheitenOffen.add(k.id);
+        renderKrankheiten();
+      });
+      wrap.appendChild(kopf);
+      if (offen) {
+        const body = document.createElement('div');
+        body.style.cssText = 'padding:0 14px 12px;border-top:1px solid var(--parchment);';
+        if (k.notiz) {
+          const notizZeile = document.createElement('div');
+          notizZeile.style.cssText = 'font-size:0.78rem;color:var(--bark);padding:10px 0 0;';
+          notizZeile.textContent = '📝 ' + k.notiz;
+          body.appendChild(notizZeile);
+        }
+        const addBtn = document.createElement('button');
+        addBtn.className = 'btn btn-secondary';
+        addBtn.style.cssText = 'font-size:0.76rem;padding:6px 12px;margin:10px 0;';
+        addBtn.textContent = '＋ Verlaufseintrag';
+        addBtn.addEventListener('click', () => keModalOeffnen(k.id, null));
+        body.appendChild(addBtn);
+        const eintraege = (k.verlauf || []).slice().sort((a, b) => (b.datum + (b.uhrzeit || '')).localeCompare(a.datum + (a.uhrzeit || '')));
+        if (!eintraege.length) {
+          const hinweis = document.createElement('div');
+          hinweis.className = 'leer-hinweis';
+          hinweis.style.padding = '8px 0';
+          hinweis.textContent = 'Noch keine Verlaufseinträge.';
+          body.appendChild(hinweis);
+        }
+        eintraege.forEach(e => {
+          const zeile = document.createElement('div');
+          zeile.className = 'sport-zeile';
+          zeile.style.cursor = 'pointer';
+          const teile = [];
+          if (e.temperatur != null && e.temperatur !== '') teile.push('🌡️ ' + e.temperatur + '°C');
+          if (e.symptome) teile.push(escapeHtml(e.symptome));
+          if (e.medikament) teile.push('💊 ' + escapeHtml(e.medikament));
+          const datumText = ausISO(e.datum).toLocaleDateString('de-DE', { day: 'numeric', month: 'short' }) + (e.uhrzeit ? ', ' + e.uhrzeit : '');
+          zeile.innerHTML =
+            '<span class="sport-icon">📋</span>' +
+            '<div class="sport-info"><div class="sport-titel">' + (teile.join(' · ') || 'Eintrag') + '</div>' +
+            '<div class="sport-meta">' + datumText + (e.notiz ? ' · ' + escapeHtml(e.notiz) : '') + '</div></div>' +
+            '<button class="sport-loeschen" aria-label="Löschen">✕</button>';
+          zeile.addEventListener('click', () => keModalOeffnen(k.id, e.id));
+          zeile.querySelector('.sport-loeschen').addEventListener('click', (ev) => {
+            ev.stopPropagation();
+            k.verlauf = k.verlauf.filter(x => x.id !== e.id);
+            speichereKrankheiten();
+            renderKrankheiten();
+          });
+          body.appendChild(zeile);
+        });
+        wrap.appendChild(body);
+      }
+      box.appendChild(wrap);
+    });
+  }
+
+  let krankheitBearbeiteId = null;
+  function krankheitModalOeffnen(id) {
+    const bestehend = id ? krankheiten.find(k => k.id === id) : null;
+    krankheitBearbeiteId = bestehend ? bestehend.id : null;
+    document.getElementById('krankheitModalTitel').textContent = bestehend ? 'Krankheit bearbeiten' : 'Krankheit erfassen';
+    document.getElementById('fKrankheitName').value = bestehend ? bestehend.name : '';
+    document.getElementById('fKrankheitStart').value = bestehend ? bestehend.start : heuteISO();
+    document.getElementById('fKrankheitEnde').value = bestehend && bestehend.ende ? bestehend.ende : '';
+    document.getElementById('fKrankheitNotiz').value = bestehend ? (bestehend.notiz || '') : '';
+    document.getElementById('modalKrankheit').classList.add('zeigen');
+  }
+  document.getElementById('btnKrankheitNeu').addEventListener('click', () => krankheitModalOeffnen(null));
+  document.getElementById('btnKrankheitAbbrechen').addEventListener('click', () => document.getElementById('modalKrankheit').classList.remove('zeigen'));
+  document.getElementById('modalKrankheit').addEventListener('click', (e) => { if (e.target.id === 'modalKrankheit') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnKrankheitSpeichern').addEventListener('click', () => {
+    const name = document.getElementById('fKrankheitName').value.trim();
+    const start = document.getElementById('fKrankheitStart').value;
+    const ende = document.getElementById('fKrankheitEnde').value || null;
+    if (!name) { alert('Bitte eine Bezeichnung eingeben.'); return; }
+    if (!start) { alert('Bitte ein Start-Datum wählen.'); return; }
+    if (ende && ende < start) { alert('Das Enddatum kann nicht vor dem Beginn liegen.'); return; }
+    const notiz = document.getElementById('fKrankheitNotiz').value.trim();
+    if (krankheitBearbeiteId) {
+      const k = krankheiten.find(x => x.id === krankheitBearbeiteId);
+      if (k) { k.name = name; k.start = start; k.ende = ende; k.notiz = notiz; }
+    } else {
+      krankheiten.push({ id: neueId('kr'), person: aktivePerson, name, start, ende, notiz, verlauf: [] });
+    }
+    speichereKrankheiten();
+    document.getElementById('modalKrankheit').classList.remove('zeigen');
+    renderKrankheiten();
+  });
+
+  let keAktuelleKrankheitId = null;
+  let keBearbeiteId = null;
+  function keModalOeffnen(krankheitId, eintragId) {
+    keAktuelleKrankheitId = krankheitId;
+    const k = krankheiten.find(x => x.id === krankheitId);
+    const bestehend = eintragId ? (k.verlauf || []).find(e => e.id === eintragId) : null;
+    keBearbeiteId = bestehend ? bestehend.id : null;
+    document.getElementById('krankheitEintragModalTitel').textContent = bestehend ? 'Verlaufseintrag bearbeiten' : 'Verlaufseintrag';
+    document.getElementById('fKeDatum').value = bestehend ? bestehend.datum : heuteISO();
+    document.getElementById('fKeUhrzeit').value = bestehend ? (bestehend.uhrzeit || '') : '';
+    document.getElementById('fKeTemperatur').value = bestehend && bestehend.temperatur != null ? bestehend.temperatur : '';
+    document.getElementById('fKeSymptome').value = bestehend ? (bestehend.symptome || '') : '';
+    document.getElementById('fKeMedikament').value = bestehend ? (bestehend.medikament || '') : '';
+    document.getElementById('fKeNotiz').value = bestehend ? (bestehend.notiz || '') : '';
+    document.getElementById('modalKrankheitEintrag').classList.add('zeigen');
+  }
+  document.getElementById('btnKeAbbrechen').addEventListener('click', () => document.getElementById('modalKrankheitEintrag').classList.remove('zeigen'));
+  document.getElementById('modalKrankheitEintrag').addEventListener('click', (e) => { if (e.target.id === 'modalKrankheitEintrag') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnKeSpeichern').addEventListener('click', () => {
+    const datum = document.getElementById('fKeDatum').value;
+    if (!datum) { alert('Bitte ein Datum wählen.'); return; }
+    const k = krankheiten.find(x => x.id === keAktuelleKrankheitId);
+    if (!k) return;
+    if (!k.verlauf) k.verlauf = [];
+    const temperaturRoh = document.getElementById('fKeTemperatur').value;
+    const eintrag = {
+      datum,
+      uhrzeit: document.getElementById('fKeUhrzeit').value || null,
+      temperatur: temperaturRoh ? parseFloat(temperaturRoh) : null,
+      symptome: document.getElementById('fKeSymptome').value.trim(),
+      medikament: document.getElementById('fKeMedikament').value.trim(),
+      notiz: document.getElementById('fKeNotiz').value.trim(),
+    };
+    if (keBearbeiteId) {
+      const bestehend = k.verlauf.find(e => e.id === keBearbeiteId);
+      if (bestehend) Object.assign(bestehend, eintrag);
+    } else {
+      k.verlauf.push(Object.assign({ id: neueId('ke') }, eintrag));
+    }
+    speichereKrankheiten();
+    document.getElementById('modalKrankheitEintrag').classList.remove('zeigen');
+    renderKrankheiten();
+  });
+
   const KEY_ZYKLUS = 'gesundheit_zyklus';
   let zyklusDaten = laden(KEY_ZYKLUS, {}); // { [person]: { periodenStart: ['2026-07-01', ...] } }
   function speichereZyklus() { speichern(KEY_ZYKLUS, zyklusDaten); }
@@ -3797,7 +4050,7 @@
   if (window.PlanerSync) {
     window._sync = window.PlanerSync.starteSync({
       modul: 'gesundheit',
-      keys: [KEY_TAGESWERTE, KEY_SPORT, KEY_RECHNER, KEY_MEDIKAMENTE, KEY_MED_ERLEDIGT, KEY_ZIELE, KEY_TRAININGSLOG, KEY_EIGENE_UEBUNGEN, KEY_ZYKLUS, KEY_TRAININGSPLAN, KEY_ERNAEHRUNG],
+      keys: [KEY_TAGESWERTE, KEY_SPORT, KEY_RECHNER, KEY_MEDIKAMENTE, KEY_MED_ERLEDIGT, KEY_ZIELE, KEY_TRAININGSLOG, KEY_EIGENE_UEBUNGEN, KEY_ZYKLUS, KEY_TRAININGSPLAN, KEY_ERNAEHRUNG, KEY_KRANKHEITEN],
       onRemoteChange: function () {
         tageswerte = laden(KEY_TAGESWERTE, tageswerte);
         sportEinheiten = laden(KEY_SPORT, sportEinheiten);
@@ -3811,6 +4064,7 @@
         zyklusDaten = laden(KEY_ZYKLUS, zyklusDaten);
         trainingsplan = laden(KEY_TRAININGSPLAN, trainingsplan);
         ernaehrungEintraege = laden(KEY_ERNAEHRUNG, ernaehrungEintraege);
+        krankheiten = laden(KEY_KRANKHEITEN, krankheiten);
         renderAlles();
         if (aktiveAnsicht === 'rechner') rechnerFelderLaden();
         if (aktiveAnsicht === 'verlauf') renderStats();
@@ -3818,6 +4072,7 @@
         if (aktiveAnsicht === 'zyklus') renderZyklus();
         if (aktiveAnsicht === 'trainingsplan') renderTrainingsplan();
         if (aktiveAnsicht === 'ernaehrung') renderErnaehrung();
+        if (aktiveAnsicht === 'krankheiten') renderKrankheiten();
       },
     });
   }
