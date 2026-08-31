@@ -565,7 +565,7 @@
 
   <section id="ansichtZyklus" style="display:none;">
     <div class="karte" id="zyklusPhaseKarte"></div>
-    <button class="add-sport-btn" id="btnPeriodeHeute" style="margin-bottom:14px;">🩸 Periode heute gestartet</button>
+    <button class="add-sport-btn" id="btnPeriodeHeute" style="margin-bottom:14px;">🩸 Periode erfassen</button>
     <div class="karte">
       <h3>📅 Verlauf</h3>
       <div id="zyklusVerlaufListe"></div>
@@ -1483,6 +1483,37 @@
     <div class="modal-btns">
       <button class="btn btn-secondary" id="btnTlAbbrechen">Abbrechen</button>
       <button class="btn btn-primary" id="btnTlSpeichern">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalZyklus">
+  <div class="modal">
+    <h2 id="zyklusModalTitel">Periode erfassen</h2>
+    <div class="feld">
+      <label for="fZyklusStart">Start</label>
+      <input type="date" id="fZyklusStart">
+    </div>
+    <div class="feld">
+      <label for="fZyklusEnde">Ende (optional, falls schon bekannt)</label>
+      <input type="date" id="fZyklusEnde">
+    </div>
+    <div class="feld">
+      <label for="fZyklusStaerke">Stärke (optional)</label>
+      <select id="fZyklusStaerke">
+        <option value="">– keine Angabe –</option>
+        <option value="leicht">Leicht</option>
+        <option value="mittel">Mittel</option>
+        <option value="stark">Stark</option>
+      </select>
+    </div>
+    <div class="feld">
+      <label for="fZyklusSymptome">Symptome/Notizen (optional)</label>
+      <textarea id="fZyklusSymptome" rows="2" style="width:100%; box-sizing:border-box; border:1px solid var(--sand-dark); border-radius:var(--radius-md); padding:8px; font-family:inherit; font-size:0.85rem;" placeholder="z.B. Krämpfe die ersten zwei Tage, Kopfschmerzen"></textarea>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnZyklusAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnZyklusSpeichern">Speichern</button>
     </div>
   </div>
 </div>
@@ -3190,8 +3221,18 @@
   let zyklusDaten = laden(KEY_ZYKLUS, {}); // { [person]: { periodenStart: ['2026-07-01', ...] } }
   function speichereZyklus() { speichern(KEY_ZYKLUS, zyklusDaten); }
   function zyklusPersonDaten(person) {
-    if (!zyklusDaten[person]) zyklusDaten[person] = { periodenStart: [] };
-    if (!zyklusDaten[person].periodenStart) zyklusDaten[person].periodenStart = [];
+    if (!zyklusDaten[person]) zyklusDaten[person] = { perioden: [] };
+    if (!zyklusDaten[person].perioden) zyklusDaten[person].perioden = [];
+    // Einmalige Migration alter Daten (nur eine Liste von Start-Daten) ins neue Format
+    if (zyklusDaten[person].periodenStart && zyklusDaten[person].periodenStart.length) {
+      zyklusDaten[person].periodenStart.forEach(datum => {
+        if (!zyklusDaten[person].perioden.some(p => p.start === datum)) {
+          zyklusDaten[person].perioden.push({ id: neueId('zk'), start: datum, ende: null, staerke: '', symptome: '' });
+        }
+      });
+      delete zyklusDaten[person].periodenStart;
+      speichereZyklus();
+    }
     return zyklusDaten[person];
   }
   const ZYKLUS_PHASEN = {
@@ -3202,7 +3243,7 @@
   };
   function zyklusPhaseHeute(person) {
     const daten = zyklusPersonDaten(person);
-    const termine = daten.periodenStart.slice().sort();
+    const termine = daten.perioden.map(p => p.start).sort();
     if (!termine.length) return null;
     const letzter = new Date(termine[termine.length - 1] + 'T00:00:00');
     const heute = new Date(heuteISO() + 'T00:00:00');
@@ -3214,7 +3255,12 @@
       const schnitt = Math.round(diffs.reduce((a, b) => a + b, 0) / diffs.length);
       if (schnitt >= 15 && schnitt <= 45) zykluslaenge = schnitt;
     }
-    const periodenlaenge = 5;
+    let periodenlaenge = 5;
+    const bekannteLaengen = daten.perioden
+      .filter(p => p.ende)
+      .map(p => Math.round((new Date(p.ende + 'T00:00:00') - new Date(p.start + 'T00:00:00')) / 86400000) + 1)
+      .filter(n => n >= 1 && n <= 14);
+    if (bekannteLaengen.length) periodenlaenge = Math.round(bekannteLaengen.reduce((a, b) => a + b, 0) / bekannteLaengen.length);
     const eisprungTag = zykluslaenge - 14;
     let tagEffektiv = tagImZyklus;
     if (tagEffektiv > zykluslaenge) tagEffektiv = ((tagEffektiv - 1) % zykluslaenge) + 1; // überfällig: Schätzung im nächsten angenommenen Zyklus fortsetzen
@@ -3387,32 +3433,64 @@
   }
   function renderZyklusVerlauf() {
     const daten = zyklusPersonDaten(aktivePerson);
-    const termine = daten.periodenStart.slice().sort().reverse();
+    const perioden = daten.perioden.slice().sort((a, b) => b.start.localeCompare(a.start));
     const box = document.getElementById('zyklusVerlaufListe');
     const leer = document.getElementById('zyklusLeer');
-    leer.style.display = termine.length ? 'none' : '';
-    box.innerHTML = termine.map(datum => {
-      return '<div class="sport-zeile"><span class="sport-icon">🩸</span>' +
-        '<div class="sport-info"><div class="sport-titel">Periode gestartet</div><div class="sport-meta">' + ausISO(datum).toLocaleDateString('de-DE') + '</div></div>' +
-        '<button class="sport-loeschen" aria-label="Löschen" onclick="zyklusEintragLoeschen(\'' + datum + '\')">✕</button></div>';
+    leer.style.display = perioden.length ? 'none' : '';
+    const staerkeIcon = { leicht: '🩸', mittel: '🩸🩸', stark: '🩸🩸🩸' };
+    box.innerHTML = perioden.map(p => {
+      const zeitraum = p.ende
+        ? ausISO(p.start).toLocaleDateString('de-DE', { day: 'numeric', month: 'short' }) + ' – ' + ausISO(p.ende).toLocaleDateString('de-DE', { day: 'numeric', month: 'short' })
+        : ausISO(p.start).toLocaleDateString('de-DE') + ' (noch offen)';
+      const details = [p.staerke ? staerkeIcon[p.staerke] || '' : '', p.symptome ? escapeHtml(p.symptome) : ''].filter(Boolean).join(' · ');
+      return '<div class="sport-zeile" style="cursor:pointer;" onclick="zyklusModalOeffnen(\'' + p.id + '\')"><span class="sport-icon">🩸</span>' +
+        '<div class="sport-info"><div class="sport-titel">' + zeitraum + '</div>' + (details ? '<div class="sport-meta">' + details + '</div>' : '') + '</div>' +
+        '<button class="sport-loeschen" aria-label="Löschen" onclick="event.stopPropagation();zyklusEintragLoeschen(\'' + p.id + '\')">✕</button></div>';
     }).join('');
   }
-  function zyklusEintragLoeschen(datum) {
+  function zyklusEintragLoeschen(id) {
     const daten = zyklusPersonDaten(aktivePerson);
-    daten.periodenStart = daten.periodenStart.filter(d => d !== datum);
+    daten.perioden = daten.perioden.filter(p => p.id !== id);
     speichereZyklus();
     renderZyklus();
   }
   window.zyklusEintragLoeschen = zyklusEintragLoeschen;
-  document.getElementById('btnPeriodeHeute').addEventListener('click', () => {
+
+  let zyklusBearbeiteId = null;
+  function zyklusModalOeffnen(id) {
     const daten = zyklusPersonDaten(aktivePerson);
-    const heute = heuteISO();
-    if (daten.periodenStart.includes(heute)) { showTempStatus('Für heute schon erfasst.', 3); return; }
-    daten.periodenStart.push(heute);
+    const bestehend = id ? daten.perioden.find(p => p.id === id) : null;
+    zyklusBearbeiteId = bestehend ? bestehend.id : null;
+    document.getElementById('zyklusModalTitel').textContent = bestehend ? 'Periode bearbeiten' : 'Periode erfassen';
+    document.getElementById('fZyklusStart').value = bestehend ? bestehend.start : heuteISO();
+    document.getElementById('fZyklusEnde').value = bestehend && bestehend.ende ? bestehend.ende : '';
+    document.getElementById('fZyklusStaerke').value = bestehend ? (bestehend.staerke || '') : '';
+    document.getElementById('fZyklusSymptome').value = bestehend ? (bestehend.symptome || '') : '';
+    document.getElementById('modalZyklus').classList.add('zeigen');
+  }
+  window.zyklusModalOeffnen = zyklusModalOeffnen;
+  document.getElementById('btnZyklusAbbrechen').addEventListener('click', () => document.getElementById('modalZyklus').classList.remove('zeigen'));
+  document.getElementById('modalZyklus').addEventListener('click', (e) => { if (e.target.id === 'modalZyklus') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnZyklusSpeichern').addEventListener('click', () => {
+    const start = document.getElementById('fZyklusStart').value;
+    const ende = document.getElementById('fZyklusEnde').value || null;
+    if (!start) { alert('Bitte ein Start-Datum wählen.'); return; }
+    if (ende && ende < start) { alert('Das Enddatum kann nicht vor dem Start liegen.'); return; }
+    const staerke = document.getElementById('fZyklusStaerke').value;
+    const symptome = document.getElementById('fZyklusSymptome').value.trim();
+    const daten = zyklusPersonDaten(aktivePerson);
+    if (zyklusBearbeiteId) {
+      const eintrag = daten.perioden.find(p => p.id === zyklusBearbeiteId);
+      if (eintrag) { eintrag.start = start; eintrag.ende = ende; eintrag.staerke = staerke; eintrag.symptome = symptome; }
+    } else {
+      if (daten.perioden.some(p => p.start === start)) { alert('Für dieses Start-Datum existiert schon ein Eintrag.'); return; }
+      daten.perioden.push({ id: neueId('zk'), start, ende, staerke, symptome });
+    }
     speichereZyklus();
+    document.getElementById('modalZyklus').classList.remove('zeigen');
     renderZyklus();
-    showTempStatus('🩸 Erfasst.', 2);
   });
+  document.getElementById('btnPeriodeHeute').addEventListener('click', () => zyklusModalOeffnen(null));
 
   // ============================================================
   // TRAININGSPLAN – mehrere wiederkehrende Wochenpläne je Person, umschaltbar
