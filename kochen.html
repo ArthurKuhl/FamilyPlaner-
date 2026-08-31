@@ -195,8 +195,9 @@
   .detail-foto-box .herz { position: absolute; top: 3px; right: 3px; font-size: 1rem; background: rgba(255,255,255,0.88); border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; padding: 0; border: none; cursor: pointer; opacity: 0.85; }
   .detail-foto-box .herz.aktiv { color: var(--terracotta); opacity: 1; }
   .detail-kat-chip { font-size: 0.68rem; font-weight: 700; padding: 3px 10px; border-radius: var(--radius-pill); }
-  .detail-meta-reihe { display: flex; gap: 14px; font-size: 0.78rem; color: var(--bark); margin: 6px 0 14px; flex-wrap: wrap; }
-  .portionen-steuerung { display: flex; align-items: center; gap: 10px; background: var(--white); border-radius: var(--radius-pill); padding: 6px 6px; margin-bottom: 16px; width: fit-content; box-shadow: var(--shadow-soft); }
+  .detail-meta-reihe { display: flex; gap: 8px; align-items: center; font-size: 0.78rem; color: var(--bark); margin: 6px 0 10px; flex-wrap: wrap; }
+  .detail-meta-reihe > span:first-child { background: var(--white); padding: 5px 12px; border-radius: var(--radius-pill); font-weight: 600; }
+  .portionen-steuerung { display: flex; align-items: center; gap: 10px; background: var(--white); border-radius: var(--radius-pill); padding: 6px 6px; margin-bottom: 16px; margin-top: -2px; width: fit-content; box-shadow: var(--shadow-soft); }
   .portionen-steuerung button { width: 30px; height: 30px; border-radius: 50%; border: none; background: var(--parchment); color: var(--soil); font-size: 1rem; cursor: pointer; }
   .portionen-steuerung .wert { font-size: 0.85rem; font-weight: 700; min-width: 90px; text-align: center; }
   .zutaten-liste-anzeige { list-style: none; margin-bottom: 16px; }
@@ -206,8 +207,12 @@
   /* ---- Rezeptkarten-Optik für die Detailansicht ---- */
   #modalDetail .modal { background: var(--parchment); border-top: 5px solid var(--moss); }
   #detailTitel { position: relative; padding-bottom: 12px; }
-  #detailTitel::after { content: '❦'; display: block; text-align: center; color: var(--sage); font-size: 0.95rem; margin-top: 8px; letter-spacing: 0.2em; }
-  .zutaten-karte { background: var(--white); border: 1px dashed var(--sage); border-radius: var(--radius-md); padding: 4px 14px 2px; margin: 10px 0 4px; }
+  #detailTitel::after { content: '·  ✦  ·'; display: block; text-align: center; color: var(--sage); font-size: 0.85rem; margin-top: 8px; letter-spacing: 0.15em; }
+  .zutaten-liste-anzeige input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--moss); flex-shrink: 0; }
+  .zutaten-karte {
+    background: repeating-linear-gradient(var(--white), var(--white) 33px, var(--parchment) 34px);
+    border: 1px dashed var(--sage); border-radius: var(--radius-md); padding: 4px 14px 2px; margin: 10px 0 4px;
+  }
   .zutaten-karte .unterliste-titel { margin-top: 10px; }
   .zutaten-karte .zutaten-liste-anzeige { margin-bottom: 8px; }
   .zutaten-karte .zutaten-liste-anzeige li:last-child { border-bottom: none; }
