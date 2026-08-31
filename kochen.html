@@ -106,7 +106,7 @@
   .wochentag-datum { font-size: 0.66rem; color: var(--bark); }
   .wochentag-rezept { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; }
   .wochentag-rezept .icon { font-size: 1.3rem; }
-  .wochentag-rezept .titel { font-size: 0.85rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .wochentag-rezept .titel { font-size: 0.85rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
   .wochentag-leer { font-size: 0.8rem; color: var(--bark); opacity: 0.6; font-style: italic; }
   .wochentag-entfernen { background: none; border: none; color: var(--parchment); font-size: 1rem; cursor: pointer; padding: 4px 6px; flex-shrink: 0; }
   .wochentag-entfernen:hover { color: var(--terracotta-text); }
@@ -204,6 +204,11 @@
   .detail-foto-box .herz.aktiv { color: var(--terracotta); opacity: 1; }
   .detail-kat-chip { font-size: 0.68rem; font-weight: 700; padding: 3px 10px; border-radius: var(--radius-pill); }
   .detail-meta-reihe { display: flex; gap: 8px; align-items: center; font-size: 0.78rem; color: var(--bark); margin: 6px 0 10px; flex-wrap: wrap; }
+  .detail-position-anzeige { font-size: 0.7rem; color: var(--bark); opacity: 0.65; margin-top: 2px; }
+  .detail-swipe-hinweis { position: fixed; top: 50%; transform: translateY(-50%); font-size: 2rem; opacity: 0; pointer-events: none; z-index: 60; transition: opacity 0.15s; color: var(--terracotta); }
+  .detail-swipe-hinweis.links { left: 14px; }
+  .detail-swipe-hinweis.rechts { right: 14px; }
+  .detail-swipe-hinweis.zeigen { opacity: 0.85; }
   .detail-meta-reihe > span:first-child { background: var(--white); padding: 5px 12px; border-radius: var(--radius-pill); font-weight: 600; }
   .portionen-steuerung { display: flex; align-items: center; gap: 10px; background: var(--white); border-radius: var(--radius-pill); padding: 6px 6px; margin-bottom: 16px; margin-top: -2px; width: fit-content; box-shadow: var(--shadow-soft); }
   .portionen-steuerung button { width: 30px; height: 30px; border-radius: 50%; border: none; background: var(--parchment); color: var(--soil); font-size: 1rem; cursor: pointer; }
@@ -478,6 +483,8 @@
 </div>
 
 <div class="modal-bg" id="modalDetail">
+  <span class="detail-swipe-hinweis links" id="detailSwipeLinks">←</span>
+  <span class="detail-swipe-hinweis rechts" id="detailSwipeRechts">→</span>
   <div class="modal">
     <div class="detail-kopf">
       <span class="detail-kat-chip" id="detailKatChip"></span>
@@ -489,6 +496,7 @@
       <input type="file" id="detailFotoInput" accept="image/*" capture="environment" style="display:none">
     </div>
     <h2 id="detailTitel"></h2>
+    <div class="detail-position-anzeige" id="detailPositionAnzeige"></div>
     <div class="detail-meta-reihe" id="detailMeta"></div>
     <div class="portionen-steuerung">
       <button id="btnPortionenMinus">−</button>
@@ -509,9 +517,18 @@
     <div class="notiz-box" id="detailNotizBox" style="display:none;"></div>
     <button class="btn-kochmodus" id="btnKochmodusStart">👨‍🍳 Koch-Modus</button>
     <button type="button" id="btnAlsTerminPlanen" style="margin-top:8px;width:100%;background:var(--white);border:1px solid var(--parchment);border-radius:var(--radius-pill);padding:9px;font-size:0.8rem;font-weight:700;color:var(--bark);cursor:pointer;">📅 Als Termin planen</button>
-    <div id="terminPlanenBox" style="display:none;margin-top:8px;align-items:center;gap:8px;">
-      <input type="date" id="fTerminPlanenDatum" style="flex:1;padding:8px;border-radius:var(--radius-sm);border:1px solid var(--parchment);">
+    <div id="terminPlanenBox" style="display:none;margin-top:8px;align-items:center;gap:8px;flex-wrap:wrap;">
+      <input type="date" id="fTerminPlanenDatum" style="flex:1;min-width:120px;padding:8px;border-radius:var(--radius-sm);border:1px solid var(--parchment);">
+      <select id="fTerminPlanenErinnerung" style="padding:8px;border-radius:var(--radius-sm);border:1px solid var(--parchment);">
+        <option value="0">Keine Erinnerung</option>
+        <option value="15">15 Min. vorher</option>
+        <option value="30">30 Min. vorher</option>
+        <option value="60" selected>1 Std. vorher</option>
+        <option value="120">2 Std. vorher</option>
+        <option value="1440">1 Tag vorher</option>
+      </select>
       <button type="button" class="btn btn-primary" id="btnTerminPlanenSpeichern" style="padding:8px 14px;">Eintragen</button>
+      <div id="terminPlanenVorratHinweis" style="flex-basis:100%;font-size:0.72rem;color:var(--terracotta-text);"></div>
     </div>
     <div class="modal-btns">
       <button class="btn btn-secondary" id="btnDetailSchliessen">Schließen</button>
@@ -711,6 +728,7 @@
     return '<span title="' + stufe.label + '">' + stufe.icon + ' ' + stufe.label + '</span>';
   }
   let editAufwand = '';
+  let editAufwandManuell = false;
   function renderEditAufwandReihe() {
     const box = document.getElementById('editAufwandReihe');
     box.innerHTML = '';
@@ -723,11 +741,25 @@
       btn.textContent = stufe.icon + ' ' + stufe.label;
       btn.addEventListener('click', () => {
         editAufwand = (editAufwand === key) ? '' : key;
+        editAufwandManuell = true;
         renderEditAufwandReihe();
       });
       box.appendChild(btn);
     });
   }
+  function aufwandVorschlagBerechnen() {
+    const zeit = parseInt(document.getElementById('fZeit').value, 10) || 0;
+    const schritteAnzahl = document.querySelectorAll('#editSchritteListe .schritt-zeile').length;
+    if (zeit >= 60 || schritteAnzahl >= 8) return 'aufwendig';
+    if (zeit <= 20 && schritteAnzahl <= 4) return 'einfach';
+    return 'mittel';
+  }
+  function aufwandVorschlagAnwenden() {
+    if (editAufwandManuell) return;
+    editAufwand = aufwandVorschlagBerechnen();
+    renderEditAufwandReihe();
+  }
+  document.getElementById('fZeit').addEventListener('input', aufwandVorschlagAnwenden);
 
   // ---------- ZULETZT GEKOCHT ----------
   function formatDatumKurz(isoDatum) {
@@ -735,6 +767,18 @@
     const d = new Date(isoDatum);
     if (isNaN(d)) return '';
     return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  }
+  function relativZeitraumKurz(isoDatum) {
+    if (!isoDatum) return '';
+    const d = new Date(isoDatum);
+    if (isNaN(d)) return '';
+    const tageDiff = Math.floor((Date.now() - d.getTime()) / 86400000);
+    if (tageDiff <= 0) return 'heute';
+    if (tageDiff === 1) return 'gestern';
+    if (tageDiff < 7) return 'vor ' + tageDiff + ' Tagen';
+    if (tageDiff < 30) return 'vor ' + Math.floor(tageDiff / 7) + ' Wo.';
+    if (tageDiff < 365) return 'vor ' + Math.floor(tageDiff / 30) + ' Mon.';
+    return 'vor ' + Math.floor(tageDiff / 365) + ' J.';
   }
 
   let detailId = null;
@@ -985,8 +1029,49 @@
     document.getElementById('detailNotizBox').textContent = r.notiz || '';
     renderDetailPortionenAbhaengig(r);
     document.getElementById('terminPlanenBox').style.display = 'none';
+    detailPositionAnzeigeRendern();
     document.getElementById('modalDetail').classList.add('zeigen');
   }
+
+  // ---------- Zwischen Rezepten wischen ----------
+  function detailPositionAnzeigeRendern() {
+    const liste = gefilterteRezepte();
+    const index = liste.findIndex(r => r.id === detailId);
+    const anzeige = document.getElementById('detailPositionAnzeige');
+    anzeige.textContent = (index >= 0 && liste.length > 1) ? (index + 1) + ' von ' + liste.length : '';
+  }
+  function detailZuNachbarRezept(richtung) {
+    const liste = gefilterteRezepte();
+    if (liste.length < 2) return;
+    const index = liste.findIndex(r => r.id === detailId);
+    if (index === -1) return;
+    const naechsterIndex = (index + richtung + liste.length) % liste.length;
+    detailOeffnen(liste[naechsterIndex].id);
+  }
+  (function detailSwipeEinrichten() {
+    const modal = document.querySelector('#modalDetail .modal');
+    let startX = 0, startY = 0, aktiv = false;
+    modal.addEventListener('touchstart', (e) => {
+      if (e.touches.length !== 1) return;
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      aktiv = true;
+    }, { passive: true });
+    modal.addEventListener('touchend', (e) => {
+      if (!aktiv) return;
+      aktiv = false;
+      const endX = e.changedTouches[0].clientX;
+      const endY = e.changedTouches[0].clientY;
+      const deltaX = endX - startX;
+      const deltaY = endY - startY;
+      if (Math.abs(deltaX) < 70 || Math.abs(deltaX) < Math.abs(deltaY) * 1.5) return;
+      const richtung = deltaX < 0 ? 1 : -1; // nach links wischen = nächstes Rezept
+      const hinweis = document.getElementById(richtung === 1 ? 'detailSwipeRechts' : 'detailSwipeLinks');
+      hinweis.classList.add('zeigen');
+      setTimeout(() => hinweis.classList.remove('zeigen'), 220);
+      detailZuNachbarRezept(richtung);
+    }, { passive: true });
+  })();
   function renderDetailPortionenAbhaengig(r) {
     document.getElementById('portionenWert').textContent = detailPortionen + ' Portion' + (detailPortionen === 1 ? '' : 'en');
     const faktor = detailPortionen / r.portionenBasis;
@@ -1403,7 +1488,7 @@
       '<span class="schritt-nr">' + index + '.</span>' +
       '<textarea rows="2" placeholder="Was ist zu tun?">' + escapeHtml(text || '') + '</textarea>' +
       '<button type="button" class="zeile-entfernen" aria-label="Entfernen">✕</button>';
-    zeile.querySelector('.zeile-entfernen').addEventListener('click', () => { zeile.remove(); schritteNummerierenNeu(); });
+    zeile.querySelector('.zeile-entfernen').addEventListener('click', () => { zeile.remove(); schritteNummerierenNeu(); aufwandVorschlagAnwenden(); });
     return zeile;
   }
   function schritteNummerierenNeu() {
@@ -1416,6 +1501,7 @@
   document.getElementById('btnSchrittHinzufuegen').addEventListener('click', () => {
     const box = document.getElementById('editSchritteListe');
     box.appendChild(schrittZeileErstellen('', box.children.length + 1));
+    aufwandVorschlagAnwenden();
   });
 
   function editModalOeffnen(r) {
@@ -1429,6 +1515,7 @@
     editKategorieReiheRendern(r ? r.kategorie : 'hauptspeise');
     editBewertung = r ? (r.bewertung || 0) : 0;
     renderEditSterneEingabe();
+    editAufwandManuell = !!r; // bei bestehendem Rezept nicht automatisch überschreiben
     editAufwand = r ? (r.aufwand || '') : '';
     renderEditAufwandReihe();
 
@@ -1443,6 +1530,7 @@
     document.getElementById('editLoeschZeile').style.display = r ? '' : 'none';
     document.getElementById('modalEdit').classList.add('zeigen');
     document.getElementById('modalDetail').classList.remove('zeigen');
+    if (!r) aufwandVorschlagAnwenden();
   }
   // --- HINTERGRUNDMUSTER (geräte-lokal, rein optisch) ---
   const KEY_THEME = 'kochen_hintergrundThema';
@@ -1541,10 +1629,27 @@
       const heute = new Date();
       document.getElementById('fTerminPlanenDatum').value = heute.toISOString().slice(0, 10);
     }
+    if (zeigen) terminPlanenVorratHinweisRendern();
   });
+  function terminPlanenVorratHinweisRendern() {
+    const r = rezepte.find(x => x.id === detailId);
+    const hinweis = document.getElementById('terminPlanenVorratHinweis');
+    if (!r) { hinweis.textContent = ''; return; }
+    const ausgewaehlteZutaten = r.zutaten.filter((z, i) => detailZutatenAusgewaehlt.has(i));
+    const vorratNamen = laden('vorratskammer_items', []).map(v => (v.name || '').trim().toLowerCase());
+    const fehlend = ausgewaehlteZutaten.filter(z => !vorratNamen.includes(z.name.trim().toLowerCase()));
+    if (!fehlend.length) {
+      hinweis.textContent = '✅ Laut Vorratskammer ist alles Nötige schon da.';
+      hinweis.style.color = 'var(--moss)';
+    } else {
+      hinweis.textContent = '🛒 Fehlt laut Vorratskammer noch: ' + fehlend.map(z => z.name).join(', ');
+      hinweis.style.color = 'var(--terracotta-text)';
+    }
+  }
   document.getElementById('btnTerminPlanenSpeichern').addEventListener('click', () => {
     const r = rezepte.find(x => x.id === detailId);
     const datum = document.getElementById('fTerminPlanenDatum').value;
+    const erinnerung = Number(document.getElementById('fTerminPlanenErinnerung').value) || 0;
     if (!r || !datum) { alert('Bitte ein Datum wählen.'); return; }
     const events = laden(KEY_TERMINE_EVENTS, []);
     events.push({
@@ -1556,7 +1661,7 @@
       wer: 'familie',
       location: '',
       notes: 'Aus dem Kochen-Modul geplant (' + detailPortionen + ' Portionen).',
-      erinnerung: 0,
+      erinnerung: erinnerung,
       recurrence: { freq: 'keine', until: null },
       rezeptId: r.id
     });
@@ -1660,7 +1765,9 @@
         '<div class="wochentag-info"><div class="wochentag-name">' + WOCHENTAGE_NAMEN[i] + '</div><div class="wochentag-datum">' + tag.toLocaleDateString('de-DE', {day:'numeric', month:'numeric'}) + '</div></div>' +
         '<div class="wochentag-rezept">' +
           (rezept
-            ? '<span class="icon">' + kat.icon + '</span><span class="titel">' + escapeHtml(rezept.titel) + '</span>'
+            ? '<span class="icon">' + kat.icon + '</span><span class="titel">' + escapeHtml(rezept.titel) + '</span>' +
+              (rezept.aufwand ? '<span style="font-size:0.75rem;flex-shrink:0;" title="' + AUFWAND_STUFEN[rezept.aufwand].label + '">' + AUFWAND_STUFEN[rezept.aufwand].icon + '</span>' : '') +
+              (rezept.zuletztGekocht ? '<span style="font-size:0.65rem;color:var(--bark);opacity:0.75;flex-shrink:0;white-space:nowrap;">🕒 ' + relativZeitraumKurz(rezept.zuletztGekocht) + '</span>' : '')
             : '<span class="wochentag-leer">Kein Rezept geplant – antippen zum Auswählen</span>') +
         '</div>' +
         (rezept ? '<button class="wochentag-entfernen" aria-label="Entfernen">✕</button>' : '');
