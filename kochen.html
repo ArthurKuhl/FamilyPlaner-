@@ -273,6 +273,21 @@
   #kochmodusZutatenListe { margin-top: 8px; max-height: 30vh; overflow-y: auto; }
   .kochmodus-wachhinweis { font-size: 0.65rem; color: var(--bark); opacity: 0.7; text-align: center; margin-top: 10px; }
 
+  /* ---- Timer im Koch-Modus ---- */
+  .kochmodus-timer-box { margin-top: 12px; border-top: 1px solid var(--parchment); padding-top: 12px; }
+  #btnKochmodusTimerVorschlag { width: 100%; background: var(--gold); color: var(--white); border: none; border-radius: var(--radius-pill); padding: 10px; font-size: 0.82rem; font-weight: 700; cursor: pointer; }
+  .kochmodus-timer-manuell { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+  .kochmodus-timer-manuell button.chip { background: var(--white); border: 1px solid var(--parchment); color: var(--soil); border-radius: var(--radius-pill); padding: 6px 12px; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
+  .kochmodus-timer-aktiv { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: 8px; background: var(--white); border-radius: var(--radius-md); padding: 14px; box-shadow: var(--shadow-soft); }
+  .kochmodus-timer-anzeige { font-size: 2.1rem; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--moss); }
+  .kochmodus-timer-anzeige.fertig { color: var(--terracotta); animation: timerPulse 1s infinite; }
+  @keyframes timerPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+  .kochmodus-timer-label { font-size: 0.72rem; color: var(--bark); text-align: center; }
+  .kochmodus-timer-buttons { display: flex; gap: 8px; }
+  .kochmodus-timer-buttons button { border-radius: var(--radius-pill); border: none; padding: 8px 16px; font-size: 0.78rem; font-weight: 700; cursor: pointer; }
+  .btn-timer-stop { background: var(--terracotta); color: var(--white); }
+  .btn-timer-plus1 { background: var(--parchment); color: var(--soil); }
+
   /* Sehr breite Bildschirme: Content etwas breiter + dezente Deko-Streifen im Rand */
   .deko-rand { display: none; position: fixed; top: 0; bottom: 0; width: 220px; background-repeat: repeat-y; background-position: center top; pointer-events: none; z-index: -1; }
   .deko-rand.links { left: 0; }
@@ -517,6 +532,25 @@
     </div>
     <button id="btnKochmodusZutaten">🥕 Zutaten anzeigen</button>
     <ul class="zutaten-liste-anzeige" id="kochmodusZutatenListe" style="display:none;"></ul>
+
+    <div class="kochmodus-timer-box" id="kochmodusTimerBox">
+      <button id="btnKochmodusTimerVorschlag" style="display:none;"></button>
+      <div class="kochmodus-timer-manuell" id="kochmodusTimerManuell">
+        <button type="button" class="chip" data-timer-min="1">1 Min</button>
+        <button type="button" class="chip" data-timer-min="5">5 Min</button>
+        <button type="button" class="chip" data-timer-min="10">10 Min</button>
+        <button type="button" class="chip" data-timer-min="20">20 Min</button>
+      </div>
+      <div class="kochmodus-timer-aktiv" id="kochmodusTimerAktiv" style="display:none;">
+        <div class="kochmodus-timer-anzeige" id="kochmodusTimerAnzeige">00:00</div>
+        <div class="kochmodus-timer-label" id="kochmodusTimerLabel"></div>
+        <div class="kochmodus-timer-buttons">
+          <button type="button" class="btn-timer-plus1" id="btnKochmodusTimerPlus1">+1 Min</button>
+          <button type="button" class="btn-timer-stop" id="btnKochmodusTimerStop">Timer beenden</button>
+        </div>
+      </div>
+    </div>
+
     <div class="kochmodus-wachhinweis" id="kochmodusWachhinweis"></div>
   </div>
 </div>
@@ -923,7 +957,103 @@
     document.getElementById('btnKochmodusZurueck').disabled = kochmodusSchrittIndex === 0;
     const weiterBtn = document.getElementById('btnKochmodusWeiter');
     weiterBtn.textContent = (kochmodusSchrittIndex >= gesamt - 1) ? '✓ Fertig' : 'Weiter →';
+    kochmodusTimerVorschlagAktualisieren(r.schritte[kochmodusSchrittIndex]);
   }
+
+  // ---------- TIMER im Koch-Modus ----------
+  let kochmodusTimerEndeZeit = null;      // Timestamp (ms), wann der Timer fertig ist
+  let kochmodusTimerIntervall = null;
+  let kochmodusTimerAudioCtx = null;
+
+  function kochmodusTimerMinutenErkennen(text) {
+    if (!text) return null;
+    const treffer = text.match(/(\d{1,3})\s*(?:min(?:uten)?|min\.?)/i);
+    if (!treffer) return null;
+    const min = parseInt(treffer[1], 10);
+    return (min > 0 && min <= 300) ? min : null;
+  }
+  function kochmodusTimerVorschlagAktualisieren(schrittText) {
+    const btn = document.getElementById('btnKochmodusTimerVorschlag');
+    // Solange schon ein Timer läuft, keinen neuen Vorschlag anzeigen (nicht verwirren)
+    if (kochmodusTimerEndeZeit) { btn.style.display = 'none'; return; }
+    const min = kochmodusTimerMinutenErkennen(schrittText);
+    if (min) {
+      btn.style.display = '';
+      btn.textContent = '⏱ Timer für ' + min + ' Min starten';
+      btn.onclick = () => kochmodusTimerStarten(min * 60);
+    } else {
+      btn.style.display = 'none';
+    }
+  }
+  function kochmodusTimerPiepton() {
+    try {
+      if (!kochmodusTimerAudioCtx) kochmodusTimerAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const ctx = kochmodusTimerAudioCtx;
+      [0, 0.35, 0.7].forEach(delay => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = 880;
+        gain.gain.setValueAtTime(0.0001, ctx.currentTime + delay);
+        gain.gain.linearRampToValueAtTime(0.35, ctx.currentTime + delay + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + delay + 0.28);
+        osc.connect(gain).connect(ctx.destination);
+        osc.start(ctx.currentTime + delay);
+        osc.stop(ctx.currentTime + delay + 0.3);
+      });
+    } catch (e) {}
+    try { if (navigator.vibrate) navigator.vibrate([250, 120, 250, 120, 250]); } catch (e) {}
+  }
+  function kochmodusTimerAnzeigeRendern() {
+    const anzeige = document.getElementById('kochmodusTimerAnzeige');
+    const label = document.getElementById('kochmodusTimerLabel');
+    if (!kochmodusTimerEndeZeit) return;
+    const restMs = kochmodusTimerEndeZeit - Date.now();
+    const restSek = Math.max(0, Math.round(restMs / 1000));
+    const mm = String(Math.floor(restSek / 60)).padStart(2, '0');
+    const ss = String(restSek % 60).padStart(2, '0');
+    anzeige.textContent = mm + ':' + ss;
+    if (restSek <= 0) {
+      anzeige.classList.add('fertig');
+      label.textContent = '⏰ Fertig!';
+      if (kochmodusTimerIntervall) {
+        clearInterval(kochmodusTimerIntervall);
+        kochmodusTimerIntervall = null;
+        kochmodusTimerPiepton();
+      }
+    }
+  }
+  function kochmodusTimerStarten(sekunden) {
+    kochmodusTimerEndeZeit = Date.now() + sekunden * 1000;
+    document.getElementById('btnKochmodusTimerVorschlag').style.display = 'none';
+    document.getElementById('kochmodusTimerManuell').style.display = 'none';
+    document.getElementById('kochmodusTimerAktiv').style.display = '';
+    document.getElementById('kochmodusTimerAnzeige').classList.remove('fertig');
+    document.getElementById('kochmodusTimerLabel').textContent = 'läuft …';
+    if (kochmodusTimerIntervall) clearInterval(kochmodusTimerIntervall);
+    kochmodusTimerAnzeigeRendern();
+    kochmodusTimerIntervall = setInterval(kochmodusTimerAnzeigeRendern, 1000);
+  }
+  function kochmodusTimerBeenden() {
+    if (kochmodusTimerIntervall) { clearInterval(kochmodusTimerIntervall); kochmodusTimerIntervall = null; }
+    kochmodusTimerEndeZeit = null;
+    document.getElementById('kochmodusTimerAktiv').style.display = 'none';
+    document.getElementById('kochmodusTimerManuell').style.display = '';
+    const r = rezepte.find(x => x.id === detailId);
+    if (r) kochmodusTimerVorschlagAktualisieren(r.schritte[kochmodusSchrittIndex]);
+  }
+  document.querySelectorAll('#kochmodusTimerManuell [data-timer-min]').forEach(btn => {
+    btn.addEventListener('click', () => kochmodusTimerStarten(parseInt(btn.dataset.timerMin, 10) * 60));
+  });
+  document.getElementById('btnKochmodusTimerStop').addEventListener('click', kochmodusTimerBeenden);
+  document.getElementById('btnKochmodusTimerPlus1').addEventListener('click', () => {
+    if (!kochmodusTimerEndeZeit) return;
+    kochmodusTimerEndeZeit += 60000;
+    document.getElementById('kochmodusTimerAnzeige').classList.remove('fertig');
+    document.getElementById('kochmodusTimerLabel').textContent = 'läuft …';
+    if (!kochmodusTimerIntervall) kochmodusTimerIntervall = setInterval(kochmodusTimerAnzeigeRendern, 1000);
+    kochmodusTimerAnzeigeRendern();
+  });
   function kochmodusZutatenRendern(r) {
     const faktor = detailPortionen / r.portionenBasis;
     const box = document.getElementById('kochmodusZutatenListe');
@@ -939,6 +1069,7 @@
     document.getElementById('kochmodusTitel').textContent = r.titel;
     document.getElementById('kochmodusZutatenListe').style.display = 'none';
     document.getElementById('btnKochmodusZutaten').textContent = '🥕 Zutaten anzeigen';
+    kochmodusTimerBeenden(); // sauberer Start ohne laufenden Timer von einem vorherigen Rezept
     kochmodusZutatenRendern(r);
     kochmodusSchrittRendern(r);
     document.getElementById('modalKochmodus').classList.add('zeigen');
@@ -946,6 +1077,7 @@
   }
   function kochmodusSchliessen() {
     kochmodusWakeLockFreigeben();
+    kochmodusTimerBeenden();
     document.getElementById('modalKochmodus').classList.remove('zeigen');
   }
   document.getElementById('btnKochmodusStart').addEventListener('click', kochmodusOeffnen);
