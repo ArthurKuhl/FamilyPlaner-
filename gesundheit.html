@@ -1613,6 +1613,10 @@
       <label for="fMedHinweis">Hinweis (optional)</label>
       <input type="text" id="fMedHinweis" placeholder="z.B. 1 Tablette, morgens">
     </div>
+    <div class="feld">
+      <label for="fMedZeit">Erinnerungszeit (optional)</label>
+      <input type="time" id="fMedZeit">
+    </div>
     <div class="modal-btns">
       <button class="btn btn-secondary" id="btnMedAbbrechen">Abbrechen</button>
       <button class="btn btn-primary" id="btnMedSpeichern">Speichern</button>
@@ -1858,7 +1862,7 @@
       zeile.innerHTML =
         '<span class="med-checkbox">' + (erledigt ? '✓' : '') + '</span>' +
         '<div class="med-info"><div class="med-name">' + escapeHtml(m.name) + '</div>' +
-        (m.hinweis ? '<div class="med-hinweis">' + escapeHtml(m.hinweis) + '</div>' : '') + '</div>' +
+        (m.hinweis || m.zeit ? '<div class="med-hinweis">' + [m.hinweis, m.zeit ? '🔔 ' + m.zeit : ''].filter(Boolean).map(escapeHtml).join(' · ') + '</div>' : '') + '</div>' +
         '<button class="med-loeschen" aria-label="Löschen">✕</button>';
       zeile.querySelector('.med-info').addEventListener('click', () => medToggle(m.id));
       zeile.querySelector('.med-checkbox').addEventListener('click', () => medToggle(m.id));
@@ -1882,6 +1886,7 @@
   document.getElementById('btnMedHinzufuegen').addEventListener('click', () => {
     document.getElementById('fMedName').value = '';
     document.getElementById('fMedHinweis').value = '';
+    document.getElementById('fMedZeit').value = '';
     document.getElementById('modalMed').classList.add('zeigen');
     document.getElementById('fMedName').focus();
   });
@@ -1890,11 +1895,34 @@
   document.getElementById('btnMedSpeichern').addEventListener('click', () => {
     const name = document.getElementById('fMedName').value.trim();
     if (!name) { alert('Bitte einen Namen eingeben.'); return; }
-    medikamente.push({ id: neueId('med'), person: aktivePerson, name: name, hinweis: document.getElementById('fMedHinweis').value.trim() });
+    const zeit = document.getElementById('fMedZeit').value;
+    if (zeit && 'Notification' in window && Notification.permission === 'default') Notification.requestPermission();
+    medikamente.push({ id: neueId('med'), person: aktivePerson, name: name, hinweis: document.getElementById('fMedHinweis').value.trim(), zeit: zeit || '' });
     speichern(KEY_MEDIKAMENTE, medikamente);
     document.getElementById('modalMed').classList.remove('zeigen');
     renderMedListeHeute();
   });
+
+  // Prüft alle 20 Sekunden, ob für ein Medikament mit hinterlegter Uhrzeit gerade der
+  // Zeitpunkt erreicht ist (und es heute noch nicht abgehakt wurde) – gleiches Muster
+  // wie die Wasser-Erinnerung weiter unten.
+  let letzteAusgeloesteMedZeit = null;
+  function pruefeMedErinnerung() {
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    const jetzt = new Date();
+    const aktuelleZeit = String(jetzt.getHours()).padStart(2, '0') + ':' + String(jetzt.getMinutes()).padStart(2, '0');
+    medikamente.filter(m => m.zeit === aktuelleZeit).forEach(m => {
+      const key = heuteISO() + ' ' + m.person + ' ' + m.id;
+      if (letzteAusgeloesteMedZeit === key) return;
+      const schonErledigt = !!medErledigt[heuteISO() + '|' + m.person + '|' + m.id];
+      if (schonErledigt) return;
+      letzteAusgeloesteMedZeit = key;
+      try {
+        new Notification('💊 ' + m.name, { body: m.hinweis || 'Zeit für dein Medikament/Vitamin.', tag: 'med-erinnerung-' + m.id, icon: 'icon-192.png' });
+      } catch (e) {}
+    });
+  }
+  setInterval(pruefeMedErinnerung, 20000);
 
   // ============================================================
   // WASSER-ERINNERUNG (Browser-Benachrichtigungen, geräte-lokal – wird NICHT synchronisiert,

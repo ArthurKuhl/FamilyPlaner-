@@ -2354,7 +2354,7 @@ function openNowOverview() {
 function sowingBadgeCell(r, currentMonth, plantName, phaseKey) {
   if (!r) return '<span style="color:var(--parchment)">–</span>';
   const adj = adjustRange(r);
-  return `<span style="display:inline-flex;align-items:center;gap:3px">${sowingBadge(r,currentMonth)}<button onclick="createSowingReminder(${jsAttrStr(plantName)},'${phaseKey}',${adj[0]})" title="Erinnerung für Kalender-App erstellen (Alarm bei Fensterbeginn)" style="background:none;border:none;cursor:pointer;font-size:0.72rem;padding:0;opacity:0.7">📅</button></span>`;
+  return `<span style="display:inline-flex;align-items:center;gap:3px">${sowingBadge(r,currentMonth)}<button onclick="createSowingReminder(${jsAttrStr(plantName)},'${phaseKey}',${adj[0]})" title="Erinnerung für Kalender-App erstellen (Alarm bei Fensterbeginn)" style="background:none;border:none;cursor:pointer;font-size:0.72rem;padding:0;opacity:0.7">📅</button><button onclick="createSowingReminderDirekt(${jsAttrStr(plantName)},'${phaseKey}',${adj[0]})" title="Direkt ins Termine-Modul eintragen" style="background:none;border:none;cursor:pointer;font-size:0.72rem;padding:0;opacity:0.7">📌</button></span>`;
 }
 function createSowingReminder(name, phaseKey, startMonth) {
   const now = new Date(); now.setHours(0,0,0,0);
@@ -2363,8 +2363,17 @@ function createSowingReminder(name, phaseKey, startMonth) {
   const phaseLabels = { vorziehen: 'Vorziehen (Voranzucht)', direktsaat: 'Direktsaat', auspflanzen: 'Auspflanzen' };
   const label = phaseLabels[phaseKey] || phaseKey;
   const title = `🌱 ${label}: ${name}`;
-  const ics = buildTaskICS(title, `Gartenplaner-Erinnerung: Zeit für "${label}" von ${name}.`, start, 6, 0);
+  const desc = `Gartenplaner-Erinnerung: Zeit für "${label}" von ${name}.`;
+  const ics = buildTaskICS(title, desc, start, 6, 0);
   downloadICS(ics, `aussaat-${name.toLowerCase().replace(/[^a-z0-9]+/gi,'-')}-${phaseKey}.ics`);
+}
+function createSowingReminderDirekt(name, phaseKey, startMonth) {
+  const now = new Date(); now.setHours(0,0,0,0);
+  let start = new Date(now.getFullYear(), startMonth-1, 1);
+  if ((now - start) > 180*86400000) start = new Date(now.getFullYear()+1, startMonth-1, 1);
+  const phaseLabels = { vorziehen: 'Vorziehen (Voranzucht)', direktsaat: 'Direktsaat', auspflanzen: 'Auspflanzen' };
+  const label = phaseLabels[phaseKey] || phaseKey;
+  gartenTerminDirektEintragen(`🌱 ${label}: ${name}`, `Gartenplaner-Erinnerung: Zeit für "${label}" von ${name}.`, start);
 }
 function renderSowingCalendar(filter) {
   filter=(filter||'').trim().toLowerCase();
@@ -2437,9 +2446,9 @@ function renderSowingHint(plantName) {
   const urgency = getSowingUrgency([s.vorziehen, s.direktsaat, s.auspflanzen]);
   const anyActive = urgency.active;
   const parts = [];
-  if (vor) parts.push(`🏠 Vorziehen: ${monthRange(vor)} <button onclick="createSowingReminder(${jsAttrStr(plantName)},'vorziehen',${vor[0]})" title="Erinnerung für Kalender-App erstellen" style="background:none;border:none;cursor:pointer;font-size:0.7rem;padding:0;opacity:0.7">📅</button>`);
-  if (dir) parts.push(`🌍 Direktsaat: ${monthRange(dir)} <button onclick="createSowingReminder(${jsAttrStr(plantName)},'direktsaat',${dir[0]})" title="Erinnerung für Kalender-App erstellen" style="background:none;border:none;cursor:pointer;font-size:0.7rem;padding:0;opacity:0.7">📅</button>`);
-  if (aus) parts.push(`🌱 Auspflanzen: ${monthRange(aus)} <button onclick="createSowingReminder(${jsAttrStr(plantName)},'auspflanzen',${aus[0]})" title="Erinnerung für Kalender-App erstellen" style="background:none;border:none;cursor:pointer;font-size:0.7rem;padding:0;opacity:0.7">📅</button>`);
+  if (vor) parts.push(`🏠 Vorziehen: ${monthRange(vor)} <button onclick="createSowingReminder(${jsAttrStr(plantName)},'vorziehen',${vor[0]})" title="Erinnerung für Kalender-App erstellen" style="background:none;border:none;cursor:pointer;font-size:0.7rem;padding:0;opacity:0.7">📅</button><button onclick="createSowingReminderDirekt(${jsAttrStr(plantName)},'vorziehen',${vor[0]})" title="Direkt ins Termine-Modul eintragen" style="background:none;border:none;cursor:pointer;font-size:0.7rem;padding:0;opacity:0.7">📌</button>`);
+  if (dir) parts.push(`🌍 Direktsaat: ${monthRange(dir)} <button onclick="createSowingReminder(${jsAttrStr(plantName)},'direktsaat',${dir[0]})" title="Erinnerung für Kalender-App erstellen" style="background:none;border:none;cursor:pointer;font-size:0.7rem;padding:0;opacity:0.7">📅</button><button onclick="createSowingReminderDirekt(${jsAttrStr(plantName)},'direktsaat',${dir[0]})" title="Direkt ins Termine-Modul eintragen" style="background:none;border:none;cursor:pointer;font-size:0.7rem;padding:0;opacity:0.7">📌</button>`);
+  if (aus) parts.push(`🌱 Auspflanzen: ${monthRange(aus)} <button onclick="createSowingReminder(${jsAttrStr(plantName)},'auspflanzen',${aus[0]})" title="Erinnerung für Kalender-App erstellen" style="background:none;border:none;cursor:pointer;font-size:0.7rem;padding:0;opacity:0.7">📅</button><button onclick="createSowingReminderDirekt(${jsAttrStr(plantName)},'auspflanzen',${aus[0]})" title="Direkt ins Termine-Modul eintragen" style="background:none;border:none;cursor:pointer;font-size:0.7rem;padding:0;opacity:0.7">📌</button>`);
   if (!parts.length) { box.style.display='none'; return; }
   const zone = getClimateZone();
   const zoneNote = zone!=='normal' ? ` · ${CLIMATE_LABEL[zone]}-Klima berücksichtigt` : '';
@@ -3039,6 +3048,15 @@ function createCareReminder(id) {
   const ics = buildTaskICS(title, desc, date, 6, 0);
   downloadICS(ics, `pflege-${(item.plant||'aufgabe').toLowerCase().replace(/[^a-z0-9]+/gi,'-')}-${item.kind}.ics`);
 }
+function createCareReminderDirekt(id) {
+  const item = lastCareItems.find(i => i.id === id);
+  if (!item) { showTempStatus('⚠ Aufgabe nicht mehr aktuell – Pflegeplan neu öffnen.', 4); return; }
+  const date = new Date(); date.setHours(0,0,0,0);
+  date.setDate(date.getDate() + Math.max(0, item.dueInDays || 0));
+  const title = `${item.sym||'🌱'} ${item.plant} (${item.bed})`;
+  const desc = `Gartenplaner-Erinnerung: ${item.text.replace(/^[^\wÄÖÜäöü]+/, '')} – ${item.plant} im Beet "${item.bed}".`;
+  gartenTerminDirektEintragen(title, desc, date);
+}
 
 // ==================== PFLEGEPLAN: ERLEDIGT-STATUS (täglich) ====================
 function getCareDoneState() {
@@ -3217,6 +3235,7 @@ function renderCarePlan(items, undated, weather, rainSoon, bedWaterStatus, hotDr
         <span style="flex:1;font-size:0.78rem;${done?'text-decoration:line-through':''}"><strong>${i.plant}</strong> · ${i.bed}</span>
         <span style="font-size:0.72rem;color:var(--bark)">${i.text}</span>
         <button onclick="createCareReminder('${i.id}')" title="Erinnerung für Kalender-App erstellen (Alarm um 6:00)" style="background:none;border:none;cursor:pointer;font-size:0.85rem;opacity:0.7;flex-shrink:0">📅</button>
+        <button onclick="createCareReminderDirekt('${i.id}')" title="Direkt ins Termine-Modul eintragen" style="background:none;border:none;cursor:pointer;font-size:0.85rem;opacity:0.7;flex-shrink:0">📌</button>
       </div>`;
     }).join('');
   }
@@ -3808,6 +3827,30 @@ function downloadICS(ics, filename) {
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
   showTempStatus('📅 Erinnerung heruntergeladen – Datei öffnen und zum Kalender hinzufügen.', 5);
+}
+// ---------- Direkt ins Termine-Modul eintragen (Alternative zum ICS-Download) ----------
+function gartenTerminDirektEintragen(title, notes, dateObj) {
+  if (!dateObj || isNaN(dateObj.getTime())) { showTempStatus('⚠ Erinnerung konnte nicht erstellt werden.', 4); return; }
+  try {
+    const KEY_TERMINE_EVENTS = 'termine_events_v1';
+    const raw = localStorage.getItem(KEY_TERMINE_EVENTS);
+    const events = raw ? (JSON.parse(raw) || []) : [];
+    events.push({
+      id: 't_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+      title: title,
+      date: dateObj.getFullYear() + '-' + String(dateObj.getMonth()+1).padStart(2,'0') + '-' + String(dateObj.getDate()).padStart(2,'0'),
+      allDay: true,
+      startTime: '', endTime: '',
+      wer: 'familie',
+      location: '',
+      notes: notes,
+      erinnerung: 0,
+      recurrence: { freq: 'keine', until: null }
+    });
+    localStorage.setItem(KEY_TERMINE_EVENTS, JSON.stringify(events));
+    if (window._sync) window._sync.melde();
+    showTempStatus('📌 „' + title + '" wurde in die Termine eingetragen.', 4);
+  } catch (e) { showTempStatus('⚠ Eintragen fehlgeschlagen.', 4); }
 }
 function exportHarvestCalendar() {
   const beds = getCurrentBeds();
@@ -7080,7 +7123,7 @@ async function renderHomeOverview() {
           <span style="font-size:1rem">${iconFor[i.kind]||i.sym}</span>
           <span style="flex:1;font-size:0.78rem;${done?'text-decoration:line-through':''}"><strong>${escapeHtml(i.plant)}</strong> · ${escapeHtml(i.bed)}</span>
           <span style="font-size:0.7rem;color:var(--bark)">${done ? 'erledigt' : i.text}</span>
-          ${done ? '' : `<button onclick="createCareReminder('${i.id}')" title="Erinnerung für Kalender-App erstellen (Alarm um 6:00)" style="background:none;border:none;cursor:pointer;font-size:0.85rem;opacity:0.7;flex-shrink:0">📅</button>`}
+          ${done ? '' : `<button onclick="createCareReminder('${i.id}')" title="Erinnerung für Kalender-App erstellen (Alarm um 6:00)" style="background:none;border:none;cursor:pointer;font-size:0.85rem;opacity:0.7;flex-shrink:0">📅</button><button onclick="createCareReminderDirekt('${i.id}')" title="Direkt ins Termine-Modul eintragen" style="background:none;border:none;cursor:pointer;font-size:0.85rem;opacity:0.7;flex-shrink:0">📌</button>`}
         </div>`;
       }).join('')}
       <div style="text-align:right;margin-top:4px"><button class="nav-btn" style="padding:4px 10px;font-size:0.7rem" onclick="openCarePlanFromHome()">Vollständigen Pflegeplan öffnen</button></div>
