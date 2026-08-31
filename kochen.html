@@ -201,7 +201,17 @@
   .portionen-steuerung .wert { font-size: 0.85rem; font-weight: 700; min-width: 90px; text-align: center; }
   .zutaten-liste-anzeige { list-style: none; margin-bottom: 16px; }
   .zutaten-liste-anzeige li { display: flex; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--parchment); font-size: 0.88rem; }
-  .zutaten-liste-anzeige .z-menge { font-weight: 700; color: var(--moss); min-width: 64px; }
+  .zutaten-liste-anzeige .z-menge { display: inline-block; font-weight: 700; color: var(--moss); min-width: 64px; }
+
+  /* ---- Rezeptkarten-Optik für die Detailansicht ---- */
+  #modalDetail .modal { background: var(--parchment); border-top: 5px solid var(--moss); }
+  #detailTitel { position: relative; padding-bottom: 12px; }
+  #detailTitel::after { content: '❦'; display: block; text-align: center; color: var(--sage); font-size: 0.95rem; margin-top: 8px; letter-spacing: 0.2em; }
+  .zutaten-karte { background: var(--white); border: 1px dashed var(--sage); border-radius: var(--radius-md); padding: 4px 14px 2px; margin: 10px 0 4px; }
+  .zutaten-karte .unterliste-titel { margin-top: 10px; }
+  .zutaten-karte .zutaten-liste-anzeige { margin-bottom: 8px; }
+  .zutaten-karte .zutaten-liste-anzeige li:last-child { border-bottom: none; }
+  .rezept-trenner { text-align: center; color: var(--sage); font-size: 0.8rem; letter-spacing: 0.35em; margin: 18px 0 4px; }
   .schritte-liste-anzeige { list-style: none; }
   .schritte-liste-anzeige li { display: flex; gap: 10px; padding: 8px 0; font-size: 0.88rem; line-height: 1.4; }
   .schritte-liste-anzeige .s-nr {
@@ -431,11 +441,14 @@
       <span class="wert" id="portionenWert"></span>
       <button id="btnPortionenPlus">+</button>
     </div>
-    <div class="unterliste-titel" style="display:flex; align-items:center; justify-content:space-between;">
-      <span>Zutaten</span>
-      <button type="button" id="btnZutatenAlleToggle" style="font-size:0.72rem; font-weight:700; color:var(--moss); background:none; border:none; cursor:pointer; text-transform:none; letter-spacing:normal;">Alle abwählen</button>
+    <div class="zutaten-karte">
+      <div class="unterliste-titel" style="display:flex; align-items:center; justify-content:space-between;">
+        <span>Zutaten</span>
+        <button type="button" id="btnZutatenAlleToggle" style="font-size:0.72rem; font-weight:700; color:var(--moss); background:none; border:none; cursor:pointer; text-transform:none; letter-spacing:normal;">Alle abwählen</button>
+      </div>
+      <ul class="zutaten-liste-anzeige" id="detailZutaten"></ul>
     </div>
-    <ul class="zutaten-liste-anzeige" id="detailZutaten"></ul>
+    <div class="rezept-trenner">◆ ◆ ◆</div>
     <div class="unterliste-titel">Zubereitung</div>
     <ol class="schritte-liste-anzeige" id="detailSchritte"></ol>
     <div class="notiz-box" id="detailNotizBox" style="display:none;"></div>
@@ -807,7 +820,7 @@
       const istVorrat = vorratNamen.includes(z.name.trim().toLowerCase());
       const inhalt = document.createElement('span');
       inhalt.style.flex = '1';
-      inhalt.innerHTML = '<span class="z-menge">' + escapeHtml([menge, z.einheit].filter(Boolean).join(' ')) + '</span><span>' + escapeHtml(z.name) + '</span>' +
+      inhalt.innerHTML = '<span class="z-menge">' + escapeHtml([menge, z.einheit].filter(Boolean).join(' ')) + '</span> <span>' + escapeHtml(z.name) + '</span>' +
         (istVorrat ? ' <span style="font-size:0.65rem;background:#e4efe0;color:var(--moss);padding:1px 7px;border-radius:10px;font-weight:600;" title="Steht laut Vorratskammer schon bei euch bereit">📦 vorrätig</span>' : '');
       li.appendChild(inhalt);
       zutBox.appendChild(li);
