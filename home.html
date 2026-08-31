@@ -66,6 +66,23 @@
   .kachel-badge.leer { background: var(--parchment); color: var(--bark); }
   .kachel-pfeil { color: var(--bark); opacity: 0.5; font-size: 0.9rem; }
 
+  .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center; padding: 16px; }
+  .modal-bg.zeigen { display: flex; }
+  .modal { background: var(--white); border-radius: var(--radius-lg); padding: 20px; max-width: 480px; width: 100%; max-height: 86vh; overflow-y: auto; }
+  .modal h2 { font-family: 'Playfair Display', serif; font-size: 1.15rem; margin-bottom: 6px; }
+  .modal-btns { display: flex; justify-content: flex-end; margin-top: 14px; }
+  .btn { padding: 9px 16px; border-radius: var(--radius-pill); border: none; font-weight: 600; font-size: 0.85rem; cursor: pointer; }
+  .btn-secondary { background: var(--parchment); color: var(--soil); }
+
+  .anleitung-eintrag { border-bottom: 1px solid var(--parchment); }
+  .anleitung-eintrag:last-child { border-bottom: none; }
+  .anleitung-kopf { display: flex; align-items: center; gap: 8px; padding: 10px 2px; cursor: pointer; }
+  .anleitung-kopf .titel { flex: 1; font-weight: 700; font-size: 0.88rem; }
+  .anleitung-kopf .pfeil { font-size: 0.75rem; color: var(--moss); transition: transform .15s; flex-shrink: 0; }
+  .anleitung-kopf .pfeil.offen { transform: rotate(90deg); }
+  .anleitung-body { display: none; padding: 0 2px 12px 34px; font-size: 0.82rem; color: var(--bark); line-height: 1.5; }
+  .anleitung-body.offen { display: block; }
+
   .mini-zeile { display: flex; align-items: center; gap: 8px; padding: 5px 0; font-size: 0.85rem; border-top: 1px solid var(--parchment); }
   .mini-zeile:first-of-type { border-top: none; }
   .mini-zeit { font-size: 0.72rem; font-weight: 700; color: var(--bark); min-width: 46px; }
@@ -166,6 +183,13 @@
     <div id="haushaltListe"></div>
   </div>
 
+  <div class="kachel" id="kachelAnleitung" style="cursor:pointer">
+    <div class="kachel-kopf">
+      <div class="kachel-titel">📖 Anleitung – was kann die App?</div>
+    </div>
+    <div style="font-size:0.8rem;color:var(--bark);">Kurzüberblick über alle Module und ihre Funktionen</div>
+  </div>
+
   <div class="kachel" id="kachelFeedback" style="cursor:default">
     <div class="kachel-kopf" id="feedbackToggle" style="cursor:pointer">
       <div class="kachel-titel">💬 Feedback &amp; Ideen</div>
@@ -179,6 +203,17 @@
     </div>
   </div>
 </main>
+
+<div class="modal-bg" id="modalAnleitung">
+  <div class="modal">
+    <h2>📖 Anleitung</h2>
+    <p style="font-size:0.82rem;color:var(--bark);margin-bottom:12px;">Kurzer Überblick, was in welchem Modul steckt. Zum Aufklappen antippen.</p>
+    <div id="anleitungListe"></div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnAnleitungSchliessen">Schließen</button>
+    </div>
+  </div>
+</div>
 
 <script>
 (function () {
@@ -526,6 +561,52 @@
       box.appendChild(zeile);
     });
   }
+
+  const ANLEITUNG_DATEN = [
+    { titel: '⚙️ Allgemeine Einstellungen', text: 'Über das ⚙️-Symbol im Startbereich: Hell/Dunkel-Modus, Farbthema (Wald/Ozean/Schnee/Fjord/Bernstein – gilt für die ganze Familie), Startmodul festlegen, Module ein-/ausblenden und ihre Reihenfolge ändern. Familien-Code zum Verbinden mehrerer Geräte im 💾-Menü.' },
+    { titel: '🏠 Übersicht', text: 'Startseite mit Wetter, nächsten Terminen, offenen Einkaufsartikeln und Haushaltsaufgaben auf einen Blick. Hier auch Feedback/Ideen sammeln.' },
+    { titel: '🌱 Garten', text: 'Maßstabsgetreuer Gartenplaner: Beete/Strukturen zeichnen, verschieben, duplizieren; Pflanzen platzieren mit Mischkultur- und Fruchtfolge-Warnungen; Aussaatkalender, Erntebuch, Vorratsliste, Sortendatenbank, Foto-Tagebuch, Wetterwarnungen, News-Feeds.' },
+    { titel: '📅 Termine', text: 'Familienkalender inkl. Feiertage, Wunschliste für Geschenke (mit "Verstecken vor"-Funktion für Überraschungen), .ics-Export.' },
+    { titel: '🏃 Gesundheit & Sport', text: 'Tageswerte (Gewicht, Schlaf, Blutdruck etc.), Trainingslog (nach Übung/Muskelgruppe/Woche sortierbar, nachträglich bearbeitbar), Dehnen/Balance/Trainingsplan, Zyklus-Tracking, Ernährungstracking, Krankheitsverlauf (v.a. praktisch für Kinder), Körperlexikon, BMI-Rechner. Über ⚙️ einzelne Bereiche ein-/ausblenden und sortieren.' },
+    { titel: '🛒 Einkauf', text: 'Listen pro Markt, Wocheneinkauf als Gesamtübersicht über alle Märkte hinweg, Preis-Tracking mit Verlauf, Vorlagen für wiederkehrende Einkäufe, aktuelle Deals/Prospekte.' },
+    { titel: '🍳 Kochen', text: 'Rezeptsammlung mit Zutaten-Checkliste (direkt in die Einkaufsliste übernehmbar), Koch-Modus, aktuelle Rezeptideen.' },
+    { titel: '🥫 Vorratskammer', text: 'Vorrat mit Ampel-Anzeige und Verfallsdatum, Lagerort je Artikel.' },
+    { titel: '🎮 Gaming', text: 'Bibliothek der eigenen Spiele, Wunschliste, aktuelle Gaming-News.' },
+    { titel: '🔨 Handwerk', text: 'Projekte mit Material und Skizzen-Tool (Formen zeichnen, auswählen, verschieben, duplizieren, löschen), Wartungsplan für wiederkehrende Aufgaben.' },
+    { titel: '🧹 Haushalt', text: 'Aufgaben mit Turnus und Zuständigkeit, Verlauf erledigter Aufgaben.' },
+    { titel: '💶 Geldgeschenke', text: 'Wer hat wem wieviel zu welchem Anlass geschenkt – Übersicht als Gedächtnisstütze für faire Gegengeschenke.' },
+    { titel: '📝 Notizblock', text: 'Einfache, farbige Notizzettel mit Suche – bewusst schlicht gehalten.' },
+    { titel: '🧭 Ausflüge', text: 'Ausflugsplanung mit Packliste und wer dabei war.' },
+    { titel: '📰 Nachrichten', text: 'Regionale, nationale und internationale Nachrichten-Feeds, Quellen einzeln ein-/ausblendbar.' },
+    { titel: '💶 Finanzen', text: 'Budget nach Kategorien mit Ausgaben (teils automatisch aus Einkauf übernommen), Taschengeld-Konten mit automatischer wiederkehrender Gutschrift, Abos/Rechnungen im Überblick, Preis-Beobachtung für einzelne Produkte.' },
+  ];
+  function renderAnleitung() {
+    const box = document.getElementById('anleitungListe');
+    box.innerHTML = ANLEITUNG_DATEN.map((e, i) => `
+      <div class="anleitung-eintrag">
+        <div class="anleitung-kopf" data-i="${i}">
+          <span class="titel">${e.titel}</span>
+          <span class="pfeil">▸</span>
+        </div>
+        <div class="anleitung-body">${escapeHtml(e.text)}</div>
+      </div>`).join('');
+    box.querySelectorAll('.anleitung-kopf').forEach(kopf => {
+      kopf.addEventListener('click', () => {
+        kopf.querySelector('.pfeil').classList.toggle('offen');
+        kopf.nextElementSibling.classList.toggle('offen');
+      });
+    });
+  }
+  document.getElementById('kachelAnleitung').addEventListener('click', () => {
+    renderAnleitung();
+    document.getElementById('modalAnleitung').classList.add('zeigen');
+  });
+  document.getElementById('btnAnleitungSchliessen').addEventListener('click', () => {
+    document.getElementById('modalAnleitung').classList.remove('zeigen');
+  });
+  document.getElementById('modalAnleitung').addEventListener('click', (e) => {
+    if (e.target.id === 'modalAnleitung') e.currentTarget.classList.remove('zeigen');
+  });
 
   document.getElementById('feedbackToggle').addEventListener('click', () => {
     const body = document.getElementById('feedbackBody');
