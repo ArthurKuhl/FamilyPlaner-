@@ -91,13 +91,27 @@
 
   .notiz-suche { width: 100%; padding: 10px 14px; border: 1px solid var(--parchment); border-radius: var(--radius-pill); font-size: 0.85rem; background: var(--white); color: var(--soil); margin-bottom: 12px; }
   .notiz-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
-  .notiz-karte { border-radius: var(--radius-md); padding: 14px; box-shadow: var(--shadow-soft); cursor: pointer; display: flex; flex-direction: column; gap: 6px; min-height: 90px; background: var(--white); }
-  .notiz-titel { font-weight: 700; font-size: 0.95rem; color: var(--soil); font-family: 'Playfair Display', serif; }
+  .notiz-karte { border-radius: var(--radius-md); padding: 14px; box-shadow: var(--shadow-soft); cursor: pointer; display: flex; flex-direction: column; gap: 6px; min-height: 90px; background: var(--white); position: relative; }
+  .notiz-titel { font-weight: 700; font-size: 0.95rem; color: var(--soil); font-family: 'Playfair Display', serif; padding-right: 22px; }
   .notiz-text { font-size: 0.82rem; color: var(--soil); white-space: pre-wrap; line-height: 1.45; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 7; -webkit-box-orient: vertical; }
   .notiz-datum { font-size: 0.65rem; color: var(--bark); opacity: 0.75; margin-top: auto; padding-top: 4px; }
   .farbe-punkt { width: 30px; height: 30px; border-radius: 50%; border: 2px solid rgba(0,0,0,0.1); cursor: pointer; flex-shrink: 0; }
   .farbe-punkt.aktiv { border-color: var(--moss); border-width: 3px; }
   .farbe-punkt-reihe { display: flex; gap: 8px; flex-wrap: wrap; }
+  .notiz-pin-btn { position: absolute; top: 10px; right: 10px; background: none; border: none; font-size: 0.95rem; cursor: pointer; opacity: 0.4; padding: 2px; line-height: 1; transform: rotate(35deg); }
+  .notiz-pin-btn.aktiv { opacity: 1; color: var(--terracotta-text); transform: rotate(0deg); }
+  .notiz-tag-reihe { display: flex; gap: 5px; flex-wrap: wrap; }
+  .notiz-tag { font-size: 0.65rem; font-weight: 600; padding: 2px 8px; border-radius: var(--radius-pill); background: var(--parchment); color: var(--bark); }
+  .notiz-checkliste { display: flex; flex-direction: column; gap: 4px; }
+  .notiz-check-zeile { display: flex; align-items: center; gap: 6px; font-size: 0.82rem; }
+  .notiz-check-zeile.erledigt span { text-decoration: line-through; opacity: 0.55; }
+  .notiz-check-zeile input[type="checkbox"] { flex-shrink: 0; width: 16px; height: 16px; }
+  .notiz-typ-tabs { display: flex; gap: 6px; margin-bottom: 8px; }
+  .notiz-typ-tab { flex: 1; background: var(--white); border: 1px solid var(--parchment); color: var(--bark); font-size: 0.8rem; font-weight: 700; padding: 8px; border-radius: var(--radius-pill); cursor: pointer; }
+  .notiz-typ-tab.active { background: var(--moss); color: var(--white); border-color: var(--moss); }
+  .checkliste-edit-zeile { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+  .checkliste-edit-zeile input[type="text"] { flex: 1; padding: 7px 10px; border: 1px solid var(--parchment); border-radius: var(--radius-sm); font-size: 0.85rem; }
+  .checkliste-edit-zeile button { background: none; border: none; color: var(--terracotta-text); font-size: 1rem; cursor: pointer; padding: 2px 6px; }
 
   .leer-hinweis { text-align: center; color: var(--soil); font-size: 0.85rem; padding: 46px 16px; opacity: 1; font-weight: 500; }
   .leer-hinweis .em { font-size: 2.2rem; display: block; margin-bottom: 8px; }
@@ -193,6 +207,7 @@
 
 <main>
   <input type="text" class="notiz-suche" id="notizSuche" placeholder="🔍 Notizen durchsuchen ...">
+  <div class="filter-reihe" id="tagFilterReihe" style="margin-bottom:10px;"></div>
   <div class="notiz-grid" id="notizGrid"></div>
   <div class="leer-hinweis" id="leerHinweis" style="display:none;">
     <span class="em">📝</span>
@@ -205,13 +220,26 @@
   <div class="modal">
     <h2 id="editTitelKopf">Neue Notiz</h2>
     <input type="hidden" id="editId" value="">
+    <div class="notiz-typ-tabs">
+      <button type="button" class="notiz-typ-tab active" id="tabTypText">📝 Text</button>
+      <button type="button" class="notiz-typ-tab" id="tabTypCheckliste">☑️ Checkliste</button>
+    </div>
     <div class="feld">
       <label for="fTitel">Titel (optional)</label>
       <input type="text" id="fTitel" placeholder="z.B. Einkaufsideen, Gedanken zum Urlaub ...">
     </div>
-    <div class="feld">
+    <div class="feld" id="feldText">
       <label for="fText">Text</label>
       <textarea id="fText" rows="8" placeholder="Stichpunkte oder ganze Sätze ..."></textarea>
+    </div>
+    <div class="feld" id="feldCheckliste" style="display:none;">
+      <label>Punkte</label>
+      <div id="checklisteEditListe"></div>
+      <button type="button" class="zeile-hinzufuegen" id="btnCheckpunktHinzufuegen" style="background:none;border:1px dashed var(--bark);color:var(--bark);border-radius:var(--radius-pill);padding:7px 14px;font-size:0.78rem;font-weight:700;cursor:pointer;width:100%;">＋ Punkt hinzufügen</button>
+    </div>
+    <div class="feld">
+      <label for="fTags">Tags (optional, mit Komma trennen)</label>
+      <input type="text" id="fTags" placeholder="z.B. Urlaub, Ideen, Wichtig">
     </div>
     <div class="feld">
       <label>Farbe</label>
@@ -259,28 +287,93 @@
 
   let notizen = laden(KEY_NOTIZEN, []);
   let suchtext = '';
+  let aktiverTagFilter = 'alle';
+
+  function alleVorhandenenTags() {
+    const set = new Set();
+    notizen.forEach(n => (n.tags || []).forEach(t => set.add(t)));
+    return Array.from(set).sort((a,b) => a.localeCompare(b, 'de'));
+  }
+  function renderTagFilter() {
+    const box = document.getElementById('tagFilterReihe');
+    const tags = alleVorhandenenTags();
+    if (!tags.length) { box.innerHTML = ''; return; }
+    box.innerHTML = '';
+    const alleChip = document.createElement('button');
+    alleChip.className = 'filter-chip' + (aktiverTagFilter === 'alle' ? ' active' : '');
+    alleChip.textContent = 'Alle';
+    alleChip.addEventListener('click', () => { aktiverTagFilter = 'alle'; renderTagFilter(); renderNotizen(); });
+    box.appendChild(alleChip);
+    tags.forEach(t => {
+      const chip = document.createElement('button');
+      chip.className = 'filter-chip' + (aktiverTagFilter === t ? ' active' : '');
+      chip.textContent = '#' + t;
+      chip.addEventListener('click', () => { aktiverTagFilter = t; renderTagFilter(); renderNotizen(); });
+      box.appendChild(chip);
+    });
+  }
 
   function gefiltert() {
-    if (!suchtext) return notizen;
-    const s = suchtext.toLowerCase();
-    return notizen.filter(n => (n.titel || '').toLowerCase().includes(s) || (n.text || '').toLowerCase().includes(s));
+    let liste = notizen;
+    if (aktiverTagFilter !== 'alle') liste = liste.filter(n => (n.tags || []).includes(aktiverTagFilter));
+    if (suchtext) {
+      const s = suchtext.toLowerCase();
+      liste = liste.filter(n =>
+        (n.titel || '').toLowerCase().includes(s) ||
+        (n.text || '').toLowerCase().includes(s) ||
+        (n.checkliste || []).some(p => (p.text || '').toLowerCase().includes(s))
+      );
+    }
+    return liste;
   }
 
   function renderNotizen() {
     const box = document.getElementById('notizGrid');
     const leer = document.getElementById('leerHinweis');
-    const liste = gefiltert().slice().sort((a, b) => (b.geaendert || '') < (a.geaendert || '') ? -1 : 1);
+    const liste = gefiltert().slice().sort((a, b) => {
+      const pa = a.angeheftet ? 1 : 0, pb = b.angeheftet ? 1 : 0;
+      if (pa !== pb) return pb - pa;
+      return (b.geaendert || '') < (a.geaendert || '') ? -1 : 1;
+    });
     box.innerHTML = '';
     leer.style.display = liste.length ? 'none' : '';
     liste.forEach(n => {
       const karte = document.createElement('div');
       karte.className = 'notiz-karte';
       karte.style.background = n.farbe || '#fffdf8';
+      const inhaltHtml = n.typ === 'checkliste'
+        ? '<div class="notiz-checkliste">' + (n.checkliste || []).slice(0, 8).map((p, i) =>
+            '<div class="notiz-check-zeile' + (p.erledigt ? ' erledigt' : '') + '"><input type="checkbox" data-notizid="' + n.id + '" data-idx="' + i + '"' + (p.erledigt ? ' checked' : '') + '><span>' + escapeHtml(p.text) + '</span></div>'
+          ).join('') + '</div>'
+        : '<div class="notiz-text">' + escapeHtml(n.text || '') + '</div>';
       karte.innerHTML =
+        '<button class="notiz-pin-btn' + (n.angeheftet ? ' aktiv' : '') + '" data-id="' + n.id + '" title="Anheften">📌</button>' +
         (n.titel ? '<div class="notiz-titel">' + escapeHtml(n.titel) + '</div>' : '') +
-        '<div class="notiz-text">' + escapeHtml(n.text) + '</div>' +
+        inhaltHtml +
+        (n.tags && n.tags.length ? '<div class="notiz-tag-reihe">' + n.tags.map(t => '<span class="notiz-tag">#' + escapeHtml(t) + '</span>').join('') + '</div>' : '') +
         '<div class="notiz-datum">' + zeitpunktAnzeige(n.geaendert) + '</div>';
-      karte.addEventListener('click', () => editOeffnen(n.id));
+      karte.addEventListener('click', (e) => {
+        if (e.target.closest('.notiz-pin-btn')) {
+          e.stopPropagation();
+          n.angeheftet = !n.angeheftet;
+          speichern(KEY_NOTIZEN, notizen);
+          renderNotizen();
+          return;
+        }
+        const checkbox = e.target.closest('input[type="checkbox"]');
+        if (checkbox) {
+          e.stopPropagation();
+          const idx = parseInt(checkbox.dataset.idx, 10);
+          if (n.checkliste && n.checkliste[idx]) {
+            n.checkliste[idx].erledigt = !n.checkliste[idx].erledigt;
+            n.geaendert = new Date().toISOString();
+            speichern(KEY_NOTIZEN, notizen);
+            renderNotizen();
+          }
+          return;
+        }
+        editOeffnen(n.id);
+      });
       box.appendChild(karte);
     });
   }
@@ -292,6 +385,7 @@
   // ---------- Neu / Bearbeiten ----------
   let editId = null;
   let gewaehlteFarbe = NOTIZ_FARBEN[0];
+  let editTyp = 'text';
 
   function farbeReiheRendern() {
     const box = document.getElementById('farbeReihe');
@@ -306,18 +400,47 @@
     });
   }
 
+  function editTypAnwenden(typ) {
+    editTyp = typ;
+    document.getElementById('tabTypText').classList.toggle('active', typ === 'text');
+    document.getElementById('tabTypCheckliste').classList.toggle('active', typ === 'checkliste');
+    document.getElementById('feldText').style.display = typ === 'text' ? '' : 'none';
+    document.getElementById('feldCheckliste').style.display = typ === 'checkliste' ? '' : 'none';
+  }
+  document.getElementById('tabTypText').addEventListener('click', () => editTypAnwenden('text'));
+  document.getElementById('tabTypCheckliste').addEventListener('click', () => editTypAnwenden('checkliste'));
+
+  function checkpunktZeileErstellen(text, erledigt) {
+    const zeile = document.createElement('div');
+    zeile.className = 'checkliste-edit-zeile';
+    zeile.innerHTML =
+      '<input type="checkbox"' + (erledigt ? ' checked' : '') + '>' +
+      '<input type="text" placeholder="Punkt ..." value="' + escapeHtml(text || '') + '">' +
+      '<button type="button">✕</button>';
+    zeile.querySelector('button').addEventListener('click', () => zeile.remove());
+    return zeile;
+  }
+  document.getElementById('btnCheckpunktHinzufuegen').addEventListener('click', () => {
+    document.getElementById('checklisteEditListe').appendChild(checkpunktZeileErstellen('', false));
+  });
+
   function editOeffnen(id) {
     editId = id || null;
     const n = editId ? notizen.find(x => x.id === editId) : null;
     document.getElementById('editTitelKopf').textContent = n ? 'Notiz bearbeiten' : 'Neue Notiz';
     document.getElementById('editId').value = editId || '';
     document.getElementById('fTitel').value = n ? (n.titel || '') : '';
-    document.getElementById('fText').value = n ? n.text : '';
+    document.getElementById('fText').value = n ? (n.text || '') : '';
+    document.getElementById('fTags').value = n && n.tags ? n.tags.join(', ') : '';
     gewaehlteFarbe = n ? (n.farbe || NOTIZ_FARBEN[0]) : NOTIZ_FARBEN[0];
     farbeReiheRendern();
+    editTypAnwenden(n && n.typ === 'checkliste' ? 'checkliste' : 'text');
+    const checklisteBox = document.getElementById('checklisteEditListe');
+    checklisteBox.innerHTML = '';
+    (n && n.checkliste && n.checkliste.length ? n.checkliste : []).forEach(p => checklisteBox.appendChild(checkpunktZeileErstellen(p.text, p.erledigt)));
     document.getElementById('editLoeschZeile').style.display = n ? '' : 'none';
     document.getElementById('modalEdit').classList.add('zeigen');
-    setTimeout(() => document.getElementById('fText').focus(), 50);
+    setTimeout(() => document.getElementById(editTyp === 'checkliste' ? 'fTitel' : 'fText').focus(), 50);
   }
   document.getElementById('btnNeu').addEventListener('click', () => editOeffnen(null));
   document.getElementById('btnEditAbbrechen').addEventListener('click', () => document.getElementById('modalEdit').classList.remove('zeigen'));
@@ -325,18 +448,28 @@
 
   document.getElementById('btnEditSpeichern').addEventListener('click', () => {
     const text = document.getElementById('fText').value.trim();
-    if (!text) { document.getElementById('fText').focus(); return; }
+    const checkpunkte = Array.from(document.querySelectorAll('#checklisteEditListe .checkliste-edit-zeile')).map(zeile => ({
+      text: zeile.querySelector('input[type="text"]').value.trim(),
+      erledigt: zeile.querySelector('input[type="checkbox"]').checked,
+    })).filter(p => p.text);
+    if (editTyp === 'text' && !text) { document.getElementById('fText').focus(); return; }
+    if (editTyp === 'checkliste' && !checkpunkte.length) { alert('Bitte mindestens einen Punkt eingeben.'); return; }
+    const tags = document.getElementById('fTags').value.split(',').map(t => t.trim()).filter(Boolean);
     let n = editId ? notizen.find(x => x.id === editId) : null;
     if (!n) {
-      n = { id: neueId('notiz'), erstellt: new Date().toISOString() };
+      n = { id: neueId('notiz'), erstellt: new Date().toISOString(), angeheftet: false };
       notizen.push(n);
     }
     n.titel = document.getElementById('fTitel').value.trim();
-    n.text = text;
+    n.typ = editTyp;
+    n.text = editTyp === 'text' ? text : '';
+    n.checkliste = editTyp === 'checkliste' ? checkpunkte : [];
+    n.tags = tags;
     n.farbe = gewaehlteFarbe;
     n.geaendert = new Date().toISOString();
     speichern(KEY_NOTIZEN, notizen);
     document.getElementById('modalEdit').classList.remove('zeigen');
+    renderTagFilter();
     renderNotizen();
   });
   document.getElementById('btnEditLoeschen').addEventListener('click', () => {
@@ -345,6 +478,7 @@
     notizen = notizen.filter(n => n.id !== editId);
     speichern(KEY_NOTIZEN, notizen);
     document.getElementById('modalEdit').classList.remove('zeigen');
+    renderTagFilter();
     renderNotizen();
   });
 
@@ -430,13 +564,14 @@
     });
   })();
 
+  renderTagFilter();
   renderNotizen();
 
   if (window.PlanerSync) {
     window._sync = window.PlanerSync.starteSync({
       modul: 'notizblock',
       keys: [KEY_NOTIZEN],
-      onRemoteChange: function () { notizen = laden(KEY_NOTIZEN, notizen); renderNotizen(); },
+      onRemoteChange: function () { notizen = laden(KEY_NOTIZEN, notizen); renderTagFilter(); renderNotizen(); },
     });
   }
 })();

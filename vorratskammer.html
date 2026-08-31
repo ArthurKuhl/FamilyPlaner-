@@ -227,6 +227,9 @@
         <option value="bestand">🔴 Bestand (wenig zuerst)</option>
       </select>
     </div>
+    <div class="filter-reihe" style="display:flex;gap:5px;margin-bottom:8px;">
+      <button type="button" class="kat-tab" id="btnFilterBaldAblaufend" style="border-color:var(--terracotta);color:var(--terracotta-text);">⏳ Bald ablaufend</button>
+    </div>
     <div id="vorratListe"></div>
     <div class="leer-hinweis" id="leerHinweis" style="display:none;">
       <span class="em">🥫</span>
@@ -410,6 +413,7 @@
   let kategorienEigene = laden(KEY_KATEGORIEN, []);
   let aktiveKategorie = 'lebensmittel';
   let sortierung = localStorage.getItem(KEY_SORT) || 'alpha';
+  let nurBaldAblaufend = false;
   let bearbeitenId = null;
   let editSterne = 0;
   let editKategorie = 'lebensmittel';
@@ -507,20 +511,34 @@
   });
 
   // ---------- VERFALL-BADGE ----------
+  function tageBisVerfall(item) {
+    const datum = item.verfallsdatum || item.aufbrauchenBis;
+    if (!datum) return null;
+    const heute = ausISO(heuteISO());
+    const ziel = ausISO(datum);
+    return Math.round((ziel - heute) / 86400000);
+  }
+  function istBaldAblaufend(item) {
+    const tage = tageBisVerfall(item);
+    return tage !== null && tage <= 7;
+  }
   function verfallBadge(item) {
     const datum = item.verfallsdatum || item.aufbrauchenBis;
     if (!datum) return '';
     const label = item.verfallsdatum ? 'MHD' : 'Aufbrauchen bis';
-    const heute = ausISO(heuteISO());
-    const ziel = ausISO(datum);
-    const tage = Math.round((ziel - heute) / 86400000);
+    const tage = tageBisVerfall(item);
     let klasse = 'verfall-ok', text;
     if (tage < 0) { klasse = 'verfall-um'; text = label + ': abgelaufen'; }
     else if (tage === 0) { klasse = 'verfall-bald'; text = label + ': heute'; }
     else if (tage <= 7) { klasse = 'verfall-bald'; text = label + ': noch ' + tage + ' Tag' + (tage === 1 ? '' : 'e'); }
-    else { text = label + ': ' + ziel.toLocaleDateString('de-DE'); }
+    else { text = label + ': ' + ausISO(datum).toLocaleDateString('de-DE'); }
     return '<span class="vk-chip ' + klasse + '">' + text + '</span>';
   }
+  document.getElementById('btnFilterBaldAblaufend').addEventListener('click', () => {
+    nurBaldAblaufend = !nurBaldAblaufend;
+    document.getElementById('btnFilterBaldAblaufend').classList.toggle('active', nurBaldAblaufend);
+    renderListe();
+  });
 
   // ---------- LISTE RENDERN ----------
   const BESTAND_STUFEN = [
@@ -536,9 +554,10 @@
 
   function renderListe() {
     const box = document.getElementById('vorratListe');
-    const eigene = sortiereItems(items.filter(i => i.kategorie === aktiveKategorie));
+    let eigene = sortiereItems(items.filter(i => i.kategorie === aktiveKategorie));
+    if (nurBaldAblaufend) eigene = eigene.filter(istBaldAblaufend);
     document.getElementById('leerHinweis').style.display = eigene.length ? 'none' : '';
-    document.getElementById('anzahlText').textContent = eigene.length + ' Eintrag' + (eigene.length === 1 ? '' : 'e');
+    document.getElementById('anzahlText').textContent = eigene.length + ' Eintrag' + (eigene.length === 1 ? '' : 'e') + (nurBaldAblaufend ? ' (bald ablaufend)' : '');
     box.innerHTML = '';
     eigene.forEach(item => {
       const karte = document.createElement('div');
@@ -560,6 +579,7 @@
           (item.lagerort && lagerortInfo(item.lagerort) ? '<span class="vk-chip">' + lagerortInfo(item.lagerort).icon + ' ' + escapeHtml(lagerortInfo(item.lagerort).label) + '</span>' : '') +
           (item.gruppierung ? '<span class="vk-chip">' + escapeHtml(item.gruppierung) + '</span>' : '') +
           verfallBadge(item) +
+          ((item.verfallsdatum || item.aufbrauchenBis) ? '<button type="button" class="vk-chip vk-erinnerung-btn" data-id="' + item.id + '" style="border:none;cursor:pointer;">🔔 Erinnerung</button>' : '') +
         '</div>' +
         (item.notiz ? '<div class="vk-notiz">' + escapeHtml(item.notiz) + '</div>' : '');
       karte.addEventListener('click', (e) => {
@@ -582,10 +602,37 @@
           zumEinkaufHinzufuegen(item);
           return;
         }
+        if (e.target.closest('.vk-erinnerung-btn')) {
+          e.stopPropagation();
+          erinnerungAlsTerminAnlegen(item);
+          return;
+        }
         itemFormOeffnen(item.id);
       });
       box.appendChild(karte);
     });
+  }
+
+  // ---------- Erinnerung als Termin (Verknüpfung mit Termine-Modul) ----------
+  const KEY_TERMINE_EVENTS = 'termine_events_v1';
+  function erinnerungAlsTerminAnlegen(item) {
+    const datum = item.verfallsdatum || item.aufbrauchenBis;
+    if (!datum) return;
+    const events = laden(KEY_TERMINE_EVENTS, []);
+    events.push({
+      id: 't_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+      title: '⏳ ' + item.name + (item.verfallsdatum ? ' – MHD' : ' – aufbrauchen'),
+      date: datum,
+      allDay: true,
+      startTime: '', endTime: '',
+      wer: 'familie',
+      location: '',
+      notes: 'Aus der Vorratskammer erinnert.',
+      erinnerung: 0,
+      recurrence: { freq: 'keine', until: null }
+    });
+    speichern(KEY_TERMINE_EVENTS, events);
+    showTempStatus('„' + item.name + '" wurde in die Termine eingetragen.');
   }
 
   // ---------- ZUR EINKAUFSLISTE ----------
