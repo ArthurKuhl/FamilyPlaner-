@@ -1859,16 +1859,21 @@
       const erledigt = !!medErledigt[medSchluessel(m.id)];
       const zeile = document.createElement('div');
       zeile.className = 'med-zeile' + (erledigt ? ' erledigt' : '');
+      const erinnerungsHinweis = m.terminErinnerungId ? '🔁 Erinnerung läuft über Termine' : (m.zeit ? '🔔 ' + m.zeit : '');
       zeile.innerHTML =
         '<span class="med-checkbox">' + (erledigt ? '✓' : '') + '</span>' +
         '<div class="med-info"><div class="med-name">' + escapeHtml(m.name) + '</div>' +
-        (m.hinweis || m.zeit ? '<div class="med-hinweis">' + [m.hinweis, m.zeit ? '🔔 ' + m.zeit : ''].filter(Boolean).map(escapeHtml).join(' · ') + '</div>' : '') + '</div>' +
+        (m.hinweis || erinnerungsHinweis ? '<div class="med-hinweis">' + [m.hinweis, erinnerungsHinweis].filter(Boolean).map(escapeHtml).join(' · ') + '</div>' : '') + '</div>' +
+        (m.zeit ? '<button class="med-termin-btn" title="' + (m.terminErinnerungId ? 'Zurück zu lokaler Erinnerung' : 'Als tägliche Erinnerung in Termine eintragen') + '" style="background:none;border:none;cursor:pointer;font-size:0.9rem;opacity:0.7;flex-shrink:0;">' + (m.terminErinnerungId ? '↩️' : '📌') + '</button>' : '') +
         '<button class="med-loeschen" aria-label="Löschen">✕</button>';
       zeile.querySelector('.med-info').addEventListener('click', () => medToggle(m.id));
       zeile.querySelector('.med-checkbox').addEventListener('click', () => medToggle(m.id));
+      const terminBtn = zeile.querySelector('.med-termin-btn');
+      if (terminBtn) terminBtn.addEventListener('click', (e) => { e.stopPropagation(); medTerminVerknuepfungUmschalten(m.id); });
       zeile.querySelector('.med-loeschen').addEventListener('click', (e) => {
         e.stopPropagation();
         if (!confirm('„' + m.name + '" wirklich dauerhaft entfernen?')) return;
+        if (m.terminErinnerungId) medTerminEintragEntfernen(m.terminErinnerungId);
         medikamente = medikamente.filter(x => x.id !== m.id);
         speichern(KEY_MEDIKAMENTE, medikamente);
         renderMedListeHeute();
@@ -1880,6 +1885,51 @@
     const key = medSchluessel(medId);
     medErledigt[key] = !medErledigt[key];
     speichern(KEY_MED_ERLEDIGT, medErledigt);
+    renderMedListeHeute();
+  }
+
+  // ---------- Erinnerung wahlweise über das Termine-Modul laufen lassen ----------
+  const KEY_TERMINE_EVENTS = 'termine_events_v1';
+  function medTerminListeLaden() {
+    try { const r = localStorage.getItem(KEY_TERMINE_EVENTS); return r ? (JSON.parse(r) || []) : []; } catch (e) { return []; }
+  }
+  function medTerminListeSpeichern(events) {
+    try { localStorage.setItem(KEY_TERMINE_EVENTS, JSON.stringify(events)); } catch (e) {}
+    if (window._sync) window._sync.melde();
+  }
+  function medTerminEintragEntfernen(eventId) {
+    const events = medTerminListeLaden().filter(ev => ev.id !== eventId);
+    medTerminListeSpeichern(events);
+  }
+  function medTerminVerknuepfungUmschalten(medId) {
+    const m = medikamente.find(x => x.id === medId);
+    if (!m) return;
+    if (m.terminErinnerungId) {
+      // zurück zur lokalen Erinnerung
+      medTerminEintragEntfernen(m.terminErinnerungId);
+      m.terminErinnerungId = null;
+    } else {
+      if (!m.zeit) return;
+      const events = medTerminListeLaden();
+      const eventId = 't_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+      events.push({
+        id: eventId,
+        title: '💊 ' + m.name,
+        date: heuteISO(),
+        allDay: false,
+        startTime: m.zeit,
+        endTime: '',
+        wer: m.person,
+        location: '',
+        notes: m.hinweis || '',
+        erinnerung: 0,
+        recurrence: { freq: 'taeglich', until: null }
+      });
+      medTerminListeSpeichern(events);
+      m.terminErinnerungId = eventId;
+      if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
+    }
+    speichern(KEY_MEDIKAMENTE, medikamente);
     renderMedListeHeute();
   }
 
@@ -1897,7 +1947,7 @@
     if (!name) { alert('Bitte einen Namen eingeben.'); return; }
     const zeit = document.getElementById('fMedZeit').value;
     if (zeit && 'Notification' in window && Notification.permission === 'default') Notification.requestPermission();
-    medikamente.push({ id: neueId('med'), person: aktivePerson, name: name, hinweis: document.getElementById('fMedHinweis').value.trim(), zeit: zeit || '' });
+    medikamente.push({ id: neueId('med'), person: aktivePerson, name: name, hinweis: document.getElementById('fMedHinweis').value.trim(), zeit: zeit || '', terminErinnerungId: null });
     speichern(KEY_MEDIKAMENTE, medikamente);
     document.getElementById('modalMed').classList.remove('zeigen');
     renderMedListeHeute();
@@ -1905,13 +1955,15 @@
 
   // Prüft alle 20 Sekunden, ob für ein Medikament mit hinterlegter Uhrzeit gerade der
   // Zeitpunkt erreicht ist (und es heute noch nicht abgehakt wurde) – gleiches Muster
-  // wie die Wasser-Erinnerung weiter unten.
+  // wie die Wasser-Erinnerung weiter unten. Läuft die Erinnerung bereits über das
+  // Termine-Modul (terminErinnerungId gesetzt), wird hier nichts mehr ausgelöst, um
+  // doppelte Benachrichtigungen zur gleichen Uhrzeit zu vermeiden.
   let letzteAusgeloesteMedZeit = null;
   function pruefeMedErinnerung() {
     if (!('Notification' in window) || Notification.permission !== 'granted') return;
     const jetzt = new Date();
     const aktuelleZeit = String(jetzt.getHours()).padStart(2, '0') + ':' + String(jetzt.getMinutes()).padStart(2, '0');
-    medikamente.filter(m => m.zeit === aktuelleZeit).forEach(m => {
+    medikamente.filter(m => m.zeit === aktuelleZeit && !m.terminErinnerungId).forEach(m => {
       const key = heuteISO() + ' ' + m.person + ' ' + m.id;
       if (letzteAusgeloesteMedZeit === key) return;
       const schonErledigt = !!medErledigt[heuteISO() + '|' + m.person + '|' + m.id];

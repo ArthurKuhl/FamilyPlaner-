@@ -487,6 +487,43 @@
       return liste;
     }
 
+    // ============================================================
+    // LIVE-ERINNERUNGEN (Browser-Benachrichtigungen, solange die App offen ist)
+    // Prüft alle 20 Sekunden, ob ein Termin (auch ein wiederkehrender) heute zur
+    // hinterlegten Uhrzeit minus "Erinnerung"-Vorlauf fällig ist. Funktioniert wie die
+    // Wasser-/Medikamenten-Erinnerung in Gesundheit zuverlässig nur bei geöffneter App.
+    // ============================================================
+    let ausgeloesteErinnerungenTag = null; // 'YYYY-MM-DD', zum täglichen Zurücksetzen
+    let ausgeloesteErinnerungenHeute = new Set();
+    function pruefeTerminErinnerungen() {
+      if (!('Notification' in window) || Notification.permission !== 'granted') return;
+      const jetzt = new Date();
+      const heuteIso = toISO(jetzt);
+      if (ausgeloesteErinnerungenTag !== heuteIso) { ausgeloesteErinnerungenTag = heuteIso; ausgeloesteErinnerungenHeute = new Set(); }
+      const aktuelleZeit = String(jetzt.getHours()).padStart(2,'0') + ':' + String(jetzt.getMinutes()).padStart(2,'0');
+      events.forEach(ev => {
+        if (ev.allDay || !ev.startTime) return;
+        if (!vorkommenImBereich(ev, heuteIso, heuteIso).length) return; // heute kein Vorkommen dieses (ggf. wiederkehrenden) Termins
+        const minutenVorher = ev.erinnerung || 0;
+        const [h, m] = ev.startTime.split(':').map(Number);
+        const zielZeit = new Date(jetzt); zielZeit.setHours(h, m, 0, 0);
+        zielZeit.setMinutes(zielZeit.getMinutes() - minutenVorher);
+        const zielHHMM = String(zielZeit.getHours()).padStart(2,'0') + ':' + String(zielZeit.getMinutes()).padStart(2,'0');
+        if (zielHHMM !== aktuelleZeit) return;
+        const key = heuteIso + '|' + ev.id;
+        if (ausgeloesteErinnerungenHeute.has(key)) return;
+        ausgeloesteErinnerungenHeute.add(key);
+        try {
+          new Notification('🗓️ ' + ev.title, {
+            body: (minutenVorher ? 'in ' + minutenVorher + ' Min. (' + ev.startTime + ' Uhr)' : 'jetzt') + (ev.location ? ' · ' + ev.location : ''),
+            tag: 'termin-erinnerung-' + ev.id,
+            icon: 'icon-192.png'
+          });
+        } catch (e) {}
+      });
+    }
+    setInterval(pruefeTerminErinnerungen, 20000);
+
     // --- Filter-Chips ---
     const filterRow = document.getElementById('filterRow');
     function renderFilter() {
