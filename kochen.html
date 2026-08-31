@@ -188,11 +188,19 @@
 
   /* Detailansicht */
   .detail-kopf { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 4px; gap: 10px; }
-  .detail-foto-box { position: relative; width: 92px; height: 92px; flex-shrink: 0; border-radius: var(--radius-md); border: 2px dashed var(--sage); background: var(--parchment); display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; text-align: center; }
-  .detail-foto-box.gefuellt { border-style: solid; border-color: var(--moss); }
+  .detail-foto-box {
+    position: relative; width: 100px; height: 116px; flex-shrink: 0; padding: 6px 6px 20px;
+    border-radius: 3px; border: none; background: #fdfcf8; box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+    display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden;
+    text-align: center; transform: rotate(3deg);
+  }
+  .detail-foto-box::after {
+    content: ''; position: absolute; inset: 6px 6px 20px; border: 1.5px dashed #c9bfa8; pointer-events: none;
+  }
+  .detail-foto-box.gefuellt::after { border: none; }
   .detail-foto-box img { width: 100%; height: 100%; object-fit: cover; }
-  .dfb-placeholder { font-size: 0.62rem; color: var(--bark); opacity: 0.65; line-height: 1.3; }
-  .detail-foto-box .herz { position: absolute; top: 3px; right: 3px; font-size: 1rem; background: rgba(255,255,255,0.88); border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; padding: 0; border: none; cursor: pointer; opacity: 0.85; }
+  .dfb-placeholder { font-size: 0.62rem; color: #8a7a5c; opacity: 0.75; line-height: 1.3; }
+  .detail-foto-box .herz { position: absolute; top: 4px; right: 4px; font-size: 1rem; background: rgba(255,255,255,0.88); border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; padding: 0; border: none; cursor: pointer; opacity: 0.85; }
   .detail-foto-box .herz.aktiv { color: var(--terracotta); opacity: 1; }
   .detail-kat-chip { font-size: 0.68rem; font-weight: 700; padding: 3px 10px; border-radius: var(--radius-pill); }
   .detail-meta-reihe { display: flex; gap: 8px; align-items: center; font-size: 0.78rem; color: var(--bark); margin: 6px 0 10px; flex-wrap: wrap; }
@@ -212,7 +220,7 @@
       radial-gradient(rgba(0,0,0,0.05) 1px, transparent 1px);
     background-size: 5px 5px, 7px 7px;
     background-position: 0 0, 2px 3px;
-    border-top: 5px solid var(--moss); position: relative;
+    border-top: 5px solid #4f6f45; position: relative;
   }
   html[data-dark="1"] #modalDetail .modal {
     background-image:
@@ -224,20 +232,21 @@
     transform: rotate(-18deg); filter: drop-shadow(0 2px 3px rgba(0,0,0,0.35));
   }
   #detailTitel { position: relative; padding-bottom: 12px; }
-  #detailTitel::after { content: '·  ✦  ·'; display: block; text-align: center; color: var(--sage); font-size: 0.85rem; margin-top: 8px; letter-spacing: 0.15em; }
-  .zutaten-liste-anzeige input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--moss); flex-shrink: 0; }
+  #detailTitel::after { content: '·  ✦  ·'; display: block; text-align: center; color: #a9c298; font-size: 0.85rem; margin-top: 8px; letter-spacing: 0.15em; }
+  .zutaten-liste-anzeige input[type="checkbox"] { width: 18px; height: 18px; accent-color: #4f6f45; flex-shrink: 0; }
   .zutaten-karte {
     background: repeating-linear-gradient(var(--white), var(--white) 33px, var(--parchment) 34px);
-    border: 1px dashed var(--sage); border-radius: var(--radius-md); padding: 4px 14px 2px; margin: 10px 0 4px;
+    border: 1px dashed #a9c298; border-radius: var(--radius-md); padding: 4px 14px 2px; margin: 10px 0 4px;
   }
   .zutaten-karte .unterliste-titel { margin-top: 10px; }
   .zutaten-karte .zutaten-liste-anzeige { margin-bottom: 8px; }
   .zutaten-karte .zutaten-liste-anzeige li:last-child { border-bottom: none; }
-  .rezept-trenner { text-align: center; color: var(--sage); font-size: 0.8rem; letter-spacing: 0.35em; margin: 18px 0 4px; }
+  .rezept-trenner { text-align: center; color: #a9c298; font-size: 0.8rem; letter-spacing: 0.35em; margin: 18px 0 4px; }
+  .rezept-abschluss { text-align: center; font-family: 'Caveat', cursive; font-size: 1.3rem; font-weight: 700; color: #8a7a5c; margin: 14px 0 2px; }
   .schritte-liste-anzeige { list-style: none; }
   .schritte-liste-anzeige li { display: flex; gap: 10px; padding: 8px 0; font-size: 0.88rem; line-height: 1.4; }
   .schritte-liste-anzeige .s-nr {
-    flex: 0 0 24px; height: 24px; border-radius: 50%; background: var(--moss); color: var(--leaf);
+    flex: 0 0 24px; height: 24px; border-radius: 50%; background: #4f6f45; color: #d9e8c9;
     display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700;
   }
   .notiz-box {
@@ -478,6 +487,7 @@
     <div class="rezept-trenner">◆ ◆ ◆</div>
     <div class="unterliste-titel">Zubereitung</div>
     <ol class="schritte-liste-anzeige" id="detailSchritte"></ol>
+    <div class="rezept-abschluss">Guten Appetit ✎</div>
     <div class="notiz-box" id="detailNotizBox" style="display:none;"></div>
     <button class="btn-kochmodus" id="btnKochmodusStart">👨‍🍳 Koch-Modus</button>
     <div class="modal-btns">
