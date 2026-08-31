@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Kochen & Backen</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&family=Caveat:wght@600;700&display=swap');
   :root {
     --soil: #3a2e1f; --moss: #4f6f45; --sage: #7fa476; --leaf: #bcd196;
     --cream: #faf6ec; --parchment: #ece0c7; --bark: #7d6339;
@@ -205,7 +205,19 @@
   .zutaten-liste-anzeige .z-menge { display: inline-block; font-weight: 700; color: var(--moss); min-width: 64px; }
 
   /* ---- Rezeptkarten-Optik für die Detailansicht ---- */
-  #modalDetail .modal { background: var(--parchment); border-top: 5px solid var(--moss); }
+  #modalDetail .modal {
+    background-color: var(--parchment);
+    background-image:
+      radial-gradient(rgba(0,0,0,0.05) 1px, transparent 1px),
+      radial-gradient(rgba(0,0,0,0.04) 1px, transparent 1px);
+    background-size: 5px 5px, 7px 7px;
+    background-position: 0 0, 2px 3px;
+    border-top: 5px solid var(--moss); position: relative;
+  }
+  #modalDetail .modal::before {
+    content: '📌'; position: absolute; top: -14px; left: 28px; font-size: 1.6rem;
+    transform: rotate(-18deg); filter: drop-shadow(0 2px 3px rgba(0,0,0,0.35));
+  }
   #detailTitel { position: relative; padding-bottom: 12px; }
   #detailTitel::after { content: '·  ✦  ·'; display: block; text-align: center; color: var(--sage); font-size: 0.85rem; margin-top: 8px; letter-spacing: 0.15em; }
   .zutaten-liste-anzeige input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--moss); flex-shrink: 0; }
@@ -223,7 +235,12 @@
     flex: 0 0 24px; height: 24px; border-radius: 50%; background: var(--moss); color: var(--leaf);
     display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700;
   }
-  .notiz-box { background: var(--parchment); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 0.82rem; margin-top: 14px; color: var(--bark); }
+  .notiz-box {
+    background: var(--parchment); border-radius: var(--radius-sm); padding: 10px 14px; margin-top: 14px;
+    font-family: 'Caveat', cursive; font-size: 1.25rem; font-weight: 600; color: var(--terracotta-text);
+    border-left: 3px solid var(--terracotta); line-height: 1.3;
+  }
+  .notiz-box::before { content: '✎ '; opacity: 0.7; }
 
   .btn-kochmodus { background: var(--terracotta); color: var(--white); border: none; border-radius: var(--radius-pill); padding: 11px; font-weight: 700; font-size: 0.85rem; cursor: pointer; width: 100%; margin-top: 8px; }
   #modalKochmodus .modal { display: flex; flex-direction: column; min-height: 70vh; }
