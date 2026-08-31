@@ -413,6 +413,7 @@
           <button type="button" class="btn-secondary" data-close="modalTermin">Abbrechen</button>
           <button type="submit" class="btn-primary">Speichern</button>
         </div>
+        <button type="button" class="btn-secondary" id="btnTerminRezeptOeffnen" style="display:none;width:100%;margin-top:8px;">🍳 Rezept öffnen</button>
         <button type="button" class="btn-delete" id="btnTerminLoeschen" style="display:none;">Termin löschen</button>
       </form>
     </div>
@@ -968,6 +969,17 @@
       document.getElementById('terminModalTitel').textContent = ev ? 'Termin bearbeiten' : 'Neuer Termin';
       document.getElementById('btnTerminLoeschen').style.display = ev ? '' : 'none';
 
+      const rezeptBtn = document.getElementById('btnTerminRezeptOeffnen');
+      rezeptBtn.style.display = (ev && ev.rezeptId) ? '' : 'none';
+      rezeptBtn.onclick = () => {
+        if (!ev || !ev.rezeptId) return;
+        try { localStorage.setItem('kochen_oeffneRezeptId', ev.rezeptId); } catch (e) {}
+        document.getElementById('modalTermin').classList.remove('zeigen');
+        if (window.parent && typeof window.parent.bereichLaden === 'function') {
+          window.parent.bereichLaden('kochen');
+        }
+      };
+
       document.getElementById('fTitel').value = ev ? ev.title : '';
       document.getElementById('fDatum').value = ev ? ev.date : (vorausgewaehltesDatum || toISO(heute()));
       document.getElementById('fGanztags').checked = ev ? !!ev.allDay : false;
@@ -1010,6 +1022,7 @@
     document.getElementById('terminForm').addEventListener('submit', (e) => {
       e.preventDefault();
       const werBtn = werSelect.querySelector('.opt.active');
+      const bisherigesEvent = bearbeiteId ? events.find(ev => ev.id === bearbeiteId) : null;
       const neuerEintrag = {
         id: bearbeiteId || ('t_' + Date.now() + '_' + Math.random().toString(36).slice(2,7)),
         title: document.getElementById('fTitel').value.trim(),
@@ -1026,6 +1039,7 @@
           until: document.getElementById('fWiederholungBis').value || null
         }
       };
+      if (bisherigesEvent && bisherigesEvent.rezeptId) neuerEintrag.rezeptId = bisherigesEvent.rezeptId;
       if (bearbeiteId) {
         events = events.map(ev => ev.id === bearbeiteId ? neuerEintrag : ev);
       } else {

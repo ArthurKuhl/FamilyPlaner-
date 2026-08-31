@@ -272,6 +272,7 @@
   #btnKochmodusZutaten { margin-top: 14px; width: 100%; background: var(--white); border: 1px solid var(--parchment); border-radius: var(--radius-pill); padding: 9px; font-size: 0.8rem; font-weight: 700; color: var(--bark); cursor: pointer; }
   #kochmodusZutatenListe { margin-top: 8px; max-height: 30vh; overflow-y: auto; }
   .kochmodus-wachhinweis { font-size: 0.65rem; color: var(--bark); opacity: 0.7; text-align: center; margin-top: 10px; }
+  .kochmodus-temperatur-hinweis { font-size: 0.75rem; color: var(--terracotta-text); text-align: center; margin-top: 6px; font-weight: 600; }
 
   /* ---- Timer im Koch-Modus ---- */
   .kochmodus-timer-box { margin-top: 12px; border-top: 1px solid var(--parchment); padding-top: 12px; }
@@ -341,9 +342,11 @@
       <input type="text" id="fSuche" placeholder="Rezept oder Zutat suchen ...">
     </div>
     <button class="filter-chip" id="btnSortRichtung" style="flex:0 0 auto;">🔤 A–Z</button>
+    <button class="filter-chip" id="btnSortKriterium" style="flex:0 0 auto;">⏳ Nach Kochdatum sortieren</button>
   </div>
   <div class="filter-reihe" id="filterReihe" style="margin-top:8px;"></div>
   <div class="filter-reihe" id="tagFilterReihe" style="margin-top:4px;"></div>
+  <div class="filter-reihe" id="aufwandFilterReihe" style="margin-top:4px;"></div>
   <div class="theme-popup" id="themePopup">
     <div class="theme-swatch" data-theme="" title="Kein Muster">✕</div>
     <div class="theme-swatch" data-theme="bg-kueche" title="Küchenmotive">🍳</div>
@@ -535,6 +538,7 @@
       <button class="btn-zurueck" id="btnKochmodusZurueck">← Zurück</button>
       <button class="btn-weiter" id="btnKochmodusWeiter">Weiter →</button>
     </div>
+    <div class="kochmodus-temperatur-hinweis" id="kochmodusTemperaturHinweis" style="display:none;"></div>
     <button id="btnKochmodusZutaten">🥕 Zutaten anzeigen</button>
     <ul class="zutaten-liste-anzeige" id="kochmodusZutatenListe" style="display:none;"></ul>
 
@@ -564,6 +568,10 @@
 <div class="modal-bg" id="modalKochNotizAbschluss">
   <div class="modal">
     <h2 id="kochNotizAbschlussTitel">Fertig gekocht!</h2>
+    <div class="feld">
+      <label>Bewertung (optional)</label>
+      <div class="sterne-eingabe" id="kochNotizAbschlussSterne"></div>
+    </div>
     <div class="feld">
       <label for="fKochNotizAbschluss">Notiz zum Rezept (optional)</label>
       <textarea id="fKochNotizAbschluss" placeholder="z.B. War zu süß, nächstes Mal weniger Zucker …"></textarea>
@@ -667,6 +675,7 @@
   let rezepte = laden(KEY_REZEPTE, []);
   let aktiverFilter = 'alle';
   let aktiverTagFilter = 'alle';
+  let aktiverAufwandFilter = 'alle';
   let nurFavoriten = false;
   let suchtext = '';
   let bearbeiteId = null;
@@ -759,6 +768,26 @@
     box.appendChild(favChip);
 
     renderTagFilter();
+    renderAufwandFilter();
+  }
+
+  function renderAufwandFilter() {
+    const box = document.getElementById('aufwandFilterReihe');
+    if (!box) return;
+    box.innerHTML = '';
+    const alleChip = document.createElement('button');
+    alleChip.className = 'filter-chip' + (aktiverAufwandFilter === 'alle' ? ' active' : '');
+    alleChip.textContent = 'Aufwand: Alle';
+    alleChip.addEventListener('click', () => { aktiverAufwandFilter = 'alle'; renderAufwandFilter(); renderGrid(); });
+    box.appendChild(alleChip);
+    Object.keys(AUFWAND_STUFEN).forEach(key => {
+      const stufe = AUFWAND_STUFEN[key];
+      const chip = document.createElement('button');
+      chip.className = 'filter-chip' + (aktiverAufwandFilter === key ? ' active' : '');
+      chip.textContent = stufe.icon + ' ' + stufe.label;
+      chip.addEventListener('click', () => { aktiverAufwandFilter = key; renderAufwandFilter(); renderGrid(); });
+      box.appendChild(chip);
+    });
   }
 
   function alleVorhandenenTags() {
@@ -788,14 +817,29 @@
 
   // --- GRID ---
   const KEY_SORT_RICHTUNG = 'kochen_sortRichtung';
+  const KEY_SORT_KRITERIUM = 'kochen_sortKriterium'; // 'titel' | 'zuletztGekocht'
   let sortRichtung = localStorage.getItem(KEY_SORT_RICHTUNG) || 'az';
+  let sortKriterium = localStorage.getItem(KEY_SORT_KRITERIUM) || 'titel';
   function renderSortButton() {
     const btn = document.getElementById('btnSortRichtung');
     btn.textContent = sortRichtung === 'az' ? '🔤 A–Z' : '🔤 Z–A';
+    btn.style.display = sortKriterium === 'titel' ? '' : 'none';
   }
   document.getElementById('btnSortRichtung').addEventListener('click', () => {
     sortRichtung = sortRichtung === 'az' ? 'za' : 'az';
     try { localStorage.setItem(KEY_SORT_RICHTUNG, sortRichtung); } catch (e) {}
+    renderSortButton();
+    renderGrid();
+  });
+  function renderSortKriteriumButton() {
+    const btn = document.getElementById('btnSortKriterium');
+    btn.classList.toggle('active', sortKriterium === 'zuletztGekocht');
+    btn.textContent = sortKriterium === 'zuletztGekocht' ? '⏳ Länger nicht gekocht zuerst' : '⏳ Nach Kochdatum sortieren';
+  }
+  document.getElementById('btnSortKriterium').addEventListener('click', () => {
+    sortKriterium = sortKriterium === 'zuletztGekocht' ? 'titel' : 'zuletztGekocht';
+    try { localStorage.setItem(KEY_SORT_KRITERIUM, sortKriterium); } catch (e) {}
+    renderSortKriteriumButton();
     renderSortButton();
     renderGrid();
   });
@@ -812,7 +856,15 @@
       }
       return true;
     });
-    gefiltert.sort((a, b) => sortRichtung === 'za' ? b.titel.localeCompare(a.titel) : a.titel.localeCompare(b.titel));
+    if (sortKriterium === 'zuletztGekocht') {
+      gefiltert.sort((a, b) => {
+        const za = a.zuletztGekocht ? new Date(a.zuletztGekocht).getTime() : 0;
+        const zb = b.zuletztGekocht ? new Date(b.zuletztGekocht).getTime() : 0;
+        return za - zb; // nie gekocht (0) bzw. am längsten her zuerst
+      });
+    } else {
+      gefiltert.sort((a, b) => sortRichtung === 'za' ? b.titel.localeCompare(a.titel) : a.titel.localeCompare(b.titel));
+    }
     return gefiltert;
   }
 
@@ -1040,8 +1092,19 @@
     const min = parseInt(treffer[1], 10);
     return (min > 0 && min <= 300) ? min : null;
   }
+  function kochmodusTemperaturErkennen(text) {
+    if (!text) return null;
+    const treffer = text.match(/(\d{2,3})\s*°\s*C/i);
+    if (!treffer) return null;
+    const grad = parseInt(treffer[1], 10);
+    return (grad >= 30 && grad <= 300) ? grad : null;
+  }
   function kochmodusTimerVorschlagAktualisieren(schrittText) {
     const btn = document.getElementById('btnKochmodusTimerVorschlag');
+    const hinweis = document.getElementById('kochmodusTemperaturHinweis');
+    const grad = kochmodusTemperaturErkennen(schrittText);
+    hinweis.textContent = grad ? '🌡️ Ofen auf ' + grad + '°C vorheizen nicht vergessen' : '';
+    hinweis.style.display = grad ? '' : 'none';
     // Solange schon ein Timer läuft, keinen neuen Vorschlag anzeigen (nicht verwirren)
     if (kochmodusTimerEndeZeit) { btn.style.display = 'none'; return; }
     const min = kochmodusTimerMinutenErkennen(schrittText);
@@ -1173,9 +1236,27 @@
   }
 
   // ---------- Kurze Notiz-Abfrage nach dem Kochen ----------
+  let kochNotizAbschlussBewertung = 0;
+  function renderKochNotizAbschlussSterne() {
+    const box = document.getElementById('kochNotizAbschlussSterne');
+    box.innerHTML = '';
+    for (let i = 1; i <= 5; i++) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = i <= kochNotizAbschlussBewertung ? 'aktiv' : '';
+      btn.textContent = '★';
+      btn.addEventListener('click', () => {
+        kochNotizAbschlussBewertung = (kochNotizAbschlussBewertung === i) ? 0 : i;
+        renderKochNotizAbschlussSterne();
+      });
+      box.appendChild(btn);
+    }
+  }
   function kochNotizAbschlussOeffnen(r) {
     document.getElementById('kochNotizAbschlussTitel').textContent = '„' + r.titel + '“ fertig gekocht!';
     document.getElementById('fKochNotizAbschluss').value = '';
+    kochNotizAbschlussBewertung = r.bewertung || 0;
+    renderKochNotizAbschlussSterne();
     document.getElementById('modalKochNotizAbschluss').dataset.rezeptId = r.id;
     document.getElementById('modalKochNotizAbschluss').classList.add('zeigen');
   }
@@ -1186,10 +1267,16 @@
     const text = document.getElementById('fKochNotizAbschluss').value.trim();
     const id = document.getElementById('modalKochNotizAbschluss').dataset.rezeptId;
     const r = rezepte.find(x => x.id === id);
-    if (r && text) {
-      const datum = formatDatumKurz(new Date().toISOString());
-      r.notiz = (r.notiz ? r.notiz + '\n' : '') + '[' + datum + '] ' + text;
+    if (r) {
+      if (text) {
+        const datum = formatDatumKurz(new Date().toISOString());
+        r.notiz = (r.notiz ? r.notiz + '\n' : '') + '[' + datum + '] ' + text;
+      }
+      if (kochNotizAbschlussBewertung !== (r.bewertung || 0)) {
+        r.bewertung = kochNotizAbschlussBewertung;
+      }
       speichernRezepte();
+      renderGrid();
     }
     document.getElementById('modalKochNotizAbschluss').classList.remove('zeigen');
   });
@@ -1470,7 +1557,8 @@
       location: '',
       notes: 'Aus dem Kochen-Modul geplant (' + detailPortionen + ' Portionen).',
       erinnerung: 0,
-      recurrence: { freq: 'keine', until: null }
+      recurrence: { freq: 'keine', until: null },
+      rezeptId: r.id
     });
     speichern(KEY_TERMINE_EVENTS, events);
     document.getElementById('terminPlanenBox').style.display = 'none';
@@ -1672,6 +1760,7 @@
     document.getElementById('suchzeileBox').style.display = name === 'rezepte' ? '' : 'none';
     document.getElementById('filterReihe').style.display = name === 'rezepte' ? '' : 'none';
     document.getElementById('tagFilterReihe').style.display = name === 'rezepte' ? '' : 'none';
+    document.getElementById('aufwandFilterReihe').style.display = name === 'rezepte' ? '' : 'none';
     btnViewRezepte.classList.toggle('active', name === 'rezepte');
     btnViewWochenplan.classList.toggle('active', name === 'wochenplan');
     btnViewRezepte.setAttribute('aria-selected', name === 'rezepte');
@@ -1691,8 +1780,22 @@
   });
 
   renderSortButton();
+  renderSortKriteriumButton();
   renderFilter();
   renderGrid();
+
+  // ---------- Rücksprung aus Termine: gewünschtes Rezept direkt öffnen ----------
+  const KEY_OEFFNE_REZEPT = 'kochen_oeffneRezeptId';
+  (function rezeptRuecksprungPruefen() {
+    let gewuenschteId = null;
+    try { gewuenschteId = localStorage.getItem(KEY_OEFFNE_REZEPT); } catch (e) {}
+    if (!gewuenschteId) return;
+    try { localStorage.removeItem(KEY_OEFFNE_REZEPT); } catch (e) {}
+    if (rezepte.some(r => r.id === gewuenschteId)) {
+      zeigeKochenAnsicht('rezepte');
+      detailOeffnen(gewuenschteId);
+    }
+  })();
 
   if (window.PlanerSync) {
     window._sync = window.PlanerSync.starteSync({
