@@ -317,6 +317,9 @@
       <button class="btn btn-secondary" id="btnPlanungAbbrechen">Abbrechen</button>
       <button class="btn btn-primary" id="btnPlanungSpeichern">💾 Speichern</button>
     </div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnAusflugAlsTermin">📅 Als Termin eintragen</button>
+    </div>
     <div class="modal-btns" id="planungLoeschZeile" style="display:none;">
       <button class="btn btn-danger" id="btnPlanungLoeschen">Ausflug löschen</button>
     </div>
@@ -528,11 +531,16 @@
   document.getElementById('modalPlanung').addEventListener('click', (e) => { if (e.target.id === 'modalPlanung') e.currentTarget.classList.remove('zeigen'); });
 
   document.getElementById('btnPlanungSpeichern').addEventListener('click', () => {
+    if (!ausflugAusFormularSpeichern()) return;
+    document.getElementById('modalPlanung').classList.remove('zeigen');
+    renderAusflugListe();
+  });
+  function ausflugAusFormularSpeichern() {
     const titel = document.getElementById('pTitel').value.trim();
     const ort = document.getElementById('pOrt').value.trim();
-    if (!titel && !ort) { document.getElementById('pTitel').focus(); return; }
+    if (!titel && !ort) { document.getElementById('pTitel').focus(); return null; }
     let a = pEditId ? ausfluege.find(x => x.id === pEditId) : null;
-    if (!a) { a = { id: neueId('ausflug') }; ausfluege.push(a); }
+    if (!a) { a = { id: neueId('ausflug') }; ausfluege.push(a); pEditId = a.id; document.getElementById('pEditId').value = a.id; }
     a.titel = titel;
     a.ort = ort;
     a.datum = document.getElementById('pDatum').value;
@@ -549,6 +557,36 @@
     a.teilnehmer = pTeilnehmerAuswahl.slice();
     a.packliste = pPackliste.slice();
     speichern(KEY_AUSFLUEGE, ausfluege);
+    return a;
+  }
+
+  // ---------- Als Termin eintragen (Verknüpfung mit Termine-Modul) ----------
+  const KEY_TERMINE_EVENTS = 'termine_events_v1';
+  document.getElementById('btnAusflugAlsTermin').addEventListener('click', () => {
+    const a = ausflugAusFormularSpeichern();
+    if (!a) return;
+    if (!a.datum) { alert('Bitte zuerst ein Datum eintragen.'); return; }
+    const events = laden(KEY_TERMINE_EVENTS, []);
+    const notizTeile = [];
+    if (a.ort) notizTeile.push('Ort: ' + a.ort);
+    if (a.abfahrt) notizTeile.push('Abfahrt: ' + a.abfahrt);
+    if (a.route) notizTeile.push('Route: ' + a.route);
+    events.push({
+      id: 't_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+      title: '🧭 ' + (a.titel || a.ort),
+      date: a.datum,
+      allDay: !a.abfahrt,
+      startTime: a.abfahrt || '',
+      endTime: a.ende || '',
+      wer: 'familie',
+      location: a.ort || '',
+      notes: notizTeile.join(' · '),
+      erinnerung: 0,
+      recurrence: { freq: 'keine', until: null },
+      ausflugId: a.id
+    });
+    speichern(KEY_TERMINE_EVENTS, events);
+    alert('„' + (a.titel || a.ort) + '" wurde in die Termine eingetragen.');
     document.getElementById('modalPlanung').classList.remove('zeigen');
     renderAusflugListe();
   });

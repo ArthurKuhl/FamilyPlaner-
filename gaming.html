@@ -223,7 +223,18 @@
 <main>
   <section id="ansichtBibliothek">
     <div class="stat-reihe" id="statReihe"></div>
-    <button class="add-sport-btn" id="btnSitzungHinzufuegen">▶ Spielsitzung erfassen</button>
+    <div id="gamingTimerLaeuftBox" style="display:none;background:var(--white);border-radius:var(--radius-md);padding:12px;margin-bottom:10px;box-shadow:var(--shadow-soft);align-items:center;gap:10px;">
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:0.78rem;color:var(--bark);">⏱ Läuft gerade</div>
+        <div id="gamingTimerSpielName" style="font-weight:700;font-size:0.9rem;"></div>
+        <div id="gamingTimerAnzeige" style="font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;color:var(--moss);"></div>
+      </div>
+      <button class="btn btn-primary" id="btnGamingTimerStopp" style="flex-shrink:0;">■ Stopp</button>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="add-sport-btn" id="btnGamingTimerStart" style="flex:1;">⏱ Jetzt spielen</button>
+      <button class="add-sport-btn" id="btnSitzungHinzufuegen" style="flex:1;">▶ Nachträglich erfassen</button>
+    </div>
     <div class="spiel-grid" id="spielGrid"></div>
     <div class="leer-hinweis" id="leerHinweis" style="display:none;">
       <span class="em">🎮</span><span id="leerText">Noch keine Spiele erfasst. Tippe auf „＋ Neu“.</span>
@@ -268,6 +279,20 @@
     </div>
     <div class="modal-btns" style="margin-top:14px;">
       <button class="btn btn-secondary" id="btnNewsSchliessen">Schließen</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalTimerStart">
+  <div class="modal">
+    <h2>⏱ Jetzt spielen</h2>
+    <div class="feld">
+      <label for="fTimerSpiel">Spiel</label>
+      <select id="fTimerSpiel"></select>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnTimerStartAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnTimerStartBestaetigen">▶ Start</button>
     </div>
   </div>
 </div>
@@ -630,6 +655,65 @@
     if (aktiveAnsicht === 'statistik') renderStatistik();
     alert('Spielsitzung gespeichert (' + minuten + ' Min.).');
   });
+
+  // ============================================================
+  // LIVE-TIMER: "Jetzt spielen" – misst automatisch, wie lange gespielt wurde
+  // ============================================================
+  const KEY_GAMING_TIMER = 'gaming_laufenderTimer'; // { spielId, startZeit } – geräte-lokal, übersteht Reload
+  let gamingTimerIntervall = null;
+
+  function gamingTimerLaufend() {
+    try { return JSON.parse(localStorage.getItem(KEY_GAMING_TIMER) || 'null'); } catch (e) { return null; }
+  }
+  function gamingTimerAnzeigeAktualisieren() {
+    const laufend = gamingTimerLaufend();
+    const box = document.getElementById('gamingTimerLaeuftBox');
+    if (!laufend) {
+      box.style.display = 'none';
+      if (gamingTimerIntervall) { clearInterval(gamingTimerIntervall); gamingTimerIntervall = null; }
+      return;
+    }
+    const spiel = spiele.find(s => s.id === laufend.spielId);
+    box.style.display = 'flex';
+    document.getElementById('gamingTimerSpielName').textContent = spiel ? spiel.titel : '(gelöschtes Spiel)';
+    const aktualisieren = () => {
+      const sekunden = Math.max(0, Math.round((Date.now() - laufend.startZeit) / 1000));
+      const mm = String(Math.floor(sekunden / 60)).padStart(2, '0');
+      const ss = String(sekunden % 60).padStart(2, '0');
+      document.getElementById('gamingTimerAnzeige').textContent = mm + ':' + ss;
+    };
+    aktualisieren();
+    if (!gamingTimerIntervall) gamingTimerIntervall = setInterval(aktualisieren, 1000);
+  }
+  document.getElementById('btnGamingTimerStart').addEventListener('click', () => {
+    if (!spiele.length) { alert('Lege zuerst ein Spiel in der Bibliothek an.'); return; }
+    if (gamingTimerLaufend()) { alert('Es läuft bereits ein Timer – erst stoppen, bevor ein neuer gestartet wird.'); return; }
+    const select = document.getElementById('fTimerSpiel');
+    select.innerHTML = spielFilterFuerPerson().map(s => '<option value="' + s.id + '">' + escapeHtml(s.titel) + '</option>').join('');
+    document.getElementById('modalTimerStart').classList.add('zeigen');
+  });
+  document.getElementById('btnTimerStartAbbrechen').addEventListener('click', () => document.getElementById('modalTimerStart').classList.remove('zeigen'));
+  document.getElementById('modalTimerStart').addEventListener('click', (e) => { if (e.target.id === 'modalTimerStart') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnTimerStartBestaetigen').addEventListener('click', () => {
+    const spielId = document.getElementById('fTimerSpiel').value;
+    if (!spielId) return;
+    try { localStorage.setItem(KEY_GAMING_TIMER, JSON.stringify({ spielId, startZeit: Date.now() })); } catch (e) {}
+    document.getElementById('modalTimerStart').classList.remove('zeigen');
+    gamingTimerAnzeigeAktualisieren();
+  });
+  document.getElementById('btnGamingTimerStopp').addEventListener('click', () => {
+    const laufend = gamingTimerLaufend();
+    if (!laufend) return;
+    const minuten = Math.max(1, Math.round((Date.now() - laufend.startZeit) / 60000));
+    sitzungen.push({ id: neueId('sz'), spielId: laufend.spielId, datum: heuteISOGaming(), minuten });
+    speichernSitzungen();
+    try { localStorage.removeItem(KEY_GAMING_TIMER); } catch (e) {}
+    gamingTimerAnzeigeAktualisieren();
+    if (aktiveAnsicht === 'statistik') renderStatistik();
+    const spiel = spiele.find(s => s.id === laufend.spielId);
+    alert('Sitzung gespeichert: ' + (spiel ? spiel.titel : '') + ' – ' + minuten + ' Min.');
+  });
+  gamingTimerAnzeigeAktualisieren();
 
   // ============================================================
   // STATISTIK-ANSICHT
