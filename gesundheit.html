@@ -1410,7 +1410,7 @@
 
 <div class="modal-bg" id="modalSport">
   <div class="modal">
-    <h2>Sport-Einheit</h2>
+    <h2 id="modalSportTitel">Sport-Einheit</h2>
     <div class="feld">
       <label>Art</label>
       <div class="typ-reihe" id="typReihe"></div>
@@ -1819,6 +1819,7 @@
     const t = typInfo(s.typ);
     const zeile = document.createElement('div');
     zeile.className = 'sport-zeile';
+    zeile.style.cursor = 'pointer';
     const strecke = (t.streckeEinheit && s.strecke) ? (' · ' + formatZahl1(parseFloat(s.strecke)) + ' ' + t.streckeEinheit) : '';
     const uebung = s.uebung ? (' · ' + escapeHtml(s.uebung)) : '';
     zeile.innerHTML =
@@ -1828,14 +1829,38 @@
       (s.gpsRoute ? '<button class="sport-route-btn" aria-label="Route ansehen" title="Route ansehen">🗺️</button>' : '') +
       '<button class="sport-loeschen" aria-label="Löschen">✕</button>';
     if (s.gpsRoute) {
-      zeile.querySelector('.sport-route-btn').addEventListener('click', () => gpsRouteAnzeigen(s));
+      zeile.querySelector('.sport-route-btn').addEventListener('click', (e) => { e.stopPropagation(); gpsRouteAnzeigen(s); });
     }
-    zeile.querySelector('.sport-loeschen').addEventListener('click', () => {
-      sportEinheiten = sportEinheiten.filter(x => x.id !== s.id);
+    zeile.querySelector('.sport-loeschen').addEventListener('click', (e) => {
+      e.stopPropagation();
+      const index = sportEinheiten.findIndex(x => x.id === s.id);
+      if (index === -1) return;
+      const entfernt = sportEinheiten[index];
+      sportEinheiten.splice(index, 1);
       speichern(KEY_SPORT, sportEinheiten);
       renderAlles();
+      showTempStatus('Gelöscht: ' + typInfo(entfernt.typ).label, 6, {
+        rueckgaengig: () => { sportEinheiten.splice(index, 0, entfernt); speichern(KEY_SPORT, sportEinheiten); renderAlles(); }
+      });
     });
+    zeile.addEventListener('click', () => sportBearbeitenOeffnen(s));
     return zeile;
+  }
+
+  let sportBearbeiteId = null;
+  function sportBearbeitenOeffnen(s) {
+    gpsAbbrechen();
+    sportBearbeiteId = s.id;
+    document.getElementById('modalSportTitel').textContent = 'Sport-Einheit bearbeiten';
+    ausgewaehlterTyp = s.typ;
+    ausgewaehlteUebungen = s.uebung ? s.uebung.split(',').map(x => x.trim()).filter(Boolean) : [];
+    renderTypReihe();
+    aktualisiereStreckeFeld();
+    document.getElementById('fSportDatum').value = s.datum;
+    document.getElementById('fSportDauer').value = s.dauer;
+    document.getElementById('fSportStrecke').value = s.strecke || '';
+    document.getElementById('fSportNotiz').value = s.notiz || '';
+    document.getElementById('modalSport').classList.add('zeigen');
   }
 
   function renderSportHeuteListe() {
@@ -2163,6 +2188,8 @@
   }
   document.getElementById('btnSportHinzufuegen').addEventListener('click', () => {
     gpsAbbrechen();
+    sportBearbeiteId = null;
+    document.getElementById('modalSportTitel').textContent = 'Sport-Einheit';
     ausgewaehlterTyp = 'laufen';
     ausgewaehlteUebungen = [];
     renderTypReihe();
@@ -2297,17 +2324,25 @@
     if (!dauerRoh) { alert('Bitte eine Dauer eintragen (oder GPS-Tracking nutzen, dann wird sie automatisch ausgefüllt).'); document.getElementById('fSportDauer').focus(); return; }
     const dauer = Math.max(1, parseInt(dauerRoh, 10) || 30);
     const t = typInfo(ausgewaehlterTyp);
+    const bestehend = sportBearbeiteId ? sportEinheiten.find(x => x.id === sportBearbeiteId) : null;
     const neu = {
-      id: neueId('s'), datum, person: aktivePerson, typ: ausgewaehlterTyp, dauer,
+      id: bestehend ? bestehend.id : neueId('s'),
+      datum, person: bestehend ? bestehend.person : aktivePerson, typ: ausgewaehlterTyp, dauer,
       strecke: t.streckeEinheit ? document.getElementById('fSportStrecke').value : '',
       uebung: TYP_UEBUNGSGRUPPEN[ausgewaehlterTyp] ? ausgewaehlteUebungen.join(', ') : '',
       notiz: document.getElementById('fSportNotiz').value.trim(),
     };
     if (gpsAufgezeichneteRoute && gpsAufgezeichneteRoute.length >= 2) neu.gpsRoute = gpsAufgezeichneteRoute;
-    sportEinheiten.push(neu);
+    else if (bestehend && bestehend.gpsRoute) neu.gpsRoute = bestehend.gpsRoute; // vorhandene Route beim Bearbeiten nicht verwerfen
+    if (bestehend) {
+      Object.assign(bestehend, neu);
+    } else {
+      sportEinheiten.push(neu);
+    }
     speichern(KEY_SPORT, sportEinheiten);
     document.getElementById('modalSport').classList.remove('zeigen');
     gpsAbbrechen();
+    sportBearbeiteId = null;
     renderAlles();
   });
 
@@ -4023,6 +4058,8 @@
   let planAusgewaehlterTyp = 'laufen';
   function planAlsErledigtEintragen(planEintrag) {
     gpsAbbrechen();
+    sportBearbeiteId = null;
+    document.getElementById('modalSportTitel').textContent = 'Sport-Einheit';
     ausgewaehlterTyp = planEintrag.typ;
     ausgewaehlteUebungen = planEintrag.uebung ? planEintrag.uebung.split(',').map(s => s.trim()).filter(Boolean) : [];
     renderTypReihe();
