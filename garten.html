@@ -5458,7 +5458,7 @@ function zeigeLoeschToast(text, rueckgaengigFn, sekunden) {
   // ---------- PULL-TO-REFRESH (von oben nach unten wischen) ----------
   (function () {
     let startY = 0, ziehend = false, ausgeloest = false;
-    const SCHWELLE = 70;
+    const SCHWELLE = 130;
     let indikator = null;
     function indikatorZeigen(strecke) {
       if (!indikator) {
@@ -7212,6 +7212,9 @@ function showView(name) {
   if (name === 'preserve') { renderPreserveView(); }
   if (name === 'album') { renderAlbum(); }
   if (name === 'home') { renderHomeOverview(); }
+  // Merken, damit ein Neuladen (z.B. durch Pull-to-refresh) in derselben Ansicht landet
+  // statt immer wieder auf der Startübersicht.
+  try { localStorage.setItem('garten_aktiveAnsicht', name); } catch (e) {}
 }
 function openCarePlanFromHome() {
   showView('garden');
@@ -8175,6 +8178,15 @@ applyBgColor();
 { const loc=getWeatherSettings(); if (loc) fetchWeather(loc, false); }
 checkBackupReminder();
 renderHomeOverview();
+
+// Zuletzt geöffnete Ansicht wiederherstellen (z.B. nach einem Neuladen durch
+// Pull-to-refresh), statt immer wieder auf der Startübersicht zu landen.
+try {
+  const letzteAnsicht = localStorage.getItem('garten_aktiveAnsicht');
+  if (letzteAnsicht && letzteAnsicht !== 'home' && document.getElementById('view-' + letzteAnsicht)) {
+    showView(letzteAnsicht);
+  }
+} catch (e) {}
 
 // ==================== SYNC: Cloud-Synchronisierung starten ====================
 // Fotos werden bewusst NICHT synchronisiert (Firestore-Größenlimit: 1 MB pro Dokument).

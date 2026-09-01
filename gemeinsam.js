@@ -116,7 +116,7 @@ function showTempStatus(text, sekunden, optionen) {
 // kleinen Pfeil-Indikator, damit die Geste sichtbares Feedback gibt.
 (function () {
   let startY = 0, ziehend = false, ausgeloest = false;
-  const SCHWELLE = 70;
+  const SCHWELLE = 130;
   let indikator = null;
   function indikatorZeigen(strecke) {
     if (!indikator) {
