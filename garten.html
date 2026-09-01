@@ -5100,11 +5100,14 @@ function onDown(e) {
       freehandPoints = [{x,y}];
       freehandMouseX = x; freehandMouseY = y;
       document.getElementById('statusMsg').textContent = 'Freiform: Punkt 1 gesetzt – weitere Punkte klicken, am roten Startpunkt schließen';
+      document.getElementById('freehandControls').style.display = 'flex';
+      document.getElementById('freehandPointCount').textContent = '1';
     } else if (freehandPoints.length>=3 && Math.hypot(x-freehandPoints[0].x, y-freehandPoints[0].y)<14) {
       finishFreehand();
     } else {
       freehandPoints.push({x,y});
       document.getElementById('statusMsg').textContent = `Freiform: ${freehandPoints.length} Punkte – am roten Startpunkt schließen`;
+      document.getElementById('freehandPointCount').textContent = String(freehandPoints.length);
     }
     draw();
   } else if (mode==='plant') {
@@ -5284,6 +5287,7 @@ function finishFreehand() {
   pushUndo();
   getCurrentBeds().push(bed);
   freehandDrawing = false; freehandPoints = [];
+  document.getElementById('freehandControls').style.display = 'none';
   selectedBed = bed; selectedBeds = [bed];
   setMode('select');
   showBedEditor(bed); hideBulkBar(); draw(); renderBedList(); saveData(); updateStatus();
@@ -5291,6 +5295,7 @@ function finishFreehand() {
 }
 function cancelFreehand() {
   freehandDrawing = false; freehandPoints = [];
+  document.getElementById('freehandControls').style.display = 'none';
   draw();
 }
 canvas.addEventListener('dblclick', (e) => {
