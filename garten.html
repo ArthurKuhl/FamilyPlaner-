@@ -2786,11 +2786,20 @@ function saveVarietyForm() {
 function deleteVariety(id) {
   const plantName = document.getElementById('varietyPlantSel').value;
   if (!varietyDB[plantName]) return;
-  if (!confirm('Diese Sorte wirklich aus der Datenbank löschen?')) return;
-  varietyDB[plantName] = varietyDB[plantName].filter(x=>x.id!==id);
+  const liste = varietyDB[plantName];
+  const index = liste.findIndex(x => x.id === id);
+  if (index === -1) return;
+  const entfernt = liste[index];
+  liste.splice(index, 1);
   saveVarieties();
   renderVarietyList();
   renderVarietyDatalist(plantName);
+  zeigeLoeschToast('Sorte gelöscht: „' + (entfernt.name || '') + '"', () => {
+    liste.splice(index, 0, entfernt);
+    saveVarieties();
+    renderVarietyList();
+    renderVarietyDatalist(plantName);
+  });
 }
 
 // ==================== WETTER ====================
@@ -3588,12 +3597,17 @@ function insertTemplate(id) {
   showTempStatus(`➕ Vorlage "${tpl.name}" eingefügt`, 3);
 }
 function deleteTemplate(id) {
-  const tpl = bedTemplates.find(t => t.id === id);
-  if (!tpl) return;
-  if (!confirm(`Vorlage "${tpl.name}" wirklich löschen?`)) return;
-  bedTemplates = bedTemplates.filter(t => t.id !== id);
+  const index = bedTemplates.findIndex(t => t.id === id);
+  if (index === -1) return;
+  const entfernt = bedTemplates[index];
+  bedTemplates.splice(index, 1);
   saveBedTemplatesStorage();
   renderTemplateList();
+  zeigeLoeschToast('Vorlage gelöscht: „' + entfernt.name + '"', () => {
+    bedTemplates.splice(index, 0, entfernt);
+    saveBedTemplatesStorage();
+    renderTemplateList();
+  });
 }
 
 // ==================== STATISTIK-DASHBOARD ====================
@@ -6676,10 +6690,17 @@ function saveSeedForm() {
   }
 }
 function deleteSeedEntry(id) {
-  if (!confirm('Diesen Saatgut-Eintrag wirklich löschen?')) return;
-  seedInventory = seedInventory.filter(e => e.id !== id);
+  const index = seedInventory.findIndex(e => e.id === id);
+  if (index === -1) return;
+  const entfernt = seedInventory[index];
+  seedInventory.splice(index, 1);
   saveSeedInventoryData();
   renderSeedInventory();
+  zeigeLoeschToast('Saatgut-Eintrag gelöscht: „' + (entfernt.name || '') + '"', () => {
+    seedInventory.splice(index, 0, entfernt);
+    saveSeedInventoryData();
+    renderSeedInventory();
+  });
 }
 
 // ==================== WUNSCHLISTE ====================
@@ -6801,10 +6822,17 @@ function saveWishlistForm() {
   renderWishlist();
 }
 function deleteWishlistEntry(id) {
-  if (!confirm('Diesen Wunschlisten-Eintrag wirklich löschen?')) return;
-  wishlist = wishlist.filter(e => e.id !== id);
+  const index = wishlist.findIndex(e => e.id === id);
+  if (index === -1) return;
+  const entfernt = wishlist[index];
+  wishlist.splice(index, 1);
   saveWishlistData();
   renderWishlist();
+  zeigeLoeschToast('Wunschlisten-Eintrag gelöscht', () => {
+    wishlist.splice(index, 0, entfernt);
+    saveWishlistData();
+    renderWishlist();
+  });
 }
 
 // ==================== KOSTENÜBERSICHT ====================
@@ -6959,10 +6987,17 @@ function saveCostForm() {
   renderCostTracker();
 }
 function deleteCostEntry(id) {
-  if (!confirm('Diese Ausgabe wirklich löschen?')) return;
-  costEntries = costEntries.filter(e => e.id !== id);
+  const index = costEntries.findIndex(e => e.id === id);
+  if (index === -1) return;
+  const entfernt = costEntries[index];
+  costEntries.splice(index, 1);
   saveCosts();
   renderCostTracker();
+  zeigeLoeschToast('Ausgabe gelöscht', () => {
+    costEntries.splice(index, 0, entfernt);
+    saveCosts();
+    renderCostTracker();
+  });
 }
 
 // ==================== VORRATSLISTE ====================
@@ -7116,10 +7151,17 @@ function savePantryForm() {
   renderPantry();
 }
 function deletePantryEntry(id) {
-  if (!confirm('Diesen Vorrats-Eintrag wirklich löschen?')) return;
-  pantryEntries = pantryEntries.filter(e => e.id !== id);
+  const index = pantryEntries.findIndex(e => e.id === id);
+  if (index === -1) return;
+  const entfernt = pantryEntries[index];
+  pantryEntries.splice(index, 1);
   savePantry();
   renderPantry();
+  zeigeLoeschToast('Vorrats-Eintrag gelöscht', () => {
+    pantryEntries.splice(index, 0, entfernt);
+    savePantry();
+    renderPantry();
+  });
 }
 
 // ==================== VIEWS / NAVIGATION ====================
@@ -7345,10 +7387,17 @@ function saveShopForm() {
   renderShops();
 }
 function deleteShopEntry(id) {
-  if (!confirm('Diesen Eintrag wirklich löschen?')) return;
-  shopEntries = shopEntries.filter(e => e.id !== id);
+  const index = shopEntries.findIndex(e => e.id === id);
+  if (index === -1) return;
+  const entfernt = shopEntries[index];
+  shopEntries.splice(index, 1);
   saveShops();
   renderShops();
+  zeigeLoeschToast('Eintrag gelöscht: „' + (entfernt.name || '') + '"', () => {
+    shopEntries.splice(index, 0, entfernt);
+    saveShops();
+    renderShops();
+  });
 }
 
 // ==================== TIPPS & TRICKS ====================
@@ -7816,12 +7865,19 @@ function pilzSpeichern() {
   renderPilzLog();
 }
 function pilzLoeschen(id) {
-  if (!confirm('Diesen Fund wirklich löschen?')) return;
-  pilzLogEintraege = pilzLogEintraege.filter(x => x.id !== id);
+  const index = pilzLogEintraege.findIndex(x => x.id === id);
+  if (index === -1) return;
+  const entfernt = pilzLogEintraege[index];
+  pilzLogEintraege.splice(index, 1);
   savePilzLog();
   const modal = document.getElementById('modalPilz');
   if (modal) modal.remove();
   renderPilzLog();
+  zeigeLoeschToast('Fund gelöscht', () => {
+    pilzLogEintraege.splice(index, 0, entfernt);
+    savePilzLog();
+    renderPilzLog();
+  });
 }
 
 // ==================== FOTOALBUM ====================
@@ -7981,12 +8037,21 @@ function albumFotoLoeschen(i) {
   const album = getAlbum();
   const fotos = album.entries[albumAktiverSlotKey];
   if (!fotos) return;
-  if (!confirm('Dieses Foto wirklich löschen?')) return;
+  const entfernt = fotos[i];
+  const slotKey = albumAktiverSlotKey;
   fotos.splice(i, 1);
-  if (!fotos.length) delete album.entries[albumAktiverSlotKey];
+  const slotGeloescht = !fotos.length;
+  if (slotGeloescht) delete album.entries[slotKey];
   saveData();
   renderAlbumDetailFotos();
   renderAlbum();
+  zeigeLoeschToast('Foto gelöscht', () => {
+    if (!album.entries[slotKey]) album.entries[slotKey] = [];
+    album.entries[slotKey].splice(i, 0, entfernt);
+    saveData();
+    renderAlbumDetailFotos();
+    renderAlbum();
+  });
 }
 function closeAlbumDetail() {
   document.getElementById('modalAlbumDetail').style.display = 'none';
