@@ -594,6 +594,7 @@
       ℹ️ Wiederkehrender Wochenplan – gilt für jede Woche gleich, bis ihr etwas ändert. Für einzelne Einheiten mit Datum nutzt ihr weiterhin "＋ Sport-Einheit erfassen" im Heute-Tab.
     </div>
     <div id="planAuswahlLeiste" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;"></div>
+    <button type="button" id="btnPlanVorlageLaden" class="add-sport-btn" style="margin-bottom:14px;">📋 Beispielwoche laden (gelenkschonender Einstieg)</button>
     <div id="trainingsplanTage"></div>
   </section>
 
@@ -1206,6 +1207,35 @@
           <li>Erholsamer Schlaf unterstützt Muskelregeneration und allgemeine Leistungsfähigkeit.</li>
           <li>Chronischer Stress (unabhängig vom Schlaf) kann Stoffwechsel und Motivation ebenfalls beeinflussen – Erholungsphasen sind kein "Luxus", sondern Teil des Prozesses.</li>
         </ul>
+      </div>
+    </details>
+
+    <details class="info-karte">
+      <summary>🚶 Einstieg ins Training bei starkem Übergewicht</summary>
+      <div class="info-inhalt">
+        <p>Allgemeine, gelenkschonende Grundprinzipien für einen sicheren Einstieg – individuelle Anpassung durch Arzt/Physiotherapeut vorher empfohlen, besonders bei Vorerkrankungen oder Gelenkproblemen:</p>
+        <ul>
+          <li><strong>Cardio als Basis:</strong> Gehen/Walking statt Joggen (kein Impact auf die Gelenke), 3–4×/Woche 20–30 Min in lockerem Tempo. Alternativ Schwimmen/Wassergymnastik – das Wasser trägt einen Teil des Gewichts.</li>
+          <li><strong>Krafttraining, niedrig dosiert:</strong> 2×/Woche, große Muskelgruppen (Beine, Rücken, Rumpf), mit Körpergewicht oder leichten Geräten – stabilisiert Gelenke und unterstützt den Stoffwechsel.</li>
+          <li><strong>Beweglichkeit:</strong> leichtes Dehnen/Mobility 2–3×/Woche, hilft gegen Verspannungen bei mehr Bewegung im Alltag.</li>
+          <li><strong>Steigerung:</strong> alle 2–3 Wochen leicht erhöhen – erst Dauer, dann Intensität, nie beides gleichzeitig.</li>
+        </ul>
+        <p>Eine Beispiel-Trainingswoche nach diesem Muster lässt sich im Tab "📅 Trainingsplan" über "📋 Beispielwoche laden" direkt übernehmen und dann individuell anpassen.</p>
+      </div>
+    </details>
+
+    <details class="info-karte">
+      <summary>🍽️ Ernährung – Grundprinzipien statt starrer Diät</summary>
+      <div class="info-inhalt">
+        <ul>
+          <li><strong>Moderates, nachhaltiges Kaloriendefizit</strong> statt Crash-Diät – Crash-Diäten scheitern meist und begünstigen den Jojo-Effekt.</li>
+          <li><strong>Teller-Methode:</strong> die Hälfte Gemüse/Salat, ein Viertel Eiweiß (Fleisch, Fisch, Hülsenfrüchte, Ei), ein Viertel Vollkorn/Kartoffeln.</li>
+          <li><strong>Ausreichend Eiweiß:</strong> sättigt gut und schützt die Muskulatur beim Abnehmen.</li>
+          <li><strong>Ballaststoffe:</strong> Vollkorn, Gemüse, Hülsenfrüchte – für Sättigung und Verdauung.</li>
+          <li><strong>Getränke:</strong> Wasser und ungesüßter Tee statt kalorienhaltiger Getränke.</li>
+          <li><strong>Kein Verbots-Fokus:</strong> eher "wie kriege ich mehr Gemüse/Eiweiß rein" als "was darf ich nicht mehr essen" – das lässt sich leichter durchhalten.</li>
+        </ul>
+        <p>Einzelne Mahlzeiten lassen sich im Tab "🍽 Ernährung" protokollieren, um über die Zeit ein Gefühl für die eigenen Portionen zu bekommen.</p>
       </div>
     </details>
 
@@ -3992,6 +4022,31 @@
     }
     box.appendChild(werkzeuge);
   }
+
+  // ---------- Beispielwoche: gelenkschonender Einstieg (allgemeine Vorlage, kein individueller Plan) ----------
+  function trainingsplanVorlageLaden() {
+    const c = trainingsplanPersonContainer(aktivePerson);
+    const id = neueId('tplan');
+    const tage = {
+      mo: [{ id: neueId('te'), typ: 'laufen', uebung: 'Walking', notiz: 'Zügiges Gehen, 20–30 Min, lockeres Tempo' }],
+      di: [{ id: neueId('te'), typ: 'krafttraining', uebung: 'Ganzkörper', notiz: 'Große Muskelgruppen, 2 Sätze, Körpergewicht oder leichte Gewichte' }],
+      mi: [{ id: neueId('te'), typ: 'dehnen', uebung: 'Mobility', notiz: '15–20 Min, gegen Verspannungen' }],
+      do: [{ id: neueId('te'), typ: 'laufen', uebung: 'Walking', notiz: 'Zügiges Gehen, 20–30 Min' }],
+      fr: [{ id: neueId('te'), typ: 'krafttraining', uebung: 'Ganzkörper', notiz: 'Große Muskelgruppen, 2 Sätze' }],
+      sa: [{ id: neueId('te'), typ: 'schwimmen', uebung: '', notiz: 'Gelenkschonendes Ausdauertraining, z.B. Schwimmen oder Radfahren, ca. 30 Min, nach Lust' }],
+      so: [{ id: neueId('te'), typ: 'dehnen', uebung: '', notiz: 'Ruhetag oder leichtes Dehnen – Erholung gehört dazu' }],
+    };
+    c.plaene.push({ id, name: 'Beispielwoche (Einstieg)', tage });
+    c.aktivId = id;
+    speicherePlan();
+    renderPlanAuswahl();
+    renderTrainingsplan();
+    showTempStatus('📋 Beispielwoche geladen – jetzt an dein Tempo anpassen.', 4);
+  }
+  document.getElementById('btnPlanVorlageLaden').addEventListener('click', () => {
+    if (!confirm('Legt einen neuen Plan "Beispielwoche (Einstieg)" an (bestehende Pläne bleiben unverändert). Fortfahren?')) return;
+    trainingsplanVorlageLaden();
+  });
 
   function renderTrainingsplan() {
     renderPlanAuswahl();
