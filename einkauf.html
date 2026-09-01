@@ -288,6 +288,7 @@
     <option value="">📥 Ohne Markt (später zuordnen)</option>
   </select>
   <button type="button" id="btnAlleVorschlaegeToggle" class="filter-chip" style="margin-bottom:10px;">▸ Alle Vorschläge verwalten</button>
+  <button type="button" id="btnHaeufigkeitOeffnen" class="filter-chip" style="margin-bottom:10px;">📊 Meistgekauft</button>
   <div id="alleVorschlaegeBox" style="display:none;margin-bottom:12px;background:var(--white);border-radius:var(--radius-md);padding:10px 12px;"></div>
   <div style="display:flex; justify-content:flex-end; margin-bottom:6px;">
     <button class="filter-chip" id="btnSortRichtung">🔤 A–Z</button>
@@ -366,6 +367,19 @@
     <div class="modal-btns">
       <button class="btn btn-secondary" id="btnPreisAbhakenUeberspringen">Überspringen</button>
       <button class="btn btn-primary" id="btnPreisAbhakenSpeichern">💾 Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- Meistgekauft -->
+<div class="modal-bg" id="modalHaeufigkeit">
+  <div class="modal" style="max-width:440px;">
+    <h2>📊 Meistgekauft</h2>
+    <p style="font-size:0.78rem;color:var(--bark);margin-bottom:10px;">Zählt, wie oft ein Produkt beim Abhaken als gekauft markiert wurde – über alle Listen hinweg. Die Zählung läuft ab jetzt, frühere Abhakungen wurden nicht rückwirkend erfasst.</p>
+    <div id="haeufigkeitListe"></div>
+    <div class="leer-hinweis" id="haeufigkeitLeer" style="display:none;padding:10px 0;">Noch keine Daten – wird erfasst, sobald ein Produkt abgehakt wird.</div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnHaeufigkeitSchliessen">Schließen</button>
     </div>
   </div>
 </div>
@@ -562,6 +576,7 @@
   const KEY_AKTIV = 'einkauf_aktiveListe';
   const KEY_FAVORITEN = 'einkauf_favoriten';
   const KEY_PREISE = 'einkauf_preise';
+  const KEY_KAUFHAEUFIGKEIT = 'einkauf_kaufhaeufigkeit';
 
   const KATEGORIEN = [
     { id: 'obst_gemuese',  label: 'Obst & Gemüse',          icon: '🥦', farbe: '#4f6f45' },
@@ -694,6 +709,7 @@
   if (!aktiveListeId || !listen.some(l => l.id === aktiveListeId)) aktiveListeId = listen[0].id;
   let favoriten = laden(KEY_FAVORITEN, {});
   let preise = laden(KEY_PREISE, {}); // { normalisierterName: [{datum, preis}] }
+  let kaufHaeufigkeit = laden(KEY_KAUFHAEUFIGKEIT, {}); // { normalisierterName: { name, anzahl } }
   let erledigtOffen = false;
   let aktuellePerson = localStorage.getItem(KEY_AKTUELLE_PERSON);
   if (!aktuellePerson || !PERSONEN.some(p => p.id === aktuellePerson)) {
@@ -826,6 +842,21 @@
     box.style.display = box.style.display === 'none' ? '' : 'none';
     renderAlleVorschlaege();
   });
+
+  // ---------- Meistgekauft ----------
+  function renderHaeufigkeit() {
+    const eintraege = Object.values(kaufHaeufigkeit).sort((a, b) => b.anzahl - a.anzahl).slice(0, 20);
+    document.getElementById('haeufigkeitLeer').style.display = eintraege.length ? 'none' : '';
+    document.getElementById('haeufigkeitListe').innerHTML = eintraege.map(e =>
+      '<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--parchment);font-size:0.85rem;"><span>' + escapeHtml(e.name) + '</span><span>' + e.anzahl + '×</span></div>'
+    ).join('');
+  }
+  document.getElementById('btnHaeufigkeitOeffnen').addEventListener('click', () => {
+    renderHaeufigkeit();
+    document.getElementById('modalHaeufigkeit').classList.add('zeigen');
+  });
+  document.getElementById('btnHaeufigkeitSchliessen').addEventListener('click', () => document.getElementById('modalHaeufigkeit').classList.remove('zeigen'));
+  document.getElementById('modalHaeufigkeit').addEventListener('click', (e) => { if (e.target.id === 'modalHaeufigkeit') e.currentTarget.classList.remove('zeigen'); });
 
   // --- Schnelleingabe mit einfachem Mengen-Parsing ---
   function parseSchnellEingabe(text) {
@@ -977,6 +1008,12 @@
         const wert = parseFloat(document.getElementById('fPreisAbhaken').value.replace(',', '.'));
         if (wert > 0) preisHinzufuegen(item.name, wert);
       }
+      const key = preisNormName(item.name);
+      const eintrag = kaufHaeufigkeit[key] || { name: item.name, anzahl: 0 };
+      eintrag.name = item.name;
+      eintrag.anzahl += 1;
+      kaufHaeufigkeit[key] = eintrag;
+      speichern(KEY_KAUFHAEUFIGKEIT, kaufHaeufigkeit);
       item.erledigt = true;
       speichernListen();
     }
