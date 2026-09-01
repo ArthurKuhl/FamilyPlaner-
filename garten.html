@@ -113,7 +113,7 @@
   .tool-group { display: flex; gap: 4px; align-items: center; }
   .tool-sep { width: 1px; height: 24px; background: rgba(255,255,255,0.12); margin: 0 5px; }
   .tool-dropdown { position: relative; display: inline-block; }
-  .dropdown-menu { display: none; position: absolute; top: calc(100% + 6px); left: 0; background: var(--soil); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-md); padding: 7px; flex-direction: column; gap: 4px; z-index: 60; min-width: 150px; box-shadow: var(--shadow-md); }
+  .dropdown-menu { display: none; position: fixed; background: var(--soil); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-md); padding: 7px; flex-direction: column; gap: 4px; z-index: 250; min-width: 150px; max-height: 70vh; overflow-y: auto; box-shadow: var(--shadow-md); }
   .dropdown-menu.open { display: flex; }
   .dropdown-menu .tool-btn { width: 100%; text-align: left; }
   .dropdown-toggle { display: inline-flex; align-items: center; gap: 5px; }
@@ -5336,7 +5336,25 @@ function toggleDropdown(btn) {
   const menu = btn.parentElement.querySelector('.dropdown-menu');
   const isOpen = menu.classList.contains('open');
   closeDropdowns();
-  if (!isOpen) menu.classList.add('open');
+  if (isOpen) return;
+  // Position per JS berechnen (statt CSS position:absolute), damit das Menü nicht vom
+  // overflow-x:auto der Werkzeugleiste abgeschnitten wird (das erzwingt laut CSS-Spec
+  // automatisch auch overflow-y:auto und würde das nach unten aufklappende Menü clippen).
+  menu.classList.add('open');
+  const rect = btn.getBoundingClientRect();
+  menu.style.top = (rect.bottom + 6) + 'px';
+  menu.style.left = rect.left + 'px';
+  // Nach dem Einblenden ggf. korrigieren, falls das Menü rechts oder unten über den
+  // sichtbaren Bereich hinausragen würde.
+  requestAnimationFrame(() => {
+    const menuRect = menu.getBoundingClientRect();
+    if (menuRect.right > window.innerWidth - 8) {
+      menu.style.left = Math.max(8, window.innerWidth - menuRect.width - 8) + 'px';
+    }
+    if (menuRect.bottom > window.innerHeight - 8) {
+      menu.style.top = Math.max(8, rect.top - menuRect.height - 6) + 'px';
+    }
+  });
 }
 document.addEventListener('click', (e) => {
   if (!e.target.closest('.tool-dropdown')) closeDropdowns();
