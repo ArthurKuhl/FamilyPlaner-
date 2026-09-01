@@ -113,6 +113,7 @@
   .tool-group { display: flex; gap: 4px; align-items: center; }
   .tool-sep { width: 1px; height: 24px; background: rgba(255,255,255,0.12); margin: 0 5px; }
   .tool-dropdown { position: relative; display: inline-block; }
+  .tool-btn-icon { font-size: 1.05rem; padding: 8px 11px; line-height: 1; }
   .dropdown-menu { display: none; position: fixed; background: var(--soil); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-md); padding: 7px; flex-direction: column; gap: 4px; z-index: 250; min-width: 150px; max-height: 70vh; overflow-y: auto; box-shadow: var(--shadow-md); }
   .dropdown-menu.open { display: flex; }
   .dropdown-menu .tool-btn { width: 100%; text-align: left; }
@@ -473,13 +474,8 @@
 
 <div class="app">
   <div class="toolbar">
-    <div class="tool-dropdown">
-      <button class="tool-btn dropdown-toggle" onclick="toggleDropdown(this)" title="Auswählen oder löschen">🛠 Aktion <span class="caret">▾</span></button>
-      <div class="dropdown-menu">
-        <button class="tool-btn" id="btnSelect" onclick="setMode('select');closeDropdowns()" title="Beete anklicken, verschieben, bearbeiten">↖ Auswählen</button>
-        <button class="tool-btn danger" onclick="deleteSelected();closeDropdowns()" title="Ausgewähltes Beet löschen">🗑 Löschen</button>
-      </div>
-    </div>
+    <button class="tool-btn tool-btn-icon" id="btnUndo" onclick="undo()" disabled title="Letzte Änderung rückgängig machen (Strg+Z)">↩</button>
+    <button class="tool-btn tool-btn-icon" id="btnRedo" onclick="redo()" disabled title="Rückgängig gemachte Änderung wiederherstellen (Strg+Umschalt+Z)">↪</button>
     <div class="tool-sep"></div>
     <div class="tool-dropdown">
       <button class="tool-btn dropdown-toggle" onclick="toggleDropdown(this)" title="Speichern, exportieren, importieren">📁 Datei <span class="caret">▾</span></button>
@@ -498,26 +494,32 @@
     </div>
     <div class="tool-sep"></div>
     <div class="tool-dropdown">
-      <button class="tool-btn dropdown-toggle" onclick="toggleDropdown(this)" title="Planungswerkzeuge">🧰 Werkzeuge <span class="caret">▾</span></button>
+      <button class="tool-btn dropdown-toggle" onclick="toggleDropdown(this)" title="Pflegeplan, Aussaat, Übersicht, Fruchtfolge">📅 Planung <span class="caret">▾</span></button>
       <div class="dropdown-menu">
-        <span class="tool-label">Planung</span>
         <button class="tool-btn" onclick="openCarePlan();closeDropdowns()" title="Gieß- und Pflegetermine">📅 Pflegeplan</button>
         <button class="tool-btn" onclick="openSowingCalendar();closeDropdowns()" title="Wann welche Pflanze aussäen">🗓 Aussaat</button>
         <button class="tool-btn" onclick="openNowOverview();closeDropdowns()" title="Was kann ich diesen Monat pflanzen und ernten?">🌾 Jetzt pflanzen &amp; ernten</button>
         <button class="tool-btn" onclick="openRotationTimeline();closeDropdowns()" title="Anbau-Historie je Beet">🔄 Fruchtfolge</button>
-        <span class="tool-label">Wissen &amp; Historie</span>
+      </div>
+    </div>
+    <div class="tool-sep"></div>
+    <div class="tool-dropdown">
+      <button class="tool-btn dropdown-toggle" onclick="toggleDropdown(this)" title="Erntebuch, Sorten, Statistik">🧺 Wissen &amp; Historie <span class="caret">▾</span></button>
+      <div class="dropdown-menu">
         <button class="tool-btn" onclick="openHarvestJournal();closeDropdowns()" title="Alle Ernten chronologisch, nach Jahr">🧺 Erntebuch</button>
         <button class="tool-btn" onclick="openVarietyDB();closeDropdowns()" title="Eigene Sortenerfahrungen">🌾 Sorten</button>
         <button class="tool-btn" onclick="openStats();closeDropdowns()" title="Überblick über Beete & Pflanzen">📊 Statistik</button>
-        <span class="tool-label">Bestand</span>
+      </div>
+    </div>
+    <div class="tool-sep"></div>
+    <div class="tool-dropdown">
+      <button class="tool-btn dropdown-toggle" onclick="toggleDropdown(this)" title="Saatgut, Vorrat, Vorlagen">🥫 Bestand <span class="caret">▾</span></button>
+      <div class="dropdown-menu">
         <button class="tool-btn" onclick="openSeedInventory();closeDropdowns()" title="Vorrätiges Saatgut verwalten">🌰 Saatgutinventar</button>
         <button class="tool-btn" onclick="openPantry();closeDropdowns()" title="Eingekochtes, Fermentiertes & Co.">🥫 Vorratsliste</button>
         <button class="tool-btn" onclick="openTemplateModal();closeDropdowns()" title="Gespeicherte Beet-Vorlagen">🧩 Vorlagen</button>
       </div>
     </div>
-    <div class="tool-sep"></div>
-    <button class="tool-btn" id="btnUndo" onclick="undo()" disabled title="Letzte Änderung rückgängig machen (Strg+Z)">↩ Rückgängig</button>
-    <button class="tool-btn" id="btnRedo" onclick="redo()" disabled title="Rückgängig gemachte Änderung wiederherstellen (Strg+Umschalt+Z)">↪ Wiederholen</button>
   </div>
 
   <div class="main">
@@ -529,6 +531,10 @@
         <span style="color:#fff;font-size:0.75rem">Punkte: <span id="freehandPointCount">0</span></span>
         <button class="tool-btn" style="padding:5px 10px;font-size:0.72rem" onclick="finishFreehand()" title="Umriss schließen (mind. 3 Punkte)">✓ Fertig</button>
         <button class="tool-btn danger" style="padding:5px 10px;font-size:0.72rem" onclick="cancelFreehand()" title="Zeichnung verwerfen">✕ Abbrechen</button>
+      </div>
+      <div id="plantModeControls" style="position:absolute;bottom:14px;left:50%;transform:translateX(-50%);display:none;align-items:center;gap:8px;z-index:90;background:rgba(58,46,31,0.94);padding:8px 12px;border-radius:12px;box-shadow:0 3px 12px rgba(0,0,0,0.35)">
+        <span style="color:#fff;font-size:0.75rem" id="plantModeLabel">🌱 Pflanzmodus</span>
+        <button class="tool-btn" style="padding:5px 10px;font-size:0.72rem" onclick="setMode('select')" title="Pflanzmodus beenden, zurück zum Auswählen/Verschieben">✕ Fertig</button>
       </div>
     </div>
 
@@ -5402,6 +5408,7 @@ function setMode(m) {
   const labels={circle:'Kreis zeichnen',rect:'Rechteck zeichnen',tri:'Dreieck zeichnen',lshape:'L-Form zeichnen',freehand:'Freiform: Punkte anklicken, am Startpunkt schließen',select:'Auswählen / Verschieben',plant:`Pflanze setzen: ${selectedPlantSym}`,freitree:`🌳 Frei platzieren: ${selectedPlantSym} – auf die Fläche tippen (außerhalb eines Beets)`};
   document.getElementById('statusMsg').textContent=labels[m]||m;
   document.getElementById('sb1').textContent='Modus: '+(labels[m]||m);
+  document.getElementById('plantModeControls').style.display = (m==='plant') ? 'flex' : 'none';
   updateShapeControls();
   draw();
 }
