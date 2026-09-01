@@ -5374,6 +5374,86 @@ function setMode(m) {
   draw();
 }
 let statusMsgTimer=null;
+// ---------- LÖSCH-TOAST MIT RÜCKGÄNGIG (eigene Funktion, da showTempStatus() oben
+// im Beetplaner-Werkzeug für etwas anderes verwendet wird – den aktuellen Zeichenmodus) ----------
+function zeigeLoeschToast(text, rueckgaengigFn, sekunden) {
+  let el = document.getElementById('__loeschToast');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = '__loeschToast';
+    document.body.appendChild(el);
+  }
+  el.style.cssText =
+    'position:fixed;left:50%;bottom:24px;transform:translate(-50%,0);' +
+    'background:#2a2016;color:#bcd196;padding:10px 18px;border-radius:22px;' +
+    'font-size:0.85rem;font-weight:600;box-shadow:0 4px 14px rgba(0,0,0,0.25);' +
+    'opacity:1;pointer-events:auto;transition:opacity .2s, transform .2s;z-index:9999;' +
+    'max-width:88vw;text-align:center;font-family:Inter,system-ui,sans-serif;' +
+    'display:flex;align-items:center;gap:12px;';
+  el.innerHTML = '';
+  const textSpan = document.createElement('span');
+  textSpan.textContent = text;
+  el.appendChild(textSpan);
+  const btn = document.createElement('button');
+  btn.textContent = 'Rückgängig';
+  btn.style.cssText = 'background:none;border:none;color:#e8c98a;font-weight:700;font-size:0.85rem;cursor:pointer;padding:2px 4px;flex-shrink:0;text-decoration:underline;';
+  btn.addEventListener('click', () => {
+    clearTimeout(el._timeout);
+    try { rueckgaengigFn(); } catch (e) { console.warn('zeigeLoeschToast: Rückgängig-Aktion fehlgeschlagen', e); }
+    el.style.opacity = '0';
+    el.style.transform = 'translate(-50%,20px)';
+  });
+  el.appendChild(btn);
+  clearTimeout(el._timeout);
+  el._timeout = setTimeout(() => {
+    el.style.opacity = '0';
+    el.style.transform = 'translate(-50%,20px)';
+  }, (sekunden || 6) * 1000);
+}
+
+  // ---------- PULL-TO-REFRESH (von oben nach unten wischen) ----------
+  (function () {
+    let startY = 0, ziehend = false, ausgeloest = false;
+    const SCHWELLE = 70;
+    let indikator = null;
+    function indikatorZeigen(strecke) {
+      if (!indikator) {
+        indikator = document.createElement('div');
+        indikator.id = '__pullToRefreshIndikator';
+        indikator.style.cssText =
+          'position:fixed;top:8px;left:50%;transform:translate(-50%,-40px) rotate(0deg);' +
+          'width:34px;height:34px;border-radius:50%;background:#2a2016;color:#bcd196;' +
+          'display:flex;align-items:center;justify-content:center;font-size:1.1rem;' +
+          'z-index:9998;transition:opacity .15s;box-shadow:0 3px 10px rgba(0,0,0,0.25);opacity:0;';
+        document.body.appendChild(indikator);
+      }
+      const anteil = Math.min(1, strecke / SCHWELLE);
+      indikator.style.opacity = String(anteil);
+      indikator.style.transform = 'translate(-50%,' + (-40 + anteil * 56) + 'px) rotate(' + (anteil * 180) + 'deg)';
+      indikator.textContent = anteil >= 1 ? '↻' : '↓';
+    }
+    function indikatorAusblenden() { if (indikator) indikator.style.opacity = '0'; }
+    document.addEventListener('touchstart', (e) => {
+      if (window.scrollY > 0 || e.touches.length !== 1) { ziehend = false; return; }
+      startY = e.touches[0].clientY; ziehend = true; ausgeloest = false;
+    }, { passive: true });
+    document.addEventListener('touchmove', (e) => {
+      if (!ziehend) return;
+      const strecke = e.touches[0].clientY - startY;
+      if (strecke <= 0) { indikatorAusblenden(); return; }
+      if (window.scrollY > 0) { ziehend = false; indikatorAusblenden(); return; }
+      indikatorZeigen(strecke);
+      if (strecke >= SCHWELLE) ausgeloest = true;
+    }, { passive: true });
+    document.addEventListener('touchend', () => {
+      if (ziehend && ausgeloest) {
+        if (indikator) { indikator.textContent = '↻'; indikator.style.opacity = '1'; }
+        location.reload();
+      } else { indikatorAusblenden(); }
+      ziehend = false;
+    }, { passive: true });
+  })();
+
 function showTempStatus(text, seconds) {
   const el = document.getElementById('statusMsg');
   if (!el) return;
