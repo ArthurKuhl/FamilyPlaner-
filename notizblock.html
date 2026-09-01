@@ -567,6 +567,12 @@
   renderTagFilter();
   renderNotizen();
 
+  // Reagiert auf App-Shortcuts (Homescreen-Icon lange gedrückt halten → "Neue Notiz")
+  window.addEventListener('message', (e) => {
+    if (e.origin !== window.location.origin) return;
+    if (e.data && e.data.type === 'shortcutAktion' && e.data.aktion === 'neu') editOeffnen(null);
+  });
+
   if (window.PlanerSync) {
     window._sync = window.PlanerSync.starteSync({
       modul: 'notizblock',

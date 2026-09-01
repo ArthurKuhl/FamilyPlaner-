@@ -697,7 +697,7 @@
       initApp();
     }
 
-    function bereichLaden(id, { schreiben = true } = {}) {
+    function bereichLaden(id, { schreiben = true, aktion = '' } = {}) {
       const mod = MODULE.find(m => m.id === id) || MODULE[0];
       frame.src = mod.src;
       nav.querySelectorAll('.modul-btn').forEach(btn => {
@@ -706,6 +706,16 @@
       });
       if (schreiben) {
         try { localStorage.setItem(STORAGE_KEY, mod.id); } catch (e) {}
+      }
+      if (aktion) {
+        // Das Modul ist noch nicht geladen (frame.src wurde gerade erst gesetzt) – die
+        // Nachricht erst schicken, sobald es tatsächlich fertig geladen hat.
+        const zielFrame = frame;
+        const handler = () => {
+          zielFrame.removeEventListener('load', handler);
+          try { zielFrame.contentWindow.postMessage({ type: 'shortcutAktion', aktion: aktion }, window.location.origin); } catch (e) {}
+        };
+        zielFrame.addEventListener('load', handler);
       }
     }
 
@@ -723,17 +733,27 @@
 
       const sichtbareModule = moduleInGespeicherterReihenfolge().filter(mod => !versteckt.includes(mod.id));
       let start = sichtbareModule.length ? sichtbareModule[0].id : 'home';
+      let startAktion = '';
       try {
-        let startModul = '';
-        try { startModul = localStorage.getItem('planer_startModul') || ''; } catch (e) {}
-        if (startModul && MODULE.some(m => m.id === startModul) && !versteckt.includes(startModul)) {
-          start = startModul;
+        // App-Shortcuts (Homescreen-Icon lange gedrückt halten) übergeben den Ziel-Bereich
+        // per URL-Parameter – hat Vorrang vor dem zuletzt geöffneten Bereich.
+        const params = new URLSearchParams(window.location.search);
+        const bereichParam = params.get('bereich');
+        if (bereichParam && MODULE.some(m => m.id === bereichParam) && !versteckt.includes(bereichParam)) {
+          start = bereichParam;
+          startAktion = params.get('aktion') || '';
         } else {
-          const gespeichert = localStorage.getItem(STORAGE_KEY);
-          if (gespeichert && MODULE.some(m => m.id === gespeichert) && !versteckt.includes(gespeichert)) start = gespeichert;
+          let startModul = '';
+          try { startModul = localStorage.getItem('planer_startModul') || ''; } catch (e) {}
+          if (startModul && MODULE.some(m => m.id === startModul) && !versteckt.includes(startModul)) {
+            start = startModul;
+          } else {
+            const gespeichert = localStorage.getItem(STORAGE_KEY);
+            if (gespeichert && MODULE.some(m => m.id === gespeichert) && !versteckt.includes(gespeichert)) start = gespeichert;
+          }
         }
       } catch (e) {}
-      bereichLaden(start, { schreiben: false });
+      bereichLaden(start, { schreiben: false, aktion: startAktion });
     }
 
     // Erlaubt Modulen (z.B. der Startseite), per Kachel-Klick zu einem anderen Bereich zu wechseln

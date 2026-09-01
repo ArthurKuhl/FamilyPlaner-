@@ -757,11 +757,16 @@
   });
   document.getElementById('btnLoeschen').addEventListener('click', () => {
     if (!bearbeitenId) return;
-    if (!confirm('Diesen Eintrag wirklich löschen?')) return;
-    items = items.filter(i => i.id !== bearbeitenId);
+    const index = items.findIndex(i => i.id === bearbeitenId);
+    if (index === -1) return;
+    const entfernt = items[index];
+    items.splice(index, 1);
     speichern(KEY_ITEMS, items);
     document.getElementById('modalItem').classList.remove('zeigen');
     renderListe();
+    showTempStatus('Gelöscht: „' + entfernt.name + '"', 6, {
+      rueckgaengig: () => { items.splice(index, 0, entfernt); speichern(KEY_ITEMS, items); renderListe(); }
+    });
   });
 
   renderKatTabs();

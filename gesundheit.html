@@ -1872,11 +1872,20 @@
       if (terminBtn) terminBtn.addEventListener('click', (e) => { e.stopPropagation(); medTerminVerknuepfungUmschalten(m.id); });
       zeile.querySelector('.med-loeschen').addEventListener('click', (e) => {
         e.stopPropagation();
-        if (!confirm('„' + m.name + '" wirklich dauerhaft entfernen?')) return;
-        if (m.terminErinnerungId) medTerminEintragEntfernen(m.terminErinnerungId);
-        medikamente = medikamente.filter(x => x.id !== m.id);
+        const index = medikamente.findIndex(x => x.id === m.id);
+        if (index === -1) return;
+        const entfernt = medikamente[index];
+        if (entfernt.terminErinnerungId) medTerminEintragEntfernen(entfernt.terminErinnerungId);
+        medikamente.splice(index, 1);
         speichern(KEY_MEDIKAMENTE, medikamente);
         renderMedListeHeute();
+        showTempStatus('Entfernt: „' + entfernt.name + '"', 6, {
+          rueckgaengig: () => {
+            medikamente.splice(index, 0, entfernt);
+            speichern(KEY_MEDIKAMENTE, medikamente);
+            renderMedListeHeute();
+          }
+        });
       });
       box.appendChild(zeile);
     });
@@ -4090,13 +4099,26 @@
   }
   window.addEigeneUebung = addEigeneUebung;
   function eigeneUebungLoeschen(typ, id) {
-    if (!confirm('Diese eigene Übung löschen?')) return;
-    eigeneUebungen[typ] = (eigeneUebungen[typ] || []).filter(u => u.id !== id);
+    const liste = eigeneUebungen[typ] || [];
+    const index = liste.findIndex(u => u.id === id);
+    if (index === -1) return;
+    const entfernt = liste[index];
+    liste.splice(index, 1);
     speichereEigeneUebungen();
     eigeneUebungModalOeffnen(typ);
     if (typ === 'kraft') renderMuskelGrid();
     if (typ === 'dehnen') renderDehnGrid();
     if (typ === 'balance') renderBalanceGrid();
+    showTempStatus('Entfernt: „' + entfernt.name + '"', 6, {
+      rueckgaengig: () => {
+        liste.splice(index, 0, entfernt);
+        speichereEigeneUebungen();
+        eigeneUebungModalOeffnen(typ);
+        if (typ === 'kraft') renderMuskelGrid();
+        if (typ === 'dehnen') renderDehnGrid();
+        if (typ === 'balance') renderBalanceGrid();
+      }
+    });
   }
   window.eigeneUebungLoeschen = eigeneUebungLoeschen;
 

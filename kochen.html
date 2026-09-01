@@ -1716,12 +1716,22 @@
 
   document.getElementById('btnEditLoeschen').addEventListener('click', () => {
     if (!bearbeiteId) return;
-    if (!confirm('Dieses Rezept wirklich löschen?')) return;
-    rezepte = rezepte.filter(r => r.id !== bearbeiteId);
+    const index = rezepte.findIndex(r => r.id === bearbeiteId);
+    if (index === -1) return;
+    const entfernt = rezepte[index];
+    rezepte.splice(index, 1);
     speichernRezepte();
     document.getElementById('modalEdit').classList.remove('zeigen');
     renderFilter();
     renderGrid();
+    showTempStatus('Gelöscht: „' + entfernt.titel + '"', 6, {
+      rueckgaengig: () => {
+        rezepte.splice(index, 0, entfernt);
+        speichernRezepte();
+        renderFilter();
+        renderGrid();
+      }
+    });
   });
 
   // ============================================================
