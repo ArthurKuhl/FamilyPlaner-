@@ -28,5 +28,35 @@
       "type": "image/png",
       "purpose": "maskable"
     }
+  ],
+  "shortcuts": [
+    {
+      "name": "Neuer Termin",
+      "short_name": "Termin",
+      "description": "Direkt einen neuen Termin anlegen",
+      "url": "./index.html?bereich=termine&aktion=neu",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Einkaufsliste",
+      "short_name": "Einkauf",
+      "description": "Einkaufsliste öffnen",
+      "url": "./index.html?bereich=einkauf",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Rezepte",
+      "short_name": "Kochen",
+      "description": "Kochen & Backen öffnen",
+      "url": "./index.html?bereich=kochen",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Notizblock",
+      "short_name": "Notizen",
+      "description": "Direkt eine neue Notiz anlegen",
+      "url": "./index.html?bereich=notizblock&aktion=neu",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
   ]
 }
