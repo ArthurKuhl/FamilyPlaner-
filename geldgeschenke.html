@@ -145,6 +145,14 @@
   .ansicht-tabs { display: flex; gap: 6px; margin-bottom: 8px; }
   .ansicht-tab { flex: 1; background: transparent; border: 1px solid #4a3a28; color: var(--sage); font-size: 0.78rem; font-weight: 700; padding: 7px 10px; border-radius: var(--radius-pill); cursor: pointer; }
   .ansicht-tab.active { background: var(--terracotta); color: var(--white); border-color: var(--terracotta); }
+  .karte { background: var(--white); border-radius: var(--radius-md); padding: 14px; box-shadow: var(--shadow-soft); margin-bottom: 12px; }
+  .karte h3 { margin: 0 0 10px; font-size: 0.95rem; }
+  .balken-wrap { height: 9px; background: var(--parchment); border-radius: 5px; overflow: hidden; margin-top: 3px; }
+  .balken { height: 100%; background: var(--terracotta); border-radius: 5px; transition: width 0.2s; }
+  .jv-jahr-zeile { margin-bottom: 10px; }
+  .jv-jahr-kopf { display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 2px; }
+  .jv-anlass-zeile { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--parchment); font-size: 0.85rem; }
+  .jv-anlass-zeile:last-child { border-bottom: none; }
   .info-karte { background: var(--white); border-radius: var(--radius-md); margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); overflow: hidden; }
   .info-karte summary { padding: 14px; font-weight: 700; color: var(--soil); cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; }
   .info-karte summary::-webkit-details-marker { display: none; }
@@ -202,6 +210,7 @@
   <div class="ansicht-tabs">
     <button class="ansicht-tab active" id="tabListe">📋 Liste</button>
     <button class="ansicht-tab" id="tabUebersicht">👤 Übersicht nach Person</button>
+    <button class="ansicht-tab" id="tabJahresvergleich">📈 Jahresvergleich</button>
   </div>
 
   <div id="ansichtListe">
@@ -219,6 +228,20 @@
     <div class="leer-hinweis" id="uebersichtLeer" style="display:none;">
       <span class="em">👤</span>
       Noch nichts zu übersehen – erst ein paar Geldgeschenke erfassen.
+    </div>
+  </div>
+
+  <div id="ansichtJahresvergleich" style="display:none;">
+    <div class="karte">
+      <h3 style="margin-top:0;">📈 Ausgegeben pro Jahr</h3>
+      <div id="jvJahrListe"></div>
+      <div class="leer-hinweis" id="jvJahrLeer" style="display:none;padding:10px 0;">Noch keine Einträge mit Datum vorhanden.</div>
+    </div>
+    <div class="karte">
+      <h3>🎉 Nach Anlass (gewähltes Jahr)</h3>
+      <select id="jvJahrAuswahl" style="width:auto;margin-bottom:10px;padding:6px 10px;"></select>
+      <div id="jvAnlassListe"></div>
+      <div class="leer-hinweis" id="jvAnlassLeer" style="display:none;padding:10px 0;">Für dieses Jahr liegen noch keine Einträge vor.</div>
     </div>
   </div>
 </main>
@@ -511,12 +534,49 @@
   function ansichtAnwenden() {
     document.getElementById('tabListe').classList.toggle('active', aktiveAnsicht === 'liste');
     document.getElementById('tabUebersicht').classList.toggle('active', aktiveAnsicht === 'uebersicht');
+    document.getElementById('tabJahresvergleich').classList.toggle('active', aktiveAnsicht === 'jahresvergleich');
     document.getElementById('ansichtListe').style.display = aktiveAnsicht === 'liste' ? '' : 'none';
     document.getElementById('ansichtUebersicht').style.display = aktiveAnsicht === 'uebersicht' ? '' : 'none';
+    document.getElementById('ansichtJahresvergleich').style.display = aktiveAnsicht === 'jahresvergleich' ? '' : 'none';
     if (aktiveAnsicht === 'uebersicht') renderUebersicht();
+    if (aktiveAnsicht === 'jahresvergleich') renderJahresvergleich();
   }
   document.getElementById('tabListe').addEventListener('click', () => { aktiveAnsicht = 'liste'; ansichtAnwenden(); });
   document.getElementById('tabUebersicht').addEventListener('click', () => { aktiveAnsicht = 'uebersicht'; ansichtAnwenden(); });
+  document.getElementById('tabJahresvergleich').addEventListener('click', () => { aktiveAnsicht = 'jahresvergleich'; ansichtAnwenden(); });
+
+  // ---------- Jahresvergleich ----------
+  let jvAusgewaehltesJahr = null;
+  function renderJahresvergleich() {
+    const mitDatum = geschenke.filter(g => g.datum);
+    const proJahr = {};
+    mitDatum.forEach(g => { const j = g.datum.slice(0,4); proJahr[j] = (proJahr[j] || 0) + (Number(g.betrag) || 0); });
+    const jahre = Object.keys(proJahr).sort((a,b) => b.localeCompare(a));
+    if (!jvAusgewaehltesJahr || !jahre.includes(jvAusgewaehltesJahr)) jvAusgewaehltesJahr = jahre[0] || String(new Date().getFullYear());
+
+    const maxJahr = Math.max(1, ...Object.values(proJahr));
+    document.getElementById('jvJahrLeer').style.display = jahre.length ? 'none' : '';
+    document.getElementById('jvJahrListe').innerHTML = jahre.map(j => {
+      const prozent = Math.round((proJahr[j] / maxJahr) * 100);
+      return '<div class="jv-jahr-zeile">' +
+        '<div class="jv-jahr-kopf"><span>' + j + '</span><span>' + proJahr[j].toLocaleString('de-DE') + ' €</span></div>' +
+        '<div class="balken-wrap"><div class="balken" style="width:' + prozent + '%"></div></div>' +
+      '</div>';
+    }).join('');
+
+    const sel = document.getElementById('jvJahrAuswahl');
+    sel.innerHTML = jahre.map(j => '<option value="' + j + '"' + (j === jvAusgewaehltesJahr ? ' selected' : '') + '>' + j + '</option>').join('');
+
+    const jahresEintraege = mitDatum.filter(g => g.datum.slice(0,4) === jvAusgewaehltesJahr);
+    const proAnlass = {};
+    jahresEintraege.forEach(g => { const key = anlassLabel(g); proAnlass[key] = (proAnlass[key] || 0) + (Number(g.betrag) || 0); });
+    const anlassEintraege = Object.keys(proAnlass).map(k => ({ label: k, summe: proAnlass[k] })).sort((a,b) => b.summe - a.summe);
+    document.getElementById('jvAnlassLeer').style.display = anlassEintraege.length ? 'none' : '';
+    document.getElementById('jvAnlassListe').innerHTML = anlassEintraege.map(e =>
+      '<div class="jv-anlass-zeile"><span>' + escapeHtml(e.label) + '</span><span>' + e.summe.toLocaleString('de-DE') + ' €</span></div>'
+    ).join('');
+  }
+  document.getElementById('jvJahrAuswahl').addEventListener('change', (e) => { jvAusgewaehltesJahr = e.target.value; renderJahresvergleich(); });
 
   // ---------- Neu / Bearbeiten ----------
   let editId = null;

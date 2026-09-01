@@ -143,6 +143,17 @@
   }
   .ansicht-tabs { display: flex; gap: 6px; margin-bottom: 8px; }
   .ansicht-tab { flex: 1; background: transparent; border: 1px solid #4a3a28; color: var(--sage); font-size: 0.78rem; font-weight: 700; padding: 7px 10px; border-radius: var(--radius-pill); cursor: pointer; }
+  .balken-wrap { height: 9px; background: var(--parchment); border-radius: 5px; overflow: hidden; margin-top: 3px; }
+  .balken { height: 100%; border-radius: 5px; transition: width 0.2s; }
+  .stat-karte { background: var(--white); border-radius: var(--radius-md); padding: 14px; box-shadow: var(--shadow-soft); margin-bottom: 12px; }
+  .stat-karte h3 { margin: 0 0 10px; font-size: 0.95rem; }
+  .stat-person-zeile { margin-bottom: 10px; }
+  .stat-person-kopf { display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 2px; }
+  .stat-aufgabe-zeile { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--parchment); font-size: 0.82rem; }
+  .stat-aufgabe-zeile:last-child { border-bottom: none; }
+  .stat-zeitraum-tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+  .stat-zeitraum-tabs button { flex: 1; background: var(--white); border: 1px solid var(--parchment); color: var(--bark); font-size: 0.75rem; font-weight: 700; padding: 6px; border-radius: var(--radius-pill); cursor: pointer; }
+  .stat-zeitraum-tabs button.active { background: var(--moss); color: var(--white); border-color: var(--moss); }
   .ansicht-tab.active { background: var(--terracotta); color: var(--white); border-color: var(--terracotta); }
   .info-karte { background: var(--white); border-radius: var(--radius-md); margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); overflow: hidden; }
   .info-karte summary { padding: 14px; font-weight: 700; color: var(--soil); cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; }
@@ -202,6 +213,7 @@
 <main>
   <div class="ansicht-tabs">
     <button class="ansicht-tab active" id="tabAufgaben">🧹 Aufgaben</button>
+    <button class="ansicht-tab" id="tabStatistik">📊 Statistik</button>
   </div>
 
   <div id="ansichtAufgaben">
@@ -209,6 +221,20 @@
     <div class="leer-hinweis" id="leerHinweis" style="display:none;">
       <span class="em">🧹</span>
       Noch keine Haushaltsaufgaben angelegt.<br>Tippe auf „＋ Neu", um loszulegen.
+    </div>
+  </div>
+
+  <div id="ansichtStatistik" style="display:none;">
+    <div class="stat-zeitraum-tabs" id="statZeitraumTabs"></div>
+    <div class="stat-karte">
+      <h3>👥 Wer hat wie viel erledigt</h3>
+      <div id="statPersonenListe"></div>
+      <div class="leer-hinweis" id="statPersonenLeer" style="display:none;padding:10px 0;">Noch keine Erledigungen in diesem Zeitraum.</div>
+    </div>
+    <div class="stat-karte">
+      <h3>🧹 Häufigkeit pro Aufgabe</h3>
+      <div id="statAufgabenListe"></div>
+      <div class="leer-hinweis" id="statAufgabenLeer" style="display:none;padding:10px 0;">Noch keine Erledigungen in diesem Zeitraum.</div>
     </div>
   </div>
 
@@ -882,12 +908,78 @@
   }
   document.getElementById('btnNeu').addEventListener('click', () => editOeffnen(null));
 
-  // ---------- Ansicht umschalten: Aufgaben ----------
+  // ---------- Ansicht umschalten: Aufgaben / Statistik ----------
   function haushaltAnsichtAnwenden(name) {
     document.getElementById('tabAufgaben').classList.toggle('active', name === 'aufgaben');
+    document.getElementById('tabStatistik').classList.toggle('active', name === 'statistik');
     document.getElementById('ansichtAufgaben').style.display = name === 'aufgaben' ? '' : 'none';
+    document.getElementById('ansichtStatistik').style.display = name === 'statistik' ? '' : 'none';
+    if (name === 'statistik') renderStatistik();
   }
   document.getElementById('tabAufgaben').addEventListener('click', () => haushaltAnsichtAnwenden('aufgaben'));
+  document.getElementById('tabStatistik').addEventListener('click', () => haushaltAnsichtAnwenden('statistik'));
+
+  // ---------- Statistik: Wer hat wie viel erledigt / Häufigkeit pro Aufgabe ----------
+  const STAT_FARBEN = ['#4a6f5c', '#c46b41', '#5b8bb5', '#a8763e', '#7d6339', '#8a5a8a'];
+  let statZeitraum = 'monat'; // 'monat' | 'alle'
+  function statZeitraumTabsRendern() {
+    const box = document.getElementById('statZeitraumTabs');
+    box.innerHTML = '';
+    [['monat', '📅 Dieser Monat'], ['alle', '🗂 Insgesamt']].forEach(([key, label]) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.textContent = label;
+      btn.className = statZeitraum === key ? 'active' : '';
+      btn.addEventListener('click', () => { statZeitraum = key; statZeitraumTabsRendern(); renderStatistik(); });
+      box.appendChild(btn);
+    });
+  }
+  function statErledigungenImZeitraum() {
+    const heute = new Date();
+    const monatPrefix = heute.getFullYear() + '-' + String(heute.getMonth() + 1).padStart(2, '0');
+    const liste = [];
+    aufgaben.forEach(a => {
+      (a.erledigt || []).forEach(e => {
+        if (statZeitraum === 'monat' && !String(e.datum || '').startsWith(monatPrefix)) return;
+        liste.push({ aufgabe: a, erledigung: e });
+      });
+    });
+    return liste;
+  }
+  function renderStatistik() {
+    const eintraege = statErledigungenImZeitraum();
+
+    // Pro Person
+    const proPerson = {};
+    eintraege.forEach(({ erledigung }) => { proPerson[erledigung.von] = (proPerson[erledigung.von] || 0) + 1; });
+    const personenBox = document.getElementById('statPersonenListe');
+    const gesamt = eintraege.length;
+    const personenEintraege = Object.keys(proPerson).map(id => ({ person: personInfo(id), anzahl: proPerson[id] })).sort((a,b) => b.anzahl - a.anzahl);
+    document.getElementById('statPersonenLeer').style.display = personenEintraege.length ? 'none' : '';
+    personenBox.innerHTML = personenEintraege.map((e, i) => {
+      const prozent = gesamt ? Math.round((e.anzahl / gesamt) * 100) : 0;
+      const farbe = STAT_FARBEN[i % STAT_FARBEN.length];
+      return '<div class="stat-person-zeile">' +
+        '<div class="stat-person-kopf"><span>' + escapeHtml(e.person.label) + '</span><span>' + e.anzahl + ' (' + prozent + '%)</span></div>' +
+        '<div class="balken-wrap"><div class="balken" style="width:' + prozent + '%;background:' + farbe + ';"></div></div>' +
+      '</div>';
+    }).join('');
+
+    // Pro Aufgabe
+    const proAufgabe = {};
+    eintraege.forEach(({ aufgabe }) => { proAufgabe[aufgabe.id] = (proAufgabe[aufgabe.id] || 0) + 1; });
+    const aufgabenBox = document.getElementById('statAufgabenListe');
+    const aufgabenEintraege = Object.keys(proAufgabe).map(id => ({
+      aufgabe: aufgaben.find(a => a.id === id),
+      anzahl: proAufgabe[id],
+    })).filter(e => e.aufgabe).sort((a,b) => b.anzahl - a.anzahl);
+    document.getElementById('statAufgabenLeer').style.display = aufgabenEintraege.length ? 'none' : '';
+    aufgabenBox.innerHTML = aufgabenEintraege.map(e =>
+      '<div class="stat-aufgabe-zeile"><span>' + escapeHtml(e.aufgabe.titel) + '</span><span>' + e.anzahl + '×</span></div>'
+    ).join('');
+  }
+  statZeitraumTabsRendern();
+
   document.getElementById('btnInfosModal').addEventListener('click', () => {
     document.getElementById('infosModal').classList.add('zeigen');
   });

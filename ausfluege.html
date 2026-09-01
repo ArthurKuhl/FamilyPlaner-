@@ -161,6 +161,14 @@
   .ansicht-tabs { display: flex; gap: 6px; margin-bottom: 8px; }
   .ansicht-tab { flex: 1; background: transparent; border: 1px solid #4a3a28; color: var(--sage); font-size: 0.78rem; font-weight: 700; padding: 7px 10px; border-radius: var(--radius-pill); cursor: pointer; }
   .ansicht-tab.active { background: var(--terracotta); color: var(--white); border-color: var(--terracotta); }
+  .karte { background: var(--white); border-radius: var(--radius-md); padding: 14px; box-shadow: var(--shadow-soft); margin-bottom: 12px; }
+  .karte h3 { margin: 0 0 10px; font-size: 0.95rem; }
+  .balken-wrap { height: 9px; background: var(--parchment); border-radius: 5px; overflow: hidden; margin-top: 3px; }
+  .balken { height: 100%; background: var(--terracotta); border-radius: 5px; transition: width 0.2s; }
+  .stat-jahr-zeile { margin-bottom: 10px; }
+  .stat-jahr-kopf { display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 2px; }
+  .stat-ziel-zeile { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--parchment); font-size: 0.85rem; }
+  .stat-ziel-zeile:last-child { border-bottom: none; }
   .info-karte { background: var(--white); border-radius: var(--radius-md); margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); overflow: hidden; }
   .info-karte summary { padding: 14px; font-weight: 700; color: var(--soil); cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; }
   .info-karte summary::-webkit-details-marker { display: none; }
@@ -217,6 +225,7 @@
   <div class="ansicht-tabs">
     <button class="ansicht-tab active" id="tabPlanung">📋 Planung</button>
     <button class="ansicht-tab" id="tabErlebt">📸 Erlebt</button>
+    <button class="ansicht-tab" id="tabStatistik">📊 Statistik</button>
   </div>
 
   <div id="ansichtPlanung">
@@ -232,6 +241,19 @@
     <div class="leer-hinweis" id="leerHinweisErlebt" style="display:none;">
       <span class="em">📸</span>
       Noch nichts festgehalten.<br>Tippe auf „＋ Neu", um Fotos und Erinnerungen zu sammeln.
+    </div>
+  </div>
+
+  <div id="ansichtStatistik" style="display:none;">
+    <div class="karte">
+      <h3 style="margin-top:0;">📅 Ausflüge pro Jahr</h3>
+      <div id="statJahrListe"></div>
+      <div class="leer-hinweis" id="statJahrLeer" style="display:none;padding:10px 0;">Noch keine Ausflüge mit Datum erfasst.</div>
+    </div>
+    <div class="karte">
+      <h3>📍 Beliebteste Ziele</h3>
+      <div id="statZieleListe"></div>
+      <div class="leer-hinweis" id="statZieleLeer" style="display:none;padding:10px 0;">Noch keine Ziele erfasst.</div>
     </div>
   </div>
 </main>
@@ -487,13 +509,54 @@
   function ansichtAnwenden() {
     document.getElementById('tabPlanung').classList.toggle('active', aktiveAnsicht === 'planung');
     document.getElementById('tabErlebt').classList.toggle('active', aktiveAnsicht === 'erlebt');
+    document.getElementById('tabStatistik').classList.toggle('active', aktiveAnsicht === 'statistik');
     document.getElementById('ansichtPlanung').style.display = aktiveAnsicht === 'planung' ? '' : 'none';
     document.getElementById('ansichtErlebt').style.display = aktiveAnsicht === 'erlebt' ? '' : 'none';
-    document.getElementById('btnNeu').textContent = aktiveAnsicht === 'planung' ? '＋ Neu' : '＋ Neu';
+    document.getElementById('ansichtStatistik').style.display = aktiveAnsicht === 'statistik' ? '' : 'none';
+    document.getElementById('btnNeu').style.display = aktiveAnsicht === 'statistik' ? 'none' : '';
     if (aktiveAnsicht === 'erlebt') renderErlebt();
+    if (aktiveAnsicht === 'statistik') renderAusfluegeStatistik();
   }
   document.getElementById('tabPlanung').addEventListener('click', () => { aktiveAnsicht = 'planung'; ansichtAnwenden(); });
   document.getElementById('tabErlebt').addEventListener('click', () => { aktiveAnsicht = 'erlebt'; ansichtAnwenden(); });
+  document.getElementById('tabStatistik').addEventListener('click', () => { aktiveAnsicht = 'statistik'; ansichtAnwenden(); });
+
+  // ---------- Statistik: Ausflüge pro Jahr & beliebteste Ziele ----------
+  function statAusflugEreignisse() {
+    const heute = new Date(); heute.setHours(0,0,0,0);
+    const ereignisse = [];
+    ausfluege.forEach(a => {
+      if (a.datum && new Date(a.datum) <= heute) ereignisse.push({ datum: a.datum, ziel: (a.ort || a.titel || 'Unbenannt').trim() });
+    });
+    erlebt.forEach(e => {
+      if (e.datum && !e.ausflugId) ereignisse.push({ datum: e.datum, ziel: (e.titel || 'Unbenannt').trim() });
+    });
+    return ereignisse;
+  }
+  function renderAusfluegeStatistik() {
+    const ereignisse = statAusflugEreignisse();
+
+    const proJahr = {};
+    ereignisse.forEach(e => { const j = e.datum.slice(0,4); proJahr[j] = (proJahr[j] || 0) + 1; });
+    const jahre = Object.keys(proJahr).sort((a,b) => b.localeCompare(a));
+    const maxJahr = Math.max(1, ...Object.values(proJahr));
+    document.getElementById('statJahrLeer').style.display = jahre.length ? 'none' : '';
+    document.getElementById('statJahrListe').innerHTML = jahre.map(j => {
+      const prozent = Math.round((proJahr[j] / maxJahr) * 100);
+      return '<div class="stat-jahr-zeile">' +
+        '<div class="stat-jahr-kopf"><span>' + j + '</span><span>' + proJahr[j] + ' Ausflug/Ausflüge</span></div>' +
+        '<div class="balken-wrap"><div class="balken" style="width:' + prozent + '%"></div></div>' +
+      '</div>';
+    }).join('');
+
+    const proZiel = {};
+    ereignisse.forEach(e => { proZiel[e.ziel] = (proZiel[e.ziel] || 0) + 1; });
+    const zieleEintraege = Object.keys(proZiel).map(ziel => ({ ziel, anzahl: proZiel[ziel] })).filter(e => e.anzahl > 1).sort((a,b) => b.anzahl - a.anzahl).slice(0, 10);
+    document.getElementById('statZieleLeer').style.display = zieleEintraege.length ? 'none' : '';
+    document.getElementById('statZieleListe').innerHTML = zieleEintraege.length
+      ? zieleEintraege.map(e => '<div class="stat-ziel-zeile"><span>' + escapeHtml(e.ziel) + '</span><span>' + e.anzahl + '×</span></div>').join('')
+      : (ereignisse.length ? '<div style="font-size:0.8rem;color:var(--bark);opacity:0.7;">Noch kein Ziel mehrfach besucht.</div>' : '');
+  }
 
   document.getElementById('btnNeu').addEventListener('click', () => {
     if (aktiveAnsicht === 'planung') planungOeffnen(null);
