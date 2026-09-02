@@ -8660,6 +8660,35 @@ try {
   }
 } catch (e) {}
 
+// ==================== HANDY-ZURÜCK-TASTE ABFANGEN ====================
+// Ohne eigene Behandlung navigiert der native Zurück-Knopf des Smartphones durch die
+// Browser-Historie "hindurch" und die App landet auf einer leeren Zwischenseite (nur
+// Hintergrundfarbe). Stattdessen: schließt zuerst jede offene Pflanzenansicht/jedes
+// offene Fenster; ist nichts offen, passiert bewusst gar nichts (statt die App zu
+// verlassen bzw. leerzuräumen).
+function ppSchliesseAlleOffenenUeberlagerungen() {
+  let geschlossen = false;
+  if (document.getElementById('plantPanel')?.classList.contains('open')) { closePlantPanel(); geschlossen = true; }
+  if (document.getElementById('freiPflanzePanel')?.classList.contains('open')) { fpSchliessen(); geschlossen = true; }
+  if (document.getElementById('fotoLightbox')?.classList.contains('zeigen')) { fotoLightboxSchliessen(); geschlossen = true; }
+  document.querySelectorAll('.modal-bg').forEach(el => {
+    if (el.id === 'plantPanel' || el.id === 'freiPflanzePanel') return; // eigene Klasse .plant-panel, oben schon behandelt
+    const sichtbar = el.style.display === 'flex' || el.classList.contains('zeigen');
+    if (sichtbar) { el.style.display = 'none'; el.classList.remove('zeigen'); geschlossen = true; }
+  });
+  if (document.querySelector('.dropdown-menu.open')) { closeDropdowns(); geschlossen = true; }
+  return geschlossen;
+}
+try {
+  history.pushState({ ppBase: true }, '', location.href);
+  window.addEventListener('popstate', function () {
+    ppSchliesseAlleOffenenUeberlagerungen();
+    // Die Zurück-Navigation "auffangen": neuen Zustand pushen, damit ein weiterer
+    // Druck auf Zurück nicht aus der App heraus- bzw. auf eine leere Seite führt.
+    history.pushState({ ppBase: true }, '', location.href);
+  });
+} catch (e) {}
+
 // ==================== SYNC: Cloud-Synchronisierung starten ====================
 // Fotos werden bewusst NICHT synchronisiert (Firestore-Größenlimit: 1 MB pro Dokument).
 // Sie bleiben lokal auf dem jeweiligen Gerät gespeichert.
