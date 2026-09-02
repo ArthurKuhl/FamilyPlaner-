@@ -809,6 +809,7 @@
       <!-- BED EDITOR (selected) -->
       <div class="sidebar-section" id="selectedBedEditor" style="display:none">
         <div class="sidebar-title" id="editorTitel">✏️ Beet bearbeiten</div>
+        <button type="button" id="btnBedLockToggle" onclick="toggleSelectedBedLock()" style="width:100%;margin-bottom:12px;padding:9px;border-radius:var(--radius-pill);border:1.5px solid var(--parchment);background:var(--white);color:var(--bark);font-size:0.78rem;font-weight:700;cursor:pointer;">📌 Auf der Karte fixieren</button>
         <div class="tabs" id="bedEditorTabs" role="tablist" style="margin-bottom:12px;border-radius:var(--radius-sm);overflow:hidden;">
           <button type="button" id="btnBedTabEigenschaften" class="tab active" role="tab" aria-selected="true" onclick="switchBedEditorTab('eigenschaften')">⚙️ Eigenschaften</button>
           <button type="button" id="btnBedTabUebersicht" class="tab" role="tab" aria-selected="false" onclick="switchBedEditorTab('uebersicht')">🌱 Übersicht</button>
@@ -1206,6 +1207,7 @@
 
   <!-- FP TAB: Info -->
   <div class="pp-tab-content active" id="fpt-info">
+    <button type="button" id="btnFpLockToggle" onclick="toggleFreiPflanzeLock()" style="width:100%;margin-bottom:14px;padding:9px;border-radius:var(--radius-pill);border:1.5px solid var(--parchment);background:var(--white);color:var(--bark);font-size:0.78rem;font-weight:700;cursor:pointer;">📌 Auf der Karte fixieren</button>
     <div style="display:flex;gap:10px;flex-wrap:wrap">
       <div style="flex:1;min-width:130px">
         <div class="form-row">
@@ -5083,6 +5085,12 @@ function drawFreiPflanze(fp) {
   ctx.fillStyle = '#2c2415';
   ctx.fillText(fp.sym || '🌳', fp.x, fp.y);
   ctx.restore();
+  if (fp.locked) {
+    ctx.save();
+    ctx.font = '13px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('📌', fp.x + 13, fp.y - 13);
+    ctx.restore();
+  }
 }
 function drawBgImage() {
   const url = getBgImage();
@@ -5176,6 +5184,10 @@ function drawBed(bed, selected) {
     ctx.beginPath(); ctx.arc(0, 0, getBedRadius(bed)+5, 0, Math.PI*2); ctx.stroke();
     ctx.setLineDash([]);
   }
+  if (bed.locked) {
+    ctx.font = '13px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('📌', getBedRadius(bed) - 2, -getBedRadius(bed) + 10);
+  }
   ctx.restore();
 }
 
@@ -5223,10 +5235,12 @@ canvas.addEventListener('click', ()=>{});
 // stattdessen ganz normal die Fläche scrollen können (wichtig bei gezoomten/großen Gärten).
 function ermittleCanvasZiel(x, y) {
   if (['circle','rect','tri','lshape','freehand','freitree'].includes(mode)) return true;
-  if (hitTestFreiPflanze(x, y)) return true;
+  const fpHit = hitTestFreiPflanze(x, y);
+  if (fpHit && !fpHit.locked) return true;
   const beete = getCurrentBeds();
   for (let i = beete.length - 1; i >= 0; i--) {
     const bed = beete[i];
+    if (bed.locked) continue;
     for (let j = (bed.plants||[]).length - 1; j >= 0; j--) {
       const plant = bed.plants[j];
       const rad = (bed.rotation||0) * Math.PI/180;
@@ -5235,7 +5249,8 @@ function ermittleCanvasZiel(x, y) {
       if (Math.hypot(x-px, y-py) < 16) return true;
     }
   }
-  return !!hitTest(x, y);
+  const bedHit = hitTest(x, y);
+  return !!(bedHit && !bedHit.locked);
 }
 let touchAktionAktiv = false;
 canvas.addEventListener('touchstart', e => {
@@ -5272,7 +5287,7 @@ function onDown(e) {
   }
   if (mode==='select') {
     const fpHit = hitTestFreiPflanze(x, y);
-    if (fpHit) {
+    if (fpHit && !fpHit.locked) {
       dragFreiPflanze = { item: fpHit, startX: x, startY: y, curX: x, curY: y, moved: false };
       return;
     }
@@ -5280,6 +5295,7 @@ function onDown(e) {
   if (mode==='select') {
     for (let i=getCurrentBeds().length-1;i>=0;i--) {
       const bed=getCurrentBeds()[i];
+      if (bed.locked) continue;
       for (let j=(bed.plants||[]).length-1;j>=0;j--) {
         const plant=bed.plants[j];
         const px=bed.x+rotX(plant.rx,plant.ry,bed.rotation||0);
@@ -5291,22 +5307,23 @@ function onDown(e) {
       }
     }
     const hit=hitTest(x,y);
+    const hitFrei = hit && !hit.locked ? hit : null;
     if (e.shiftKey) {
-      if (hit) toggleBedSelection(hit);
+      if (hitFrei) toggleBedSelection(hitFrei);
       draw(); renderBedList();
       return;
     }
-    if (hit) {
-      if (!selectedBeds.includes(hit)) selectedBeds=[hit];
-      selectedBed=hit; dragBed=hit; dragOffX=x-hit.x; dragOffY=y-hit.y;
+    if (hitFrei) {
+      if (!selectedBeds.includes(hitFrei)) selectedBeds=[hitFrei];
+      selectedBed=hitFrei; dragBed=hitFrei; dragOffX=x-hitFrei.x; dragOffY=y-hitFrei.y;
       if (selectedBeds.length>1) {
-        groupDragOthers = selectedBeds.filter(b=>b!==hit).map(b=>({bed:b, dx:b.x-hit.x, dy:b.y-hit.y}));
+        groupDragOthers = selectedBeds.filter(b=>b!==hitFrei).map(b=>({bed:b, dx:b.x-hitFrei.x, dy:b.y-hitFrei.y}));
         hideBedEditor(); showBulkBar();
       } else {
         groupDragOthers = [];
-        showBedEditor(hit); hideBulkBar();
+        showBedEditor(hitFrei); hideBulkBar();
       }
-    } else {
+    } else if (!hit) {
       selectedBeds=[]; selectedBed=null; selectedPlantOnCanvas=null; hideBedEditor(); hideBulkBar();
     }
     draw(); renderBedList();
@@ -5850,6 +5867,7 @@ window.fuegePflanzeUeberSucheHinzu = fuegePflanzeUeberSucheHinzu;
 
 function showBedEditor(bed) {
   document.getElementById('selectedBedEditor').style.display='block';
+  aktualisiereBedLockButton(bed);
   const istStruktur = bed.kind === 'struktur';
   const preset = STRUKTUR_PRESETS[bed.strukturTyp] || null;
   document.getElementById('editorTitel').textContent = istStruktur ? `✏️ ${preset ? preset.icon + ' ' + preset.label : 'Element'} bearbeiten` : '✏️ Beet bearbeiten';
@@ -5922,6 +5940,25 @@ function setSelectedBedColor(color, el) {
   draw(); renderBedList(); saveData();
 }
 function hideBedEditor() { document.getElementById('selectedBedEditor').style.display='none'; }
+function aktualisiereBedLockButton(bed) {
+  const btn = document.getElementById('btnBedLockToggle');
+  if (!btn) return;
+  const gesperrt = !!bed.locked;
+  btn.textContent = gesperrt ? '🔓 Fixierung lösen' : '📌 Auf der Karte fixieren';
+  btn.style.background = gesperrt ? '#f0f8ec' : 'var(--white)';
+  btn.style.borderColor = gesperrt ? '#4a6f5c' : 'var(--parchment)';
+  btn.style.color = gesperrt ? '#2c2415' : 'var(--bark)';
+  btn.title = gesperrt
+    ? 'Beet ist fixiert – kann auf der Karte nicht versehentlich verschoben werden'
+    : 'Verhindert, dass dieses Beet beim Scrollen/Antippen versehentlich verschoben wird';
+}
+function toggleSelectedBedLock() {
+  if (!selectedBed) return;
+  pushUndo();
+  selectedBed.locked = !selectedBed.locked;
+  aktualisiereBedLockButton(selectedBed);
+  saveData(); draw(); renderBedList();
+}
 
 // ==================== MEHRFACHAUSWAHL ====================
 function toggleBedSelection(bed) {
@@ -6121,6 +6158,7 @@ function openFreiPflanzePanel(fp) {
   ppZoomZuruecksetzen();
   activeFreiPflanzeId = fp.id;
   springeZuBeet(fp);
+  aktualisiereFpLockButton(fp);
   document.getElementById('freiPflanzeTitel').innerHTML = escapeHtml((fp.sym||'🌳') + ' ' + (fp.name || 'Baum/Strauch')) + (isPerennial(fp.name)?' <button type="button" class="pp-lebenszyklus-badge" onclick="togglePerennialInfo(event)" title="Mehr erfahren" aria-label="Info: mehrjährig">🔄</button>':'');
   document.getElementById('fpName').value = fp.name || '';
   document.getElementById('fpSorte').value = fp.sorte || '';
@@ -6195,6 +6233,26 @@ function switchFPTab(name) {
     const fp = getCurrentFreiPflanzen().find(x => x.id === activeFreiPflanzeId);
     if (fp) renderPreservePlantTab(fp.name || '', 'fpPreserveResult');
   }
+}
+function aktualisiereFpLockButton(fp) {
+  const btn = document.getElementById('btnFpLockToggle');
+  if (!btn) return;
+  const gesperrt = !!fp.locked;
+  btn.textContent = gesperrt ? '🔓 Fixierung lösen' : '📌 Auf der Karte fixieren';
+  btn.style.background = gesperrt ? '#f0f8ec' : 'var(--white)';
+  btn.style.borderColor = gesperrt ? '#4a6f5c' : 'var(--parchment)';
+  btn.style.color = gesperrt ? '#2c2415' : 'var(--bark)';
+  btn.title = gesperrt
+    ? 'Pflanze ist fixiert – kann auf der Karte nicht versehentlich verschoben werden'
+    : 'Verhindert, dass diese Pflanze beim Scrollen/Antippen versehentlich verschoben wird';
+}
+function toggleFreiPflanzeLock() {
+  const fp = getCurrentFreiPflanzen().find(x => x.id === activeFreiPflanzeId);
+  if (!fp) return;
+  pushUndo();
+  fp.locked = !fp.locked;
+  aktualisiereFpLockButton(fp);
+  saveData(); draw(); renderFreiPflanzenList();
 }
 function fpAutoSave() {
   const fp = getCurrentFreiPflanzen().find(x => x.id === activeFreiPflanzeId);
@@ -6288,6 +6346,7 @@ function handleFreiPflanzePhoto(e) {
       fp.fotos.push(neuesFoto);
       while (fp.fotos.length > PP_MAX_FOTOS) fp.fotos.shift();
       fp.fotoTitelbildId = neuesFoto.id;
+      ppFotoInSammelalbumEintragen(fp.name, dataUrl);
       saveData();
       renderFreiPflanzePhoto(fp);
     };
@@ -6656,6 +6715,7 @@ function handlePlantPhoto(e) {
       plant.fotos.push(neuesFoto);
       while (plant.fotos.length > PP_MAX_FOTOS) plant.fotos.shift();
       plant.fotoTitelbildId = neuesFoto.id;
+      ppFotoInSammelalbumEintragen(plant.name, dataUrl);
       saveData();
       renderPlantPhoto(plant);
     };
@@ -8461,6 +8521,19 @@ function getAlbum() {
   if (!g.album.entries) g.album.entries = {};
   if (!g.album.custom) g.album.custom = {};
   return g.album;
+}
+// Verknüpft ein in der Pflanzenansicht hochgeladenes Foto zusätzlich mit dem
+// Garten-Sammelalbum, unter der Kategorie "Gesamtpflanze" (die generischste der drei
+// Sammelalbum-Rubriken – Blüte/Frucht bleiben eigenständigen Einträgen im Album
+// vorbehalten, da sich das aus einem normalen Fortschrittsfoto nicht automatisch ableiten lässt).
+function ppFotoInSammelalbumEintragen(plantName, dataUrl) {
+  const name = (plantName || '').trim();
+  if (!name) return;
+  const album = getAlbum();
+  if (!album) return;
+  const key = `pflanzen::${name}::Gesamtpflanze`;
+  if (!album.entries[key]) album.entries[key] = [];
+  album.entries[key].unshift({ photo: dataUrl, date: new Date().toISOString().slice(0, 10) });
 }
 function albumPflanzenListe() {
   const beds = getCurrentBeds();
