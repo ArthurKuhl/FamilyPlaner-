@@ -246,7 +246,18 @@
   .pp-lebenszyklus-badge { background: rgba(255,255,255,0.22); border: none; color: #ffffff; font-size: 0.85rem; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; flex-shrink: 0; transition: background 0.15s; }
   .pp-lebenszyklus-badge:hover, .pp-lebenszyklus-badge:focus-visible { background: rgba(255,255,255,0.35); }
   .pp-lebenszyklus-popover { position: fixed; max-width: 280px; background: #f0f8ec; border-left: 3px solid #4a6f5c; border-radius: var(--radius-sm); box-shadow: var(--shadow-md); padding: 10px 12px; font-size: 0.76rem; color: #2c2415; line-height: 1.4; z-index: 350; }
+  .pp-header-placeholder { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 5.5rem; opacity: 0.18; pointer-events: none; z-index: 0; }
+  .pp-tab-badge { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #c46b41; margin-left: 3px; vertical-align: super; }
+  .pp-standort-reihe { display: flex; gap: 6px; }
+  .pp-standort-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px; border-radius: var(--radius-sm); border: 1.5px solid var(--parchment); background: var(--white); cursor: pointer; font-size: 1.1rem; color: var(--bark); transition: all 0.15s; }
+  .pp-standort-btn span { font-size: 0.62rem; font-weight: 600; }
+  .pp-standort-btn.aktiv { border-color: #4a6f5c; background: #f0f8ec; color: #2c2415; }
   .pp-body { max-width: 680px; width: 100%; margin: 0 auto; padding: 18px 18px 40px; flex: 1; }
+  .pp-position { position: relative; z-index: 1; font-size: 0.7rem; color: #ffffff; opacity: 0.85; margin-top: 2px; text-shadow: 0 1px 3px rgba(0,0,0,0.6); }
+  .pp-swipe-hinweis { position: fixed; top: 50%; transform: translateY(-50%); font-size: 2rem; opacity: 0; pointer-events: none; z-index: 320; transition: opacity 0.15s; color: #ffffff; text-shadow: 0 1px 6px rgba(0,0,0,0.6); }
+  .pp-swipe-hinweis.links { left: 14px; }
+  .pp-swipe-hinweis.rechts { right: 14px; }
+  .pp-swipe-hinweis.zeigen { opacity: 0.9; }
   .pp-tabs { display: flex; gap: 4px; margin-bottom: 18px; flex-wrap: wrap; border-bottom: 2px solid var(--parchment); padding-bottom: 0; }
   .pp-tab { padding: 9px 14px 10px; border-radius: 10px 10px 0 0; font-size: 0.75rem; font-weight: 700; border: none; background: transparent; color: var(--bark); cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s; opacity: 0.7; border-bottom: 2px solid transparent; margin-bottom: -2px; }
   .pp-tab:hover { opacity: 1; background: rgba(74,111,90,0.08); }
@@ -916,6 +927,8 @@
 
 <!-- PLANT INFO PANEL -->
 <div class="plant-panel" id="plantPanel">
+  <span class="pp-swipe-hinweis links" id="ppSwipeLinks">←</span>
+  <span class="pp-swipe-hinweis rechts" id="ppSwipeRechts">→</span>
   <div class="plant-panel-header" id="plantPanelHeader">
     <div class="pp-header-actions">
       <button type="button" class="pp-foto-btn" id="btnPpFotoOeffnen" title="Foto hinzufügen/ändern" aria-label="Foto hinzufügen">📷</button>
@@ -923,7 +936,9 @@
       <button class="close-btn" aria-label="Pflanzenpanel schließen" onclick="closePlantPanel()">✕</button>
     </div>
     <input type="file" id="ppPhotoInput" accept="image/*" onchange="handlePlantPhoto(event)" style="display:none;"/>
+    <div class="pp-header-placeholder" id="ppHeaderPlaceholder"></div>
     <div class="plant-panel-title" id="ppTitle">Pflanze</div>
+    <div class="pp-position" id="ppPosition"></div>
   </div>
   <div class="pp-body">
   <div class="pp-tabs">
@@ -931,7 +946,7 @@
     <div class="pp-tab" onclick="switchPPTab('neighbors')">🤝 Nachbarn</div>
     <div class="pp-tab" onclick="switchPPTab('symptoms')">🍂 Blätter & Früchte</div>
     <div class="pp-tab" onclick="switchPPTab('pests')">🐛 Schädlinge</div>
-    <div class="pp-tab" onclick="switchPPTab('harvest')">🧺 Ernte</div>
+    <div class="pp-tab" onclick="switchPPTab('harvest')" id="ppTabHarvest">🧺 Ernte</div>
     <div class="pp-tab" onclick="switchPPTab('preserve')">🥫 Verwertung</div>
   </div>
 
@@ -961,7 +976,8 @@
         </div>
         <div class="form-row">
           <label>Standort</label>
-          <select id="ppLocation" oninput="savePlantInfo()">
+          <div class="pp-standort-reihe" id="ppStandortReihe"></div>
+          <select id="ppLocation" oninput="savePlantInfo()" style="display:none;">
             <option value="">–</option>
             <option>Sonne (6+ Std.)</option>
             <option>Halbschatten (3-6 Std.)</option>
@@ -1031,6 +1047,7 @@
       <input type="text" id="ppHarvestNote" placeholder="z.B. sehr aromatisch, für Marmelade..."/>
     </div>
     <button class="btn-primary" type="button" onclick="addHarvestEntry()">🧺 Ernte eintragen</button>
+    <div id="ppErnteErinnerungBox" style="display:none;margin-top:10px;"></div>
     <div id="harvestTotal" style="font-size:0.76rem;color:var(--bark);margin:10px 0 6px"></div>
     <div id="harvestLog"></div>
   </div>
@@ -1141,6 +1158,8 @@
 
 <!-- FREISTEHENDE PFLANZE PANEL (Baum/Strauch außerhalb Beet) -->
 <div class="plant-panel" id="freiPflanzePanel">
+  <span class="pp-swipe-hinweis links" id="fpSwipeLinks">←</span>
+  <span class="pp-swipe-hinweis rechts" id="fpSwipeRechts">→</span>
   <div class="plant-panel-header" id="freiPflanzePanelHeader">
     <div class="pp-header-actions">
       <button type="button" class="pp-foto-btn" id="btnFpFotoOeffnen" title="Foto hinzufügen/ändern" aria-label="Foto hinzufügen">📷</button>
@@ -1148,14 +1167,16 @@
       <button class="close-btn" aria-label="Panel schließen" onclick="fpSchliessen()">✕</button>
     </div>
     <input type="file" id="fpPhotoInput" accept="image/*" onchange="handleFreiPflanzePhoto(event)" style="display:none;"/>
+    <div class="pp-header-placeholder" id="fpHeaderPlaceholder"></div>
     <div class="plant-panel-title" id="freiPflanzeTitel">🌳 Baum/Strauch</div>
+    <div class="pp-position" id="fpPosition"></div>
   </div>
   <div class="pp-body">
   <div class="pp-tabs">
     <div class="pp-tab active" onclick="switchFPTab('info')">📋 Info</div>
     <div class="pp-tab" onclick="switchFPTab('symptoms')">🍂 Blätter &amp; Früchte</div>
     <div class="pp-tab" onclick="switchFPTab('pests')">🐛 Schädlinge</div>
-    <div class="pp-tab" onclick="switchFPTab('harvest')">🧺 Ernte</div>
+    <div class="pp-tab" onclick="switchFPTab('harvest')" id="fpTabHarvest">🧺 Ernte</div>
     <div class="pp-tab" onclick="switchFPTab('preserve')">🥫 Verwertung</div>
   </div>
 
@@ -1184,7 +1205,8 @@
         </div>
         <div class="form-row">
           <label>Standort</label>
-          <select id="fpStandort" oninput="fpAutoSave()">
+          <div class="pp-standort-reihe" id="fpStandortReihe"></div>
+          <select id="fpStandort" oninput="fpAutoSave()" style="display:none;">
             <option value="">–</option>
             <option>Sonne (6+ Std.)</option>
             <option>Halbschatten (3-6 Std.)</option>
@@ -1249,6 +1271,7 @@
       <input type="text" id="fpHarvestNote" placeholder="z.B. sehr aromatisch, für Marmelade..."/>
     </div>
     <button class="btn-primary" type="button" onclick="addFreiPflanzeHarvest()">🧺 Ernte eintragen</button>
+    <div id="fpErnteErinnerungBox" style="display:none;margin-top:10px;"></div>
     <div id="fpHarvestTotal" style="font-size:0.76rem;color:var(--bark);margin:10px 0 6px"></div>
     <div id="fpHarvestLog"></div>
   </div>
@@ -3945,6 +3968,54 @@ function gartenTerminDirektEintragen(title, notes, dateObj) {
     showTempStatus('📌 „' + title + '" wurde in die Termine eingetragen.', 4);
   } catch (e) { showTempStatus('⚠ Eintragen fehlgeschlagen.', 4); }
 }
+// ---------- Standort-Auswahl als Icon-Buttons (Beet-Pflanzen & freistehende Pflanzen) ----------
+const STANDORT_OPTIONEN = [
+  { value: 'Sonne (6+ Std.)', icon: '☀️', label: 'Sonne' },
+  { value: 'Halbschatten (3-6 Std.)', icon: '⛅', label: 'Halbschatten' },
+  { value: 'Schatten (<3 Std.)', icon: '☁️', label: 'Schatten' },
+];
+function renderStandortReihe(containerId, selectId, onChange) {
+  const box = document.getElementById(containerId);
+  const select = document.getElementById(selectId);
+  if (!box || !select) return;
+  const aktuell = select.value;
+  box.innerHTML = '';
+  STANDORT_OPTIONEN.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'pp-standort-btn' + (aktuell === opt.value ? ' aktiv' : '');
+    btn.innerHTML = opt.icon + '<span>' + opt.label + '</span>';
+    btn.title = opt.value;
+    btn.addEventListener('click', () => {
+      select.value = (select.value === opt.value) ? '' : opt.value;
+      renderStandortReihe(containerId, selectId, onChange);
+      onChange();
+    });
+    box.appendChild(btn);
+  });
+}
+// ---------- Ernte-Erinnerung im Ernte-Tab (Beet-Pflanzen & freistehende Pflanzen) ----------
+function renderErnteErinnerungBox(targetId, plantName, plantDate) {
+  const box = document.getElementById(targetId);
+  if (!box) return;
+  const name = (plantName || '').trim();
+  const info = CARE_INFO[name];
+  if (!name || !info || !info.harvestDays || !plantDate) { box.style.display = 'none'; box.innerHTML = ''; return; }
+  const planted = new Date(plantDate);
+  if (isNaN(planted.getTime())) { box.style.display = 'none'; box.innerHTML = ''; return; }
+  const zielDatum = new Date(planted); zielDatum.setDate(zielDatum.getDate() + info.harvestDays);
+  const heute = new Date(); heute.setHours(0,0,0,0);
+  const vergangen = zielDatum < heute;
+  const datumText = zielDatum.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  box.style.display = 'block';
+  box.innerHTML = `<div style="font-size:0.76rem;padding:10px 12px;border-radius:9px;background:#f0f8ec;border-left:4px solid #4a6f5c;color:#2c2415;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+    <span style="flex:1;min-width:170px;">🧺 Voraussichtliche Ernte ${vergangen ? 'war um' : 'ab'} <strong>${datumText}</strong> (ca. ${info.harvestDays} Tage nach Pflanzung)</span>
+    <button type="button" id="${targetId}Btn" style="background:#4a6f5c;color:#fff;border:none;border-radius:999px;padding:6px 12px;font-size:0.72rem;font-weight:700;cursor:pointer;">📌 Erinnerung eintragen</button>
+  </div>`;
+  document.getElementById(targetId + 'Btn').addEventListener('click', () => {
+    gartenTerminDirektEintragen('🧺 Ernte: ' + name, 'Voraussichtlicher Erntezeitpunkt, automatisch berechnet aus Pflanzdatum + typischer Kulturdauer – bitte vor Ort prüfen.', zielDatum);
+  });
+}
 function exportHarvestCalendar() {
   const beds = getCurrentBeds();
   const gardenName = gardens[currentGardenId]?.name || 'Mein Garten';
@@ -5947,6 +6018,7 @@ function openFreiPflanzePanel(fp) {
   document.getElementById('fpDatum').value = fp.datum || '';
   document.getElementById('fpNotiz').value = fp.notiz || '';
   document.getElementById('fpStandort').value = fp.standort || '';
+  renderStandortReihe('fpStandortReihe', 'fpStandort', fpAutoSave);
   const dl = document.getElementById('fpNameVorschlaege');
   dl.innerHTML = PLANTS.filter(p => isPerennial(p.name)).map(p => `<option value="${escapeHtml(p.name)}">`).join('');
   buildSymptomDropdown('fpSymptomSel');
@@ -5956,7 +6028,7 @@ function openFreiPflanzePanel(fp) {
   document.getElementById('fpPest').value = '';
   document.getElementById('fpPestResult').innerHTML = '';
   populateHarvestMethodSelect();
-  renderFreiPflanzePhoto(fp.photo);
+  renderFreiPflanzePhoto(fp.photo, fp.sym);
   renderSowingHint(fp.name || '', 'fpSowingHint');
   document.getElementById('fpHarvestDate').value = new Date().toISOString().slice(0,10);
   document.getElementById('fpHarvestAmount').value = '';
@@ -5964,9 +6036,40 @@ function openFreiPflanzePanel(fp) {
   document.getElementById('fpHarvestNote').value = '';
   renderFreiPflanzeHarvestLog(fp);
   switchFPTab('info');
+  const fpListe = getCurrentFreiPflanzen();
+  const fpIdx = fpListe.findIndex(x => x.id === fp.id);
+  document.getElementById('fpPosition').textContent = fpListe.length > 1 ? (fpIdx + 1) + ' von ' + fpListe.length : '';
   document.getElementById('freiPflanzePanel').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
+function fpZuNachbarPflanze(richtung) {
+  const liste = getCurrentFreiPflanzen();
+  if (liste.length < 2) return;
+  const aktuellerIdx = liste.findIndex(x => x.id === activeFreiPflanzeId);
+  if (aktuellerIdx === -1) return;
+  const naechsterIdx = (aktuellerIdx + richtung + liste.length) % liste.length;
+  openFreiPflanzePanel(liste[naechsterIdx]);
+}
+(function fpSwipeEinrichten() {
+  const panel = document.getElementById('freiPflanzePanel');
+  let startX = 0, startY = 0, aktiv = false;
+  panel.addEventListener('touchstart', (e) => {
+    if (e.touches.length !== 1) return;
+    startX = e.touches[0].clientX; startY = e.touches[0].clientY; aktiv = true;
+  }, { passive: true });
+  panel.addEventListener('touchend', (e) => {
+    if (!aktiv) return;
+    aktiv = false;
+    const deltaX = e.changedTouches[0].clientX - startX;
+    const deltaY = e.changedTouches[0].clientY - startY;
+    if (Math.abs(deltaX) < 70 || Math.abs(deltaX) < Math.abs(deltaY) * 1.5) return;
+    const richtung = deltaX < 0 ? 1 : -1;
+    const hinweis = document.getElementById(richtung === 1 ? 'fpSwipeRechts' : 'fpSwipeLinks');
+    hinweis.classList.add('zeigen');
+    setTimeout(() => hinweis.classList.remove('zeigen'), 220);
+    fpZuNachbarPflanze(richtung);
+  }, { passive: true });
+})();
 function fpSchliessen() {
   document.getElementById('freiPflanzePanel').classList.remove('open');
   document.body.style.overflow = '';
@@ -5998,17 +6101,20 @@ function fpAutoSave() {
   renderSowingHint(fp.name || '', 'fpSowingHint');
   if (document.getElementById('fpt-preserve')?.classList.contains('active')) renderPreservePlantTab(fp.name || '', 'fpPreserveResult');
 }
-function renderFreiPflanzePhoto(photo) {
+function renderFreiPflanzePhoto(photo, sym) {
   const header = document.getElementById('freiPflanzePanelHeader');
   const entfernenBtn = document.getElementById('btnFpFotoEntfernen');
   const input = document.getElementById('fpPhotoInput');
+  const platzhalter = document.getElementById('fpHeaderPlaceholder');
   if (input) input.value = '';
   if (photo) {
     header.style.backgroundImage = 'url("' + photo + '")';
     entfernenBtn.style.display = '';
+    if (platzhalter) platzhalter.textContent = '';
   } else {
     header.style.backgroundImage = '';
     entfernenBtn.style.display = 'none';
+    if (platzhalter) platzhalter.textContent = sym || '🌳';
   }
 }
 function handleFreiPflanzePhoto(e) {
@@ -6033,7 +6139,7 @@ function handleFreiPflanzePhoto(e) {
       pushUndo();
       fp.photo = dataUrl;
       saveData();
-      renderFreiPflanzePhoto(dataUrl);
+      renderFreiPflanzePhoto(dataUrl, fp.sym);
     };
     img.src = ev.target.result;
   };
@@ -6045,7 +6151,7 @@ function removeFreiPflanzePhoto() {
   pushUndo();
   fp.photo = '';
   saveData();
-  renderFreiPflanzePhoto('');
+  renderFreiPflanzePhoto('', fp.sym);
 }
 function addFreiPflanzeHarvest() {
   const fp = getCurrentFreiPflanzen().find(x => x.id === activeFreiPflanzeId);
@@ -6083,6 +6189,9 @@ function renderFreiPflanzeHarvestLog(fp) {
   const logBox = document.getElementById('fpHarvestLog');
   if (!totalBox || !logBox) return;
   const harvests = (fp && fp.harvests) || [];
+  const tabBadge = document.getElementById('fpTabHarvest');
+  if (tabBadge) tabBadge.innerHTML = '🧺 Ernte' + (harvests.length ? '<span class="pp-tab-badge"></span>' : '');
+  renderErnteErinnerungBox('fpErnteErinnerungBox', fp && fp.name, fp && fp.datum);
   if (!harvests.length) {
     totalBox.textContent = '';
     logBox.innerHTML = '<div class="empty-state">Noch keine Ernte eingetragen.</div>';
@@ -6238,11 +6347,12 @@ function openPlantPanel(bed,idx) {
   document.getElementById('ppNotes').value=plant.notes||'';
   document.getElementById('ppDate').value=plant.date||'';
   document.getElementById('ppLocation').value=plant.location||'';
+  renderStandortReihe('ppStandortReihe', 'ppLocation', savePlantInfo);
   document.getElementById('symptomSel').value='';
   document.getElementById('symptomResult').innerHTML='';
   document.getElementById('ppPest').value='';
   document.getElementById('pestResult').innerHTML='';
-  renderPlantPhoto(plant.photo);
+  renderPlantPhoto(plant.photo, plant.sym);
   renderNeighbors(bed,idx);
   renderSowingHint(plant.name||'');
   renderVarietyDatalist(plant.name||'');
@@ -6252,20 +6362,51 @@ function openPlantPanel(bed,idx) {
   document.getElementById('ppHarvestNote').value = '';
   renderHarvestLog(bed, idx);
   switchPPTab('info');
+  document.getElementById('ppPosition').textContent = bed.plants.length > 1 ? (idx + 1) + ' von ' + bed.plants.length + ' in „' + (bed.name||'Beet') + '"' : '';
   document.getElementById('plantPanel').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
-function renderPlantPhoto(photo) {
+function ppZuNachbarPflanze(richtung) {
+  if (!activePlantBedId) return;
+  const bed = getCurrentBeds().find(b => b.id === activePlantBedId.bedId);
+  if (!bed || bed.plants.length < 2) return;
+  const naechsterIdx = (activePlantBedId.idx + richtung + bed.plants.length) % bed.plants.length;
+  openPlantPanel(bed, naechsterIdx);
+}
+(function ppSwipeEinrichten() {
+  const panel = document.getElementById('plantPanel');
+  let startX = 0, startY = 0, aktiv = false;
+  panel.addEventListener('touchstart', (e) => {
+    if (e.touches.length !== 1) return;
+    startX = e.touches[0].clientX; startY = e.touches[0].clientY; aktiv = true;
+  }, { passive: true });
+  panel.addEventListener('touchend', (e) => {
+    if (!aktiv) return;
+    aktiv = false;
+    const deltaX = e.changedTouches[0].clientX - startX;
+    const deltaY = e.changedTouches[0].clientY - startY;
+    if (Math.abs(deltaX) < 70 || Math.abs(deltaX) < Math.abs(deltaY) * 1.5) return;
+    const richtung = deltaX < 0 ? 1 : -1;
+    const hinweis = document.getElementById(richtung === 1 ? 'ppSwipeRechts' : 'ppSwipeLinks');
+    hinweis.classList.add('zeigen');
+    setTimeout(() => hinweis.classList.remove('zeigen'), 220);
+    ppZuNachbarPflanze(richtung);
+  }, { passive: true });
+})();
+function renderPlantPhoto(photo, sym) {
   const header = document.getElementById('plantPanelHeader');
   const entfernenBtn = document.getElementById('btnPpFotoEntfernen');
   const input = document.getElementById('ppPhotoInput');
+  const platzhalter = document.getElementById('ppHeaderPlaceholder');
   if (input) input.value = '';
   if (photo) {
     header.style.backgroundImage = 'url("' + photo + '")';
     entfernenBtn.style.display = '';
+    platzhalter.textContent = '';
   } else {
     header.style.backgroundImage = '';
     entfernenBtn.style.display = 'none';
+    platzhalter.textContent = sym || '🌿';
   }
 }
 function handlePlantPhoto(e) {
@@ -6292,7 +6433,7 @@ function handlePlantPhoto(e) {
       pushUndo();
       plant.photo = dataUrl;
       saveData();
-      renderPlantPhoto(dataUrl);
+      renderPlantPhoto(dataUrl, plant.sym);
     };
     img.src = ev.target.result;
   };
@@ -6307,7 +6448,7 @@ function removePlantPhoto() {
   pushUndo();
   delete plant.photo;
   saveData();
-  renderPlantPhoto(null);
+  renderPlantPhoto(null, plant.sym);
 }
 function closePlantPanel(){document.getElementById('plantPanel').classList.remove('open');document.body.style.overflow='';selectedPlantOnCanvas=null;draw();hidePerennialInfo();}
 document.getElementById('btnPpFotoOeffnen').addEventListener('click', (e) => { e.stopPropagation(); document.getElementById('ppPhotoInput').click(); });
@@ -6320,7 +6461,7 @@ document.getElementById('btnFpFotoEntfernen').addEventListener('click', (e) => {
   pushUndo();
   fp.photo = '';
   saveData();
-  renderFreiPflanzePhoto('');
+  renderFreiPflanzePhoto('', fp.sym);
 });
 function togglePerennialInfo(e) {
   e.stopPropagation();
@@ -6541,6 +6682,9 @@ function renderHarvestLog(bed, idx) {
   if (!totalBox || !logBox) return;
   const plant = bed.plants[idx];
   const harvests = (plant && plant.harvests) || [];
+  const tabBadge = document.getElementById('ppTabHarvest');
+  if (tabBadge) tabBadge.innerHTML = '🧺 Ernte' + (harvests.length ? '<span class="pp-tab-badge"></span>' : '');
+  renderErnteErinnerungBox('ppErnteErinnerungBox', plant && plant.name, plant && plant.date);
   if (!harvests.length) {
     totalBox.textContent = '';
     logBox.innerHTML = '<div class="empty-state">Noch keine Ernte eingetragen.</div>';
@@ -6672,8 +6816,8 @@ function openPreserveForPlant(plantName) {
   }, 60);
 }
 function switchPPTab(name){
-  document.querySelectorAll('.pp-tab').forEach((t,i)=>{const names=['info','neighbors','symptoms','pests','harvest','preserve'];t.classList.toggle('active',names[i]===name);});
-  document.querySelectorAll('.pp-tab-content').forEach(el=>{el.classList.toggle('active',el.id==='ppt-'+name);});
+  document.querySelectorAll('#plantPanel .pp-tab').forEach((t,i)=>{const names=['info','neighbors','symptoms','pests','harvest','preserve'];t.classList.toggle('active',names[i]===name);});
+  document.querySelectorAll('#plantPanel .pp-tab-content').forEach(el=>{el.classList.toggle('active',el.id==='ppt-'+name);});
   const panel = document.getElementById('plantPanel');
   if (panel) panel.scrollTo({ top: 0, behavior: 'smooth' });
   if (name==='preserve' && activePlantBedId) {
