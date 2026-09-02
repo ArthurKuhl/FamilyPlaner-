@@ -227,7 +227,7 @@
   }
   .plant-panel.open { transform: translateY(0); }
   .plant-panel-header {
-    display: flex; flex-direction: column; justify-content: flex-end; position: relative;
+    display: flex; flex-direction: column; justify-content: flex-start; position: relative;
     min-height: 30vh; padding: 18px 20px 16px;
     background: linear-gradient(135deg, var(--moss), #3d6b4f);
     background-size: cover; background-position: center;
@@ -235,15 +235,15 @@
   }
   .plant-panel-header::before {
     content: ''; position: absolute; inset: 0;
-    background: linear-gradient(180deg, rgba(20,30,20,0.05) 0%, rgba(15,25,15,0.72) 100%);
+    background: linear-gradient(180deg, rgba(10,18,10,0.8) 0%, rgba(10,18,10,0.45) 35%, rgba(10,18,10,0) 75%);
     pointer-events: none;
   }
-  .plant-panel-title { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--white); display: flex; align-items: center; gap: 10px; position: relative; z-index: 1; text-shadow: 0 1px 6px rgba(0,0,0,0.35); }
+  .plant-panel-title { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: #ffffff; display: flex; align-items: center; gap: 10px; position: relative; z-index: 1; text-shadow: 0 1px 4px rgba(0,0,0,0.7), 0 2px 10px rgba(0,0,0,0.5); padding-right: 92px; }
   .pp-header-actions { position: absolute; top: 14px; right: 16px; display: flex; gap: 8px; z-index: 2; }
-  .pp-foto-btn { background: rgba(255,255,255,0.22); color: var(--white); border: none; width: 34px; height: 34px; border-radius: 50%; font-size: 0.95rem; cursor: pointer; flex-shrink: 0; transition: background 0.15s; }
+  .pp-foto-btn { background: rgba(255,255,255,0.22); color: #ffffff; border: none; width: 34px; height: 34px; border-radius: 50%; font-size: 0.95rem; cursor: pointer; flex-shrink: 0; transition: background 0.15s; }
   .pp-foto-btn:hover, .pp-foto-btn:focus-visible { background: rgba(255,255,255,0.35); }
-  .plant-panel .close-btn { background: rgba(255,255,255,0.22); color: var(--white); border: none; width: 34px; height: 34px; border-radius: 50%; font-size: 1rem; cursor: pointer; flex-shrink: 0; }
-  .pp-lebenszyklus-badge { background: rgba(255,255,255,0.22); border: none; color: var(--white); font-size: 0.85rem; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; flex-shrink: 0; transition: background 0.15s; }
+  .plant-panel .close-btn { background: rgba(255,255,255,0.22); color: #ffffff; border: none; width: 34px; height: 34px; border-radius: 50%; font-size: 1rem; cursor: pointer; flex-shrink: 0; }
+  .pp-lebenszyklus-badge { background: rgba(255,255,255,0.22); border: none; color: #ffffff; font-size: 0.85rem; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; flex-shrink: 0; transition: background 0.15s; }
   .pp-lebenszyklus-badge:hover, .pp-lebenszyklus-badge:focus-visible { background: rgba(255,255,255,0.35); }
   .pp-lebenszyklus-popover { position: fixed; max-width: 280px; background: #f0f8ec; border-left: 3px solid #4a6f5c; border-radius: var(--radius-sm); box-shadow: var(--shadow-md); padding: 10px 12px; font-size: 0.76rem; color: #2c2415; line-height: 1.4; z-index: 350; }
   .pp-body { max-width: 680px; width: 100%; margin: 0 auto; padding: 18px 18px 40px; flex: 1; }
