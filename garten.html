@@ -6056,6 +6056,7 @@ function fpZuNachbarPflanze(richtung) {
   let startX = 0, startY = 0, aktiv = false;
   panel.addEventListener('touchstart', (e) => {
     if (e.touches.length !== 1) return;
+    if (e.target.closest('.pp-tabs, textarea, input, select')) { aktiv = false; return; }
     startX = e.touches[0].clientX; startY = e.touches[0].clientY; aktiv = true;
   }, { passive: true });
   panel.addEventListener('touchend', (e) => {
@@ -6063,7 +6064,7 @@ function fpZuNachbarPflanze(richtung) {
     aktiv = false;
     const deltaX = e.changedTouches[0].clientX - startX;
     const deltaY = e.changedTouches[0].clientY - startY;
-    if (Math.abs(deltaX) < 70 || Math.abs(deltaX) < Math.abs(deltaY) * 1.5) return;
+    if (Math.abs(deltaX) < 90 || Math.abs(deltaX) < Math.abs(deltaY) * 2) return;
     const richtung = deltaX < 0 ? 1 : -1;
     const hinweis = document.getElementById(richtung === 1 ? 'fpSwipeRechts' : 'fpSwipeLinks');
     hinweis.classList.add('zeigen');
@@ -6379,6 +6380,7 @@ function ppZuNachbarPflanze(richtung) {
   let startX = 0, startY = 0, aktiv = false;
   panel.addEventListener('touchstart', (e) => {
     if (e.touches.length !== 1) return;
+    if (e.target.closest('.pp-tabs, textarea, input, select')) { aktiv = false; return; }
     startX = e.touches[0].clientX; startY = e.touches[0].clientY; aktiv = true;
   }, { passive: true });
   panel.addEventListener('touchend', (e) => {
@@ -6386,7 +6388,7 @@ function ppZuNachbarPflanze(richtung) {
     aktiv = false;
     const deltaX = e.changedTouches[0].clientX - startX;
     const deltaY = e.changedTouches[0].clientY - startY;
-    if (Math.abs(deltaX) < 70 || Math.abs(deltaX) < Math.abs(deltaY) * 1.5) return;
+    if (Math.abs(deltaX) < 90 || Math.abs(deltaX) < Math.abs(deltaY) * 2) return;
     const richtung = deltaX < 0 ? 1 : -1;
     const hinweis = document.getElementById(richtung === 1 ? 'ppSwipeRechts' : 'ppSwipeLinks');
     hinweis.classList.add('zeigen');
