@@ -172,6 +172,26 @@
 
 <script>
 (function(){
+  // ---------- HANDY-ZURÜCK-TASTE ABFANGEN ----------
+  // Ohne eigene Behandlung navigiert der native Zurück-Knopf des Smartphones durch die
+  // Browser-Historie "hindurch" und die App landet auf einer leeren Zwischenseite.
+  // Stattdessen: schließt zuerst jedes offene Fenster/Popup; ist nichts offen, passiert
+  // bewusst gar nichts (statt die App zu verlassen bzw. leerzuräumen).
+  function zurueckTasteUeberlagerungenSchliessen() {
+    let geschlossen = false;
+    document.querySelectorAll('.modal-bg, .theme-popup').forEach(el => {
+      const sichtbar = el.style.display === 'flex' || el.style.display === 'block' || el.classList.contains('zeigen');
+      if (sichtbar) { el.style.display = 'none'; el.classList.remove('zeigen'); geschlossen = true; }
+    });
+    return geschlossen;
+  }
+  try {
+    history.pushState({ zurueckBasis: true }, '', location.href);
+    window.addEventListener('popstate', function () {
+      zurueckTasteUeberlagerungenSchliessen();
+      history.pushState({ zurueckBasis: true }, '', location.href);
+    });
+  } catch (e) {}
   // ---------- KURZE STATUSMELDUNG (TOAST), optional mit Rückgängig-Aktion ----------
   function showTempStatus(text, sekunden, optionen) {
     optionen = optionen || {};
