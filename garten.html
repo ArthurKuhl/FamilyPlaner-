@@ -259,6 +259,8 @@
   .pp-foto-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .pp-foto-thumb .pp-foto-datum { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.6); color: #fff; font-size: 0.5rem; text-align: center; padding: 1px 0; }
   .pp-foto-thumb-del { position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.6); color: #fff; border: none; border-radius: 50%; width: 16px; height: 16px; font-size: 0.62rem; line-height: 1; cursor: pointer; padding: 0; }
+  .pp-foto-thumb-titel { position: absolute; top: 2px; left: 2px; background: rgba(0,0,0,0.6); color: #fff; border: none; border-radius: 50%; width: 16px; height: 16px; font-size: 0.6rem; line-height: 1; cursor: pointer; padding: 0; }
+  .pp-foto-thumb.aktuell .pp-foto-thumb-titel { background: #4a6f5c; }
   .pp-foto-add { flex-shrink: 0; width: 62px; height: 62px; border-radius: 8px; border: 2px dashed var(--parchment); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; color: var(--bark); cursor: pointer; background: var(--white); }
   .pp-foto-lightbox { position: fixed; inset: 0; background: rgba(10,15,10,0.92); z-index: 400; display: none; align-items: center; justify-content: center; padding: 20px; }
   .pp-foto-lightbox.zeigen { display: flex; }
@@ -6130,9 +6132,9 @@ function renderFreiPflanzePhoto(fp) {
   const input = document.getElementById('fpPhotoInput');
   const platzhalter = document.getElementById('fpHeaderPlaceholder');
   if (input) input.value = '';
-  const letztes = fp.fotos.length ? fp.fotos[fp.fotos.length - 1] : null;
-  if (letztes) {
-    header.style.backgroundImage = 'url("' + letztes.data + '")';
+  const titelbild = ppFotoTitelbild(fp);
+  if (titelbild) {
+    header.style.backgroundImage = 'url("' + titelbild.data + '")';
     entfernenBtn.style.display = '';
     if (platzhalter) platzhalter.textContent = '';
   } else {
@@ -6144,15 +6146,23 @@ function renderFreiPflanzePhoto(fp) {
   galerie.innerHTML = '';
   fp.fotos.forEach((f, i) => {
     const thumb = document.createElement('div');
-    thumb.className = 'pp-foto-thumb' + (i === fp.fotos.length - 1 ? ' aktuell' : '');
+    thumb.className = 'pp-foto-thumb' + (titelbild && f.id === titelbild.id ? ' aktuell' : '');
     thumb.innerHTML = '<img src="' + f.data + '" alt="">' +
       (f.datum ? '<span class="pp-foto-datum">' + new Date(f.datum).toLocaleDateString('de-DE', {day:'2-digit',month:'2-digit',year:'2-digit'}) + '</span>' : '') +
+      '<button type="button" class="pp-foto-thumb-titel" title="Als Titelbild festlegen" aria-label="Als Titelbild festlegen">📌</button>' +
       '<button type="button" class="pp-foto-thumb-del" title="Dieses Foto löschen" aria-label="Foto löschen">✕</button>';
     thumb.querySelector('img').addEventListener('click', () => fotoLightboxOeffnen(f.data));
+    thumb.querySelector('.pp-foto-thumb-titel').addEventListener('click', (e) => {
+      e.stopPropagation();
+      fp.fotoTitelbildId = f.id;
+      saveData();
+      renderFreiPflanzePhoto(fp);
+    });
     thumb.querySelector('.pp-foto-thumb-del').addEventListener('click', (e) => {
       e.stopPropagation();
       pushUndo();
       fp.fotos.splice(i, 1);
+      if (fp.fotoTitelbildId === f.id) delete fp.fotoTitelbildId;
       saveData();
       renderFreiPflanzePhoto(fp);
     });
@@ -6186,8 +6196,10 @@ function handleFreiPflanzePhoto(e) {
       if (!fp) return;
       pushUndo();
       ppFotosMigrieren(fp);
-      fp.fotos.push({ data: dataUrl, datum: new Date().toISOString().slice(0,10) });
+      const neuesFoto = { id: fotoNeueId(), data: dataUrl, datum: new Date().toISOString().slice(0,10) };
+      fp.fotos.push(neuesFoto);
       while (fp.fotos.length > PP_MAX_FOTOS) fp.fotos.shift();
+      fp.fotoTitelbildId = neuesFoto.id;
       saveData();
       renderFreiPflanzePhoto(fp);
     };
@@ -6200,7 +6212,11 @@ function removeFreiPflanzePhoto() {
   if (!fp) return;
   pushUndo();
   ppFotosMigrieren(fp);
-  fp.fotos.pop();
+  const titelbild = ppFotoTitelbild(fp);
+  if (titelbild) {
+    fp.fotos = fp.fotos.filter(f => f.id !== titelbild.id);
+    if (fp.fotoTitelbildId === titelbild.id) delete fp.fotoTitelbildId;
+  }
   saveData();
   renderFreiPflanzePhoto(fp);
 }
@@ -6446,12 +6462,25 @@ function ppZuNachbarPflanze(richtung) {
   }, { passive: true });
 })();
 const PP_MAX_FOTOS = 5;
+function fotoNeueId() { return 'foto_' + Date.now() + '_' + Math.random().toString(36).slice(2,7); }
 function ppFotosMigrieren(obj) {
   if (!Array.isArray(obj.fotos)) obj.fotos = [];
   if (obj.photo) {
-    obj.fotos.push({ data: obj.photo, datum: obj.date || obj.datum || '' });
+    obj.fotos.push({ id: fotoNeueId(), data: obj.photo, datum: obj.date || obj.datum || '' });
     delete obj.photo;
   }
+  // Ältere Fotos ohne eigene ID nachträglich versehen (falls aus einer Zwischenversion vorhanden)
+  obj.fotos.forEach(f => { if (!f.id) f.id = fotoNeueId(); });
+}
+// Liefert das aktuell als Titelbild festgelegte Foto – oder, falls keins explizit gesetzt
+// wurde (bzw. das gesetzte gelöscht wurde), das zuletzt hinzugefügte.
+function ppFotoTitelbild(obj) {
+  if (!obj.fotos || !obj.fotos.length) return null;
+  if (obj.fotoTitelbildId) {
+    const treffer = obj.fotos.find(f => f.id === obj.fotoTitelbildId);
+    if (treffer) return treffer;
+  }
+  return obj.fotos[obj.fotos.length - 1];
 }
 function fotoLightboxOeffnen(dataUrl) {
   document.getElementById('fotoLightboxImg').src = dataUrl;
@@ -6467,9 +6496,9 @@ function renderPlantPhoto(plant) {
   const input = document.getElementById('ppPhotoInput');
   const platzhalter = document.getElementById('ppHeaderPlaceholder');
   if (input) input.value = '';
-  const letztes = plant.fotos.length ? plant.fotos[plant.fotos.length - 1] : null;
-  if (letztes) {
-    header.style.backgroundImage = 'url("' + letztes.data + '")';
+  const titelbild = ppFotoTitelbild(plant);
+  if (titelbild) {
+    header.style.backgroundImage = 'url("' + titelbild.data + '")';
     entfernenBtn.style.display = '';
     platzhalter.textContent = '';
   } else {
@@ -6481,15 +6510,23 @@ function renderPlantPhoto(plant) {
   galerie.innerHTML = '';
   plant.fotos.forEach((f, i) => {
     const thumb = document.createElement('div');
-    thumb.className = 'pp-foto-thumb' + (i === plant.fotos.length - 1 ? ' aktuell' : '');
+    thumb.className = 'pp-foto-thumb' + (titelbild && f.id === titelbild.id ? ' aktuell' : '');
     thumb.innerHTML = '<img src="' + f.data + '" alt="">' +
       (f.datum ? '<span class="pp-foto-datum">' + new Date(f.datum).toLocaleDateString('de-DE', {day:'2-digit',month:'2-digit',year:'2-digit'}) + '</span>' : '') +
+      '<button type="button" class="pp-foto-thumb-titel" title="Als Titelbild festlegen" aria-label="Als Titelbild festlegen">📌</button>' +
       '<button type="button" class="pp-foto-thumb-del" title="Dieses Foto löschen" aria-label="Foto löschen">✕</button>';
     thumb.querySelector('img').addEventListener('click', () => fotoLightboxOeffnen(f.data));
+    thumb.querySelector('.pp-foto-thumb-titel').addEventListener('click', (e) => {
+      e.stopPropagation();
+      plant.fotoTitelbildId = f.id;
+      saveData();
+      renderPlantPhoto(plant);
+    });
     thumb.querySelector('.pp-foto-thumb-del').addEventListener('click', (e) => {
       e.stopPropagation();
       pushUndo();
       plant.fotos.splice(i, 1);
+      if (plant.fotoTitelbildId === f.id) delete plant.fotoTitelbildId;
       saveData();
       renderPlantPhoto(plant);
     });
@@ -6525,8 +6562,10 @@ function handlePlantPhoto(e) {
       if (!plant) return;
       pushUndo();
       ppFotosMigrieren(plant);
-      plant.fotos.push({ data: dataUrl, datum: new Date().toISOString().slice(0,10) });
+      const neuesFoto = { id: fotoNeueId(), data: dataUrl, datum: new Date().toISOString().slice(0,10) };
+      plant.fotos.push(neuesFoto);
       while (plant.fotos.length > PP_MAX_FOTOS) plant.fotos.shift();
+      plant.fotoTitelbildId = neuesFoto.id;
       saveData();
       renderPlantPhoto(plant);
     };
@@ -6542,7 +6581,11 @@ function removePlantPhoto() {
   if (!plant) return;
   pushUndo();
   ppFotosMigrieren(plant);
-  plant.fotos.pop();
+  const titelbild = ppFotoTitelbild(plant);
+  if (titelbild) {
+    plant.fotos = plant.fotos.filter(f => f.id !== titelbild.id);
+    if (plant.fotoTitelbildId === titelbild.id) delete plant.fotoTitelbildId;
+  }
   saveData();
   renderPlantPhoto(plant);
 }
