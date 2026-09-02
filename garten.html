@@ -239,8 +239,9 @@
     background: linear-gradient(180deg, rgba(10,18,10,0.8) 0%, rgba(10,18,10,0.45) 35%, rgba(10,18,10,0) 75%);
     pointer-events: none;
   }
-  .plant-panel-title { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: #ffffff; display: flex; align-items: center; gap: 10px; position: relative; z-index: 1; text-shadow: 0 1px 4px rgba(0,0,0,0.7), 0 2px 10px rgba(0,0,0,0.5); padding-right: 92px; }
+  .plant-panel-title { font-family: 'Playfair Display', serif; font-size: 1.15rem; line-height: 1.25; color: #ffffff; display: flex; align-items: center; gap: 8px; position: relative; z-index: 1; text-shadow: 0 1px 4px rgba(0,0,0,0.8), 0 2px 10px rgba(0,0,0,0.6); }
   .pp-header-actions { position: absolute; bottom: 14px; left: 16px; display: flex; flex-direction: column; gap: 8px; z-index: 2; }
+  .plant-panel-header .close-btn.pp-close-btn-oben { position: absolute; top: 12px; left: 12px; z-index: 3; background: rgba(20,18,14,0.72); color: #ffffff; border: 1.5px solid rgba(255,255,255,0.35); width: 34px; height: 34px; border-radius: 50%; font-size: 1.05rem; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
   .pp-foto-btn { background: rgba(255,255,255,0.22); color: #ffffff; border: none; width: 34px; height: 34px; border-radius: 50%; font-size: 0.95rem; cursor: pointer; flex-shrink: 0; transition: background 0.15s; }
   .pp-foto-btn:hover, .pp-foto-btn:focus-visible { background: rgba(255,255,255,0.35); }
   .plant-panel .close-btn { background: rgba(255,255,255,0.22); color: #ffffff; border: none; width: 34px; height: 34px; border-radius: 50%; font-size: 1rem; cursor: pointer; flex-shrink: 0; }
@@ -952,10 +953,10 @@
   <span class="pp-swipe-hinweis links" id="ppSwipeLinks">←</span>
   <span class="pp-swipe-hinweis rechts" id="ppSwipeRechts">→</span>
   <div class="plant-panel-header" id="plantPanelHeader">
+    <button class="close-btn pp-close-btn-oben" aria-label="Pflanzenpanel schließen" onclick="closePlantPanel()">✕</button>
     <div class="pp-header-actions">
       <button type="button" class="pp-foto-btn" id="btnPpFotoOeffnen" title="Foto hinzufügen/ändern" aria-label="Foto hinzufügen">📷</button>
       <button type="button" class="pp-foto-btn" id="btnPpFotoEntfernen" title="Foto entfernen" aria-label="Foto entfernen" style="display:none;">🗑</button>
-      <button class="close-btn" aria-label="Pflanzenpanel schließen" onclick="closePlantPanel()">✕</button>
     </div>
     <input type="file" id="ppPhotoInput" accept="image/*" onchange="handlePlantPhoto(event)" style="display:none;"/>
     <div class="pp-header-placeholder" id="ppHeaderPlaceholder"></div>
@@ -1185,10 +1186,10 @@
   <span class="pp-swipe-hinweis links" id="fpSwipeLinks">←</span>
   <span class="pp-swipe-hinweis rechts" id="fpSwipeRechts">→</span>
   <div class="plant-panel-header" id="freiPflanzePanelHeader">
+    <button class="close-btn pp-close-btn-oben" aria-label="Panel schließen" onclick="fpSchliessen()">✕</button>
     <div class="pp-header-actions">
       <button type="button" class="pp-foto-btn" id="btnFpFotoOeffnen" title="Foto hinzufügen/ändern" aria-label="Foto hinzufügen">📷</button>
       <button type="button" class="pp-foto-btn" id="btnFpFotoEntfernen" title="Foto entfernen" aria-label="Foto entfernen" style="display:none;">🗑</button>
-      <button class="close-btn" aria-label="Panel schließen" onclick="fpSchliessen()">✕</button>
     </div>
     <input type="file" id="fpPhotoInput" accept="image/*" onchange="handleFreiPflanzePhoto(event)" style="display:none;"/>
     <div class="pp-header-placeholder" id="fpHeaderPlaceholder"></div>
@@ -7059,6 +7060,8 @@ function removePlant(){
   if(!activePlantBedId) return;
   const bed=getCurrentBeds().find(b=>b.id===activePlantBedId.bedId);
   if(!bed) return;
+  const plantVorschau=bed.plants[activePlantBedId.idx];
+  if (!confirm(`"${plantVorschau?.name||'Diese Pflanze'}" wirklich entfernen?`)) return;
   pushUndo();
   const plant=bed.plants[activePlantBedId.idx];
   if (plant) {
@@ -8539,6 +8542,7 @@ function albumPflanzenListe() {
   const beds = getCurrentBeds();
   const namen = new Set();
   beds.forEach(b => (b.plants || []).forEach(p => { if (p.name) namen.add(p.name.trim()); }));
+  getCurrentFreiPflanzen().forEach(fp => { if (fp.name) namen.add(fp.name.trim()); });
   return Array.from(namen).sort((a, b) => a.localeCompare(b, 'de'));
 }
 function albumSlotsFuerSeite(seiteId) {
