@@ -252,6 +252,18 @@
   .pp-standort-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px; border-radius: var(--radius-sm); border: 1.5px solid var(--parchment); background: var(--white); cursor: pointer; font-size: 1.1rem; color: var(--bark); transition: all 0.15s; }
   .pp-standort-btn span { font-size: 0.62rem; font-weight: 600; }
   .pp-standort-btn.aktiv { border-color: #4a6f5c; background: #f0f8ec; color: #2c2415; }
+  .pp-foto-galerie { display: flex; gap: 8px; overflow-x: auto; margin: 4px 0 16px; -webkit-overflow-scrolling: touch; }
+  .pp-foto-galerie::-webkit-scrollbar { display: none; }
+  .pp-foto-thumb { position: relative; flex-shrink: 0; width: 62px; height: 62px; border-radius: 8px; overflow: hidden; border: 2px solid transparent; cursor: pointer; }
+  .pp-foto-thumb.aktuell { border-color: #4a6f5c; }
+  .pp-foto-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .pp-foto-thumb .pp-foto-datum { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.6); color: #fff; font-size: 0.5rem; text-align: center; padding: 1px 0; }
+  .pp-foto-thumb-del { position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.6); color: #fff; border: none; border-radius: 50%; width: 16px; height: 16px; font-size: 0.62rem; line-height: 1; cursor: pointer; padding: 0; }
+  .pp-foto-add { flex-shrink: 0; width: 62px; height: 62px; border-radius: 8px; border: 2px dashed var(--parchment); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; color: var(--bark); cursor: pointer; background: var(--white); }
+  .pp-foto-lightbox { position: fixed; inset: 0; background: rgba(10,15,10,0.92); z-index: 400; display: none; align-items: center; justify-content: center; padding: 20px; }
+  .pp-foto-lightbox.zeigen { display: flex; }
+  .pp-foto-lightbox img { max-width: 100%; max-height: 88vh; border-radius: 10px; box-shadow: 0 6px 24px rgba(0,0,0,0.5); }
+  .pp-foto-lightbox-schliessen { position: absolute; top: 16px; right: 16px; background: rgba(255,255,255,0.2); color: #fff; border: none; width: 38px; height: 38px; border-radius: 50%; font-size: 1.1rem; cursor: pointer; }
   .pp-body { max-width: 680px; width: 100%; margin: 0 auto; padding: 18px 18px 40px; flex: 1; }
   .pp-position { position: relative; z-index: 1; font-size: 0.7rem; color: #ffffff; opacity: 0.85; margin-top: 2px; text-shadow: 0 1px 3px rgba(0,0,0,0.6); }
   .pp-swipe-hinweis { position: fixed; top: 50%; transform: translateY(-50%); font-size: 2rem; opacity: 0; pointer-events: none; z-index: 320; transition: opacity 0.15s; color: #ffffff; text-shadow: 0 1px 6px rgba(0,0,0,0.6); }
@@ -953,6 +965,7 @@
 
   <!-- PP TAB: Info -->
   <div class="pp-tab-content active" id="ppt-info">
+    <div class="pp-foto-galerie" id="ppFotoGalerie"></div>
     <div style="display:flex;gap:10px;flex-wrap:wrap">
       <div style="flex:1;min-width:130px">
         <div class="form-row">
@@ -1183,6 +1196,7 @@
 
   <!-- FP TAB: Info -->
   <div class="pp-tab-content active" id="fpt-info">
+    <div class="pp-foto-galerie" id="fpFotoGalerie"></div>
     <div style="display:flex;gap:10px;flex-wrap:wrap">
       <div style="flex:1;min-width:130px">
         <div class="form-row">
@@ -1286,6 +1300,12 @@
   <div class="pp-footer">
     <button class="btn-secondary" id="fpLoeschenBtn" onclick="fpLoeschen()" style="color:#c05030;border-color:#c05030;width:100%">🗑 Entfernen</button>
   </div>
+</div>
+
+<!-- FOTO-LIGHTBOX (gemeinsam für Beet- und freistehende Pflanzen) -->
+<div class="pp-foto-lightbox" id="fotoLightbox" onclick="fotoLightboxSchliessen()">
+  <button type="button" class="pp-foto-lightbox-schliessen" onclick="fotoLightboxSchliessen()" aria-label="Schließen">✕</button>
+  <img id="fotoLightboxImg" src="" alt="" onclick="event.stopPropagation()">
 </div>
 
 <!-- MODAL: Sortendatenbank -->
@@ -6029,7 +6049,7 @@ function openFreiPflanzePanel(fp) {
   document.getElementById('fpPest').value = '';
   document.getElementById('fpPestResult').innerHTML = '';
   populateHarvestMethodSelect();
-  renderFreiPflanzePhoto(fp.photo, fp.sym);
+  renderFreiPflanzePhoto(fp);
   renderSowingHint(fp.name || '', 'fpSowingHint');
   document.getElementById('fpHarvestDate').value = new Date().toISOString().slice(0,10);
   document.getElementById('fpHarvestAmount').value = '';
@@ -6103,21 +6123,47 @@ function fpAutoSave() {
   renderSowingHint(fp.name || '', 'fpSowingHint');
   if (document.getElementById('fpt-preserve')?.classList.contains('active')) renderPreservePlantTab(fp.name || '', 'fpPreserveResult');
 }
-function renderFreiPflanzePhoto(photo, sym) {
+function renderFreiPflanzePhoto(fp) {
+  ppFotosMigrieren(fp);
   const header = document.getElementById('freiPflanzePanelHeader');
   const entfernenBtn = document.getElementById('btnFpFotoEntfernen');
   const input = document.getElementById('fpPhotoInput');
   const platzhalter = document.getElementById('fpHeaderPlaceholder');
   if (input) input.value = '';
-  if (photo) {
-    header.style.backgroundImage = 'url("' + photo + '")';
+  const letztes = fp.fotos.length ? fp.fotos[fp.fotos.length - 1] : null;
+  if (letztes) {
+    header.style.backgroundImage = 'url("' + letztes.data + '")';
     entfernenBtn.style.display = '';
     if (platzhalter) platzhalter.textContent = '';
   } else {
     header.style.backgroundImage = '';
     entfernenBtn.style.display = 'none';
-    if (platzhalter) platzhalter.textContent = sym || '🌳';
+    if (platzhalter) platzhalter.textContent = fp.sym || '🌳';
   }
+  const galerie = document.getElementById('fpFotoGalerie');
+  galerie.innerHTML = '';
+  fp.fotos.forEach((f, i) => {
+    const thumb = document.createElement('div');
+    thumb.className = 'pp-foto-thumb' + (i === fp.fotos.length - 1 ? ' aktuell' : '');
+    thumb.innerHTML = '<img src="' + f.data + '" alt="">' +
+      (f.datum ? '<span class="pp-foto-datum">' + new Date(f.datum).toLocaleDateString('de-DE', {day:'2-digit',month:'2-digit',year:'2-digit'}) + '</span>' : '') +
+      '<button type="button" class="pp-foto-thumb-del" title="Dieses Foto löschen" aria-label="Foto löschen">✕</button>';
+    thumb.querySelector('img').addEventListener('click', () => fotoLightboxOeffnen(f.data));
+    thumb.querySelector('.pp-foto-thumb-del').addEventListener('click', (e) => {
+      e.stopPropagation();
+      pushUndo();
+      fp.fotos.splice(i, 1);
+      saveData();
+      renderFreiPflanzePhoto(fp);
+    });
+    galerie.appendChild(thumb);
+  });
+  const addTile = document.createElement('div');
+  addTile.className = 'pp-foto-add';
+  addTile.textContent = '📷';
+  addTile.title = 'Foto hinzufügen';
+  addTile.addEventListener('click', () => input.click());
+  galerie.appendChild(addTile);
 }
 function handleFreiPflanzePhoto(e) {
   const file = e.target.files && e.target.files[0];
@@ -6139,9 +6185,11 @@ function handleFreiPflanzePhoto(e) {
       const fp = getCurrentFreiPflanzen().find(x => x.id === activeFreiPflanzeId);
       if (!fp) return;
       pushUndo();
-      fp.photo = dataUrl;
+      ppFotosMigrieren(fp);
+      fp.fotos.push({ data: dataUrl, datum: new Date().toISOString().slice(0,10) });
+      while (fp.fotos.length > PP_MAX_FOTOS) fp.fotos.shift();
       saveData();
-      renderFreiPflanzePhoto(dataUrl, fp.sym);
+      renderFreiPflanzePhoto(fp);
     };
     img.src = ev.target.result;
   };
@@ -6151,9 +6199,10 @@ function removeFreiPflanzePhoto() {
   const fp = getCurrentFreiPflanzen().find(x => x.id === activeFreiPflanzeId);
   if (!fp) return;
   pushUndo();
-  fp.photo = '';
+  ppFotosMigrieren(fp);
+  fp.fotos.pop();
   saveData();
-  renderFreiPflanzePhoto('', fp.sym);
+  renderFreiPflanzePhoto(fp);
 }
 function addFreiPflanzeHarvest() {
   const fp = getCurrentFreiPflanzen().find(x => x.id === activeFreiPflanzeId);
@@ -6354,7 +6403,7 @@ function openPlantPanel(bed,idx) {
   document.getElementById('symptomResult').innerHTML='';
   document.getElementById('ppPest').value='';
   document.getElementById('pestResult').innerHTML='';
-  renderPlantPhoto(plant.photo, plant.sym);
+  renderPlantPhoto(plant);
   renderNeighbors(bed,idx);
   renderSowingHint(plant.name||'');
   renderVarietyDatalist(plant.name||'');
@@ -6396,21 +6445,62 @@ function ppZuNachbarPflanze(richtung) {
     ppZuNachbarPflanze(richtung);
   }, { passive: true });
 })();
-function renderPlantPhoto(photo, sym) {
+const PP_MAX_FOTOS = 5;
+function ppFotosMigrieren(obj) {
+  if (!Array.isArray(obj.fotos)) obj.fotos = [];
+  if (obj.photo) {
+    obj.fotos.push({ data: obj.photo, datum: obj.date || obj.datum || '' });
+    delete obj.photo;
+  }
+}
+function fotoLightboxOeffnen(dataUrl) {
+  document.getElementById('fotoLightboxImg').src = dataUrl;
+  document.getElementById('fotoLightbox').classList.add('zeigen');
+}
+function fotoLightboxSchliessen() {
+  document.getElementById('fotoLightbox').classList.remove('zeigen');
+}
+function renderPlantPhoto(plant) {
+  ppFotosMigrieren(plant);
   const header = document.getElementById('plantPanelHeader');
   const entfernenBtn = document.getElementById('btnPpFotoEntfernen');
   const input = document.getElementById('ppPhotoInput');
   const platzhalter = document.getElementById('ppHeaderPlaceholder');
   if (input) input.value = '';
-  if (photo) {
-    header.style.backgroundImage = 'url("' + photo + '")';
+  const letztes = plant.fotos.length ? plant.fotos[plant.fotos.length - 1] : null;
+  if (letztes) {
+    header.style.backgroundImage = 'url("' + letztes.data + '")';
     entfernenBtn.style.display = '';
     platzhalter.textContent = '';
   } else {
     header.style.backgroundImage = '';
     entfernenBtn.style.display = 'none';
-    platzhalter.textContent = sym || '🌿';
+    platzhalter.textContent = plant.sym || '🌿';
   }
+  const galerie = document.getElementById('ppFotoGalerie');
+  galerie.innerHTML = '';
+  plant.fotos.forEach((f, i) => {
+    const thumb = document.createElement('div');
+    thumb.className = 'pp-foto-thumb' + (i === plant.fotos.length - 1 ? ' aktuell' : '');
+    thumb.innerHTML = '<img src="' + f.data + '" alt="">' +
+      (f.datum ? '<span class="pp-foto-datum">' + new Date(f.datum).toLocaleDateString('de-DE', {day:'2-digit',month:'2-digit',year:'2-digit'}) + '</span>' : '') +
+      '<button type="button" class="pp-foto-thumb-del" title="Dieses Foto löschen" aria-label="Foto löschen">✕</button>';
+    thumb.querySelector('img').addEventListener('click', () => fotoLightboxOeffnen(f.data));
+    thumb.querySelector('.pp-foto-thumb-del').addEventListener('click', (e) => {
+      e.stopPropagation();
+      pushUndo();
+      plant.fotos.splice(i, 1);
+      saveData();
+      renderPlantPhoto(plant);
+    });
+    galerie.appendChild(thumb);
+  });
+  const addTile = document.createElement('div');
+  addTile.className = 'pp-foto-add';
+  addTile.textContent = '📷';
+  addTile.title = 'Foto hinzufügen';
+  addTile.addEventListener('click', () => input.click());
+  galerie.appendChild(addTile);
 }
 function handlePlantPhoto(e) {
   const file = e.target.files && e.target.files[0];
@@ -6434,9 +6524,11 @@ function handlePlantPhoto(e) {
       const plant = bed.plants[activePlantBedId.idx];
       if (!plant) return;
       pushUndo();
-      plant.photo = dataUrl;
+      ppFotosMigrieren(plant);
+      plant.fotos.push({ data: dataUrl, datum: new Date().toISOString().slice(0,10) });
+      while (plant.fotos.length > PP_MAX_FOTOS) plant.fotos.shift();
       saveData();
-      renderPlantPhoto(dataUrl, plant.sym);
+      renderPlantPhoto(plant);
     };
     img.src = ev.target.result;
   };
@@ -6449,23 +6541,16 @@ function removePlantPhoto() {
   const plant = bed.plants[activePlantBedId.idx];
   if (!plant) return;
   pushUndo();
-  delete plant.photo;
+  ppFotosMigrieren(plant);
+  plant.fotos.pop();
   saveData();
-  renderPlantPhoto(null, plant.sym);
+  renderPlantPhoto(plant);
 }
 function closePlantPanel(){document.getElementById('plantPanel').classList.remove('open');document.body.style.overflow='';selectedPlantOnCanvas=null;draw();hidePerennialInfo();}
 document.getElementById('btnPpFotoOeffnen').addEventListener('click', (e) => { e.stopPropagation(); document.getElementById('ppPhotoInput').click(); });
 document.getElementById('btnPpFotoEntfernen').addEventListener('click', (e) => { e.stopPropagation(); removePlantPhoto(); });
 document.getElementById('btnFpFotoOeffnen').addEventListener('click', (e) => { e.stopPropagation(); document.getElementById('fpPhotoInput').click(); });
-document.getElementById('btnFpFotoEntfernen').addEventListener('click', (e) => {
-  e.stopPropagation();
-  const fp = getCurrentFreiPflanzen().find(x => x.id === activeFreiPflanzeId);
-  if (!fp) return;
-  pushUndo();
-  fp.photo = '';
-  saveData();
-  renderFreiPflanzePhoto('', fp.sym);
-});
+document.getElementById('btnFpFotoEntfernen').addEventListener('click', (e) => { e.stopPropagation(); removeFreiPflanzePhoto(); });
 function togglePerennialInfo(e) {
   e.stopPropagation();
   let pop = document.getElementById('perennialInfoPopover');
