@@ -228,7 +228,7 @@
   .plant-panel.open { transform: translateY(0); }
   .plant-panel-header {
     display: flex; flex-direction: column; justify-content: flex-start; position: relative;
-    min-height: 30vh; padding: 18px 20px 16px;
+    min-height: 30vh; padding: 18px 20px 16px; cursor: pointer;
     background: linear-gradient(135deg, var(--moss), #3d6b4f);
     background-size: cover; background-position: center;
     box-shadow: 0 3px 10px rgba(0,0,0,0.12); z-index: 2; overflow: hidden;
@@ -6643,6 +6643,22 @@ document.getElementById('btnPpFotoOeffnen').addEventListener('click', (e) => { e
 document.getElementById('btnPpFotoEntfernen').addEventListener('click', (e) => { e.stopPropagation(); removePlantPhoto(); });
 document.getElementById('btnFpFotoOeffnen').addEventListener('click', (e) => { e.stopPropagation(); document.getElementById('fpPhotoInput').click(); });
 document.getElementById('btnFpFotoEntfernen').addEventListener('click', (e) => { e.stopPropagation(); removeFreiPflanzePhoto(); });
+document.getElementById('plantPanelHeader').addEventListener('click', (e) => {
+  if (e.target.closest('.pp-header-actions, .pp-foto-galerie, .pp-lebenszyklus-badge, .close-btn')) return;
+  if (!activePlantBedId) return;
+  const bed = getCurrentBeds().find(b => b.id === activePlantBedId.bedId);
+  const plant = bed && bed.plants[activePlantBedId.idx];
+  if (!plant) return;
+  const titelbild = ppFotoTitelbild(plant);
+  if (titelbild) fotoLightboxOeffnen(titelbild.data);
+});
+document.getElementById('freiPflanzePanelHeader').addEventListener('click', (e) => {
+  if (e.target.closest('.pp-header-actions, .pp-foto-galerie, .pp-lebenszyklus-badge, .close-btn')) return;
+  const fp = getCurrentFreiPflanzen().find(x => x.id === activeFreiPflanzeId);
+  if (!fp) return;
+  const titelbild = ppFotoTitelbild(fp);
+  if (titelbild) fotoLightboxOeffnen(titelbild.data);
+});
 function togglePerennialInfo(e) {
   e.stopPropagation();
   let pop = document.getElementById('perennialInfoPopover');
