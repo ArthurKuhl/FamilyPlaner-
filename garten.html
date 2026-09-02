@@ -217,18 +217,34 @@
   .empty-state::before { content: '🌱'; display: block; font-size: 1.7rem; margin-bottom: 6px; }
 
   /* PLANT PANEL */
-  .plant-panel { position: fixed; bottom: 0; left: 0; right: 0; background: var(--white); border-top: none; box-shadow: 0 -6px 20px rgba(59,47,30,0.14); border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding: 16px; transform: translateY(100%); transition: transform 0.3s ease; z-index: 100; max-height: 80vh; overflow-y: auto; }
+  .plant-panel {
+    position: fixed; inset: 0; background: var(--cream);
+    background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22190%22%20height%3D%22190%22%20viewBox%3D%220%200%20190%20190%22%3E%3Cg%20opacity%3D%220.07%22%3E%3Cg%20transform%3D%22translate%2810%2C15%29%20scale%280.9%29%20rotate%28-10%29%22%3E%3Cline%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%2240%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3Cpath%20d%3D%22M%200%208%20C%208%204%2C%2014%208%2C%2016%2014%20C%2010%2016%2C%204%2014%2C%200%208%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M%200%2018%20C%20-8%2014%2C%20-14%2018%2C%20-16%2024%20C%20-10%2026%2C%20-4%2024%2C%200%2018%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M%200%2028%20C%208%2024%2C%2014%2028%2C%2016%2034%20C%2010%2036%2C%204%2034%2C%200%2028%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%28110%2C20%29%20scale%280.75%29%20rotate%2825%29%22%3E%3Cpath%20d%3D%22M%200%200%20C%2020%20-4%2C%2030%2014%2C%200%2034%20C%20-30%2014%2C%20-20%20-4%2C%200%200%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cline%20x1%3D%220%22%20y1%3D%222%22%20x2%3D%220%22%20y2%3D%2232%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%2855%2C110%29%20scale%280.8%29%20rotate%2815%29%22%3E%3Cline%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%2240%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3Cpath%20d%3D%22M%200%208%20C%208%204%2C%2014%208%2C%2016%2014%20C%2010%2016%2C%204%2014%2C%200%208%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M%200%2018%20C%20-8%2014%2C%20-14%2018%2C%20-16%2024%20C%20-10%2026%2C%20-4%2024%2C%200%2018%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M%200%2028%20C%208%2024%2C%2014%2028%2C%2016%2034%20C%2010%2036%2C%204%2034%2C%200%2028%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    background-repeat: repeat;
+    border: none; box-shadow: none; border-radius: 0; padding: 0;
+    transform: translateY(100%); transition: transform 0.28s ease; z-index: 150;
+    overflow-y: auto; display: flex; flex-direction: column;
+  }
   .plant-panel.open { transform: translateY(0); }
-  .plant-panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 13px; }
-  .plant-panel-title { font-family: 'Playfair Display', serif; font-size: 1.05rem; color: var(--moss); }
+  .plant-panel-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 18px 20px 16px; margin-bottom: 0;
+    background: linear-gradient(135deg, var(--moss), #3d6b4f);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.12); position: sticky; top: 0; z-index: 2;
+  }
+  .plant-panel-title { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--white); display: flex; align-items: center; gap: 10px; }
+  .plant-panel .close-btn { background: rgba(255,255,255,0.18); color: var(--white); border: none; width: 34px; height: 34px; border-radius: 50%; font-size: 1rem; cursor: pointer; flex-shrink: 0; }
+  .pp-body { max-width: 680px; width: 100%; margin: 0 auto; padding: 18px 18px 40px; flex: 1; }
+  .pp-tabs { display: flex; gap: 4px; margin-bottom: 18px; flex-wrap: wrap; border-bottom: 2px solid var(--parchment); padding-bottom: 0; }
+  .pp-tab { padding: 9px 14px 10px; border-radius: 10px 10px 0 0; font-size: 0.75rem; font-weight: 700; border: none; background: transparent; color: var(--bark); cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s; opacity: 0.7; border-bottom: 2px solid transparent; margin-bottom: -2px; }
+  .pp-tab:hover { opacity: 1; background: rgba(74,111,90,0.08); }
+  .pp-tab.active { opacity: 1; color: var(--moss); border-bottom: 2px solid var(--moss); }
+  .pp-tab-content { display: none; }
+  .pp-tab-content.active { display: block; animation: ppFadeIn 0.2s ease; }
+  @keyframes ppFadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+  .pp-footer { max-width: 680px; margin: 0 auto; padding: 4px 18px 28px; width: 100%; }
   .close-btn { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--bark); padding: 6px 10px; border-radius: 50%; transition: all 0.15s; line-height: 1; }
   .close-btn:hover { background: var(--parchment); color: var(--soil); }
-
-  .pp-tabs { display: flex; gap: 5px; margin-bottom: 13px; flex-wrap: wrap; }
-  .pp-tab { padding: 6px 13px; border-radius: var(--radius-pill); font-size: 0.72rem; font-weight: 600; border: 1px solid var(--parchment); background: var(--cream); color: var(--bark); cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.12s; }
-  .pp-tab.active { background: var(--moss); color: white; border-color: var(--moss); box-shadow: var(--shadow-soft); }
-  .pp-tab-content { display: none; }
-  .pp-tab-content.active { display: block; }
 
   .symptom-card { background: #fff8f0; border-radius: var(--radius-sm); border-left: 3px solid var(--terracotta); padding: 11px 13px; margin-bottom: 8px; font-size: 0.8rem; box-shadow: var(--shadow-soft); }
   .symptom-card .sc-title { font-weight: 600; color: var(--terracotta-text); margin-bottom: 4px; }
@@ -892,6 +908,7 @@
     <div class="plant-panel-title" id="ppTitle">Pflanze</div>
     <button class="close-btn" aria-label="Pflanzenpanel schließen" onclick="closePlantPanel()">✕</button>
   </div>
+  <div class="pp-body">
   <div class="pp-tabs">
     <div class="pp-tab active" onclick="switchPPTab('info')">📋 Info</div>
     <div class="pp-tab" onclick="switchPPTab('neighbors')">🤝 Nachbarn</div>
@@ -1013,9 +1030,10 @@
   <div class="pp-tab-content" id="ppt-preserve">
     <div id="preservePlantResult"></div>
   </div>
+  </div>
 
-  <div style="margin-top:10px">
-    <button class="btn-secondary" onclick="removePlant()" style="color:#c05030;border-color:#c05030;max-width:160px">🗑 Pflanze entfernen</button>
+  <div class="pp-footer">
+    <button class="btn-secondary" onclick="removePlant()" style="color:#c05030;border-color:#c05030;width:100%">🗑 Pflanze entfernen</button>
   </div>
 </div>
 
@@ -6146,6 +6164,7 @@ function openPlantPanel(bed,idx) {
   renderHarvestLog(bed, idx);
   switchPPTab('info');
   document.getElementById('plantPanel').classList.add('open');
+  document.body.style.overflow = 'hidden';
 }
 function renderPlantPhoto(photo) {
   const box=document.getElementById('ppPhotoBox');
@@ -6196,7 +6215,7 @@ function removePlantPhoto() {
   saveData();
   renderPlantPhoto(null);
 }
-function closePlantPanel(){document.getElementById('plantPanel').classList.remove('open');selectedPlantOnCanvas=null;draw();}
+function closePlantPanel(){document.getElementById('plantPanel').classList.remove('open');document.body.style.overflow='';selectedPlantOnCanvas=null;draw();}
 function normalizeHarvestUnit(unit, amount) {
   if (unit === 'g') return { unit: 'kg', amount: amount / 1000 };
   return { unit: unit || 'Stück', amount };
@@ -6529,6 +6548,8 @@ function openPreserveForPlant(plantName) {
 function switchPPTab(name){
   document.querySelectorAll('.pp-tab').forEach((t,i)=>{const names=['info','neighbors','symptoms','pests','harvest','preserve'];t.classList.toggle('active',names[i]===name);});
   document.querySelectorAll('.pp-tab-content').forEach(el=>{el.classList.toggle('active',el.id==='ppt-'+name);});
+  const panel = document.getElementById('plantPanel');
+  if (panel) panel.scrollTo({ top: 0, behavior: 'smooth' });
   if (name==='preserve' && activePlantBedId) {
     const bed = getCurrentBeds().find(b=>b.id===activePlantBedId.bedId);
     const plant = bed && bed.plants[activePlantBedId.idx];
