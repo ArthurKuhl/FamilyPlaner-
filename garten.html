@@ -6078,7 +6078,22 @@ function deleteFreiPflanzeIdx(e, i) {
   getCurrentFreiPflanzen().splice(i, 1);
   saveData(); draw(); renderFreiPflanzenList();
 }
+// Setzt aktives Pinch-Zoom auf 100% zurück, bevor eine Vollbild-Ansicht geöffnet wird.
+// Neuere Chrome-Versionen ignorieren "user-scalable=no" im Viewport-Meta-Tag bewusst
+// (Barrierefreiheit) – ein bereits eingezoomter Garten würde sonst auch die Ansicht
+// mit-vergrößert zeigen. Trick: das Meta-Tag kurz neu setzen erzwingt bei den meisten
+// mobilen Browsern einen Zoom-Reset auf den Ausgangswert.
+function ppZoomZuruecksetzen() {
+  try {
+    const meta = document.querySelector('meta[name="viewport"]');
+    if (!meta) return;
+    const original = meta.getAttribute('content');
+    meta.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+    setTimeout(() => { if (meta) meta.setAttribute('content', original); }, 80);
+  } catch (e) {}
+}
 function openFreiPflanzePanel(fp) {
+  ppZoomZuruecksetzen();
   activeFreiPflanzeId = fp.id;
   springeZuBeet(fp);
   document.getElementById('freiPflanzeTitel').innerHTML = escapeHtml((fp.sym||'🌳') + ' ' + (fp.name || 'Baum/Strauch')) + (isPerennial(fp.name)?' <button type="button" class="pp-lebenszyklus-badge" onclick="togglePerennialInfo(event)" title="Mehr erfahren" aria-label="Info: mehrjährig">🔄</button>':'');
@@ -6454,6 +6469,7 @@ function showPest(selectId, resultId) {
 
 // ==================== PLANT PANEL ====================
 function openPlantPanel(bed,idx) {
+  ppZoomZuruecksetzen();
   activePlantBedId={bedId:bed.id,idx};
   const plant=bed.plants[idx];
   document.getElementById('ppTitle').innerHTML=escapeHtml(plant.sym+' '+(plant.name||'Pflanze'))+(isPerennial(plant.name)?' <button type="button" class="pp-lebenszyklus-badge" onclick="togglePerennialInfo(event)" title="Mehr erfahren" aria-label="Info: mehrjährig">🔄</button>':'');
