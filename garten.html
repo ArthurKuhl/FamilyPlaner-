@@ -234,6 +234,9 @@
   }
   .plant-panel-title { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--white); display: flex; align-items: center; gap: 10px; }
   .plant-panel .close-btn { background: rgba(255,255,255,0.18); color: var(--white); border: none; width: 34px; height: 34px; border-radius: 50%; font-size: 1rem; cursor: pointer; flex-shrink: 0; }
+  .pp-lebenszyklus-badge { background: rgba(255,255,255,0.22); border: none; color: var(--white); font-size: 0.85rem; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; flex-shrink: 0; transition: background 0.15s; }
+  .pp-lebenszyklus-badge:hover, .pp-lebenszyklus-badge:focus-visible { background: rgba(255,255,255,0.35); }
+  .pp-lebenszyklus-popover { position: fixed; max-width: 280px; background: #f0f8ec; border-left: 3px solid var(--moss); border-radius: var(--radius-sm); box-shadow: var(--shadow-md); padding: 10px 12px; font-size: 0.76rem; color: var(--soil); line-height: 1.4; z-index: 350; }
   .pp-body { max-width: 680px; width: 100%; margin: 0 auto; padding: 18px 18px 40px; flex: 1; }
   .pp-tabs { display: flex; gap: 4px; margin-bottom: 18px; flex-wrap: wrap; border-bottom: 2px solid var(--parchment); padding-bottom: 0; }
   .pp-tab { padding: 9px 14px 10px; border-radius: 10px 10px 0 0; font-size: 0.75rem; font-weight: 700; border: none; background: transparent; color: var(--bark); cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s; opacity: 0.7; border-bottom: 2px solid transparent; margin-bottom: -2px; }
@@ -2455,14 +2458,7 @@ function renderSowingHint(plantName) {
   if (!box) return;
   const s = SOWING[plantName];
   if (!s) {
-    if (isPerennial(plantName)) {
-      box.innerHTML = `<div style="font-size:0.7rem;padding:6px 8px;border-radius:7px;background:#f0f8ec;border-left:3px solid var(--moss)">
-        🔄 Mehrjährig – wird einmal gepflanzt und bleibt über Jahre im Beet. Beste Pflanzzeit für Gehölze &amp; Sträucher meist Herbst oder zeitiges Frühjahr (frostfrei).
-      </div>`;
-      box.style.display = 'block';
-    } else {
-      box.style.display = 'none';
-    }
+    box.style.display = 'none';
     return;
   }
   const currentMonth = new Date().getMonth()+1;
@@ -6143,7 +6139,7 @@ function showPest() {
 function openPlantPanel(bed,idx) {
   activePlantBedId={bedId:bed.id,idx};
   const plant=bed.plants[idx];
-  document.getElementById('ppTitle').innerHTML=escapeHtml(plant.sym+' '+(plant.name||'Pflanze'))+(isPerennial(plant.name)?' <span title="Mehrjährig" style="font-size:0.65rem;font-weight:600;color:var(--moss);background:#eaf3e6;padding:2px 7px;border-radius:10px;vertical-align:middle">🔄 mehrjährig</span>':'');
+  document.getElementById('ppTitle').innerHTML=escapeHtml(plant.sym+' '+(plant.name||'Pflanze'))+(isPerennial(plant.name)?' <button type="button" class="pp-lebenszyklus-badge" onclick="togglePerennialInfo(event)" title="Mehr erfahren" aria-label="Info: mehrjährig">🔄</button>':'');
   document.getElementById('ppName').value=plant.name||'';
   document.getElementById('ppVariety').value=plant.variety||'';
   document.getElementById('ppNotes').value=plant.notes||'';
@@ -6215,7 +6211,26 @@ function removePlantPhoto() {
   saveData();
   renderPlantPhoto(null);
 }
-function closePlantPanel(){document.getElementById('plantPanel').classList.remove('open');document.body.style.overflow='';selectedPlantOnCanvas=null;draw();}
+function closePlantPanel(){document.getElementById('plantPanel').classList.remove('open');document.body.style.overflow='';selectedPlantOnCanvas=null;draw();hidePerennialInfo();}
+function togglePerennialInfo(e) {
+  e.stopPropagation();
+  let pop = document.getElementById('perennialInfoPopover');
+  if (pop) { hidePerennialInfo(); return; }
+  pop = document.createElement('div');
+  pop.id = 'perennialInfoPopover';
+  pop.className = 'pp-lebenszyklus-popover';
+  pop.innerHTML = '🔄 <strong>Mehrjährig</strong> – wird einmal gepflanzt und bleibt über Jahre im Beet. Beste Pflanzzeit für Gehölze &amp; Sträucher meist Herbst oder zeitiges Frühjahr (frostfrei).';
+  document.body.appendChild(pop);
+  const rect = e.currentTarget.getBoundingClientRect();
+  pop.style.top = (rect.bottom + 8) + 'px';
+  pop.style.left = Math.max(12, Math.min(rect.left, window.innerWidth - 300)) + 'px';
+  setTimeout(() => document.addEventListener('click', hidePerennialInfo), 0);
+}
+function hidePerennialInfo() {
+  const pop = document.getElementById('perennialInfoPopover');
+  if (pop) pop.remove();
+  document.removeEventListener('click', hidePerennialInfo);
+}
 function normalizeHarvestUnit(unit, amount) {
   if (unit === 'g') return { unit: 'kg', amount: amount / 1000 };
   return { unit: unit || 'Stück', amount };
