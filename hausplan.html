@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<script>(function(){try{var m=localStorage.getItem('planer_darkMode');if(m==='dunkel'||(m==='auto'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.setAttribute('data-dark','1');}var s=localStorage.getItem('planer_schriftgroesse');if(s==='gross'){document.documentElement.style.fontSize='19px';}var f=localStorage.getItem('planer_farbschema');if(f&&f!=='wald'){document.documentElement.setAttribute('data-farbschema',f);}}catch(e){}})();</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hausplan</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap');
+  :root {
+    --soil: #3a2e1f; --moss: #4f6f45; --sage: #7fa476; --leaf: #bcd196;
+    --cream: #faf6ec; --parchment: #ece0c7; --bark: #7d6339;
+    --terracotta: #c46b41; --terracotta-text: #a8532e; --sky: #5b8bb5; --gold: #c99a3a;
+    --white: #fffdf8; --navbg: #2a2016; --navbg2: #3a2e1f;
+    --radius-sm: 8px; --radius-md: 12px; --radius-lg: 18px; --radius-pill: 22px;
+    --shadow-soft: 0 2px 10px rgba(59,47,30,0.08); --shadow-md: 0 8px 26px rgba(59,47,30,0.2);
+  }
+  html[data-dark="1"] {
+    --soil: #f0e8d8; --moss: #6fae5e; --sage: #9bc98a; --leaf: #cfe3b8;
+    --cream: #1e1b16; --parchment: #2b261e; --bark: #c2b393;
+    --terracotta: #d9855a; --terracotta-text: #e8a37e; --sky: #7fa8cc; --gold: #dcb158;
+    --white: #2f2a22; --navbg: #14100c; --navbg2: #221a12;
+  }
+  html[data-farbschema="ozean"] { --navbg: #1c1f24; --navbg2: #2b2f36; --sage: #8fd4c9; --leaf: #8fd4c9; --moss: #4fa89c; }
+  html[data-farbschema="schnee"] { --navbg: #1c1f24; --navbg2: #2b2f36; --sage: #c9cdd3; --leaf: #f0f0f2; --moss: #5b5f66; }
+  html[data-farbschema="fjord"] { --navbg: #1c1f24; --navbg2: #2b2f36; --sage: #9cc0ec; --leaf: #9cc0ec; --moss: #5b8bc9; }
+  html[data-farbschema="bernstein"] { --navbg: #1c1f24; --navbg2: #2b2f36; --sage: #e6c878; --leaf: #e6c878; --moss: #c9a24d; }
+  html[data-dark="1"][data-farbschema] { --cream: #191b1f; --parchment: #24262c; --white: #2a2d33; --soil: #eceef0; --bark: #a7acb5; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { touch-action: pan-x pan-y; }
+  body { font-family: 'Inter', sans-serif; background: var(--cream); color: var(--soil); min-height: 100vh; display: flex; flex-direction: column; }
+  button, input, select, textarea { font-family: inherit; -webkit-tap-highlight-color: transparent; }
+  :focus-visible { outline: 2px solid var(--terracotta); outline-offset: 2px; border-radius: 4px; }
+
+  .theme-btn { background: none; border: none; color: var(--leaf); font-size: 0.95rem; cursor: pointer; padding: 3px 4px; flex-shrink: 0; }
+  .theme-popup { display: none; position: absolute; right: 12px; top: 54px; background: var(--white); border-radius: var(--radius-md); box-shadow: var(--shadow-md); padding: 10px; z-index: 150; }
+  .theme-popup.zeigen { display: flex; gap: 8px; flex-wrap: wrap; max-width: 216px; }
+  .theme-swatch { width: 40px; height: 40px; border-radius: var(--radius-sm); border: 2px solid transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; background: var(--cream); }
+  .theme-swatch.aktiv { border-color: var(--moss); }
+  .theme-farbe-trenner { flex-basis: 100%; height: 1px; background: rgba(0,0,0,0.08); margin: 2px 0; }
+  .theme-swatch.farbe { border: 2px solid rgba(0,0,0,0.1); }
+  .theme-swatch.farbe.aktiv { border-color: var(--moss); border-width: 3px; }
+  .theme-farbe-custom { position: relative; overflow: hidden; background: conic-gradient(red,yellow,lime,cyan,blue,magenta,red); }
+  .theme-farbe-custom-input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; border: none; padding: 0; }
+  .theme-foto-swatch { border: 2px dashed var(--bark); background: var(--cream); position: relative; overflow: hidden; }
+  .theme-foto-input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+  body.bg-lineal {
+    background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22190%22%20height%3D%22190%22%20viewBox%3D%220%200%20190%20190%22%3E%3Cg%20opacity%3D%220.1%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20fill%3D%22none%22%3E%3Crect%20x%3D%2215%22%20y%3D%2225%22%20width%3D%2260%22%20height%3D%2214%22%20rx%3D%221%22%20transform%3D%22rotate%28-8%2045%2032%29%22/%3E%3Cline%20x1%3D%2225%22%20y1%3D%2225%22%20x2%3D%2225%22%20y2%3D%2233%22%20transform%3D%22rotate%28-8%2045%2032%29%22/%3E%3Cline%20x1%3D%2235%22%20y1%3D%2225%22%20x2%3D%2235%22%20y2%3D%2230%22%20transform%3D%22rotate%28-8%2045%2032%29%22/%3E%3Cline%20x1%3D%2245%22%20y1%3D%2225%22%20x2%3D%2245%22%20y2%3D%2233%22%20transform%3D%22rotate%28-8%2045%2032%29%22/%3E%3Cline%20x1%3D%2255%22%20y1%3D%2225%22%20x2%3D%2255%22%20y2%3D%2230%22%20transform%3D%22rotate%28-8%2045%2032%29%22/%3E%3Cline%20x1%3D%2265%22%20y1%3D%2225%22%20x2%3D%2265%22%20y2%3D%2233%22%20transform%3D%22rotate%28-8%2045%2032%29%22/%3E%3Crect%20x%3D%22110%22%20y%3D%22120%22%20width%3D%2250%22%20height%3D%2250%22/%3E%3Cline%20x1%3D%22110%22%20y1%3D%22140%22%20x2%3D%22160%22%20y2%3D%22140%22/%3E%3Cline%20x1%3D%22130%22%20y1%3D%22120%22%20x2%3D%22130%22%20y2%3D%22170%22/%3E%3C/g%3E%3C/svg%3E");
+    background-repeat: repeat;
+  }
+  body.bg-grundriss {
+    background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22190%22%20height%3D%22190%22%20viewBox%3D%220%200%20190%20190%22%3E%3Cg%20opacity%3D%220.1%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.5%22%20fill%3D%22none%22%3E%3Crect%20x%3D%2225%22%20y%3D%2230%22%20width%3D%2280%22%20height%3D%2260%22/%3E%3Cline%20x1%3D%2265%22%20y1%3D%2230%22%20x2%3D%2265%22%20y2%3D%2290%22/%3E%3Cline%20x1%3D%2225%22%20y1%3D%2260%22%20x2%3D%2265%22%20y2%3D%2260%22/%3E%3Cpath%20d%3D%22M40%2090%20A15%2015%200%200%201%2025%2075%22/%3E%3C/g%3E%3C/svg%3E");
+    background-repeat: repeat;
+  }
+  button, input, select, textarea { font-family: inherit; -webkit-tap-highlight-color: transparent; }
+
+  header.top { position: relative; background: linear-gradient(135deg, var(--navbg2), var(--navbg)); color: var(--leaf); padding: 10px 12px; z-index: 60; }
+  header.top::after { content: ''; position: absolute; left: 0; right: 0; bottom: -3px; height: 3px; background: linear-gradient(90deg, var(--moss), var(--sage) 35%, var(--leaf) 65%, var(--moss)); opacity: 0.85; z-index: 1; }
+  header.top .titel-zeile { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 8px; }
+  header.top .titel-zeile h1 { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; }
+  .add-btn { background: var(--terracotta); color: var(--white); border: none; border-radius: var(--radius-pill); font-size: 0.78rem; font-weight: 700; padding: 6px 13px; cursor: pointer; flex-shrink: 0; }
+
+  .ebenen-tabs { display: flex; gap: 5px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px; scrollbar-width: none; }
+  .ebenen-tabs::-webkit-scrollbar { display: none; }
+  .eb-tab { position: relative; flex: 0 0 auto; display: flex; align-items: center; gap: 5px; background: transparent; border: 1px solid #4a3a28; color: var(--sage); font-size: 0.74rem; font-weight: 600; padding: 6px 10px; border-radius: var(--radius-pill); cursor: pointer; white-space: nowrap; }
+  .eb-tab.active { background: var(--moss); color: var(--leaf); border-color: var(--moss); }
+  .eb-tab .eb-del { opacity: 0.7; font-size: 0.7rem; }
+  .eb-tab-neu { flex: 0 0 auto; background: transparent; border: 1px dashed #6b5a3e; color: var(--sage); font-size: 0.78rem; font-weight: 700; padding: 6px 12px; border-radius: var(--radius-pill); cursor: pointer; white-space: nowrap; }
+
+  .toolbar { background: linear-gradient(135deg, var(--soil), #302512); box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 8px 12px; display: flex; flex-wrap: nowrap; gap: 6px; align-items: center; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .toolbar::-webkit-scrollbar { display: none; }
+  .tool-btn { flex: 0 0 auto; background: var(--white); border: 1px solid var(--parchment); color: var(--soil); font-size: 0.75rem; font-weight: 700; padding: 8px 12px; border-radius: var(--radius-pill); cursor: pointer; white-space: nowrap; }
+  .tool-btn.active { background: var(--moss); color: #fff; border-color: var(--moss); }
+  .tool-btn-icon { font-size: 0.95rem; padding: 8px 11px; }
+  .tool-sep { width: 1px; align-self: stretch; background: rgba(255,255,255,0.15); flex-shrink: 0; margin: 0 2px; }
+  .tool-dropdown { position: relative; display: inline-block; flex: 0 0 auto; }
+  .dropdown-menu { display: none; position: fixed; background: var(--soil); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-md); padding: 7px; flex-direction: column; gap: 4px; z-index: 250; min-width: 170px; max-height: 70vh; overflow-y: auto; box-shadow: var(--shadow-md); }
+  .dropdown-menu.open { display: flex; }
+  .dropdown-menu .tool-btn { width: 100%; text-align: left; background: transparent; border: none; color: var(--leaf); }
+  .dropdown-menu .tool-btn:hover { background: rgba(255,255,255,0.08); }
+
+  .main { display: flex; flex: 1; min-height: 0; }
+  .canvas-wrap { flex: 1; position: relative; min-height: 420px; overflow: auto; cursor: crosshair; background: var(--white); }
+  @media (max-width: 720px) { .main { flex-direction: column; } .canvas-wrap { min-height: 46vh; } }
+
+  .hp-zoom-widget { position: fixed; top: 12px; left: 12px; z-index: 85; display: none; flex-direction: column; background: rgba(42,32,22,0.85); border-radius: 12px; box-shadow: 0 3px 12px rgba(0,0,0,0.3); overflow: hidden; }
+  .hp-zoom-widget button { width: 36px; height: 36px; background: none; border: none; color: #fff; font-size: 1.15rem; cursor: pointer; line-height: 1; }
+  .hp-zoom-widget-wert { color: #fff; font-size: 0.58rem; text-align: center; padding: 2px 0; border-top: 1px solid rgba(255,255,255,0.15); border-bottom: 1px solid rgba(255,255,255,0.15); }
+
+  .hp-status { position: fixed; bottom: 10px; left: 12px; right: 12px; z-index: 70; display: flex; gap: 10px; font-size: 0.66rem; color: var(--bark); background: var(--white); padding: 5px 10px; border-radius: var(--radius-pill); box-shadow: var(--shadow-soft); pointer-events: none; opacity: 0.92; flex-wrap: wrap; }
+
+  .sidebar { width: 300px; flex-shrink: 0; background: var(--cream); border-left: 1px solid var(--parchment); padding: 14px; overflow-y: auto; }
+  @media (max-width: 720px) { .sidebar { width: 100%; border-left: none; border-top: 1px solid var(--parchment); max-height: 42vh; } }
+  .sidebar-section { margin-bottom: 16px; }
+  .sidebar-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 0.95rem; margin-bottom: 8px; color: var(--moss); }
+  .form-row { margin-bottom: 10px; }
+  .form-row label { display: block; font-size: 0.7rem; font-weight: 700; color: var(--bark); text-transform: uppercase; letter-spacing: 0.02em; margin-bottom: 4px; }
+  .form-row input[type="text"], .form-row input[type="number"], .form-row select {
+    width: 100%; padding: 8px 10px; border: 1px solid var(--parchment); border-radius: var(--radius-sm); background: var(--white); color: var(--soil); font-size: 0.85rem;
+  }
+  .form-row input[type="range"] { width: 100%; }
+  .zeile-2 { display: flex; gap: 8px; }
+  .zeile-2 > div { flex: 1; }
+  .farbe-reihe { display: flex; gap: 6px; flex-wrap: wrap; }
+  .farbe-punkt { width: 26px; height: 26px; border-radius: 50%; border: 2px solid rgba(0,0,0,0.1); cursor: pointer; }
+  .farbe-punkt.aktiv { border-color: var(--moss); border-width: 3px; }
+  .btn-primary { width: 100%; background: var(--moss); color: #fff; border: none; border-radius: var(--radius-pill); padding: 10px; font-size: 0.82rem; font-weight: 700; cursor: pointer; }
+  .btn-danger { width: 100%; background: none; color: #c05030; border: 1.5px solid #c05030; border-radius: var(--radius-pill); padding: 9px; font-size: 0.8rem; font-weight: 700; cursor: pointer; margin-top: 8px; }
+  .empty-state { font-size: 0.8rem; color: var(--bark); text-align: center; padding: 20px 10px; }
+  .info-box { background: var(--white); border-radius: var(--radius-md); padding: 12px 14px; font-size: 0.78rem; color: var(--bark); line-height: 1.55; box-shadow: var(--shadow-soft); }
+  .info-box strong { color: var(--soil); }
+  .modal-bg { position: fixed; inset: 0; background: rgba(30,23,14,0.5); z-index: 200; display: none; align-items: center; justify-content: center; }
+  .modal-bg.zeigen { display: flex; }
+  .modal { background: var(--cream); border-radius: var(--radius-lg); padding: 20px; width: min(420px, 92vw); max-height: 88vh; overflow-y: auto; box-shadow: var(--shadow-md); }
+  .modal h2 { font-family: 'Playfair Display', serif; font-size: 1.1rem; margin-bottom: 14px; color: var(--moss); }
+  .modal-btns { display: flex; gap: 8px; margin-top: 14px; justify-content: flex-end; }
+  .btn { border: none; border-radius: var(--radius-pill); padding: 9px 16px; font-size: 0.82rem; font-weight: 700; cursor: pointer; }
+  .btn-secondary { background: var(--white); color: var(--soil); border: 1px solid var(--parchment); }
+
+  header.top .titel-zeile, header .hdr-right { gap: 4px !important; }
+</style>
+</head>
+<body>
+
+<div id="tempStatus"></div>
+
+<header class="top">
+  <div class="titel-zeile">
+    <h1>📐 Hausplan</h1>
+    <button class="theme-btn" id="btnThemeAuswahl" title="Hintergrundmuster wählen">🎨</button>
+  </div>
+  <div class="ebenen-tabs" id="ebenenTabs"></div>
+</header>
+<div class="theme-popup" id="themePopup">
+  <div class="theme-swatch" data-theme="" title="Kein Muster">✕</div>
+  <div class="theme-swatch" data-theme="bg-lineal" title="Lineal &amp; Zollstock">📏</div>
+  <div class="theme-swatch" data-theme="bg-grundriss" title="Grundriss">📐</div>
+  <div class="theme-farbe-trenner"></div>
+  <div class="theme-swatch farbe" data-theme="farbe:#f7d9dd" style="background:#f7d9dd" title="Pastell Rosa"></div>
+  <div class="theme-swatch farbe" data-theme="farbe:#d9ebf7" style="background:#d9ebf7" title="Pastell Blau"></div>
+  <div class="theme-swatch farbe" data-theme="farbe:#dcefd9" style="background:#dcefd9" title="Pastell Grün"></div>
+  <div class="theme-swatch farbe" data-theme="farbe:#f7ecd9" style="background:#f7ecd9" title="Pastell Gelb"></div>
+  <div class="theme-swatch farbe" data-theme="farbe:#e8d9f7" style="background:#e8d9f7" title="Pastell Lila"></div>
+  <div class="theme-swatch farbe" data-theme="farbe:#f7d9c4" style="background:#f7d9c4" title="Pastell Pfirsich"></div>
+  <div class="theme-swatch farbe" data-theme="farbe:#a8dadc" style="background:#a8dadc" title="Türkis"></div>
+  <div class="theme-swatch farbe" data-theme="farbe:#f4a261" style="background:#f4a261" title="Koralle"></div>
+  <label class="theme-swatch farbe theme-farbe-custom" title="Eigene Farbe">
+    <input type="color" class="theme-farbe-custom-input" value="#f7d9dd">
+  </label>
+  <label class="theme-swatch theme-foto-swatch" title="Eigenes Foto hochladen">
+    📷<input type="file" accept="image/*" class="theme-foto-input">
+  </label>
+</div>
+
+<div class="toolbar">
+  <button class="tool-btn tool-btn-icon" id="btnUndo" title="Rückgängig">↩</button>
+  <button class="tool-btn tool-btn-icon" id="btnRedo" title="Wiederholen">↪</button>
+  <div class="tool-sep"></div>
+  <button class="tool-btn active" data-mode="select" title="Elemente anklicken, verschieben, bearbeiten">↖ Auswählen</button>
+  <button class="tool-btn" data-mode="wand" title="Wand ziehen: antippen, ziehen, loslassen">🧱 Wand</button>
+  <button class="tool-btn" data-mode="raum" title="Raum-Rechteck ziehen">⬛ Raum</button>
+  <button class="tool-btn" data-mode="tuer" title="Auf eine Wand tippen, um eine Tür zu setzen">🚪 Tür</button>
+  <button class="tool-btn" data-mode="fenster" title="Auf eine Wand tippen, um ein Fenster zu setzen">🪟 Fenster</button>
+  <div class="tool-sep"></div>
+  <div class="tool-dropdown">
+    <button class="tool-btn" id="btnDateiToggle" title="Speichern, exportieren">📁 Datei</button>
+    <div class="dropdown-menu" id="dateiMenu">
+      <button class="tool-btn" id="btnPdfExport">📄 PDF-Export</button>
+      <button class="tool-btn" id="btnEbeneLeeren">🧹 Diese Ebene leeren</button>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="canvas-wrap" id="canvasWrap">
+    <canvas id="hpCanvas"></canvas>
+    <div class="hp-zoom-widget" id="hpZoomWidget">
+      <button type="button" id="btnZoomPlus">＋</button>
+      <div class="hp-zoom-widget-wert" id="hpZoomWert">100%</div>
+      <button type="button" id="btnZoomMinus">－</button>
+    </div>
+  </div>
+
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-section" id="editorLeer">
+      <div class="sidebar-title">📐 Hausplan</div>
+      <div class="info-box">
+        <strong>So geht's:</strong><br>
+        🧱 <strong>Wand</strong> – antippen, ziehen, loslassen für eine gerade Wand.<br>
+        ⬛ <strong>Raum</strong> – Rechteck ziehen, danach Name/Farbe hier rechts anpassen.<br>
+        🚪/🪟 <strong>Tür/Fenster</strong> – auf eine vorhandene Wand tippen.<br>
+        ↖ <strong>Auswählen</strong> – Element antippen zum Bearbeiten/Verschieben, erneut antippen zum Abwählen.<br><br>
+        1 Kästchen im Raster = 1 Meter. Der Zoom oben links ändert nur die Ansicht, nicht die echten Maße.
+      </div>
+    </div>
+
+    <div class="sidebar-section" id="editorRaum" style="display:none;">
+      <div class="sidebar-title">⬛ Raum bearbeiten</div>
+      <div class="form-row">
+        <label>Name</label>
+        <input type="text" id="raumName" placeholder="z.B. Wohnzimmer">
+      </div>
+      <div class="zeile-2">
+        <div class="form-row">
+          <label>Breite (m)</label>
+          <input type="number" id="raumBreite" min="0.2" step="0.1">
+        </div>
+        <div class="form-row">
+          <label>Tiefe (m)</label>
+          <input type="number" id="raumTiefe" min="0.2" step="0.1">
+        </div>
+      </div>
+      <div class="form-row">
+        <label>Fläche</label>
+        <div id="raumFlaeche" style="font-size:0.9rem;font-weight:700;color:var(--moss)"></div>
+      </div>
+      <div class="form-row">
+        <label>Farbe</label>
+        <div class="farbe-reihe" id="raumFarbReihe"></div>
+      </div>
+      <button class="btn-danger" id="btnRaumLoeschen">🗑 Raum löschen</button>
+    </div>
+
+    <div class="sidebar-section" id="editorWand" style="display:none;">
+      <div class="sidebar-title">🧱 Wand bearbeiten</div>
+      <div class="form-row">
+        <label>Länge</label>
+        <div id="wandLaenge" style="font-size:0.9rem;font-weight:700;color:var(--moss)"></div>
+      </div>
+      <div class="form-row">
+        <label>Wanddicke (cm): <span id="wandDickeWert"></span></label>
+        <input type="range" id="wandDicke" min="6" max="40" step="1">
+      </div>
+      <button class="btn-danger" id="btnWandLoeschen">🗑 Wand löschen (inkl. Türen/Fenster darauf)</button>
+    </div>
+
+    <div class="sidebar-section" id="editorOeffnung" style="display:none;">
+      <div class="sidebar-title" id="oeffnungTitel">🚪 Tür bearbeiten</div>
+      <div class="form-row">
+        <label>Breite (cm): <span id="oeffnungBreiteWert"></span></label>
+        <input type="range" id="oeffnungBreite" min="40" max="240" step="5">
+      </div>
+      <button class="btn-danger" id="btnOeffnungLoeschen">🗑 Entfernen</button>
+    </div>
+  </div>
+</div>
+
+<div class="hp-status" id="hpStatus"></div>
+
+<!-- Neue Ebene -->
+<div class="modal-bg" id="modalNeueEbene">
+  <div class="modal">
+    <h2>➕ Neue Ebene</h2>
+    <div class="form-row">
+      <label>Name</label>
+      <input type="text" id="neueEbeneName" placeholder="z.B. Obergeschoss">
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnNeueEbeneAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnNeueEbeneAnlegen" style="width:auto;">Anlegen</button>
+    </div>
+  </div>
+</div>
+
+<script src="gemeinsam.js"></script>
+<script>
+(function(){
+  'use strict';
+  // neueId, escapeHtml, laden, speichern, showTempStatus, Pull-to-refresh, Zurück-Taste: siehe gemeinsam.js
+
+  const KEY_HAUSPLAN = 'hausplan_daten_v1';
+  const PX_PRO_M = 60; // Basis-Maßstab: 60px = 1 realer Meter (unabhängig vom Zoom)
+  const RASTER_M = 1;  // Rasterlinie alle 1m
+
+  let daten = laden(KEY_HAUSPLAN, null);
+  if (!daten || !daten.ebenen || !daten.ebenen.length) {
+    daten = {
+      ebenen: [
+        { id: neueId('eb'), name: 'Erdgeschoss', waende: [], raeume: [] }
+      ],
+      aktiveEbeneId: null
+    };
+    daten.aktiveEbeneId = daten.ebenen[0].id;
+  }
+  function aktiveEbene() { return daten.ebenen.find(e => e.id === daten.aktiveEbeneId) || daten.ebenen[0]; }
+  function speichernDaten() { speichern(KEY_HAUSPLAN, daten); }
+
+  // ---------- UNDO/REDO ----------
+  let undoStack = [], redoStack = [];
+  const UNDO_LIMIT = 40;
+  function pushUndo() {
+    undoStack.push(JSON.stringify(daten));
+    if (undoStack.length > UNDO_LIMIT) undoStack.shift();
+    redoStack = [];
+    updateUndoButtons();
+  }
+  function undo() {
+    if (!undoStack.length) return;
+    redoStack.push(JSON.stringify(daten));
+    daten = JSON.parse(undoStack.pop());
+    schliesseEditor();
+    speichernDaten(); renderEbenenTabs(); draw(); updateUndoButtons();
+  }
+  function redo() {
+    if (!redoStack.length) return;
+    undoStack.push(JSON.stringify(daten));
+    daten = JSON.parse(redoStack.pop());
+    schliesseEditor();
+    speichernDaten(); renderEbenenTabs(); draw(); updateUndoButtons();
+  }
+  function updateUndoButtons() {
+    document.getElementById('btnUndo').disabled = !undoStack.length;
+    document.getElementById('btnRedo').disabled = !redoStack.length;
+    document.getElementById('btnUndo').style.opacity = undoStack.length ? '1' : '0.4';
+    document.getElementById('btnRedo').style.opacity = redoStack.length ? '1' : '0.4';
+  }
+  document.getElementById('btnUndo').addEventListener('click', undo);
+  document.getElementById('btnRedo').addEventListener('click', redo);
+
+  // ---------- CANVAS / ZOOM ----------
+  const canvas = document.getElementById('hpCanvas');
+  const ctx = canvas.getContext('2d');
+  const wrap = document.getElementById('canvasWrap');
+  let zoom = 1;
+  const CANVAS_M = 16; // Zeichenfläche deckt 16x16 reale Meter ab (reicht für ein normales Haus, scrollbar)
+
+  function resizeCanvas() {
+    canvas.width = CANVAS_M * PX_PRO_M;
+    canvas.height = CANVAS_M * PX_PRO_M;
+    wendeZoomAn();
+    draw();
+  }
+  function wendeZoomAn() {
+    canvas.style.width = Math.round(canvas.width * zoom) + 'px';
+    canvas.style.height = Math.round(canvas.height * zoom) + 'px';
+    const t = Math.round(zoom * 100) + '%';
+    const el = document.getElementById('hpZoomWert');
+    if (el) el.textContent = t;
+  }
+  function zoomSetzen(neu) {
+    zoom = Math.min(3, Math.max(0.3, neu));
+    wendeZoomAn();
+  }
+  document.getElementById('btnZoomPlus').addEventListener('click', () => zoomSetzen(zoom * 1.25));
+  document.getElementById('btnZoomMinus').addEventListener('click', () => zoomSetzen(zoom * 0.8));
+  function positioniereZoomWidget() {
+    const widget = document.getElementById('hpZoomWidget');
+    const rect = wrap.getBoundingClientRect();
+    widget.style.display = 'flex';
+    widget.style.top = Math.round(rect.top + 12) + 'px';
+    widget.style.left = Math.round(rect.left + 12) + 'px';
+  }
+  window.addEventListener('resize', positioniereZoomWidget);
+  window.addEventListener('orientationchange', () => setTimeout(positioniereZoomWidget, 200));
+
+  function getPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const skalX = canvas.width / rect.width;
+    const skalY = canvas.height / rect.height;
+    const cx = e.touches ? e.touches[0].clientX : e.clientX;
+    const cy = e.touches ? e.touches[0].clientY : e.clientY;
+    return { x: (cx - rect.left) * skalX, y: (cy - rect.top) * skalY };
+  }
+  function snap(px) { return Math.round(px / (PX_PRO_M / 10)) * (PX_PRO_M / 10); } // auf 10cm einrasten
+
+  // ---------- ZEICHNEN ----------
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Raster
+    ctx.strokeStyle = 'rgba(122,101,74,0.14)'; ctx.lineWidth = 1;
+    for (let m = 0; m <= CANVAS_M; m++) {
+      const p = m * PX_PRO_M;
+      ctx.beginPath(); ctx.moveTo(p, 0); ctx.lineTo(p, canvas.height); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, p); ctx.lineTo(canvas.width, p); ctx.stroke();
+    }
+    ctx.strokeStyle = 'rgba(122,101,74,0.28)'; ctx.lineWidth = 1.3;
+    for (let m = 0; m <= CANVAS_M; m += 5) {
+      const p = m * PX_PRO_M;
+      ctx.beginPath(); ctx.moveTo(p, 0); ctx.lineTo(p, canvas.height); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, p); ctx.lineTo(canvas.width, p); ctx.stroke();
+    }
+
+    const eb = aktiveEbene();
+    // Räume zuerst (liegen unter den Wänden)
+    eb.raeume.forEach(r => drawRaum(r, r.id === selektion.id && selektion.typ === 'raum'));
+    // Wände + darauf sitzende Türen/Fenster
+    eb.waende.forEach(w => drawWand(w, w.id === selektion.id && selektion.typ === 'wand'));
+    // Live-Vorschau beim Zeichnen
+    if (vorschau) drawVorschau();
+  }
+  function drawRaum(r, selected) {
+    ctx.save();
+    ctx.fillStyle = (r.farbe || '#e8d9c4') + 'b3';
+    ctx.strokeStyle = selected ? '#c0633a' : (r.farbe || '#e8d9c4');
+    ctx.lineWidth = selected ? 2.5 : 1.5;
+    ctx.fillRect(r.x, r.y, r.w, r.h);
+    ctx.strokeRect(r.x, r.y, r.w, r.h);
+    const flaeche = ((r.w / PX_PRO_M) * (r.h / PX_PRO_M)).toFixed(1);
+    ctx.fillStyle = '#3b2f1e'; ctx.font = '600 12px Inter,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(r.name || 'Raum', r.x + r.w / 2, r.y + r.h / 2 - 8);
+    ctx.font = '10px Inter,sans-serif';
+    ctx.fillText(flaeche + ' m²', r.x + r.w / 2, r.y + r.h / 2 + 8);
+    ctx.restore();
+  }
+  function wandWinkel(w) { return Math.atan2(w.y2 - w.y1, w.x2 - w.x1); }
+  function wandLaengePx(w) { return Math.hypot(w.x2 - w.x1, w.y2 - w.y1); }
+  function wandPunktBeiT(w, t) { return { x: w.x1 + (w.x2 - w.x1) * t, y: w.y1 + (w.y2 - w.y1) * t }; }
+  function drawWand(w, selected) {
+    const dickePx = Math.max(3, (w.dicke || 20) / 100 * PX_PRO_M);
+    ctx.save();
+    ctx.strokeStyle = selected ? '#c0633a' : '#3b2f1e';
+    ctx.lineWidth = dickePx;
+    ctx.lineCap = 'square';
+    // Öffnungen (Türen/Fenster) als Lücken darstellen: Wand in Segmenten zeichnen
+    const oeffnungen = (w.oeffnungen || []).slice().sort((a,b) => a.pos - b.pos);
+    const laenge = wandLaengePx(w);
+    let letztesT = 0;
+    ctx.beginPath();
+    oeffnungen.forEach(o => {
+      const breiteT = Math.min(0.9, (o.breite || 80) / 100 * PX_PRO_M / laenge);
+      const startT = Math.max(letztesT, o.pos - breiteT / 2);
+      const p1 = wandPunktBeiT(w, letztesT), p2 = wandPunktBeiT(w, startT);
+      ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y);
+      letztesT = Math.min(1, o.pos + breiteT / 2);
+    });
+    const pEnd1 = wandPunktBeiT(w, letztesT), pEnd2 = wandPunktBeiT(w, 1);
+    ctx.moveTo(pEnd1.x, pEnd1.y); ctx.lineTo(pEnd2.x, pEnd2.y);
+    ctx.stroke();
+    ctx.restore();
+    // Öffnungssymbole
+    oeffnungen.forEach(o => drawOeffnung(w, o, o.id === selektion.id && selektion.typ === 'oeffnung'));
+    // Maßangabe
+    if (selected) {
+      const mitte = wandPunktBeiT(w, 0.5);
+      ctx.save();
+      ctx.fillStyle = '#c0633a'; ctx.font = '600 10px Inter,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+      ctx.translate(mitte.x, mitte.y - dickePx / 2 - 4);
+      ctx.fillText((laenge / PX_PRO_M).toFixed(2) + ' m', 0, 0);
+      ctx.restore();
+    }
+  }
+  function drawOeffnung(w, o, selected) {
+    const mitte = wandPunktBeiT(w, o.pos);
+    const winkel = wandWinkel(w);
+    const breitePx = (o.breite || 80) / 100 * PX_PRO_M;
+    const dickePx = Math.max(3, (w.dicke || 20) / 100 * PX_PRO_M);
+    ctx.save();
+    ctx.translate(mitte.x, mitte.y);
+    ctx.rotate(winkel);
+    ctx.strokeStyle = selected ? '#c0633a' : (o.typ === 'fenster' ? '#5b8bb5' : '#8a5a2e');
+    ctx.lineWidth = selected ? 2.5 : 1.8;
+    if (o.typ === 'fenster') {
+      ctx.strokeRect(-breitePx / 2, -dickePx / 2 - 1, breitePx, dickePx + 2);
+      ctx.beginPath(); ctx.moveTo(-breitePx / 2, 0); ctx.lineTo(breitePx / 2, 0); ctx.stroke();
+    } else {
+      // Tür: Öffnungslinie + Viertelkreis als Schwenkbereich
+      ctx.beginPath(); ctx.moveTo(-breitePx / 2, dickePx / 2); ctx.lineTo(-breitePx / 2, dickePx / 2 + breitePx); ctx.stroke();
+      ctx.beginPath(); ctx.arc(-breitePx / 2, dickePx / 2, breitePx, -Math.PI / 2, 0); ctx.stroke();
+    }
+    ctx.restore();
+  }
+  function drawVorschau() {
+    ctx.save();
+    ctx.setLineDash([6, 4]);
+    if (vorschau.typ === 'wand') {
+      const dickePx = Math.max(3, WAND_DICKE_STANDARD / 100 * PX_PRO_M);
+      ctx.strokeStyle = 'rgba(59,47,30,0.6)'; ctx.lineWidth = dickePx;
+      ctx.beginPath(); ctx.moveTo(vorschau.x1, vorschau.y1); ctx.lineTo(vorschau.x2, vorschau.y2); ctx.stroke();
+    } else if (vorschau.typ === 'raum') {
+      ctx.strokeStyle = 'rgba(74,111,90,0.8)'; ctx.lineWidth = 1.5;
+      ctx.strokeRect(vorschau.x, vorschau.y, vorschau.w, vorschau.h);
+    }
+    ctx.restore();
+  }
+
+  // ---------- INTERAKTION ----------
+  let mode = 'select';
+  let selektion = { typ: null, id: null };
+  let vorschau = null;
+  let dragStart = null;
+  let dragObjStart = null;
+  const WAND_DICKE_STANDARD = 20;
+
+  function setMode(m) {
+    mode = m;
+    document.querySelectorAll('.tool-btn[data-mode]').forEach(b => b.classList.toggle('active', b.dataset.mode === m));
+    schliesseEditor();
+    updateStatus();
+  }
+  document.querySelectorAll('.tool-btn[data-mode]').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
+  function updateStatus() {
+    const labels = { select: 'Auswählen/Verschieben', wand: 'Wand zeichnen', raum: 'Raum zeichnen', tuer: 'Tür setzen – auf eine Wand tippen', fenster: 'Fenster setzen – auf eine Wand tippen' };
+    const eb = aktiveEbene();
+    document.getElementById('hpStatus').innerHTML =
+      '<span>Modus: ' + (labels[mode] || mode) + '</span><span>Ebene: ' + escapeHtml(eb.name) + '</span>' +
+      '<span>Wände: ' + eb.waende.length + '</span><span>Räume: ' + eb.raeume.length + '</span>';
+  }
+
+  function findeNaechsteWand(x, y, maxAbstand) {
+    const eb = aktiveEbene();
+    let beste = null, besterAbstand = maxAbstand, besterT = 0;
+    eb.waende.forEach(w => {
+      const dx = w.x2 - w.x1, dy = w.y2 - w.y1;
+      const len2 = dx * dx + dy * dy;
+      let t = len2 ? ((x - w.x1) * dx + (y - w.y1) * dy) / len2 : 0;
+      t = Math.max(0, Math.min(1, t));
+      const px = w.x1 + dx * t, py = w.y1 + dy * t;
+      const abstand = Math.hypot(x - px, y - py);
+      if (abstand < besterAbstand) { besterAbstand = abstand; beste = w; besterT = t; }
+    });
+    return beste ? { wand: beste, t: besterT } : null;
+  }
+  function hitTestRaum(x, y) {
+    const eb = aktiveEbene();
+    for (let i = eb.raeume.length - 1; i >= 0; i--) {
+      const r = eb.raeume[i];
+      if (x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h) return r;
+    }
+    return null;
+  }
+
+  function onDown(e) {
+    const { x, y } = getPos(e);
+    if (mode === 'wand') {
+      dragStart = { x: snap(x), y: snap(y) };
+      vorschau = { typ: 'wand', x1: dragStart.x, y1: dragStart.y, x2: dragStart.x, y2: dragStart.y };
+      return;
+    }
+    if (mode === 'raum') {
+      dragStart = { x: snap(x), y: snap(y) };
+      vorschau = { typ: 'raum', x: dragStart.x, y: dragStart.y, w: 0, h: 0 };
+      return;
+    }
+    if (mode === 'tuer' || mode === 'fenster') {
+      const treffer = findeNaechsteWand(x, y, 22);
+      if (!treffer) { showTempStatus('⚠ Bitte direkt auf eine Wand tippen.', 3); return; }
+      pushUndo();
+      const neu = { id: neueId('oe'), pos: treffer.t, breite: mode === 'tuer' ? 80 : 100, typ: mode };
+      if (!treffer.wand.oeffnungen) treffer.wand.oeffnungen = [];
+      treffer.wand.oeffnungen.push(neu);
+      speichernDaten(); draw(); updateStatus();
+      oeffnungAuswaehlen(neu);
+      showTempStatus((mode === 'tuer' ? '🚪 Tür' : '🪟 Fenster') + ' gesetzt – Breite rechts anpassbar.', 3);
+      return;
+    }
+    // select-Modus
+    const raumHit = hitTestRaum(x, y);
+    const wandHit = !raumHit ? findeNaechsteWand(x, y, 14) : null;
+    if (raumHit) {
+      if (selektion.typ === 'raum' && selektion.id === raumHit.id) { selektion = { typ: null, id: null }; schliesseEditor(); draw(); return; }
+      raumAuswaehlen(raumHit);
+      dragStart = { x, y }; dragObjStart = { x: raumHit.x, y: raumHit.y };
+      return;
+    }
+    if (wandHit) {
+      const w = wandHit.wand;
+      if (selektion.typ === 'wand' && selektion.id === w.id) { selektion = { typ: null, id: null }; schliesseEditor(); draw(); return; }
+      wandAuswaehlen(w);
+      dragStart = { x, y }; dragObjStart = { x1: w.x1, y1: w.y1, x2: w.x2, y2: w.y2 };
+      return;
+    }
+    selektion = { typ: null, id: null }; schliesseEditor(); draw();
+  }
+  function onMove(e) {
+    if (!dragStart) return;
+    const { x, y } = getPos(e);
+    if (mode === 'wand' && vorschau) {
+      vorschau.x2 = snap(x); vorschau.y2 = snap(y); draw(); return;
+    }
+    if (mode === 'raum' && vorschau) {
+      vorschau.w = snap(x) - vorschau.x; vorschau.h = snap(y) - vorschau.y; draw(); return;
+    }
+    if (mode === 'select' && selektion.typ === 'raum' && dragObjStart) {
+      const eb = aktiveEbene();
+      const r = eb.raeume.find(rr => rr.id === selektion.id);
+      if (r) { r.x = snap(dragObjStart.x + (x - dragStart.x)); r.y = snap(dragObjStart.y + (y - dragStart.y)); draw(); }
+      return;
+    }
+    if (mode === 'select' && selektion.typ === 'wand' && dragObjStart) {
+      const eb = aktiveEbene();
+      const w = eb.waende.find(ww => ww.id === selektion.id);
+      if (w) {
+        const dx = snap(x - dragStart.x), dy = snap(y - dragStart.y);
+        w.x1 = dragObjStart.x1 + dx; w.y1 = dragObjStart.y1 + dy;
+        w.x2 = dragObjStart.x2 + dx; w.y2 = dragObjStart.y2 + dy;
+        draw();
+      }
+      return;
+    }
+  }
+  function onUp() {
+    if (mode === 'wand' && vorschau) {
+      const laenge = Math.hypot(vorschau.x2 - vorschau.x1, vorschau.y2 - vorschau.y1);
+      if (laenge > 8) {
+        pushUndo();
+        const neu = { id: neueId('wand'), x1: vorschau.x1, y1: vorschau.y1, x2: vorschau.x2, y2: vorschau.y2, dicke: WAND_DICKE_STANDARD, oeffnungen: [] };
+        aktiveEbene().waende.push(neu);
+        speichernDaten(); wandAuswaehlen(neu); showTempStatus('🧱 Wand angelegt', 2);
+      }
+      vorschau = null; dragStart = null; draw(); updateStatus();
+      return;
+    }
+    if (mode === 'raum' && vorschau) {
+      let { x, y, w: bw, h: bh } = vorschau;
+      if (bw < 0) { x += bw; bw = -bw; }
+      if (bh < 0) { y += bh; bh = -bh; }
+      if (bw > 15 && bh > 15) {
+        pushUndo();
+        const neu = { id: neueId('raum'), x, y, w: bw, h: bh, name: 'Raum ' + (aktiveEbene().raeume.length + 1), farbe: RAUM_FARBEN[aktiveEbene().raeume.length % RAUM_FARBEN.length] };
+        aktiveEbene().raeume.push(neu);
+        speichernDaten(); raumAuswaehlen(neu); showTempStatus('⬛ Raum angelegt – Name rechts anpassen', 3);
+      }
+      vorschau = null; dragStart = null; draw(); updateStatus();
+      return;
+    }
+    if (dragStart && (selektion.typ === 'raum' || selektion.typ === 'wand')) {
+      speichernDaten();
+    }
+    dragStart = null; dragObjStart = null;
+  }
+  canvas.addEventListener('mousedown', onDown);
+  canvas.addEventListener('mousemove', onMove);
+  window.addEventListener('mouseup', onUp);
+  let touchAktionAktiv = false;
+  function ermittleZiel(x, y) {
+    if (mode !== 'select') return true;
+    return !!(hitTestRaum(x, y) || findeNaechsteWand(x, y, 14));
+  }
+  canvas.addEventListener('touchstart', e => {
+    const p = getPos(e);
+    touchAktionAktiv = ermittleZiel(p.x, p.y);
+    if (touchAktionAktiv) e.preventDefault();
+    onDown(e);
+  }, { passive: false });
+  canvas.addEventListener('touchmove', e => {
+    if (!touchAktionAktiv) return;
+    e.preventDefault();
+    onMove(e);
+  }, { passive: false });
+  canvas.addEventListener('touchend', e => {
+    if (touchAktionAktiv) e.preventDefault();
+    onUp();
+    touchAktionAktiv = false;
+  }, { passive: false });
+
+  // ---------- EDITOR (Sidebar) ----------
+  const RAUM_FARBEN = ['#e8d9c4', '#d9e8dc', '#dce0e8', '#f0dce0', '#e8e0d9', '#d9e4e8'];
+  function schliesseEditor() {
+    selektion = { typ: null, id: null };
+    document.getElementById('editorLeer').style.display = 'block';
+    document.getElementById('editorRaum').style.display = 'none';
+    document.getElementById('editorWand').style.display = 'none';
+    document.getElementById('editorOeffnung').style.display = 'none';
+  }
+  function raumAuswaehlen(r) {
+    selektion = { typ: 'raum', id: r.id };
+    document.getElementById('editorLeer').style.display = 'none';
+    document.getElementById('editorRaum').style.display = 'block';
+    document.getElementById('editorWand').style.display = 'none';
+    document.getElementById('editorOeffnung').style.display = 'none';
+    document.getElementById('raumName').value = r.name || '';
+    document.getElementById('raumBreite').value = (r.w / PX_PRO_M).toFixed(2);
+    document.getElementById('raumTiefe').value = (r.h / PX_PRO_M).toFixed(2);
+    aktualisiereRaumFlaeche(r);
+    const reihe = document.getElementById('raumFarbReihe');
+    reihe.innerHTML = '';
+    RAUM_FARBEN.forEach(f => {
+      const p = document.createElement('div');
+      p.className = 'farbe-punkt' + (r.farbe === f ? ' aktiv' : '');
+      p.style.background = f;
+      p.addEventListener('click', () => { pushUndo(); r.farbe = f; speichernDaten(); raumAuswaehlen(r); draw(); });
+      reihe.appendChild(p);
+    });
+    draw();
+  }
+  function aktualisiereRaumFlaeche(r) {
+    document.getElementById('raumFlaeche').textContent = ((r.w / PX_PRO_M) * (r.h / PX_PRO_M)).toFixed(2) + ' m²';
+  }
+  document.getElementById('raumName').addEventListener('input', (e) => {
+    const eb = aktiveEbene(); const r = eb.raeume.find(x => x.id === selektion.id);
+    if (!r) return; r.name = e.target.value; speichernDaten(); draw();
+  });
+  document.getElementById('raumBreite').addEventListener('input', (e) => {
+    const eb = aktiveEbene(); const r = eb.raeume.find(x => x.id === selektion.id);
+    if (!r) return; const m = parseFloat(e.target.value); if (!(m > 0)) return;
+    r.w = Math.round(m * PX_PRO_M); speichernDaten(); aktualisiereRaumFlaeche(r); draw();
+  });
+  document.getElementById('raumTiefe').addEventListener('input', (e) => {
+    const eb = aktiveEbene(); const r = eb.raeume.find(x => x.id === selektion.id);
+    if (!r) return; const m = parseFloat(e.target.value); if (!(m > 0)) return;
+    r.h = Math.round(m * PX_PRO_M); speichernDaten(); aktualisiereRaumFlaeche(r); draw();
+  });
+  document.getElementById('btnRaumLoeschen').addEventListener('click', () => {
+    if (!confirm('Diesen Raum wirklich löschen?')) return;
+    pushUndo();
+    const eb = aktiveEbene();
+    eb.raeume = eb.raeume.filter(r => r.id !== selektion.id);
+    speichernDaten(); schliesseEditor(); draw(); updateStatus();
+  });
+
+  function wandAuswaehlen(w) {
+    selektion = { typ: 'wand', id: w.id };
+    document.getElementById('editorLeer').style.display = 'none';
+    document.getElementById('editorRaum').style.display = 'none';
+    document.getElementById('editorWand').style.display = 'block';
+    document.getElementById('editorOeffnung').style.display = 'none';
+    document.getElementById('wandLaenge').textContent = (wandLaengePx(w) / PX_PRO_M).toFixed(2) + ' m';
+    document.getElementById('wandDicke').value = w.dicke || WAND_DICKE_STANDARD;
+    document.getElementById('wandDickeWert').textContent = (w.dicke || WAND_DICKE_STANDARD) + ' cm';
+    draw();
+  }
+  document.getElementById('wandDicke').addEventListener('input', (e) => {
+    const eb = aktiveEbene(); const w = eb.waende.find(x => x.id === selektion.id);
+    if (!w) return; w.dicke = parseInt(e.target.value, 10);
+    document.getElementById('wandDickeWert').textContent = w.dicke + ' cm';
+    speichernDaten(); draw();
+  });
+  document.getElementById('btnWandLoeschen').addEventListener('click', () => {
+    if (!confirm('Diese Wand wirklich löschen? Türen/Fenster darauf werden mit entfernt.')) return;
+    pushUndo();
+    const eb = aktiveEbene();
+    eb.waende = eb.waende.filter(w => w.id !== selektion.id);
+    speichernDaten(); schliesseEditor(); draw(); updateStatus();
+  });
+
+  function findeOeffnungMitWand(id) {
+    const eb = aktiveEbene();
+    for (const w of eb.waende) {
+      const o = (w.oeffnungen || []).find(x => x.id === id);
+      if (o) return { wand: w, oeffnung: o };
+    }
+    return null;
+  }
+  function oeffnungAuswaehlen(o) {
+    selektion = { typ: 'oeffnung', id: o.id };
+    document.getElementById('editorLeer').style.display = 'none';
+    document.getElementById('editorRaum').style.display = 'none';
+    document.getElementById('editorWand').style.display = 'none';
+    document.getElementById('editorOeffnung').style.display = 'block';
+    document.getElementById('oeffnungTitel').textContent = (o.typ === 'fenster' ? '🪟 Fenster' : '🚪 Tür') + ' bearbeiten';
+    document.getElementById('oeffnungBreite').value = o.breite || 80;
+    document.getElementById('oeffnungBreiteWert').textContent = (o.breite || 80) + ' cm';
+    draw();
+  }
+  document.getElementById('oeffnungBreite').addEventListener('input', (e) => {
+    const treffer = findeOeffnungMitWand(selektion.id);
+    if (!treffer) return;
+    treffer.oeffnung.breite = parseInt(e.target.value, 10);
+    document.getElementById('oeffnungBreiteWert').textContent = treffer.oeffnung.breite + ' cm';
+    speichernDaten(); draw();
+  });
+  document.getElementById('btnOeffnungLoeschen').addEventListener('click', () => {
+    const treffer = findeOeffnungMitWand(selektion.id);
+    if (!treffer) return;
+    pushUndo();
+    treffer.wand.oeffnungen = (treffer.wand.oeffnungen || []).filter(o => o.id !== selektion.id);
+    speichernDaten(); schliesseEditor(); draw();
+  });
+
+  // ---------- EBENEN (Stockwerke) ----------
+  function renderEbenenTabs() {
+    const box = document.getElementById('ebenenTabs');
+    box.innerHTML = '';
+    daten.ebenen.forEach(eb => {
+      const tab = document.createElement('div');
+      tab.className = 'eb-tab' + (eb.id === daten.aktiveEbeneId ? ' active' : '');
+      tab.innerHTML = escapeHtml(eb.name) + (daten.ebenen.length > 1 ? ' <span class="eb-del">✕</span>' : '');
+      tab.addEventListener('click', (e) => {
+        if (e.target.classList.contains('eb-del')) {
+          e.stopPropagation();
+          if (!confirm('Ebene "' + eb.name + '" inkl. aller Wände/Räume wirklich löschen?')) return;
+          pushUndo();
+          daten.ebenen = daten.ebenen.filter(x => x.id !== eb.id);
+          if (daten.aktiveEbeneId === eb.id) daten.aktiveEbeneId = daten.ebenen[0].id;
+          speichernDaten(); schliesseEditor(); renderEbenenTabs(); draw(); updateStatus();
+          return;
+        }
+        daten.aktiveEbeneId = eb.id;
+        speichernDaten(); schliesseEditor(); renderEbenenTabs(); draw(); updateStatus();
+      });
+      tab.addEventListener('dblclick', () => {
+        const neuerName = prompt('Ebene umbenennen:', eb.name);
+        if (neuerName && neuerName.trim()) { pushUndo(); eb.name = neuerName.trim(); speichernDaten(); renderEbenenTabs(); updateStatus(); }
+      });
+      box.appendChild(tab);
+    });
+    const neuBtn = document.createElement('button');
+    neuBtn.className = 'eb-tab-neu';
+    neuBtn.textContent = '➕ Ebene';
+    neuBtn.addEventListener('click', () => {
+      document.getElementById('neueEbeneName').value = '';
+      document.getElementById('modalNeueEbene').classList.add('zeigen');
+      setTimeout(() => document.getElementById('neueEbeneName').focus(), 50);
+    });
+    box.appendChild(neuBtn);
+  }
+  document.getElementById('btnNeueEbeneAbbrechen').addEventListener('click', () => document.getElementById('modalNeueEbene').classList.remove('zeigen'));
+  document.getElementById('modalNeueEbene').addEventListener('click', (e) => { if (e.target.id === 'modalNeueEbene') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnNeueEbeneAnlegen').addEventListener('click', () => {
+    const name = document.getElementById('neueEbeneName').value.trim();
+    if (!name) return;
+    pushUndo();
+    const neu = { id: neueId('eb'), name, waende: [], raeume: [] };
+    daten.ebenen.push(neu);
+    daten.aktiveEbeneId = neu.id;
+    speichernDaten(); renderEbenenTabs(); schliesseEditor(); draw(); updateStatus();
+    document.getElementById('modalNeueEbene').classList.remove('zeigen');
+  });
+
+  // ---------- DATEI-MENÜ ----------
+  function closeDropdowns() { document.querySelectorAll('.dropdown-menu.open').forEach(m => m.classList.remove('open')); }
+  document.getElementById('btnDateiToggle').addEventListener('click', () => {
+    const menu = document.getElementById('dateiMenu');
+    const isOpen = menu.classList.contains('open');
+    closeDropdowns();
+    if (isOpen) return;
+    menu.classList.add('open');
+    const rect = document.getElementById('btnDateiToggle').getBoundingClientRect();
+    menu.style.top = (rect.bottom + 6) + 'px';
+    menu.style.left = rect.left + 'px';
+  });
+  document.addEventListener('click', (e) => { if (!e.target.closest('.tool-dropdown')) closeDropdowns(); });
+  document.getElementById('btnEbeneLeeren').addEventListener('click', () => {
+    closeDropdowns();
+    if (!confirm('Alle Wände und Räume dieser Ebene wirklich löschen?')) return;
+    pushUndo();
+    const eb = aktiveEbene();
+    eb.waende = []; eb.raeume = [];
+    speichernDaten(); schliesseEditor(); draw(); updateStatus();
+  });
+  document.getElementById('btnPdfExport').addEventListener('click', () => {
+    closeDropdowns();
+    const eb = aktiveEbene();
+    let canvasImg = '';
+    try { canvasImg = canvas.toDataURL('image/png'); } catch (e) {}
+    const heute = new Date().toLocaleDateString('de-DE');
+    const raeumeHtml = eb.raeume.length ? `<table style="width:100%;border-collapse:collapse;margin-top:10px;font-size:12px;">
+      <tr><th style="text-align:left;border-bottom:1px solid #ccc;padding:4px;">Raum</th><th style="text-align:right;border-bottom:1px solid #ccc;padding:4px;">Fläche</th></tr>
+      ${eb.raeume.map(r => `<tr><td style="padding:4px;border-bottom:1px solid #eee;">${escapeHtml(r.name || 'Raum')}</td><td style="padding:4px;text-align:right;border-bottom:1px solid #eee;">${((r.w/PX_PRO_M)*(r.h/PX_PRO_M)).toFixed(2)} m²</td></tr>`).join('')}
+      <tr><td style="padding:4px;font-weight:700;">Gesamt</td><td style="padding:4px;text-align:right;font-weight:700;">${eb.raeume.reduce((s,r)=>s+(r.w/PX_PRO_M)*(r.h/PX_PRO_M),0).toFixed(2)} m²</td></tr>
+      </table>` : '';
+    const win = window.open('', '_blank');
+    if (!win) { showTempStatus('⚠ Pop-up blockiert – bitte Pop-ups für diese Seite erlauben.', 5); return; }
+    win.document.write(`<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"><title>Hausplan – ${escapeHtml(eb.name)}</title>
+      <style>
+        body{font-family:Arial,sans-serif;padding:24px;color:#222;}
+        h1{font-size:18px;margin-bottom:2px;} .muted{color:#666;font-size:12px;margin-bottom:14px;}
+        img{max-width:100%;border:1px solid #ccc;}
+        @media print { body{padding:0;} }
+      </style></head><body>
+      <h1>📐 Hausplan – ${escapeHtml(eb.name)}</h1>
+      <div class="muted">Erstellt am ${heute} · ${eb.waende.length} Wände · ${eb.raeume.length} Räume</div>
+      ${canvasImg ? `<img src="${canvasImg}" alt="Grundriss">` : ''}
+      ${raeumeHtml}
+      </body></html>`);
+    win.document.close();
+    win.onload = () => { win.focus(); win.print(); };
+    setTimeout(() => { try { win.focus(); win.print(); } catch (e) {} }, 400);
+  });
+
+  // ---------- Hintergrundmuster (🎨) – gleiches Muster wie in den anderen Modulen ----------
+  const themeBtn = document.getElementById('btnThemeAuswahl');
+  const themePopup = document.getElementById('themePopup');
+  themeBtn.addEventListener('click', () => themePopup.classList.toggle('zeigen'));
+  document.addEventListener('click', (e) => { if (!themePopup.contains(e.target) && e.target !== themeBtn) themePopup.classList.remove('zeigen'); });
+  const KEY_THEME = 'hausplan_hintergrundThema';
+  const KEY_FOTO = 'hausplan_hintergrundBildEigenes';
+  const MUSTER_KLASSEN = ['bg-lineal', 'bg-grundriss'];
+  function themeAnwenden(id) {
+    document.body.classList.remove.apply(document.body.classList, MUSTER_KLASSEN);
+    document.body.style.backgroundColor = '';
+    document.body.style.backgroundImage = '';
+    document.body.style.backgroundSize = '';
+    document.body.style.backgroundPosition = '';
+    document.body.style.backgroundRepeat = '';
+    let eigenesFoto = '';
+    try { eigenesFoto = localStorage.getItem(KEY_FOTO) || ''; } catch (e) {}
+    if (id === 'foto' && eigenesFoto) {
+      document.body.style.backgroundImage = 'linear-gradient(rgba(250,246,236,0.82),rgba(250,246,236,0.82)), url("' + eigenesFoto + '")';
+      document.body.style.backgroundSize = 'cover';
+      document.body.style.backgroundPosition = 'center';
+      document.body.style.backgroundRepeat = 'no-repeat';
+    } else if (id && id.indexOf('farbe:') === 0) {
+      document.body.style.backgroundColor = id.slice(6) + 'b3';
+    } else if (id) {
+      document.body.classList.add(id);
+    }
+    try { localStorage.setItem(KEY_THEME, id || ''); } catch (e) {}
+    document.querySelectorAll('.theme-swatch').forEach(s => s.classList.toggle('aktiv', s.dataset.theme === id));
+  }
+  document.querySelectorAll('.theme-swatch[data-theme]').forEach(s => s.addEventListener('click', () => { themeAnwenden(s.dataset.theme); themePopup.classList.remove('zeigen'); }));
+  const customFarbeInput = document.querySelector('.theme-farbe-custom-input');
+  if (customFarbeInput) customFarbeInput.addEventListener('input', () => themeAnwenden('farbe:' + customFarbeInput.value));
+  const fotoInput = document.querySelector('.theme-foto-input');
+  if (fotoInput) {
+    fotoInput.addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const img = new Image();
+        img.onload = () => {
+          const maxW = 900;
+          const scale = Math.min(1, maxW / img.width);
+          const c = document.createElement('canvas');
+          c.width = img.width * scale; c.height = img.height * scale;
+          c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+          const dataUrl = c.toDataURL('image/jpeg', 0.65);
+          try { localStorage.setItem(KEY_FOTO, dataUrl); } catch (err) { alert('Foto konnte nicht gespeichert werden (evtl. zu groß oder Speicher voll).'); return; }
+          themeAnwenden('foto');
+        };
+        img.onerror = () => alert('Datei ist kein gültiges Bild.');
+        img.src = ev.target.result;
+      };
+      reader.onerror = () => alert('Foto konnte nicht gelesen werden.');
+      reader.readAsDataURL(file);
+    });
+  }
+  try { const g = localStorage.getItem(KEY_THEME); if (g) themeAnwenden(g); } catch (e) {}
+
+  // ---------- INIT ----------
+  renderEbenenTabs();
+  resizeCanvas();
+  updateUndoButtons();
+  updateStatus();
+  setTimeout(positioniereZoomWidget, 30);
+
+  if (window.PlanerSync) {
+    window._sync = window.PlanerSync.starteSync({
+      modul: 'hausplan',
+      keys: [KEY_HAUSPLAN],
+      onRemoteChange: function () {
+        daten = laden(KEY_HAUSPLAN, daten);
+        schliesseEditor(); renderEbenenTabs(); draw(); updateStatus();
+      },
+    });
+  }
+})();
+</script>
+</body>
+</html>
