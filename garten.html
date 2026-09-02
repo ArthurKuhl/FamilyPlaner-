@@ -258,8 +258,9 @@
   .pp-swipe-hinweis.links { left: 14px; }
   .pp-swipe-hinweis.rechts { right: 14px; }
   .pp-swipe-hinweis.zeigen { opacity: 0.9; }
-  .pp-tabs { display: flex; gap: 4px; margin-bottom: 18px; flex-wrap: wrap; border-bottom: 2px solid var(--parchment); padding-bottom: 0; }
-  .pp-tab { padding: 9px 14px 10px; border-radius: 10px 10px 0 0; font-size: 0.75rem; font-weight: 700; border: none; background: transparent; color: var(--bark); cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s; opacity: 0.7; border-bottom: 2px solid transparent; margin-bottom: -2px; }
+  .pp-tabs { display: flex; gap: 2px; margin-bottom: 18px; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; border-bottom: 2px solid var(--parchment); padding-bottom: 0; }
+  .pp-tabs::-webkit-scrollbar { display: none; }
+  .pp-tab { padding: 9px 10px 10px; border-radius: 10px 10px 0 0; font-size: 0.7rem; font-weight: 700; border: none; background: transparent; color: var(--bark); cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s; opacity: 0.7; border-bottom: 2px solid transparent; margin-bottom: -2px; white-space: nowrap; flex-shrink: 0; }
   .pp-tab:hover { opacity: 1; background: rgba(74,111,90,0.08); }
   .pp-tab.active { opacity: 1; color: var(--moss); border-bottom: 2px solid var(--moss); }
   .pp-tab-content { display: none; }
