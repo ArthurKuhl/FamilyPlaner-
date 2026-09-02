@@ -1003,6 +1003,7 @@
       </div>
     </div>
     <div id="sowingHint" style="display:none;margin-top:12px"></div>
+    <div id="rueckschnittHint" style="display:none;margin-top:12px"></div>
   </div>
 
   <!-- PP TAB: Nachbarn (Mischkultur) -->
@@ -1233,6 +1234,7 @@
       </div>
     </div>
     <div id="fpSowingHint" style="display:none;margin-top:12px"></div>
+    <div id="fpRueckschnittHint" style="display:none;margin-top:12px"></div>
   </div>
 
   <!-- FP TAB: Blatt-/Fruchtsymptome -->
@@ -2270,6 +2272,33 @@ const CARE_INFO = {
   'Petunie':     { waterDays: 2, fertilizeDays: 14, harvestDays: 0 },
   'Hortensie':   { waterDays: 3, fertilizeDays: 21, harvestDays: 0 },
 };
+// ==================== RÜCKSCHNITT-KALENDER (Gehölze) ====================
+// Monate: 1=Jan … 12=Dez. monate: [vonMonat, bisMonat] – bevorzugte Zeitspanne für den
+// Rückschnitt. hinweis: kurzer Grund/Tipp, warum gerade dieser Zeitraum.
+const RUECKSCHNITT = {
+  'Apfelbaum':      { monate: [1,3],  hinweis: 'Winterschnitt in der Saftruhe, an frostfreien Tagen.' },
+  'Birnbaum':       { monate: [1,3],  hinweis: 'Winterschnitt in der Saftruhe, an frostfreien Tagen.' },
+  'Kirschbaum':     { monate: [6,8],  hinweis: 'Steinobst nur im Sommer nach der Ernte schneiden (Krankheitsrisiko im Winter).' },
+  'Pflaume':        { monate: [6,8],  hinweis: 'Steinobst nur im Sommer nach der Ernte schneiden (Krankheitsrisiko im Winter).' },
+  'Zwetschge':      { monate: [6,8],  hinweis: 'Steinobst nur im Sommer nach der Ernte schneiden (Krankheitsrisiko im Winter).' },
+  'Aprikose':       { monate: [6,8],  hinweis: 'Steinobst nur im Sommer nach der Ernte schneiden (Krankheitsrisiko im Winter).' },
+  'Pfirsich':       { monate: [6,8],  hinweis: 'Steinobst nur im Sommer nach der Ernte schneiden (Krankheitsrisiko im Winter).' },
+  'Feige':          { monate: [2,3],  hinweis: 'Spätwinter, kurz vor dem Austrieb.' },
+  'Kiwi':           { monate: [1,2],  hinweis: 'Winterschnitt vor Austrieb, bevor der Saft steigt.' },
+  'Walnuss':        { monate: [8,9],  hinweis: 'Spätsommer/Herbst schneiden – im Frühjahr "blutet" der Baum stark.' },
+  'Weinrebe':        { monate: [12,2], hinweis: 'Winterschnitt vor dem Austrieb, bevor der Saft steigt.' },
+  'Rose':           { monate: [3,4],  hinweis: 'Zeitiges Frühjahr, vor dem Austrieb.' },
+  'Lavendel':       { monate: [4,4],  hinweis: 'Frühjahr, nicht ins alte Holz schneiden – zusätzlich nach der Blüte (Aug/Sep) formen.' },
+  'Hortensie':      { monate: [2,3],  hinweis: 'Zeitiges Frühjahr; Bauernhortensien nur ausgeblühte Triebe entfernen, nicht stark schneiden.' },
+  'Flieder':        { monate: [5,6],  hinweis: 'Direkt nach der Blüte, sonst wird die Blüte fürs nächste Jahr entfernt.' },
+  'Forsythie':      { monate: [4,5],  hinweis: 'Direkt nach der Blüte, sonst wird die Blüte fürs nächste Jahr entfernt.' },
+  'Johannisbeere':  { monate: [11,2], hinweis: 'Winter-Ruhephase, alte Triebe bodennah entfernen.' },
+  'Stachelbeere':   { monate: [11,2], hinweis: 'Winter-Ruhephase, alte Triebe bodennah entfernen.' },
+  'Himbeere':       { monate: [8,9],  hinweis: 'Nach der Ernte alte Ruten bodennah zurückschneiden (Sommer-/Herbstsorten beachten).' },
+  'Brombeere':      { monate: [8,9],  hinweis: 'Nach der Ernte alte Ruten bodennah zurückschneiden.' },
+  'Buchsbaum':      { monate: [6,6],  hinweis: 'Formschnitt außerhalb der Vogelbrutzeit (in Deutschland: radikaler Rückschnitt 1. März – 30. Sept. gesetzlich untersagt, § 39 BNatSchG – leichter Formschnitt bleibt erlaubt).' },
+  'Hecke':          { monate: [6,6],  hinweis: 'Formschnitt außerhalb der Vogelbrutzeit (in Deutschland: radikaler Rückschnitt 1. März – 30. Sept. gesetzlich untersagt, § 39 BNatSchG – leichter Formschnitt bleibt erlaubt).' },
+};
 // ==================== AUSSAATKALENDER ====================
 // Monate: 1=Jan … 12=Dez. null = kein Wert.
 // vorziehen: [vonMonat, bisMonat], direktsaat: [...], auspflanzen: [...]
@@ -2491,9 +2520,10 @@ function createSowingReminder(name, phaseKey, startMonth) {
   const now = new Date(); now.setHours(0,0,0,0);
   let start = new Date(now.getFullYear(), startMonth-1, 1);
   if ((now - start) > 180*86400000) start = new Date(now.getFullYear()+1, startMonth-1, 1);
-  const phaseLabels = { vorziehen: 'Vorziehen (Voranzucht)', direktsaat: 'Direktsaat', auspflanzen: 'Auspflanzen' };
+  const phaseLabels = { vorziehen: 'Vorziehen (Voranzucht)', direktsaat: 'Direktsaat', auspflanzen: 'Auspflanzen', rueckschnitt: 'Rückschnitt' };
   const label = phaseLabels[phaseKey] || phaseKey;
-  const title = `🌱 ${label}: ${name}`;
+  const icon = phaseKey === 'rueckschnitt' ? '✂️' : '🌱';
+  const title = `${icon} ${label}: ${name}`;
   const desc = `Gartenplaner-Erinnerung: Zeit für "${label}" von ${name}.`;
   const ics = buildTaskICS(title, desc, start, 6, 0);
   downloadICS(ics, `aussaat-${name.toLowerCase().replace(/[^a-z0-9]+/gi,'-')}-${phaseKey}.ics`);
@@ -2502,9 +2532,10 @@ function createSowingReminderDirekt(name, phaseKey, startMonth) {
   const now = new Date(); now.setHours(0,0,0,0);
   let start = new Date(now.getFullYear(), startMonth-1, 1);
   if ((now - start) > 180*86400000) start = new Date(now.getFullYear()+1, startMonth-1, 1);
-  const phaseLabels = { vorziehen: 'Vorziehen (Voranzucht)', direktsaat: 'Direktsaat', auspflanzen: 'Auspflanzen' };
+  const phaseLabels = { vorziehen: 'Vorziehen (Voranzucht)', direktsaat: 'Direktsaat', auspflanzen: 'Auspflanzen', rueckschnitt: 'Rückschnitt' };
   const label = phaseLabels[phaseKey] || phaseKey;
-  gartenTerminDirektEintragen(`🌱 ${label}: ${name}`, `Gartenplaner-Erinnerung: Zeit für "${label}" von ${name}.`, start);
+  const icon = phaseKey === 'rueckschnitt' ? '✂️' : '🌱';
+  gartenTerminDirektEintragen(`${icon} ${label}: ${name}`, `Gartenplaner-Erinnerung: Zeit für "${label}" von ${name}.`, start);
 }
 function renderSowingCalendar(filter) {
   filter=(filter||'').trim().toLowerCase();
@@ -2586,6 +2617,21 @@ function renderSowingHint(plantName, targetId) {
     <span style="color:#5a4832">${parts.join(' · ')}</span>${stockNote}
   </div>`;
   box.style.display='block';
+}
+function renderRueckschnittHint(plantName, targetId) {
+  const box = document.getElementById(targetId);
+  if (!box) return;
+  const info = RUECKSCHNITT[plantName];
+  if (!info || !info.monate) { box.style.display = 'none'; box.innerHTML = ''; return; }
+  const currentMonth = new Date().getMonth() + 1;
+  const aktiv = isInWindow(info.monate, currentMonth);
+  const zeitraum = monthRange(info.monate);
+  box.style.display = 'block';
+  box.innerHTML = `<div style="font-size:0.76rem;padding:10px 12px;border-radius:9px;background:${aktiv?'#f0f8ec':'#fdf3e6'};border-left:4px solid ${aktiv?'#4a6f5c':'#a8763e'};color:#2c2415">
+    <strong>✂️ Rückschnitt: ${zeitraum}</strong>${aktiv ? ' <span style="color:#4a6f5c;font-weight:700;">· jetzt dran</span>' : ''}
+    <button onclick="createSowingReminder(${jsAttrStr(plantName)},'rueckschnitt',${info.monate[0]})" title="Erinnerung für Kalender-App erstellen" style="background:none;border:none;cursor:pointer;font-size:0.7rem;padding:0;opacity:0.7;margin-left:4px;">📅</button><button onclick="createSowingReminderDirekt(${jsAttrStr(plantName)},'rueckschnitt',${info.monate[0]})" title="Direkt ins Termine-Modul eintragen" style="background:none;border:none;cursor:pointer;font-size:0.7rem;padding:0;opacity:0.7;">📌</button>
+    <br><span style="color:#5a4832">${info.hinweis}</span>
+  </div>`;
 }
 
 // ==================== SORTENDATENBANK ====================
@@ -6053,6 +6099,7 @@ function openFreiPflanzePanel(fp) {
   populateHarvestMethodSelect();
   renderFreiPflanzePhoto(fp);
   renderSowingHint(fp.name || '', 'fpSowingHint');
+  renderRueckschnittHint(fp.name || '', 'fpRueckschnittHint');
   document.getElementById('fpHarvestDate').value = new Date().toISOString().slice(0,10);
   document.getElementById('fpHarvestAmount').value = '';
   document.getElementById('fpHarvestMethod').value = '';
@@ -6123,6 +6170,7 @@ function fpAutoSave() {
   saveData(); draw(); renderFreiPflanzenList();
   document.getElementById('freiPflanzeTitel').innerHTML = escapeHtml((fp.sym||'🌳') + ' ' + (fp.name || 'Baum/Strauch')) + (isPerennial(fp.name)?' <button type="button" class="pp-lebenszyklus-badge" onclick="togglePerennialInfo(event)" title="Mehr erfahren" aria-label="Info: mehrjährig">🔄</button>':'');
   renderSowingHint(fp.name || '', 'fpSowingHint');
+  renderRueckschnittHint(fp.name || '', 'fpRueckschnittHint');
   if (document.getElementById('fpt-preserve')?.classList.contains('active')) renderPreservePlantTab(fp.name || '', 'fpPreserveResult');
 }
 function renderFreiPflanzePhoto(fp) {
@@ -6422,6 +6470,7 @@ function openPlantPanel(bed,idx) {
   renderPlantPhoto(plant);
   renderNeighbors(bed,idx);
   renderSowingHint(plant.name||'');
+  renderRueckschnittHint(plant.name||'', 'rueckschnittHint');
   renderVarietyDatalist(plant.name||'');
   document.getElementById('ppHarvestDate').value = new Date().toISOString().slice(0,10);
   document.getElementById('ppHarvestAmount').value = '';
@@ -6849,6 +6898,7 @@ function savePlantInfo(){
   saveData(); draw();
   renderNeighbors(bed,activePlantBedId.idx);
   renderSowingHint(plant.name||'');
+  renderRueckschnittHint(plant.name||'', 'rueckschnittHint');
   renderVarietyDatalist(plant.name||'');
   if (document.getElementById('ppt-preserve')?.classList.contains('active')) renderPreservePlantTab(plant.name||'');
   if (selectedBed===bed) renderBedPlantList(bed, document.getElementById('bedPlantSearch')?.value||'');
