@@ -167,6 +167,10 @@
   <button class="tool-btn" data-mode="tuer" title="Auf eine Wand tippen, um eine Tür zu setzen">🚪 Tür</button>
   <button class="tool-btn" data-mode="fenster" title="Auf eine Wand tippen, um ein Fenster zu setzen">🪟 Fenster</button>
   <button class="tool-btn" data-mode="notiz" title="Antippen, um eine Text-Notiz zu platzieren">📝 Notiz</button>
+  <div class="tool-dropdown">
+    <button class="tool-btn" id="btnMoebelToggle" title="Möbel-Platzhalter wählen und platzieren">🪑 Möbel</button>
+    <div class="dropdown-menu" id="moebelMenu"></div>
+  </div>
   <div class="tool-sep"></div>
   <div class="tool-dropdown">
     <button class="tool-btn" id="btnDateiToggle" title="Speichern, exportieren">📁 Datei</button>
@@ -290,6 +294,29 @@
       </div>
       <p style="font-size:0.75rem;color:var(--bark);">Zum Verschieben einfach im Auswählen-Modus ziehen.</p>
     </div>
+
+    <div class="sidebar-section" id="editorMoebel" style="display:none;">
+      <div class="sidebar-title" id="moebelTitel">🪑 Möbel bearbeiten</div>
+      <div class="zeile-2">
+        <div class="form-row">
+          <label>Breite (cm)</label>
+          <input type="number" id="moebelBreite" min="10" step="5">
+        </div>
+        <div class="form-row">
+          <label>Tiefe (cm)</label>
+          <input type="number" id="moebelTiefe" min="10" step="5">
+        </div>
+      </div>
+      <div class="form-row">
+        <label>Drehung (°): <span id="moebelDrehungWert">0°</span></label>
+        <input type="range" id="moebelDrehung" min="0" max="359" step="1">
+        <div style="display:flex;gap:6px;margin-top:6px;">
+          <button type="button" class="tool-btn" id="btnMoebelDrehen45" style="flex:1;background:var(--white);color:var(--soil);border:1px solid var(--parchment);">↻ 45°</button>
+          <button type="button" class="tool-btn" id="btnMoebelDrehen90" style="flex:1;background:var(--white);color:var(--soil);border:1px solid var(--parchment);">↻ 90°</button>
+        </div>
+      </div>
+      <button class="btn-danger" id="btnMoebelLoeschen">🗑 Möbel löschen</button>
+    </div>
   </div>
 </div>
 
@@ -328,14 +355,14 @@
   if (!daten || !daten.ebenen || !daten.ebenen.length) {
     daten = {
       ebenen: [
-        { id: neueId('eb'), name: 'Erdgeschoss', waende: [], raeume: [], notizen: [] }
+        { id: neueId('eb'), name: 'Erdgeschoss', waende: [], raeume: [], notizen: [], moebel: [] }
       ],
       aktiveEbeneId: null
     };
     daten.aktiveEbeneId = daten.ebenen[0].id;
   }
   // Ältere gespeicherte Pläne (vor Notizen/Nordpfeil) auf das aktuelle Format bringen
-  daten.ebenen.forEach(eb => { if (!eb.notizen) eb.notizen = []; });
+  daten.ebenen.forEach(eb => { if (!eb.notizen) eb.notizen = []; if (!eb.moebel) eb.moebel = []; });
   if (!daten.kompass) daten.kompass = { x: 60, y: 60, rotation: 0, sichtbar: false };
   function aktiveEbene() { return daten.ebenen.find(e => e.id === daten.aktiveEbeneId) || daten.ebenen[0]; }
   function speichernDaten() { speichern(KEY_HAUSPLAN, daten); }
@@ -457,6 +484,8 @@
     eb.waende.forEach(w => drawWand(w, w.id === selektion.id && selektion.typ === 'wand'));
     // Notizen
     (eb.notizen || []).forEach(n => drawNotiz(n, n.id === selektion.id && selektion.typ === 'notiz'));
+    // Möbel-Platzhalter
+    (eb.moebel || []).forEach(m => drawMoebel(m, m.id === selektion.id && selektion.typ === 'moebel'));
     // Nordpfeil
     if (daten.kompass && daten.kompass.sichtbar) drawKompass();
     // Live-Vorschau beim Zeichnen
@@ -620,6 +649,33 @@
     }
     return null;
   }
+  function drawMoebel(m, selected) {
+    const t = moebelTypInfo(m.typ);
+    ctx.save();
+    ctx.translate(m.x, m.y);
+    ctx.rotate((m.rotation || 0) * Math.PI / 180);
+    ctx.fillStyle = selected ? 'rgba(192,99,58,0.25)' : 'rgba(74,111,90,0.16)';
+    ctx.strokeStyle = selected ? '#c0633a' : '#4a6f5c';
+    ctx.lineWidth = selected ? 2 : 1.3;
+    ctx.fillRect(-m.w / 2, -m.h / 2, m.w, m.h);
+    ctx.strokeRect(-m.w / 2, -m.h / 2, m.w, m.h);
+    ctx.fillStyle = '#3b2f1e'; ctx.font = '13px Inter,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(t.icon, 0, 0);
+    ctx.restore();
+  }
+  function hitTestMoebel(x, y) {
+    const eb = aktiveEbene();
+    const liste = eb.moebel || [];
+    for (let i = liste.length - 1; i >= 0; i--) {
+      const m = liste[i];
+      const winkel = -(m.rotation || 0) * Math.PI / 180;
+      const dx = x - m.x, dy = y - m.y;
+      const lx = dx * Math.cos(winkel) - dy * Math.sin(winkel);
+      const ly = dx * Math.sin(winkel) + dy * Math.cos(winkel);
+      if (lx >= -m.w / 2 && lx <= m.w / 2 && ly >= -m.h / 2 && ly <= m.h / 2) return m;
+    }
+    return null;
+  }
   function drawKompass() {
     const k = daten.kompass;
     ctx.save();
@@ -671,6 +727,49 @@
   let dragObjStart = null;
   const WAND_DICKE_STANDARD = 20;
 
+  // ---------- MÖBEL-PLATZHALTER ----------
+  const MOEBEL_TYPEN = [
+    { id: 'bett1', label: 'Bett (Einzel)', icon: '🛏️', w: 90, h: 200 },
+    { id: 'bett2', label: 'Bett (Doppel)', icon: '🛏️', w: 180, h: 200 },
+    { id: 'sofa', label: 'Sofa', icon: '🛋️', w: 200, h: 90 },
+    { id: 'sessel', label: 'Sessel', icon: '🪑', w: 80, h: 80 },
+    { id: 'tisch', label: 'Tisch', icon: '🍽️', w: 120, h: 80 },
+    { id: 'stuhl', label: 'Stuhl', icon: '🪑', w: 45, h: 45 },
+    { id: 'schrank', label: 'Schrank', icon: '🗄️', w: 60, h: 150 },
+    { id: 'kuehlschrank', label: 'Kühlschrank', icon: '🧊', w: 70, h: 70 },
+    { id: 'herd', label: 'Herd', icon: '🍳', w: 60, h: 60 },
+    { id: 'spuele', label: 'Spüle', icon: '🚰', w: 60, h: 60 },
+    { id: 'wc', label: 'WC', icon: '🚽', w: 40, h: 60 },
+    { id: 'waschbecken', label: 'Waschbecken', icon: '🧼', w: 50, h: 40 },
+    { id: 'dusche', label: 'Dusche', icon: '🚿', w: 90, h: 90 },
+    { id: 'badewanne', label: 'Badewanne', icon: '🛁', w: 170, h: 75 },
+    { id: 'treppe', label: 'Treppe', icon: '🪜', w: 100, h: 250 },
+  ];
+  function moebelTypInfo(id) { return MOEBEL_TYPEN.find(t => t.id === id) || MOEBEL_TYPEN[0]; }
+  let aktiverMoebelTyp = null;
+  function renderMoebelMenu() {
+    const menu = document.getElementById('moebelMenu');
+    menu.innerHTML = MOEBEL_TYPEN.map(t => `<button class="tool-btn" data-moebeltyp="${t.id}">${t.icon} ${t.label}</button>`).join('');
+    menu.querySelectorAll('[data-moebeltyp]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        aktiverMoebelTyp = btn.dataset.moebeltyp;
+        setMode('moebel');
+        closeDropdowns();
+        showTempStatus(moebelTypInfo(aktiverMoebelTyp).icon + ' ' + moebelTypInfo(aktiverMoebelTyp).label + ' – antippen zum Platzieren', 3);
+      });
+    });
+  }
+  document.getElementById('btnMoebelToggle').addEventListener('click', () => {
+    const menu = document.getElementById('moebelMenu');
+    const isOpen = menu.classList.contains('open');
+    closeDropdowns();
+    if (isOpen) return;
+    menu.classList.add('open');
+    const rect = document.getElementById('btnMoebelToggle').getBoundingClientRect();
+    menu.style.top = (rect.bottom + 6) + 'px';
+    menu.style.left = rect.left + 'px';
+  });
+
   function setMode(m) {
     if (mode === 'wand' && m !== 'wand') wandKetteBeenden(true);
     if (mode === 'raumfrei' && m !== 'raumfrei') raumFreiBeenden(true);
@@ -681,7 +780,7 @@
   }
   document.querySelectorAll('.tool-btn[data-mode]').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
   function updateStatus() {
-    const labels = { select: 'Auswählen/Verschieben', wand: 'Wand zeichnen – Punkt für Punkt antippen', raum: 'Raum zeichnen', raumfrei: 'Freiform-Raum – Ecken antippen, am Start schließen', tuer: 'Tür setzen – auf eine Wand tippen', fenster: 'Fenster setzen – auf eine Wand tippen', notiz: 'Notiz setzen – antippen, wo sie stehen soll' };
+    const labels = { select: 'Auswählen/Verschieben', wand: 'Wand zeichnen – Punkt für Punkt antippen', raum: 'Raum zeichnen', raumfrei: 'Freiform-Raum – Ecken antippen, am Start schließen', tuer: 'Tür setzen – auf eine Wand tippen', fenster: 'Fenster setzen – auf eine Wand tippen', notiz: 'Notiz setzen – antippen, wo sie stehen soll', moebel: (aktiverMoebelTyp ? moebelTypInfo(aktiverMoebelTyp).label + ' – antippen zum Platzieren' : 'Möbel platzieren') };
     const eb = aktiveEbene();
     const gesamtFlaeche = eb.raeume.reduce((s, r) => s + (r.w / PX_PRO_M) * (r.h / PX_PRO_M), 0);
     document.getElementById('hpStatus').innerHTML =
@@ -827,6 +926,20 @@
       }
       return;
     }
+    if (mode === 'moebel' && aktiverMoebelTyp) {
+      const p = { x: snap(x), y: snap(y) };
+      const t = moebelTypInfo(aktiverMoebelTyp);
+      pushUndo();
+      const eb = aktiveEbene();
+      if (!eb.moebel) eb.moebel = [];
+      const neu = { id: neueId('moebel'), typ: t.id, x: p.x, y: p.y, w: t.w / 100 * PX_PRO_M, h: t.h / 100 * PX_PRO_M, rotation: 0 };
+      eb.moebel.push(neu);
+      speichernDaten(); draw(); updateStatus();
+      setMode('select');
+      moebelAuswaehlen(neu);
+      showTempStatus(t.icon + ' ' + t.label + ' platziert', 3);
+      return;
+    }
     if (mode === 'tuer' || mode === 'fenster') {
       const treffer = findeNaechsteWand(x, y, 22);
       if (!treffer) { showTempStatus('⚠ Bitte direkt auf eine Wand tippen.', 3); return; }
@@ -848,12 +961,19 @@
       return;
     }
     const notizHit = hitTestNotiz(x, y);
-    const raumHit = !notizHit ? hitTestRaum(x, y) : null;
-    const wandHit = (!notizHit && !raumHit) ? findeNaechsteWand(x, y, 14) : null;
+    const moebelHit = !notizHit ? hitTestMoebel(x, y) : null;
+    const raumHit = (!notizHit && !moebelHit) ? hitTestRaum(x, y) : null;
+    const wandHit = (!notizHit && !moebelHit && !raumHit) ? findeNaechsteWand(x, y, 14) : null;
     if (notizHit) {
       if (selektion.typ === 'notiz' && selektion.id === notizHit.id) { selektion = { typ: null, id: null }; schliesseEditor(); draw(); return; }
       notizAuswaehlen(notizHit);
       dragStart = { x, y }; dragObjStart = { x: notizHit.x, y: notizHit.y };
+      return;
+    }
+    if (moebelHit) {
+      if (selektion.typ === 'moebel' && selektion.id === moebelHit.id) { selektion = { typ: null, id: null }; schliesseEditor(); draw(); return; }
+      moebelAuswaehlen(moebelHit);
+      dragStart = { x, y }; dragObjStart = { x: moebelHit.x, y: moebelHit.y };
       return;
     }
     if (raumHit) {
@@ -881,6 +1001,12 @@
       const eb = aktiveEbene();
       const n = (eb.notizen || []).find(nn => nn.id === selektion.id);
       if (n) { n.x = snap(dragObjStart.x + (x - dragStart.x)); n.y = snap(dragObjStart.y + (y - dragStart.y)); draw(); }
+      return;
+    }
+    if (mode === 'select' && selektion.typ === 'moebel' && dragObjStart) {
+      const eb = aktiveEbene();
+      const m = (eb.moebel || []).find(mm => mm.id === selektion.id);
+      if (m) { m.x = snap(dragObjStart.x + (x - dragStart.x)); m.y = snap(dragObjStart.y + (y - dragStart.y)); draw(); }
       return;
     }
     if (mode === 'select' && selektion.typ === 'kompass' && dragObjStart) {
@@ -934,7 +1060,7 @@
       vorschau = null; dragStart = null; draw(); updateStatus();
       return;
     }
-    if (dragStart && (selektion.typ === 'raum' || selektion.typ === 'wand' || selektion.typ === 'notiz' || selektion.typ === 'kompass')) {
+    if (dragStart && (selektion.typ === 'raum' || selektion.typ === 'wand' || selektion.typ === 'notiz' || selektion.typ === 'kompass' || selektion.typ === 'moebel')) {
       speichernDaten();
     }
     dragStart = null; dragObjStart = null;
@@ -974,6 +1100,7 @@
     document.getElementById('editorOeffnung').style.display = 'none';
     document.getElementById('editorNotiz').style.display = 'none';
     document.getElementById('editorKompass').style.display = 'none';
+    document.getElementById('editorMoebel').style.display = 'none';
   }
   // Scrollt den Bearbeiten-Bereich sichtbar ins Bild – auf dem Handy steht er unterhalb
   // der (oft hohen) Zeichenfläche und würde sonst leicht übersehen werden.
@@ -1224,6 +1351,64 @@
     showTempStatus(daten.kompass.sichtbar ? '🧭 Nordpfeil eingeblendet – im Auswählen-Modus antippen zum Ausrichten/Verschieben' : '🧭 Nordpfeil ausgeblendet', 4);
   });
 
+  // ---------- MÖBEL-EDITOR ----------
+  function moebelAuswaehlen(m) {
+    selektion = { typ: 'moebel', id: m.id };
+    document.getElementById('editorLeer').style.display = 'none';
+    document.getElementById('editorRaum').style.display = 'none';
+    document.getElementById('editorWand').style.display = 'none';
+    document.getElementById('editorOeffnung').style.display = 'none';
+    document.getElementById('editorNotiz').style.display = 'none';
+    document.getElementById('editorKompass').style.display = 'none';
+    document.getElementById('editorMoebel').style.display = 'block';
+    scrolleZumEditor();
+    const t = moebelTypInfo(m.typ);
+    document.getElementById('moebelTitel').textContent = t.icon + ' ' + t.label + ' bearbeiten';
+    document.getElementById('moebelBreite').value = Math.round(m.w / PX_PRO_M * 100);
+    document.getElementById('moebelTiefe').value = Math.round(m.h / PX_PRO_M * 100);
+    document.getElementById('moebelDrehung').value = m.rotation || 0;
+    document.getElementById('moebelDrehungWert').textContent = (m.rotation || 0) + '°';
+    draw();
+  }
+  function aktuellesMoebel() {
+    const eb = aktiveEbene();
+    return (eb.moebel || []).find(m => m.id === selektion.id);
+  }
+  document.getElementById('moebelBreite').addEventListener('input', (e) => {
+    const m = aktuellesMoebel(); if (!m) return;
+    const cm = parseFloat(e.target.value); if (!(cm > 0)) return;
+    m.w = cm / 100 * PX_PRO_M; speichernDaten(); draw();
+  });
+  document.getElementById('moebelTiefe').addEventListener('input', (e) => {
+    const m = aktuellesMoebel(); if (!m) return;
+    const cm = parseFloat(e.target.value); if (!(cm > 0)) return;
+    m.h = cm / 100 * PX_PRO_M; speichernDaten(); draw();
+  });
+  document.getElementById('moebelDrehung').addEventListener('focus', () => pushUndo());
+  document.getElementById('moebelDrehung').addEventListener('input', (e) => {
+    const m = aktuellesMoebel(); if (!m) return;
+    m.rotation = parseInt(e.target.value, 10);
+    document.getElementById('moebelDrehungWert').textContent = m.rotation + '°';
+    speichernDaten(); draw();
+  });
+  function moebelUmDrehungAendern(delta) {
+    const m = aktuellesMoebel(); if (!m) return;
+    pushUndo();
+    m.rotation = ((m.rotation || 0) + delta + 360) % 360;
+    document.getElementById('moebelDrehung').value = m.rotation;
+    document.getElementById('moebelDrehungWert').textContent = m.rotation + '°';
+    speichernDaten(); draw();
+  }
+  document.getElementById('btnMoebelDrehen45').addEventListener('click', () => moebelUmDrehungAendern(45));
+  document.getElementById('btnMoebelDrehen90').addEventListener('click', () => moebelUmDrehungAendern(90));
+  document.getElementById('btnMoebelLoeschen').addEventListener('click', () => {
+    if (!confirm('Dieses Möbelstück wirklich löschen?')) return;
+    pushUndo();
+    const eb = aktiveEbene();
+    eb.moebel = (eb.moebel || []).filter(m => m.id !== selektion.id);
+    speichernDaten(); schliesseEditor(); draw(); updateStatus();
+  });
+
   // ---------- EBENEN (Stockwerke) ----------
   function renderEbenenTabs() {
     const box = document.getElementById('ebenenTabs');
@@ -1279,9 +1464,10 @@
       });
       const raeumeKopie = vorlage.raeume.map(r => ({ ...r, id: neueId('raum'), points: r.points ? r.points.map(p => ({ ...p })) : undefined }));
       const notizenKopie = (vorlage.notizen || []).map(n => ({ ...n, id: neueId('notiz') }));
-      neu = { id: neueId('eb'), name, waende: waendeKopie, raeume: raeumeKopie, notizen: notizenKopie };
+      const moebelKopie = (vorlage.moebel || []).map(m => ({ ...m, id: neueId('moebel') }));
+      neu = { id: neueId('eb'), name, waende: waendeKopie, raeume: raeumeKopie, notizen: notizenKopie, moebel: moebelKopie };
     } else {
-      neu = { id: neueId('eb'), name, waende: [], raeume: [], notizen: [] };
+      neu = { id: neueId('eb'), name, waende: [], raeume: [], notizen: [], moebel: [] };
     }
     daten.ebenen.push(neu);
     daten.aktiveEbeneId = neu.id;
@@ -1414,6 +1600,7 @@
 
   // ---------- INIT ----------
   renderEbenenTabs();
+  renderMoebelMenu();
   resizeCanvas();
   updateUndoButtons();
   updateStatus();
