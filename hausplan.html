@@ -161,15 +161,19 @@
   <button class="tool-btn tool-btn-icon" id="btnRedo" title="Wiederholen">↪</button>
   <div class="tool-sep"></div>
   <button class="tool-btn active" data-mode="select" title="Elemente anklicken, verschieben, bearbeiten">↖ Auswählen</button>
-  <button class="tool-btn" data-mode="wand" title="Wand ziehen: antippen, ziehen, loslassen">🧱 Wand</button>
+  <button class="tool-btn" data-mode="wand" title="Wand-Zug: Punkt für Punkt antippen">🧱 Wand</button>
   <button class="tool-btn" data-mode="raum" title="Raum-Rechteck ziehen">⬛ Raum</button>
+  <button class="tool-btn" data-mode="raumfrei" title="Freiform-Raum: Punkt für Punkt antippen, am Startpunkt schließen">⬟ Freiform</button>
   <button class="tool-btn" data-mode="tuer" title="Auf eine Wand tippen, um eine Tür zu setzen">🚪 Tür</button>
   <button class="tool-btn" data-mode="fenster" title="Auf eine Wand tippen, um ein Fenster zu setzen">🪟 Fenster</button>
+  <button class="tool-btn" data-mode="notiz" title="Antippen, um eine Text-Notiz zu platzieren">📝 Notiz</button>
   <div class="tool-sep"></div>
   <div class="tool-dropdown">
     <button class="tool-btn" id="btnDateiToggle" title="Speichern, exportieren">📁 Datei</button>
     <div class="dropdown-menu" id="dateiMenu">
       <button class="tool-btn" id="btnPdfExport">📄 PDF-Export</button>
+      <button class="tool-btn" id="btnPngExport">🖼️ PNG-Export</button>
+      <button class="tool-btn" id="btnKompassToggle">🧭 Nordpfeil ein/aus</button>
       <button class="tool-btn" id="btnEbeneLeeren">🧹 Diese Ebene leeren</button>
     </div>
   </div>
@@ -184,7 +188,7 @@
       <button type="button" id="btnZoomMinus">－</button>
     </div>
     <div class="hp-wand-kette-leiste" id="wandKetteLeiste" style="display:none;">
-      <span>🧱 Wand-Zug: nächsten Punkt antippen</span>
+      <span id="wandKetteText">🧱 Wand-Zug: nächsten Punkt antippen</span>
       <button type="button" id="btnWandKetteFertig">✓ Fertig</button>
       <button type="button" id="btnWandKetteAbbrechen">✕ Abbrechen</button>
     </div>
@@ -209,7 +213,7 @@
         <label>Name</label>
         <input type="text" id="raumName" placeholder="z.B. Wohnzimmer">
       </div>
-      <div class="zeile-2">
+      <div class="zeile-2" id="raumMasseZeile">
         <div class="form-row">
           <label>Breite (m)</label>
           <input type="number" id="raumBreite" min="0.2" step="0.1">
@@ -223,7 +227,7 @@
         <label>Fläche</label>
         <div id="raumFlaeche" style="font-size:0.9rem;font-weight:700;color:var(--moss)"></div>
       </div>
-      <div class="form-row">
+      <div class="form-row" id="raumDrehungFeld">
         <label>Drehung (°): <span id="raumDrehungWert">0°</span></label>
         <input type="range" id="raumDrehung" min="0" max="359" step="1">
         <div style="display:flex;gap:6px;margin-top:6px;">
@@ -268,6 +272,24 @@
       </div>
       <button class="btn-danger" id="btnOeffnungLoeschen">🗑 Entfernen</button>
     </div>
+
+    <div class="sidebar-section" id="editorNotiz" style="display:none;">
+      <div class="sidebar-title">📝 Notiz bearbeiten</div>
+      <div class="form-row">
+        <label>Text</label>
+        <input type="text" id="notizText" placeholder="z.B. Kamin hier, Steckdose...">
+      </div>
+      <button class="btn-danger" id="btnNotizLoeschen">🗑 Notiz löschen</button>
+    </div>
+
+    <div class="sidebar-section" id="editorKompass" style="display:none;">
+      <div class="sidebar-title">🧭 Nordpfeil ausrichten</div>
+      <div class="form-row">
+        <label>Drehung (°): <span id="kompassDrehungWert">0°</span></label>
+        <input type="range" id="kompassDrehung" min="0" max="359" step="1">
+      </div>
+      <p style="font-size:0.75rem;color:var(--bark);">Zum Verschieben einfach im Auswählen-Modus ziehen.</p>
+    </div>
   </div>
 </div>
 
@@ -280,6 +302,10 @@
     <div class="form-row">
       <label>Name</label>
       <input type="text" id="neueEbeneName" placeholder="z.B. Obergeschoss">
+    </div>
+    <div class="form-row" style="display:flex;align-items:center;gap:8px;">
+      <input type="checkbox" id="neueEbeneAlsKopie" style="width:auto;">
+      <label style="margin:0;text-transform:none;font-size:0.78rem;">Als Kopie der aktuellen Ebene anlegen</label>
     </div>
     <div class="modal-btns">
       <button class="btn btn-secondary" id="btnNeueEbeneAbbrechen">Abbrechen</button>
@@ -302,12 +328,15 @@
   if (!daten || !daten.ebenen || !daten.ebenen.length) {
     daten = {
       ebenen: [
-        { id: neueId('eb'), name: 'Erdgeschoss', waende: [], raeume: [] }
+        { id: neueId('eb'), name: 'Erdgeschoss', waende: [], raeume: [], notizen: [] }
       ],
       aktiveEbeneId: null
     };
     daten.aktiveEbeneId = daten.ebenen[0].id;
   }
+  // Ältere gespeicherte Pläne (vor Notizen/Nordpfeil) auf das aktuelle Format bringen
+  daten.ebenen.forEach(eb => { if (!eb.notizen) eb.notizen = []; });
+  if (!daten.kompass) daten.kompass = { x: 60, y: 60, rotation: 0, sichtbar: false };
   function aktiveEbene() { return daten.ebenen.find(e => e.id === daten.aktiveEbeneId) || daten.ebenen[0]; }
   function speichernDaten() { speichern(KEY_HAUSPLAN, daten); }
 
@@ -424,6 +453,10 @@
     eb.raeume.forEach(r => drawRaum(r, r.id === selektion.id && selektion.typ === 'raum'));
     // Wände + darauf sitzende Türen/Fenster
     eb.waende.forEach(w => drawWand(w, w.id === selektion.id && selektion.typ === 'wand'));
+    // Notizen
+    (eb.notizen || []).forEach(n => drawNotiz(n, n.id === selektion.id && selektion.typ === 'notiz'));
+    // Nordpfeil
+    if (daten.kompass && daten.kompass.sichtbar) drawKompass();
     // Live-Vorschau beim Zeichnen
     if (vorschau) drawVorschau();
     // Markierung des letzten Punkts im laufenden Wand-Zug
@@ -435,21 +468,72 @@
       ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
       ctx.restore();
     }
+    // Live-Vorschau des laufenden Freiform-Raum-Zugs
+    if (raumFreiPunkte.length) {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(74,111,90,0.85)'; ctx.lineWidth = 1.5; ctx.setLineDash([5, 3]);
+      ctx.beginPath();
+      raumFreiPunkte.forEach((p, i) => { if (i === 0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y); });
+      ctx.stroke();
+      ctx.setLineDash([]);
+      raumFreiPunkte.forEach((p, i) => {
+        ctx.fillStyle = i === 0 ? '#4a6f5c' : '#c0633a';
+        ctx.beginPath(); ctx.arc(p.x, p.y, i === 0 ? 6 : 5, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+      });
+      ctx.restore();
+    }
+  }
+  function polygonFlaechePx(points) {
+    let sum = 0;
+    for (let i = 0; i < points.length; i++) {
+      const p1 = points[i], p2 = points[(i + 1) % points.length];
+      sum += p1.x * p2.y - p2.x * p1.y;
+    }
+    return Math.abs(sum) / 2;
+  }
+  function polygonSchwerpunkt(points) {
+    let x = 0, y = 0;
+    points.forEach(p => { x += p.x; y += p.y; });
+    return { x: x / points.length, y: y / points.length };
+  }
+  function punktInPolygon(x, y, points) {
+    let innen = false;
+    for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
+      const pi = points[i], pj = points[j];
+      const schneidet = ((pi.y > y) !== (pj.y > y)) && (x < (pj.x - pi.x) * (y - pi.y) / (pj.y - pi.y) + pi.x);
+      if (schneidet) innen = !innen;
+    }
+    return innen;
   }
   function drawRaum(r, selected) {
     ctx.save();
-    ctx.translate(r.x + r.w / 2, r.y + r.h / 2);
-    ctx.rotate((r.rotation || 0) * Math.PI / 180);
     ctx.fillStyle = (r.farbe || '#e8d9c4') + 'b3';
     ctx.strokeStyle = selected ? '#c0633a' : (r.farbe || '#e8d9c4');
     ctx.lineWidth = selected ? 2.5 : 1.5;
-    ctx.fillRect(-r.w / 2, -r.h / 2, r.w, r.h);
-    ctx.strokeRect(-r.w / 2, -r.h / 2, r.w, r.h);
-    const flaeche = ((r.w / PX_PRO_M) * (r.h / PX_PRO_M)).toFixed(1);
+    let mitteX, mitteY, flaeche;
+    if (r.typ === 'poly') {
+      ctx.beginPath();
+      r.points.forEach((p, i) => { if (i === 0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y); });
+      ctx.closePath();
+      ctx.fill(); ctx.stroke();
+      const s = polygonSchwerpunkt(r.points);
+      mitteX = s.x; mitteY = s.y;
+      flaeche = polygonFlaechePx(r.points) / (PX_PRO_M * PX_PRO_M);
+    } else {
+      ctx.save();
+      ctx.translate(r.x + r.w / 2, r.y + r.h / 2);
+      ctx.rotate((r.rotation || 0) * Math.PI / 180);
+      ctx.fillRect(-r.w / 2, -r.h / 2, r.w, r.h);
+      ctx.strokeRect(-r.w / 2, -r.h / 2, r.w, r.h);
+      ctx.restore();
+      mitteX = r.x + r.w / 2; mitteY = r.y + r.h / 2;
+      flaeche = (r.w / PX_PRO_M) * (r.h / PX_PRO_M);
+    }
     ctx.fillStyle = '#3b2f1e'; ctx.font = '600 12px Inter,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText(r.name || 'Raum', 0, -8);
+    ctx.fillText(r.name || 'Raum', mitteX, mitteY - 8);
     ctx.font = '10px Inter,sans-serif';
-    ctx.fillText(flaeche + ' m²', 0, 8);
+    ctx.fillText(flaeche.toFixed(1) + ' m²', mitteX, mitteY + 8);
     ctx.restore();
   }
   function wandWinkel(w) { return Math.atan2(w.y2 - w.y1, w.x2 - w.x1); }
@@ -510,6 +594,43 @@
       ctx.restore();
     }
   }
+  function drawNotiz(n, selected) {
+    ctx.save();
+    ctx.font = (selected ? '700 ' : '600 ') + '11px Inter,sans-serif';
+    ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    const breite = ctx.measureText(n.text).width;
+    ctx.fillStyle = selected ? 'rgba(192,99,58,0.95)' : 'rgba(58,46,31,0.92)';
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(n.x - 4, n.y - 12, breite + 22, 22, 6) : ctx.rect(n.x - 4, n.y - 12, breite + 22, 22);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.fillText('📝 ' + n.text, n.x, n.y);
+    ctx.restore();
+  }
+  function hitTestNotiz(x, y) {
+    const eb = aktiveEbene();
+    const liste = eb.notizen || [];
+    for (let i = liste.length - 1; i >= 0; i--) {
+      const n = liste[i];
+      ctx.font = '600 11px Inter,sans-serif';
+      const breite = ctx.measureText('📝 ' + n.text).width;
+      if (x >= n.x - 4 && x <= n.x - 4 + breite + 22 && y >= n.y - 12 && y <= n.y + 10) return n;
+    }
+    return null;
+  }
+  function drawKompass() {
+    const k = daten.kompass;
+    ctx.save();
+    ctx.translate(k.x, k.y);
+    ctx.rotate((k.rotation || 0) * Math.PI / 180);
+    ctx.fillStyle = '#c0633a'; ctx.strokeStyle = '#3b2f1e'; ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(0, -22); ctx.lineTo(8, 10); ctx.lineTo(0, 4); ctx.lineTo(-8, 10);
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#3b2f1e'; ctx.font = '700 11px Inter,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('N', 0, -30);
+    ctx.restore();
+  }
   function drawOeffnung(w, o, selected) {
     const mitte = wandPunktBeiT(w, o.pos);
     const winkel = wandWinkel(w);
@@ -550,6 +671,7 @@
 
   function setMode(m) {
     if (mode === 'wand' && m !== 'wand') wandKetteBeenden(true);
+    if (mode === 'raumfrei' && m !== 'raumfrei') raumFreiBeenden(true);
     mode = m;
     document.querySelectorAll('.tool-btn[data-mode]').forEach(b => b.classList.toggle('active', b.dataset.mode === m));
     schliesseEditor();
@@ -557,7 +679,7 @@
   }
   document.querySelectorAll('.tool-btn[data-mode]').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
   function updateStatus() {
-    const labels = { select: 'Auswählen/Verschieben', wand: 'Wand zeichnen – Punkt für Punkt antippen', raum: 'Raum zeichnen', tuer: 'Tür setzen – auf eine Wand tippen', fenster: 'Fenster setzen – auf eine Wand tippen' };
+    const labels = { select: 'Auswählen/Verschieben', wand: 'Wand zeichnen – Punkt für Punkt antippen', raum: 'Raum zeichnen', raumfrei: 'Freiform-Raum – Ecken antippen, am Start schließen', tuer: 'Tür setzen – auf eine Wand tippen', fenster: 'Fenster setzen – auf eine Wand tippen', notiz: 'Notiz setzen – antippen, wo sie stehen soll' };
     const eb = aktiveEbene();
     const gesamtFlaeche = eb.raeume.reduce((s, r) => s + (r.w / PX_PRO_M) * (r.h / PX_PRO_M), 0);
     document.getElementById('hpStatus').innerHTML =
@@ -584,6 +706,10 @@
     const eb = aktiveEbene();
     for (let i = eb.raeume.length - 1; i >= 0; i--) {
       const r = eb.raeume[i];
+      if (r.typ === 'poly') {
+        if (punktInPolygon(x, y, r.points)) return r;
+        continue;
+      }
       // Klickpunkt in das unrotierte, lokale Koordinatensystem des Raums umrechnen
       const cx = r.x + r.w / 2, cy = r.y + r.h / 2;
       const winkel = -(r.rotation || 0) * Math.PI / 180;
@@ -598,25 +724,51 @@
   // ---------- WAND-ZUG (Punkt-für-Punkt-Wandzeichnen) ----------
   let wandKettePunkte = [];
   let wandKetteNeueWaende = [];
+  let raumFreiPunkte = [];
+  let aktiverKettenTyp = null; // 'wand' | 'raumfrei' | null
   function wandKetteBeenden(verwerfen) {
     if (verwerfen && wandKetteNeueWaende.length) {
       const eb = aktiveEbene();
       eb.waende = eb.waende.filter(w => !wandKetteNeueWaende.includes(w.id));
       speichernDaten();
     }
-    wandKettePunkte = []; wandKetteNeueWaende = [];
+    wandKettePunkte = []; wandKetteNeueWaende = []; aktiverKettenTyp = null;
     document.getElementById('wandKetteLeiste').style.display = 'none';
     draw(); updateStatus();
   }
-  document.getElementById('btnWandKetteFertig').addEventListener('click', () => wandKetteBeenden(false));
-  document.getElementById('btnWandKetteAbbrechen').addEventListener('click', () => wandKetteBeenden(true));
+  function raumFreiBeenden(verwerfen) {
+    raumFreiPunkte = []; aktiverKettenTyp = null;
+    document.getElementById('wandKetteLeiste').style.display = 'none';
+    draw(); updateStatus();
+  }
+  function raumFreiAbschliessen() {
+    if (raumFreiPunkte.length < 3) { showTempStatus('⚠ Mindestens 3 Punkte nötig.', 3); raumFreiBeenden(true); return; }
+    pushUndo();
+    const neu = { id: neueId('raum'), typ: 'poly', points: raumFreiPunkte.slice(), name: 'Raum ' + (aktiveEbene().raeume.length + 1), farbe: RAUM_FARBEN[aktiveEbene().raeume.length % RAUM_FARBEN.length] };
+    aktiveEbene().raeume.push(neu);
+    speichernDaten();
+    raumFreiPunkte = []; aktiverKettenTyp = null;
+    document.getElementById('wandKetteLeiste').style.display = 'none';
+    raumAuswaehlen(neu);
+    showTempStatus('⬟ Freiform-Raum angelegt', 3);
+    draw(); updateStatus();
+  }
+  document.getElementById('btnWandKetteFertig').addEventListener('click', () => {
+    if (aktiverKettenTyp === 'wand') wandKetteBeenden(false);
+    else if (aktiverKettenTyp === 'raumfrei') raumFreiAbschliessen();
+  });
+  document.getElementById('btnWandKetteAbbrechen').addEventListener('click', () => {
+    if (aktiverKettenTyp === 'wand') wandKetteBeenden(true);
+    else if (aktiverKettenTyp === 'raumfrei') raumFreiBeenden(true);
+  });
 
   function onDown(e) {
     const { x, y } = getPos(e);
     if (mode === 'wand') {
       const p = snapPunkt(x, y);
       if (!wandKettePunkte.length) {
-        wandKettePunkte = [p];
+        wandKettePunkte = [p]; aktiverKettenTyp = 'wand';
+        document.getElementById('wandKetteText').textContent = '🧱 Wand-Zug: nächsten Punkt antippen';
         document.getElementById('wandKetteLeiste').style.display = 'flex';
         draw();
         return;
@@ -631,9 +783,44 @@
       speichernDaten(); draw(); updateStatus();
       return;
     }
+    if (mode === 'raumfrei') {
+      const p = { x: snap(x), y: snap(y) };
+      if (!raumFreiPunkte.length) {
+        raumFreiPunkte = [p]; aktiverKettenTyp = 'raumfrei';
+        document.getElementById('wandKetteText').textContent = '⬟ Freiform-Raum: nächste Ecke antippen';
+        document.getElementById('wandKetteLeiste').style.display = 'flex';
+        draw();
+        return;
+      }
+      // Antippen nahe am Startpunkt (und mind. 3 Ecken) schließt die Fläche automatisch
+      const start = raumFreiPunkte[0];
+      if (raumFreiPunkte.length >= 3 && Math.hypot(p.x - start.x, p.y - start.y) < 14) {
+        raumFreiAbschliessen();
+        return;
+      }
+      const letzter = raumFreiPunkte[raumFreiPunkte.length - 1];
+      if (Math.hypot(p.x - letzter.x, p.y - letzter.y) < 4) return;
+      raumFreiPunkte.push(p);
+      draw();
+      return;
+    }
     if (mode === 'raum') {
       dragStart = { x: snap(x), y: snap(y) };
       vorschau = { typ: 'raum', x: dragStart.x, y: dragStart.y, w: 0, h: 0 };
+      return;
+    }
+    if (mode === 'notiz') {
+      const p = { x: snap(x), y: snap(y) };
+      const text = prompt('Notiztext:', '');
+      if (text && text.trim()) {
+        pushUndo();
+        const eb = aktiveEbene();
+        if (!eb.notizen) eb.notizen = [];
+        const neu = { id: neueId('notiz'), x: p.x, y: p.y, text: text.trim() };
+        eb.notizen.push(neu);
+        speichernDaten(); draw(); updateStatus();
+        notizAuswaehlen(neu);
+      }
       return;
     }
     if (mode === 'tuer' || mode === 'fenster') {
@@ -649,12 +836,24 @@
       return;
     }
     // select-Modus
-    const raumHit = hitTestRaum(x, y);
-    const wandHit = !raumHit ? findeNaechsteWand(x, y, 14) : null;
+    if (daten.kompass && daten.kompass.sichtbar && Math.hypot(x - daten.kompass.x, y - daten.kompass.y) < 24) {
+      kompassAuswaehlen();
+      dragStart = { x, y }; dragObjStart = { x: daten.kompass.x, y: daten.kompass.y };
+      return;
+    }
+    const notizHit = hitTestNotiz(x, y);
+    const raumHit = !notizHit ? hitTestRaum(x, y) : null;
+    const wandHit = (!notizHit && !raumHit) ? findeNaechsteWand(x, y, 14) : null;
+    if (notizHit) {
+      if (selektion.typ === 'notiz' && selektion.id === notizHit.id) { selektion = { typ: null, id: null }; schliesseEditor(); draw(); return; }
+      notizAuswaehlen(notizHit);
+      dragStart = { x, y }; dragObjStart = { x: notizHit.x, y: notizHit.y };
+      return;
+    }
     if (raumHit) {
       if (selektion.typ === 'raum' && selektion.id === raumHit.id) { selektion = { typ: null, id: null }; schliesseEditor(); draw(); return; }
       raumAuswaehlen(raumHit);
-      dragStart = { x, y }; dragObjStart = { x: raumHit.x, y: raumHit.y };
+      dragStart = { x, y }; dragObjStart = raumHit.typ === 'poly' ? { points: raumHit.points.map(p => ({ ...p })) } : { x: raumHit.x, y: raumHit.y };
       return;
     }
     if (wandHit) {
@@ -672,10 +871,30 @@
     if (mode === 'raum' && vorschau) {
       vorschau.w = snap(x) - vorschau.x; vorschau.h = snap(y) - vorschau.y; draw(); return;
     }
+    if (mode === 'select' && selektion.typ === 'notiz' && dragObjStart) {
+      const eb = aktiveEbene();
+      const n = (eb.notizen || []).find(nn => nn.id === selektion.id);
+      if (n) { n.x = snap(dragObjStart.x + (x - dragStart.x)); n.y = snap(dragObjStart.y + (y - dragStart.y)); draw(); }
+      return;
+    }
+    if (mode === 'select' && selektion.typ === 'kompass' && dragObjStart) {
+      daten.kompass.x = snap(dragObjStart.x + (x - dragStart.x));
+      daten.kompass.y = snap(dragObjStart.y + (y - dragStart.y));
+      draw();
+      return;
+    }
     if (mode === 'select' && selektion.typ === 'raum' && dragObjStart) {
       const eb = aktiveEbene();
       const r = eb.raeume.find(rr => rr.id === selektion.id);
-      if (r) { r.x = snap(dragObjStart.x + (x - dragStart.x)); r.y = snap(dragObjStart.y + (y - dragStart.y)); draw(); }
+      if (r) {
+        if (r.typ === 'poly') {
+          const dx = snap(x - dragStart.x), dy = snap(y - dragStart.y);
+          r.points = dragObjStart.points.map(p => ({ x: p.x + dx, y: p.y + dy }));
+        } else {
+          r.x = snap(dragObjStart.x + (x - dragStart.x)); r.y = snap(dragObjStart.y + (y - dragStart.y));
+        }
+        draw();
+      }
       return;
     }
     if (mode === 'select' && selektion.typ === 'wand' && dragObjStart) {
@@ -704,7 +923,7 @@
       vorschau = null; dragStart = null; draw(); updateStatus();
       return;
     }
-    if (dragStart && (selektion.typ === 'raum' || selektion.typ === 'wand')) {
+    if (dragStart && (selektion.typ === 'raum' || selektion.typ === 'wand' || selektion.typ === 'notiz' || selektion.typ === 'kompass')) {
       speichernDaten();
     }
     dragStart = null; dragObjStart = null;
@@ -742,6 +961,8 @@
     document.getElementById('editorRaum').style.display = 'none';
     document.getElementById('editorWand').style.display = 'none';
     document.getElementById('editorOeffnung').style.display = 'none';
+    document.getElementById('editorNotiz').style.display = 'none';
+    document.getElementById('editorKompass').style.display = 'none';
   }
   // Scrollt den Bearbeiten-Bereich sichtbar ins Bild – auf dem Handy steht er unterhalb
   // der (oft hohen) Zeichenfläche und würde sonst leicht übersehen werden.
@@ -757,10 +978,15 @@
     document.getElementById('editorOeffnung').style.display = 'none';
     scrolleZumEditor();
     document.getElementById('raumName').value = r.name || '';
-    document.getElementById('raumBreite').value = (r.w / PX_PRO_M).toFixed(2);
-    document.getElementById('raumTiefe').value = (r.h / PX_PRO_M).toFixed(2);
-    document.getElementById('raumDrehung').value = r.rotation || 0;
-    document.getElementById('raumDrehungWert').textContent = (r.rotation || 0) + '°';
+    const istPoly = r.typ === 'poly';
+    document.getElementById('raumMasseZeile').style.display = istPoly ? 'none' : 'flex';
+    document.getElementById('raumDrehungFeld').style.display = istPoly ? 'none' : 'block';
+    if (!istPoly) {
+      document.getElementById('raumBreite').value = (r.w / PX_PRO_M).toFixed(2);
+      document.getElementById('raumTiefe').value = (r.h / PX_PRO_M).toFixed(2);
+      document.getElementById('raumDrehung').value = r.rotation || 0;
+      document.getElementById('raumDrehungWert').textContent = (r.rotation || 0) + '°';
+    }
     aktualisiereRaumFlaeche(r);
     const reihe = document.getElementById('raumFarbReihe');
     reihe.innerHTML = '';
@@ -774,7 +1000,8 @@
     draw();
   }
   function aktualisiereRaumFlaeche(r) {
-    document.getElementById('raumFlaeche').textContent = ((r.w / PX_PRO_M) * (r.h / PX_PRO_M)).toFixed(2) + ' m²';
+    const flaeche = r.typ === 'poly' ? polygonFlaechePx(r.points) / (PX_PRO_M * PX_PRO_M) : (r.w / PX_PRO_M) * (r.h / PX_PRO_M);
+    document.getElementById('raumFlaeche').textContent = flaeche.toFixed(2) + ' m²';
   }
   document.getElementById('raumName').addEventListener('input', (e) => {
     const eb = aktiveEbene(); const r = eb.raeume.find(x => x.id === selektion.id);
@@ -933,6 +1160,59 @@
     speichernDaten(); schliesseEditor(); draw();
   });
 
+  function notizAuswaehlen(n) {
+    selektion = { typ: 'notiz', id: n.id };
+    document.getElementById('editorLeer').style.display = 'none';
+    document.getElementById('editorRaum').style.display = 'none';
+    document.getElementById('editorWand').style.display = 'none';
+    document.getElementById('editorOeffnung').style.display = 'none';
+    document.getElementById('editorNotiz').style.display = 'block';
+    scrolleZumEditor();
+    document.getElementById('notizText').value = n.text || '';
+    draw();
+  }
+  document.getElementById('notizText').addEventListener('input', (e) => {
+    const eb = aktiveEbene();
+    const n = (eb.notizen || []).find(x => x.id === selektion.id);
+    if (!n) return;
+    n.text = e.target.value;
+    speichernDaten(); draw();
+  });
+  document.getElementById('btnNotizLoeschen').addEventListener('click', () => {
+    pushUndo();
+    const eb = aktiveEbene();
+    eb.notizen = (eb.notizen || []).filter(n => n.id !== selektion.id);
+    speichernDaten(); schliesseEditor(); draw();
+  });
+
+  // ---------- NORDPFEIL (Kompass) ----------
+  function kompassAuswaehlen() {
+    selektion = { typ: 'kompass', id: 'kompass' };
+    document.getElementById('editorLeer').style.display = 'none';
+    document.getElementById('editorRaum').style.display = 'none';
+    document.getElementById('editorWand').style.display = 'none';
+    document.getElementById('editorOeffnung').style.display = 'none';
+    document.getElementById('editorNotiz').style.display = 'none';
+    document.getElementById('editorKompass').style.display = 'block';
+    scrolleZumEditor();
+    document.getElementById('kompassDrehung').value = daten.kompass.rotation || 0;
+    document.getElementById('kompassDrehungWert').textContent = (daten.kompass.rotation || 0) + '°';
+    draw();
+  }
+  document.getElementById('kompassDrehung').addEventListener('focus', () => pushUndo());
+  document.getElementById('kompassDrehung').addEventListener('input', (e) => {
+    daten.kompass.rotation = parseInt(e.target.value, 10);
+    document.getElementById('kompassDrehungWert').textContent = daten.kompass.rotation + '°';
+    speichernDaten(); draw();
+  });
+  document.getElementById('btnKompassToggle').addEventListener('click', () => {
+    closeDropdowns();
+    pushUndo();
+    daten.kompass.sichtbar = !daten.kompass.sichtbar;
+    speichernDaten(); draw();
+    showTempStatus(daten.kompass.sichtbar ? '🧭 Nordpfeil eingeblendet – im Auswählen-Modus antippen zum Ausrichten/Verschieben' : '🧭 Nordpfeil ausgeblendet', 4);
+  });
+
   // ---------- EBENEN (Stockwerke) ----------
   function renderEbenenTabs() {
     const box = document.getElementById('ebenenTabs');
@@ -965,6 +1245,7 @@
     neuBtn.textContent = '➕ Ebene';
     neuBtn.addEventListener('click', () => {
       document.getElementById('neueEbeneName').value = '';
+      document.getElementById('neueEbeneAlsKopie').checked = false;
       document.getElementById('modalNeueEbene').classList.add('zeigen');
       setTimeout(() => document.getElementById('neueEbeneName').focus(), 50);
     });
@@ -976,7 +1257,21 @@
     const name = document.getElementById('neueEbeneName').value.trim();
     if (!name) return;
     pushUndo();
-    const neu = { id: neueId('eb'), name, waende: [], raeume: [] };
+    let neu;
+    if (document.getElementById('neueEbeneAlsKopie').checked) {
+      const vorlage = aktiveEbene();
+      const idMap = {};
+      const waendeKopie = vorlage.waende.map(w => {
+        const neueWandId = neueId('wand');
+        idMap[w.id] = neueWandId;
+        return { ...w, id: neueWandId, oeffnungen: (w.oeffnungen || []).map(o => ({ ...o, id: neueId('oe') })) };
+      });
+      const raeumeKopie = vorlage.raeume.map(r => ({ ...r, id: neueId('raum'), points: r.points ? r.points.map(p => ({ ...p })) : undefined }));
+      const notizenKopie = (vorlage.notizen || []).map(n => ({ ...n, id: neueId('notiz') }));
+      neu = { id: neueId('eb'), name, waende: waendeKopie, raeume: raeumeKopie, notizen: notizenKopie };
+    } else {
+      neu = { id: neueId('eb'), name, waende: [], raeume: [], notizen: [] };
+    }
     daten.ebenen.push(neu);
     daten.aktiveEbeneId = neu.id;
     speichernDaten(); renderEbenenTabs(); schliesseEditor(); draw(); updateStatus();
@@ -1003,6 +1298,18 @@
     const eb = aktiveEbene();
     eb.waende = []; eb.raeume = [];
     speichernDaten(); schliesseEditor(); draw(); updateStatus();
+  });
+  document.getElementById('btnPngExport').addEventListener('click', () => {
+    closeDropdowns();
+    try {
+      const eb = aktiveEbene();
+      const url = canvas.toDataURL('image/png');
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'hausplan-' + eb.name.toLowerCase().replace(/[^a-z0-9]+/gi, '-') + '.png';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      showTempStatus('🖼️ PNG-Bild wird heruntergeladen', 3);
+    } catch (e) { showTempStatus('⚠ Export fehlgeschlagen.', 4); }
   });
   document.getElementById('btnPdfExport').addEventListener('click', () => {
     closeDropdowns();
