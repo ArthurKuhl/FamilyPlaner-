@@ -224,8 +224,8 @@
     <div class="sidebar-section" id="editorWand" style="display:none;">
       <div class="sidebar-title">🧱 Wand bearbeiten</div>
       <div class="form-row">
-        <label>Länge</label>
-        <div id="wandLaenge" style="font-size:0.9rem;font-weight:700;color:var(--moss)"></div>
+        <label>Länge (m)</label>
+        <input type="number" id="wandLaenge" min="0.1" step="0.05">
       </div>
       <div class="form-row">
         <label>Wanddicke (cm): <span id="wandDickeWert"></span></label>
@@ -426,6 +426,17 @@
     ctx.moveTo(pEnd1.x, pEnd1.y); ctx.lineTo(pEnd2.x, pEnd2.y);
     ctx.stroke();
     ctx.restore();
+    // Präzise Mittellinie: zeigt die exakte Koordinate der Wand (unabhängig von der
+    // Dicke), damit erkennbar ist, ob sie wirklich exakt auf einer Rasterlinie liegt –
+    // eine dicke Wand würde sonst optisch über die Linie hinausragen und den Eindruck
+    // erwecken, sie sei "daneben" gesetzt.
+    ctx.save();
+    ctx.strokeStyle = selected ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.35)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 3]);
+    ctx.beginPath(); ctx.moveTo(w.x1, w.y1); ctx.lineTo(w.x2, w.y2); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
     // Öffnungssymbole
     oeffnungen.forEach(o => drawOeffnung(w, o, o.id === selektion.id && selektion.typ === 'oeffnung'));
     // Maßangabe – senkrecht zur Wandrichtung versetzt, damit sie bei jeder
@@ -474,6 +485,8 @@
     if (vorschau.typ === 'wand') {
       const dickePx = Math.max(3, WAND_DICKE_STANDARD / 100 * PX_PRO_M);
       ctx.strokeStyle = 'rgba(59,47,30,0.6)'; ctx.lineWidth = dickePx;
+      ctx.beginPath(); ctx.moveTo(vorschau.x1, vorschau.y1); ctx.lineTo(vorschau.x2, vorschau.y2); ctx.stroke();
+      ctx.strokeStyle = 'rgba(255,255,255,0.9)'; ctx.lineWidth = 1; ctx.setLineDash([4, 3]);
       ctx.beginPath(); ctx.moveTo(vorschau.x1, vorschau.y1); ctx.lineTo(vorschau.x2, vorschau.y2); ctx.stroke();
     } else if (vorschau.typ === 'raum') {
       ctx.strokeStyle = 'rgba(74,111,90,0.8)'; ctx.lineWidth = 1.5;
@@ -721,11 +734,23 @@
     document.getElementById('editorWand').style.display = 'block';
     document.getElementById('editorOeffnung').style.display = 'none';
     scrolleZumEditor();
-    document.getElementById('wandLaenge').textContent = (wandLaengePx(w) / PX_PRO_M).toFixed(2) + ' m';
+    document.getElementById('wandLaenge').value = (wandLaengePx(w) / PX_PRO_M).toFixed(2);
     document.getElementById('wandDicke').value = w.dicke || WAND_DICKE_STANDARD;
     document.getElementById('wandDickeWert').textContent = (w.dicke || WAND_DICKE_STANDARD) + ' cm';
     draw();
   }
+  document.getElementById('wandLaenge').addEventListener('focus', () => pushUndo());
+  document.getElementById('wandLaenge').addEventListener('input', (e) => {
+    const eb = aktiveEbene(); const w = eb.waende.find(x => x.id === selektion.id);
+    if (!w) return;
+    const neueLaengeM = parseFloat(e.target.value);
+    if (!(neueLaengeM > 0)) return;
+    const winkel = wandWinkel(w);
+    const neueLaengePx = neueLaengeM * PX_PRO_M;
+    w.x2 = w.x1 + Math.cos(winkel) * neueLaengePx;
+    w.y2 = w.y1 + Math.sin(winkel) * neueLaengePx;
+    speichernDaten(); draw();
+  });
   document.getElementById('wandDicke').addEventListener('input', (e) => {
     const eb = aktiveEbene(); const w = eb.waende.find(x => x.id === selektion.id);
     if (!w) return; w.dicke = parseInt(e.target.value, 10);
