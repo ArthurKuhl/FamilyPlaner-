@@ -86,6 +86,10 @@
   .hp-zoom-widget { position: fixed; top: 12px; left: 12px; z-index: 85; display: none; flex-direction: column; background: rgba(42,32,22,0.85); border-radius: 12px; box-shadow: 0 3px 12px rgba(0,0,0,0.3); overflow: hidden; }
   .hp-zoom-widget button { width: 36px; height: 36px; background: none; border: none; color: #fff; font-size: 1.15rem; cursor: pointer; line-height: 1; }
   .hp-zoom-widget-wert { color: #fff; font-size: 0.58rem; text-align: center; padding: 2px 0; border-top: 1px solid rgba(255,255,255,0.15); border-bottom: 1px solid rgba(255,255,255,0.15); }
+  .hp-wand-kette-leiste { position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%); z-index: 90; display: none; align-items: center; gap: 8px; background: rgba(42,32,22,0.94); padding: 8px 12px; border-radius: 12px; box-shadow: 0 3px 12px rgba(0,0,0,0.35); }
+  .hp-wand-kette-leiste span { color: #fff; font-size: 0.68rem; white-space: nowrap; }
+  .hp-wand-kette-leiste button { background: var(--moss); color: #fff; border: none; border-radius: var(--radius-pill); padding: 5px 10px; font-size: 0.7rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
+  .hp-wand-kette-leiste button#btnWandKetteAbbrechen { background: #c05030; }
 
   .hp-status { position: fixed; bottom: 10px; left: 12px; right: 12px; z-index: 70; display: flex; gap: 10px; font-size: 0.66rem; color: var(--bark); background: var(--white); padding: 5px 10px; border-radius: var(--radius-pill); box-shadow: var(--shadow-soft); pointer-events: none; opacity: 0.92; flex-wrap: wrap; }
 
@@ -178,6 +182,11 @@
       <button type="button" id="btnZoomPlus">＋</button>
       <div class="hp-zoom-widget-wert" id="hpZoomWert">100%</div>
       <button type="button" id="btnZoomMinus">－</button>
+    </div>
+    <div class="hp-wand-kette-leiste" id="wandKetteLeiste" style="display:none;">
+      <span>🧱 Wand-Zug: nächsten Punkt antippen</span>
+      <button type="button" id="btnWandKetteFertig">✓ Fertig</button>
+      <button type="button" id="btnWandKetteAbbrechen">✕ Abbrechen</button>
     </div>
   </div>
 
@@ -378,6 +387,20 @@
     return { x: (cx - rect.left) * skalX, y: (cy - rect.top) * skalY };
   }
   function snap(px) { return Math.round(px / (PX_PRO_M / 10)) * (PX_PRO_M / 10); } // auf 10cm einrasten
+  // Rastet bevorzugt an bereits vorhandenen Wandenden ein (für exakt verbundene Ecken),
+  // fällt sonst auf das normale 10cm-Raster zurück.
+  function snapPunkt(x, y) {
+    const eb = aktiveEbene();
+    const FANGRADIUS = 14;
+    let bester = null, besterAbstand = FANGRADIUS;
+    eb.waende.forEach(w => {
+      [[w.x1, w.y1], [w.x2, w.y2]].forEach(([px, py]) => {
+        const d = Math.hypot(x - px, y - py);
+        if (d < besterAbstand) { besterAbstand = d; bester = { x: px, y: py }; }
+      });
+    });
+    return bester || { x: snap(x), y: snap(y) };
+  }
 
   // ---------- ZEICHNEN ----------
   function draw() {
@@ -403,6 +426,15 @@
     eb.waende.forEach(w => drawWand(w, w.id === selektion.id && selektion.typ === 'wand'));
     // Live-Vorschau beim Zeichnen
     if (vorschau) drawVorschau();
+    // Markierung des letzten Punkts im laufenden Wand-Zug
+    if (wandKettePunkte.length) {
+      const letzter = wandKettePunkte[wandKettePunkte.length - 1];
+      ctx.save();
+      ctx.fillStyle = '#c0633a';
+      ctx.beginPath(); ctx.arc(letzter.x, letzter.y, 5, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+      ctx.restore();
+    }
   }
   function drawRaum(r, selected) {
     ctx.save();
@@ -501,13 +533,7 @@
   function drawVorschau() {
     ctx.save();
     ctx.setLineDash([6, 4]);
-    if (vorschau.typ === 'wand') {
-      const dickePx = Math.max(3, WAND_DICKE_STANDARD / 100 * PX_PRO_M);
-      ctx.strokeStyle = 'rgba(59,47,30,0.6)'; ctx.lineWidth = dickePx;
-      ctx.beginPath(); ctx.moveTo(vorschau.x1, vorschau.y1); ctx.lineTo(vorschau.x2, vorschau.y2); ctx.stroke();
-      ctx.strokeStyle = 'rgba(255,255,255,0.9)'; ctx.lineWidth = 1; ctx.setLineDash([4, 3]);
-      ctx.beginPath(); ctx.moveTo(vorschau.x1, vorschau.y1); ctx.lineTo(vorschau.x2, vorschau.y2); ctx.stroke();
-    } else if (vorschau.typ === 'raum') {
+    if (vorschau.typ === 'raum') {
       ctx.strokeStyle = 'rgba(74,111,90,0.8)'; ctx.lineWidth = 1.5;
       ctx.strokeRect(vorschau.x, vorschau.y, vorschau.w, vorschau.h);
     }
@@ -523,6 +549,7 @@
   const WAND_DICKE_STANDARD = 20;
 
   function setMode(m) {
+    if (mode === 'wand' && m !== 'wand') wandKetteBeenden(true);
     mode = m;
     document.querySelectorAll('.tool-btn[data-mode]').forEach(b => b.classList.toggle('active', b.dataset.mode === m));
     schliesseEditor();
@@ -530,11 +557,13 @@
   }
   document.querySelectorAll('.tool-btn[data-mode]').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
   function updateStatus() {
-    const labels = { select: 'Auswählen/Verschieben', wand: 'Wand zeichnen', raum: 'Raum zeichnen', tuer: 'Tür setzen – auf eine Wand tippen', fenster: 'Fenster setzen – auf eine Wand tippen' };
+    const labels = { select: 'Auswählen/Verschieben', wand: 'Wand zeichnen – Punkt für Punkt antippen', raum: 'Raum zeichnen', tuer: 'Tür setzen – auf eine Wand tippen', fenster: 'Fenster setzen – auf eine Wand tippen' };
     const eb = aktiveEbene();
+    const gesamtFlaeche = eb.raeume.reduce((s, r) => s + (r.w / PX_PRO_M) * (r.h / PX_PRO_M), 0);
     document.getElementById('hpStatus').innerHTML =
       '<span>Modus: ' + (labels[mode] || mode) + '</span><span>Ebene: ' + escapeHtml(eb.name) + '</span>' +
-      '<span>Wände: ' + eb.waende.length + '</span><span>Räume: ' + eb.raeume.length + '</span>';
+      '<span>Wände: ' + eb.waende.length + '</span><span>Räume: ' + eb.raeume.length + '</span>' +
+      '<span>Gesamtfläche: ' + gesamtFlaeche.toFixed(1) + ' m²</span>';
   }
 
   function findeNaechsteWand(x, y, maxAbstand) {
@@ -566,11 +595,40 @@
     return null;
   }
 
+  // ---------- WAND-ZUG (Punkt-für-Punkt-Wandzeichnen) ----------
+  let wandKettePunkte = [];
+  let wandKetteNeueWaende = [];
+  function wandKetteBeenden(verwerfen) {
+    if (verwerfen && wandKetteNeueWaende.length) {
+      const eb = aktiveEbene();
+      eb.waende = eb.waende.filter(w => !wandKetteNeueWaende.includes(w.id));
+      speichernDaten();
+    }
+    wandKettePunkte = []; wandKetteNeueWaende = [];
+    document.getElementById('wandKetteLeiste').style.display = 'none';
+    draw(); updateStatus();
+  }
+  document.getElementById('btnWandKetteFertig').addEventListener('click', () => wandKetteBeenden(false));
+  document.getElementById('btnWandKetteAbbrechen').addEventListener('click', () => wandKetteBeenden(true));
+
   function onDown(e) {
     const { x, y } = getPos(e);
     if (mode === 'wand') {
-      dragStart = { x: snap(x), y: snap(y) };
-      vorschau = { typ: 'wand', x1: dragStart.x, y1: dragStart.y, x2: dragStart.x, y2: dragStart.y };
+      const p = snapPunkt(x, y);
+      if (!wandKettePunkte.length) {
+        wandKettePunkte = [p];
+        document.getElementById('wandKetteLeiste').style.display = 'flex';
+        draw();
+        return;
+      }
+      const letzter = wandKettePunkte[wandKettePunkte.length - 1];
+      if (Math.hypot(p.x - letzter.x, p.y - letzter.y) < 4) return; // gleicher Punkt nochmal angetippt
+      pushUndo();
+      const neu = { id: neueId('wand'), x1: letzter.x, y1: letzter.y, x2: p.x, y2: p.y, dicke: WAND_DICKE_STANDARD, oeffnungen: [] };
+      aktiveEbene().waende.push(neu);
+      wandKetteNeueWaende.push(neu.id);
+      wandKettePunkte.push(p);
+      speichernDaten(); draw(); updateStatus();
       return;
     }
     if (mode === 'raum') {
@@ -611,9 +669,6 @@
   function onMove(e) {
     if (!dragStart) return;
     const { x, y } = getPos(e);
-    if (mode === 'wand' && vorschau) {
-      vorschau.x2 = snap(x); vorschau.y2 = snap(y); draw(); return;
-    }
     if (mode === 'raum' && vorschau) {
       vorschau.w = snap(x) - vorschau.x; vorschau.h = snap(y) - vorschau.y; draw(); return;
     }
@@ -636,17 +691,6 @@
     }
   }
   function onUp() {
-    if (mode === 'wand' && vorschau) {
-      const laenge = Math.hypot(vorschau.x2 - vorschau.x1, vorschau.y2 - vorschau.y1);
-      if (laenge > 8) {
-        pushUndo();
-        const neu = { id: neueId('wand'), x1: vorschau.x1, y1: vorschau.y1, x2: vorschau.x2, y2: vorschau.y2, dicke: WAND_DICKE_STANDARD, oeffnungen: [] };
-        aktiveEbene().waende.push(neu);
-        speichernDaten(); wandAuswaehlen(neu); showTempStatus('🧱 Wand angelegt', 2);
-      }
-      vorschau = null; dragStart = null; draw(); updateStatus();
-      return;
-    }
     if (mode === 'raum' && vorschau) {
       let { x, y, w: bw, h: bh } = vorschau;
       if (bw < 0) { x += bw; bw = -bw; }
