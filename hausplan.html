@@ -661,12 +661,19 @@
     document.getElementById('editorWand').style.display = 'none';
     document.getElementById('editorOeffnung').style.display = 'none';
   }
+  // Scrollt den Bearbeiten-Bereich sichtbar ins Bild – auf dem Handy steht er unterhalb
+  // der (oft hohen) Zeichenfläche und würde sonst leicht übersehen werden.
+  function scrolleZumEditor() {
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar) setTimeout(() => sidebar.scrollIntoView({ behavior: 'smooth', block: window.innerWidth <= 720 ? 'start' : 'nearest' }), 30);
+  }
   function raumAuswaehlen(r) {
     selektion = { typ: 'raum', id: r.id };
     document.getElementById('editorLeer').style.display = 'none';
     document.getElementById('editorRaum').style.display = 'block';
     document.getElementById('editorWand').style.display = 'none';
     document.getElementById('editorOeffnung').style.display = 'none';
+    scrolleZumEditor();
     document.getElementById('raumName').value = r.name || '';
     document.getElementById('raumBreite').value = (r.w / PX_PRO_M).toFixed(2);
     document.getElementById('raumTiefe').value = (r.h / PX_PRO_M).toFixed(2);
@@ -713,6 +720,7 @@
     document.getElementById('editorRaum').style.display = 'none';
     document.getElementById('editorWand').style.display = 'block';
     document.getElementById('editorOeffnung').style.display = 'none';
+    scrolleZumEditor();
     document.getElementById('wandLaenge').textContent = (wandLaengePx(w) / PX_PRO_M).toFixed(2) + ' m';
     document.getElementById('wandDicke').value = w.dicke || WAND_DICKE_STANDARD;
     document.getElementById('wandDickeWert').textContent = (w.dicke || WAND_DICKE_STANDARD) + ' cm';
@@ -746,6 +754,7 @@
     document.getElementById('editorRaum').style.display = 'none';
     document.getElementById('editorWand').style.display = 'none';
     document.getElementById('editorOeffnung').style.display = 'block';
+    scrolleZumEditor();
     document.getElementById('oeffnungTitel').textContent = (o.typ === 'fenster' ? '🪟 Fenster' : '🚪 Tür') + ' bearbeiten';
     document.getElementById('oeffnungBreite').value = o.breite || 80;
     document.getElementById('oeffnungBreiteWert').textContent = (o.breite || 80) + ' cm';
