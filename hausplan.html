@@ -295,27 +295,26 @@
     updateUndoButtons();
   }
   function undo() {
-    if (!undoStack.length) return;
+    if (!undoStack.length) { showTempStatus('Nichts zum Rückgängigmachen', 2); return; }
     redoStack.push(JSON.stringify(daten));
     daten = JSON.parse(undoStack.pop());
     schliesseEditor();
-    speichernDaten(); renderEbenenTabs(); draw(); updateUndoButtons();
+    speichernDaten(); renderEbenenTabs(); draw(); updateStatus(); updateUndoButtons();
   }
   function redo() {
-    if (!redoStack.length) return;
+    if (!redoStack.length) { showTempStatus('Nichts zum Wiederholen', 2); return; }
     undoStack.push(JSON.stringify(daten));
     daten = JSON.parse(redoStack.pop());
     schliesseEditor();
-    speichernDaten(); renderEbenenTabs(); draw(); updateUndoButtons();
+    speichernDaten(); renderEbenenTabs(); draw(); updateStatus(); updateUndoButtons();
   }
   function updateUndoButtons() {
-    document.getElementById('btnUndo').disabled = !undoStack.length;
-    document.getElementById('btnRedo').disabled = !redoStack.length;
-    document.getElementById('btnUndo').style.opacity = undoStack.length ? '1' : '0.4';
-    document.getElementById('btnRedo').style.opacity = redoStack.length ? '1' : '0.4';
+    const btnUndo = document.getElementById('btnUndo'), btnRedo = document.getElementById('btnRedo');
+    btnUndo.style.opacity = undoStack.length ? '1' : '0.4';
+    btnRedo.style.opacity = redoStack.length ? '1' : '0.4';
   }
-  document.getElementById('btnUndo').addEventListener('click', undo);
-  document.getElementById('btnRedo').addEventListener('click', redo);
+  document.getElementById('btnUndo').addEventListener('click', (e) => { e.preventDefault(); undo(); });
+  document.getElementById('btnRedo').addEventListener('click', (e) => { e.preventDefault(); redo(); });
 
   // ---------- CANVAS / ZOOM ----------
   const canvas = document.getElementById('hpCanvas');
@@ -429,13 +428,23 @@
     ctx.restore();
     // Öffnungssymbole
     oeffnungen.forEach(o => drawOeffnung(w, o, o.id === selektion.id && selektion.typ === 'oeffnung'));
-    // Maßangabe
+    // Maßangabe – senkrecht zur Wandrichtung versetzt, damit sie bei jeder
+    // Wandausrichtung (auch senkrechten Wänden) neben statt auf der Wand steht
     if (selected) {
       const mitte = wandPunktBeiT(w, 0.5);
+      const winkel = wandWinkel(w);
+      const versatz = dickePx / 2 + 12;
+      const nx = -Math.sin(winkel), ny = Math.cos(winkel); // Einheitsvektor senkrecht zur Wand
+      const labelX = mitte.x + nx * versatz, labelY = mitte.y + ny * versatz;
       ctx.save();
-      ctx.fillStyle = '#c0633a'; ctx.font = '600 10px Inter,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
-      ctx.translate(mitte.x, mitte.y - dickePx / 2 - 4);
-      ctx.fillText((laenge / PX_PRO_M).toFixed(2) + ' m', 0, 0);
+      ctx.fillStyle = '#c0633a'; ctx.font = '600 11px Inter,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      // Kleiner heller Hintergrund für Lesbarkeit unabhängig vom Untergrund
+      const text = (laenge / PX_PRO_M).toFixed(2) + ' m';
+      const breite = ctx.measureText(text).width;
+      ctx.fillStyle = 'rgba(255,253,248,0.88)';
+      ctx.fillRect(labelX - breite / 2 - 4, labelY - 8, breite + 8, 16);
+      ctx.fillStyle = '#c0633a';
+      ctx.fillText(text, labelX, labelY);
       ctx.restore();
     }
   }
