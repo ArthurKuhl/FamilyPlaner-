@@ -678,7 +678,7 @@
   // der (oft hohen) Zeichenfläche und würde sonst leicht übersehen werden.
   function scrolleZumEditor() {
     const sidebar = document.getElementById('sidebar');
-    if (sidebar) setTimeout(() => sidebar.scrollIntoView({ behavior: 'smooth', block: window.innerWidth <= 720 ? 'start' : 'nearest' }), 30);
+    if (sidebar) setTimeout(() => sidebar.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 30);
   }
   function raumAuswaehlen(r) {
     selektion = { typ: 'raum', id: r.id };
