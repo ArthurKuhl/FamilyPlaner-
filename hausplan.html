@@ -215,6 +215,15 @@
         <div id="raumFlaeche" style="font-size:0.9rem;font-weight:700;color:var(--moss)"></div>
       </div>
       <div class="form-row">
+        <label>Drehung (°): <span id="raumDrehungWert">0°</span></label>
+        <input type="range" id="raumDrehung" min="0" max="359" step="1">
+        <div style="display:flex;gap:6px;margin-top:6px;">
+          <button type="button" class="tool-btn" id="btnRaumDrehen45" style="flex:1;background:var(--white);color:var(--soil);border:1px solid var(--parchment);">↻ 45°</button>
+          <button type="button" class="tool-btn" id="btnRaumDrehen90" style="flex:1;background:var(--white);color:var(--soil);border:1px solid var(--parchment);">↻ 90°</button>
+          <button type="button" class="tool-btn" id="btnRaumDrehenReset" style="flex:1;background:var(--white);color:var(--soil);border:1px solid var(--parchment);">0°</button>
+        </div>
+      </div>
+      <div class="form-row">
         <label>Farbe</label>
         <div class="farbe-reihe" id="raumFarbReihe"></div>
       </div>
@@ -230,6 +239,14 @@
       <div class="form-row">
         <label>Wanddicke (cm): <span id="wandDickeWert"></span></label>
         <input type="range" id="wandDicke" min="6" max="40" step="1">
+      </div>
+      <div class="form-row">
+        <label>Drehung (°): <span id="wandDrehungWert">0°</span></label>
+        <input type="range" id="wandDrehung" min="0" max="359" step="1">
+        <div style="display:flex;gap:6px;margin-top:6px;">
+          <button type="button" class="tool-btn" id="btnWandDrehen45" style="flex:1;background:var(--white);color:var(--soil);border:1px solid var(--parchment);">↻ 45°</button>
+          <button type="button" class="tool-btn" id="btnWandDrehen90" style="flex:1;background:var(--white);color:var(--soil);border:1px solid var(--parchment);">↻ 90°</button>
+        </div>
       </div>
       <button class="btn-danger" id="btnWandLoeschen">🗑 Wand löschen (inkl. Türen/Fenster darauf)</button>
     </div>
@@ -389,16 +406,18 @@
   }
   function drawRaum(r, selected) {
     ctx.save();
+    ctx.translate(r.x + r.w / 2, r.y + r.h / 2);
+    ctx.rotate((r.rotation || 0) * Math.PI / 180);
     ctx.fillStyle = (r.farbe || '#e8d9c4') + 'b3';
     ctx.strokeStyle = selected ? '#c0633a' : (r.farbe || '#e8d9c4');
     ctx.lineWidth = selected ? 2.5 : 1.5;
-    ctx.fillRect(r.x, r.y, r.w, r.h);
-    ctx.strokeRect(r.x, r.y, r.w, r.h);
+    ctx.fillRect(-r.w / 2, -r.h / 2, r.w, r.h);
+    ctx.strokeRect(-r.w / 2, -r.h / 2, r.w, r.h);
     const flaeche = ((r.w / PX_PRO_M) * (r.h / PX_PRO_M)).toFixed(1);
     ctx.fillStyle = '#3b2f1e'; ctx.font = '600 12px Inter,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText(r.name || 'Raum', r.x + r.w / 2, r.y + r.h / 2 - 8);
+    ctx.fillText(r.name || 'Raum', 0, -8);
     ctx.font = '10px Inter,sans-serif';
-    ctx.fillText(flaeche + ' m²', r.x + r.w / 2, r.y + r.h / 2 + 8);
+    ctx.fillText(flaeche + ' m²', 0, 8);
     ctx.restore();
   }
   function wandWinkel(w) { return Math.atan2(w.y2 - w.y1, w.x2 - w.x1); }
@@ -536,7 +555,13 @@
     const eb = aktiveEbene();
     for (let i = eb.raeume.length - 1; i >= 0; i--) {
       const r = eb.raeume[i];
-      if (x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h) return r;
+      // Klickpunkt in das unrotierte, lokale Koordinatensystem des Raums umrechnen
+      const cx = r.x + r.w / 2, cy = r.y + r.h / 2;
+      const winkel = -(r.rotation || 0) * Math.PI / 180;
+      const dx = x - cx, dy = y - cy;
+      const lx = dx * Math.cos(winkel) - dy * Math.sin(winkel);
+      const ly = dx * Math.sin(winkel) + dy * Math.cos(winkel);
+      if (lx >= -r.w / 2 && lx <= r.w / 2 && ly >= -r.h / 2 && ly <= r.h / 2) return r;
     }
     return null;
   }
@@ -690,6 +715,8 @@
     document.getElementById('raumName').value = r.name || '';
     document.getElementById('raumBreite').value = (r.w / PX_PRO_M).toFixed(2);
     document.getElementById('raumTiefe').value = (r.h / PX_PRO_M).toFixed(2);
+    document.getElementById('raumDrehung').value = r.rotation || 0;
+    document.getElementById('raumDrehungWert').textContent = (r.rotation || 0) + '°';
     aktualisiereRaumFlaeche(r);
     const reihe = document.getElementById('raumFarbReihe');
     reihe.innerHTML = '';
@@ -719,6 +746,34 @@
     if (!r) return; const m = parseFloat(e.target.value); if (!(m > 0)) return;
     r.h = Math.round(m * PX_PRO_M); speichernDaten(); aktualisiereRaumFlaeche(r); draw();
   });
+  document.getElementById('raumDrehung').addEventListener('focus', () => pushUndo());
+  document.getElementById('raumDrehung').addEventListener('input', (e) => {
+    const eb = aktiveEbene(); const r = eb.raeume.find(x => x.id === selektion.id);
+    if (!r) return;
+    r.rotation = parseInt(e.target.value, 10);
+    document.getElementById('raumDrehungWert').textContent = r.rotation + '°';
+    speichernDaten(); draw();
+  });
+  function raumUmDrehungAendern(delta) {
+    const eb = aktiveEbene(); const r = eb.raeume.find(x => x.id === selektion.id);
+    if (!r) return;
+    pushUndo();
+    r.rotation = ((r.rotation || 0) + delta + 360) % 360;
+    document.getElementById('raumDrehung').value = r.rotation;
+    document.getElementById('raumDrehungWert').textContent = r.rotation + '°';
+    speichernDaten(); draw();
+  }
+  document.getElementById('btnRaumDrehen45').addEventListener('click', () => raumUmDrehungAendern(45));
+  document.getElementById('btnRaumDrehen90').addEventListener('click', () => raumUmDrehungAendern(90));
+  document.getElementById('btnRaumDrehenReset').addEventListener('click', () => {
+    const eb = aktiveEbene(); const r = eb.raeume.find(x => x.id === selektion.id);
+    if (!r) return;
+    pushUndo();
+    r.rotation = 0;
+    document.getElementById('raumDrehung').value = 0;
+    document.getElementById('raumDrehungWert').textContent = '0°';
+    speichernDaten(); draw();
+  });
   document.getElementById('btnRaumLoeschen').addEventListener('click', () => {
     if (!confirm('Diesen Raum wirklich löschen?')) return;
     pushUndo();
@@ -737,7 +792,19 @@
     document.getElementById('wandLaenge').value = (wandLaengePx(w) / PX_PRO_M).toFixed(2);
     document.getElementById('wandDicke').value = w.dicke || WAND_DICKE_STANDARD;
     document.getElementById('wandDickeWert').textContent = (w.dicke || WAND_DICKE_STANDARD) + ' cm';
+    const gradGerundet = Math.round(wandWinkel(w) * 180 / Math.PI + 360) % 360;
+    document.getElementById('wandDrehung').value = gradGerundet;
+    document.getElementById('wandDrehungWert').textContent = gradGerundet + '°';
     draw();
+  }
+  function wandDrehungSetzen(w, neueGrad) {
+    const mitte = wandPunktBeiT(w, 0.5);
+    const laenge = wandLaengePx(w);
+    const rad = neueGrad * Math.PI / 180;
+    w.x1 = mitte.x - Math.cos(rad) * laenge / 2;
+    w.y1 = mitte.y - Math.sin(rad) * laenge / 2;
+    w.x2 = mitte.x + Math.cos(rad) * laenge / 2;
+    w.y2 = mitte.y + Math.sin(rad) * laenge / 2;
   }
   document.getElementById('wandLaenge').addEventListener('focus', () => pushUndo());
   document.getElementById('wandLaenge').addEventListener('input', (e) => {
@@ -757,6 +824,28 @@
     document.getElementById('wandDickeWert').textContent = w.dicke + ' cm';
     speichernDaten(); draw();
   });
+  document.getElementById('wandDrehung').addEventListener('focus', () => pushUndo());
+  document.getElementById('wandDrehung').addEventListener('input', (e) => {
+    const eb = aktiveEbene(); const w = eb.waende.find(x => x.id === selektion.id);
+    if (!w) return;
+    const grad = parseInt(e.target.value, 10);
+    wandDrehungSetzen(w, grad);
+    document.getElementById('wandDrehungWert').textContent = grad + '°';
+    speichernDaten(); draw();
+  });
+  function wandUmDrehungAendern(delta) {
+    const eb = aktiveEbene(); const w = eb.waende.find(x => x.id === selektion.id);
+    if (!w) return;
+    pushUndo();
+    const aktuelleGrad = Math.round(wandWinkel(w) * 180 / Math.PI + 360) % 360;
+    const neueGrad = (aktuelleGrad + delta + 360) % 360;
+    wandDrehungSetzen(w, neueGrad);
+    document.getElementById('wandDrehung').value = neueGrad;
+    document.getElementById('wandDrehungWert').textContent = neueGrad + '°';
+    speichernDaten(); draw();
+  }
+  document.getElementById('btnWandDrehen45').addEventListener('click', () => wandUmDrehungAendern(45));
+  document.getElementById('btnWandDrehen90').addEventListener('click', () => wandUmDrehungAendern(90));
   document.getElementById('btnWandLoeschen').addEventListener('click', () => {
     if (!confirm('Diese Wand wirklich löschen? Türen/Fenster darauf werden mit entfernt.')) return;
     pushUndo();
