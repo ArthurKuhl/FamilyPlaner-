@@ -991,8 +991,21 @@
     }
     selektion = { typ: null, id: null }; schliesseEditor(); draw();
   }
+  // Scrollt die Zeichenfläche automatisch weiter, wenn man beim Ziehen (Verschieben oder
+  // Raum aufziehen) nah an einen Rand des sichtbaren Bereichs kommt.
+  function autoScrollBeiRand(e) {
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    const rect = wrap.getBoundingClientRect();
+    const RAND = 44, TEMPO = 16;
+    if (clientX - rect.left < RAND) wrap.scrollLeft -= TEMPO;
+    else if (rect.right - clientX < RAND) wrap.scrollLeft += TEMPO;
+    if (clientY - rect.top < RAND) wrap.scrollTop -= TEMPO;
+    else if (rect.bottom - clientY < RAND) wrap.scrollTop += TEMPO;
+  }
   function onMove(e) {
     if (!dragStart) return;
+    autoScrollBeiRand(e);
     const { x, y } = getPos(e);
     if (mode === 'raum' && vorschau) {
       vorschau.w = snap(x) - vorschau.x; vorschau.h = snap(y) - vorschau.y; draw(); return;
