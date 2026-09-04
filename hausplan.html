@@ -170,6 +170,7 @@
   <button class="tool-btn" data-mode="tuer" title="Auf eine Wand tippen, um eine Tür zu setzen">🚪 Tür</button>
   <button class="tool-btn" data-mode="fenster" title="Auf eine Wand tippen, um ein Fenster zu setzen">🪟 Fenster</button>
   <button class="tool-btn" data-mode="notiz" title="Antippen, um eine Text-Notiz zu platzieren">📝 Notiz</button>
+  <button class="tool-btn" data-mode="grundstueck" title="Grundstücksgrenze: Punkt für Punkt antippen, am Start schließen">🗺️ Grundstück</button>
   <div class="tool-dropdown">
     <button class="tool-btn" id="btnMoebelToggle" title="Möbel-Platzhalter wählen und platzieren">🪑 Möbel</button>
     <div class="dropdown-menu" id="moebelMenu"></div>
@@ -180,7 +181,9 @@
     <div class="dropdown-menu" id="dateiMenu">
       <button class="tool-btn" id="btnPdfExport">📄 PDF-Export</button>
       <button class="tool-btn" id="btnPngExport">🖼️ PNG-Export</button>
+      <button class="tool-btn" id="btnRaumliste">📋 Raumliste</button>
       <button class="tool-btn" id="btnKompassToggle">🧭 Nordpfeil ein/aus</button>
+      <button class="tool-btn" id="btnGrundstueckToggle">🗺️ Grundstücksgrenze ein/aus</button>
       <button class="tool-btn" id="btnEbeneLeeren">🧹 Diese Ebene leeren</button>
     </div>
   </div>
@@ -247,6 +250,16 @@
         <label>Farbe</label>
         <div class="farbe-reihe" id="raumFarbReihe"></div>
       </div>
+      <div class="form-row">
+        <label>Referenzfoto (optional)</label>
+        <input type="file" id="raumFotoInput" accept="image/*" style="display:none;">
+        <button type="button" class="tool-btn" id="btnRaumFotoWaehlen" style="width:100%;background:var(--white);color:var(--soil);border:1px solid var(--parchment);">📷 Foto hinzufügen/ändern</button>
+        <div id="raumFotoVorschauBox" style="display:none;margin-top:8px;position:relative;">
+          <img id="raumFotoVorschau" style="width:100%;border-radius:var(--radius-sm);display:block;">
+          <button type="button" id="btnRaumFotoEntfernen" style="position:absolute;top:6px;right:6px;background:rgba(20,18,14,0.72);color:#fff;border:none;width:28px;height:28px;border-radius:50%;cursor:pointer;">🗑</button>
+        </div>
+      </div>
+      <button type="button" class="tool-btn" id="btnRaumKopieren" style="width:100%;background:var(--white);color:var(--soil);border:1px solid var(--parchment);margin-bottom:8px;">📋 In anderes Projekt kopieren</button>
       <button class="btn-danger" id="btnRaumLoeschen">🗑 Raum löschen</button>
     </div>
 
@@ -318,6 +331,7 @@
           <button type="button" class="tool-btn" id="btnMoebelDrehen90" style="flex:1;background:var(--white);color:var(--soil);border:1px solid var(--parchment);">↻ 90°</button>
         </div>
       </div>
+      <button type="button" class="tool-btn" id="btnMoebelAlsEigenerTyp" style="width:100%;background:var(--white);color:var(--soil);border:1px solid var(--parchment);margin-bottom:8px;">💾 Maße als eigenen Typ speichern</button>
       <button class="btn-danger" id="btnMoebelLoeschen">🗑 Möbel löschen</button>
     </div>
   </div>
@@ -358,6 +372,34 @@
   </div>
 </div>
 
+<div class="modal-bg" id="modalRaumliste">
+  <div class="modal" style="width:min(480px,92vw);">
+    <h2>📋 Raumliste – <span id="raumlisteEbeneName"></span></h2>
+    <div id="raumlisteInhalt" style="max-height:60vh;overflow-y:auto;"></div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnRaumlisteSchliessen">Schließen</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalRaumKopieren">
+  <div class="modal">
+    <h2>📋 Raum kopieren nach...</h2>
+    <div class="form-row">
+      <label>Zielprojekt</label>
+      <select id="raumKopierenProjekt"></select>
+    </div>
+    <div class="form-row">
+      <label>Zielebene</label>
+      <select id="raumKopierenEbene"></select>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnRaumKopierenAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnRaumKopierenAusfuehren" style="width:auto;">Kopieren</button>
+    </div>
+  </div>
+</div>
+
 <script src="gemeinsam.js"></script>
 <script>
 (function(){
@@ -365,13 +407,14 @@
   // neueId, escapeHtml, laden, speichern, showTempStatus, Pull-to-refresh, Zurück-Taste: siehe gemeinsam.js
 
   const KEY_HAUSPLAN = 'hausplan_daten_v1';
+  const KEY_MOEBEL_EIGENE = 'hausplan_eigene_moebeltypen';
   const PX_PRO_M = 60; // Basis-Maßstab: 60px = 1 realer Meter (unabhängig vom Zoom)
   const RASTER_M = 1;  // Rasterlinie alle 1m
 
   let daten = laden(KEY_HAUSPLAN, null);
   function neuesProjekt(name) {
     const eb = { id: neueId('eb'), name: 'Erdgeschoss', waende: [], raeume: [], notizen: [], moebel: [] };
-    return { id: neueId('proj'), name, ebenen: [eb], aktiveEbeneId: eb.id, kompass: { x: 60, y: 60, rotation: 0, sichtbar: false } };
+    return { id: neueId('proj'), name, ebenen: [eb], aktiveEbeneId: eb.id, kompass: { x: 60, y: 60, rotation: 0, sichtbar: false }, grundstueck: { punkte: [], sichtbar: false } };
   }
   if (!daten || !daten.projekte || !daten.projekte.length) {
     if (daten && daten.ebenen && daten.ebenen.length) {
@@ -387,6 +430,7 @@
   daten.projekte.forEach(p => {
     p.ebenen.forEach(eb => { if (!eb.notizen) eb.notizen = []; if (!eb.moebel) eb.moebel = []; });
     if (!p.kompass) p.kompass = { x: 60, y: 60, rotation: 0, sichtbar: false };
+    if (!p.grundstueck) p.grundstueck = { punkte: [], sichtbar: false };
   });
   function aktivesProjekt() { return daten.projekte.find(p => p.id === daten.aktivesProjektId) || daten.projekte[0]; }
   function aktiveEbene() { const p = aktivesProjekt(); return p.ebenen.find(e => e.id === p.aktiveEbeneId) || p.ebenen[0]; }
@@ -503,6 +547,9 @@
     }
 
     const eb = aktiveEbene();
+    // Grundstücksgrenze zuunterst (Referenzlinie für alles andere)
+    const gs = aktivesProjekt().grundstueck;
+    if (gs && gs.sichtbar && gs.punkte && gs.punkte.length >= 3) drawGrundstueck(gs);
     // Räume zuerst (liegen unter den Wänden)
     eb.raeume.forEach(r => drawRaum(r, r.id === selektion.id && selektion.typ === 'raum'));
     // Wände + darauf sitzende Türen/Fenster
@@ -524,7 +571,7 @@
       ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
       ctx.restore();
     }
-    // Live-Vorschau des laufenden Freiform-Raum-Zugs
+    // Live-Vorschau des laufenden Freiform-Raum-Zugs bzw. der Grundstücksgrenze
     if (raumFreiPunkte.length) {
       ctx.save();
       ctx.strokeStyle = 'rgba(74,111,90,0.85)'; ctx.lineWidth = 1.5; ctx.setLineDash([5, 3]);
@@ -539,6 +586,30 @@
       });
       ctx.restore();
     }
+    if (grundstueckPunkte.length) {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(91,139,181,0.9)'; ctx.lineWidth = 2; ctx.setLineDash([8, 4]);
+      ctx.beginPath();
+      grundstueckPunkte.forEach((p, i) => { if (i === 0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y); });
+      ctx.stroke();
+      ctx.setLineDash([]);
+      grundstueckPunkte.forEach((p, i) => {
+        ctx.fillStyle = i === 0 ? '#4a6f5c' : '#5b8bb5';
+        ctx.beginPath(); ctx.arc(p.x, p.y, i === 0 ? 6 : 5, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+      });
+      ctx.restore();
+    }
+  }
+  function drawGrundstueck(gs) {
+    ctx.save();
+    ctx.strokeStyle = 'rgba(91,139,181,0.75)'; ctx.lineWidth = 2; ctx.setLineDash([10, 6]);
+    ctx.beginPath();
+    gs.punkte.forEach((p, i) => { if (i === 0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y); });
+    ctx.closePath();
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
   }
   function polygonFlaechePx(points) {
     let sum = 0;
@@ -770,11 +841,17 @@
     { id: 'badewanne', label: 'Badewanne', icon: '🛁', w: 170, h: 75 },
     { id: 'treppe', label: 'Treppe', icon: '🪜', w: 100, h: 250 },
   ];
-  function moebelTypInfo(id) { return MOEBEL_TYPEN.find(t => t.id === id) || MOEBEL_TYPEN[0]; }
+  let eigeneMoebelTypen = laden(KEY_MOEBEL_EIGENE, []);
+  function moebelTypInfo(id) { return MOEBEL_TYPEN.find(t => t.id === id) || eigeneMoebelTypen.find(t => t.id === id) || MOEBEL_TYPEN[0]; }
   let aktiverMoebelTyp = null;
   function renderMoebelMenu() {
     const menu = document.getElementById('moebelMenu');
-    menu.innerHTML = MOEBEL_TYPEN.map(t => `<button class="tool-btn" data-moebeltyp="${t.id}">${t.icon} ${t.label}</button>`).join('');
+    let html = MOEBEL_TYPEN.map(t => `<button class="tool-btn" data-moebeltyp="${t.id}">${t.icon} ${t.label}</button>`).join('');
+    if (eigeneMoebelTypen.length) {
+      html += '<span style="display:block;font-size:0.62rem;color:var(--sage);text-transform:uppercase;padding:6px 4px 2px;">Eigene</span>';
+      html += eigeneMoebelTypen.map(t => `<button class="tool-btn" data-moebeltyp="${t.id}">${t.icon} ${t.label}</button>`).join('');
+    }
+    menu.innerHTML = html;
     menu.querySelectorAll('[data-moebeltyp]').forEach(btn => {
       btn.addEventListener('click', () => {
         aktiverMoebelTyp = btn.dataset.moebeltyp;
@@ -798,6 +875,7 @@
   function setMode(m) {
     if (mode === 'wand' && m !== 'wand') wandKetteBeenden(true);
     if (mode === 'raumfrei' && m !== 'raumfrei') raumFreiBeenden(true);
+    if (mode === 'grundstueck' && m !== 'grundstueck') grundstueckBeenden(true);
     mode = m;
     document.querySelectorAll('.tool-btn[data-mode]').forEach(b => b.classList.toggle('active', b.dataset.mode === m));
     schliesseEditor();
@@ -805,7 +883,7 @@
   }
   document.querySelectorAll('.tool-btn[data-mode]').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
   function updateStatus() {
-    const labels = { select: 'Auswählen/Verschieben', wand: 'Wand zeichnen – Punkt für Punkt antippen', raum: 'Raum zeichnen', raumfrei: 'Freiform-Raum – Ecken antippen, am Start schließen', tuer: 'Tür setzen – auf eine Wand tippen', fenster: 'Fenster setzen – auf eine Wand tippen', notiz: 'Notiz setzen – antippen, wo sie stehen soll', moebel: (aktiverMoebelTyp ? moebelTypInfo(aktiverMoebelTyp).label + ' – antippen zum Platzieren' : 'Möbel platzieren') };
+    const labels = { select: 'Auswählen/Verschieben', wand: 'Wand zeichnen – Punkt für Punkt antippen', raum: 'Raum zeichnen', raumfrei: 'Freiform-Raum – Ecken antippen, am Start schließen', tuer: 'Tür setzen – auf eine Wand tippen', fenster: 'Fenster setzen – auf eine Wand tippen', notiz: 'Notiz setzen – antippen, wo sie stehen soll', grundstueck: 'Grundstücksgrenze – Ecken antippen, am Start schließen', moebel: (aktiverMoebelTyp ? moebelTypInfo(aktiverMoebelTyp).label + ' – antippen zum Platzieren' : 'Möbel platzieren') };
     const eb = aktiveEbene();
     const gesamtFlaeche = eb.raeume.reduce((s, r) => s + (r.w / PX_PRO_M) * (r.h / PX_PRO_M), 0);
     document.getElementById('hpStatus').innerHTML =
@@ -880,13 +958,32 @@
     showTempStatus('⬟ Freiform-Raum angelegt', 3);
     draw(); updateStatus();
   }
+  let grundstueckPunkte = [];
+  function grundstueckBeenden(verwerfen) {
+    grundstueckPunkte = []; aktiverKettenTyp = null;
+    document.getElementById('wandKetteLeiste').style.display = 'none';
+    draw(); updateStatus();
+  }
+  function grundstueckAbschliessen() {
+    if (grundstueckPunkte.length < 3) { showTempStatus('⚠ Mindestens 3 Punkte nötig.', 3); grundstueckBeenden(true); return; }
+    pushUndo();
+    aktivesProjekt().grundstueck = { punkte: grundstueckPunkte.slice(), sichtbar: true };
+    speichernDaten();
+    grundstueckPunkte = []; aktiverKettenTyp = null;
+    document.getElementById('wandKetteLeiste').style.display = 'none';
+    setMode('select');
+    showTempStatus('🗺️ Grundstücksgrenze gespeichert', 3);
+    draw(); updateStatus();
+  }
   document.getElementById('btnWandKetteFertig').addEventListener('click', () => {
     if (aktiverKettenTyp === 'wand') wandKetteBeenden(false);
     else if (aktiverKettenTyp === 'raumfrei') raumFreiAbschliessen();
+    else if (aktiverKettenTyp === 'grundstueck') grundstueckAbschliessen();
   });
   document.getElementById('btnWandKetteAbbrechen').addEventListener('click', () => {
     if (aktiverKettenTyp === 'wand') wandKetteBeenden(true);
     else if (aktiverKettenTyp === 'raumfrei') raumFreiBeenden(true);
+    else if (aktiverKettenTyp === 'grundstueck') grundstueckBeenden(true);
   });
 
   function onDown(e) {
@@ -928,6 +1025,26 @@
       const letzter = raumFreiPunkte[raumFreiPunkte.length - 1];
       if (Math.hypot(p.x - letzter.x, p.y - letzter.y) < 4) return;
       raumFreiPunkte.push(p);
+      draw();
+      return;
+    }
+    if (mode === 'grundstueck') {
+      const p = { x: snap(x), y: snap(y) };
+      if (!grundstueckPunkte.length) {
+        grundstueckPunkte = [p]; aktiverKettenTyp = 'grundstueck';
+        document.getElementById('wandKetteText').textContent = '🗺️ Grundstücksgrenze: nächste Ecke antippen';
+        document.getElementById('wandKetteLeiste').style.display = 'flex';
+        draw();
+        return;
+      }
+      const start = grundstueckPunkte[0];
+      if (grundstueckPunkte.length >= 3 && Math.hypot(p.x - start.x, p.y - start.y) < 14) {
+        grundstueckAbschliessen();
+        return;
+      }
+      const letzter = grundstueckPunkte[grundstueckPunkte.length - 1];
+      if (Math.hypot(p.x - letzter.x, p.y - letzter.y) < 4) return;
+      grundstueckPunkte.push(p);
       draw();
       return;
     }
@@ -1173,8 +1290,51 @@
       p.addEventListener('click', () => { pushUndo(); r.farbe = f; speichernDaten(); raumAuswaehlen(r); draw(); });
       reihe.appendChild(p);
     });
+    if (r.foto) {
+      document.getElementById('raumFotoVorschau').src = r.foto;
+      document.getElementById('raumFotoVorschauBox').style.display = 'block';
+    } else {
+      document.getElementById('raumFotoVorschauBox').style.display = 'none';
+    }
     draw();
   }
+  document.getElementById('btnRaumFotoWaehlen').addEventListener('click', () => document.getElementById('raumFotoInput').click());
+  document.getElementById('raumFotoInput').addEventListener('change', (e) => {
+    const file = e.target.files && e.target.files[0];
+    const eb = aktiveEbene();
+    const r = eb.raeume.find(x => x.id === selektion.id);
+    if (!file || !r) return;
+    const reader = new FileReader();
+    reader.onerror = () => showTempStatus('⚠ Foto konnte nicht gelesen werden.', 5);
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onerror = () => showTempStatus('⚠ Datei ist kein gültiges Bild.', 5);
+      img.onload = () => {
+        const maxW = 480;
+        const scale = Math.min(1, maxW / img.width);
+        const c = document.createElement('canvas');
+        c.width = img.width * scale; c.height = img.height * scale;
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        pushUndo();
+        r.foto = c.toDataURL('image/jpeg', 0.72);
+        speichernDaten();
+        raumAuswaehlen(r);
+        showTempStatus('📷 Referenzfoto gespeichert', 3);
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  });
+  document.getElementById('btnRaumFotoEntfernen').addEventListener('click', () => {
+    const eb = aktiveEbene();
+    const r = eb.raeume.find(x => x.id === selektion.id);
+    if (!r) return;
+    pushUndo();
+    delete r.foto;
+    speichernDaten();
+    raumAuswaehlen(r);
+  });
   function aktualisiereRaumFlaeche(r) {
     const flaeche = r.typ === 'poly' ? polygonFlaechePx(r.points) / (PX_PRO_M * PX_PRO_M) : (r.w / PX_PRO_M) * (r.h / PX_PRO_M);
     document.getElementById('raumFlaeche').textContent = flaeche.toFixed(2) + ' m²';
@@ -1227,6 +1387,41 @@
     const eb = aktiveEbene();
     eb.raeume = eb.raeume.filter(r => r.id !== selektion.id);
     speichernDaten(); schliesseEditor(); draw(); updateStatus();
+  });
+
+  // ---------- RAUM ZWISCHEN PROJEKTEN KOPIEREN ----------
+  document.getElementById('btnRaumKopieren').addEventListener('click', () => {
+    const projSelect = document.getElementById('raumKopierenProjekt');
+    projSelect.innerHTML = daten.projekte.map(p => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('');
+    // Standardmäßig ein anderes Projekt als das aktuelle vorauswählen, falls vorhanden
+    const andere = daten.projekte.find(p => p.id !== daten.aktivesProjektId);
+    if (andere) projSelect.value = andere.id;
+    aktualisiereRaumKopierenEbenen();
+    document.getElementById('modalRaumKopieren').classList.add('zeigen');
+  });
+  function aktualisiereRaumKopierenEbenen() {
+    const projId = document.getElementById('raumKopierenProjekt').value;
+    const proj = daten.projekte.find(p => p.id === projId);
+    const ebSelect = document.getElementById('raumKopierenEbene');
+    ebSelect.innerHTML = proj.ebenen.map(eb => `<option value="${eb.id}">${escapeHtml(eb.name)}</option>`).join('');
+  }
+  document.getElementById('raumKopierenProjekt').addEventListener('change', aktualisiereRaumKopierenEbenen);
+  document.getElementById('btnRaumKopierenAbbrechen').addEventListener('click', () => document.getElementById('modalRaumKopieren').classList.remove('zeigen'));
+  document.getElementById('modalRaumKopieren').addEventListener('click', (e) => { if (e.target.id === 'modalRaumKopieren') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnRaumKopierenAusfuehren').addEventListener('click', () => {
+    const eb = aktiveEbene();
+    const r = eb.raeume.find(x => x.id === selektion.id);
+    if (!r) return;
+    const zielProjId = document.getElementById('raumKopierenProjekt').value;
+    const zielEbId = document.getElementById('raumKopierenEbene').value;
+    const zielProj = daten.projekte.find(p => p.id === zielProjId);
+    const zielEb = zielProj.ebenen.find(e => e.id === zielEbId);
+    pushUndo();
+    const kopie = { ...r, id: neueId('raum'), points: r.points ? r.points.map(p => ({ ...p })) : undefined };
+    zielEb.raeume.push(kopie);
+    speichernDaten();
+    document.getElementById('modalRaumKopieren').classList.remove('zeigen');
+    showTempStatus('📋 „' + (r.name || 'Raum') + '" nach „' + zielProj.name + ' – ' + zielEb.name + '" kopiert', 4);
   });
 
   function wandAuswaehlen(w) {
@@ -1388,6 +1583,18 @@
     speichernDaten(); draw();
     showTempStatus(aktivesProjekt().kompass.sichtbar ? '🧭 Nordpfeil eingeblendet – im Auswählen-Modus antippen zum Ausrichten/Verschieben' : '🧭 Nordpfeil ausgeblendet', 4);
   });
+  document.getElementById('btnGrundstueckToggle').addEventListener('click', () => {
+    closeDropdowns();
+    const gs = aktivesProjekt().grundstueck;
+    if (!gs.punkte.length) {
+      showTempStatus('🗺️ Noch keine Grundstücksgrenze gezeichnet – Werkzeug "🗺️ Grundstück" nutzen.', 4);
+      return;
+    }
+    pushUndo();
+    gs.sichtbar = !gs.sichtbar;
+    speichernDaten(); draw();
+    showTempStatus(gs.sichtbar ? '🗺️ Grundstücksgrenze eingeblendet' : '🗺️ Grundstücksgrenze ausgeblendet', 3);
+  });
 
   // ---------- MÖBEL-EDITOR ----------
   function moebelAuswaehlen(m) {
@@ -1445,6 +1652,25 @@
     const eb = aktiveEbene();
     eb.moebel = (eb.moebel || []).filter(m => m.id !== selektion.id);
     speichernDaten(); schliesseEditor(); draw(); updateStatus();
+  });
+  document.getElementById('btnMoebelAlsEigenerTyp').addEventListener('click', () => {
+    const m = aktuellesMoebel();
+    if (!m) return;
+    const vorschlag = moebelTypInfo(m.typ).label + ' (eigene Maße)';
+    const name = prompt('Name für den eigenen Möbeltyp:', vorschlag);
+    if (!name || !name.trim()) return;
+    const vorlage = moebelTypInfo(m.typ);
+    const neuerTyp = {
+      id: neueId('eigenmoebel'),
+      label: name.trim(),
+      icon: vorlage.icon,
+      w: Math.round(m.w / PX_PRO_M * 100),
+      h: Math.round(m.h / PX_PRO_M * 100),
+    };
+    eigeneMoebelTypen.push(neuerTyp);
+    speichern(KEY_MOEBEL_EIGENE, eigeneMoebelTypen);
+    renderMoebelMenu();
+    showTempStatus('💾 „' + neuerTyp.label + '" als eigener Typ gespeichert (' + neuerTyp.w + '×' + neuerTyp.h + ' cm) – jetzt im 🪑 Möbel-Menü unter "Eigene"', 5);
   });
 
   // ---------- PROJEKTE (getrennte Häuser/Gebäude) ----------
@@ -1586,6 +1812,42 @@
     eb.waende = []; eb.raeume = [];
     speichernDaten(); schliesseEditor(); draw(); updateStatus();
   });
+  document.getElementById('btnRaumliste').addEventListener('click', () => {
+    closeDropdowns();
+    const eb = aktiveEbene();
+    document.getElementById('raumlisteEbeneName').textContent = eb.name;
+    const box = document.getElementById('raumlisteInhalt');
+    if (!eb.raeume.length) {
+      box.innerHTML = '<div class="empty-state">Noch keine Räume auf dieser Ebene.</div>';
+    } else {
+      const sortiert = eb.raeume.slice().sort((a, b) => (a.name || '').localeCompare(b.name || '', 'de'));
+      box.innerHTML = sortiert.map(r => {
+        const flaeche = r.typ === 'poly' ? polygonFlaechePx(r.points) / (PX_PRO_M * PX_PRO_M) : (r.w / PX_PRO_M) * (r.h / PX_PRO_M);
+        return `<div class="stat-aufgabe-zeile" data-raumid="${r.id}" style="display:flex;justify-content:space-between;align-items:center;padding:9px 4px;border-bottom:1px solid var(--parchment);cursor:pointer;">
+          <span>${escapeHtml(r.name || 'Raum')}</span>
+          <span style="font-weight:700;color:var(--moss);">${flaeche.toFixed(2)} m²</span>
+        </div>`;
+      }).join('');
+      const gesamt = eb.raeume.reduce((s, r) => s + (r.typ === 'poly' ? polygonFlaechePx(r.points) / (PX_PRO_M * PX_PRO_M) : (r.w / PX_PRO_M) * (r.h / PX_PRO_M)), 0);
+      box.innerHTML += `<div style="display:flex;justify-content:space-between;padding:9px 4px;font-weight:700;">
+        <span>Gesamt (${eb.raeume.length} Räume)</span><span>${gesamt.toFixed(2)} m²</span></div>`;
+      box.querySelectorAll('[data-raumid]').forEach(zeile => {
+        zeile.addEventListener('click', () => {
+          const r = eb.raeume.find(x => x.id === zeile.dataset.raumid);
+          if (!r) return;
+          document.getElementById('modalRaumliste').classList.remove('zeigen');
+          setMode('select');
+          raumAuswaehlen(r);
+          const cx = r.typ === 'poly' ? polygonSchwerpunkt(r.points).x : r.x + r.w / 2;
+          const cy = r.typ === 'poly' ? polygonSchwerpunkt(r.points).y : r.y + r.h / 2;
+          wrap.scrollTo({ left: cx * zoom - wrap.clientWidth / 2, top: cy * zoom - wrap.clientHeight / 2, behavior: 'smooth' });
+        });
+      });
+    }
+    document.getElementById('modalRaumliste').classList.add('zeigen');
+  });
+  document.getElementById('btnRaumlisteSchliessen').addEventListener('click', () => document.getElementById('modalRaumliste').classList.remove('zeigen'));
+  document.getElementById('modalRaumliste').addEventListener('click', (e) => { if (e.target.id === 'modalRaumliste') e.currentTarget.classList.remove('zeigen'); });
   document.getElementById('btnPngExport').addEventListener('click', () => {
     closeDropdowns();
     try {
