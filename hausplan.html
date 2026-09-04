@@ -60,7 +60,9 @@
   header.top .titel-zeile h1 { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; }
   .add-btn { background: var(--terracotta); color: var(--white); border: none; border-radius: var(--radius-pill); font-size: 0.78rem; font-weight: 700; padding: 6px 13px; cursor: pointer; flex-shrink: 0; }
 
-  .ebenen-tabs { display: flex; gap: 5px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px; scrollbar-width: none; }
+  .ebenen-tabs { display: flex; gap: 5px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px; scrollbar-width: none; align-items: center; }
+  .proj-label { color: var(--sage); font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; flex-shrink: 0; margin-right: 2px; }
+  #projektTabs .eb-tab.active { background: var(--terracotta); border-color: var(--terracotta); color: #fff; }
   .ebenen-tabs::-webkit-scrollbar { display: none; }
   .eb-tab { position: relative; flex: 0 0 auto; display: flex; align-items: center; gap: 5px; background: transparent; border: 1px solid #4a3a28; color: var(--sage); font-size: 0.74rem; font-weight: 600; padding: 6px 10px; border-radius: var(--radius-pill); cursor: pointer; white-space: nowrap; }
   .eb-tab.active { background: var(--moss); color: var(--leaf); border-color: var(--moss); }
@@ -133,6 +135,7 @@
     <h1>📐 Hausplan</h1>
     <button class="theme-btn" id="btnThemeAuswahl" title="Hintergrundmuster wählen">🎨</button>
   </div>
+  <div class="ebenen-tabs" id="projektTabs" style="margin-bottom:6px;"></div>
   <div class="ebenen-tabs" id="ebenenTabs"></div>
 </header>
 <div class="theme-popup" id="themePopup">
@@ -341,6 +344,20 @@
   </div>
 </div>
 
+<div class="modal-bg" id="modalNeuesProjekt">
+  <div class="modal">
+    <h2>🏠 Neues Projekt</h2>
+    <div class="form-row">
+      <label>Name</label>
+      <input type="text" id="neuesProjektName" placeholder="z.B. Garage, Neubau-Idee">
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnNeuesProjektAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnNeuesProjektAnlegen" style="width:auto;">Anlegen</button>
+    </div>
+  </div>
+</div>
+
 <script src="gemeinsam.js"></script>
 <script>
 (function(){
@@ -352,19 +369,27 @@
   const RASTER_M = 1;  // Rasterlinie alle 1m
 
   let daten = laden(KEY_HAUSPLAN, null);
-  if (!daten || !daten.ebenen || !daten.ebenen.length) {
-    daten = {
-      ebenen: [
-        { id: neueId('eb'), name: 'Erdgeschoss', waende: [], raeume: [], notizen: [], moebel: [] }
-      ],
-      aktiveEbeneId: null
-    };
-    daten.aktiveEbeneId = daten.ebenen[0].id;
+  function neuesProjekt(name) {
+    const eb = { id: neueId('eb'), name: 'Erdgeschoss', waende: [], raeume: [], notizen: [], moebel: [] };
+    return { id: neueId('proj'), name, ebenen: [eb], aktiveEbeneId: eb.id, kompass: { x: 60, y: 60, rotation: 0, sichtbar: false } };
   }
-  // Ältere gespeicherte Pläne (vor Notizen/Nordpfeil) auf das aktuelle Format bringen
-  daten.ebenen.forEach(eb => { if (!eb.notizen) eb.notizen = []; if (!eb.moebel) eb.moebel = []; });
-  if (!daten.kompass) daten.kompass = { x: 60, y: 60, rotation: 0, sichtbar: false };
-  function aktiveEbene() { return daten.ebenen.find(e => e.id === daten.aktiveEbeneId) || daten.ebenen[0]; }
+  if (!daten || !daten.projekte || !daten.projekte.length) {
+    if (daten && daten.ebenen && daten.ebenen.length) {
+      // Migration: älterer Einzelplan (vor Mehrfach-Projekten) wird zum ersten Projekt
+      const migriert = { id: neueId('proj'), name: 'Mein Haus', ebenen: daten.ebenen, aktiveEbeneId: daten.aktiveEbeneId, kompass: daten.kompass || { x: 60, y: 60, rotation: 0, sichtbar: false } };
+      daten = { projekte: [migriert], aktivesProjektId: migriert.id };
+    } else {
+      const p = neuesProjekt('Mein Haus');
+      daten = { projekte: [p], aktivesProjektId: p.id };
+    }
+  }
+  // Ältere gespeicherte Pläne (vor Notizen/Möbel/Nordpfeil) auf das aktuelle Format bringen
+  daten.projekte.forEach(p => {
+    p.ebenen.forEach(eb => { if (!eb.notizen) eb.notizen = []; if (!eb.moebel) eb.moebel = []; });
+    if (!p.kompass) p.kompass = { x: 60, y: 60, rotation: 0, sichtbar: false };
+  });
+  function aktivesProjekt() { return daten.projekte.find(p => p.id === daten.aktivesProjektId) || daten.projekte[0]; }
+  function aktiveEbene() { const p = aktivesProjekt(); return p.ebenen.find(e => e.id === p.aktiveEbeneId) || p.ebenen[0]; }
   function speichernDaten() { speichern(KEY_HAUSPLAN, daten); }
 
   // ---------- UNDO/REDO ----------
@@ -487,7 +512,7 @@
     // Möbel-Platzhalter
     (eb.moebel || []).forEach(m => drawMoebel(m, m.id === selektion.id && selektion.typ === 'moebel'));
     // Nordpfeil
-    if (daten.kompass && daten.kompass.sichtbar) drawKompass();
+    if (aktivesProjekt().kompass && aktivesProjekt().kompass.sichtbar) drawKompass();
     // Live-Vorschau beim Zeichnen
     if (vorschau) drawVorschau();
     // Markierung des letzten Punkts im laufenden Wand-Zug
@@ -677,7 +702,7 @@
     return null;
   }
   function drawKompass() {
-    const k = daten.kompass;
+    const k = aktivesProjekt().kompass;
     ctx.save();
     ctx.translate(k.x, k.y);
     ctx.rotate((k.rotation || 0) * Math.PI / 180);
@@ -955,9 +980,9 @@
       return;
     }
     // select-Modus
-    if (daten.kompass && daten.kompass.sichtbar && Math.hypot(x - daten.kompass.x, y - daten.kompass.y) < 24) {
+    if (aktivesProjekt().kompass && aktivesProjekt().kompass.sichtbar && Math.hypot(x - aktivesProjekt().kompass.x, y - aktivesProjekt().kompass.y) < 24) {
       kompassAuswaehlen();
-      dragStart = { x, y }; dragObjStart = { x: daten.kompass.x, y: daten.kompass.y };
+      dragStart = { x, y }; dragObjStart = { x: aktivesProjekt().kompass.x, y: aktivesProjekt().kompass.y };
       return;
     }
     const notizHit = hitTestNotiz(x, y);
@@ -1023,8 +1048,8 @@
       return;
     }
     if (mode === 'select' && selektion.typ === 'kompass' && dragObjStart) {
-      daten.kompass.x = snap(dragObjStart.x + (x - dragStart.x));
-      daten.kompass.y = snap(dragObjStart.y + (y - dragStart.y));
+      aktivesProjekt().kompass.x = snap(dragObjStart.x + (x - dragStart.x));
+      aktivesProjekt().kompass.y = snap(dragObjStart.y + (y - dragStart.y));
       draw();
       return;
     }
@@ -1346,22 +1371,22 @@
     document.getElementById('editorNotiz').style.display = 'none';
     document.getElementById('editorKompass').style.display = 'block';
     scrolleZumEditor();
-    document.getElementById('kompassDrehung').value = daten.kompass.rotation || 0;
-    document.getElementById('kompassDrehungWert').textContent = (daten.kompass.rotation || 0) + '°';
+    document.getElementById('kompassDrehung').value = aktivesProjekt().kompass.rotation || 0;
+    document.getElementById('kompassDrehungWert').textContent = (aktivesProjekt().kompass.rotation || 0) + '°';
     draw();
   }
   document.getElementById('kompassDrehung').addEventListener('focus', () => pushUndo());
   document.getElementById('kompassDrehung').addEventListener('input', (e) => {
-    daten.kompass.rotation = parseInt(e.target.value, 10);
-    document.getElementById('kompassDrehungWert').textContent = daten.kompass.rotation + '°';
+    aktivesProjekt().kompass.rotation = parseInt(e.target.value, 10);
+    document.getElementById('kompassDrehungWert').textContent = aktivesProjekt().kompass.rotation + '°';
     speichernDaten(); draw();
   });
   document.getElementById('btnKompassToggle').addEventListener('click', () => {
     closeDropdowns();
     pushUndo();
-    daten.kompass.sichtbar = !daten.kompass.sichtbar;
+    aktivesProjekt().kompass.sichtbar = !aktivesProjekt().kompass.sichtbar;
     speichernDaten(); draw();
-    showTempStatus(daten.kompass.sichtbar ? '🧭 Nordpfeil eingeblendet – im Auswählen-Modus antippen zum Ausrichten/Verschieben' : '🧭 Nordpfeil ausgeblendet', 4);
+    showTempStatus(aktivesProjekt().kompass.sichtbar ? '🧭 Nordpfeil eingeblendet – im Auswählen-Modus antippen zum Ausrichten/Verschieben' : '🧭 Nordpfeil ausgeblendet', 4);
   });
 
   // ---------- MÖBEL-EDITOR ----------
@@ -1422,25 +1447,76 @@
     speichernDaten(); schliesseEditor(); draw(); updateStatus();
   });
 
+  // ---------- PROJEKTE (getrennte Häuser/Gebäude) ----------
+  function renderProjektTabs() {
+    const box = document.getElementById('projektTabs');
+    box.innerHTML = '<span class="proj-label">Projekt:</span>';
+    daten.projekte.forEach(p => {
+      const tab = document.createElement('div');
+      tab.className = 'eb-tab' + (p.id === daten.aktivesProjektId ? ' active' : '');
+      tab.innerHTML = escapeHtml(p.name) + (daten.projekte.length > 1 ? ' <span class="eb-del">✕</span>' : '');
+      tab.addEventListener('click', (e) => {
+        if (e.target.classList.contains('eb-del')) {
+          e.stopPropagation();
+          if (!confirm('Projekt "' + p.name + '" komplett löschen – inklusive aller Ebenen, Wände und Räume?')) return;
+          pushUndo();
+          daten.projekte = daten.projekte.filter(x => x.id !== p.id);
+          if (daten.aktivesProjektId === p.id) daten.aktivesProjektId = daten.projekte[0].id;
+          speichernDaten(); schliesseEditor(); renderProjektTabs(); renderEbenenTabs(); draw(); updateStatus();
+          return;
+        }
+        daten.aktivesProjektId = p.id;
+        speichernDaten(); schliesseEditor(); renderProjektTabs(); renderEbenenTabs(); draw(); updateStatus();
+      });
+      tab.addEventListener('dblclick', () => {
+        const neuerName = prompt('Projekt umbenennen:', p.name);
+        if (neuerName && neuerName.trim()) { pushUndo(); p.name = neuerName.trim(); speichernDaten(); renderProjektTabs(); }
+      });
+      box.appendChild(tab);
+    });
+    const neuBtn = document.createElement('button');
+    neuBtn.className = 'eb-tab-neu';
+    neuBtn.textContent = '➕ Projekt';
+    neuBtn.addEventListener('click', () => {
+      document.getElementById('neuesProjektName').value = '';
+      document.getElementById('modalNeuesProjekt').classList.add('zeigen');
+      setTimeout(() => document.getElementById('neuesProjektName').focus(), 50);
+    });
+    box.appendChild(neuBtn);
+  }
+  document.getElementById('btnNeuesProjektAbbrechen').addEventListener('click', () => document.getElementById('modalNeuesProjekt').classList.remove('zeigen'));
+  document.getElementById('modalNeuesProjekt').addEventListener('click', (e) => { if (e.target.id === 'modalNeuesProjekt') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnNeuesProjektAnlegen').addEventListener('click', () => {
+    const name = document.getElementById('neuesProjektName').value.trim();
+    if (!name) return;
+    pushUndo();
+    const p = neuesProjekt(name);
+    daten.projekte.push(p);
+    daten.aktivesProjektId = p.id;
+    speichernDaten(); schliesseEditor(); renderProjektTabs(); renderEbenenTabs(); draw(); updateStatus();
+    document.getElementById('modalNeuesProjekt').classList.remove('zeigen');
+  });
+
   // ---------- EBENEN (Stockwerke) ----------
   function renderEbenenTabs() {
     const box = document.getElementById('ebenenTabs');
     box.innerHTML = '';
-    daten.ebenen.forEach(eb => {
+    const proj = aktivesProjekt();
+    proj.ebenen.forEach(eb => {
       const tab = document.createElement('div');
-      tab.className = 'eb-tab' + (eb.id === daten.aktiveEbeneId ? ' active' : '');
-      tab.innerHTML = escapeHtml(eb.name) + (daten.ebenen.length > 1 ? ' <span class="eb-del">✕</span>' : '');
+      tab.className = 'eb-tab' + (eb.id === proj.aktiveEbeneId ? ' active' : '');
+      tab.innerHTML = escapeHtml(eb.name) + (proj.ebenen.length > 1 ? ' <span class="eb-del">✕</span>' : '');
       tab.addEventListener('click', (e) => {
         if (e.target.classList.contains('eb-del')) {
           e.stopPropagation();
           if (!confirm('Ebene "' + eb.name + '" inkl. aller Wände/Räume wirklich löschen?')) return;
           pushUndo();
-          daten.ebenen = daten.ebenen.filter(x => x.id !== eb.id);
-          if (daten.aktiveEbeneId === eb.id) daten.aktiveEbeneId = daten.ebenen[0].id;
+          proj.ebenen = proj.ebenen.filter(x => x.id !== eb.id);
+          if (proj.aktiveEbeneId === eb.id) proj.aktiveEbeneId = proj.ebenen[0].id;
           speichernDaten(); schliesseEditor(); renderEbenenTabs(); draw(); updateStatus();
           return;
         }
-        daten.aktiveEbeneId = eb.id;
+        proj.aktiveEbeneId = eb.id;
         speichernDaten(); schliesseEditor(); renderEbenenTabs(); draw(); updateStatus();
       });
       tab.addEventListener('dblclick', () => {
@@ -1482,8 +1558,9 @@
     } else {
       neu = { id: neueId('eb'), name, waende: [], raeume: [], notizen: [], moebel: [] };
     }
-    daten.ebenen.push(neu);
-    daten.aktiveEbeneId = neu.id;
+    const proj = aktivesProjekt();
+    proj.ebenen.push(neu);
+    proj.aktiveEbeneId = neu.id;
     speichernDaten(); renderEbenenTabs(); schliesseEditor(); draw(); updateStatus();
     document.getElementById('modalNeueEbene').classList.remove('zeigen');
   });
@@ -1512,17 +1589,19 @@
   document.getElementById('btnPngExport').addEventListener('click', () => {
     closeDropdowns();
     try {
+      const proj = aktivesProjekt();
       const eb = aktiveEbene();
       const url = canvas.toDataURL('image/png');
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'hausplan-' + eb.name.toLowerCase().replace(/[^a-z0-9]+/gi, '-') + '.png';
+      a.download = 'hausplan-' + (proj.name + '-' + eb.name).toLowerCase().replace(/[^a-z0-9]+/gi, '-') + '.png';
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
       showTempStatus('🖼️ PNG-Bild wird heruntergeladen', 3);
     } catch (e) { showTempStatus('⚠ Export fehlgeschlagen.', 4); }
   });
   document.getElementById('btnPdfExport').addEventListener('click', () => {
     closeDropdowns();
+    const proj = aktivesProjekt();
     const eb = aktiveEbene();
     let canvasImg = '';
     try { canvasImg = canvas.toDataURL('image/png'); } catch (e) {}
@@ -1534,14 +1613,14 @@
       </table>` : '';
     const win = window.open('', '_blank');
     if (!win) { showTempStatus('⚠ Pop-up blockiert – bitte Pop-ups für diese Seite erlauben.', 5); return; }
-    win.document.write(`<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"><title>Hausplan – ${escapeHtml(eb.name)}</title>
+    win.document.write(`<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"><title>Hausplan – ${escapeHtml(proj.name)} – ${escapeHtml(eb.name)}</title>
       <style>
         body{font-family:Arial,sans-serif;padding:24px;color:#222;}
         h1{font-size:18px;margin-bottom:2px;} .muted{color:#666;font-size:12px;margin-bottom:14px;}
         img{max-width:100%;border:1px solid #ccc;}
         @media print { body{padding:0;} }
       </style></head><body>
-      <h1>📐 Hausplan – ${escapeHtml(eb.name)}</h1>
+      <h1>📐 ${escapeHtml(proj.name)} – ${escapeHtml(eb.name)}</h1>
       <div class="muted">Erstellt am ${heute} · ${eb.waende.length} Wände · ${eb.raeume.length} Räume</div>
       ${canvasImg ? `<img src="${canvasImg}" alt="Grundriss">` : ''}
       ${raeumeHtml}
@@ -1612,6 +1691,7 @@
   try { const g = localStorage.getItem(KEY_THEME); if (g) themeAnwenden(g); } catch (e) {}
 
   // ---------- INIT ----------
+  renderProjektTabs();
   renderEbenenTabs();
   renderMoebelMenu();
   resizeCanvas();
