@@ -728,6 +728,70 @@
   let suchtext = '';
   let bearbeiteId = null;
   let editBewertung = 0;
+  const KEY_ENTWURF = 'kochen_rezept_entwurf';
+  let entwurfIntervall = null;
+  // Sammelt den aktuellen Formularinhalt für die automatische Entwurfssicherung.
+  function entwurfSammeln() {
+    return {
+      bearbeiteId,
+      titel: document.getElementById('fTitel').value,
+      portionenBasis: document.getElementById('fPortionen').value,
+      zeit: document.getElementById('fZeit').value,
+      notiz: document.getElementById('fNotiz').value,
+      tags: document.getElementById('fTags').value,
+      kategorie: (document.querySelector('#editKategorieReihe .kategorie-opt.aktiv') || {}).dataset ? document.querySelector('#editKategorieReihe .kategorie-opt.aktiv').dataset.id : '',
+      aufwand: editAufwand,
+      bewertung: editBewertung,
+      zutaten: Array.from(document.querySelectorAll('#editZutatenListe .zutat-zeile')).map(z => ({
+        menge: z.querySelector('.menge').value,
+        einheit: z.querySelector('.einheit').value,
+        name: z.querySelector('.name').value,
+      })),
+      schritte: Array.from(document.querySelectorAll('#editSchritteListe .schritt-zeile textarea')).map(t => t.value),
+      gespeichertAm: new Date().toISOString(),
+    };
+  }
+  function entwurfHatInhalt(d) {
+    return !!(d.titel.trim() || d.notiz.trim() || d.zutaten.some(z => z.name.trim()) || d.schritte.some(s => s.trim()));
+  }
+  function entwurfSpeichern() {
+    const daten = entwurfSammeln();
+    try {
+      if (entwurfHatInhalt(daten)) localStorage.setItem(KEY_ENTWURF, JSON.stringify(daten));
+      else localStorage.removeItem(KEY_ENTWURF);
+    } catch (e) {}
+  }
+  function entwurfLoeschen() { try { localStorage.removeItem(KEY_ENTWURF); } catch (e) {} }
+  function entwurfLaden() {
+    try { const roh = localStorage.getItem(KEY_ENTWURF); return roh ? JSON.parse(roh) : null; } catch (e) { return null; }
+  }
+  function entwurfUeberwachungStarten() {
+    if (entwurfIntervall) clearInterval(entwurfIntervall);
+    entwurfIntervall = setInterval(entwurfSpeichern, 3000);
+  }
+  function entwurfUeberwachungStoppen() {
+    if (entwurfIntervall) { clearInterval(entwurfIntervall); entwurfIntervall = null; }
+  }
+  // Befüllt das Formular mit einem zuvor automatisch gesicherten Entwurf.
+  function entwurfEinsetzen(d) {
+    document.getElementById('fTitel').value = d.titel || '';
+    document.getElementById('fPortionen').value = d.portionenBasis || 4;
+    document.getElementById('fZeit').value = d.zeit || 30;
+    document.getElementById('fNotiz').value = d.notiz || '';
+    document.getElementById('fTags').value = d.tags || '';
+    editKategorieReiheRendern(d.kategorie || 'hauptspeise');
+    editBewertung = d.bewertung || 0;
+    renderEditSterneEingabe();
+    editAufwandManuell = !!d.aufwand;
+    editAufwand = d.aufwand || '';
+    renderEditAufwandReihe();
+    const zutBox = document.getElementById('editZutatenListe');
+    zutBox.innerHTML = '';
+    (d.zutaten && d.zutaten.length ? d.zutaten : [{menge:'',einheit:'',name:''}]).forEach(z => zutBox.appendChild(zutatZeileErstellen(z)));
+    const schrittBox = document.getElementById('editSchritteListe');
+    schrittBox.innerHTML = '';
+    (d.schritte && d.schritte.length ? d.schritte : ['']).forEach((s, i) => schrittBox.appendChild(schrittZeileErstellen(s, i+1)));
+  }
   function renderEditSterneEingabe() {
     const box = document.getElementById('editSterneEingabe');
     box.innerHTML = '';
@@ -1563,6 +1627,18 @@
     document.getElementById('modalEdit').classList.add('zeigen');
     document.getElementById('modalDetail').classList.remove('zeigen');
     if (!r) aufwandVorschlagAnwenden();
+
+    // Passenden, automatisch gesicherten Entwurf anbieten (gleiches Rezept bzw. beide "neu")
+    const entwurf = entwurfLaden();
+    if (entwurf && entwurf.bearbeiteId === bearbeiteId && entwurfHatInhalt(entwurf)) {
+      const datum = new Date(entwurf.gespeichertAm).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+      if (confirm('Es gibt einen nicht gespeicherten Entwurf vom ' + datum + ' – wiederherstellen?')) {
+        entwurfEinsetzen(entwurf);
+      } else {
+        entwurfLoeschen();
+      }
+    }
+    entwurfUeberwachungStarten();
   }
   // --- HINTERGRUNDMUSTER (geräte-lokal, rein optisch) ---
   const KEY_THEME = 'kochen_hintergrundThema';
@@ -1701,8 +1777,18 @@
     document.getElementById('terminPlanenBox').style.display = 'none';
     alert('„' + r.titel + '" wurde für den ' + formatDatumKurz(datum) + ' in die Termine eingetragen.');
   });
-  document.getElementById('btnEditAbbrechen').addEventListener('click', () => document.getElementById('modalEdit').classList.remove('zeigen'));
-  document.getElementById('modalEdit').addEventListener('click', (e) => { if (e.target.id === 'modalEdit') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnEditAbbrechen').addEventListener('click', () => {
+    document.getElementById('modalEdit').classList.remove('zeigen');
+    entwurfUeberwachungStoppen();
+    entwurfLoeschen();
+  });
+  document.getElementById('modalEdit').addEventListener('click', (e) => {
+    if (e.target.id === 'modalEdit') {
+      e.currentTarget.classList.remove('zeigen');
+      entwurfUeberwachungStoppen();
+      entwurfLoeschen();
+    }
+  });
 
   document.getElementById('btnEditSpeichern').addEventListener('click', () => {
     const titel = document.getElementById('fTitel').value.trim();
@@ -1742,6 +1828,8 @@
     else rezepte.push(neu);
     speichernRezepte();
     document.getElementById('modalEdit').classList.remove('zeigen');
+    entwurfUeberwachungStoppen();
+    entwurfLoeschen();
     renderFilter();
     renderGrid();
   });
@@ -1754,6 +1842,8 @@
     rezepte.splice(index, 1);
     speichernRezepte();
     document.getElementById('modalEdit').classList.remove('zeigen');
+    entwurfUeberwachungStoppen();
+    entwurfLoeschen();
     renderFilter();
     renderGrid();
     showTempStatus('Gelöscht: „' + entfernt.titel + '"', 6, {
