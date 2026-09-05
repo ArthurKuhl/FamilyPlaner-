@@ -468,6 +468,10 @@
     }, (sekunden || 2.5) * 1000);
   }
 
+  function __pullToRefreshModalOffen() {
+    return !!document.querySelector('.modal-bg.zeigen') ||
+      Array.from(document.querySelectorAll('.modal-bg')).some(el => el.style.display === 'flex' || el.style.display === 'block');
+  }
   // ---------- PULL-TO-REFRESH (von oben nach unten wischen) ----------
   (function () {
     let startY = 0, ziehend = false, ausgeloest = false;
@@ -491,14 +495,14 @@
     }
     function indikatorAusblenden() { if (indikator) indikator.style.opacity = '0'; }
     document.addEventListener('touchstart', (e) => {
-      if (window.scrollY > 0 || e.touches.length !== 1) { ziehend = false; return; }
+      if (window.scrollY > 0 || e.touches.length !== 1 || __pullToRefreshModalOffen()) { ziehend = false; return; }
       startY = e.touches[0].clientY; ziehend = true; ausgeloest = false;
     }, { passive: true });
     document.addEventListener('touchmove', (e) => {
       if (!ziehend) return;
       const strecke = e.touches[0].clientY - startY;
       if (strecke <= 0) { indikatorAusblenden(); return; }
-      if (window.scrollY > 0) { ziehend = false; indikatorAusblenden(); return; }
+      if (window.scrollY > 0 || __pullToRefreshModalOffen()) { ziehend = false; indikatorAusblenden(); return; }
       indikatorZeigen(strecke);
       if (strecke >= SCHWELLE) ausgeloest = true;
     }, { passive: true });

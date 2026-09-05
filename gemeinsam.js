@@ -114,6 +114,13 @@ function showTempStatus(text, sekunden, optionen) {
 // neu (holt dabei auch den neuesten Stand, falls die Cloud-Synchronisierung
 // zwischenzeitlich etwas verpasst haben sollte). Zeigt während des Wischens einen
 // kleinen Pfeil-Indikator, damit die Geste sichtbares Feedback gibt.
+// Ist gerade ein Formular-Fenster (Modal) offen, wird die Geste komplett ignoriert –
+// sonst könnte man beim Ausfüllen eines langen Formulars (z.B. neues Rezept) durch
+// Überscrollen versehentlich einen Neuladen auslösen und alle Eingaben verlieren.
+function __pullToRefreshModalOffen() {
+  return !!document.querySelector('.modal-bg.zeigen') ||
+    Array.from(document.querySelectorAll('.modal-bg')).some(el => el.style.display === 'flex' || el.style.display === 'block');
+}
 (function () {
   let startY = 0, ziehend = false, ausgeloest = false;
   const SCHWELLE = 130;
@@ -140,7 +147,7 @@ function showTempStatus(text, sekunden, optionen) {
     if (indikator) indikator.style.opacity = '0';
   }
   document.addEventListener('touchstart', (e) => {
-    if (window.scrollY > 0 || e.touches.length !== 1) { ziehend = false; return; }
+    if (window.scrollY > 0 || e.touches.length !== 1 || __pullToRefreshModalOffen()) { ziehend = false; return; }
     startY = e.touches[0].clientY;
     ziehend = true;
     ausgeloest = false;
@@ -149,7 +156,7 @@ function showTempStatus(text, sekunden, optionen) {
     if (!ziehend) return;
     const strecke = e.touches[0].clientY - startY;
     if (strecke <= 0) { indikatorAusblenden(); return; }
-    if (window.scrollY > 0) { ziehend = false; indikatorAusblenden(); return; }
+    if (window.scrollY > 0 || __pullToRefreshModalOffen()) { ziehend = false; indikatorAusblenden(); return; }
     indikatorZeigen(strecke);
     if (strecke >= SCHWELLE) ausgeloest = true;
   }, { passive: true });
