@@ -844,6 +844,59 @@
 
   // --- BEARBEITEN / NEU ---
   let editStatus = 'idee', editPerson = null;
+  // ---------- Entwurfsschutz: sichert das Formular automatisch, solange es offen ist ----------
+  const KEY_ENTWURF = 'handwerk_entwurf';
+  let entwurfIntervall = null;
+  function entwurfSammeln() {
+    return {
+      bearbeiteId,
+      titel: document.getElementById('fTitel').value,
+      notiz: document.getElementById('fNotiz').value,
+      budget: document.getElementById('fBudget').value,
+      status: editStatus,
+      person: editPerson,
+      material: Array.from(document.querySelectorAll('#editMaterialListe .material-zeile')).map(z => ({
+        menge: z.querySelector('.menge').value, einheit: z.querySelector('.einheit').value,
+        name: z.querySelector('.name').value, preis: z.querySelector('.preis').value,
+      })),
+      schritte: Array.from(document.querySelectorAll('#editSchritteListe .schritt-edit-zeile')).map(z => ({
+        text: z.querySelector('input[type="text"]').value, erledigt: z.querySelector('input[type="checkbox"]').checked,
+      })),
+    };
+  }
+  function entwurfHatInhalt(d) {
+    return !!(d.titel.trim() || d.notiz.trim() || d.material.some(m => m.name.trim()) || d.schritte.some(s => s.text.trim()));
+  }
+  function entwurfSpeichern() {
+    const d = entwurfSammeln();
+    try {
+      if (entwurfHatInhalt(d)) localStorage.setItem(KEY_ENTWURF, JSON.stringify({ ts: Date.now(), daten: d }));
+      else localStorage.removeItem(KEY_ENTWURF);
+    } catch (e) {}
+  }
+  function entwurfLoeschen() { try { localStorage.removeItem(KEY_ENTWURF); } catch (e) {} }
+  function entwurfUeberwachungStarten() {
+    if (entwurfIntervall) clearInterval(entwurfIntervall);
+    entwurfIntervall = setInterval(entwurfSpeichern, 3000);
+  }
+  function entwurfUeberwachungStoppen() {
+    if (entwurfIntervall) { clearInterval(entwurfIntervall); entwurfIntervall = null; }
+  }
+  function entwurfEinsetzen(d) {
+    document.getElementById('fTitel').value = d.titel || '';
+    document.getElementById('fNotiz').value = d.notiz || '';
+    document.getElementById('fBudget').value = d.budget || '';
+    editStatus = d.status || 'idee';
+    editPerson = d.person || null;
+    renderEditStatusReihe();
+    renderEditPersonReihe();
+    const matBox = document.getElementById('editMaterialListe');
+    matBox.innerHTML = '';
+    (d.material && d.material.length ? d.material : [{menge:'',einheit:'',name:'',preis:''}]).forEach(m => matBox.appendChild(materialZeileErstellen(m)));
+    const schrittBox = document.getElementById('editSchritteListe');
+    schrittBox.innerHTML = '';
+    (d.schritte || []).forEach(s => schrittBox.appendChild(schrittZeileErstellen(s.text, s.erledigt)));
+  }
 
   function optReiheRendern(containerId, optionen, ausgewaehlt, onWahl) {
     const box = document.getElementById(containerId);
@@ -920,6 +973,14 @@
     document.getElementById('modalEdit').classList.add('zeigen');
     document.getElementById('modalDetail').classList.remove('zeigen');
     document.getElementById('fTitel').focus();
+
+    const entwurf = (() => { try { const roh = localStorage.getItem(KEY_ENTWURF); return roh ? JSON.parse(roh) : null; } catch (e) { return null; } })();
+    if (entwurf && entwurf.daten.bearbeiteId === bearbeiteId && entwurfHatInhalt(entwurf.daten)) {
+      const datum = new Date(entwurf.ts).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+      if (confirm('Es gibt einen nicht gespeicherten Entwurf vom ' + datum + ' – wiederherstellen?')) entwurfEinsetzen(entwurf.daten);
+      else entwurfLoeschen();
+    }
+    entwurfUeberwachungStarten();
   }
   document.getElementById('btnNeu').addEventListener('click', () => {
     if (typeof aktiveAnsicht !== 'undefined' && aktiveAnsicht === 'wartung') wartungEditOeffnen(null);
@@ -929,8 +990,16 @@
     const p = projekte.find(x => x.id === detailId);
     if (p) editModalOeffnen(p);
   });
-  document.getElementById('btnEditAbbrechen').addEventListener('click', () => document.getElementById('modalEdit').classList.remove('zeigen'));
-  document.getElementById('modalEdit').addEventListener('click', (e) => { if (e.target.id === 'modalEdit') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnEditAbbrechen').addEventListener('click', () => {
+    document.getElementById('modalEdit').classList.remove('zeigen');
+    entwurfUeberwachungStoppen(); entwurfLoeschen();
+  });
+  document.getElementById('modalEdit').addEventListener('click', (e) => {
+    if (e.target.id === 'modalEdit') {
+      e.currentTarget.classList.remove('zeigen');
+      entwurfUeberwachungStoppen(); entwurfLoeschen();
+    }
+  });
 
   document.getElementById('btnEditSpeichern').addEventListener('click', () => {
     const titel = document.getElementById('fTitel').value.trim();
@@ -962,6 +1031,7 @@
     else projekte.push(neu);
     speichernProjekte();
     document.getElementById('modalEdit').classList.remove('zeigen');
+    entwurfUeberwachungStoppen(); entwurfLoeschen();
     renderGrid();
   });
   document.getElementById('btnEditLoeschen').addEventListener('click', () => {
@@ -972,6 +1042,7 @@
     projekte.splice(index, 1);
     speichernProjekte();
     document.getElementById('modalEdit').classList.remove('zeigen');
+    entwurfUeberwachungStoppen(); entwurfLoeschen();
     renderGrid();
     showTempStatus('Gelöscht: „' + entfernt.titel + '"', 6, {
       rueckgaengig: () => { projekte.splice(index, 0, entfernt); speichernProjekte(); renderGrid(); }

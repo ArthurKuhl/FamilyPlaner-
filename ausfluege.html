@@ -667,6 +667,66 @@
   });
 
   let pEditId = null;
+  // ---------- Entwurfsschutz: sichert das Formular automatisch, solange es offen ist ----------
+  const KEY_ENTWURF_PLANUNG = 'ausfluege_entwurf';
+  let entwurfIntervall = null;
+  function entwurfSammeln() {
+    return {
+      pEditId,
+      titel: document.getElementById('pTitel').value,
+      ort: document.getElementById('pOrt').value,
+      datum: document.getElementById('pDatum').value,
+      datumBis: document.getElementById('pDatumBis').value,
+      abfahrt: document.getElementById('pAbfahrt').value,
+      ankunft: document.getElementById('pAnkunft').value,
+      hinfahrtNotiz: document.getElementById('pHinfahrtNotiz').value,
+      rueckfahrtStart: document.getElementById('pRueckfahrtStart').value,
+      ende: document.getElementById('pEnde').value,
+      rueckfahrtNotiz: document.getElementById('pRueckfahrtNotiz').value,
+      route: document.getElementById('pRoute').value,
+      routeLink: document.getElementById('pRouteLink').value,
+      notiz: document.getElementById('pNotiz').value,
+      teilnehmer: pTeilnehmerAuswahl.slice(),
+      packliste: pPackliste.slice(),
+    };
+  }
+  function entwurfHatInhalt(d) {
+    return !!(d.titel.trim() || d.ort.trim() || d.route.trim() || d.notiz.trim() || d.hinfahrtNotiz.trim() || d.rueckfahrtNotiz.trim() || d.packliste.length);
+  }
+  function entwurfSpeichern() {
+    const d = entwurfSammeln();
+    try {
+      if (entwurfHatInhalt(d)) localStorage.setItem(KEY_ENTWURF_PLANUNG, JSON.stringify({ ts: Date.now(), daten: d }));
+      else localStorage.removeItem(KEY_ENTWURF_PLANUNG);
+    } catch (e) {}
+  }
+  function entwurfLoeschen() { try { localStorage.removeItem(KEY_ENTWURF_PLANUNG); } catch (e) {} }
+  function entwurfUeberwachungStarten() {
+    if (entwurfIntervall) clearInterval(entwurfIntervall);
+    entwurfIntervall = setInterval(entwurfSpeichern, 3000);
+  }
+  function entwurfUeberwachungStoppen() {
+    if (entwurfIntervall) { clearInterval(entwurfIntervall); entwurfIntervall = null; }
+  }
+  function entwurfEinsetzen(d) {
+    document.getElementById('pTitel').value = d.titel || '';
+    document.getElementById('pOrt').value = d.ort || '';
+    document.getElementById('pDatum').value = d.datum || '';
+    document.getElementById('pDatumBis').value = d.datumBis || '';
+    document.getElementById('pAbfahrt').value = d.abfahrt || '';
+    document.getElementById('pAnkunft').value = d.ankunft || '';
+    document.getElementById('pHinfahrtNotiz').value = d.hinfahrtNotiz || '';
+    document.getElementById('pRueckfahrtStart').value = d.rueckfahrtStart || '';
+    document.getElementById('pEnde').value = d.ende || '';
+    document.getElementById('pRueckfahrtNotiz').value = d.rueckfahrtNotiz || '';
+    document.getElementById('pRoute').value = d.route || '';
+    document.getElementById('pRouteLink').value = d.routeLink || '';
+    document.getElementById('pNotiz').value = d.notiz || '';
+    pTeilnehmerAuswahl = d.teilnehmer || [];
+    pPackliste = d.packliste || [];
+    renderTeilnehmerReihe();
+    renderPackliste();
+  }
   function planungOeffnen(id) {
     pEditId = id || null;
     const a = pEditId ? ausfluege.find(x => x.id === pEditId) : null;
@@ -691,13 +751,30 @@
     renderPackliste();
     document.getElementById('planungLoeschZeile').style.display = a ? '' : 'none';
     document.getElementById('modalPlanung').classList.add('zeigen');
+
+    const entwurf = (() => { try { const roh = localStorage.getItem(KEY_ENTWURF_PLANUNG); return roh ? JSON.parse(roh) : null; } catch (e) { return null; } })();
+    if (entwurf && entwurf.daten.pEditId === pEditId && entwurfHatInhalt(entwurf.daten)) {
+      const datum = new Date(entwurf.ts).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+      if (confirm('Es gibt einen nicht gespeicherten Entwurf vom ' + datum + ' – wiederherstellen?')) entwurfEinsetzen(entwurf.daten);
+      else entwurfLoeschen();
+    }
+    entwurfUeberwachungStarten();
   }
-  document.getElementById('btnPlanungAbbrechen').addEventListener('click', () => document.getElementById('modalPlanung').classList.remove('zeigen'));
-  document.getElementById('modalPlanung').addEventListener('click', (e) => { if (e.target.id === 'modalPlanung') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnPlanungAbbrechen').addEventListener('click', () => {
+    document.getElementById('modalPlanung').classList.remove('zeigen');
+    entwurfUeberwachungStoppen(); entwurfLoeschen();
+  });
+  document.getElementById('modalPlanung').addEventListener('click', (e) => {
+    if (e.target.id === 'modalPlanung') {
+      e.currentTarget.classList.remove('zeigen');
+      entwurfUeberwachungStoppen(); entwurfLoeschen();
+    }
+  });
 
   document.getElementById('btnPlanungSpeichern').addEventListener('click', () => {
     if (!ausflugAusFormularSpeichern()) return;
     document.getElementById('modalPlanung').classList.remove('zeigen');
+    entwurfUeberwachungStoppen(); entwurfLoeschen();
     renderAusflugListe();
   });
   function ausflugAusFormularSpeichern() {
@@ -753,6 +830,7 @@
     speichern(KEY_TERMINE_EVENTS, events);
     alert('„' + (a.titel || a.ort) + '" wurde in die Termine eingetragen.');
     document.getElementById('modalPlanung').classList.remove('zeigen');
+    entwurfUeberwachungStoppen(); entwurfLoeschen();
     renderAusflugListe();
   });
   document.getElementById('btnPlanungLoeschen').addEventListener('click', () => {
@@ -766,6 +844,7 @@
     speichern(KEY_AUSFLUEGE, ausfluege);
     speichern(KEY_ERLEBT, erlebt);
     document.getElementById('modalPlanung').classList.remove('zeigen');
+    entwurfUeberwachungStoppen(); entwurfLoeschen();
     renderAusflugListe();
     showTempStatus('Ausflug gelöscht: „' + (entfernt.titel || entfernt.ort) + '"', 6, {
       rueckgaengig: () => {

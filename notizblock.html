@@ -489,6 +489,53 @@
   let gewaehlteFarbe = NOTIZ_FARBEN[0];
   let editTyp = 'text';
 
+  // ---------- Entwurfsschutz: sichert das Formular automatisch, solange es offen ist ----------
+  const KEY_ENTWURF = 'notizblock_entwurf';
+  let entwurfIntervall = null;
+  function entwurfSammeln() {
+    return {
+      editId,
+      titel: document.getElementById('fTitel').value,
+      text: document.getElementById('fText').value,
+      tags: document.getElementById('fTags').value,
+      typ: editTyp,
+      farbe: gewaehlteFarbe,
+      checkliste: Array.from(document.querySelectorAll('#checklisteEditListe .checkliste-edit-zeile')).map(z => ({
+        text: z.querySelector('input[type="text"]').value,
+        erledigt: z.querySelector('input[type="checkbox"]').checked,
+      })),
+    };
+  }
+  function entwurfHatInhalt(d) {
+    return !!(d.titel.trim() || d.text.trim() || d.checkliste.some(p => p.text.trim()));
+  }
+  function entwurfSpeichern() {
+    const d = entwurfSammeln();
+    try {
+      if (entwurfHatInhalt(d)) localStorage.setItem(KEY_ENTWURF, JSON.stringify({ ts: Date.now(), daten: d }));
+      else localStorage.removeItem(KEY_ENTWURF);
+    } catch (e) {}
+  }
+  function entwurfLoeschen() { try { localStorage.removeItem(KEY_ENTWURF); } catch (e) {} }
+  function entwurfUeberwachungStarten() {
+    if (entwurfIntervall) clearInterval(entwurfIntervall);
+    entwurfIntervall = setInterval(entwurfSpeichern, 3000);
+  }
+  function entwurfUeberwachungStoppen() {
+    if (entwurfIntervall) { clearInterval(entwurfIntervall); entwurfIntervall = null; }
+  }
+  function entwurfEinsetzen(d) {
+    document.getElementById('fTitel').value = d.titel || '';
+    document.getElementById('fText').value = d.text || '';
+    document.getElementById('fTags').value = d.tags || '';
+    gewaehlteFarbe = d.farbe || NOTIZ_FARBEN[0];
+    farbeReiheRendern();
+    editTypAnwenden(d.typ === 'checkliste' ? 'checkliste' : 'text');
+    const box = document.getElementById('checklisteEditListe');
+    box.innerHTML = '';
+    (d.checkliste || []).forEach(p => box.appendChild(checkpunktZeileErstellen(p.text, p.erledigt)));
+  }
+
   function farbeReiheRendern() {
     const box = document.getElementById('farbeReihe');
     box.innerHTML = '';
@@ -543,10 +590,26 @@
     document.getElementById('editLoeschZeile').style.display = n ? '' : 'none';
     document.getElementById('modalEdit').classList.add('zeigen');
     setTimeout(() => document.getElementById(editTyp === 'checkliste' ? 'fTitel' : 'fText').focus(), 50);
+
+    const entwurf = (() => { try { const roh = localStorage.getItem(KEY_ENTWURF); return roh ? JSON.parse(roh) : null; } catch (e) { return null; } })();
+    if (entwurf && entwurf.daten.editId === editId && entwurfHatInhalt(entwurf.daten)) {
+      const datum = new Date(entwurf.ts).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+      if (confirm('Es gibt einen nicht gespeicherten Entwurf vom ' + datum + ' – wiederherstellen?')) entwurfEinsetzen(entwurf.daten);
+      else entwurfLoeschen();
+    }
+    entwurfUeberwachungStarten();
   }
   document.getElementById('btnNeu').addEventListener('click', () => editOeffnen(null));
-  document.getElementById('btnEditAbbrechen').addEventListener('click', () => document.getElementById('modalEdit').classList.remove('zeigen'));
-  document.getElementById('modalEdit').addEventListener('click', (e) => { if (e.target.id === 'modalEdit') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnEditAbbrechen').addEventListener('click', () => {
+    document.getElementById('modalEdit').classList.remove('zeigen');
+    entwurfUeberwachungStoppen(); entwurfLoeschen();
+  });
+  document.getElementById('modalEdit').addEventListener('click', (e) => {
+    if (e.target.id === 'modalEdit') {
+      e.currentTarget.classList.remove('zeigen');
+      entwurfUeberwachungStoppen(); entwurfLoeschen();
+    }
+  });
 
   document.getElementById('btnEditSpeichern').addEventListener('click', () => {
     const text = document.getElementById('fText').value.trim();
@@ -571,6 +634,7 @@
     n.geaendert = new Date().toISOString();
     speichern(KEY_NOTIZEN, notizen);
     document.getElementById('modalEdit').classList.remove('zeigen');
+    entwurfUeberwachungStoppen(); entwurfLoeschen();
     renderTagFilter();
     renderNotizen();
   });
@@ -582,6 +646,7 @@
     notizen.splice(index, 1);
     speichern(KEY_NOTIZEN, notizen);
     document.getElementById('modalEdit').classList.remove('zeigen');
+    entwurfUeberwachungStoppen(); entwurfLoeschen();
     renderTagFilter();
     renderNotizen();
     showTempStatus('Notiz gelöscht', 6, {
