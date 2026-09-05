@@ -614,6 +614,25 @@
     { id: 'sonstiges',     label: 'Sonstiges',              icon: '📦', farbe: '#7d6339' },
   ];
   const EINHEIT_MUSTER = /^(stück|stk|packung(?:en)?|pack|dose(?:n)?|flasche(?:n)?|bund|kg|g|l|ml)$/i;
+  // Stichwort-basierte Kategorie-Erkennung für neue, noch unbekannte Produktnamen.
+  // Reihenfolge ist relevant: erster Treffer gewinnt (spezifischere Begriffe zuerst).
+  const KATEGORIE_STICHWORTE = [
+    { kategorie: 'obst_gemuese', begriffe: ['apfel','birne','banane','orange','mandarine','zitrone','limette','traube','erdbeere','himbeere','heidelbeere','brombeere','kirsche','pflaume','aprikose','pfirsich','melone','ananas','kiwi','mango','avocado','tomate','gurke','paprika','zucchini','aubergine','karotte','möhre','kartoffel','zwiebel','knoblauch','lauch','porree','salat','spinat','brokkoli','blumenkohl','kohl','pilz','champignon','sellerie','radieschen','rettich','mais','erbse','bohne','kürbis','ingwer','kräuter','petersilie','basilikum','schnittlauch','dill','obst','gemüse'] },
+    { kategorie: 'brot', begriffe: ['brot','brötchen','baguette','toast','croissant','brezel','kuchen','torte','waffel','müsliriegel','zwieback','knäckebrot','semmel'] },
+    { kategorie: 'milchprodukte', begriffe: ['milch','käse','joghurt','quark','butter','sahne','schmand','frischkäse','mozzarella','feta','parmesan','ei','eier','pudding','buttermilch','kefir'] },
+    { kategorie: 'fleisch_fisch', begriffe: ['fleisch','hähnchen','huhn','pute','rind','schwein','hack','wurst','schinken','speck','salami','lachs','fisch','thunfisch','garnele','forelle','filet','steak','bacon','frikadelle','wiener'] },
+    { kategorie: 'tiefkuehl', begriffe: ['tiefkühl','tiefkuehl','tk-','eis','pizza tiefkühl','fischstäbchen','pommes','erbsen tiefkühl'] },
+    { kategorie: 'trockenwaren', begriffe: ['nudel','spaghetti','reis','mehl','zucker','salz','müsli','haferflocken','konserve','dose ','linse','kichererbse','öl','essig','honig','marmelade','nutella','ketchup','senf','mayonnaise','gewürz','brühe','suppe','tütensuppe','tomatensauce','tomatenmark','cornflakes','kaffee','tee'] },
+    { kategorie: 'getraenke', begriffe: ['wasser','saft','limonade','cola','bier','wein','sekt','smoothie','energydrink','apfelschorle','mineralwasser'] },
+    { kategorie: 'drogerie', begriffe: ['shampoo','duschgel','seife','zahnpasta','zahnbürste','klopapier','toilettenpapier','küchenrolle','waschmittel','spülmittel','windel','deo','rasier','creme','binden','tampon','putzmittel','müllbeutel','batterie'] },
+  ];
+  function schaetzeKategorieAusName(name) {
+    const norm = name.trim().toLowerCase();
+    for (const gruppe of KATEGORIE_STICHWORTE) {
+      if (gruppe.begriffe.some(b => norm.includes(b))) return gruppe.kategorie;
+    }
+    return null;
+  }
   const PERSONEN = window.PLANER_PERSONEN || [
     { id: 'mama', label: 'Mama', farbe: '#c46b41' },
     { id: 'papa', label: 'Papa', farbe: '#5b8bb5' },
@@ -902,9 +921,12 @@
   }
 
   function schaetzeKategorie(name) {
-    // Sehr einfache Zuordnung anhand des zuletzt verwendeten Favoriten mit ähnlichem Namen
+    // 1. Bereits bekanntes Produkt (exakter Name-Treffer aus bisherigen Favoriten)
     const treffer = favoriten[name.toLowerCase()];
-    return treffer ? treffer.kategorie : 'sonstiges';
+    if (treffer) return treffer.kategorie;
+    // 2. Neues Produkt: anhand von Stichwörtern im Namen schätzen
+    const erkannt = schaetzeKategorieAusName(name);
+    return erkannt || 'sonstiges';
   }
 
   // --- Mengen zusammenführen: gleiche (noch offene) Produkte in derselben Liste addieren ---
