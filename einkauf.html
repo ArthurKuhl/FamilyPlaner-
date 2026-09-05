@@ -336,6 +336,10 @@
       <label>Hinzugefügt von</label>
       <div class="kategorie-reihe" id="itemWerReihe"></div>
     </div>
+    <div class="feld">
+      <label for="fItemListe">Liste / Markt</label>
+      <select id="fItemListe"></select>
+    </div>
     <div class="preis-sektion">
       <div class="unterliste-titel" style="font-size:0.72rem;font-weight:700;color:var(--bark);text-transform:uppercase;letter-spacing:0.03em;margin-bottom:6px;">📈 Preisverlauf</div>
       <div id="preisTrendText"></div>
@@ -1186,6 +1190,12 @@
     document.getElementById('fItemEinheit').value = item.einheit || '';
     itemKategorieReiheRendern(item.kategorie);
     itemWerReiheRendern(item.hinzugefuegtVon && item.hinzugefuegtVon.indexOf('rezept:') !== 0 ? item.hinzugefuegtVon : null);
+    const listeSelect = document.getElementById('fItemListe');
+    listeSelect.innerHTML = listen.map(l => {
+      const icon = l.istMarkt ? '🏪' : (l.istUebersicht ? '📥' : '📋');
+      return '<option value="' + l.id + '">' + icon + ' ' + escapeHtml(l.name) + '</option>';
+    }).join('');
+    listeSelect.value = bearbeitetesItemListeId;
     document.getElementById('fPreisNeu').value = '';
     preisVerlaufRendern(item.name);
     document.getElementById('modalItem').classList.add('zeigen');
@@ -1215,11 +1225,22 @@
     item.einheit = document.getElementById('fItemEinheit').value.trim();
     item.kategorie = gewaehlt ? gewaehlt.dataset.id : 'sonstiges';
     if (gewaehltWer) item.hinzugefuegtVon = gewaehltWer.dataset.id;
+    const neueListeId = document.getElementById('fItemListe').value;
+    let hinweisText = '';
+    if (neueListeId && neueListeId !== bearbeitetesItemListeId) {
+      const zielListe = listeById(neueListeId);
+      if (zielListe) {
+        liste.items = liste.items.filter(i => i.id !== item.id);
+        zielListe.items.push(item);
+        hinweisText = ' – nach „' + zielListe.name + '" verschoben';
+      }
+    }
     const key = name.toLowerCase();
     favoriten[key] = { name, kategorie: item.kategorie, anzahl: (favoriten[key]?.anzahl || 0) + 1 };
     speichernListen();
     speichernFavoriten();
     document.getElementById('modalItem').classList.remove('zeigen');
+    if (hinweisText) showTempStatus('✓ „' + name + '"' + hinweisText, 3);
     renderAlles();
   });
   document.getElementById('btnItemLoeschen').addEventListener('click', () => {
