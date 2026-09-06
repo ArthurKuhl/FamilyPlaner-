@@ -432,6 +432,52 @@
   let editSterne = 0;
   let editKategorie = 'lebensmittel';
   let editLagerort = '';
+  const KEY_ENTWURF = 'vorratskammer_entwurf';
+  let entwurfIntervall = null;
+  function entwurfSammeln() {
+    return {
+      bearbeitenId,
+      name: document.getElementById('fName').value,
+      menge: document.getElementById('fMenge').value,
+      bestand: document.getElementById('fBestand').value,
+      gruppierung: document.getElementById('fGruppierung').value,
+      gekauft: document.getElementById('fGekauft').value,
+      verfall: document.getElementById('fVerfall').value,
+      aufbrauchen: document.getElementById('fAufbrauchen').value,
+      notiz: document.getElementById('fNotiz').value,
+      sterne: editSterne, kategorie: editKategorie, lagerort: editLagerort,
+    };
+  }
+  function entwurfHatInhalt(d) { return !!(d.name.trim() || d.notiz.trim()); }
+  function entwurfSpeichern() {
+    const d = entwurfSammeln();
+    try {
+      if (entwurfHatInhalt(d)) localStorage.setItem(KEY_ENTWURF, JSON.stringify({ ts: Date.now(), daten: d }));
+      else localStorage.removeItem(KEY_ENTWURF);
+    } catch (e) {}
+  }
+  function entwurfLoeschen() { try { localStorage.removeItem(KEY_ENTWURF); } catch (e) {} }
+  function entwurfUeberwachungStarten() {
+    if (entwurfIntervall) clearInterval(entwurfIntervall);
+    entwurfIntervall = setInterval(entwurfSpeichern, 3000);
+  }
+  function entwurfUeberwachungStoppen() {
+    if (entwurfIntervall) { clearInterval(entwurfIntervall); entwurfIntervall = null; }
+  }
+  function entwurfEinsetzen(d) {
+    document.getElementById('fName').value = d.name || '';
+    document.getElementById('fMenge').value = d.menge || '';
+    document.getElementById('fBestand').value = d.bestand || '';
+    document.getElementById('fGruppierung').value = d.gruppierung || '';
+    document.getElementById('fGekauft').value = d.gekauft || '';
+    document.getElementById('fVerfall').value = d.verfall || '';
+    document.getElementById('fAufbrauchen').value = d.aufbrauchen || '';
+    document.getElementById('fNotiz').value = d.notiz || '';
+    editSterne = d.sterne || 0; editKategorie = d.kategorie; editLagerort = d.lagerort || '';
+    renderFormLagerortReihe();
+    renderFormKategorieReihe();
+    renderSterneEingabe();
+  }
 
   function alleKategorien() { return KATEGORIEN_FEST.concat(kategorienEigene); }
   function kategorieInfo(id) { return alleKategorien().find(k => k.id === id) || KATEGORIEN_FEST[0]; }
@@ -729,6 +775,14 @@
     renderSterneEingabe();
     document.getElementById('loeschZeile').style.display = item ? '' : 'none';
     document.getElementById('modalItem').classList.add('zeigen');
+
+    const entwurf = (() => { try { const roh = localStorage.getItem(KEY_ENTWURF); return roh ? JSON.parse(roh) : null; } catch (e) { return null; } })();
+    if (entwurf && entwurf.daten.bearbeitenId === bearbeitenId && entwurfHatInhalt(entwurf.daten)) {
+      const datum = new Date(entwurf.ts).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+      if (confirm('Es gibt einen nicht gespeicherten Entwurf vom ' + datum + ' – wiederherstellen?')) entwurfEinsetzen(entwurf.daten);
+      else entwurfLoeschen();
+    }
+    entwurfUeberwachungStarten();
   }
   document.getElementById('btnNeu').addEventListener('click', () => itemFormOeffnen(null));
 
@@ -761,8 +815,16 @@
       '<div class="verbrauch-zeile"><span>' + escapeHtml(e.item.name) + '</span><span>' + e.anzahl + '× leer markiert</span></div>'
     ).join('');
   }
-  document.getElementById('btnAbbrechen').addEventListener('click', () => document.getElementById('modalItem').classList.remove('zeigen'));
-  document.getElementById('modalItem').addEventListener('click', (e) => { if (e.target.id === 'modalItem') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnAbbrechen').addEventListener('click', () => {
+    document.getElementById('modalItem').classList.remove('zeigen');
+    entwurfUeberwachungStoppen(); entwurfLoeschen();
+  });
+  document.getElementById('modalItem').addEventListener('click', (e) => {
+    if (e.target.id === 'modalItem') {
+      e.currentTarget.classList.remove('zeigen');
+      entwurfUeberwachungStoppen(); entwurfLoeschen();
+    }
+  });
   document.getElementById('btnSpeichern').addEventListener('click', () => {
     const name = document.getElementById('fName').value.trim();
     if (!name) { alert('Bitte einen Namen eingeben.'); return; }
@@ -787,6 +849,7 @@
     }
     speichern(KEY_ITEMS, items);
     document.getElementById('modalItem').classList.remove('zeigen');
+    entwurfUeberwachungStoppen(); entwurfLoeschen();
     aktiveKategorie = editKategorie;
     renderKatTabs();
     renderListe();
@@ -798,6 +861,7 @@
     const entfernt = items[index];
     items.splice(index, 1);
     speichern(KEY_ITEMS, items);
+    entwurfUeberwachungStoppen(); entwurfLoeschen();
     document.getElementById('modalItem').classList.remove('zeigen');
     renderListe();
     showTempStatus('Gelöscht: „' + entfernt.name + '"', 6, {

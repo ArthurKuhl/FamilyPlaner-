@@ -3560,6 +3560,33 @@
   }
 
   let krankheitBearbeiteId = null;
+  const KEY_ENTWURF_KRANKHEIT = 'gesundheit_entwurf_krankheit';
+  let entwurfKrankheitIntervall = null;
+  function entwurfKrankheitSammeln() {
+    return {
+      krankheitBearbeiteId,
+      name: document.getElementById('fKrankheitName').value,
+      start: document.getElementById('fKrankheitStart').value,
+      ende: document.getElementById('fKrankheitEnde').value,
+      notiz: document.getElementById('fKrankheitNotiz').value,
+    };
+  }
+  function entwurfKrankheitHatInhalt(d) { return !!(d.name.trim() || d.notiz.trim()); }
+  function entwurfKrankheitSpeichern() {
+    const d = entwurfKrankheitSammeln();
+    try {
+      if (entwurfKrankheitHatInhalt(d)) localStorage.setItem(KEY_ENTWURF_KRANKHEIT, JSON.stringify({ ts: Date.now(), daten: d }));
+      else localStorage.removeItem(KEY_ENTWURF_KRANKHEIT);
+    } catch (e) {}
+  }
+  function entwurfKrankheitLoeschen() { try { localStorage.removeItem(KEY_ENTWURF_KRANKHEIT); } catch (e) {} }
+  function entwurfKrankheitStarten() {
+    if (entwurfKrankheitIntervall) clearInterval(entwurfKrankheitIntervall);
+    entwurfKrankheitIntervall = setInterval(entwurfKrankheitSpeichern, 3000);
+  }
+  function entwurfKrankheitStoppen() {
+    if (entwurfKrankheitIntervall) { clearInterval(entwurfKrankheitIntervall); entwurfKrankheitIntervall = null; }
+  }
   function krankheitModalOeffnen(id) {
     const bestehend = id ? krankheiten.find(k => k.id === id) : null;
     krankheitBearbeiteId = bestehend ? bestehend.id : null;
@@ -3569,10 +3596,30 @@
     document.getElementById('fKrankheitEnde').value = bestehend && bestehend.ende ? bestehend.ende : '';
     document.getElementById('fKrankheitNotiz').value = bestehend ? (bestehend.notiz || '') : '';
     document.getElementById('modalKrankheit').classList.add('zeigen');
+
+    const entwurf = (() => { try { const roh = localStorage.getItem(KEY_ENTWURF_KRANKHEIT); return roh ? JSON.parse(roh) : null; } catch (e) { return null; } })();
+    if (entwurf && entwurf.daten.krankheitBearbeiteId === krankheitBearbeiteId && entwurfKrankheitHatInhalt(entwurf.daten)) {
+      const datum = new Date(entwurf.ts).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+      if (confirm('Es gibt einen nicht gespeicherten Entwurf vom ' + datum + ' – wiederherstellen?')) {
+        document.getElementById('fKrankheitName').value = entwurf.daten.name || '';
+        document.getElementById('fKrankheitStart').value = entwurf.daten.start || heuteISO();
+        document.getElementById('fKrankheitEnde').value = entwurf.daten.ende || '';
+        document.getElementById('fKrankheitNotiz').value = entwurf.daten.notiz || '';
+      } else entwurfKrankheitLoeschen();
+    }
+    entwurfKrankheitStarten();
   }
   document.getElementById('btnKrankheitNeu').addEventListener('click', () => krankheitModalOeffnen(null));
-  document.getElementById('btnKrankheitAbbrechen').addEventListener('click', () => document.getElementById('modalKrankheit').classList.remove('zeigen'));
-  document.getElementById('modalKrankheit').addEventListener('click', (e) => { if (e.target.id === 'modalKrankheit') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnKrankheitAbbrechen').addEventListener('click', () => {
+    document.getElementById('modalKrankheit').classList.remove('zeigen');
+    entwurfKrankheitStoppen(); entwurfKrankheitLoeschen();
+  });
+  document.getElementById('modalKrankheit').addEventListener('click', (e) => {
+    if (e.target.id === 'modalKrankheit') {
+      e.currentTarget.classList.remove('zeigen');
+      entwurfKrankheitStoppen(); entwurfKrankheitLoeschen();
+    }
+  });
   document.getElementById('btnKrankheitSpeichern').addEventListener('click', () => {
     const name = document.getElementById('fKrankheitName').value.trim();
     const start = document.getElementById('fKrankheitStart').value;
@@ -3589,6 +3636,7 @@
     }
     speichereKrankheiten();
     document.getElementById('modalKrankheit').classList.remove('zeigen');
+    entwurfKrankheitStoppen(); entwurfKrankheitLoeschen();
     renderKrankheiten();
   });
 
@@ -3876,6 +3924,33 @@
   window.zyklusEintragLoeschen = zyklusEintragLoeschen;
 
   let zyklusBearbeiteId = null;
+  const KEY_ENTWURF_ZYKLUS = 'gesundheit_entwurf_zyklus';
+  let entwurfZyklusIntervall = null;
+  function entwurfZyklusSammeln() {
+    return {
+      zyklusBearbeiteId,
+      start: document.getElementById('fZyklusStart').value,
+      ende: document.getElementById('fZyklusEnde').value,
+      staerke: document.getElementById('fZyklusStaerke').value,
+      symptome: document.getElementById('fZyklusSymptome').value,
+    };
+  }
+  function entwurfZyklusHatInhalt(d) { return !!d.symptome.trim(); }
+  function entwurfZyklusSpeichern() {
+    const d = entwurfZyklusSammeln();
+    try {
+      if (entwurfZyklusHatInhalt(d)) localStorage.setItem(KEY_ENTWURF_ZYKLUS, JSON.stringify({ ts: Date.now(), daten: d }));
+      else localStorage.removeItem(KEY_ENTWURF_ZYKLUS);
+    } catch (e) {}
+  }
+  function entwurfZyklusLoeschen() { try { localStorage.removeItem(KEY_ENTWURF_ZYKLUS); } catch (e) {} }
+  function entwurfZyklusStarten() {
+    if (entwurfZyklusIntervall) clearInterval(entwurfZyklusIntervall);
+    entwurfZyklusIntervall = setInterval(entwurfZyklusSpeichern, 3000);
+  }
+  function entwurfZyklusStoppen() {
+    if (entwurfZyklusIntervall) { clearInterval(entwurfZyklusIntervall); entwurfZyklusIntervall = null; }
+  }
   function zyklusModalOeffnen(id) {
     const daten = zyklusPersonDaten(aktivePerson);
     const bestehend = id ? daten.perioden.find(p => p.id === id) : null;
@@ -3886,10 +3961,30 @@
     document.getElementById('fZyklusStaerke').value = bestehend ? (bestehend.staerke || '') : '';
     document.getElementById('fZyklusSymptome').value = bestehend ? (bestehend.symptome || '') : '';
     document.getElementById('modalZyklus').classList.add('zeigen');
+
+    const entwurf = (() => { try { const roh = localStorage.getItem(KEY_ENTWURF_ZYKLUS); return roh ? JSON.parse(roh) : null; } catch (e) { return null; } })();
+    if (entwurf && entwurf.daten.zyklusBearbeiteId === zyklusBearbeiteId && entwurfZyklusHatInhalt(entwurf.daten)) {
+      const datumTxt = new Date(entwurf.ts).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+      if (confirm('Es gibt einen nicht gespeicherten Entwurf vom ' + datumTxt + ' – wiederherstellen?')) {
+        document.getElementById('fZyklusStart').value = entwurf.daten.start || heuteISO();
+        document.getElementById('fZyklusEnde').value = entwurf.daten.ende || '';
+        document.getElementById('fZyklusStaerke').value = entwurf.daten.staerke || '';
+        document.getElementById('fZyklusSymptome').value = entwurf.daten.symptome || '';
+      } else entwurfZyklusLoeschen();
+    }
+    entwurfZyklusStarten();
   }
   window.zyklusModalOeffnen = zyklusModalOeffnen;
-  document.getElementById('btnZyklusAbbrechen').addEventListener('click', () => document.getElementById('modalZyklus').classList.remove('zeigen'));
-  document.getElementById('modalZyklus').addEventListener('click', (e) => { if (e.target.id === 'modalZyklus') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnZyklusAbbrechen').addEventListener('click', () => {
+    document.getElementById('modalZyklus').classList.remove('zeigen');
+    entwurfZyklusStoppen(); entwurfZyklusLoeschen();
+  });
+  document.getElementById('modalZyklus').addEventListener('click', (e) => {
+    if (e.target.id === 'modalZyklus') {
+      e.currentTarget.classList.remove('zeigen');
+      entwurfZyklusStoppen(); entwurfZyklusLoeschen();
+    }
+  });
   document.getElementById('btnZyklusSpeichern').addEventListener('click', () => {
     const start = document.getElementById('fZyklusStart').value;
     const ende = document.getElementById('fZyklusEnde').value || null;
@@ -3905,6 +4000,7 @@
       if (daten.perioden.some(p => p.start === start)) { alert('Für dieses Start-Datum existiert schon ein Eintrag.'); return; }
       daten.perioden.push({ id: neueId('zk'), start, ende, staerke, symptome });
     }
+    entwurfZyklusStoppen(); entwurfZyklusLoeschen();
     speichereZyklus();
     document.getElementById('modalZyklus').classList.remove('zeigen');
     renderZyklus();

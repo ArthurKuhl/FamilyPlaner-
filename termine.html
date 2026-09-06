@@ -1158,6 +1158,61 @@
     });
 
     let bearbeiteId = null;
+    // ---------- Entwurfsschutz: sichert das Termin-Formular automatisch, solange es offen ist ----------
+    const KEY_ENTWURF_TERMIN = 'termine_entwurf';
+    let entwurfIntervall = null;
+    function entwurfSammeln() {
+      const werBtn = werSelect.querySelector('.opt.active');
+      return {
+        bearbeiteId,
+        titel: document.getElementById('fTitel').value,
+        datum: document.getElementById('fDatum').value,
+        ganztags: document.getElementById('fGanztags').checked,
+        start: document.getElementById('fStart').value,
+        ende: document.getElementById('fEnde').value,
+        ort: document.getElementById('fOrt').value,
+        notizen: document.getElementById('fNotizen').value,
+        wiederholung: document.getElementById('fWiederholung').value,
+        wiederholungBis: document.getElementById('fWiederholungBis').value,
+        erinnerung: document.getElementById('fErinnerung').value,
+        wer: werBtn ? werBtn.dataset.wer : 'familie',
+      };
+    }
+    function entwurfHatInhalt(d) { return !!(d.titel.trim() || d.notizen.trim() || d.ort.trim()); }
+    function entwurfSpeichern() {
+      const d = entwurfSammeln();
+      try {
+        if (entwurfHatInhalt(d)) localStorage.setItem(KEY_ENTWURF_TERMIN, JSON.stringify({ ts: Date.now(), daten: d }));
+        else localStorage.removeItem(KEY_ENTWURF_TERMIN);
+      } catch (e) {}
+    }
+    function entwurfLoeschen() { try { localStorage.removeItem(KEY_ENTWURF_TERMIN); } catch (e) {} }
+    function entwurfUeberwachungStarten() {
+      if (entwurfIntervall) clearInterval(entwurfIntervall);
+      entwurfIntervall = setInterval(entwurfSpeichern, 3000);
+    }
+    function entwurfUeberwachungStoppen() {
+      if (entwurfIntervall) { clearInterval(entwurfIntervall); entwurfIntervall = null; }
+    }
+    function entwurfEinsetzen(d) {
+      document.getElementById('fTitel').value = d.titel || '';
+      document.getElementById('fDatum').value = d.datum || '';
+      document.getElementById('fGanztags').checked = !!d.ganztags;
+      document.getElementById('fStart').value = d.start || '09:00';
+      document.getElementById('fEnde').value = d.ende || '';
+      document.getElementById('fOrt').value = d.ort || '';
+      document.getElementById('fNotizen').value = d.notizen || '';
+      document.getElementById('fWiederholung').value = d.wiederholung || 'keine';
+      document.getElementById('fWiederholungBis').value = d.wiederholungBis || '';
+      document.getElementById('fErinnerung').value = d.erinnerung || '0';
+      werSelect.querySelectorAll('.opt').forEach(o => {
+        const aktiv = o.dataset.wer === d.wer;
+        o.classList.toggle('active', aktiv);
+        o.style.background = aktiv ? farbeFuer(d.wer) : '';
+      });
+      zeitRowAktualisieren();
+      wiederholungBisAktualisieren();
+    }
 
     function terminModalOeffnen(ev, vorausgewaehltesDatum) {
       const form = document.getElementById('terminForm');
@@ -1187,6 +1242,14 @@
       zeitRowAktualisieren();
       wiederholungBisAktualisieren();
       document.getElementById('modalTermin').classList.add('zeigen');
+
+      const entwurf = (() => { try { const roh = localStorage.getItem(KEY_ENTWURF_TERMIN); return roh ? JSON.parse(roh) : null; } catch (e) { return null; } })();
+      if (entwurf && entwurf.daten.bearbeiteId === bearbeiteId && entwurfHatInhalt(entwurf.daten)) {
+        const datum = new Date(entwurf.ts).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+        if (confirm('Es gibt einen nicht gespeicherten Entwurf vom ' + datum + ' – wiederherstellen?')) entwurfEinsetzen(entwurf.daten);
+        else entwurfLoeschen();
+      }
+      entwurfUeberwachungStarten();
     }
 
     function zeitRowAktualisieren() {
@@ -1231,6 +1294,7 @@
       }
       speichernAlle(events);
       document.getElementById('modalTermin').classList.remove('zeigen');
+      entwurfUeberwachungStoppen(); entwurfLoeschen();
       renderAktuelleAnsicht();
     });
 
@@ -1243,6 +1307,7 @@
       events.splice(index, 1);
       speichernAlle(events);
       document.getElementById('modalTermin').classList.remove('zeigen');
+      entwurfUeberwachungStoppen(); entwurfLoeschen();
       renderAktuelleAnsicht();
       showTempStatus((istSerie ? 'Serie gelöscht: ' : 'Gelöscht: ') + '„' + entfernt.title + '"', 6, {
         rueckgaengig: () => { events.splice(index, 0, entfernt); speichernAlle(events); renderAktuelleAnsicht(); }
@@ -1252,10 +1317,18 @@
     document.getElementById('fabAdd').addEventListener('click', () => terminModalOeffnen(null, null));
 
     document.querySelectorAll('[data-close]').forEach(btn => {
-      btn.addEventListener('click', () => document.getElementById(btn.dataset.close).classList.remove('zeigen'));
+      btn.addEventListener('click', () => {
+        document.getElementById(btn.dataset.close).classList.remove('zeigen');
+        if (btn.dataset.close === 'modalTermin') { entwurfUeberwachungStoppen(); entwurfLoeschen(); }
+      });
     });
     document.querySelectorAll('.modal-bg').forEach(bg => {
-      bg.addEventListener('click', (e) => { if (e.target === bg) bg.classList.remove('zeigen'); });
+      bg.addEventListener('click', (e) => {
+        if (e.target === bg) {
+          bg.classList.remove('zeigen');
+          if (bg.id === 'modalTermin') { entwurfUeberwachungStoppen(); entwurfLoeschen(); }
+        }
+      });
     });
 
     renderFilter();

@@ -526,6 +526,42 @@
   let statusFilter = 'alle';
   let suchtext = '';
   let bearbeiteId = null;
+  const KEY_ENTWURF = 'gaming_entwurf';
+  let entwurfIntervall = null;
+  function entwurfSammeln() {
+    return {
+      bearbeiteId,
+      titel: document.getElementById('fTitel').value,
+      spielzeit: document.getElementById('fSpielzeit').value,
+      geschaetzteDauer: document.getElementById('fGeschaetzteDauer').value,
+      notiz: document.getElementById('fNotiz').value,
+      person: editPerson, plattform: editPlattform, status: editStatus, bewertung: editBewertung,
+    };
+  }
+  function entwurfHatInhalt(d) { return !!(d.titel.trim() || d.notiz.trim()); }
+  function entwurfSpeichern() {
+    const d = entwurfSammeln();
+    try {
+      if (entwurfHatInhalt(d)) localStorage.setItem(KEY_ENTWURF, JSON.stringify({ ts: Date.now(), daten: d }));
+      else localStorage.removeItem(KEY_ENTWURF);
+    } catch (e) {}
+  }
+  function entwurfLoeschen() { try { localStorage.removeItem(KEY_ENTWURF); } catch (e) {} }
+  function entwurfUeberwachungStarten() {
+    if (entwurfIntervall) clearInterval(entwurfIntervall);
+    entwurfIntervall = setInterval(entwurfSpeichern, 3000);
+  }
+  function entwurfUeberwachungStoppen() {
+    if (entwurfIntervall) { clearInterval(entwurfIntervall); entwurfIntervall = null; }
+  }
+  function entwurfEinsetzen(d) {
+    document.getElementById('fTitel').value = d.titel || '';
+    document.getElementById('fSpielzeit').value = d.spielzeit || '';
+    document.getElementById('fGeschaetzteDauer').value = d.geschaetzteDauer || '';
+    document.getElementById('fNotiz').value = d.notiz || '';
+    editPerson = d.person; editPlattform = d.plattform; editStatus = d.status; editBewertung = d.bewertung || 0;
+    renderEditPersonReihe(); renderEditPlattformReihe(); renderEditStatusReihe(); renderSterneEingabe();
+  }
   let aktiveAnsicht = 'bibliothek';
 
   function speichernSpiele() { speichern(KEY_SPIELE, spiele); }
@@ -699,10 +735,26 @@
     document.getElementById('loeschZeile').style.display = s ? '' : 'none';
     document.getElementById('modalEdit').classList.add('zeigen');
     document.getElementById('fTitel').focus();
+
+    const entwurf = (() => { try { const roh = localStorage.getItem(KEY_ENTWURF); return roh ? JSON.parse(roh) : null; } catch (e) { return null; } })();
+    if (entwurf && entwurf.daten.bearbeiteId === bearbeiteId && entwurfHatInhalt(entwurf.daten)) {
+      const datum = new Date(entwurf.ts).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+      if (confirm('Es gibt einen nicht gespeicherten Entwurf vom ' + datum + ' – wiederherstellen?')) entwurfEinsetzen(entwurf.daten);
+      else entwurfLoeschen();
+    }
+    entwurfUeberwachungStarten();
   }
   document.getElementById('btnNeu').addEventListener('click', () => editModalOeffnen(null));
-  document.getElementById('btnAbbrechen').addEventListener('click', () => document.getElementById('modalEdit').classList.remove('zeigen'));
-  document.getElementById('modalEdit').addEventListener('click', (e) => { if (e.target.id === 'modalEdit') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnAbbrechen').addEventListener('click', () => {
+    document.getElementById('modalEdit').classList.remove('zeigen');
+    entwurfUeberwachungStoppen(); entwurfLoeschen();
+  });
+  document.getElementById('modalEdit').addEventListener('click', (e) => {
+    if (e.target.id === 'modalEdit') {
+      e.currentTarget.classList.remove('zeigen');
+      entwurfUeberwachungStoppen(); entwurfLoeschen();
+    }
+  });
 
   document.getElementById('btnSpeichern').addEventListener('click', () => {
     const titel = document.getElementById('fTitel').value.trim();
@@ -719,6 +771,7 @@
     else spiele.push(neu);
     speichernSpiele();
     document.getElementById('modalEdit').classList.remove('zeigen');
+    entwurfUeberwachungStoppen(); entwurfLoeschen();
     renderAlles();
   });
   document.getElementById('btnLoeschen').addEventListener('click', () => {
@@ -729,6 +782,7 @@
     spiele.splice(index, 1);
     speichernSpiele();
     document.getElementById('modalEdit').classList.remove('zeigen');
+    entwurfUeberwachungStoppen(); entwurfLoeschen();
     renderAlles();
     showTempStatus('Gelöscht: „' + entfernt.titel + '"', 6, {
       rueckgaengig: () => { spiele.splice(index, 0, entfernt); speichernSpiele(); renderAlles(); }

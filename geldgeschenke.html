@@ -606,6 +606,46 @@
   let editId = null;
   let gewaehltFuer = null;
   let gewaehltAnlass = 'geburtstag';
+  const KEY_ENTWURF = 'geldgeschenke_entwurf';
+  let entwurfIntervall = null;
+  function entwurfSammeln() {
+    return {
+      editId,
+      von: document.getElementById('fVon').value,
+      betrag: document.getElementById('fBetrag').value,
+      datum: document.getElementById('fDatum').value,
+      notiz: document.getElementById('fNotiz').value,
+      anlassSonstiges: document.getElementById('fAnlassSonstiges').value,
+      fuer: gewaehltFuer, anlass: gewaehltAnlass,
+    };
+  }
+  function entwurfHatInhalt(d) { return !!(d.von.trim() || d.betrag || d.notiz.trim()); }
+  function entwurfSpeichern() {
+    const d = entwurfSammeln();
+    try {
+      if (entwurfHatInhalt(d)) localStorage.setItem(KEY_ENTWURF, JSON.stringify({ ts: Date.now(), daten: d }));
+      else localStorage.removeItem(KEY_ENTWURF);
+    } catch (e) {}
+  }
+  function entwurfLoeschen() { try { localStorage.removeItem(KEY_ENTWURF); } catch (e) {} }
+  function entwurfUeberwachungStarten() {
+    if (entwurfIntervall) clearInterval(entwurfIntervall);
+    entwurfIntervall = setInterval(entwurfSpeichern, 3000);
+  }
+  function entwurfUeberwachungStoppen() {
+    if (entwurfIntervall) { clearInterval(entwurfIntervall); entwurfIntervall = null; }
+  }
+  function entwurfEinsetzen(d) {
+    document.getElementById('fVon').value = d.von || '';
+    document.getElementById('fBetrag').value = d.betrag || '';
+    document.getElementById('fDatum').value = d.datum || heuteISO();
+    document.getElementById('fNotiz').value = d.notiz || '';
+    gewaehltFuer = d.fuer; gewaehltAnlass = d.anlass || 'geburtstag';
+    document.getElementById('fAnlassSonstiges').value = d.anlassSonstiges || '';
+    document.getElementById('anlassSonstigesFeld').style.display = gewaehltAnlass === 'sonstiges' ? '' : 'none';
+    fuerReiheRendern();
+    anlassReiheRendern();
+  }
 
   function fuerReiheRendern() {
     const box = document.getElementById('fuerPersonReihe');
@@ -659,10 +699,26 @@
     vonHistorieBefuellen();
     document.getElementById('editLoeschZeile').style.display = g ? '' : 'none';
     document.getElementById('modalEdit').classList.add('zeigen');
+
+    const entwurf = (() => { try { const roh = localStorage.getItem(KEY_ENTWURF); return roh ? JSON.parse(roh) : null; } catch (e) { return null; } })();
+    if (entwurf && entwurf.daten.editId === editId && entwurfHatInhalt(entwurf.daten)) {
+      const datum = new Date(entwurf.ts).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+      if (confirm('Es gibt einen nicht gespeicherten Entwurf vom ' + datum + ' – wiederherstellen?')) entwurfEinsetzen(entwurf.daten);
+      else entwurfLoeschen();
+    }
+    entwurfUeberwachungStarten();
   }
   document.getElementById('btnNeu').addEventListener('click', () => editOeffnen(null));
-  document.getElementById('btnEditAbbrechen').addEventListener('click', () => document.getElementById('modalEdit').classList.remove('zeigen'));
-  document.getElementById('modalEdit').addEventListener('click', (e) => { if (e.target.id === 'modalEdit') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnEditAbbrechen').addEventListener('click', () => {
+    document.getElementById('modalEdit').classList.remove('zeigen');
+    entwurfUeberwachungStoppen(); entwurfLoeschen();
+  });
+  document.getElementById('modalEdit').addEventListener('click', (e) => {
+    if (e.target.id === 'modalEdit') {
+      e.currentTarget.classList.remove('zeigen');
+      entwurfUeberwachungStoppen(); entwurfLoeschen();
+    }
+  });
 
   document.getElementById('btnEditSpeichern').addEventListener('click', () => {
     const von = document.getElementById('fVon').value.trim();
@@ -682,6 +738,7 @@
     g.notiz = document.getElementById('fNotiz').value.trim();
     speichern(KEY_GESCHENKE, geschenke);
     document.getElementById('modalEdit').classList.remove('zeigen');
+    entwurfUeberwachungStoppen(); entwurfLoeschen();
     renderFilter(); renderListe(); renderUebersicht();
   });
   document.getElementById('btnEditLoeschen').addEventListener('click', () => {
@@ -692,6 +749,7 @@
     geschenke.splice(index, 1);
     speichern(KEY_GESCHENKE, geschenke);
     document.getElementById('modalEdit').classList.remove('zeigen');
+    entwurfUeberwachungStoppen(); entwurfLoeschen();
     renderFilter(); renderListe(); renderUebersicht();
     showTempStatus('Eintrag gelöscht', 6, {
       rueckgaengig: () => {
