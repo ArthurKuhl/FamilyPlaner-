@@ -594,9 +594,20 @@
       ℹ️ Wiederkehrender Wochenplan – gilt für jede Woche gleich, bis ihr etwas ändert. Für einzelne Einheiten mit Datum nutzt ihr weiterhin "＋ Sport-Einheit erfassen" im Heute-Tab.
     </div>
     <div id="planAuswahlLeiste" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;"></div>
-    <button type="button" id="btnPlanVorlageLaden" class="add-sport-btn" style="margin-bottom:14px;">📋 Beispielwoche laden (gelenkschonender Einstieg)</button>
+    <button type="button" id="btnPlanVorlageLaden" class="add-sport-btn" style="margin-bottom:14px;">📋 Beispielwoche nach Ziel laden</button>
     <div id="trainingsplanTage"></div>
   </section>
+
+  <div class="modal-bg" id="modalPlanVorlage">
+    <div class="modal" style="max-width:420px;">
+      <h2>📋 Ziel wählen</h2>
+      <p style="font-size:0.8rem;opacity:0.75;margin-bottom:12px;">Lädt eine allgemeine Beispielwoche als Ausgangspunkt – danach individuell anpassen. Bei Vorerkrankungen, Verletzungen oder Unsicherheit vorher ärztlichen Rat einholen.</p>
+      <div id="planVorlageListe" style="display:flex;flex-direction:column;gap:8px;"></div>
+      <div class="modal-btns">
+        <button class="btn btn-secondary" id="btnPlanVorlageAbbrechen">Abbrechen</button>
+      </div>
+    </div>
+  </div>
 
   <section id="ansichtKoerperlexikon" style="display:none;">
     <div class="disclaimer-box" style="margin-bottom:14px;">
@@ -1220,7 +1231,7 @@
           <li><strong>Beweglichkeit:</strong> leichtes Dehnen/Mobility 2–3×/Woche, hilft gegen Verspannungen bei mehr Bewegung im Alltag.</li>
           <li><strong>Steigerung:</strong> alle 2–3 Wochen leicht erhöhen – erst Dauer, dann Intensität, nie beides gleichzeitig.</li>
         </ul>
-        <p>Eine Beispiel-Trainingswoche nach diesem Muster lässt sich im Tab "📅 Trainingsplan" über "📋 Beispielwoche laden" direkt übernehmen und dann individuell anpassen.</p>
+        <p>Eine Beispiel-Trainingswoche nach diesem Muster lässt sich im Tab "📅 Trainingsplan" über "📋 Beispielwoche nach Ziel laden" → "⚖️ Abnehmen" direkt übernehmen und dann individuell anpassen.</p>
       </div>
     </details>
 
@@ -4119,30 +4130,138 @@
     box.appendChild(werkzeuge);
   }
 
-  // ---------- Beispielwoche: gelenkschonender Einstieg (allgemeine Vorlage, kein individueller Plan) ----------
-  function trainingsplanVorlageLaden() {
+  // ---------- Beispielwochen nach Ziel (allgemeine Vorlagen, kein individueller Plan) ----------
+  const TRAININGSPLAN_VORLAGEN = [
+    {
+      id: 'abnehmen', label: 'Abnehmen', icon: '⚖️',
+      beschreibung: 'Gelenkschonender Einstieg, Ausdauer + Kraft im Wechsel',
+      tage: {
+        mo: [{ typ: 'laufen', uebung: 'Walking', notiz: 'Zügiges Gehen, 20–30 Min, lockeres Tempo' }],
+        di: [{ typ: 'kraft', uebung: 'Ganzkörper', notiz: 'Große Muskelgruppen, 2 Sätze, Körpergewicht oder leichte Gewichte' }],
+        mi: [{ typ: 'dehnen', uebung: 'Mobility', notiz: '15–20 Min, gegen Verspannungen' }],
+        do: [{ typ: 'laufen', uebung: 'Walking', notiz: 'Zügiges Gehen, 20–30 Min' }],
+        fr: [{ typ: 'kraft', uebung: 'Ganzkörper', notiz: 'Große Muskelgruppen, 2 Sätze' }],
+        sa: [{ typ: 'schwimmen', uebung: '', notiz: 'Gelenkschonendes Ausdauertraining, z.B. Schwimmen oder Radfahren, ca. 30 Min, nach Lust' }],
+        so: [{ typ: 'dehnen', uebung: '', notiz: 'Ruhetag oder leichtes Dehnen – Erholung gehört dazu' }],
+      },
+    },
+    {
+      id: 'muskelaufbau_anfaenger', label: 'Muskelaufbau (Anfänger)', icon: '💪',
+      beschreibung: 'Ganzkörper-Training, 3× pro Woche mit Pausentagen dazwischen',
+      tage: {
+        mo: [{ typ: 'kraft', uebung: 'Ganzkörper A', notiz: 'Kniebeuge, Liegestütz (Knie ok), Rudern, Plank – 2–3 Sätze, sauberes Tempo vor Gewicht' }],
+        di: [{ typ: 'dehnen', uebung: '', notiz: 'Ruhetag oder leichtes Dehnen' }],
+        mi: [{ typ: 'kraft', uebung: 'Ganzkörper B', notiz: 'Ausfallschritte, Schulterdrücken, Latzug/Klimmzug-Variante, Bauch – 2–3 Sätze' }],
+        do: [{ typ: 'dehnen', uebung: '', notiz: 'Ruhetag' }],
+        fr: [{ typ: 'kraft', uebung: 'Ganzkörper A', notiz: 'Wie Montag, Gewicht/Wdh. langsam steigern' }],
+        sa: [{ typ: 'wandern', uebung: '', notiz: 'Lockerer Spaziergang oder Radfahren, aktive Erholung' }],
+        so: [{ typ: 'dehnen', uebung: '', notiz: 'Ruhetag – Muskeln brauchen die Pause zum Wachsen' }],
+      },
+    },
+    {
+      id: 'muskelaufbau_fortgeschritten', label: 'Muskelaufbau (Fortgeschrittene)', icon: '🏋️',
+      beschreibung: 'Push/Pull/Beine-Split, höhere Frequenz und Intensität',
+      tage: {
+        mo: [{ typ: 'kraft', uebung: 'Push (Brust/Schulter/Trizeps)', notiz: 'Bankdrücken, Schulterdrücken, Dips – 3–4 Sätze' }],
+        di: [{ typ: 'kraft', uebung: 'Pull (Rücken/Bizeps)', notiz: 'Kreuzheben/Rudern, Klimmzüge, Bizepscurls – 3–4 Sätze' }],
+        mi: [{ typ: 'dehnen', uebung: '', notiz: 'Aktive Erholung, Mobility' }],
+        do: [{ typ: 'kraft', uebung: 'Beine', notiz: 'Kniebeuge, Beinpresse, Ausfallschritte, Wadenheben – 3–4 Sätze' }],
+        fr: [{ typ: 'kraft', uebung: 'Push (Brust/Schulter/Trizeps)', notiz: 'Variation zu Montag, Gewicht steigern' }],
+        sa: [{ typ: 'kraft', uebung: 'Pull (Rücken/Bizeps)', notiz: 'Variation zu Dienstag' }],
+        so: [{ typ: 'dehnen', uebung: '', notiz: 'Ruhetag' }],
+      },
+    },
+    {
+      id: 'fitness_allgemein', label: 'Generelle Fitness', icon: '🌟',
+      beschreibung: 'Ausgewogener Mix aus Ausdauer, Kraft und Beweglichkeit',
+      tage: {
+        mo: [{ typ: 'laufen', uebung: '', notiz: '20–30 Min lockeres Tempo' }],
+        di: [{ typ: 'kraft', uebung: 'Ganzkörper', notiz: '2–3 Sätze, große Muskelgruppen' }],
+        mi: [{ typ: 'yoga', uebung: '', notiz: 'Beweglichkeit und Balance, 20–30 Min' }],
+        do: [{ typ: 'radfahren', uebung: '', notiz: 'Oder Schwimmen, 30 Min' }],
+        fr: [{ typ: 'kraft', uebung: 'Ganzkörper', notiz: '2–3 Sätze' }],
+        sa: [{ typ: 'wandern', uebung: '', notiz: 'Längere Einheit an der frischen Luft' }],
+        so: [{ typ: 'dehnen', uebung: '', notiz: 'Ruhetag oder leichtes Dehnen' }],
+      },
+    },
+    {
+      id: 'koerperhaltung', label: 'Verbesserung der Körperhaltung', icon: '🧍',
+      beschreibung: 'Rumpf- und Rückenkräftigung, Mobility gegen Sitzhaltung',
+      tage: {
+        mo: [{ typ: 'kraft', uebung: 'Rücken & Rumpf', notiz: 'Rückenstrecker, Rudern, Plank/Seitplank – kräftigt die Haltungsmuskulatur' }],
+        di: [{ typ: 'dehnen', uebung: 'Brustöffner & Hüftbeuger', notiz: 'Gegen die typische "Rundrücken"-Haltung vom Sitzen' }],
+        mi: [{ typ: 'yoga', uebung: '', notiz: 'Wirbelsäulen-Mobilisation, bewusste Aufrichtung' }],
+        do: [{ typ: 'kraft', uebung: 'Rücken & Rumpf', notiz: 'Wie Montag, Übungen variieren' }],
+        fr: [{ typ: 'balance', uebung: '', notiz: 'Koordination und Körperwahrnehmung' }],
+        sa: [{ typ: 'dehnen', uebung: 'Ganzkörper', notiz: 'Ausgiebige Dehneinheit, 20 Min' }],
+        so: [{ typ: 'dehnen', uebung: '', notiz: 'Ruhetag' }],
+      },
+    },
+    {
+      id: 'stressabbau', label: 'Stressabbau', icon: '🧘',
+      beschreibung: 'Ruhige, entspannende Bewegung in der Natur und Achtsamkeit',
+      tage: {
+        mo: [{ typ: 'yoga', uebung: '', notiz: 'Ruhiger Flow mit Fokus auf Atmung, 20–30 Min' }],
+        di: [{ typ: 'wandern', uebung: '', notiz: 'Spaziergang an der frischen Luft, ohne Zeitdruck' }],
+        mi: [{ typ: 'dehnen', uebung: '', notiz: 'Sanftes Dehnen, bewusst zur Ruhe kommen' }],
+        do: [{ typ: 'yoga', uebung: '', notiz: 'Wie Montag oder geführte Meditation' }],
+        fr: [{ typ: 'schwimmen', uebung: '', notiz: 'Lockeres Schwimmen, kein Leistungsdruck' }],
+        sa: [{ typ: 'wandern', uebung: '', notiz: 'Längere Wanderung in der Natur' }],
+        so: [{ typ: 'yoga', uebung: '', notiz: 'Ruhetag oder sehr sanftes Yoga' }],
+      },
+    },
+    {
+      id: 'knochen_gelenke', label: 'Knochen- und Gelenkstärkung', icon: '🦴',
+      beschreibung: 'Gelenkschonendes, gewichtstragendes Training und Balance',
+      tage: {
+        mo: [{ typ: 'kraft', uebung: 'Leichtes Krafttraining', notiz: 'Mit Gewichten/Widerstand – wirkt der Knochendichte entgegen, 2 Sätze' }],
+        di: [{ typ: 'wandern', uebung: '', notiz: 'Zügiges Gehen, gewichtstragend, gut für die Knochen' }],
+        mi: [{ typ: 'balance', uebung: '', notiz: 'Gleichgewichtsübungen, beugt Stürzen vor' }],
+        do: [{ typ: 'schwimmen', uebung: '', notiz: 'Gelenkschonender Ausgleich, 30 Min' }],
+        fr: [{ typ: 'kraft', uebung: 'Leichtes Krafttraining', notiz: 'Wie Montag' }],
+        sa: [{ typ: 'wandern', uebung: '', notiz: 'Längere Einheit, gerne mit leichten Anstiegen' }],
+        so: [{ typ: 'dehnen', uebung: '', notiz: 'Ruhetag oder leichtes Dehnen' }],
+      },
+    },
+  ];
+  function trainingsplanVorlageLaden(vorlage) {
     const c = trainingsplanPersonContainer(aktivePerson);
     const id = neueId('tplan');
-    const tage = {
-      mo: [{ id: neueId('te'), typ: 'laufen', uebung: 'Walking', notiz: 'Zügiges Gehen, 20–30 Min, lockeres Tempo' }],
-      di: [{ id: neueId('te'), typ: 'krafttraining', uebung: 'Ganzkörper', notiz: 'Große Muskelgruppen, 2 Sätze, Körpergewicht oder leichte Gewichte' }],
-      mi: [{ id: neueId('te'), typ: 'dehnen', uebung: 'Mobility', notiz: '15–20 Min, gegen Verspannungen' }],
-      do: [{ id: neueId('te'), typ: 'laufen', uebung: 'Walking', notiz: 'Zügiges Gehen, 20–30 Min' }],
-      fr: [{ id: neueId('te'), typ: 'krafttraining', uebung: 'Ganzkörper', notiz: 'Große Muskelgruppen, 2 Sätze' }],
-      sa: [{ id: neueId('te'), typ: 'schwimmen', uebung: '', notiz: 'Gelenkschonendes Ausdauertraining, z.B. Schwimmen oder Radfahren, ca. 30 Min, nach Lust' }],
-      so: [{ id: neueId('te'), typ: 'dehnen', uebung: '', notiz: 'Ruhetag oder leichtes Dehnen – Erholung gehört dazu' }],
-    };
-    c.plaene.push({ id, name: 'Beispielwoche (Einstieg)', tage });
+    const tage = {};
+    Object.keys(vorlage.tage).forEach(tag => {
+      tage[tag] = vorlage.tage[tag].map(e => ({ id: neueId('te'), typ: e.typ, uebung: e.uebung, notiz: e.notiz }));
+    });
+    c.plaene.push({ id, name: 'Beispielwoche (' + vorlage.label + ')', tage });
     c.aktivId = id;
     speicherePlan();
     renderPlanAuswahl();
     renderTrainingsplan();
-    showTempStatus('📋 Beispielwoche geladen – jetzt an dein Tempo anpassen.', 4);
+    document.getElementById('modalPlanVorlage').classList.remove('zeigen');
+    showTempStatus('📋 Beispielwoche "' + vorlage.label + '" geladen – jetzt an dich anpassen.', 4);
+  }
+  function renderPlanVorlageListe() {
+    const box = document.getElementById('planVorlageListe');
+    box.innerHTML = TRAININGSPLAN_VORLAGEN.map(v =>
+      '<button type="button" class="add-sport-btn" data-vorlage="' + v.id + '" style="text-align:left;display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:12px 14px;">' +
+      '<span style="font-weight:700;">' + v.icon + ' ' + escapeHtml(v.label) + '</span>' +
+      '<span style="font-size:0.72rem;opacity:0.75;font-weight:400;">' + escapeHtml(v.beschreibung) + '</span>' +
+      '</button>'
+    ).join('');
+    box.querySelectorAll('[data-vorlage]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const vorlage = TRAININGSPLAN_VORLAGEN.find(v => v.id === btn.dataset.vorlage);
+        if (!vorlage) return;
+        if (!confirm('Legt einen neuen Plan "Beispielwoche (' + vorlage.label + ')" an (bestehende Pläne bleiben unverändert). Fortfahren?')) return;
+        trainingsplanVorlageLaden(vorlage);
+      });
+    });
   }
   document.getElementById('btnPlanVorlageLaden').addEventListener('click', () => {
-    if (!confirm('Legt einen neuen Plan "Beispielwoche (Einstieg)" an (bestehende Pläne bleiben unverändert). Fortfahren?')) return;
-    trainingsplanVorlageLaden();
+    renderPlanVorlageListe();
+    document.getElementById('modalPlanVorlage').classList.add('zeigen');
   });
+  document.getElementById('btnPlanVorlageAbbrechen').addEventListener('click', () => document.getElementById('modalPlanVorlage').classList.remove('zeigen'));
+  document.getElementById('modalPlanVorlage').addEventListener('click', (e) => { if (e.target.id === 'modalPlanVorlage') e.currentTarget.classList.remove('zeigen'); });
 
   function renderTrainingsplan() {
     renderPlanAuswahl();
