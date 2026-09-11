@@ -550,11 +550,11 @@
       const liste = moduleInGespeicherterReihenfolge();
       const versteckt = versteckteModule();
       box.innerHTML = liste.map((mod, i) => `
-        <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #f0ead9;">
+        <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--parchment);">
           <input type="checkbox" data-hide-id="${mod.id}" ${versteckt.includes(mod.id) ? '' : 'checked'} title="Modul ein-/ausblenden" style="width:18px;height:18px;flex-shrink:0;">
-          <span style="flex:1;font-size:0.85rem;${versteckt.includes(mod.id) ? 'opacity:0.45;' : ''}">${mod.emoji} ${mod.label}</span>
-          <button type="button" data-dir="up" data-i="${i}" ${i === 0 ? 'disabled' : ''} style="background:none;border:1px solid #ddd;border-radius:6px;width:30px;height:30px;cursor:pointer;opacity:${i === 0 ? 0.3 : 1};">▲</button>
-          <button type="button" data-dir="down" data-i="${i}" ${i === liste.length - 1 ? 'disabled' : ''} style="background:none;border:1px solid #ddd;border-radius:6px;width:30px;height:30px;cursor:pointer;opacity:${i === liste.length - 1 ? 0.3 : 1};">▼</button>
+          <span style="flex:1;font-size:0.85rem;color:var(--soil);${versteckt.includes(mod.id) ? 'opacity:0.45;' : ''}">${mod.emoji} ${mod.label}</span>
+          <button type="button" data-dir="up" data-i="${i}" ${i === 0 ? 'disabled' : ''} style="background:none;border:1px solid var(--bark);color:var(--soil);border-radius:6px;width:30px;height:30px;cursor:pointer;opacity:${i === 0 ? 0.3 : 1};">▲</button>
+          <button type="button" data-dir="down" data-i="${i}" ${i === liste.length - 1 ? 'disabled' : ''} style="background:none;border:1px solid var(--bark);color:var(--soil);border-radius:6px;width:30px;height:30px;cursor:pointer;opacity:${i === liste.length - 1 ? 0.3 : 1};">▼</button>
         </div>`).join('');
       box.querySelectorAll('input[data-hide-id]').forEach(cb => {
         cb.addEventListener('change', () => {
