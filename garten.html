@@ -92,7 +92,7 @@
   }
   .btn-add-garden:hover { background: var(--soil); }
 
-  header { position: relative; background: linear-gradient(135deg, var(--navbg2), var(--navbg)); color: var(--leaf); padding: 14px 22px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 10px var(--shadow); }
+  header { position: relative; background: linear-gradient(135deg, var(--navbg2), var(--navbg)); color: var(--leaf); padding: 8px 22px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 10px var(--shadow); }
   header::after { content: ''; position: absolute; left: 0; right: 0; bottom: -3px; height: 3px; background: linear-gradient(90deg, var(--moss), var(--sage) 35%, var(--leaf) 65%, var(--moss)); opacity: 0.85; }
   header h1 { font-family: 'Playfair Display', serif; font-size: 1.32rem; letter-spacing: 0.02em; display: flex; align-items: baseline; gap: 8px; }
   header h1 .hdr-sub { font-family: 'Inter', sans-serif; font-size: 0.66rem; font-weight: 500; color: var(--sage); letter-spacing: 0.03em; text-transform: uppercase; }
@@ -218,7 +218,7 @@
   .plant-sym .sym { font-size: 1.15rem; }
 
   .tabs { display: flex; border-bottom: 2px solid var(--parchment); background: var(--cream); }
-  .tab { flex: 1; min-width: 0; padding: 10px 4px; text-align: center; font-size: 0.68rem; font-weight: 600; color: var(--bark); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s; text-transform: uppercase; letter-spacing: 0.04em; }
+  .tab { flex: 1; min-width: 0; padding: 6px 4px; text-align: center; font-size: 0.68rem; font-weight: 600; color: var(--bark); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s; text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .tab:hover { color: var(--moss); background: rgba(79,111,69,0.06); }
   .tab.active { color: var(--moss); border-bottom-color: var(--moss); background: rgba(79,111,69,0.08); }
   .tab-content { display: none; }
@@ -327,7 +327,7 @@
   /* ==== VIEWS / NAVIGATION ==== */
   .view { display: none; flex: 1; flex-direction: column; min-height: 0; }
   .view.active { display: flex; }
-  .main-nav { display: flex; gap: 6px; padding: 9px 16px; background: var(--white); border-bottom: 1px solid var(--parchment); overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .main-nav { display: flex; gap: 6px; padding: 5px 16px; background: var(--white); border-bottom: 1px solid var(--parchment); overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
   .main-nav::-webkit-scrollbar { display: none; }
   .main-nav .nav-btn { flex: 0 0 auto; white-space: nowrap; }
   .nav-btn { background: transparent; border: 1px solid var(--parchment); color: var(--bark); border-radius: var(--radius-pill); padding: 7px 14px; font-size: 0.78rem; font-weight: 600; font-family: 'Inter', sans-serif; cursor: pointer; transition: all 0.15s; }
