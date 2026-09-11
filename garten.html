@@ -6157,7 +6157,7 @@ function renderVollbildListe() {
       return `
       <div class="vlist-beet ${offen ? 'offen' : ''}" style="border-left:4px solid ${bed.color || '#7a9e72'}">
         <button type="button" class="vlist-beet-kopf" ${istStruktur ? 'disabled' : `onclick="vollbildBeetToggle('${bed.id}')"`}>
-          <div class="bed-color-dot" style="background:${bed.color}"></div>
+          <span class="bed-color-dot" style="display:inline-block;background:${bed.color}"></span>
           ${icon ? `<span style="margin-right:2px">${icon}</span>` : ''}
           <span style="flex:1;font-weight:600;text-align:left">${escapeHtml(bed.name || (istStruktur ? 'Element ' : 'Beet ') + (i + 1))}</span>
           ${!istStruktur ? `<span style="font-size:0.68rem;color:var(--bark);margin-right:4px">${(bed.plants || []).length}🌱</span><span>${offen ? '▲' : '▼'}</span>` : ''}
