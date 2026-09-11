@@ -3255,6 +3255,7 @@
       svg += '<text x="' + xPos(i) + '" y="' + (hoehe - 6) + '" font-size="8" fill="var(--bark)" text-anchor="' + (i === 0 ? 'start' : 'end') + '">' + ausISO(t.datum).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }) + '</text>';
     });
     // Linien + Punkte je Satz
+    const einheit = tlDiagrammMetrik === 'gewicht' ? ' kg' : ' Wdh';
     serien.forEach((serie, s) => {
       if (serie.length < 1) return;
       const farbe = TL_SATZ_FARBEN[s];
@@ -3266,17 +3267,34 @@
       const bestWert = Math.max(...serie.map(p => p.wert));
       serie.forEach(p => {
         const istBest = p.wert === bestWert && serie.length > 1;
+        const tipText = 'Satz ' + (s + 1) + ': ' + p.wert + einheit + (istBest ? ' – Bestwert' : '') + ' · ' + ausISO(p.datum).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
         if (istBest) {
-          svg += '<circle cx="' + xPos(p.x) + '" cy="' + yPos(p.wert) + '" r="6.5" fill="' + farbe + '" stroke="#fff" stroke-width="1.5"><title>Satz ' + (s + 1) + ' – Bestwert: ' + p.wert + '</title></circle>';
+          svg += '<circle cx="' + xPos(p.x) + '" cy="' + yPos(p.wert) + '" r="6.5" fill="' + farbe + '" stroke="#fff" stroke-width="1.5"/>';
           svg += '<text x="' + xPos(p.x) + '" y="' + (yPos(p.wert) - 9) + '" font-size="9" text-anchor="middle" fill="' + farbe + '">★</text>';
         } else {
-          svg += '<circle cx="' + xPos(p.x) + '" cy="' + yPos(p.wert) + '" r="3.5" fill="' + farbe + '"><title>Satz ' + (s + 1) + ': ' + p.wert + '</title></circle>';
+          svg += '<circle cx="' + xPos(p.x) + '" cy="' + yPos(p.wert) + '" r="3.5" fill="' + farbe + '"/>';
         }
+        // Größerer, unsichtbarer Kreis fürs Antippen (der sichtbare Punkt ist am Handy oft zu klein zum Treffen)
+        svg += '<circle cx="' + xPos(p.x) + '" cy="' + yPos(p.wert) + '" r="10" fill="transparent" pointer-events="all" style="cursor:pointer;" data-tip-x="' + ((xPos(p.x) / breite) * 100).toFixed(1) + '" data-tip-y="' + ((yPos(p.wert) / hoehe) * 100).toFixed(1) + '" data-tip-text="' + escapeHtml(tipText) + '"/>';
       });
     });
     svg += '</svg>';
     const svgWrap = document.createElement('div');
+    svgWrap.style.position = 'relative';
     svgWrap.innerHTML = svg;
+    const tooltip = document.createElement('div');
+    tooltip.style.cssText = 'position:absolute;display:none;background:var(--soil);color:var(--cream);padding:4px 9px;border-radius:6px;font-size:0.68rem;white-space:nowrap;transform:translate(-50%,-115%);pointer-events:none;z-index:5;box-shadow:0 2px 6px rgba(0,0,0,0.25);';
+    svgWrap.appendChild(tooltip);
+    svgWrap.querySelectorAll('circle[data-tip-text]').forEach(c => {
+      c.addEventListener('click', (e) => {
+        e.stopPropagation();
+        tooltip.textContent = c.dataset.tipText;
+        tooltip.style.left = c.dataset.tipX + '%';
+        tooltip.style.top = c.dataset.tipY + '%';
+        tooltip.style.display = 'block';
+      });
+    });
+    svgWrap.addEventListener('click', (e) => { if (e.target === svgWrap || e.target.tagName === 'svg') tooltip.style.display = 'none'; });
     wrap.appendChild(svgWrap);
 
     // Legende
