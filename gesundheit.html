@@ -3227,20 +3227,25 @@
       return wrap;
     }
     const minWert = Math.min(0, Math.min(...alleWerte));
-    const maxWert = Math.max(...alleWerte) * 1.1 || 1;
+    const rohMax = Math.max(...alleWerte);
+    const schritt = tlDiagrammMetrik === 'gewicht' ? 10 : 5;
+    // Y-Achse auf runde Schritte aufteilen (10er bei kg, 5er bei Wiederholungen), pro Schritt eine Gitterlinie
+    const gridMin = Math.floor(minWert / schritt) * schritt;
+    const gridMax = Math.max(gridMin + schritt, Math.ceil((rohMax || 1) / schritt) * schritt);
     const breite = 320, hoehe = 160, padL = 34, padR = 10, padT = 10, padB = 26;
     const innenB = breite - padL - padR, innenH = hoehe - padT - padB;
     const anzahlPunkte = punkte.length;
     const xPos = (i) => padL + (anzahlPunkte > 1 ? (i / (anzahlPunkte - 1)) * innenB : innenB / 2);
-    const yPos = (wert) => padT + innenH - ((wert - minWert) / (maxWert - minWert || 1)) * innenH;
+    const yPos = (wert) => padT + innenH - ((wert - gridMin) / (gridMax - gridMin || 1)) * innenH;
 
     let svg = '<svg viewBox="0 0 ' + breite + ' ' + hoehe + '" style="width:100%;height:auto;display:block;">';
-    // Horizontale Hilfslinien + Achsenbeschriftung (min, Mitte, max)
-    [minWert, (minWert + maxWert) / 2, maxWert].forEach(w => {
+    // Horizontale Hilfslinien in runden Schritten, in einem mittleren Grau, das auf hellem wie
+    // dunklem Hintergrund gut erkennbar bleibt (bewusst fest statt Theme-Variable).
+    for (let w = gridMin; w <= gridMax + 0.001; w += schritt) {
       const y = yPos(w);
-      svg += '<line x1="' + padL + '" y1="' + y + '" x2="' + (breite - padR) + '" y2="' + y + '" stroke="var(--parchment)" stroke-width="1"/>';
+      svg += '<line x1="' + padL + '" y1="' + y + '" x2="' + (breite - padR) + '" y2="' + y + '" stroke="#8a8a8a" stroke-width="1" opacity="0.55"/>';
       svg += '<text x="2" y="' + (y + 3) + '" font-size="8" fill="var(--bark)">' + Math.round(w) + '</text>';
-    });
+    }
     // Datumsbeschriftung unten (nur erster/letzter Punkt, sonst zu eng)
     punkte.forEach((t, i) => {
       if (i !== 0 && i !== anzahlPunkte - 1 && anzahlPunkte > 2) return;
