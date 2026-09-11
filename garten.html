@@ -156,11 +156,8 @@
   .main.modus-versteckt { display: none; }
   #vollbildListeWrap { display: none; flex: 1; min-height: 0; overflow-y: auto; padding: 14px; background: var(--cream); -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
   #vollbildListeWrap.aktiv { display: block; }
-  .vlist-beet { background: var(--white); border-radius: var(--radius-md); margin-bottom: 10px; box-shadow: var(--shadow-soft); overflow: hidden; }
-  .vlist-beet-kopf { width: 100%; display: flex; align-items: center; gap: 8px; padding: 13px 14px; cursor: pointer; background: none; border: none; font-family: inherit; font-size: inherit; color: inherit; touch-action: manipulation; }
-  .vlist-beet-kopf:disabled { cursor: default; }
-  .vlist-beet-plants { display: none; padding: 0 14px 10px; }
-  .vlist-beet.offen .vlist-beet-plants { display: block; }
+  .vlist-beet { background: var(--white); border-radius: 0 0 var(--radius-md) var(--radius-md); margin-bottom: 10px; box-shadow: var(--shadow-soft); overflow: hidden; padding: 4px 0; }
+  .vlist-beet-ueberschrift { display: flex; align-items: center; gap: 8px; padding: 9px 14px; background: var(--cream); border-radius: var(--radius-md) var(--radius-md) 0 0; font-weight: 700; font-size: 0.8rem; margin-top: 12px; }
   .vlist-plant-zeile { width: 100%; display: flex; align-items: center; gap: 8px; padding: 9px 6px; border-top: 1px solid var(--parchment); border-left: none; border-right: none; border-bottom: none; cursor: pointer; border-radius: var(--radius-sm); background: none; font-family: inherit; font-size: inherit; color: inherit; text-align: left; touch-action: manipulation; }
   .vlist-plant-zeile:hover { background: var(--cream); }
   .vlist-frei-karte { width: 100%; display: flex; align-items: center; gap: 8px; background: var(--white); border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 8px; box-shadow: var(--shadow-soft); cursor: pointer; border: none; font-family: inherit; font-size: inherit; color: inherit; text-align: left; touch-action: manipulation; }
@@ -938,16 +935,6 @@
   </div>
 
   <div id="vollbildListeWrap"></div>
-
-  <div class="modal-bg" id="modalBeetPflanzenliste" style="display:none" onclick="if(event.target.id==='modalBeetPflanzenliste')document.getElementById('modalBeetPflanzenliste').style.display='none'">
-    <div class="modal" style="max-width:420px;">
-      <h2 id="beetPflanzenlisteTitel">🌱 Pflanzen</h2>
-      <div id="beetPflanzenlisteInhalt" style="max-height:60vh;overflow-y:auto;margin-top:10px;"></div>
-      <div class="modal-btns">
-        <button class="btn-secondary" onclick="document.getElementById('modalBeetPflanzenliste').style.display='none'">Schließen</button>
-      </div>
-    </div>
-  </div>
 
   <div class="statusbar">
     <span id="sb1">Modus: Auswählen</span>
@@ -6135,52 +6122,33 @@ function applyGartenAnsichtModus() {
     setTimeout(positioniereZoomWidget, 30);
   }
 }
-// Tippen auf ein Beet öffnet ein Fenster mit seinen Pflanzen (statt es inline aufzuklappen) –
-// nutzt denselben, bereits bewährten Fenster-Mechanismus wie an vielen anderen Stellen der App.
-function vollbildBeetOeffnen(bedId) {
-  const bed = getCurrentBeds().find(b => b.id === bedId);
-  if (!bed) return;
-  document.getElementById('beetPflanzenlisteTitel').textContent = '🌱 ' + escapeHtml(bed.name || 'Beet');
-  const box = document.getElementById('beetPflanzenlisteInhalt');
-  if (!(bed.plants || []).length) {
-    box.innerHTML = '<div class="empty-state">Noch keine Pflanzen in diesem Beet.</div>';
-  } else {
-    box.innerHTML = bed.plants.map((p, pi) => `
-      <button type="button" class="vlist-plant-zeile" data-plant-idx="${pi}">
-        <span>${p.sym || '🌱'}</span>
-        <span>${escapeHtml(p.name || 'Unbenannt')}${p.variety ? ' <span style="color:var(--bark);font-weight:400">(' + escapeHtml(p.variety) + ')</span>' : ''}</span>
-      </button>`).join('');
-    box.querySelectorAll('[data-plant-idx]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.getElementById('modalBeetPflanzenliste').style.display = 'none';
-        openPlantPanel(bed, parseInt(btn.dataset.plantIdx, 10));
-      });
-    });
-  }
-  document.getElementById('modalBeetPflanzenliste').style.display = 'flex';
-}
+// Flache Pflanzenliste mit Beet-Namen als (nicht anklickbaren) Zwischenüberschriften.
+// Nur die einzelnen Pflanzen-Zeilen sind klickbar und öffnen direkt die Pflanzeninfo.
 function renderVollbildListe() {
   const box = document.getElementById('vollbildListeWrap');
   if (!box) return;
   const beds = getCurrentBeds();
   const frei = getCurrentFreiPflanzen();
-  let html = '<div class="sidebar-title" style="margin-bottom:10px">🌱 Beete &amp; Strukturen</div>';
-  if (!beds.length) {
-    html += '<div class="empty-state">Noch keine Beete angelegt.</div>';
+  let html = '<div class="sidebar-title" style="margin-bottom:10px">🌱 Pflanzen nach Beet</div>';
+  const bedsMitPflanzen = sortedBedsWithIndex(beds).filter(({ bed }) => bed.kind !== 'struktur');
+  const gesamtPflanzen = bedsMitPflanzen.reduce((sum, { bed }) => sum + (bed.plants || []).length, 0);
+  if (!gesamtPflanzen) {
+    html += '<div class="empty-state">Noch keine Pflanzen in einem Beet.</div>';
   } else {
-    html += sortedBedsWithIndex(beds).map(({ bed, i }) => {
-      const istStruktur = bed.kind === 'struktur';
-      const preset = STRUKTUR_PRESETS[bed.strukturTyp] || null;
-      const icon = istStruktur ? (preset ? preset.icon : '⬛') : null;
+    html += bedsMitPflanzen.map(({ bed, i }) => {
+      if (!(bed.plants || []).length) return '';
+      const plantsHtml = bed.plants.map((p, pi) => `
+        <button type="button" class="vlist-plant-zeile" data-bed-idx="${i}" data-plant-idx="${pi}">
+          <span>${p.sym || '🌱'}</span>
+          <span>${escapeHtml(p.name || 'Unbenannt')}${p.variety ? ' <span style="color:var(--bark);font-weight:400">(' + escapeHtml(p.variety) + ')</span>' : ''}</span>
+        </button>`).join('');
       return `
-      <div class="vlist-beet" style="border-left:4px solid ${bed.color || '#7a9e72'}">
-        <button type="button" class="vlist-beet-kopf" ${istStruktur ? 'disabled' : `data-bed-id="${bed.id}"`}>
-          <span class="bed-color-dot" style="display:inline-block;background:${bed.color}"></span>
-          ${icon ? `<span style="margin-right:2px">${icon}</span>` : ''}
-          <span style="flex:1;font-weight:600;text-align:left">${escapeHtml(bed.name || (istStruktur ? 'Element ' : 'Beet ') + (i + 1))}</span>
-          ${!istStruktur ? `<span style="font-size:0.68rem;color:var(--bark);margin-right:6px">${(bed.plants || []).length}🌱</span><span style="opacity:0.5">›</span>` : ''}
-        </button>
-      </div>`;
+      <div class="vlist-beet-ueberschrift" style="border-left:4px solid ${bed.color || '#7a9e72'}">
+        <span class="bed-color-dot" style="display:inline-block;background:${bed.color}"></span>
+        <span>${escapeHtml(bed.name || 'Beet ' + (i + 1))}</span>
+        <span style="font-size:0.68rem;color:var(--bark);margin-left:auto">${bed.plants.length}🌱</span>
+      </div>
+      <div class="vlist-beet">${plantsHtml}</div>`;
     }).join('');
   }
   html += '<div class="sidebar-title" style="margin:18px 0 10px">🌳 Freistehende Pflanzen</div>';
@@ -6196,8 +6164,11 @@ function renderVollbildListe() {
   box.innerHTML = html;
   // Direkt nach dem Einfügen ins DOM angehängt (nicht delegiert) – jeder Button bekommt
   // seinen Listener im selben Moment, in dem er erzeugt wird.
-  box.querySelectorAll('[data-bed-id]').forEach(btn => {
-    btn.addEventListener('click', () => vollbildBeetOeffnen(btn.dataset.bedId));
+  box.querySelectorAll('[data-plant-idx]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const bed = getCurrentBeds()[parseInt(btn.dataset.bedIdx, 10)];
+      if (bed) openPlantPanel(bed, parseInt(btn.dataset.plantIdx, 10));
+    });
   });
   box.querySelectorAll('[data-frei-idx]').forEach(btn => {
     btn.addEventListener('click', () => openFreiPflanzePanelByIdx(parseInt(btn.dataset.freiIdx, 10)));
