@@ -939,6 +939,16 @@
 
   <div id="vollbildListeWrap"></div>
 
+  <div class="modal-bg" id="modalBeetPflanzenliste" style="display:none" onclick="if(event.target.id==='modalBeetPflanzenliste')document.getElementById('modalBeetPflanzenliste').style.display='none'">
+    <div class="modal" style="max-width:420px;">
+      <h2 id="beetPflanzenlisteTitel">🌱 Pflanzen</h2>
+      <div id="beetPflanzenlisteInhalt" style="max-height:60vh;overflow-y:auto;margin-top:10px;"></div>
+      <div class="modal-btns">
+        <button class="btn-secondary" onclick="document.getElementById('modalBeetPflanzenliste').style.display='none'">Schließen</button>
+      </div>
+    </div>
+  </div>
+
   <div class="statusbar">
     <span id="sb1">Modus: Auswählen</span>
     <span id="sb2">Beete: 0</span>
@@ -6102,7 +6112,6 @@ function sortedBedsWithIndex(beds) {
 // ==================== ANSICHTS-UMSCHALTUNG (Karte+Liste / nur Liste / nur Karte) ====================
 let gartenAnsichtModus = 'standard';
 try { gartenAnsichtModus = localStorage.getItem('garten_ansichtModus') || 'standard'; } catch (e) {}
-let vollbildOffeneBeete = new Set();
 function gartenAnsichtSetzen(modus) {
   gartenAnsichtModus = modus;
   try { localStorage.setItem('garten_ansichtModus', modus); } catch (e) {}
@@ -6126,10 +6135,29 @@ function applyGartenAnsichtModus() {
     setTimeout(positioniereZoomWidget, 30);
   }
 }
-function vollbildBeetToggle(bedId) {
-  if (vollbildOffeneBeete.has(bedId)) vollbildOffeneBeete.delete(bedId);
-  else vollbildOffeneBeete.add(bedId);
-  renderVollbildListe();
+// Tippen auf ein Beet öffnet ein Fenster mit seinen Pflanzen (statt es inline aufzuklappen) –
+// nutzt denselben, bereits bewährten Fenster-Mechanismus wie an vielen anderen Stellen der App.
+function vollbildBeetOeffnen(bedId) {
+  const bed = getCurrentBeds().find(b => b.id === bedId);
+  if (!bed) return;
+  document.getElementById('beetPflanzenlisteTitel').textContent = '🌱 ' + escapeHtml(bed.name || 'Beet');
+  const box = document.getElementById('beetPflanzenlisteInhalt');
+  if (!(bed.plants || []).length) {
+    box.innerHTML = '<div class="empty-state">Noch keine Pflanzen in diesem Beet.</div>';
+  } else {
+    box.innerHTML = bed.plants.map((p, pi) => `
+      <button type="button" class="vlist-plant-zeile" data-plant-idx="${pi}">
+        <span>${p.sym || '🌱'}</span>
+        <span>${escapeHtml(p.name || 'Unbenannt')}${p.variety ? ' <span style="color:var(--bark);font-weight:400">(' + escapeHtml(p.variety) + ')</span>' : ''}</span>
+      </button>`).join('');
+    box.querySelectorAll('[data-plant-idx]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.getElementById('modalBeetPflanzenliste').style.display = 'none';
+        openPlantPanel(bed, parseInt(btn.dataset.plantIdx, 10));
+      });
+    });
+  }
+  document.getElementById('modalBeetPflanzenliste').style.display = 'flex';
 }
 function renderVollbildListe() {
   const box = document.getElementById('vollbildListeWrap');
@@ -6144,25 +6172,14 @@ function renderVollbildListe() {
       const istStruktur = bed.kind === 'struktur';
       const preset = STRUKTUR_PRESETS[bed.strukturTyp] || null;
       const icon = istStruktur ? (preset ? preset.icon : '⬛') : null;
-      const offen = vollbildOffeneBeete.has(bed.id);
-      const plantsHtml = !istStruktur ? (
-        (bed.plants || []).length
-          ? bed.plants.map((p, pi) => `
-            <button type="button" class="vlist-plant-zeile" data-vlist-aktion="pflanze" data-bed-idx="${i}" data-plant-idx="${pi}">
-              <span>${p.sym || '🌱'}</span>
-              <span>${escapeHtml(p.name || 'Unbenannt')}${p.variety ? ' <span style="color:var(--bark);font-weight:400">(' + escapeHtml(p.variety) + ')</span>' : ''}</span>
-            </button>`).join('')
-          : '<div class="empty-state" style="padding:8px 4px">Noch keine Pflanzen in diesem Beet.</div>'
-      ) : '';
       return `
-      <div class="vlist-beet ${offen ? 'offen' : ''}" style="border-left:4px solid ${bed.color || '#7a9e72'}">
-        <button type="button" class="vlist-beet-kopf" ${istStruktur ? 'disabled' : `data-vlist-aktion="beet" data-bed-id="${bed.id}"`}>
+      <div class="vlist-beet" style="border-left:4px solid ${bed.color || '#7a9e72'}">
+        <button type="button" class="vlist-beet-kopf" ${istStruktur ? 'disabled' : `data-bed-id="${bed.id}"`}>
           <span class="bed-color-dot" style="display:inline-block;background:${bed.color}"></span>
           ${icon ? `<span style="margin-right:2px">${icon}</span>` : ''}
           <span style="flex:1;font-weight:600;text-align:left">${escapeHtml(bed.name || (istStruktur ? 'Element ' : 'Beet ') + (i + 1))}</span>
-          ${!istStruktur ? `<span style="font-size:0.68rem;color:var(--bark);margin-right:4px">${(bed.plants || []).length}🌱</span><span>${offen ? '▲' : '▼'}</span>` : ''}
+          ${!istStruktur ? `<span style="font-size:0.68rem;color:var(--bark);margin-right:6px">${(bed.plants || []).length}🌱</span><span style="opacity:0.5">›</span>` : ''}
         </button>
-        ${!istStruktur ? `<div class="vlist-beet-plants">${plantsHtml}</div>` : ''}
       </div>`;
     }).join('');
   }
@@ -6171,34 +6188,21 @@ function renderVollbildListe() {
     html += '<div class="empty-state">Keine freistehenden Bäume/Sträucher.</div>';
   } else {
     html += frei.map((fp, i) => `
-      <button type="button" class="vlist-frei-karte" data-vlist-aktion="frei" data-frei-idx="${i}">
+      <button type="button" class="vlist-frei-karte" data-frei-idx="${i}">
         <span style="font-size:1.2rem">${fp.sym || '🌳'}</span>
         <span>${escapeHtml(fp.name || 'Unbenannt')}${fp.sorte ? ' (' + escapeHtml(fp.sorte) + ')' : ''}</span>
       </button>`).join('');
   }
   box.innerHTML = html;
-}
-// Ein einziger, zentraler Klick-Beobachter für die ganze Vollbild-Liste statt einzelner
-// Inline-Handler pro Zeile – zuverlässiger, da nur einmal registriert (nicht bei jedem
-// Neuzeichnen neu) und unabhängig von der genauen Attribut-Syntax der Zeilen.
-// Wichtig: Dieses Skript läuft am Ende von <body>, das DOM steht zu diesem Zeitpunkt schon
-// – "DOMContentLoaded" wäre hier bereits vorbei und würde den Handler nie auslösen.
-(function () {
-  const wrap = document.getElementById('vollbildListeWrap');
-  if (!wrap) return;
-  wrap.addEventListener('click', (e) => {
-    const beetBtn = e.target.closest('[data-vlist-aktion="beet"]');
-    if (beetBtn) { vollbildBeetToggle(beetBtn.dataset.bedId); return; }
-    const pflanzeBtn = e.target.closest('[data-vlist-aktion="pflanze"]');
-    if (pflanzeBtn) {
-      const bed = getCurrentBeds()[parseInt(pflanzeBtn.dataset.bedIdx, 10)];
-      if (bed) openPlantPanel(bed, parseInt(pflanzeBtn.dataset.plantIdx, 10));
-      return;
-    }
-    const freiBtn = e.target.closest('[data-vlist-aktion="frei"]');
-    if (freiBtn) { openFreiPflanzePanelByIdx(parseInt(freiBtn.dataset.freiIdx, 10)); }
+  // Direkt nach dem Einfügen ins DOM angehängt (nicht delegiert) – jeder Button bekommt
+  // seinen Listener im selben Moment, in dem er erzeugt wird.
+  box.querySelectorAll('[data-bed-id]').forEach(btn => {
+    btn.addEventListener('click', () => vollbildBeetOeffnen(btn.dataset.bedId));
   });
-})();
+  box.querySelectorAll('[data-frei-idx]').forEach(btn => {
+    btn.addEventListener('click', () => openFreiPflanzePanelByIdx(parseInt(btn.dataset.freiIdx, 10)));
+  });
+}
 
 function renderBedList() {
   renderFreiPflanzenList();
