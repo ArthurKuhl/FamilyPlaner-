@@ -3235,11 +3235,34 @@
     // Y-Achse auf runde Schritte aufteilen (10er bei kg, 5er bei Wiederholungen), pro Schritt eine Gitterlinie
     const gridMin = Math.floor(minWert / schritt) * schritt;
     const gridMax = Math.max(gridMin + schritt, Math.ceil((rohMax || 1) / schritt) * schritt);
-    const breite = 320, hoehe = 160, padL = 34, padR = 10, padT = 10, padB = 26;
+
+    // Gesamtvolumen je Eintrag (Gewicht × Wiederholungen, über alle Sätze summiert) – eigene, dünnere
+    // Linie mit eigener rechter Achse, da die Größenordnung ganz anders ist als Gewicht/Wiederholungen.
+    // Zeigt Fortschritt auch, wenn z.B. das Gewicht gleich bleibt, aber mehr Wiederholungen gemacht werden.
+    const volumenPunkte = [];
+    punkte.forEach((t, i) => {
+      let summe = 0, hatWert = false;
+      (t.saetze || []).forEach(satz => {
+        const g = parseFloat(satz.gewicht), w = parseInt(satz.wiederholungen, 10);
+        if (!isNaN(g) && !isNaN(w)) { summe += g * w; hatWert = true; }
+      });
+      if (hatWert) volumenPunkte.push({ x: i, datum: t.datum, wert: summe });
+    });
+    const volAktiv = volumenPunkte.length > 1;
+    let gridMinVol = 0, gridMaxVol = 1, volSchritt = 1;
+    if (volAktiv) {
+      const rohMaxVol = Math.max(...volumenPunkte.map(p => p.wert));
+      const volSchrittKandidaten = [50, 100, 200, 250, 500, 1000, 2000, 2500, 5000, 10000, 20000];
+      volSchritt = volSchrittKandidaten.find(s => Math.ceil(rohMaxVol / s) <= 6) || 20000;
+      gridMaxVol = Math.max(volSchritt, Math.ceil((rohMaxVol || 1) / volSchritt) * volSchritt);
+    }
+
+    const breite = 320, hoehe = 160, padL = 34, padR = volAktiv ? 30 : 10, padT = 10, padB = 26;
     const innenB = breite - padL - padR, innenH = hoehe - padT - padB;
     const anzahlPunkte = punkte.length;
     const xPos = (i) => padL + (anzahlPunkte > 1 ? (i / (anzahlPunkte - 1)) * innenB : innenB / 2);
     const yPos = (wert) => padT + innenH - ((wert - gridMin) / (gridMax - gridMin || 1)) * innenH;
+    const yPosVol = (wert) => padT + innenH - ((wert - gridMinVol) / (gridMaxVol - gridMinVol || 1)) * innenH;
 
     let svg = '<svg viewBox="0 0 ' + breite + ' ' + hoehe + '" style="width:100%;height:auto;display:block;">';
     // Horizontale Hilfslinien in runden Schritten, in einem mittleren Grau, das auf hellem wie
@@ -3249,11 +3272,27 @@
       svg += '<line x1="' + padL + '" y1="' + y + '" x2="' + (breite - padR) + '" y2="' + y + '" stroke="#8a8a8a" stroke-width="1" opacity="0.55"/>';
       svg += '<text x="2" y="' + (y + 3) + '" font-size="8" fill="var(--bark)">' + Math.round(w) + '</text>';
     }
+    // Rechte Achse fürs Gesamtvolumen (nur Beschriftung, die Gitterlinien oben gelten fürs Gewicht/Wdh)
+    if (volAktiv) {
+      [0, gridMaxVol / 2, gridMaxVol].forEach(w => {
+        svg += '<text x="' + (breite - 2) + '" y="' + (yPosVol(w) + 3) + '" font-size="8" fill="#8a8a8a" text-anchor="end">' + Math.round(w) + '</text>';
+      });
+    }
     // Datumsbeschriftung unten (nur erster/letzter Punkt, sonst zu eng)
     punkte.forEach((t, i) => {
       if (i !== 0 && i !== anzahlPunkte - 1 && anzahlPunkte > 2) return;
       svg += '<text x="' + xPos(i) + '" y="' + (hoehe - 6) + '" font-size="8" fill="var(--bark)" text-anchor="' + (i === 0 ? 'start' : 'end') + '">' + ausISO(t.datum).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }) + '</text>';
     });
+    // Gesamtvolumen-Linie (dünn, grau-gestrichelt, eigene rechte Achse) – vor den Satz-Linien
+    // gezeichnet, damit sie optisch im Hintergrund bleibt.
+    if (volAktiv) {
+      const linieVol = volumenPunkte.map(p => xPos(p.x) + ',' + yPosVol(p.wert)).join(' ');
+      svg += '<polyline points="' + linieVol + '" fill="none" stroke="#9a9a9a" stroke-width="1.5" stroke-dasharray="4,3"/>';
+      volumenPunkte.forEach(p => {
+        svg += '<rect x="' + (xPos(p.x) - 2.5) + '" y="' + (yPosVol(p.wert) - 2.5) + '" width="5" height="5" fill="#9a9a9a"/>';
+        svg += '<circle cx="' + xPos(p.x) + '" cy="' + yPosVol(p.wert) + '" r="9" fill="transparent" pointer-events="all" style="cursor:pointer;" data-tip-x="' + ((xPos(p.x) / breite) * 100).toFixed(1) + '" data-tip-y="' + ((yPosVol(p.wert) / hoehe) * 100).toFixed(1) + '" data-tip-text="' + escapeHtml('Volumen: ' + Math.round(p.wert) + ' kg · ' + ausISO(p.datum).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })) + '"/>';
+      });
+    }
     // Linien + Punkte je Satz
     const einheit = tlDiagrammMetrik === 'gewicht' ? ' kg' : ' Wdh';
     serien.forEach((serie, s) => {
@@ -3304,7 +3343,10 @@
       '<span style="display:flex;align-items:center;gap:4px;font-size:0.68rem;color:var(--bark);">' +
         '<span style="width:9px;height:9px;border-radius:50%;background:' + TL_SATZ_FARBEN[s] + ';display:inline-block;"></span>Satz ' + (s + 1) +
       '</span>'
-    ) : '').join('');
+    ) : '').join('') + (volAktiv ?
+      '<span style="display:flex;align-items:center;gap:4px;font-size:0.68rem;color:var(--bark);">' +
+        '<span style="width:9px;height:9px;background:#9a9a9a;display:inline-block;"></span>Gesamtvolumen (re. Achse)' +
+      '</span>' : '');
     wrap.appendChild(legende);
     return wrap;
   }
