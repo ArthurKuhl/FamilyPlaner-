@@ -6148,7 +6148,7 @@ function renderVollbildListe() {
       const plantsHtml = !istStruktur ? (
         (bed.plants || []).length
           ? bed.plants.map((p, pi) => `
-            <button type="button" class="vlist-plant-zeile" onclick="openPlantPanel(getCurrentBeds()[${i}], ${pi})">
+            <button type="button" class="vlist-plant-zeile" data-vlist-aktion="pflanze" data-bed-idx="${i}" data-plant-idx="${pi}">
               <span>${p.sym || '🌱'}</span>
               <span>${escapeHtml(p.name || 'Unbenannt')}${p.variety ? ' <span style="color:var(--bark);font-weight:400">(' + escapeHtml(p.variety) + ')</span>' : ''}</span>
             </button>`).join('')
@@ -6156,7 +6156,7 @@ function renderVollbildListe() {
       ) : '';
       return `
       <div class="vlist-beet ${offen ? 'offen' : ''}" style="border-left:4px solid ${bed.color || '#7a9e72'}">
-        <button type="button" class="vlist-beet-kopf" ${istStruktur ? 'disabled' : `onclick="vollbildBeetToggle('${bed.id}')"`}>
+        <button type="button" class="vlist-beet-kopf" ${istStruktur ? 'disabled' : `data-vlist-aktion="beet" data-bed-id="${bed.id}"`}>
           <span class="bed-color-dot" style="display:inline-block;background:${bed.color}"></span>
           ${icon ? `<span style="margin-right:2px">${icon}</span>` : ''}
           <span style="flex:1;font-weight:600;text-align:left">${escapeHtml(bed.name || (istStruktur ? 'Element ' : 'Beet ') + (i + 1))}</span>
@@ -6171,13 +6171,34 @@ function renderVollbildListe() {
     html += '<div class="empty-state">Keine freistehenden Bäume/Sträucher.</div>';
   } else {
     html += frei.map((fp, i) => `
-      <button type="button" class="vlist-frei-karte" onclick="openFreiPflanzePanelByIdx(${i})">
+      <button type="button" class="vlist-frei-karte" data-vlist-aktion="frei" data-frei-idx="${i}">
         <span style="font-size:1.2rem">${fp.sym || '🌳'}</span>
         <span>${escapeHtml(fp.name || 'Unbenannt')}${fp.sorte ? ' (' + escapeHtml(fp.sorte) + ')' : ''}</span>
       </button>`).join('');
   }
   box.innerHTML = html;
 }
+// Ein einziger, zentraler Klick-Beobachter für die ganze Vollbild-Liste statt einzelner
+// Inline-Handler pro Zeile – zuverlässiger, da nur einmal registriert (nicht bei jedem
+// Neuzeichnen neu) und unabhängig von der genauen Attribut-Syntax der Zeilen.
+// Wichtig: Dieses Skript läuft am Ende von <body>, das DOM steht zu diesem Zeitpunkt schon
+// – "DOMContentLoaded" wäre hier bereits vorbei und würde den Handler nie auslösen.
+(function () {
+  const wrap = document.getElementById('vollbildListeWrap');
+  if (!wrap) return;
+  wrap.addEventListener('click', (e) => {
+    const beetBtn = e.target.closest('[data-vlist-aktion="beet"]');
+    if (beetBtn) { vollbildBeetToggle(beetBtn.dataset.bedId); return; }
+    const pflanzeBtn = e.target.closest('[data-vlist-aktion="pflanze"]');
+    if (pflanzeBtn) {
+      const bed = getCurrentBeds()[parseInt(pflanzeBtn.dataset.bedIdx, 10)];
+      if (bed) openPlantPanel(bed, parseInt(pflanzeBtn.dataset.plantIdx, 10));
+      return;
+    }
+    const freiBtn = e.target.closest('[data-vlist-aktion="frei"]');
+    if (freiBtn) { openFreiPflanzePanelByIdx(parseInt(freiBtn.dataset.freiIdx, 10)); }
+  });
+})();
 
 function renderBedList() {
   renderFreiPflanzenList();
