@@ -3138,6 +3138,9 @@
     // Neueste zuerst trainierte Übung oben – nicht alphabetisch, das war verwirrend
     Array.from(gruppen.keys()).sort((a,b) => gruppen.get(b)[0].datum < gruppen.get(a)[0].datum ? -1 : (gruppen.get(b)[0].datum > gruppen.get(a)[0].datum ? 1 : 0)).forEach(key => {
       const eintraege = gruppen.get(key).slice(0, 5);
+      // Fürs Diagramm dürfen es mehr Einträge sein als in der Textliste (dort ab 6 unübersichtlich,
+      // ein Liniendiagramm verkraftet einen längeren Verlauf gut lesbar).
+      const eintraegeDiagramm = gruppen.get(key).slice(0, 15);
       const anzeigeName = eintraege[0].uebung.trim();
       const erster = eintraege[eintraege.length - 1];
       const letzter = eintraege[0];
@@ -3172,8 +3175,8 @@
       if (offen) {
         const body = document.createElement('div');
         body.style.cssText = 'padding:2px 12px 8px;background:var(--white);border-top:1px solid var(--parchment);';
-        if (tlDarstellung === 'diagramm' && eintraege.length > 1) {
-          body.appendChild(erzeugeUebungDiagramm(eintraege));
+        if (tlDarstellung === 'diagramm' && eintraegeDiagramm.length > 1) {
+          body.appendChild(erzeugeUebungDiagramm(eintraegeDiagramm));
         } else {
           eintraege.forEach(t => body.appendChild(trainingslogUebungZeile(t, true)));
         }
