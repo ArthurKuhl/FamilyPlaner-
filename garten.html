@@ -6140,7 +6140,8 @@ function renderVollbildListe() {
       const plantsHtml = bed.plants.map((p, pi) => `
         <button type="button" class="vlist-plant-zeile" data-bed-idx="${i}" data-plant-idx="${pi}">
           <span>${p.sym || '🌱'}</span>
-          <span>${escapeHtml(p.name || 'Unbenannt')}${p.variety ? ' <span style="color:var(--bark);font-weight:400">(' + escapeHtml(p.variety) + ')</span>' : ''}</span>
+          <span style="flex:1;text-align:left">${escapeHtml(p.name || 'Unbenannt')}${p.variety ? ' <span style="color:var(--bark);font-weight:400">(' + escapeHtml(p.variety) + ')</span>' : ''}</span>
+          ${p.date ? `<span style="font-size:0.68rem;color:var(--bark);white-space:nowrap;margin-left:8px">🗓 ${new Date(p.date + 'T00:00:00').toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })}</span>` : ''}
         </button>`).join('');
       return `
       <div class="vlist-beet-ueberschrift" style="border-left:4px solid ${bed.color || '#7a9e72'}">
