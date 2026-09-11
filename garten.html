@@ -150,9 +150,8 @@
   .sidebar { width: 280px; background: var(--white); border-left: none; box-shadow: -2px 0 10px rgba(59,47,30,0.05); display: flex; flex-direction: column; overflow-y: auto; }
 
   /* ---------- ANSICHTS-UMSCHALTUNG (Karte+Liste / nur Liste / nur Karte) ---------- */
-  .ansicht-umschalt-leiste { display: flex; gap: 6px; padding: 8px 12px; background: var(--navbg2); }
-  .ansicht-umschalt-btn { flex: 1; background: none; border: 1.5px solid rgba(255,255,255,0.18); color: var(--sage); border-radius: var(--radius-pill); padding: 7px 8px; font-size: 0.72rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; }
-  .ansicht-umschalt-btn.active { background: var(--moss); border-color: var(--moss); color: #fff; }
+  /* Buttons sitzen als reine Icons in der normalen Werkzeugleiste (.tool-btn), hier nur der aktive Zustand */
+  .ansicht-umschalt-btn.active { background: var(--terracotta); color: #fff; }
   .main.modus-nur-karte .sidebar { display: none; }
   .main.modus-versteckt { display: none; }
   #vollbildListeWrap { display: none; flex: 1; min-height: 0; overflow-y: auto; padding: 14px; background: var(--cream); }
@@ -549,6 +548,10 @@
     <button class="tool-btn tool-btn-icon" id="btnUndo" onclick="undo()" disabled title="Letzte Änderung rückgängig machen (Strg+Z)">↩</button>
     <button class="tool-btn tool-btn-icon" id="btnRedo" onclick="redo()" disabled title="Rückgängig gemachte Änderung wiederherstellen (Strg+Umschalt+Z)">↪</button>
     <div class="tool-sep"></div>
+    <button type="button" class="tool-btn tool-btn-icon ansicht-umschalt-btn" data-modus="standard" onclick="gartenAnsichtSetzen('standard')" title="Karte und Liste nebeneinander (Standard)">🗺️📋</button>
+    <button type="button" class="tool-btn tool-btn-icon ansicht-umschalt-btn" data-modus="liste" onclick="gartenAnsichtSetzen('liste')" title="Nur Beete und Pflanzen als Liste, ohne Karte">📋</button>
+    <button type="button" class="tool-btn tool-btn-icon ansicht-umschalt-btn" data-modus="karte" onclick="gartenAnsichtSetzen('karte')" title="Karte im Vollbild, ohne Liste">🗺️</button>
+    <div class="tool-sep"></div>
     <div class="tool-dropdown">
       <button class="tool-btn dropdown-toggle" onclick="toggleDropdown(this)" title="Speichern, exportieren, importieren">📁 Datei <span class="caret">▾</span></button>
       <div class="dropdown-menu">
@@ -592,12 +595,6 @@
         <button class="tool-btn" onclick="openTemplateModal();closeDropdowns()" title="Gespeicherte Beet-Vorlagen">🧩 Vorlagen</button>
       </div>
     </div>
-  </div>
-
-  <div class="ansicht-umschalt-leiste">
-    <button type="button" class="ansicht-umschalt-btn" data-modus="standard" onclick="gartenAnsichtSetzen('standard')" title="Karte und Liste nebeneinander (Standard)">🗺️＋📋 Standard</button>
-    <button type="button" class="ansicht-umschalt-btn" data-modus="liste" onclick="gartenAnsichtSetzen('liste')" title="Nur Beete und Pflanzen als Liste, ohne Karte">📋 Nur Liste</button>
-    <button type="button" class="ansicht-umschalt-btn" data-modus="karte" onclick="gartenAnsichtSetzen('karte')" title="Karte im Vollbild, ohne Liste">🗺️ Nur Karte</button>
   </div>
 
   <div class="main">
