@@ -157,12 +157,13 @@
   #vollbildListeWrap { display: none; flex: 1; min-height: 0; overflow-y: auto; padding: 14px; background: var(--cream); -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
   #vollbildListeWrap.aktiv { display: block; }
   .vlist-beet { background: var(--white); border-radius: var(--radius-md); margin-bottom: 10px; box-shadow: var(--shadow-soft); overflow: hidden; }
-  .vlist-beet-kopf { display: flex; align-items: center; gap: 8px; padding: 13px 14px; cursor: pointer; }
+  .vlist-beet-kopf { width: 100%; display: flex; align-items: center; gap: 8px; padding: 13px 14px; cursor: pointer; background: none; border: none; font-family: inherit; font-size: inherit; color: inherit; touch-action: manipulation; }
+  .vlist-beet-kopf:disabled { cursor: default; }
   .vlist-beet-plants { display: none; padding: 0 14px 10px; }
   .vlist-beet.offen .vlist-beet-plants { display: block; }
-  .vlist-plant-zeile { display: flex; align-items: center; gap: 8px; padding: 9px 6px; border-top: 1px solid var(--parchment); cursor: pointer; border-radius: var(--radius-sm); }
+  .vlist-plant-zeile { width: 100%; display: flex; align-items: center; gap: 8px; padding: 9px 6px; border-top: 1px solid var(--parchment); border-left: none; border-right: none; border-bottom: none; cursor: pointer; border-radius: var(--radius-sm); background: none; font-family: inherit; font-size: inherit; color: inherit; text-align: left; touch-action: manipulation; }
   .vlist-plant-zeile:hover { background: var(--cream); }
-  .vlist-frei-karte { display: flex; align-items: center; gap: 8px; background: var(--white); border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 8px; box-shadow: var(--shadow-soft); cursor: pointer; }
+  .vlist-frei-karte { width: 100%; display: flex; align-items: center; gap: 8px; background: var(--white); border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 8px; box-shadow: var(--shadow-soft); cursor: pointer; border: none; font-family: inherit; font-size: inherit; color: inherit; text-align: left; touch-action: manipulation; }
 
   /* DESKTOP: mehr Platz auf großen Bildschirmen sinnvoll nutzen */
   @media (min-width: 1100px) {
@@ -6147,20 +6148,20 @@ function renderVollbildListe() {
       const plantsHtml = !istStruktur ? (
         (bed.plants || []).length
           ? bed.plants.map((p, pi) => `
-            <div class="vlist-plant-zeile" onclick="event.stopPropagation();openPlantPanel(getCurrentBeds()[${i}], ${pi})">
+            <button type="button" class="vlist-plant-zeile" onclick="openPlantPanel(getCurrentBeds()[${i}], ${pi})">
               <span>${p.sym || '🌱'}</span>
               <span>${escapeHtml(p.name || 'Unbenannt')}${p.variety ? ' <span style="color:var(--bark);font-weight:400">(' + escapeHtml(p.variety) + ')</span>' : ''}</span>
-            </div>`).join('')
+            </button>`).join('')
           : '<div class="empty-state" style="padding:8px 4px">Noch keine Pflanzen in diesem Beet.</div>'
       ) : '';
       return `
       <div class="vlist-beet ${offen ? 'offen' : ''}" style="border-left:4px solid ${bed.color || '#7a9e72'}">
-        <div class="vlist-beet-kopf" onclick="${istStruktur ? '' : `vollbildBeetToggle('${bed.id}')`}">
+        <button type="button" class="vlist-beet-kopf" ${istStruktur ? 'disabled' : `onclick="vollbildBeetToggle('${bed.id}')"`}>
           <div class="bed-color-dot" style="background:${bed.color}"></div>
           ${icon ? `<span style="margin-right:2px">${icon}</span>` : ''}
-          <span style="flex:1;font-weight:600">${escapeHtml(bed.name || (istStruktur ? 'Element ' : 'Beet ') + (i + 1))}</span>
+          <span style="flex:1;font-weight:600;text-align:left">${escapeHtml(bed.name || (istStruktur ? 'Element ' : 'Beet ') + (i + 1))}</span>
           ${!istStruktur ? `<span style="font-size:0.68rem;color:var(--bark);margin-right:4px">${(bed.plants || []).length}🌱</span><span>${offen ? '▲' : '▼'}</span>` : ''}
-        </div>
+        </button>
         ${!istStruktur ? `<div class="vlist-beet-plants">${plantsHtml}</div>` : ''}
       </div>`;
     }).join('');
@@ -6170,10 +6171,10 @@ function renderVollbildListe() {
     html += '<div class="empty-state">Keine freistehenden Bäume/Sträucher.</div>';
   } else {
     html += frei.map((fp, i) => `
-      <div class="vlist-frei-karte" onclick="openFreiPflanzePanelByIdx(${i})">
+      <button type="button" class="vlist-frei-karte" onclick="openFreiPflanzePanelByIdx(${i})">
         <span style="font-size:1.2rem">${fp.sym || '🌳'}</span>
         <span>${escapeHtml(fp.name || 'Unbenannt')}${fp.sorte ? ' (' + escapeHtml(fp.sorte) + ')' : ''}</span>
-      </div>`).join('');
+      </button>`).join('');
   }
   box.innerHTML = html;
 }
