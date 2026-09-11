@@ -3229,12 +3229,16 @@
       wrap.appendChild(Object.assign(document.createElement('div'), { className: 'empty-state', textContent: 'Keine ' + (tlDiagrammMetrik === 'gewicht' ? 'Gewichtsangaben' : 'Wiederholungszahlen') + ' für diese Sätze vorhanden.' }));
       return wrap;
     }
-    const minWert = Math.min(0, Math.min(...alleWerte));
-    const rohMax = Math.max(...alleWerte);
     const schritt = tlDiagrammMetrik === 'gewicht' ? 10 : 5;
+    // Puffer über dem Höchst- und unter dem Tiefstwert, damit z.B. die Bestwert-Markierung nicht am
+    // oberen Rand abgeschnitten wird – 10kg bei Gewicht, 5 Wiederholungen bei Wiederholungen.
+    const puffer = tlDiagrammMetrik === 'gewicht' ? 10 : 5;
+    const rohMin = Math.min(...alleWerte);
+    const rohMax = Math.max(...alleWerte);
+    const minWert = Math.max(0, rohMin - puffer);
     // Y-Achse auf runde Schritte aufteilen (10er bei kg, 5er bei Wiederholungen), pro Schritt eine Gitterlinie
     const gridMin = Math.floor(minWert / schritt) * schritt;
-    const gridMax = Math.max(gridMin + schritt, Math.ceil((rohMax || 1) / schritt) * schritt);
+    const gridMax = Math.max(gridMin + schritt, Math.ceil(((rohMax + puffer) || 1) / schritt) * schritt);
 
     // Gesamtvolumen je Eintrag (Gewicht × Wiederholungen, über alle Sätze summiert) – eigene, dünnere
     // Linie mit eigener rechter Achse, da die Größenordnung ganz anders ist als Gewicht/Wiederholungen.
