@@ -96,6 +96,15 @@
   .karte { background: var(--white); border-radius: var(--radius-md); padding: 14px; margin-bottom: 12px; box-shadow: var(--shadow-soft); }
   .karte h3 { font-family: 'Playfair Display', serif; font-size: 0.95rem; margin-bottom: 10px; color: var(--soil); }
   .kraft-chip { padding: 6px 13px; border-radius: var(--radius-pill); font-size: 0.72rem; font-weight: 600; border: 1px solid var(--parchment); background: var(--cream); color: var(--bark); cursor: pointer; }
+  .tl-darstellung-btn { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--parchment); background: var(--cream); font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; justify-content: center; opacity: 0.55; }
+  .tl-darstellung-btn.active { opacity: 1; background: var(--moss); border-color: var(--moss); }
+  .tl-chart-wrap { background: var(--white); border: 1px solid var(--parchment); border-radius: var(--radius-md); padding: 10px 8px 6px; margin: 0 0 8px; }
+  .tl-chart-legende { display: flex; gap: 10px; flex-wrap: wrap; padding: 0 4px 8px; font-size: 0.68rem; color: var(--bark); }
+  .tl-chart-legende span { display: inline-flex; align-items: center; gap: 4px; }
+  .tl-chart-legende i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .tl-metrik-toggle { display: flex; gap: 4px; padding: 0 4px 8px; }
+  .tl-metrik-btn { padding: 3px 10px; border-radius: var(--radius-pill); font-size: 0.68rem; font-weight: 600; border: 1px solid var(--parchment); background: var(--cream); color: var(--bark); cursor: pointer; }
+  .tl-metrik-btn.active { background: var(--moss); color: var(--leaf); border-color: var(--moss); }
   .kraft-chip.active { background: var(--moss); color: var(--leaf); border-color: var(--moss); }
   .datum-label { font-size: 0.72rem; color: var(--bark); font-weight: 600; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.02em; }
 
@@ -538,8 +547,14 @@
 
   <section id="ansichtKraft" style="display:none;">
     <div class="karte">
-      <h3>📈 Trainingslog</h3>
-      <div id="kraftAnsichtToggle" style="display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+        <h3 style="margin:0;">📈 Trainingslog</h3>
+        <div style="display:flex;gap:4px;flex-shrink:0;">
+          <button type="button" id="btnTlDarstellungListe" class="tl-darstellung-btn active" title="Als Liste anzeigen" aria-label="Als Liste anzeigen">📝</button>
+          <button type="button" id="btnTlDarstellungDiagramm" class="tl-darstellung-btn" title="Als Diagramm anzeigen (nur in „Nach Übung“)" aria-label="Als Diagramm anzeigen">📊</button>
+        </div>
+      </div>
+      <div id="kraftAnsichtToggle" style="display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin:10px 0;">
         <button type="button" id="btnKraftAnsichtUebung" class="kraft-chip active" style="flex-shrink:0;white-space:nowrap;">Nach Übung</button>
         <button type="button" id="btnKraftAnsichtMuskelgruppe" class="kraft-chip" style="flex-shrink:0;white-space:nowrap;">Nach Muskelgruppe</button>
         <button type="button" id="btnKraftAnsichtWoche" class="kraft-chip" style="flex-shrink:0;white-space:nowrap;">Nach Woche</button>
@@ -2962,10 +2977,14 @@
   let trainingslogWocheOffen = new Set();
   let kraftAnsicht = 'uebung';
   try { kraftAnsicht = localStorage.getItem('gesundheit_kraftAnsicht') || 'uebung'; } catch (e) {}
+  let tlDarstellung = 'liste'; // 'liste' | 'diagramm' – Diagramm nur sinnvoll in "Nach Übung"
+  try { tlDarstellung = localStorage.getItem('gesundheit_tlDarstellung') || 'liste'; } catch (e) {}
   function renderTrainingslog() {
     document.getElementById('btnKraftAnsichtUebung').classList.toggle('active', kraftAnsicht === 'uebung');
     document.getElementById('btnKraftAnsichtMuskelgruppe').classList.toggle('active', kraftAnsicht === 'muskelgruppe');
     document.getElementById('btnKraftAnsichtWoche').classList.toggle('active', kraftAnsicht === 'woche');
+    document.getElementById('btnTlDarstellungListe').classList.toggle('active', tlDarstellung === 'liste');
+    document.getElementById('btnTlDarstellungDiagramm').classList.toggle('active', tlDarstellung === 'diagramm');
     if (kraftAnsicht === 'muskelgruppe') renderTrainingslogMuskelgruppenansicht();
     else if (kraftAnsicht === 'woche') renderTrainingslogWochenansicht();
     else renderTrainingslogUebungsansicht();
@@ -2973,6 +2992,15 @@
   document.getElementById('btnKraftAnsichtUebung').addEventListener('click', () => { kraftAnsicht = 'uebung'; try { localStorage.setItem('gesundheit_kraftAnsicht', kraftAnsicht); } catch (e) {} renderTrainingslog(); });
   document.getElementById('btnKraftAnsichtMuskelgruppe').addEventListener('click', () => { kraftAnsicht = 'muskelgruppe'; try { localStorage.setItem('gesundheit_kraftAnsicht', kraftAnsicht); } catch (e) {} renderTrainingslog(); });
   document.getElementById('btnKraftAnsichtWoche').addEventListener('click', () => { kraftAnsicht = 'woche'; try { localStorage.setItem('gesundheit_kraftAnsicht', kraftAnsicht); } catch (e) {} renderTrainingslog(); });
+  document.getElementById('btnTlDarstellungListe').addEventListener('click', () => { tlDarstellung = 'liste'; try { localStorage.setItem('gesundheit_tlDarstellung', tlDarstellung); } catch (e) {} renderTrainingslog(); });
+  document.getElementById('btnTlDarstellungDiagramm').addEventListener('click', () => {
+    tlDarstellung = 'diagramm';
+    // Diagramm ist nur für "Nach Übung" gebaut (dort ergibt der zeitliche Verlauf pro Übung Sinn) –
+    // bei Klick automatisch dorthin wechseln, falls gerade eine andere Ansicht aktiv ist.
+    if (kraftAnsicht !== 'uebung') { kraftAnsicht = 'uebung'; try { localStorage.setItem('gesundheit_kraftAnsicht', kraftAnsicht); } catch (e) {} }
+    try { localStorage.setItem('gesundheit_tlDarstellung', tlDarstellung); } catch (e) {}
+    renderTrainingslog();
+  });
   function muskelgruppeFuerUebung(uebungName) {
     const norm = normUebung(uebungName);
     for (const m of MUSKELGRUPPEN) {
@@ -3103,12 +3131,13 @@
     leer.style.display = eigene.length ? 'none' : '';
     // Gruppiert nach normalisiertem Übungsnamen (Groß-/Kleinschreibung, Leerzeichen egal), damit sich
     // die Historie nicht durch leicht unterschiedliche Schreibweisen aufsplittet. Angezeigt wird die
-    // zuletzt verwendete Schreibweise.
-    const gruppen = {};
-    eigene.forEach(t => { const k = normUebung(t.uebung); (gruppen[k] = gruppen[k] || []).push(t); });
+    // zuletzt verwendete Schreibweise. Map statt einfachem Objekt, damit ein Übungsname, der zufällig
+    // wie eine JS-Standardeigenschaft heißt (z.B. "constructor"), nicht zu Fehlern führt.
+    const gruppen = new Map();
+    eigene.forEach(t => { const k = normUebung(t.uebung); if (!gruppen.has(k)) gruppen.set(k, []); gruppen.get(k).push(t); });
     // Neueste zuerst trainierte Übung oben – nicht alphabetisch, das war verwirrend
-    Object.keys(gruppen).sort((a,b) => gruppen[b][0].datum < gruppen[a][0].datum ? -1 : (gruppen[b][0].datum > gruppen[a][0].datum ? 1 : 0)).forEach(key => {
-      const eintraege = gruppen[key].slice(0, 5);
+    Array.from(gruppen.keys()).sort((a,b) => gruppen.get(b)[0].datum < gruppen.get(a)[0].datum ? -1 : (gruppen.get(b)[0].datum > gruppen.get(a)[0].datum ? 1 : 0)).forEach(key => {
+      const eintraege = gruppen.get(key).slice(0, 5);
       const anzeigeName = eintraege[0].uebung.trim();
       const erster = eintraege[eintraege.length - 1];
       const letzter = eintraege[0];
@@ -3143,26 +3172,107 @@
       if (offen) {
         const body = document.createElement('div');
         body.style.cssText = 'padding:2px 12px 8px;background:var(--white);border-top:1px solid var(--parchment);';
-        eintraege.forEach(t => {
-          const zeile = document.createElement('div');
-          zeile.className = 'sport-zeile';
-          zeile.innerHTML =
-            '<span class="sport-icon">🏋️</span>' +
-            '<div class="sport-info"><div class="sport-titel">' + escapeHtml(formatSaetzeKompakt(t.saetze)) + '</div>' +
-            '<div class="sport-meta">' + ausISO(t.datum).toLocaleDateString('de-DE', { day: 'numeric', month: 'short' }) + (t.notiz ? ' · ' + escapeHtml(t.notiz) : '') + '</div></div>' +
-            '<button class="sport-loeschen" aria-label="Löschen">✕</button>';
-          zeile.querySelector('.sport-loeschen').addEventListener('click', (e) => {
-            e.stopPropagation();
-            trainingslog = trainingslog.filter(x => x.id !== t.id);
-            speichern(KEY_TRAININGSLOG, trainingslog);
-            renderTrainingslog();
-          });
-          body.appendChild(zeile);
-        });
+        if (tlDarstellung === 'diagramm' && eintraege.length > 1) {
+          body.appendChild(erzeugeUebungDiagramm(eintraege));
+        } else {
+          eintraege.forEach(t => body.appendChild(trainingslogUebungZeile(t, true)));
+        }
         wrap.appendChild(body);
       }
       box.appendChild(wrap);
     });
+  }
+  // ---------- Diagramm-Darstellung für eine Übungshistorie ----------
+  const TL_SATZ_FARBEN = ['#4a90d9', '#5a9e52', '#d9b23c', '#c9564a', '#9568c9']; // Satz 1–5: blau/grün/gelb/rot/lila
+  let tlDiagrammMetrik = 'gewicht'; // 'gewicht' | 'wiederholungen'
+  try { tlDiagrammMetrik = localStorage.getItem('gesundheit_tlDiagrammMetrik') || 'gewicht'; } catch (e) {}
+  function erzeugeUebungDiagramm(eintraegeNeuesteZuerst) {
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'padding:6px 0 4px;';
+    // Chronologisch (älteste zuerst) für den zeitlichen Verlauf von links nach rechts
+    const punkte = eintraegeNeuesteZuerst.slice().reverse();
+    const maxSaetze = Math.min(5, Math.max(...punkte.map(t => (t.saetze || []).length)));
+
+    // Umschalter Gewicht/Wiederholungen
+    const schalter = document.createElement('div');
+    schalter.style.cssText = 'display:flex;gap:6px;margin-bottom:8px;';
+    schalter.innerHTML =
+      '<button type="button" class="kraft-chip tl-metrik-btn' + (tlDiagrammMetrik === 'gewicht' ? ' active' : '') + '" data-metrik="gewicht" style="font-size:0.68rem;padding:4px 10px;">Gewicht (kg)</button>' +
+      '<button type="button" class="kraft-chip tl-metrik-btn' + (tlDiagrammMetrik === 'wiederholungen' ? ' active' : '') + '" data-metrik="wiederholungen" style="font-size:0.68rem;padding:4px 10px;">Wiederholungen</button>';
+    schalter.querySelectorAll('.tl-metrik-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        tlDiagrammMetrik = btn.dataset.metrik;
+        try { localStorage.setItem('gesundheit_tlDiagrammMetrik', tlDiagrammMetrik); } catch (e) {}
+        renderTrainingslog();
+      });
+    });
+    wrap.appendChild(schalter);
+
+    // Werte je Satz-Index über alle Einträge sammeln
+    const serien = []; // serien[satzIdx] = [{x, y, datum}]
+    for (let s = 0; s < maxSaetze; s++) {
+      const serie = [];
+      punkte.forEach((t, i) => {
+        const satz = (t.saetze || [])[s];
+        if (!satz) return;
+        const wert = tlDiagrammMetrik === 'gewicht' ? parseFloat(satz.gewicht) : parseInt(satz.wiederholungen, 10);
+        if (isNaN(wert)) return;
+        serie.push({ x: i, datum: t.datum, wert });
+      });
+      serien.push(serie);
+    }
+    const alleWerte = serien.flat().map(p => p.wert);
+    if (!alleWerte.length) {
+      wrap.appendChild(Object.assign(document.createElement('div'), { className: 'empty-state', textContent: 'Keine ' + (tlDiagrammMetrik === 'gewicht' ? 'Gewichtsangaben' : 'Wiederholungszahlen') + ' für diese Sätze vorhanden.' }));
+      return wrap;
+    }
+    const minWert = Math.min(0, Math.min(...alleWerte));
+    const maxWert = Math.max(...alleWerte) * 1.1 || 1;
+    const breite = 320, hoehe = 160, padL = 34, padR = 10, padT = 10, padB = 26;
+    const innenB = breite - padL - padR, innenH = hoehe - padT - padB;
+    const anzahlPunkte = punkte.length;
+    const xPos = (i) => padL + (anzahlPunkte > 1 ? (i / (anzahlPunkte - 1)) * innenB : innenB / 2);
+    const yPos = (wert) => padT + innenH - ((wert - minWert) / (maxWert - minWert || 1)) * innenH;
+
+    let svg = '<svg viewBox="0 0 ' + breite + ' ' + hoehe + '" style="width:100%;height:auto;display:block;">';
+    // Horizontale Hilfslinien + Achsenbeschriftung (min, Mitte, max)
+    [minWert, (minWert + maxWert) / 2, maxWert].forEach(w => {
+      const y = yPos(w);
+      svg += '<line x1="' + padL + '" y1="' + y + '" x2="' + (breite - padR) + '" y2="' + y + '" stroke="var(--parchment)" stroke-width="1"/>';
+      svg += '<text x="2" y="' + (y + 3) + '" font-size="8" fill="var(--bark)">' + Math.round(w) + '</text>';
+    });
+    // Datumsbeschriftung unten (nur erster/letzter Punkt, sonst zu eng)
+    punkte.forEach((t, i) => {
+      if (i !== 0 && i !== anzahlPunkte - 1 && anzahlPunkte > 2) return;
+      svg += '<text x="' + xPos(i) + '" y="' + (hoehe - 6) + '" font-size="8" fill="var(--bark)" text-anchor="' + (i === 0 ? 'start' : 'end') + '">' + ausISO(t.datum).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }) + '</text>';
+    });
+    // Linien + Punkte je Satz
+    serien.forEach((serie, s) => {
+      if (serie.length < 1) return;
+      const farbe = TL_SATZ_FARBEN[s];
+      if (serie.length > 1) {
+        const linie = serie.map(p => xPos(p.x) + ',' + yPos(p.wert)).join(' ');
+        svg += '<polyline points="' + linie + '" fill="none" stroke="' + farbe + '" stroke-width="2"/>';
+      }
+      serie.forEach(p => {
+        svg += '<circle cx="' + xPos(p.x) + '" cy="' + yPos(p.wert) + '" r="3.5" fill="' + farbe + '"><title>Satz ' + (s + 1) + ': ' + p.wert + '</title></circle>';
+      });
+    });
+    svg += '</svg>';
+    const svgWrap = document.createElement('div');
+    svgWrap.innerHTML = svg;
+    wrap.appendChild(svgWrap);
+
+    // Legende
+    const legende = document.createElement('div');
+    legende.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;';
+    legende.innerHTML = serien.map((serie, s) => serie.length ? (
+      '<span style="display:flex;align-items:center;gap:4px;font-size:0.68rem;color:var(--bark);">' +
+        '<span style="width:9px;height:9px;border-radius:50%;background:' + TL_SATZ_FARBEN[s] + ';display:inline-block;"></span>Satz ' + (s + 1) +
+      '</span>'
+    ) : '').join('');
+    wrap.appendChild(legende);
+    return wrap;
   }
 
   function aktualisiereUebungsliste() {
