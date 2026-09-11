@@ -3262,8 +3262,16 @@
         const linie = serie.map(p => xPos(p.x) + ',' + yPos(p.wert)).join(' ');
         svg += '<polyline points="' + linie + '" fill="none" stroke="' + farbe + '" stroke-width="2"/>';
       }
+      // Bestwert dieser Satz-Serie optisch hervorheben (größerer Punkt mit hellem Ring + Stern)
+      const bestWert = Math.max(...serie.map(p => p.wert));
       serie.forEach(p => {
-        svg += '<circle cx="' + xPos(p.x) + '" cy="' + yPos(p.wert) + '" r="3.5" fill="' + farbe + '"><title>Satz ' + (s + 1) + ': ' + p.wert + '</title></circle>';
+        const istBest = p.wert === bestWert && serie.length > 1;
+        if (istBest) {
+          svg += '<circle cx="' + xPos(p.x) + '" cy="' + yPos(p.wert) + '" r="6.5" fill="' + farbe + '" stroke="#fff" stroke-width="1.5"><title>Satz ' + (s + 1) + ' – Bestwert: ' + p.wert + '</title></circle>';
+          svg += '<text x="' + xPos(p.x) + '" y="' + (yPos(p.wert) - 9) + '" font-size="9" text-anchor="middle" fill="' + farbe + '">★</text>';
+        } else {
+          svg += '<circle cx="' + xPos(p.x) + '" cy="' + yPos(p.wert) + '" r="3.5" fill="' + farbe + '"><title>Satz ' + (s + 1) + ': ' + p.wert + '</title></circle>';
+        }
       });
     });
     svg += '</svg>';
