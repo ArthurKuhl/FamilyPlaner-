@@ -655,6 +655,7 @@
                 <pattern id="mf7" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(75)"><rect width="6" height="6" fill="#d4880a" opacity="0.32"></rect><line x1="3" y1="0" x2="3" y2="6" stroke="#d4880a" stroke-width="2.2"></line></pattern>
                 <pattern id="mf8" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(85)"><rect width="6" height="6" fill="#b487c9" opacity="0.32"></rect><line x1="3" y1="0" x2="3" y2="6" stroke="#b487c9" stroke-width="2.2"></line></pattern>
                 <pattern id="mf9" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(85)"><rect width="6" height="6" fill="#7fa476" opacity="0.32"></rect><line x1="3" y1="0" x2="3" y2="6" stroke="#7fa476" stroke-width="2.2"></line></pattern>
+                <clipPath id="mfPecClip"><ellipse cx="120" cy="102" rx="36" ry="22"></ellipse></clipPath>
               </defs>
               <g fill="var(--parchment)" stroke="var(--bark)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round">
                 <path d="M78,78 C70,100 72,130 85,150 L155,150 C168,130 170,100 162,78 Z"></path>
@@ -685,18 +686,68 @@
                 <ellipse cx="120" cy="68" rx="24" ry="13" fill="url(#mf1)"></ellipse>
                 <ellipse cx="68" cy="88" rx="16" ry="16" fill="url(#mf2l)"></ellipse>
                 <ellipse cx="172" cy="88" rx="16" ry="16" fill="url(#mf2r)"></ellipse>
-                <ellipse cx="120" cy="102" rx="36" ry="22" fill="url(#mf3)"></ellipse>
+                <!-- Großer Brustmuskel: fächerförmig konvergierende Fasern statt Fläche, je zwei Hälften -->
+                <g clip-path="url(#mfPecClip)">
+                  <ellipse cx="120" cy="102" rx="36" ry="22" fill="#c46b41" opacity="0.22"></ellipse>
+                  <g stroke="#c46b41" stroke-width="1.6" stroke-linecap="round">
+                    <line x1="120" y1="84" x2="88" y2="100"></line>
+                    <line x1="120" y1="92" x2="88" y2="100"></line>
+                    <line x1="120" y1="100" x2="88" y2="100"></line>
+                    <line x1="120" y1="108" x2="88" y2="100"></line>
+                    <line x1="120" y1="116" x2="88" y2="100"></line>
+                    <line x1="120" y1="122" x2="88" y2="100"></line>
+                    <line x1="120" y1="84" x2="152" y2="100"></line>
+                    <line x1="120" y1="92" x2="152" y2="100"></line>
+                    <line x1="120" y1="100" x2="152" y2="100"></line>
+                    <line x1="120" y1="108" x2="152" y2="100"></line>
+                    <line x1="120" y1="116" x2="152" y2="100"></line>
+                    <line x1="120" y1="122" x2="152" y2="100"></line>
+                  </g>
+                </g>
                 <ellipse cx="57" cy="130" rx="12" ry="28" fill="url(#mf4)"></ellipse>
                 <ellipse cx="183" cy="130" rx="12" ry="28" fill="url(#mf4)"></ellipse>
-                <rect x="99" y="118" width="42" height="52" rx="10" fill="url(#mf5)"></rect>
-                <line x1="99" y1="135" x2="141" y2="135" stroke="#3a4d36" stroke-width="1.3" opacity="0.5"></line>
-                <line x1="99" y1="152" x2="141" y2="152" stroke="#3a4d36" stroke-width="1.3" opacity="0.5"></line>
-                <line x1="120" y1="118" x2="120" y2="170" stroke="#3a4d36" stroke-width="1.3" opacity="0.5"></line>
+                <!-- Gerader Bauchmuskel: zwei Spalten, je vier Segmente durch Sehnenstreifen getrennt -->
+                <rect x="99" y="118" width="42" height="52" rx="10" fill="#4f6f45" opacity="0.12"></rect>
+                <g>
+                  <rect x="100" y="118" width="18" height="10" rx="2" fill="#4f6f45" opacity="0.28"></rect>
+                  <rect x="122" y="118" width="18" height="10" rx="2" fill="#4f6f45" opacity="0.28"></rect>
+                  <rect x="100" y="130" width="18" height="10" rx="2" fill="#4f6f45" opacity="0.28"></rect>
+                  <rect x="122" y="130" width="18" height="10" rx="2" fill="#4f6f45" opacity="0.28"></rect>
+                  <rect x="100" y="142" width="18" height="10" rx="2" fill="#4f6f45" opacity="0.28"></rect>
+                  <rect x="122" y="142" width="18" height="10" rx="2" fill="#4f6f45" opacity="0.28"></rect>
+                  <rect x="100" y="154" width="18" height="10" rx="2" fill="#4f6f45" opacity="0.28"></rect>
+                  <rect x="122" y="154" width="18" height="10" rx="2" fill="#4f6f45" opacity="0.28"></rect>
+                </g>
+                <g stroke="#4f6f45" stroke-width="1.3" stroke-linecap="round">
+                  <line x1="105" y1="119" x2="105" y2="127"></line><line x1="112" y1="119" x2="112" y2="127"></line>
+                  <line x1="127" y1="119" x2="127" y2="127"></line><line x1="134" y1="119" x2="134" y2="127"></line>
+                  <line x1="105" y1="131" x2="105" y2="139"></line><line x1="112" y1="131" x2="112" y2="139"></line>
+                  <line x1="127" y1="131" x2="127" y2="139"></line><line x1="134" y1="131" x2="134" y2="139"></line>
+                  <line x1="105" y1="143" x2="105" y2="151"></line><line x1="112" y1="143" x2="112" y2="151"></line>
+                  <line x1="127" y1="143" x2="127" y2="151"></line><line x1="134" y1="143" x2="134" y2="151"></line>
+                  <line x1="105" y1="155" x2="105" y2="163"></line><line x1="112" y1="155" x2="112" y2="163"></line>
+                  <line x1="127" y1="155" x2="127" y2="163"></line><line x1="134" y1="155" x2="134" y2="163"></line>
+                </g>
                 <ellipse cx="88" cy="145" rx="11" ry="26" fill="url(#mf6l)"></ellipse>
                 <ellipse cx="152" cy="145" rx="11" ry="26" fill="url(#mf6r)"></ellipse>
                 <path d="M100,236 L116,318 L106,318 L92,236 Z" fill="url(#mf7)"></path>
-                <ellipse cx="94" cy="275" rx="19" ry="43" fill="url(#mf8)"></ellipse>
-                <ellipse cx="146" cy="275" rx="19" ry="43" fill="url(#mf8)"></ellipse>
+                <!-- Oberschenkelmuskel: drei nebeneinanderliegende Einzelbäuche statt einer Fläche -->
+                <g>
+                  <rect x="75" y="238" width="12" height="76" rx="6" fill="#b487c9" opacity="0.85"></rect>
+                  <rect x="88" y="232" width="13" height="88" rx="6.5" fill="#b487c9" opacity="0.95"></rect>
+                  <rect x="102" y="238" width="12" height="76" rx="6" fill="#b487c9" opacity="0.85"></rect>
+                  <rect x="127" y="238" width="12" height="76" rx="6" fill="#b487c9" opacity="0.85"></rect>
+                  <rect x="140" y="232" width="13" height="88" rx="6.5" fill="#b487c9" opacity="0.95"></rect>
+                  <rect x="154" y="238" width="12" height="76" rx="6" fill="#b487c9" opacity="0.85"></rect>
+                </g>
+                <g stroke="#7a4f8f" stroke-width="1.3" stroke-linecap="round" opacity="0.7">
+                  <line x1="79" y1="242" x2="79" y2="310"></line><line x1="83" y1="242" x2="83" y2="310"></line>
+                  <line x1="92" y1="236" x2="92" y2="316"></line><line x1="97" y1="236" x2="97" y2="316"></line>
+                  <line x1="106" y1="242" x2="106" y2="310"></line><line x1="110" y1="242" x2="110" y2="310"></line>
+                  <line x1="131" y1="242" x2="131" y2="310"></line><line x1="135" y1="242" x2="135" y2="310"></line>
+                  <line x1="144" y1="236" x2="144" y2="316"></line><line x1="149" y1="236" x2="149" y2="316"></line>
+                  <line x1="158" y1="242" x2="158" y2="310"></line><line x1="162" y1="242" x2="162" y2="310"></line>
+                </g>
                 <ellipse cx="84" cy="362" rx="12" ry="33" fill="url(#mf9)"></ellipse>
                 <ellipse cx="156" cy="362" rx="12" ry="33" fill="url(#mf9)"></ellipse>
               </g>
@@ -711,8 +762,12 @@
                 <ellipse cx="88" cy="145" rx="11" ry="26"></ellipse>
                 <ellipse cx="152" cy="145" rx="11" ry="26"></ellipse>
                 <path d="M100,236 L116,318 L106,318 L92,236 Z"></path>
-                <ellipse cx="94" cy="275" rx="19" ry="43"></ellipse>
-                <ellipse cx="146" cy="275" rx="19" ry="43"></ellipse>
+                <rect x="75" y="238" width="12" height="76" rx="6"></rect>
+                <rect x="88" y="232" width="13" height="88" rx="6.5"></rect>
+                <rect x="102" y="238" width="12" height="76" rx="6"></rect>
+                <rect x="127" y="238" width="12" height="76" rx="6"></rect>
+                <rect x="140" y="232" width="13" height="88" rx="6.5"></rect>
+                <rect x="154" y="238" width="12" height="76" rx="6"></rect>
                 <ellipse cx="84" cy="362" rx="12" ry="33"></ellipse>
                 <ellipse cx="156" cy="362" rx="12" ry="33"></ellipse>
               </g>
