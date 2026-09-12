@@ -554,6 +554,7 @@
           <button type="button" id="btnTlDarstellungDiagramm" class="tl-darstellung-btn" title="Als Diagramm anzeigen (nur in „Nach Übung“)" aria-label="Als Diagramm anzeigen">📊</button>
         </div>
       </div>
+      <div id="tlFortschrittZeile" style="display:none;font-size:0.72rem;color:var(--bark);margin:-4px 0 8px;"></div>
       <div id="kraftAnsichtToggle" style="display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin:10px 0;">
         <button type="button" id="btnKraftAnsichtUebung" class="kraft-chip active" style="flex-shrink:0;white-space:nowrap;">Nach Übung</button>
         <button type="button" id="btnKraftAnsichtMuskelgruppe" class="kraft-chip" style="flex-shrink:0;white-space:nowrap;">Nach Muskelgruppe</button>
@@ -3064,17 +3065,32 @@
 
   let trainingslogOffen = new Set(); // Schlüssel der aktuell aufgeklappten Übungen
   let trainingslogMuskelOffen = new Set();
+  let trainingslogMuskelUebungOffen = new Set(); // Schlüssel: muskelgruppeId + '|' + normUebung, für die verschachtelte Übungsliste je Muskelgruppe
   let trainingslogWocheOffen = new Set();
   let kraftAnsicht = 'uebung';
   try { kraftAnsicht = localStorage.getItem('gesundheit_kraftAnsicht') || 'uebung'; } catch (e) {}
   let tlDarstellung = 'liste'; // 'liste' | 'diagramm' – Diagramm nur sinnvoll in "Nach Übung"
   try { tlDarstellung = localStorage.getItem('gesundheit_tlDarstellung') || 'liste'; } catch (e) {}
+  function renderTlFortschritt() {
+    const el = document.getElementById('tlFortschrittZeile');
+    if (!el) return;
+    const eigene = trainingslog.filter(t => t.person === aktivePerson);
+    if (!eigene.length) { el.style.display = 'none'; return; }
+    const jetzt = new Date();
+    const diesenMonat = eigene.filter(t => {
+      const d = ausISO(t.datum);
+      return d.getFullYear() === jetzt.getFullYear() && d.getMonth() === jetzt.getMonth();
+    }).length;
+    el.style.display = '';
+    el.textContent = '📅 ' + diesenMonat + (diesenMonat === 1 ? ' Einheit' : ' Einheiten') + ' diesen Monat · 🏅 ' + eigene.length + ' insgesamt';
+  }
   function renderTrainingslog() {
     document.getElementById('btnKraftAnsichtUebung').classList.toggle('active', kraftAnsicht === 'uebung');
     document.getElementById('btnKraftAnsichtMuskelgruppe').classList.toggle('active', kraftAnsicht === 'muskelgruppe');
     document.getElementById('btnKraftAnsichtWoche').classList.toggle('active', kraftAnsicht === 'woche');
     document.getElementById('btnTlDarstellungListe').classList.toggle('active', tlDarstellung === 'liste');
     document.getElementById('btnTlDarstellungDiagramm').classList.toggle('active', tlDarstellung === 'diagramm');
+    renderTlFortschritt();
     if (kraftAnsicht === 'muskelgruppe') renderTrainingslogMuskelgruppenansicht();
     else if (kraftAnsicht === 'woche') renderTrainingslogWochenansicht();
     else renderTrainingslogUebungsansicht();
@@ -3164,7 +3180,50 @@
       if (offen) {
         const body = document.createElement('div');
         body.style.cssText = 'padding:2px 12px 8px;background:var(--white);border-top:1px solid var(--parchment);';
-        g.eintraege.slice(0, 12).forEach(t => body.appendChild(trainingslogUebungZeile(t, true)));
+        // Innerhalb der Muskelgruppe nach exaktem Übungsnamen gruppieren (z.B. "Bankdrücken" und
+        // "Bankdrücken negativ" getrennt), statt alle Einträge lose untereinander zu zeigen.
+        const uebungsGruppen = new Map();
+        g.eintraege.forEach(t => {
+          const uKey = normUebung(t.uebung);
+          if (!uebungsGruppen.has(uKey)) uebungsGruppen.set(uKey, []);
+          uebungsGruppen.get(uKey).push(t);
+        });
+        Array.from(uebungsGruppen.keys())
+          .sort((a, b) => {
+            const ea = uebungsGruppen.get(a), eb = uebungsGruppen.get(b);
+            return eb[0].datum < ea[0].datum ? -1 : (eb[0].datum > ea[0].datum ? 1 : 0);
+          })
+          .forEach(uKey => {
+            const eintraegeUebung = uebungsGruppen.get(uKey).slice().sort((a, b) => a.datum < b.datum ? 1 : -1);
+            const anzeigeName = eintraegeUebung[0].uebung.trim();
+            const subKey = g.info.id + '|' + uKey;
+            const subOffen = trainingslogMuskelUebungOffen.has(subKey);
+            const subWrap = document.createElement('div');
+            subWrap.style.cssText = 'margin:6px 0;border:1px solid var(--parchment);border-radius:var(--radius-sm);overflow:hidden;';
+            const subKopf = document.createElement('div');
+            subKopf.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 10px;cursor:pointer;background:var(--cream);';
+            subKopf.innerHTML =
+              '<span style="flex:1;min-width:0;font-weight:600;font-size:0.8rem;color:var(--soil);">' + escapeHtml(anzeigeName) + '</span>' +
+              '<span style="font-size:0.68rem;color:var(--bark);opacity:0.75;">' + eintraegeUebung.length + '×</span>' +
+              '<button type="button" class="tl-schnell-btn" title="Neuer Eintrag mit Werten vom letzten Mal" style="width:26px;height:26px;border-radius:50%;border:1px solid var(--moss);background:none;color:var(--moss);font-size:1rem;font-weight:700;cursor:pointer;flex-shrink:0;line-height:1;">+</button>' +
+              '<span style="font-size:0.7rem;color:var(--moss);flex-shrink:0;transition:transform .15s;' + (subOffen ? 'transform:rotate(90deg);' : '') + '">▸</span>';
+            subKopf.querySelector('.tl-schnell-btn').addEventListener('click', (e) => {
+              e.stopPropagation();
+              trainingslogSchnellNeuFuer(anzeigeName, g.info.id !== '_sonstiges' ? g.info.id : null);
+            });
+            subKopf.addEventListener('click', () => {
+              if (trainingslogMuskelUebungOffen.has(subKey)) trainingslogMuskelUebungOffen.delete(subKey); else trainingslogMuskelUebungOffen.add(subKey);
+              renderTrainingslogMuskelgruppenansicht();
+            });
+            subWrap.appendChild(subKopf);
+            if (subOffen) {
+              const subBody = document.createElement('div');
+              subBody.style.cssText = 'padding:0 8px 4px;';
+              eintraegeUebung.slice(0, 12).forEach(t => subBody.appendChild(trainingslogUebungZeile(t, true)));
+              subWrap.appendChild(subBody);
+            }
+            body.appendChild(subWrap);
+          });
         wrap.appendChild(body);
       }
       box.appendChild(wrap);
@@ -3502,6 +3561,20 @@
   }
 
   let tlBearbeiteId = null;
+  // Öffnet einen neuen (nicht bearbeiteten) Trainingseintrag für eine bestimmte Übung, direkt mit
+  // den Sätzen vom letzten Mal vorausgefüllt – man muss dann nur noch abändern, was heute anders war.
+  function trainingslogSchnellNeuFuer(uebungName, muskelgruppeId) {
+    tlBearbeiteId = null;
+    aktualisiereUebungsliste();
+    populiereMuskelgruppenAuswahl();
+    document.getElementById('fTlUebung').value = uebungName;
+    document.getElementById('fTlMuskelgruppe').value = muskelgruppeId || '';
+    document.getElementById('fTlDatum').value = heuteISO();
+    document.getElementById('fTlNotiz').value = '';
+    fTlSchnellausfuellenFuer(uebungName);
+    document.getElementById('modalTrainingslog').querySelector('h2').textContent = 'Trainingseintrag';
+    document.getElementById('modalTrainingslog').classList.add('zeigen');
+  }
   function trainingslogBearbeitenOeffnen(t) {
     tlBearbeiteId = t.id;
     aktualisiereUebungsliste();
