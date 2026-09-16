@@ -122,6 +122,23 @@
   }
   .filter-chip.active { background: var(--moss); color: var(--leaf); border-color: var(--moss); }
 
+  .filter-dropdown-row { display: flex; gap: 6px; }
+  .filter-dropdown { position: relative; flex: 1; min-width: 0; }
+  .filter-dropdown-btn {
+    width: 100%; background: transparent; border: 1px solid #4a3a28; color: var(--sage); font-size: 0.72rem;
+    font-weight: 600; padding: 6px 8px; border-radius: var(--radius-pill); cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .filter-dropdown-btn.active { background: var(--moss); color: var(--leaf); border-color: var(--moss); }
+  .filter-dropdown-btn .fd-caret { font-size: 0.6rem; flex-shrink: 0; transition: transform 0.15s; }
+  .filter-dropdown.offen .filter-dropdown-btn .fd-caret { transform: rotate(180deg); }
+  .filter-dropdown-panel {
+    display: none; position: absolute; top: calc(100% + 4px); left: 0; z-index: 40; min-width: 180px; max-width: 260px;
+    background: var(--white); border: 1px solid #4a3a28; border-radius: var(--radius-md); padding: 8px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.25); flex-wrap: wrap; gap: 5px;
+  }
+  .filter-dropdown.offen .filter-dropdown-panel { display: flex; }
+
   main { padding: 12px 14px; max-width: 680px; margin: 0 auto; }
   @media (min-width: 1000px) {
     main { max-width: 1200px; }
@@ -361,9 +378,20 @@
     <button class="filter-chip" id="btnSortRichtung" style="flex:0 0 auto;">🔤 A–Z</button>
     <button class="filter-chip" id="btnSortKriterium" style="flex:0 0 auto;">⏳ Nach Kochdatum sortieren</button>
   </div>
-  <div class="filter-reihe" id="filterReihe" style="margin-top:8px;"></div>
-  <div class="filter-reihe" id="tagFilterReihe" style="margin-top:4px;"></div>
-  <div class="filter-reihe" id="aufwandFilterReihe" style="margin-top:4px;"></div>
+  <div class="filter-dropdown-row" id="filterDropdownRow">
+    <div class="filter-dropdown" id="fdKategorie">
+      <button type="button" class="filter-dropdown-btn" id="btnFdKategorie">🍽️ Kategorie <span class="fd-caret">▾</span></button>
+      <div class="filter-dropdown-panel" id="filterReihe"></div>
+    </div>
+    <div class="filter-dropdown" id="fdTags">
+      <button type="button" class="filter-dropdown-btn" id="btnFdTags">🏷️ Tags <span class="fd-caret">▾</span></button>
+      <div class="filter-dropdown-panel" id="tagFilterReihe"></div>
+    </div>
+    <div class="filter-dropdown" id="fdAufwand">
+      <button type="button" class="filter-dropdown-btn" id="btnFdAufwand">⚙️ Aufwand <span class="fd-caret">▾</span></button>
+      <div class="filter-dropdown-panel" id="aufwandFilterReihe"></div>
+    </div>
+  </div>
   <div class="theme-popup" id="themePopup">
     <div class="theme-swatch" data-theme="" title="Kein Muster">✕</div>
     <div class="theme-swatch" data-theme="bg-kueche" title="Küchenmotive">🍳</div>
@@ -884,6 +912,22 @@
   function speichernRezepte() { speichern(KEY_REZEPTE, rezepte); }
 
   // --- FILTERLEISTE ---
+  function schliesseAlleFilterDropdowns() {
+    document.querySelectorAll('.filter-dropdown.offen').forEach(d => d.classList.remove('offen'));
+  }
+  document.querySelectorAll('.filter-dropdown-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const dropdown = btn.closest('.filter-dropdown');
+      const warOffen = dropdown.classList.contains('offen');
+      schliesseAlleFilterDropdowns();
+      if (!warOffen) dropdown.classList.add('offen');
+    });
+  });
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.filter-dropdown')) schliesseAlleFilterDropdowns();
+  });
+
   function renderFilter() {
     const box = document.getElementById('filterReihe');
     box.innerHTML = '';
@@ -897,15 +941,21 @@
       const chip = document.createElement('button');
       chip.className = 'filter-chip' + (aktiverFilter === k.id ? ' active' : '');
       chip.textContent = k.icon + ' ' + k.label;
-      chip.addEventListener('click', () => { aktiverFilter = k.id; renderFilter(); renderGrid(); });
+      chip.addEventListener('click', () => { aktiverFilter = k.id; renderFilter(); renderGrid(); schliesseAlleFilterDropdowns(); });
       box.appendChild(chip);
     });
 
     const favChip = document.createElement('button');
     favChip.className = 'filter-chip' + (nurFavoriten ? ' active' : '');
     favChip.textContent = '♥ Favoriten';
-    favChip.addEventListener('click', () => { nurFavoriten = !nurFavoriten; renderFilter(); renderGrid(); });
+    favChip.addEventListener('click', () => { nurFavoriten = !nurFavoriten; renderFilter(); renderGrid(); schliesseAlleFilterDropdowns(); });
     box.appendChild(favChip);
+
+    const kBtn = document.getElementById('btnFdKategorie');
+    const kAktiv = aktiverFilter !== 'alle' || nurFavoriten;
+    kBtn.classList.toggle('active', kAktiv);
+    const kLabel = nurFavoriten ? '♥ Favoriten' : (aktiverFilter === 'alle' ? '🍽️ Kategorie' : (KATEGORIEN.find(k => k.id === aktiverFilter) || {}).icon + ' ' + (KATEGORIEN.find(k => k.id === aktiverFilter) || {}).label);
+    kBtn.innerHTML = escapeHtml(kLabel) + ' <span class="fd-caret">▾</span>';
 
     renderTagFilter();
     renderAufwandFilter();
@@ -918,16 +968,20 @@
     const alleChip = document.createElement('button');
     alleChip.className = 'filter-chip' + (aktiverAufwandFilter === 'alle' ? ' active' : '');
     alleChip.textContent = 'Aufwand: Alle';
-    alleChip.addEventListener('click', () => { aktiverAufwandFilter = 'alle'; renderAufwandFilter(); renderGrid(); });
+    alleChip.addEventListener('click', () => { aktiverAufwandFilter = 'alle'; renderAufwandFilter(); renderGrid(); schliesseAlleFilterDropdowns(); });
     box.appendChild(alleChip);
     Object.keys(AUFWAND_STUFEN).forEach(key => {
       const stufe = AUFWAND_STUFEN[key];
       const chip = document.createElement('button');
       chip.className = 'filter-chip' + (aktiverAufwandFilter === key ? ' active' : '');
       chip.textContent = stufe.icon + ' ' + stufe.label;
-      chip.addEventListener('click', () => { aktiverAufwandFilter = key; renderAufwandFilter(); renderGrid(); });
+      chip.addEventListener('click', () => { aktiverAufwandFilter = key; renderAufwandFilter(); renderGrid(); schliesseAlleFilterDropdowns(); });
       box.appendChild(chip);
     });
+    const aBtn = document.getElementById('btnFdAufwand');
+    aBtn.classList.toggle('active', aktiverAufwandFilter !== 'alle');
+    const aLabel = aktiverAufwandFilter === 'alle' ? '⚙️ Aufwand' : AUFWAND_STUFEN[aktiverAufwandFilter].icon + ' ' + AUFWAND_STUFEN[aktiverAufwandFilter].label;
+    aBtn.innerHTML = escapeHtml(aLabel) + ' <span class="fd-caret">▾</span>';
   }
 
   function alleVorhandenenTags() {
@@ -938,20 +992,25 @@
   function renderTagFilter() {
     const box = document.getElementById('tagFilterReihe');
     const tags = alleVorhandenenTags();
-    if (!tags.length) { box.innerHTML = ''; return; }
+    const tBtnWrap = document.getElementById('fdTags');
+    if (!tags.length) { box.innerHTML = ''; if (tBtnWrap) tBtnWrap.style.display = 'none'; return; }
+    if (tBtnWrap) tBtnWrap.style.display = '';
     box.innerHTML = '';
     const alleChip = document.createElement('button');
     alleChip.className = 'filter-chip' + (aktiverTagFilter === 'alle' ? ' active' : '');
     alleChip.textContent = '🏷️ Alle Tags';
-    alleChip.addEventListener('click', () => { aktiverTagFilter = 'alle'; renderTagFilter(); renderGrid(); });
+    alleChip.addEventListener('click', () => { aktiverTagFilter = 'alle'; renderTagFilter(); renderGrid(); schliesseAlleFilterDropdowns(); });
     box.appendChild(alleChip);
     tags.forEach(tag => {
       const chip = document.createElement('button');
       chip.className = 'filter-chip' + (aktiverTagFilter === tag ? ' active' : '');
       chip.textContent = '#' + tag;
-      chip.addEventListener('click', () => { aktiverTagFilter = tag; renderTagFilter(); renderGrid(); });
+      chip.addEventListener('click', () => { aktiverTagFilter = tag; renderTagFilter(); renderGrid(); schliesseAlleFilterDropdowns(); });
       box.appendChild(chip);
     });
+    const tBtn = document.getElementById('btnFdTags');
+    tBtn.classList.toggle('active', aktiverTagFilter !== 'alle');
+    tBtn.innerHTML = escapeHtml(aktiverTagFilter === 'alle' ? '🏷️ Tags' : '#' + aktiverTagFilter) + ' <span class="fd-caret">▾</span>';
   }
   document.getElementById('fSuche').addEventListener('input', (e) => { suchtext = e.target.value.trim().toLowerCase(); renderGrid(); });
 
@@ -2000,9 +2059,7 @@
     document.getElementById('ansichtWochenplan').style.display = name === 'wochenplan' ? '' : 'none';
     document.getElementById('ansichtStatistik').style.display = name === 'statistik' ? '' : 'none';
     document.getElementById('suchzeileBox').style.display = name === 'rezepte' ? '' : 'none';
-    document.getElementById('filterReihe').style.display = name === 'rezepte' ? '' : 'none';
-    document.getElementById('tagFilterReihe').style.display = name === 'rezepte' ? '' : 'none';
-    document.getElementById('aufwandFilterReihe').style.display = name === 'rezepte' ? '' : 'none';
+    document.getElementById('filterDropdownRow').style.display = name === 'rezepte' ? '' : 'none';
     btnViewRezepte.classList.toggle('active', name === 'rezepte');
     btnViewWochenplan.classList.toggle('active', name === 'wochenplan');
     btnViewStatistik.classList.toggle('active', name === 'statistik');
