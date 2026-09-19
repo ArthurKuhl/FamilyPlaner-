@@ -368,6 +368,25 @@
       <label for="fPreisAbhaken">Preis (optional, €)</label>
       <input type="number" step="0.01" min="0" id="fPreisAbhaken" placeholder="z.B. 2.49">
     </div>
+    <div class="feld">
+      <label for="fPreisEinheit">Einheit (optional, für Preis/kg-Vergleich)</label>
+      <select id="fPreisEinheit">
+        <option value="">Nicht angeben</option>
+        <option value="kg">Gewicht (kg/g)</option>
+        <option value="stueck">Stück</option>
+        <option value="dose">Dose/Glas/Packung</option>
+      </select>
+    </div>
+    <div id="preisMengeZeile" style="display:none;">
+      <div class="feld">
+        <label for="fPreisMenge" id="fPreisMengeLabel">Menge</label>
+        <input type="number" step="0.01" min="0" id="fPreisMenge" placeholder="z.B. 500">
+      </div>
+      <div class="feld" id="preisNettogewichtFeld" style="display:none;">
+        <label for="fPreisNettogewicht">Nettogewicht je Stück/Dose (g, optional)</label>
+        <input type="number" step="1" min="0" id="fPreisNettogewicht" placeholder="z.B. 400">
+      </div>
+    </div>
     <div class="modal-btns">
       <button class="btn btn-secondary" id="btnPreisAbhakenUeberspringen">Überspringen</button>
       <button class="btn btn-primary" id="btnPreisAbhakenSpeichern">💾 Speichern</button>
@@ -655,11 +674,30 @@
   // ---------- PREIS-TRACKING ----------
   function preisNormName(name) { return String(name || '').trim().toLowerCase(); }
   function preisHistorie(name) { return preise[preisNormName(name)] || []; }
-  function preisHinzufuegen(name, wert) {
+  function preisBerechneProKg(menge, einheit, nettogewicht) {
+    if (!(menge > 0)) return null;
+    if (einheit === 'kg') return { menge, totalKg: menge };
+    if ((einheit === 'stueck' || einheit === 'dose') && nettogewicht > 0) {
+      return { menge, totalKg: (menge * nettogewicht) / 1000 };
+    }
+    return null;
+  }
+  function preisHinzufuegen(name, wert, mengeInfo) {
     const key = preisNormName(name);
     if (!key || !(wert > 0)) return;
     if (!preise[key]) preise[key] = [];
-    preise[key].push({ datum: new Date().toISOString(), preis: Math.round(wert * 100) / 100 });
+    const eintrag = { datum: new Date().toISOString(), preis: Math.round(wert * 100) / 100 };
+    if (mengeInfo && mengeInfo.einheit) {
+      eintrag.einheit = mengeInfo.einheit;
+      if (mengeInfo.menge > 0) eintrag.menge = mengeInfo.menge;
+      if (mengeInfo.nettogewicht > 0) eintrag.nettogewicht = mengeInfo.nettogewicht;
+      const kg = preisBerechneProKg(mengeInfo.menge, mengeInfo.einheit, mengeInfo.nettogewicht);
+      if (kg) eintrag.proKg = Math.round((wert / kg.totalKg) * 100) / 100;
+      else if ((mengeInfo.einheit === 'stueck' || mengeInfo.einheit === 'dose') && mengeInfo.menge > 0) {
+        eintrag.proStueck = Math.round((wert / mengeInfo.menge) * 100) / 100;
+      }
+    }
+    preise[key].push(eintrag);
     speichern(KEY_PREISE, preise);
     finanzenAusgabeErstellen(name, wert);
   }
@@ -692,16 +730,27 @@
     } catch (e) {}
   }
   function preisFormatEuro(n) { return n.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' }); }
+  function preisZeileText(e) {
+    let txt = preisFormatEuro(e.preis);
+    if (e.proKg) txt += ' (' + preisFormatEuro(e.proKg) + '/kg)';
+    else if (e.proStueck) txt += ' (' + preisFormatEuro(e.proStueck) + '/Stk.)';
+    return txt;
+  }
+  function preisVergleichswert(e) { return e.proKg || e.proStueck || e.preis; }
   function preisTrendHtml(name) {
     const hist = preisHistorie(name);
     if (!hist.length) return '<div class="preis-trend">Noch keine Preise erfasst.</div>';
     const letzter = hist[hist.length - 1];
-    if (hist.length === 1) return '<div class="preis-trend">Zuletzt: ' + preisFormatEuro(letzter.preis) + '</div>';
+    if (hist.length === 1) return '<div class="preis-trend">Zuletzt: ' + preisZeileText(letzter) + '</div>';
     const vorheriger = hist[hist.length - 2];
-    const diff = letzter.preis - vorheriger.preis;
-    const klasse = diff > 0.001 ? 'hoch' : (diff < -0.001 ? 'runter' : '');
-    const pfeil = diff > 0.001 ? '↑' : (diff < -0.001 ? '↓' : '→');
-    return '<div class="preis-trend ' + klasse + '">' + pfeil + ' ' + preisFormatEuro(letzter.preis) + ' (vorher ' + preisFormatEuro(vorheriger.preis) + ')</div>';
+    // Vergleich läuft auf Basis des kg- bzw. Stückpreises, sofern für beide Einträge bekannt –
+    // sonst wäre "günstiger" nur eine Illusion durch eine andere Packungsgröße.
+    const vLetzter = preisVergleichswert(letzter), vVorheriger = preisVergleichswert(vorheriger);
+    const vergleichbar = (!!letzter.proKg === !!vorheriger.proKg) && (!!letzter.proStueck === !!vorheriger.proStueck);
+    const diff = vLetzter - vVorheriger;
+    const klasse = !vergleichbar ? '' : (diff > 0.001 ? 'hoch' : (diff < -0.001 ? 'runter' : ''));
+    const pfeil = !vergleichbar ? '' : (diff > 0.001 ? '↑ ' : (diff < -0.001 ? '↓ ' : '→ '));
+    return '<div class="preis-trend ' + klasse + '">' + pfeil + preisZeileText(letzter) + ' (vorher ' + preisZeileText(vorheriger) + ')</div>';
   }
   function preisVerlaufRendern(name) {
     document.getElementById('preisTrendText').innerHTML = preisTrendHtml(name);
@@ -709,7 +758,7 @@
     const hist = preisHistorie(name).slice(-8).reverse();
     liste.innerHTML = hist.map(e => {
       const d = new Date(e.datum);
-      return '<li><span>' + d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' }) + '</span><span>' + preisFormatEuro(e.preis) + '</span></li>';
+      return '<li><span>' + d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' }) + '</span><span>' + preisZeileText(e) + '</span></li>';
     }).join('');
   }
 
@@ -1042,12 +1091,28 @@
   // ---------- Preis beim Abhaken (optional) ----------
   let preisAbhakenItemId = null;
   let preisAbhakenListeId = null;
+  function preisEinheitFelderAktualisieren() {
+    const einheit = document.getElementById('fPreisEinheit').value;
+    document.getElementById('preisMengeZeile').style.display = einheit ? '' : 'none';
+    document.getElementById('preisNettogewichtFeld').style.display = (einheit === 'stueck' || einheit === 'dose') ? '' : 'none';
+    const labelEl = document.getElementById('fPreisMengeLabel');
+    labelEl.textContent = einheit === 'kg' ? 'Menge (kg – z.B. 0.5 für 500g)' : einheit === 'stueck' ? 'Anzahl (Stück)' : einheit === 'dose' ? 'Anzahl (Dosen/Gläser/Packungen)' : 'Menge';
+  }
+  document.getElementById('fPreisEinheit').addEventListener('change', preisEinheitFelderAktualisieren);
   function preisAbhakenOeffnen(item, listeId) {
     preisAbhakenItemId = item.id;
     preisAbhakenListeId = listeId || aktiveListeId;
     document.getElementById('preisAbhakenTitel').textContent = 'Preis für „' + item.name + '“ notieren?';
     document.getElementById('preisAbhakenTrend').innerHTML = preisTrendHtml(item.name);
     document.getElementById('fPreisAbhaken').value = '';
+    // Letzte verwendete Einheit/Menge/Nettogewicht dieses Produkts als Vorschlag übernehmen,
+    // damit man es nicht bei jedem Einkauf neu eintippen muss – bleibt aber änderbar.
+    const hist = preisHistorie(item.name);
+    const letzter = hist.length ? hist[hist.length - 1] : null;
+    document.getElementById('fPreisEinheit').value = (letzter && letzter.einheit) || '';
+    document.getElementById('fPreisMenge').value = (letzter && letzter.einheit && letzter.menge) ? letzter.menge : '';
+    document.getElementById('fPreisNettogewicht').value = (letzter && letzter.nettogewicht) ? letzter.nettogewicht : '';
+    preisEinheitFelderAktualisieren();
     document.getElementById('modalPreisAbhaken').classList.add('zeigen');
   }
   function preisAbhakenAbschliessen(mitPreis) {
@@ -1056,7 +1121,12 @@
     if (item) {
       if (mitPreis) {
         const wert = parseFloat(document.getElementById('fPreisAbhaken').value.replace(',', '.'));
-        if (wert > 0) preisHinzufuegen(item.name, wert);
+        if (wert > 0) {
+          const einheit = document.getElementById('fPreisEinheit').value;
+          const menge = parseFloat(document.getElementById('fPreisMenge').value.replace(',', '.'));
+          const nettogewicht = parseFloat(document.getElementById('fPreisNettogewicht').value.replace(',', '.'));
+          preisHinzufuegen(item.name, wert, einheit ? { einheit, menge, nettogewicht } : null);
+        }
       }
       const key = preisNormName(item.name);
       const eintrag = kaufHaeufigkeit[key] || { name: item.name, anzahl: 0 };
