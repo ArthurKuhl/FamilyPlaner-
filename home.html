@@ -133,6 +133,13 @@
 </header>
 
 <main>
+  <div class="kachel" id="kachelDieseWoche" style="cursor:default;display:none;">
+    <div class="kachel-kopf">
+      <div class="kachel-titel">🗓️ Diese Woche</div>
+    </div>
+    <div id="listeDieseWoche"></div>
+  </div>
+
   <div class="kachel" id="kachelTermine">
     <div class="kachel-kopf">
       <div class="kachel-titel">🗓️ Termine heute</div>
@@ -372,6 +379,49 @@
       else return false;
     }
     return false;
+  }
+
+  // ============================================================
+  // DIESE WOCHE – kurzer, nicht-aufdringlicher Rückblick über mehrere Module hinweg
+  // (letzte 7 Tage inkl. heute): gekochte Rezepte, Trainingseinheiten, Garten-Ernte.
+  // Karte bleibt komplett verborgen, wenn in der Woche noch gar nichts davon passiert ist.
+  // ============================================================
+  function renderDieseWoche() {
+    const grenze = new Date();
+    grenze.setDate(grenze.getDate() - 6);
+    grenze.setHours(0, 0, 0, 0);
+    const inDieserWoche = (isoOderDatum) => {
+      if (!isoOderDatum) return false;
+      const d = new Date(isoOderDatum);
+      return !isNaN(d) && d >= grenze;
+    };
+
+    const rezepte = laden('kochen_rezepte', []);
+    const anzahlGekocht = rezepte.filter(r => inDieserWoche(r.zuletztGekocht)).length;
+
+    const trainingslog = laden('gesundheit_trainingslog', []);
+    const sport = laden('gesundheit_sport', []);
+    const anzahlTraining = trainingslog.filter(t => inDieserWoche(t.datum)).length + sport.filter(s => inDieserWoche(s.datum)).length;
+
+    const gartenDaten = laden('gartenplaner_v3', null);
+    let anzahlErnte = 0;
+    if (gartenDaten && gartenDaten.gardens) {
+      Object.values(gartenDaten.gardens).forEach(g => (g.beds || []).forEach(bed => (bed.plants || []).forEach(p => {
+        (p.harvests || []).forEach(h => { if (inDieserWoche(h.date)) anzahlErnte++; });
+      })));
+    }
+
+    const zeilen = [];
+    if (anzahlGekocht) zeilen.push({ icon: '🍳', text: anzahlGekocht + (anzahlGekocht === 1 ? ' Rezept gekocht' : ' Rezepte gekocht') });
+    if (anzahlTraining) zeilen.push({ icon: '💪', text: anzahlTraining + (anzahlTraining === 1 ? ' Trainingseinheit' : ' Trainingseinheiten') });
+    if (anzahlErnte) zeilen.push({ icon: '🧺', text: anzahlErnte + (anzahlErnte === 1 ? ' Ernte eingetragen' : ' Ernten eingetragen') });
+
+    const kachel = document.getElementById('kachelDieseWoche');
+    if (!zeilen.length) { kachel.style.display = 'none'; return; }
+    kachel.style.display = '';
+    document.getElementById('listeDieseWoche').innerHTML = zeilen.map(z =>
+      '<div class="mini-zeile"><span class="mini-zeit">' + z.icon + '</span><span class="mini-name">' + z.text + '</span></div>'
+    ).join('');
   }
 
   function renderTermine() {
@@ -760,11 +810,12 @@
   renderGartenPflanzErnte();
   renderKochenHeute();
   renderHaushalt();
+  renderDieseWoche();
   versteckteKachelnAnwenden();
 
   // Bei Rückkehr auf die Startseite (z.B. nach Bearbeitung in einem anderen Modul) neu laden
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) { renderTermine(); renderEinkauf(); renderSport(); renderGartenWarnungen(); renderGartenPflanzErnte(); renderKochenHeute(); renderHaushalt(); feedbackEintraege = laden(KEY_FEEDBACK, feedbackEintraege); feedbackListeRendern(); versteckteKachelnAnwenden(); }
+    if (!document.hidden) { renderTermine(); renderEinkauf(); renderSport(); renderGartenWarnungen(); renderGartenPflanzErnte(); renderKochenHeute(); renderHaushalt(); renderDieseWoche(); feedbackEintraege = laden(KEY_FEEDBACK, feedbackEintraege); feedbackListeRendern(); versteckteKachelnAnwenden(); }
   });
 })();
 </script>
