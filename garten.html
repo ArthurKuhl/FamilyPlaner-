@@ -1828,6 +1828,14 @@
 </div>
 
 <!-- MODAL: Fotoalbum-Feld-Detail -->
+<div class="modal-bg" id="modalMeilenstein" style="display:none">
+  <div class="modal" style="max-width:340px;text-align:center;">
+    <h2 id="meilensteinTitel">Meilenstein erreicht!</h2>
+    <p id="meilensteinText" style="margin:10px 0 16px;color:var(--bark);"></p>
+    <button class="btn-primary" style="width:100%;" onclick="document.getElementById('modalMeilenstein').style.display='none'">Super!</button>
+  </div>
+</div>
+
 <div class="modal-bg" id="modalAlbumDetail" style="display:none">
   <div class="modal" style="width:min(440px,94vw);max-height:86vh;overflow-y:auto">
     <h2 id="albumDetailTitel">📸 Feld</h2>
@@ -4591,6 +4599,23 @@ function loadAllData() {
   if (!currentGardenId || !gardens[currentGardenId]) {
     currentGardenId = Object.keys(gardens)[0];
   }
+  // Migration: bereits erreichte Ernte-Meilensteine einmalig nur vermerken statt
+  // nachträglich zu feiern, damit beim ersten Start nach Einführung dieser Funktion
+  // nicht plötzlich für längst erreichte Erfolge ein Popup aufploppt.
+  if (!localStorage.getItem('gartenplaner_meilensteinMigriert')) {
+    let migrationGeaendert = false;
+    Object.values(gardens).forEach(g => (g.beds || []).forEach(bed => (bed.plants || []).forEach(plant => {
+      if (!plant.meilensteineErnte) plant.meilensteineErnte = [];
+      const anzahl = (plant.harvests || []).length;
+      MEILENSTEIN_STUFEN.forEach(stufe => {
+        if (anzahl >= stufe && !plant.meilensteineErnte.includes(stufe)) { plant.meilensteineErnte.push(stufe); migrationGeaendert = true; }
+      });
+    })));
+    if (migrationGeaendert) {
+      try { localStorage.setItem('gartenplaner_v3', JSON.stringify({ gardens, currentGardenId })); } catch (e) {}
+    }
+    try { localStorage.setItem('gartenplaner_meilensteinMigriert', '1'); } catch (e) {}
+  }
 }
 
 const ROLLING_BACKUP_MIN_INTERVAL_MS = 60 * 60 * 1000; // höchstens stündlich aktualisieren
@@ -6146,6 +6171,7 @@ function renderVollbildListe() {
           <span>${p.sym || '🌱'}</span>
           <span style="flex:1;text-align:left">${escapeHtml(p.name || 'Unbenannt')}${p.variety ? ' <span style="color:var(--bark);font-weight:400">(' + escapeHtml(p.variety) + ')</span>' : ''}</span>
           ${p.bewertung ? `<span style="font-size:0.62rem;color:#c99a3a;white-space:nowrap;margin-left:6px;">${'★'.repeat(p.bewertung)}</span>` : ''}
+          ${meilensteinIconFuer((p.harvests||[]).length) ? `<span title="${(p.harvests||[]).length}× geerntet" style="margin-left:4px;">${meilensteinIconFuer((p.harvests||[]).length)}</span>` : ''}
           ${p.date ? `<span style="font-size:0.68rem;color:var(--bark);white-space:nowrap;margin-left:8px">🗓 ${new Date(p.date + 'T00:00:00').toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })}</span>` : ''}
         </button>`).join('');
       return `
@@ -6661,6 +6687,29 @@ function showPest(selectId, resultId) {
 }
 
 // ==================== PLANT PANEL ====================
+// ---------- MEILENSTEINE (Ernten pro Pflanze) ----------
+const MEILENSTEIN_STUFEN = [5, 10, 20, 50, 100];
+const MEILENSTEIN_ICONS = { 5: '🥉', 10: '🥈', 20: '🥇', 50: '🏆', 100: '👑' };
+function meilensteinIconFuer(anzahl) {
+  let icon = null;
+  MEILENSTEIN_STUFEN.forEach(stufe => { if (anzahl >= stufe) icon = MEILENSTEIN_ICONS[stufe]; });
+  return icon;
+}
+function meilensteinFeiern(titel, text) {
+  document.getElementById('meilensteinTitel').textContent = titel;
+  document.getElementById('meilensteinText').textContent = text;
+  document.getElementById('modalMeilenstein').style.display = 'flex';
+}
+function pruefePflanzenMeilenstein(plant) {
+  if (!plant.meilensteineErnte) plant.meilensteineErnte = [];
+  const anzahl = (plant.harvests || []).length;
+  MEILENSTEIN_STUFEN.forEach(stufe => {
+    if (anzahl >= stufe && !plant.meilensteineErnte.includes(stufe)) {
+      plant.meilensteineErnte.push(stufe);
+      meilensteinFeiern(MEILENSTEIN_ICONS[stufe] + ' Meilenstein erreicht!', (plant.name || 'Diese Pflanze') + ' schon ' + stufe + '× geerntet!');
+    }
+  });
+}
 let ppAktuelleBewertung = 0;
 function renderPpSterneEingabe() {
   const box = document.getElementById('ppSterneEingabe');
@@ -6679,7 +6728,7 @@ function openPlantPanel(bed,idx) {
   ppZoomZuruecksetzen();
   activePlantBedId={bedId:bed.id,idx};
   const plant=bed.plants[idx];
-  document.getElementById('ppTitle').innerHTML=escapeHtml(plant.sym+' '+(plant.name||'Pflanze'))+(isPerennial(plant.name)?' <button type="button" class="pp-lebenszyklus-badge" onclick="togglePerennialInfo(event)" title="Mehr erfahren" aria-label="Info: mehrjährig">🔄</button>':'');
+  document.getElementById('ppTitle').innerHTML=escapeHtml(plant.sym+' '+(plant.name||'Pflanze'))+(isPerennial(plant.name)?' <button type="button" class="pp-lebenszyklus-badge" onclick="togglePerennialInfo(event)" title="Mehr erfahren" aria-label="Info: mehrjährig">🔄</button>':'')+(meilensteinIconFuer((plant.harvests||[]).length)?' <span title="'+(plant.harvests||[]).length+'× geerntet">'+meilensteinIconFuer((plant.harvests||[]).length)+'</span>':'');
   document.getElementById('ppName').value=plant.name||'';
   document.getElementById('ppVariety').value=plant.variety||'';
   document.getElementById('ppNotes').value=plant.notes||'';
@@ -7080,6 +7129,7 @@ function addHarvestEntry() {
   if (!plant.harvests) plant.harvests = [];
   plant.harvests.push({ date, amount, unit, method, note });
   plant.harvests.sort((a,b) => a.date < b.date ? 1 : -1);
+  pruefePflanzenMeilenstein(plant);
   saveData();
   document.getElementById('ppHarvestAmount').value = '';
   document.getElementById('ppHarvestMethod').value = '';

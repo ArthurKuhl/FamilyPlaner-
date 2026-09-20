@@ -548,7 +548,7 @@
   <section id="ansichtKraft" style="display:none;">
     <div class="karte">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-        <h3 style="margin:0;">📈 Trainingslog</h3>
+        <h3 style="margin:0;">📈 Trainingslog <span id="trainingsAbzeichenHeader" style="font-size:0.85rem;"></span></h3>
         <div style="display:flex;gap:4px;flex-shrink:0;">
           <button type="button" id="btnTlDarstellungListe" class="tl-darstellung-btn active" title="Als Liste anzeigen" aria-label="Als Liste anzeigen">📝</button>
           <button type="button" id="btnTlDarstellungDiagramm" class="tl-darstellung-btn" title="Als Diagramm anzeigen (nur in „Nach Übung“)" aria-label="Als Diagramm anzeigen">📊</button>
@@ -1646,6 +1646,14 @@
     <div class="modal-btns">
       <button class="btn btn-secondary" id="btnGpsRouteSchliessen">Schließen</button>
     </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalMeilenstein">
+  <div class="modal" style="max-width:340px;text-align:center;">
+    <h2 id="meilensteinTitel">Meilenstein erreicht!</h2>
+    <p id="meilensteinText" style="margin:10px 0 16px;color:var(--bark);"></p>
+    <button class="btn btn-primary" style="width:100%;" onclick="document.getElementById('modalMeilenstein').classList.remove('zeigen')">Super!</button>
   </div>
 </div>
 
@@ -3063,7 +3071,54 @@
   // TRAININGSLOG (Gewicht/Sätze/Wiederholungen je Übung, für Fortschrittsverfolgung)
   // ============================================================
   const KEY_TRAININGSLOG = 'gesundheit_trainingslog';
+  const KEY_TRAININGS_MEILENSTEINE = 'gesundheit_trainingsMeilensteine';
+  // ---------- MEILENSTEINE (Trainingseinheiten insgesamt, je Person) ----------
+  const MEILENSTEIN_STUFEN = [5, 10, 20, 50, 100];
+  const MEILENSTEIN_ICONS = { 5: '🥉', 10: '🥈', 20: '🥇', 50: '🏆', 100: '👑' };
+  let trainingsMeilensteine = laden(KEY_TRAININGS_MEILENSTEINE, {}); // { personId: [5,10,...] }
+  function meilensteinIconFuer(anzahl) {
+    let icon = null;
+    MEILENSTEIN_STUFEN.forEach(stufe => { if (anzahl >= stufe) icon = MEILENSTEIN_ICONS[stufe]; });
+    return icon;
+  }
+  function meilensteinFeiern(titel, text) {
+    document.getElementById('meilensteinTitel').textContent = titel;
+    document.getElementById('meilensteinText').textContent = text;
+    document.getElementById('modalMeilenstein').classList.add('zeigen');
+  }
+  function pruefeTrainingsMeilenstein() {
+    const anzahl = trainingslog.filter(t => t.person === aktivePerson).length;
+    if (!trainingsMeilensteine[aktivePerson]) trainingsMeilensteine[aktivePerson] = [];
+    MEILENSTEIN_STUFEN.forEach(stufe => {
+      if (anzahl >= stufe && !trainingsMeilensteine[aktivePerson].includes(stufe)) {
+        trainingsMeilensteine[aktivePerson].push(stufe);
+        speichern(KEY_TRAININGS_MEILENSTEINE, trainingsMeilensteine);
+        meilensteinFeiern(MEILENSTEIN_ICONS[stufe] + ' Meilenstein erreicht!', 'Schon ' + stufe + ' Trainingseinheiten protokolliert!');
+      }
+    });
+    renderTrainingsAbzeichen();
+  }
+  function renderTrainingsAbzeichen() {
+    const el = document.getElementById('trainingsAbzeichenHeader');
+    if (!el) return;
+    const anzahl = trainingslog.filter(t => t.person === aktivePerson).length;
+    const icon = meilensteinIconFuer(anzahl);
+    el.textContent = icon || '';
+    el.title = icon ? anzahl + ' Trainingseinheiten protokolliert' : '';
+  }
   let trainingslog = laden(KEY_TRAININGSLOG, []); // [{id, datum, person, uebung, saetze:[{gewicht,wiederholungen}], notiz}]
+  // Migration: bereits erreichte Meilensteine einmalig nur vermerken statt nachträglich
+  // zu feiern, damit beim ersten Start nach Einführung nicht plötzlich alte Erfolge "verkündet" werden.
+  if (!localStorage.getItem('gesundheit_meilensteinMigriert')) {
+    const personen = Array.from(new Set(trainingslog.map(t => t.person)));
+    personen.forEach(p => {
+      const anzahl = trainingslog.filter(t => t.person === p).length;
+      if (!trainingsMeilensteine[p]) trainingsMeilensteine[p] = [];
+      MEILENSTEIN_STUFEN.forEach(stufe => { if (anzahl >= stufe && !trainingsMeilensteine[p].includes(stufe)) trainingsMeilensteine[p].push(stufe); });
+    });
+    speichern(KEY_TRAININGS_MEILENSTEINE, trainingsMeilensteine);
+    try { localStorage.setItem('gesundheit_meilensteinMigriert', '1'); } catch (e) {}
+  }
   function migriereTrainingslog(liste) {
     let geaendert = false;
     liste.forEach(t => {
@@ -3121,6 +3176,7 @@
     document.getElementById('btnTlDarstellungListe').classList.toggle('active', tlDarstellung === 'liste');
     document.getElementById('btnTlDarstellungDiagramm').classList.toggle('active', tlDarstellung === 'diagramm');
     renderTlFortschritt();
+    renderTrainingsAbzeichen();
     if (kraftAnsicht === 'muskelgruppe') renderTrainingslogMuskelgruppenansicht();
     else if (kraftAnsicht === 'woche') renderTrainingslogWochenansicht();
     else renderTrainingslogUebungsansicht();
@@ -3673,6 +3729,7 @@
         if (muskelgruppeId) bestehender.muskelgruppeId = muskelgruppeId;
       } else {
         trainingslog.push({ id: neueId('tl'), datum, person: aktivePerson, uebung, saetze: gueltigeSaetze, notiz, muskelgruppeId });
+        pruefeTrainingsMeilenstein();
       }
     }
     speichern(KEY_TRAININGSLOG, trainingslog);
