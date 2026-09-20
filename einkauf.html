@@ -387,6 +387,10 @@
         <input type="number" step="1" min="0" id="fPreisNettogewicht" placeholder="z.B. 400">
       </div>
     </div>
+    <div class="feld">
+      <label>Wie war's? (optional)</label>
+      <div id="bewertungSterneEingabe" style="display:flex;gap:4px;font-size:1.4rem;"></div>
+    </div>
     <div class="modal-btns">
       <button class="btn btn-secondary" id="btnPreisAbhakenUeberspringen">Überspringen</button>
       <button class="btn btn-primary" id="btnPreisAbhakenSpeichern">💾 Speichern</button>
@@ -624,6 +628,7 @@
   const KEY_FAVORITEN = 'einkauf_favoriten';
   const KEY_PREISE = 'einkauf_preise';
   const KEY_KAUFHAEUFIGKEIT = 'einkauf_kaufhaeufigkeit';
+  const KEY_BEWERTUNGEN = 'einkauf_bewertungen';
 
   const KATEGORIEN = [
     { id: 'obst_gemuese',  label: 'Obst & Gemüse',          icon: '🥦', farbe: '#4f6f45' },
@@ -806,6 +811,21 @@
   let favoriten = laden(KEY_FAVORITEN, {});
   let preise = laden(KEY_PREISE, {}); // { normalisierterName: [{datum, preis}] }
   let kaufHaeufigkeit = laden(KEY_KAUFHAEUFIGKEIT, {}); // { normalisierterName: { name, anzahl } }
+  let bewertungen = laden(KEY_BEWERTUNGEN, {}); // { normalisierterName: { name, sterne } }
+  function bewertungHolen(name) { const e = bewertungen[preisNormName(name)]; return e ? e.sterne : 0; }
+  function bewertungSpeichern(name, sterne) {
+    const key = preisNormName(name);
+    if (!key) return;
+    if (sterne > 0) bewertungen[key] = { name, sterne };
+    else delete bewertungen[key];
+    speichern(KEY_BEWERTUNGEN, bewertungen);
+  }
+  function bewertungSterneHtml(sterne, groesse) {
+    if (!sterne) return '';
+    let html = '<span style="font-size:' + (groesse || '0.7rem') + ';color:#c99a3a;letter-spacing:1px;">';
+    for (let i = 1; i <= 5; i++) html += i <= sterne ? '★' : '<span style="opacity:0.3">★</span>';
+    return html + '</span>';
+  }
   let erledigtOffen = false;
   let aktuellePerson = localStorage.getItem(KEY_AKTUELLE_PERSON);
   if (!aktuellePerson || !PERSONEN.some(p => p.id === aktuellePerson)) {
@@ -943,9 +963,10 @@
   function renderHaeufigkeit() {
     const eintraege = Object.values(kaufHaeufigkeit).sort((a, b) => b.anzahl - a.anzahl).slice(0, 20);
     document.getElementById('haeufigkeitLeer').style.display = eintraege.length ? 'none' : '';
-    document.getElementById('haeufigkeitListe').innerHTML = eintraege.map(e =>
-      '<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--parchment);font-size:0.85rem;"><span>' + escapeHtml(e.name) + '</span><span>' + e.anzahl + '×</span></div>'
-    ).join('');
+    document.getElementById('haeufigkeitListe').innerHTML = eintraege.map(e => {
+      const sterne = bewertungHolen(e.name);
+      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--parchment);font-size:0.85rem;"><span>' + escapeHtml(e.name) + (sterne ? ' ' + bewertungSterneHtml(sterne, '0.62rem') : '') + '</span><span>' + e.anzahl + '×</span></div>';
+    }).join('');
   }
   document.getElementById('btnHaeufigkeitOeffnen').addEventListener('click', () => {
     renderHaeufigkeit();
@@ -1047,10 +1068,12 @@
     const mengeText = [item.menge, item.einheit].filter(Boolean).join(' ');
     const person = personInfo(item.hinzugefuegtVon);
     const badge = person ? '<span class="hinzu-badge" style="background:' + person.farbe + '22; color:' + person.farbe + ';">' + escapeHtml(person.label) + '</span>' : '';
+    const sterne = bewertungHolen(item.name);
+    const sterneHtml = sterne ? bewertungSterneHtml(sterne, '0.62rem') : '';
     zeile.innerHTML =
       '<span class="item-checkbox">' + (item.erledigt ? '✓' : '') + '</span>' +
       '<div class="item-info"><span class="item-name">' + escapeHtml(item.name) + '</span>' +
-      (badge ? '<div class="item-unterzeile">' + badge + '</div>' : '') + '</div>' +
+      (badge || sterneHtml ? '<div class="item-unterzeile">' + badge + sterneHtml + '</div>' : '') + '</div>' +
       (mengeText ? '<span class="item-menge">' + escapeHtml(mengeText) + '</span>' : '') +
       '<button class="item-loeschen" aria-label="Löschen">✕</button>';
     zeile.querySelector('.item-checkbox').addEventListener('click', (e) => {
@@ -1091,6 +1114,19 @@
   // ---------- Preis beim Abhaken (optional) ----------
   let preisAbhakenItemId = null;
   let preisAbhakenListeId = null;
+  let preisAbhakenBewertung = 0;
+  function preisAbhakenSterneRendern() {
+    const box = document.getElementById('bewertungSterneEingabe');
+    box.innerHTML = '';
+    for (let i = 1; i <= 5; i++) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.style.cssText = 'background:none;border:none;cursor:pointer;padding:0;color:' + (i <= preisAbhakenBewertung ? '#c99a3a' : '#c9bfa8') + ';';
+      btn.textContent = '★';
+      btn.addEventListener('click', () => { preisAbhakenBewertung = (preisAbhakenBewertung === i) ? 0 : i; preisAbhakenSterneRendern(); });
+      box.appendChild(btn);
+    }
+  }
   function preisEinheitFelderAktualisieren() {
     const einheit = document.getElementById('fPreisEinheit').value;
     document.getElementById('preisMengeZeile').style.display = einheit ? '' : 'none';
@@ -1113,6 +1149,8 @@
     document.getElementById('fPreisMenge').value = (letzter && letzter.einheit && letzter.menge) ? letzter.menge : '';
     document.getElementById('fPreisNettogewicht').value = (letzter && letzter.nettogewicht) ? letzter.nettogewicht : '';
     preisEinheitFelderAktualisieren();
+    preisAbhakenBewertung = bewertungHolen(item.name);
+    preisAbhakenSterneRendern();
     document.getElementById('modalPreisAbhaken').classList.add('zeigen');
   }
   function preisAbhakenAbschliessen(mitPreis) {
@@ -1127,6 +1165,7 @@
           const nettogewicht = parseFloat(document.getElementById('fPreisNettogewicht').value.replace(',', '.'));
           preisHinzufuegen(item.name, wert, einheit ? { einheit, menge, nettogewicht } : null);
         }
+        bewertungSpeichern(item.name, preisAbhakenBewertung);
       }
       const key = preisNormName(item.name);
       const eintrag = kaufHaeufigkeit[key] || { name: item.name, anzahl: 0 };
