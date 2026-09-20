@@ -186,7 +186,7 @@
       <div class="setup-schritt" id="setupSchrittBeitreten">
         <h1>🔑 Code eingeben</h1>
         <p>Gib den Familien-Code ein, den ein anderes Gerät eurer Familie bereits angezeigt bekommen hat.</p>
-        <input type="text" id="setupCodeInput" placeholder="z.B. K3M9QT" maxlength="10">
+        <input type="text" id="setupCodeInput" placeholder="z.B. K3M9QTX7B2FH" maxlength="16">
         <div class="status-text" id="setupBeitretenStatus" style="color:var(--terracotta);margin-bottom:10px;"></div>
         <button class="btn btn-primary" id="btnSetupBeitretenBestaetigen">Beitreten</button>
         <button class="setup-zurueck" id="btnSetupZurueck1">Zurück</button>
@@ -369,12 +369,12 @@
     }
     function erzeugeCode() {
       let code = '';
-      for (let i = 0; i < 6; i++) code += CODE_ALPHABET[Math.floor(Math.random() * CODE_ALPHABET.length)];
+      for (let i = 0; i < 12; i++) code += CODE_ALPHABET[Math.floor(Math.random() * CODE_ALPHABET.length)];
       return code;
     }
     function codeAnzeigenAktualisieren() {
       const el = document.getElementById('familienCodeAnzeige');
-      if (el) el.textContent = familienId() || '------';
+      if (el) el.textContent = familienId() || '------------';
     }
 
     function setupSchrittZeigen(id) {
