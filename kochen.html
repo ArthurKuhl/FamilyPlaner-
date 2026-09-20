@@ -156,6 +156,7 @@
     position: absolute; top: 8px; right: 8px; background: none; border: none; font-size: 1rem; cursor: pointer; opacity: 0.6;
   }
   .rezept-karte .herz.aktiv { opacity: 1; }
+  .rezept-karte .meilenstein-abzeichen { position: absolute; top: 8px; left: 8px; font-size: 1.1rem; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.25)); }
   .rezept-kat-icon { font-size: 1.6rem; }
   .rezept-foto-thumb { width: 40px; height: 40px; border-radius: var(--radius-sm); object-fit: cover; }
   .rezept-titel { font-size: 0.88rem; font-weight: 700; line-height: 1.25; padding-right: 18px; }
@@ -362,7 +363,7 @@
 
 <header class="top">
   <div class="titel-zeile">
-    <h1>🍳 Kochen &amp; Backen</h1>
+    <h1>🍳 Kochen &amp; Backen <span id="sammlungAbzeichenHeader" style="font-size:0.85rem;"></span></h1>
     <button class="theme-btn" id="btnInfosModal" title="Infos">ℹ️</button>
     <button class="theme-btn" id="btnNews" title="Aktuelle Rezept-Ideen">🌐</button>
     <button class="theme-btn" id="btnThemeAuswahl" title="Hintergrundmuster wählen">🎨</button>
@@ -636,6 +637,15 @@
 </div>
 
 <!-- Kurze Notiz-Abfrage nach dem Kochen -->
+<div class="modal-bg" id="modalMeilenstein">
+  <div class="modal" style="max-width:340px;text-align:center;">
+    <div style="font-size:2.6rem;margin-bottom:8px;" id="meilensteinIconGross">🎉</div>
+    <h2 id="meilensteinTitel">Meilenstein erreicht!</h2>
+    <p id="meilensteinText" style="margin:10px 0 16px;color:var(--bark);"></p>
+    <button class="btn btn-primary" id="btnMeilensteinOk" style="width:100%;">Super!</button>
+  </div>
+</div>
+
 <div class="modal-bg" id="modalKochNotizAbschluss">
   <div class="modal">
     <h2 id="kochNotizAbschlussTitel">Fertig gekocht!</h2>
@@ -727,6 +737,50 @@
 (function(){
   'use strict';
   const KEY_REZEPTE = 'kochen_rezepte';
+  const KEY_SAMMLUNG_MEILENSTEINE = 'kochen_sammlungMeilensteine';
+  // ---------- MEILENSTEINE (Sammlung & pro Rezept) ----------
+  const MEILENSTEIN_STUFEN = [5, 10, 20, 50, 100];
+  const MEILENSTEIN_ICONS = { 5: '🥉', 10: '🥈', 20: '🥇', 50: '🏆', 100: '👑' };
+  function meilensteinIconFuer(anzahl) {
+    let icon = null;
+    MEILENSTEIN_STUFEN.forEach(stufe => { if (anzahl >= stufe) icon = MEILENSTEIN_ICONS[stufe]; });
+    return icon;
+  }
+  function meilensteinFeiern(titel, text) {
+    document.getElementById('meilensteinTitel').textContent = titel;
+    document.getElementById('meilensteinText').textContent = text;
+    document.getElementById('modalMeilenstein').classList.add('zeigen');
+  }
+  document.getElementById('btnMeilensteinOk').addEventListener('click', () => document.getElementById('modalMeilenstein').classList.remove('zeigen'));
+  document.getElementById('modalMeilenstein').addEventListener('click', (e) => { if (e.target.id === 'modalMeilenstein') e.currentTarget.classList.remove('zeigen'); });
+  let sammlungMeilensteine = laden(KEY_SAMMLUNG_MEILENSTEINE, []);
+  function pruefeSammlungMeilenstein() {
+    const anzahl = rezepte.length;
+    MEILENSTEIN_STUFEN.forEach(stufe => {
+      if (anzahl >= stufe && !sammlungMeilensteine.includes(stufe)) {
+        sammlungMeilensteine.push(stufe);
+        speichern(KEY_SAMMLUNG_MEILENSTEINE, sammlungMeilensteine);
+        meilensteinFeiern(MEILENSTEIN_ICONS[stufe] + ' Meilenstein erreicht!', stufe + ' Rezepte in deiner Sammlung!');
+      }
+    });
+    renderSammlungAbzeichen();
+  }
+  function renderSammlungAbzeichen() {
+    const el = document.getElementById('sammlungAbzeichenHeader');
+    if (!el) return;
+    const icon = meilensteinIconFuer(rezepte.length);
+    el.textContent = icon || '';
+    el.title = icon ? rezepte.length + ' Rezepte in der Sammlung' : '';
+  }
+  function pruefeRezeptMeilenstein(r) {
+    if (!r.meilensteineGekocht) r.meilensteineGekocht = [];
+    MEILENSTEIN_STUFEN.forEach(stufe => {
+      if ((r.kochZaehler || 0) >= stufe && !r.meilensteineGekocht.includes(stufe)) {
+        r.meilensteineGekocht.push(stufe);
+        meilensteinFeiern(MEILENSTEIN_ICONS[stufe] + ' Meilenstein erreicht!', '„' + r.titel + '“ schon ' + stufe + '× gekocht!');
+      }
+    });
+  }
   const KEY_EINKAUF_LISTEN = 'einkauf_listen';
   const KEY_EINKAUF_AKTIV = 'einkauf_aktiveListe';
 
@@ -752,6 +806,22 @@
     if (r.zuletztGekocht && !r.kochZaehler) { r.kochZaehler = 1; kochZaehlerMigriert = true; }
   });
   if (kochZaehlerMigriert) speichernRezepte();
+  // Migration: bereits erreichte Meilensteine (Sammlung & pro Rezept) einmalig nur
+  // vermerken statt nachträglich zu feiern, damit beim ersten Start nach Einführung
+  // dieser Funktion nicht plötzlich alte Erfolge "verkündet" werden.
+  if (!localStorage.getItem('kochen_meilensteinMigriert')) {
+    MEILENSTEIN_STUFEN.forEach(stufe => { if (rezepte.length >= stufe && !sammlungMeilensteine.includes(stufe)) sammlungMeilensteine.push(stufe); });
+    speichern(KEY_SAMMLUNG_MEILENSTEINE, sammlungMeilensteine);
+    let proRezeptGeaendert = false;
+    rezepte.forEach(r => {
+      if (!r.meilensteineGekocht) r.meilensteineGekocht = [];
+      MEILENSTEIN_STUFEN.forEach(stufe => {
+        if ((r.kochZaehler || 0) >= stufe && !r.meilensteineGekocht.includes(stufe)) { r.meilensteineGekocht.push(stufe); proRezeptGeaendert = true; }
+      });
+    });
+    if (proRezeptGeaendert) speichernRezepte();
+    try { localStorage.setItem('kochen_meilensteinMigriert', '1'); } catch (e) {}
+  }
   let aktiverFilter = 'alle';
   let aktiverTagFilter = 'alle';
   let aktiverAufwandFilter = 'alle';
@@ -1092,8 +1162,10 @@
       const treffer = (r.zutaten || []).find(z => (z.name || '').toLowerCase().includes(suchtext));
       if (treffer) zutatTrefferHtml = '<div class="rezept-zutat-treffer">🥕 enthält: ' + escapeHtml(treffer.name) + '</div>';
     }
+    const abzeichenIcon = meilensteinIconFuer(r.kochZaehler || 0);
     karte.innerHTML =
       '<button class="herz' + (r.favorit ? ' aktiv' : '') + '" data-id="' + r.id + '">' + (r.favorit ? '♥' : '♡') + '</button>' +
+      (abzeichenIcon ? '<span class="meilenstein-abzeichen" title="' + (r.kochZaehler || 0) + '× gekocht">' + abzeichenIcon + '</span>' : '') +
       (r.foto ? '<img class="rezept-foto-thumb" src="' + r.foto + '" alt="">' : '<div class="rezept-kat-icon">' + kat.icon + '</div>') +
       '<div class="rezept-titel">' + escapeHtml(r.titel) + '</div>' +
       '<div class="rezept-meta"><span>⏱ ' + r.zeit + ' Min.</span><span>🍽 ' + r.portionenBasis + '</span>' + (r.aufwand ? '<span>' + AUFWAND_STUFEN[r.aufwand].icon + '</span>' : '') + '</div>' +
@@ -1173,6 +1245,8 @@
     document.getElementById('detailKatChip').style.background = kat.farbe + '22';
     document.getElementById('detailKatChip').style.color = kat.farbe;
     document.getElementById('detailTitel').textContent = r.titel;
+    const detailAbzeichenIcon = meilensteinIconFuer(r.kochZaehler || 0);
+    document.getElementById('detailTitel').innerHTML = escapeHtml(r.titel) + (detailAbzeichenIcon ? ' <span title="' + (r.kochZaehler || 0) + '× gekocht">' + detailAbzeichenIcon + '</span>' : '');
     document.getElementById('detailMeta').innerHTML =
       '<span>⏱ ' + r.zeit + ' Min.</span>' +
       (r.bewertung ? '<span style="display:inline-flex;vertical-align:middle;">' + sterneAnzeige(r.bewertung) + '</span>' : '') +
@@ -1472,6 +1546,7 @@
   function kochmodusAbschliessen(r) {
     r.zuletztGekocht = new Date().toISOString();
     r.kochZaehler = (r.kochZaehler || 0) + 1;
+    pruefeRezeptMeilenstein(r);
     speichernRezepte();
     kochmodusSchliessen();
     renderGrid();
@@ -1885,7 +1960,10 @@
       favorit: bearbeiteId ? (rezepte.find(x => x.id === bearbeiteId)?.favorit || false) : false,
       foto: bearbeiteId ? (rezepte.find(x => x.id === bearbeiteId)?.foto || '') : '',
       zuletztGekocht: bearbeiteId ? (rezepte.find(x => x.id === bearbeiteId)?.zuletztGekocht || null) : null,
+      kochZaehler: bearbeiteId ? (rezepte.find(x => x.id === bearbeiteId)?.kochZaehler || 0) : 0,
+      meilensteineGekocht: bearbeiteId ? (rezepte.find(x => x.id === bearbeiteId)?.meilensteineGekocht || []) : [],
     };
+    const warNeu = !bearbeiteId;
     if (bearbeiteId) rezepte = rezepte.map(r => r.id === bearbeiteId ? neu : r);
     else rezepte.push(neu);
     speichernRezepte();
@@ -1894,6 +1972,7 @@
     entwurfLoeschen();
     renderFilter();
     renderGrid();
+    if (warNeu) pruefeSammlungMeilenstein();
   });
 
   document.getElementById('btnEditLoeschen').addEventListener('click', () => {
@@ -2114,6 +2193,7 @@
   renderSortKriteriumButton();
   renderFilter();
   renderGrid();
+  renderSammlungAbzeichen();
 
   // ---------- Rücksprung aus Termine: gewünschtes Rezept direkt öffnen ----------
   const KEY_OEFFNE_REZEPT = 'kochen_oeffneRezeptId';
