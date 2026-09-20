@@ -1008,6 +1008,10 @@
           <button class="btn-secondary" type="button" onclick="openVarietyDB(document.getElementById('ppName').value)" style="margin-top:4px;font-size:0.68rem;padding:3px 8px">🌾 Sortendatenbank öffnen</button>
         </div>
         <div class="form-row">
+          <label>Bewertung (nach Ertrag/Geschmack, optional)</label>
+          <div id="ppSterneEingabe" style="display:flex;gap:4px;font-size:1.4rem;"></div>
+        </div>
+        <div class="form-row">
           <label>Gepflanzt am</label>
           <input type="date" id="ppDate" oninput="savePlantInfo()"/>
         </div>
@@ -6141,6 +6145,7 @@ function renderVollbildListe() {
         <button type="button" class="vlist-plant-zeile" data-bed-idx="${i}" data-plant-idx="${pi}">
           <span>${p.sym || '🌱'}</span>
           <span style="flex:1;text-align:left">${escapeHtml(p.name || 'Unbenannt')}${p.variety ? ' <span style="color:var(--bark);font-weight:400">(' + escapeHtml(p.variety) + ')</span>' : ''}</span>
+          ${p.bewertung ? `<span style="font-size:0.62rem;color:#c99a3a;white-space:nowrap;margin-left:6px;">${'★'.repeat(p.bewertung)}</span>` : ''}
           ${p.date ? `<span style="font-size:0.68rem;color:var(--bark);white-space:nowrap;margin-left:8px">🗓 ${new Date(p.date + 'T00:00:00').toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })}</span>` : ''}
         </button>`).join('');
       return `
@@ -6656,6 +6661,20 @@ function showPest(selectId, resultId) {
 }
 
 // ==================== PLANT PANEL ====================
+let ppAktuelleBewertung = 0;
+function renderPpSterneEingabe() {
+  const box = document.getElementById('ppSterneEingabe');
+  if (!box) return;
+  box.innerHTML = '';
+  for (let i = 1; i <= 5; i++) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.style.cssText = 'background:none;border:none;cursor:pointer;padding:0;color:' + (i <= ppAktuelleBewertung ? '#c99a3a' : '#c9bfa8') + ';';
+    btn.textContent = '★';
+    btn.addEventListener('click', () => { ppAktuelleBewertung = (ppAktuelleBewertung === i) ? 0 : i; renderPpSterneEingabe(); savePlantInfo(); });
+    box.appendChild(btn);
+  }
+}
 function openPlantPanel(bed,idx) {
   ppZoomZuruecksetzen();
   activePlantBedId={bedId:bed.id,idx};
@@ -6667,6 +6686,8 @@ function openPlantPanel(bed,idx) {
   document.getElementById('ppDate').value=plant.date||'';
   document.getElementById('ppLocation').value=plant.location||'';
   renderStandortReihe('ppStandortReihe', 'ppLocation', savePlantInfo);
+  ppAktuelleBewertung = plant.bewertung || 0;
+  renderPpSterneEingabe();
   document.getElementById('symptomSel').value='';
   document.getElementById('symptomResult').innerHTML='';
   document.getElementById('ppPest').value='';
@@ -7116,6 +7137,7 @@ function savePlantInfo(){
   plant.notes=document.getElementById('ppNotes').value;
   plant.date=document.getElementById('ppDate').value;
   plant.location=document.getElementById('ppLocation').value;
+  plant.bewertung=ppAktuelleBewertung;
   saveData(); draw();
   renderNeighbors(bed,activePlantBedId.idx);
   renderSowingHint(plant.name||'');
