@@ -5314,7 +5314,7 @@ let selectedBeds = [];
 let dragBed = null, dragOffX = 0, dragOffY = 0, groupDragOthers = [];
 let dragPlant = null; // {bed, idx, plant, startX, startY, curX, curY, moved}
 let mode = 'select', bedColor = '#7a9e72';
-let zoneDrawing = false, zoneDrawStart = null, zoneDrawCur = null;
+let zoneDrawing = false, zoneDrawStart = null, zoneDrawCur = null, zoneNeuZeichnenId = null;
 let freehandDrawing = false, freehandPoints = [], freehandMouseX = 0, freehandMouseY = 0;
 let hoverConflictBedId = null;
 let selectedPlantSym = PLANTS[0].sym, selectedPlantName = PLANTS[0].name;
@@ -5609,6 +5609,20 @@ function onUp(e) {
     const x = Math.min(start.x, cur.x), y = Math.min(start.y, cur.y);
     const w = Math.abs(cur.x - start.x), h = Math.abs(cur.y - start.y);
     if (w < 30 || h < 30) { showTempStatus('⚠ Bereich zu klein – bitte größer ziehen.', 4); draw(); return; }
+    if (zoneNeuZeichnenId) {
+      const zone = getCurrentZones().find(z => z.id === zoneNeuZeichnenId);
+      zoneNeuZeichnenId = null;
+      if (zone) {
+        pushUndo();
+        zone.x = x; zone.y = y; zone.w = w; zone.h = h;
+        saveData();
+        draw();
+        renderZonenListe();
+        setMode('select');
+        showTempStatus('✓ Bereich „' + zone.name + '" aktualisiert', 4);
+      }
+      return;
+    }
     const name = prompt('Name für diesen Bereich (z.B. "Garten Nord"):', `Bereich ${getCurrentZones().length + 1}`);
     if (!name || !name.trim()) { draw(); return; }
     pushUndo();
@@ -5819,7 +5833,10 @@ function renderZonenListe() {
       <canvas class="zone-vorschau-canvas" data-zone-id="${z.id}" width="130" height="90" style="width:100%;height:90px;display:block;background:#e7e0cc;"></canvas>
       <div style="padding:6px 8px;display:flex;align-items:center;justify-content:space-between;gap:4px;">
         <span style="font-size:0.72rem;font-weight:700;color:var(--soil);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(z.name)}</span>
-        <button type="button" onclick="event.stopPropagation();zoneLoeschen(${z.id})" style="background:none;border:none;color:#c0392b;font-size:0.85rem;cursor:pointer;padding:0;flex-shrink:0;" title="Bereich löschen">🗑</button>
+        <span style="display:flex;gap:6px;flex-shrink:0;">
+          <button type="button" onclick="event.stopPropagation();zoneBearbeiten(${z.id})" style="background:none;border:none;color:var(--bark);font-size:0.85rem;cursor:pointer;padding:0;" title="Bereich bearbeiten">✏️</button>
+          <button type="button" onclick="event.stopPropagation();zoneLoeschen(${z.id})" style="background:none;border:none;color:#c0392b;font-size:0.85rem;cursor:pointer;padding:0;" title="Bereich löschen">🗑</button>
+        </span>
       </div>
     </div>
   `).join('');
@@ -5871,6 +5888,23 @@ function zoneAnzeigen(zoneId) {
 function zoneZurueckZurUebersicht() {
   gartenZoomEinpassen();
   wrap.scrollLeft = 0; wrap.scrollTop = 0;
+}
+function zoneBearbeiten(zoneId) {
+  const zone = getCurrentZones().find(z => z.id === zoneId);
+  if (!zone) return;
+  const neuerName = prompt('Name des Bereichs:', zone.name);
+  if (neuerName !== null && neuerName.trim() && neuerName.trim() !== zone.name) {
+    pushUndo();
+    zone.name = neuerName.trim();
+    saveData();
+    renderZonenListe();
+  }
+  if (confirm('Soll auch die Größe/Position von „' + zone.name + '" neu gezeichnet werden? (Rechteck auf der Karte neu ziehen)')) {
+    zoneNeuZeichnenId = zoneId;
+    document.getElementById('modalZonen').style.display = 'none';
+    setMode('zone');
+    showTempStatus('📌 Neues Rechteck für „' + zone.name + '" ziehen', 5);
+  }
 }
 function zoneLoeschen(zoneId) {
   const zonen = getCurrentZones();
