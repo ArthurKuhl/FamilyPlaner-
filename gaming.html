@@ -358,6 +358,14 @@
       <label for="fNotiz">Notiz (optional)</label>
       <textarea id="fNotiz" placeholder="z.B. Geschenkidee, Fortschritt, Eindruck ..."></textarea>
     </div>
+    <div class="feld" id="notizenLogFeld" style="display:none;">
+      <label>🧩 Notizen-Verlauf (z.B. Rätsel-Lösungen, Tipps)</label>
+      <div id="notizenLogListe" style="max-height:160px;overflow-y:auto;margin-bottom:6px;"></div>
+      <div style="display:flex;gap:6px;">
+        <input type="text" id="fNeueNotiz" placeholder="z.B. Rätsel Level 4: Hebel in dieser Reihenfolge ..." style="flex:1;">
+        <button type="button" class="btn-secondary" id="btnNotizHinzufuegen" style="width:auto;padding:8px 12px;">＋</button>
+      </div>
+    </div>
     <div class="modal-btns">
       <button class="btn btn-secondary" id="btnAbbrechen">Abbrechen</button>
       <button class="btn btn-primary" id="btnSpeichern">Speichern</button>
@@ -720,6 +728,43 @@
     }
   }
 
+  function notizenLogRendern() {
+    const box = document.getElementById('notizenLogListe');
+    if (!box) return;
+    const spiel = spiele.find(s => s.id === bearbeiteId);
+    const eintraege = (spiel && spiel.notizen) || [];
+    if (!eintraege.length) { box.innerHTML = '<div class="empty-state" style="padding:4px 0;">Noch keine Notizen.</div>'; return; }
+    box.innerHTML = eintraege.slice().reverse().map((n, i) => {
+      const echterIndex = eintraege.length - 1 - i;
+      const datum = new Date(n.datum).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' });
+      return '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid var(--parchment);font-size:0.8rem;">' +
+        '<span style="flex:1;"><span style="color:var(--bark);font-size:0.7rem;">' + datum + '</span><br>' + escapeHtml(n.text) + '</span>' +
+        '<button type="button" onclick="notizLoeschen(' + echterIndex + ')" style="background:none;border:none;color:#c0392b;cursor:pointer;padding:0;flex-shrink:0;" title="Löschen">🗑</button>' +
+        '</div>';
+    }).join('');
+  }
+  function notizLoeschen(index) {
+    const spiel = spiele.find(s => s.id === bearbeiteId);
+    if (!spiel || !spiel.notizen) return;
+    spiel.notizen.splice(index, 1);
+    speichernSpiele();
+    notizenLogRendern();
+  }
+  document.getElementById('btnNotizHinzufuegen').addEventListener('click', () => {
+    const feld = document.getElementById('fNeueNotiz');
+    const text = feld.value.trim();
+    if (!text || !bearbeiteId) return;
+    const spiel = spiele.find(s => s.id === bearbeiteId);
+    if (!spiel) return;
+    if (!spiel.notizen) spiel.notizen = [];
+    spiel.notizen.push({ datum: new Date().toISOString(), text });
+    speichernSpiele();
+    feld.value = '';
+    notizenLogRendern();
+  });
+  document.getElementById('fNeueNotiz').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); document.getElementById('btnNotizHinzufuegen').click(); }
+  });
   function editModalOeffnen(s) {
     bearbeiteId = s ? s.id : null;
     document.getElementById('editKopf').textContent = s ? 'Spiel bearbeiten' : 'Neues Spiel';
@@ -727,6 +772,8 @@
     document.getElementById('fSpielzeit').value = s ? (s.spielzeit || '') : '';
     document.getElementById('fGeschaetzteDauer').value = s ? (s.geschaetzteDauer || '') : '';
     document.getElementById('fNotiz').value = s ? (s.notiz || '') : '';
+    document.getElementById('notizenLogFeld').style.display = s ? '' : 'none';
+    notizenLogRendern();
     editPerson = s ? s.person : (personFilter !== 'alle' ? personFilter : 'mama');
     editPlattform = s ? s.plattform : 'pc';
     editStatus = s ? s.status : 'wunschliste';
@@ -766,6 +813,7 @@
       geschaetzteDauer: document.getElementById('fGeschaetzteDauer').value.trim(),
       bewertung: editBewertung,
       notiz: document.getElementById('fNotiz').value.trim(),
+      notizen: bearbeiteId ? ((spiele.find(s => s.id === bearbeiteId) || {}).notizen || []) : [],
     };
     if (bearbeiteId) spiele = spiele.map(s => s.id === bearbeiteId ? neu : s);
     else spiele.push(neu);
