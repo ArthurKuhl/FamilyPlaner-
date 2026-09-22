@@ -550,6 +550,8 @@
     <button type="button" class="tool-btn tool-btn-icon ansicht-umschalt-btn" data-modus="liste" onclick="gartenAnsichtSetzen('liste')" title="Nur Beete und Pflanzen als Liste, ohne Karte">📋</button>
     <button type="button" class="tool-btn tool-btn-icon ansicht-umschalt-btn" data-modus="karte" onclick="gartenAnsichtSetzen('karte')" title="Karte im Vollbild, ohne Liste">🗺️</button>
     <div class="tool-sep"></div>
+    <button type="button" class="tool-btn tool-btn-icon" onclick="oeffneZonenListe()" title="Bereiche verwalten – schnell in Teile des Grundstücks reinzoomen">📌 Bereiche</button>
+    <div class="tool-sep"></div>
     <div class="tool-dropdown">
       <button class="tool-btn dropdown-toggle" onclick="toggleDropdown(this)" title="Speichern, exportieren, importieren">📁 Datei <span class="caret">▾</span></button>
       <div class="dropdown-menu">
@@ -1828,6 +1830,20 @@
 </div>
 
 <!-- MODAL: Fotoalbum-Feld-Detail -->
+<div class="modal-bg" id="modalZonen" style="display:none">
+  <div class="modal" style="max-width:480px;">
+    <h2>📌 Bereiche</h2>
+    <p style="font-size:0.82rem;color:var(--bark);margin:2px 0 12px;">Zum schnellen Reinzoomen in Teile eines lang gezogenen Grundstücks. Antippen eines Bereichs zoomt direkt dorthin.</p>
+    <button class="btn-primary" style="width:100%;margin-bottom:8px;" onclick="starteZoneZeichnen()">✏️ Neuen Bereich zeichnen (Rechteck auf Karte ziehen)</button>
+    <button class="btn-secondary" style="width:100%;margin-bottom:12px;" onclick="zoneZurueckZurUebersicht();document.getElementById('modalZonen').style.display='none';">↩️ Zur Gesamtansicht zoomen</button>
+    <div id="zonenGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;max-height:60vh;overflow-y:auto;"></div>
+    <div id="zonenLeer" class="empty-state" style="display:none;">Noch keine Bereiche angelegt.</div>
+    <div class="modal-btns">
+      <button class="btn-secondary" onclick="document.getElementById('modalZonen').style.display='none'">Schließen</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="modalMeilenstein" style="display:none">
   <div class="modal" style="max-width:340px;text-align:center;">
     <h2 id="meilensteinTitel">Meilenstein erreicht!</h2>
@@ -4688,6 +4704,13 @@ function getCurrentFreiPflanzen() {
   return gardens[currentGardenId].freiPflanzen;
 }
 
+// ==================== BEREICHE (Zonen zum schnellen Ranzoomen bei langgezogenen Grundstücken) ====================
+function getCurrentZones() {
+  if (!gardens[currentGardenId]) return [];
+  if (!gardens[currentGardenId].zones) gardens[currentGardenId].zones = [];
+  return gardens[currentGardenId].zones;
+}
+
 // ==================== SETTINGS: MASSSTAB & HINTERGRUND ====================
 function getScale() {
   // Fest auf 1 (1 Zeichen-Einheit = 1 echter cm) – auch für Gärten mit einem älteren,
@@ -4882,9 +4905,20 @@ function renderGardenTabs() {
   cont.innerHTML = Object.entries(gardens).map(([id, g]) => `
     <button class="garden-tab ${id === currentGardenId ? 'active' : ''}" onclick="switchGarden('${id}')">
       🌳 ${g.name}
+      <span class="del-g" onclick="renameGarten(event,'${id}')" title="Umbenennen">✏️</span>
       ${Object.keys(gardens).length > 1 ? `<span class="del-g" onclick="deleteGarden(event,'${id}')">✕</span>` : ''}
     </button>
   `).join('');
+}
+function renameGarten(e, id) {
+  e.stopPropagation();
+  const neu = prompt('Neuer Name für diesen Garten:', gardens[id].name);
+  if (neu === null) return;
+  const getrimmt = neu.trim();
+  if (!getrimmt) return;
+  gardens[id].name = getrimmt;
+  saveData();
+  renderGardenTabs();
 }
 
 function switchGarden(id) {
@@ -5072,10 +5106,37 @@ function gartenZoomEinpassen() {
 window.addEventListener('resize', () => gartenZoomEinpassen());
 window.addEventListener('orientationchange', () => setTimeout(gartenZoomEinpassen, 200));
 
+function drawZones() {
+  ctx.save();
+  ctx.strokeStyle = '#b5842e';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([10, 6]);
+  ctx.font = 'bold 15px Inter, sans-serif';
+  getCurrentZones().forEach(z => {
+    ctx.strokeRect(z.x, z.y, z.w, z.h);
+    const labelText = z.name;
+    const metrics = ctx.measureText(labelText);
+    ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(58,46,31,0.82)';
+    ctx.fillRect(z.x + 4, z.y + 4, metrics.width + 12, 22);
+    ctx.fillStyle = '#f4ead0';
+    ctx.fillText(labelText, z.x + 10, z.y + 20);
+    ctx.setLineDash([10, 6]);
+  });
+  if (zoneDrawing && zoneDrawStart && zoneDrawCur) {
+    const x = Math.min(zoneDrawStart.x, zoneDrawCur.x), y = Math.min(zoneDrawStart.y, zoneDrawCur.y);
+    const w = Math.abs(zoneDrawCur.x - zoneDrawStart.x), h = Math.abs(zoneDrawCur.y - zoneDrawStart.y);
+    ctx.strokeStyle = '#c46b41';
+    ctx.lineWidth = 2.5;
+    ctx.strokeRect(x, y, w, h);
+  }
+  ctx.restore();
+}
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawBgImage();
   drawGardenBoundary();
+  drawZones();
   for (const bed of getCurrentBeds()) drawBed(bed, selectedBeds.includes(bed));
   for (const fp of getCurrentFreiPflanzen()) drawFreiPflanze(fp);
   if (freehandDrawing && freehandPoints.length) {
@@ -5253,6 +5314,7 @@ let selectedBeds = [];
 let dragBed = null, dragOffX = 0, dragOffY = 0, groupDragOthers = [];
 let dragPlant = null; // {bed, idx, plant, startX, startY, curX, curY, moved}
 let mode = 'select', bedColor = '#7a9e72';
+let zoneDrawing = false, zoneDrawStart = null, zoneDrawCur = null;
 let freehandDrawing = false, freehandPoints = [], freehandMouseX = 0, freehandMouseY = 0;
 let hoverConflictBedId = null;
 let selectedPlantSym = PLANTS[0].sym, selectedPlantName = PLANTS[0].name;
@@ -5283,7 +5345,7 @@ canvas.addEventListener('click', ()=>{});
 // würde. Nur dann wird natives Scrollen blockiert – über leerem Bereich soll der Finger
 // stattdessen ganz normal die Fläche scrollen können (wichtig bei gezoomten/großen Gärten).
 function ermittleCanvasZiel(x, y) {
-  if (['circle','rect','tri','lshape','freehand','freitree'].includes(mode)) return true;
+  if (['circle','rect','tri','lshape','freehand','freitree','zone'].includes(mode)) return true;
   const fpHit = hitTestFreiPflanze(x, y);
   if (fpHit && !fpHit.locked) return true;
   const beete = getCurrentBeds();
@@ -5324,6 +5386,12 @@ function rotY(rx,ry,deg){const a=deg*Math.PI/180;return rx*Math.sin(a)+ry*Math.c
 
 function onDown(e) {
   const {x,y} = getPos(e);
+  if (mode==='zone') {
+    zoneDrawing = true;
+    zoneDrawStart = {x,y};
+    zoneDrawCur = {x,y};
+    return;
+  }
   if (mode==='freitree') {
     pushUndo();
     const neu = { id: Date.now(), x, y, sym: selectedPlantSym || '🌳', name: selectedPlantName || '', sorte: '', datum: '', notiz: '' };
@@ -5447,6 +5515,12 @@ function onDown(e) {
 }
 
 function onMove(e) {
+  if (zoneDrawing) {
+    const {x,y}=getPos(e);
+    zoneDrawCur = {x,y};
+    draw();
+    return;
+  }
   if (freehandDrawing) {
     const {x,y}=getPos(e);
     freehandMouseX=x; freehandMouseY=y;
@@ -5528,6 +5602,24 @@ function hidePlantTooltip() {
   if (hoverConflictBedId !== null) { hoverConflictBedId = null; draw(); }
 }
 function onUp(e) {
+  if (zoneDrawing) {
+    zoneDrawing = false;
+    const start = zoneDrawStart, cur = zoneDrawCur || zoneDrawStart;
+    zoneDrawStart = null; zoneDrawCur = null;
+    const x = Math.min(start.x, cur.x), y = Math.min(start.y, cur.y);
+    const w = Math.abs(cur.x - start.x), h = Math.abs(cur.y - start.y);
+    if (w < 30 || h < 30) { showTempStatus('⚠ Bereich zu klein – bitte größer ziehen.', 4); draw(); return; }
+    const name = prompt('Name für diesen Bereich (z.B. "Garten Nord"):', `Bereich ${getCurrentZones().length + 1}`);
+    if (!name || !name.trim()) { draw(); return; }
+    pushUndo();
+    getCurrentZones().push({ id: Date.now(), name: name.trim(), x, y, w, h });
+    saveData();
+    draw();
+    renderZonenListe();
+    setMode('select');
+    showTempStatus('✓ Bereich „' + name.trim() + '" angelegt', 4);
+    return;
+  }
   if (dragFreiPflanze) {
     const dfp = dragFreiPflanze; dragFreiPflanze = null;
     if (!dfp.moved) {
@@ -5708,6 +5800,89 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
+// ---------- Bereiche: Liste, Vorschau, Ranzoomen ----------
+function oeffneZonenListe() {
+  renderZonenListe();
+  document.getElementById('modalZonen').style.display = 'flex';
+}
+function starteZoneZeichnen() {
+  document.getElementById('modalZonen').style.display = 'none';
+  setMode('zone');
+  showTempStatus('📌 Rechteck über den gewünschten Bereich ziehen, dann Namen eingeben', 5);
+}
+function renderZonenListe() {
+  const zonen = getCurrentZones();
+  const grid = document.getElementById('zonenGrid');
+  document.getElementById('zonenLeer').style.display = zonen.length ? 'none' : '';
+  grid.innerHTML = zonen.map(z => `
+    <div style="background:var(--white);border-radius:var(--radius-md);box-shadow:var(--shadow-soft);overflow:hidden;cursor:pointer;" onclick="zoneAnzeigen(${z.id})">
+      <canvas class="zone-vorschau-canvas" data-zone-id="${z.id}" width="130" height="90" style="width:100%;height:90px;display:block;background:#e7e0cc;"></canvas>
+      <div style="padding:6px 8px;display:flex;align-items:center;justify-content:space-between;gap:4px;">
+        <span style="font-size:0.72rem;font-weight:700;color:var(--soil);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(z.name)}</span>
+        <button type="button" onclick="event.stopPropagation();zoneLoeschen(${z.id})" style="background:none;border:none;color:#c0392b;font-size:0.85rem;cursor:pointer;padding:0;flex-shrink:0;" title="Bereich löschen">🗑</button>
+      </div>
+    </div>
+  `).join('');
+  requestAnimationFrame(zeichneZonenVorschauen);
+}
+function zeichneZonenVorschauen() {
+  getCurrentZones().forEach(z => {
+    const mini = document.querySelector('.zone-vorschau-canvas[data-zone-id="' + z.id + '"]');
+    if (!mini) return;
+    const mctx = mini.getContext('2d');
+    mctx.clearRect(0, 0, mini.width, mini.height);
+    mctx.fillStyle = '#e7e0cc';
+    mctx.fillRect(0, 0, mini.width, mini.height);
+    if (bgImageEl && bgImageLoadedFor === currentGardenId) {
+      const skalX = bgImageEl.naturalWidth / canvas.width;
+      const skalY = bgImageEl.naturalHeight / canvas.height;
+      try {
+        mctx.drawImage(bgImageEl, z.x * skalX, z.y * skalY, z.w * skalX, z.h * skalY, 0, 0, mini.width, mini.height);
+      } catch (e) {}
+    }
+    const skal = Math.min(mini.width / z.w, mini.height / z.h);
+    const offX = (mini.width - z.w * skal) / 2, offY = (mini.height - z.h * skal) / 2;
+    getCurrentBeds().forEach(bed => {
+      const bw = (bed.w || (bed.rx ? bed.rx * 2 : 40)), bh = (bed.h || (bed.ry ? bed.ry * 2 : 40));
+      const bx = bed.x - bw / 2, by = bed.y - bh / 2;
+      if (bx + bw < z.x || bx > z.x + z.w || by + bh < z.y || by > z.y + z.h) return;
+      mctx.fillStyle = bed.color || '#7a9e72';
+      mctx.globalAlpha = 0.85;
+      mctx.fillRect(offX + (bx - z.x) * skal, offY + (by - z.y) * skal, bw * skal, bh * skal);
+      mctx.globalAlpha = 1;
+    });
+  });
+}
+function zoneAnzeigen(zoneId) {
+  const zone = getCurrentZones().find(z => z.id === zoneId);
+  if (!zone) return;
+  document.getElementById('modalZonen').style.display = 'none';
+  gartenAnsichtSetzen('karte');
+  const padding = 40;
+  const neuerZoom = Math.min(wrap.clientWidth / (zone.w + padding * 2), wrap.clientHeight / (zone.h + padding * 2), 4);
+  gartenZoomSetzen(neuerZoom);
+  requestAnimationFrame(() => {
+    const zentrumX = zone.x + zone.w / 2, zentrumY = zone.y + zone.h / 2;
+    wrap.scrollLeft = Math.max(0, zentrumX * gartenZoom - wrap.clientWidth / 2);
+    wrap.scrollTop = Math.max(0, zentrumY * gartenZoom - wrap.clientHeight / 2);
+  });
+  showTempStatus('📌 Zu „' + zone.name + '" gezoomt', 3);
+}
+function zoneZurueckZurUebersicht() {
+  gartenZoomEinpassen();
+  wrap.scrollLeft = 0; wrap.scrollTop = 0;
+}
+function zoneLoeschen(zoneId) {
+  const zonen = getCurrentZones();
+  const zone = zonen.find(z => z.id === zoneId);
+  if (!zone) return;
+  if (!confirm('Bereich „' + zone.name + '" wirklich löschen? (Beete darin bleiben erhalten)')) return;
+  pushUndo();
+  gardens[currentGardenId].zones = zonen.filter(z => z.id !== zoneId);
+  saveData();
+  draw();
+  renderZonenListe();
+}
 function setMode(m) {
   if (mode==='freehand' && m!=='freehand' && freehandDrawing) cancelFreehand();
   mode=m;
@@ -5716,7 +5891,7 @@ function setMode(m) {
   const map={circle:'btnCircle',rect:'btnRect',tri:'btnTri',lshape:'btnLshape',freehand:'btnFreehand',select:'btnSelect',plant:'btnPlant'};
   if(map[m]) document.getElementById(map[m])?.classList.add('active');
   wrap.className='canvas-wrap mode-'+m;
-  const labels={circle:'Kreis zeichnen',rect:'Rechteck zeichnen',tri:'Dreieck zeichnen',lshape:'L-Form zeichnen',freehand:'Freiform: Punkte anklicken, am Startpunkt schließen',select:'Auswählen / Verschieben',plant:`Pflanze setzen: ${selectedPlantSym}`,freitree:`🌳 Frei platzieren: ${selectedPlantSym} – auf die Fläche tippen (außerhalb eines Beets)`};
+  const labels={circle:'Kreis zeichnen',rect:'Rechteck zeichnen',tri:'Dreieck zeichnen',lshape:'L-Form zeichnen',freehand:'Freiform: Punkte anklicken, am Startpunkt schließen',select:'Auswählen / Verschieben',plant:`Pflanze setzen: ${selectedPlantSym}`,freitree:`🌳 Frei platzieren: ${selectedPlantSym} – auf die Fläche tippen (außerhalb eines Beets)`,zone:'📌 Bereich: Rechteck über die Karte ziehen'};
   document.getElementById('statusMsg').textContent=labels[m]||m;
   document.getElementById('sb1').textContent='Modus: '+(labels[m]||m);
   document.getElementById('plantModeControls').style.display = (m==='plant') ? 'flex' : 'none';
