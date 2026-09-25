@@ -157,6 +157,12 @@
     box-shadow: 0 3px 10px rgba(74,111,90,0.35);
   }
 
+  .sport-karte .add-sport-btn { margin-bottom: 8px; font-size: 1.05rem; padding: 16px; }
+  .sport-nachtragen { width: 100%; background: var(--white); border: 1px dashed var(--sage); color: var(--moss); border-radius: var(--radius-md); padding: 10px; font-size: 0.85rem; font-weight: 700; cursor: pointer; }
+  .sport-karte .sport-liste { margin-top: 10px; }
+  .sport-karte .sport-liste:empty { margin-top: 0; }
+  .sport-leer { font-size: 0.8rem; color: var(--bark); opacity: 0.75; margin-top: 8px; }
+  #fSportTyp { font-size: 1rem; font-weight: 600; padding: 11px 12px; }
   .verlauf-datum-gruppe { margin-bottom: 14px; }
   .verlauf-datum-titel { font-size: 0.72rem; font-weight: 700; color: var(--bark); text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 6px; padding-left: 2px; }
 
@@ -386,6 +392,14 @@
     <button id="btnDatenschutzBannerSchliessen" title="Schließen" style="position:absolute; top:6px; right:8px; background:none; border:none; font-size:1.1rem; cursor:pointer; color:inherit; line-height:1;">✕</button>
   </div>
   <section id="ansichtHeute">
+    <div class="karte sport-karte">
+      <div class="datum-label">Sport heute</div>
+      <button class="add-sport-btn" id="btnSportSchnellstart">▶ Laufen starten</button>
+      <button class="sport-nachtragen" id="btnSportHinzufuegen">＋ Einheit nachtragen</button>
+      <div class="sport-liste" id="sportHeuteListe"></div>
+      <div class="sport-leer" id="sportHeuteLeer">Heute noch keine Einheit.</div>
+    </div>
+
     <div class="karte">
       <div class="datum-label" id="heuteDatumLabel"></div>
       <div class="metrik-zeile">
@@ -434,9 +448,6 @@
       </div>
     </div>
 
-    <button class="add-sport-btn" id="btnSportHinzufuegen">＋ Sport-Einheit erfassen</button>
-
-    <div class="sport-liste" id="sportHeuteListe"></div>
 
     <div class="karte">
       <h3>💊 Medikamente &amp; Vitamine</h3>
@@ -1839,6 +1850,8 @@
     { id: 'sonstiges',  label: 'Sonstiges',   icon: '⭐' },
   ];
   const STIMMUNGEN = ['😞','😕','😐','🙂','😄'];
+  const GPS_SPORTARTEN = ['laufen', 'radfahren', 'wandern']; // für den Schnellstart im Heute-Tab
+  const KEY_LETZTER_TYP = 'gesundheit_letzterSportTyp'; // zuletzt genutzte Sportart je Person, nur dieses Gerät
 
   // neueId, escapeHtml, showTempStatus, laden, speichern, heuteISO, ausISO: siehe gemeinsam.js
   function toISODatum(d) { return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
@@ -2053,6 +2066,25 @@
     box.innerHTML = '';
     const heutige = sportEinheiten.filter(s => s.person === aktivePerson && s.datum === heuteISO());
     heutige.forEach(s => box.appendChild(sportZeile(s)));
+    document.getElementById('sportHeuteLeer').style.display = heutige.length ? 'none' : '';
+    const gpsTyp = typInfo(letzterSportTyp(true));
+    document.getElementById('btnSportSchnellstart').textContent = '▶ ' + gpsTyp.label + ' starten';
+  }
+
+  // ---------- Zuletzt genutzte Sportart je Person (nur dieses Gerät) ----------
+  // Für den Schnellstart zählen nur Sportarten, bei denen GPS-Tracking draußen sinnvoll ist.
+  function letzterSportTyp(nurGps) {
+    const gemerkt = laden(KEY_LETZTER_TYP, {})[aktivePerson] || {};
+    const typ = nurGps ? gemerkt.gps : gemerkt.alle;
+    return typ && SPORT_TYPEN.some(t => t.id === typ) ? typ : 'laufen';
+  }
+  function letztenSportTypMerken(person, typ) {
+    const alle = laden(KEY_LETZTER_TYP, {});
+    const eintrag = alle[person] || {};
+    eintrag.alle = typ;
+    if (GPS_SPORTARTEN.includes(typ)) eintrag.gps = typ;
+    alle[person] = eintrag;
+    try { localStorage.setItem(KEY_LETZTER_TYP, JSON.stringify(alle)); } catch (e) {}
   }
 
   // ============================================================
@@ -2311,16 +2343,17 @@
   // --- SPORT-MODAL ---
   let ausgewaehlterTyp = 'laufen';
   function renderTypReihe() {
+    // Aufklappliste statt Chip-Reihe (spart Platz, öffnet auf dem Handy die native Auswahl)
     const box = document.getElementById('typReihe');
-    box.innerHTML = '';
-    SPORT_TYPEN.forEach(t => {
-      const opt = document.createElement('button');
-      opt.type = 'button';
-      opt.className = 'typ-opt' + (t.id === ausgewaehlterTyp ? ' aktiv' : '');
-      opt.textContent = t.icon + ' ' + t.label;
-      opt.addEventListener('click', () => { ausgewaehlterTyp = t.id; renderTypReihe(); aktualisiereStreckeFeld(); });
-      box.appendChild(opt);
-    });
+    let auswahl = document.getElementById('fSportTyp');
+    if (!auswahl) {
+      box.innerHTML = '<select id="fSportTyp" aria-label="Sportart">' +
+        SPORT_TYPEN.map(t => '<option value="' + t.id + '">' + t.icon + ' ' + escapeHtml(t.label) + '</option>').join('') +
+        '</select>';
+      auswahl = document.getElementById('fSportTyp');
+      auswahl.addEventListener('change', () => { ausgewaehlterTyp = auswahl.value; aktualisiereStreckeFeld(); });
+    }
+    auswahl.value = ausgewaehlterTyp;
   }
   function aktualisiereStreckeFeld() {
     const t = typInfo(ausgewaehlterTyp);
@@ -2371,11 +2404,11 @@
       });
     });
   }
-  document.getElementById('btnSportHinzufuegen').addEventListener('click', () => {
+  function sportModalNeuOeffnen(typ) {
     gpsAbbrechen();
     sportBearbeiteId = null;
     document.getElementById('modalSportTitel').textContent = 'Sport-Einheit';
-    ausgewaehlterTyp = 'laufen';
+    ausgewaehlterTyp = typ;
     ausgewaehlteUebungen = [];
     renderTypReihe();
     aktualisiereStreckeFeld();
@@ -2384,6 +2417,12 @@
     document.getElementById('fSportStrecke').value = '';
     document.getElementById('fSportNotiz').value = '';
     document.getElementById('modalSport').classList.add('zeigen');
+  }
+  document.getElementById('btnSportHinzufuegen').addEventListener('click', () => sportModalNeuOeffnen(letzterSportTyp(false)));
+  // Schnellstart: Formular mit der zuletzt genutzten GPS-Sportart öffnen und Tracking sofort starten
+  document.getElementById('btnSportSchnellstart').addEventListener('click', () => {
+    sportModalNeuOeffnen(letzterSportTyp(true));
+    document.getElementById('btnGpsStart').click();
   });
   document.getElementById('btnSportAbbrechen').addEventListener('click', () => { gpsAbbrechen(); document.getElementById('modalSport').classList.remove('zeigen'); });
   document.getElementById('modalSport').addEventListener('click', (e) => { if (e.target.id === 'modalSport') { gpsAbbrechen(); e.currentTarget.classList.remove('zeigen'); } });
@@ -2524,6 +2563,7 @@
     } else {
       sportEinheiten.push(neu);
     }
+    letztenSportTypMerken(neu.person, neu.typ);
     speichern(KEY_SPORT, sportEinheiten);
     document.getElementById('modalSport').classList.remove('zeigen');
     gpsAbbrechen();
