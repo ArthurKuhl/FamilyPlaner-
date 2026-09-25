@@ -148,6 +148,21 @@
   .sterne-eingabe { display: flex; gap: 4px; }
   .sterne-eingabe button { background: none; border: none; font-size: 1.6rem; color: var(--parchment); cursor: pointer; padding: 0 2px; }
   .sterne-eingabe button.aktiv { color: var(--gold); }
+  /* Teil-gefüllte Sterne (z.B. 3,7): Verlauf gold→leer, auf die Sternform zugeschnitten */
+  .stern-teil { background: linear-gradient(90deg, var(--gold) var(--f, 0%), var(--parchment) var(--f, 0%)); -webkit-background-clip: text; background-clip: text; color: transparent !important; }
+  .sterne-wert { font-size: 0.68rem; font-weight: 700; color: var(--bark); margin-left: 4px; align-self: center; }
+  .bew-layout { display: flex; gap: 12px; align-items: flex-start; }
+  .bew-layout .feld-spalte { flex: 1; min-width: 0; }
+  .bew-layout .bewertung-spalte { flex: 1.3; min-width: 0; }
+  .bew-zeile { display: flex; align-items: center; justify-content: space-between; gap: 4px; min-height: 26px; }
+  .bew-zeile span { font-size: 0.72rem; color: var(--soil); line-height: 1.15; }
+  .bew-sterne { display: flex; flex-shrink: 0; }
+  .bew-sterne button { border: none; font-size: 1.1rem; line-height: 1; padding: 2px 1px; cursor: pointer; }
+  .bew-sterne button:disabled { cursor: default; }
+  .bew-gesamt { padding-bottom: 2px; }
+  .bew-gesamt span { font-weight: 700; font-size: 0.8rem; }
+  .bew-gesamt .bew-sterne button { font-size: 1.3rem; }
+  .bew-hinweis { font-size: 0.64rem; color: var(--bark); margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px solid var(--parchment); min-height: 1em; }
   .modal-btns { display: flex; gap: 8px; margin-top: 16px; }
   .btn { flex: 1; padding: 11px; border-radius: var(--radius-pill); border: none; font-weight: 700; font-size: 0.85rem; cursor: pointer; }
   .btn-primary { background: var(--moss); color: var(--leaf); }
@@ -332,26 +347,30 @@
       <label>Person</label>
       <div class="opt-reihe" id="editPersonReihe"></div>
     </div>
-    <div class="feld">
-      <label>Plattform</label>
-      <div class="opt-reihe" id="editPlattformReihe"></div>
-    </div>
-    <div class="feld">
-      <label>Status</label>
-      <div class="opt-reihe" id="editStatusReihe"></div>
-    </div>
-    <div class="feld" id="fGeschaetzteDauerFeld" style="display:none">
-      <label for="fGeschaetzteDauer">Geschätzte Spieldauer (Std., optional)</label>
-      <input type="number" id="fGeschaetzteDauer" min="0" step="0.5" placeholder="z.B. 40 – lohnt sich das heute Abend noch?">
-    </div>
-    <div class="zeile">
-      <div class="feld">
-        <label for="fSpielzeit">Spielzeit (Std., optional)</label>
-        <input type="number" id="fSpielzeit" min="0" step="0.5" placeholder="z.B. 12">
+    <div class="bew-layout">
+      <div class="feld-spalte">
+        <div class="feld">
+          <label for="fPlattform">Plattform</label>
+          <select id="fPlattform"></select>
+        </div>
+        <div class="feld">
+          <label for="fStatus">Status</label>
+          <select id="fStatus"></select>
+        </div>
+        <div class="feld">
+          <label for="fSpielzeit">Spielzeit (Std.)</label>
+          <input type="number" id="fSpielzeit" min="0" step="0.5" placeholder="z.B. 12">
+        </div>
+        <div class="feld" id="fGeschaetzteDauerFeld" style="display:none">
+          <label for="fGeschaetzteDauer">Geschätzte Dauer (Std.)</label>
+          <input type="number" id="fGeschaetzteDauer" min="0" step="0.5" placeholder="z.B. 40">
+        </div>
       </div>
-      <div class="feld">
+      <div class="feld bewertung-spalte">
         <label>Bewertung</label>
-        <div class="sterne-eingabe" id="sterneEingabe"></div>
+        <div class="bew-zeile bew-gesamt"><span>Gesamt</span><div class="bew-sterne" id="bewGesamtSterne"></div></div>
+        <div class="bew-hinweis" id="bewGesamtHinweis"></div>
+        <div id="bewKriterien"></div>
       </div>
     </div>
     <div class="feld">
@@ -506,6 +525,29 @@
     { id: 'abgebrochen',   label: 'Abgebrochen',     icon: '⏹️', farbe: '#a8532e' },
   ];
 
+  // Einzelbewertungen: jede 1–5 Sterne; nur bewertete Punkte fließen in den Durchschnitt ein
+  const BEWERTUNGS_KRITERIEN = [
+    { id: 'story',         label: 'Story' },
+    { id: 'spieldauer',    label: 'Spieldauer' },
+    { id: 'grafik',        label: 'Grafik' },
+    { id: 'spass',         label: 'Spaß' },
+    { id: 'musik',         label: 'Musik' },
+    { id: 'atmosphaere',   label: 'Atmosphäre' },
+    { id: 'worldbuilding', label: 'Worldbuilding' },
+    { id: 'mechanik',      label: 'Spielmechanik' },
+  ];
+  function bewerteteKriterien(detail) {
+    return BEWERTUNGS_KRITERIEN.map(k => (detail || {})[k.id]).filter(w => w >= 1 && w <= 5);
+  }
+  // Gesamt = Durchschnitt der bewerteten Punkte (1 Nachkommastelle); ohne Einzelwerte gilt die direkt gesetzte Gesamtbewertung
+  function gesamtBewertung(detail, manuell) {
+    const werte = bewerteteKriterien(detail);
+    if (werte.length) return Math.round(werte.reduce((a, b) => a + b, 0) / werte.length * 10) / 10;
+    return manuell || 0;
+  }
+  function bewertungText(wert) { return wert.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 }); }
+  function sternFuellung(wert, i) { return Math.round(Math.max(0, Math.min(1, wert - (i - 1))) * 100) + '%'; }
+
   function plattformInfo(id) { return PLATTFORMEN.find(p => p.id === id) || PLATTFORMEN[PLATTFORMEN.length-1]; }
   function statusInfo(id) { return STATUSSE.find(s => s.id === id) || STATUSSE[0]; }
   function neueId(prefix) { return prefix + Date.now() + Math.random().toString(36).slice(2,7); }
@@ -544,6 +586,7 @@
       geschaetzteDauer: document.getElementById('fGeschaetzteDauer').value,
       notiz: document.getElementById('fNotiz').value,
       person: editPerson, plattform: editPlattform, status: editStatus, bewertung: editBewertung,
+      bewertungDetail: Object.assign({}, editDetail),
     };
   }
   function entwurfHatInhalt(d) { return !!(d.titel.trim() || d.notiz.trim()); }
@@ -568,6 +611,7 @@
     document.getElementById('fGeschaetzteDauer').value = d.geschaetzteDauer || '';
     document.getElementById('fNotiz').value = d.notiz || '';
     editPerson = d.person; editPlattform = d.plattform; editStatus = d.status; editBewertung = d.bewertung || 0;
+    editDetail = Object.assign({}, d.bewertungDetail || {});
     renderEditPersonReihe(); renderEditPlattformReihe(); renderEditStatusReihe(); renderSterneEingabe();
   }
   let aktiveAnsicht = 'bibliothek';
@@ -654,7 +698,8 @@
   // --- GRID ---
   function sterneAnzeige(bewertung) {
     let html = '<div class="sterne-reihe">';
-    for (let i = 1; i <= 5; i++) html += '<span class="stern' + (i <= bewertung ? ' aktiv' : '') + '">★</span>';
+    for (let i = 1; i <= 5; i++) html += '<span class="stern stern-teil" style="--f:' + sternFuellung(bewertung, i) + '">★</span>';
+    if (bewertung > 0 && bewertung % 1 !== 0) html += '<span class="sterne-wert">' + bewertungText(bewertung) + '</span>';
     return html + '</div>';
   }
 
@@ -689,7 +734,9 @@
   }
 
   // --- BEARBEITEN / NEU ---
-  let editPerson = 'mama', editPlattform = 'pc', editStatus = 'wunschliste', editBewertung = 0;
+  let editPerson = 'mama', editPlattform = 'pc', editStatus = 'wunschliste';
+  let editBewertung = 0;  // direkt gesetzte Gesamtbewertung (gilt nur, solange keine Einzelpunkte bewertet sind)
+  let editDetail = {};    // { story: 4, grafik: 5, ... }
 
   function optReiheRendern(containerId, optionen, ausgewaehlt, onWahl) {
     const box = document.getElementById(containerId);
@@ -707,25 +754,55 @@
   function renderEditPersonReihe() {
     optReiheRendern('editPersonReihe', PERSONEN.filter(p => p.id !== 'alle'), editPerson, (id) => { editPerson = id; renderEditPersonReihe(); });
   }
-  function renderEditPlattformReihe() {
-    optReiheRendern('editPlattformReihe', PLATTFORMEN, editPlattform, (id) => { editPlattform = id; renderEditPlattformReihe(); });
+  function auswahlFuellen(id, optionen, wert) {
+    const sel = document.getElementById(id);
+    if (!sel.options.length) sel.innerHTML = optionen.map(o => '<option value="' + o.id + '">' + o.icon + ' ' + escapeHtml(o.label) + '</option>').join('');
+    sel.value = wert;
+    if (sel.value !== wert) sel.value = optionen[optionen.length - 1].id; // unbekannter alter Wert → letzte Option
   }
+  function renderEditPlattformReihe() { auswahlFuellen('fPlattform', PLATTFORMEN, editPlattform); }
+  document.getElementById('fPlattform').addEventListener('change', (e) => { editPlattform = e.target.value; });
+  document.getElementById('fStatus').addEventListener('change', (e) => { editStatus = e.target.value; renderEditStatusReihe(); });
   function renderEditStatusReihe() {
-    optReiheRendern('editStatusReihe', STATUSSE, editStatus, (id) => { editStatus = id; renderEditStatusReihe(); });
+    auswahlFuellen('fStatus', STATUSSE, editStatus);
     const feld = document.getElementById('fGeschaetzteDauerFeld');
     if (feld) feld.style.display = (editStatus === 'wunschliste') ? '' : 'none';
   }
-  function renderSterneEingabe() {
-    const box = document.getElementById('sterneEingabe');
+  function sterneKnoepfe(box, wert, klickbar, onWahl, name) {
     box.innerHTML = '';
     for (let i = 1; i <= 5; i++) {
       const btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = i <= editBewertung ? 'aktiv' : '';
+      btn.className = 'stern-teil';
+      btn.style.setProperty('--f', sternFuellung(wert, i));
       btn.textContent = '★';
-      btn.addEventListener('click', () => { editBewertung = (editBewertung === i) ? 0 : i; renderSterneEingabe(); });
+      btn.disabled = !klickbar;
+      btn.setAttribute('aria-label', name + ': ' + i + (i === 1 ? ' Stern' : ' Sterne'));
+      // Nochmal auf denselben Stern tippen = Bewertung entfernen
+      if (klickbar) btn.addEventListener('click', () => onWahl(wert === i ? 0 : i));
       box.appendChild(btn);
     }
+  }
+  function renderSterneEingabe() {
+    const anzahl = bewerteteKriterien(editDetail).length;
+    const gesamt = gesamtBewertung(editDetail, editBewertung);
+    sterneKnoepfe(document.getElementById('bewGesamtSterne'), gesamt, anzahl === 0,
+      (v) => { editBewertung = v; renderSterneEingabe(); }, 'Gesamt');
+    document.getElementById('bewGesamtHinweis').textContent = anzahl
+      ? 'Ø ' + bewertungText(gesamt) + ' aus ' + anzahl + (anzahl === 1 ? ' Punkt' : ' Punkten')
+      : (editBewertung ? 'Direkt vergeben' : 'Direkt vergeben oder einzeln bewerten');
+    const liste = document.getElementById('bewKriterien');
+    liste.innerHTML = '';
+    BEWERTUNGS_KRITERIEN.forEach(k => {
+      const zeile = document.createElement('div');
+      zeile.className = 'bew-zeile';
+      zeile.innerHTML = '<span>' + k.label + '</span><div class="bew-sterne"></div>';
+      sterneKnoepfe(zeile.querySelector('.bew-sterne'), editDetail[k.id] || 0, true, (v) => {
+        if (v) editDetail[k.id] = v; else delete editDetail[k.id];
+        renderSterneEingabe();
+      }, k.label);
+      liste.appendChild(zeile);
+    });
   }
 
   function notizenLogRendern() {
@@ -777,7 +854,9 @@
     editPerson = s ? s.person : (personFilter !== 'alle' ? personFilter : 'mama');
     editPlattform = s ? s.plattform : 'pc';
     editStatus = s ? s.status : 'wunschliste';
-    editBewertung = s ? (s.bewertung || 0) : 0;
+    editDetail = Object.assign({}, (s && s.bewertungDetail) || {});
+    // Ältere Spiele haben nur "bewertung" – die gilt dann als direkt gesetzte Gesamtbewertung
+    editBewertung = s ? (s.bewertungManuell !== undefined ? s.bewertungManuell : (bewerteteKriterien(editDetail).length ? 0 : (s.bewertung || 0))) : 0;
     renderEditPersonReihe(); renderEditPlattformReihe(); renderEditStatusReihe(); renderSterneEingabe();
     document.getElementById('loeschZeile').style.display = s ? '' : 'none';
     document.getElementById('modalEdit').classList.add('zeigen');
@@ -806,16 +885,21 @@
   document.getElementById('btnSpeichern').addEventListener('click', () => {
     const titel = document.getElementById('fTitel').value.trim();
     if (!titel) { alert('Bitte einen Titel eingeben.'); return; }
+    const bewertungDetailSauber = {};
+    BEWERTUNGS_KRITERIEN.forEach(k => { const w = editDetail[k.id]; if (w >= 1 && w <= 5) bewertungDetailSauber[k.id] = w; });
     const neu = {
       id: bearbeiteId || neueId('g'),
       titel, person: editPerson, plattform: editPlattform, status: editStatus,
       spielzeit: document.getElementById('fSpielzeit').value.trim(),
       geschaetzteDauer: document.getElementById('fGeschaetzteDauer').value.trim(),
-      bewertung: editBewertung,
+      bewertung: gesamtBewertung(bewertungDetailSauber, editBewertung),
+      bewertungDetail: bewertungDetailSauber,
+      bewertungManuell: editBewertung,
       notiz: document.getElementById('fNotiz').value.trim(),
       notizen: bearbeiteId ? ((spiele.find(s => s.id === bearbeiteId) || {}).notizen || []) : [],
     };
-    if (bearbeiteId) spiele = spiele.map(s => s.id === bearbeiteId ? neu : s);
+    // Object.assign: unbekannte/weitere Felder des alten Eintrags bleiben erhalten
+    if (bearbeiteId) spiele = spiele.map(s => s.id === bearbeiteId ? Object.assign({}, s, neu) : s);
     else spiele.push(neu);
     speichernSpiele();
     document.getElementById('modalEdit').classList.remove('zeigen');
