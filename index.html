@@ -240,6 +240,7 @@
     <div class="modal" style="max-height:85vh;overflow-y:auto;">
       <h2>⚙️ Einstellungen</h2>
       <p style="font-size:0.72rem;color:var(--bark);margin-top:-8px;margin-bottom:14px;">Diese Einstellungen gelten nur für dieses Gerät – nicht synchronisiert, jeder kann sich das nach eigenem Geschmack einrichten.</p>
+      <button class="btn btn-secondary" id="btnEinstZuPersonen" style="margin-bottom:14px;">👪 Personen verwalten</button>
 
       <div style="border-top:1px solid #e5ddc8;padding-top:14px;margin-bottom:16px;">
         <div style="font-weight:700;color:var(--soil);margin-bottom:8px;">🔀 Reihenfolge der Module</div>
@@ -624,6 +625,8 @@
     }
 
     document.getElementById('btnEinstellungen').addEventListener('click', () => {
+      // Merker für die Einrichtungs-Karte auf der Startseite: Module wurden einmal angeschaut
+      try { localStorage.setItem('planer_einrichtung_module', '1'); } catch (e) {}
       einstellungenBefuellen();
       document.getElementById('modalEinstellungen').classList.add('zeigen');
     });
@@ -631,6 +634,10 @@
       document.getElementById('modalEinstellungen').classList.remove('zeigen');
     });
     modalEinstellungen.addEventListener('click', (e) => { if (e.target.id === 'modalEinstellungen') modalEinstellungen.classList.remove('zeigen'); });
+    document.getElementById('btnEinstZuPersonen').addEventListener('click', () => {
+      modalEinstellungen.classList.remove('zeigen');
+      document.getElementById('btnPersonen').click();
+    });
 
     document.getElementById('einstDarkMode').addEventListener('change', (e) => {
       try { localStorage.setItem('planer_darkMode', e.target.value); } catch (err) {}
@@ -761,6 +768,11 @@
     window.addEventListener('message', (e) => {
       if (e.origin !== window.location.origin) return;
       if (e.data && e.data.type === 'navigiere' && e.data.modul) bereichLaden(e.data.modul);
+      // Startseite kann Personenverwaltung und Einstellungen direkt öffnen (Einrichtungs-Karte, Zahnrad im Kopf)
+      if (e.data && e.data.type === 'oeffneDialog') {
+        const btnId = { personen: 'btnPersonen', einstellungen: 'btnEinstellungen' }[e.data.dialog];
+        if (btnId) document.getElementById(btnId).click();
+      }
     });
 
     // Offline-/Online-Hinweis

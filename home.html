@@ -45,7 +45,16 @@
   body { font-family: 'Inter', sans-serif; background: var(--cream); color: var(--soil); min-height: 100vh; padding-bottom: 40px; }
   button { font-family: inherit; -webkit-tap-highlight-color: transparent; }
 
-  header.top { background: var(--navbg); color: var(--leaf); padding: 10px 16px 10px; }
+  header.top { background: var(--navbg); color: var(--leaf); padding: 10px 16px 10px; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .kopf-zahnrad { background: none; border: none; font-size: 1.25rem; line-height: 1; padding: 6px; margin: -2px -6px 0 0; cursor: pointer; opacity: 0.85; border-radius: var(--radius-sm); }
+  .kopf-zahnrad:focus-visible { outline: 2px solid var(--leaf); }
+  .einrichtung { cursor: default; border-top-color: var(--terracotta); }
+  .einrichtung:hover { transform: none; }
+  .einrichtung-text { font-size: 0.85rem; color: var(--bark); margin-bottom: 10px; line-height: 1.45; }
+  .einrichtung-schritt { display: flex; align-items: center; gap: 10px; width: 100%; padding: 11px 12px; margin-bottom: 8px; background: var(--cream); border: 1px solid var(--parchment); border-radius: var(--radius-sm); font: 600 0.88rem 'Inter', sans-serif; color: var(--soil); cursor: pointer; text-align: left; }
+  .einrichtung-schritt .haken { margin-left: auto; font-size: 0.78rem; color: var(--bark); font-weight: 600; }
+  .einrichtung-schritt.erledigt .haken { color: var(--moss); }
+  .einrichtung-ausblenden { background: none; border: none; color: var(--bark); font: 600 0.78rem 'Inter', sans-serif; padding: 4px 0 0; cursor: pointer; text-decoration: underline; }
   header.top .gruss { font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 700; }
   header.top .datum { font-size: 0.8rem; color: var(--sage); margin-top: 2px; text-transform: capitalize; }
 
@@ -128,11 +137,24 @@
 <body>
 
 <header class="top">
-  <div class="gruss" id="grussText">Hallo!</div>
-  <div class="datum" id="datumText"></div>
+  <div>
+    <div class="gruss" id="grussText">Hallo!</div>
+    <div class="datum" id="datumText"></div>
+  </div>
+  <button class="kopf-zahnrad" id="btnKopfEinstellungen" title="Einstellungen" aria-label="Einstellungen öffnen">⚙️</button>
 </header>
 
 <main>
+  <div class="kachel einrichtung" id="kachelEinrichtung" style="display:none;">
+    <div class="kachel-kopf">
+      <div class="kachel-titel">👋 App einrichten</div>
+    </div>
+    <div class="einrichtung-text">Leg fest, wer zur Familie gehört und welche Bereiche ihr nutzt. Beides kannst du später jederzeit über ⚙️ oben rechts ändern.</div>
+    <button class="einrichtung-schritt" id="btnEinrichtungPersonen">👪 Personen anlegen<span class="haken" id="hakenPersonen">Offen</span></button>
+    <button class="einrichtung-schritt" id="btnEinrichtungModule">🧩 Module auswählen<span class="haken" id="hakenModule">Offen</span></button>
+    <button class="einrichtung-ausblenden" id="btnEinrichtungAusblenden">Ausblenden</button>
+  </div>
+
   <div class="kachel" id="kachelDieseWoche" style="cursor:default;display:none;">
     <div class="kachel-kopf">
       <div class="kachel-titel">🗓️ Diese Woche</div>
@@ -345,6 +367,43 @@
   function navigiere(modul) {
     try { window.parent.postMessage({ type: 'navigiere', modul: modul }, window.location.origin); } catch (e) {}
   }
+
+  // --- Einrichtung: Zahnrad im Kopf + Karte für neue Nutzer ---
+  // Die Dialoge selbst leben in index.html; die Startseite bittet die Shell per Nachricht, sie zu öffnen.
+  function oeffneDialog(dialog) {
+    try { window.parent.postMessage({ type: 'oeffneDialog', dialog: dialog }, window.location.origin); } catch (e) {}
+  }
+  function personenEingerichtet() {
+    // Erledigt, sobald keine Platzhalter-Namen ("Person 1", "Person 2") mehr in der Liste stehen
+    const liste = laden('planer_personenListe', null);
+    return Array.isArray(liste) && liste.length > 0 && !liste.some(p => /^Person \d+$/.test(p.label || ''));
+  }
+  function einrichtungAktualisieren() {
+    const personenOk = personenEingerichtet();
+    let moduleOk = false, ausgeblendet = false;
+    try {
+      moduleOk = localStorage.getItem('planer_einrichtung_module') === '1';
+      ausgeblendet = localStorage.getItem('planer_einrichtung_ausgeblendet') === '1';
+    } catch (e) {}
+    const karte = document.getElementById('kachelEinrichtung');
+    karte.style.display = (ausgeblendet || (personenOk && moduleOk)) ? 'none' : '';
+    [['btnEinrichtungPersonen', 'hakenPersonen', personenOk], ['btnEinrichtungModule', 'hakenModule', moduleOk]].forEach(([btnId, hakenId, ok]) => {
+      document.getElementById(btnId).classList.toggle('erledigt', ok);
+      document.getElementById(hakenId).textContent = ok ? '✓ Erledigt' : 'Offen';
+    });
+  }
+  document.getElementById('btnKopfEinstellungen').addEventListener('click', () => oeffneDialog('einstellungen'));
+  document.getElementById('btnEinrichtungPersonen').addEventListener('click', () => oeffneDialog('personen'));
+  document.getElementById('btnEinrichtungModule').addEventListener('click', () => oeffneDialog('einstellungen'));
+  document.getElementById('btnEinrichtungAusblenden').addEventListener('click', () => {
+    try { localStorage.setItem('planer_einrichtung_ausgeblendet', '1'); } catch (e) {}
+    einrichtungAktualisieren();
+  });
+  // Änderungen aus der Shell (Personen gespeichert, Einstellungen geöffnet) kommen als storage-Event an
+  window.addEventListener('storage', (e) => {
+    if (!e.key || e.key === 'planer_personenListe' || e.key.indexOf('planer_einrichtung_') === 0) einrichtungAktualisieren();
+  });
+  einrichtungAktualisieren();
 
   // --- Begrüßung ---
   const stunde = new Date().getHours();
