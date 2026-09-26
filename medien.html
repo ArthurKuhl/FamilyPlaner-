@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<script>(function(){try{var m=localStorage.getItem('planer_darkMode');if(m==='dunkel'||(m==='auto'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.setAttribute('data-dark','1');}var s=localStorage.getItem('planer_schriftgroesse');if(s==='gross'){document.documentElement.style.fontSize='19px';}var f=localStorage.getItem('planer_farbschema');if(f&&f!=='wald'){document.documentElement.setAttribute('data-farbschema',f);}}catch(e){}})();</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Medien</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap');
+  :root {
+    --soil: #3a2e1f; --moss: #4f6f45; --sage: #7fa476; --leaf: #bcd196;
+    --cream: #faf6ec; --parchment: #ece0c7; --bark: #7d6339;
+    --terracotta: #c46b41; --terracotta-text: #a8532e; --sky: #5b8bb5;
+    --white: #fffdf8; --navbg: #2a2016; --navbg2: #3a2e1f; --gold: #c99a3a;
+    --radius-sm: 8px; --radius-md: 12px; --radius-lg: 18px; --radius-pill: 22px;
+    --shadow-soft: 0 2px 10px rgba(59,47,30,0.08); --shadow-md: 0 8px 26px rgba(59,47,30,0.2);
+  }
+  html[data-dark="1"] {
+    --soil: #f0e8d8; --moss: #6fae5e; --sage: #9bc98a; --leaf: #cfe3b8;
+    --cream: #1e1b16; --parchment: #2b261e; --bark: #c2b393;
+    --terracotta: #d9855a; --terracotta-text: #e8a37e; --sky: #7fa8cc; --gold: #dcb158;
+    --white: #2f2a22; --navbg: #14100c; --navbg2: #221a12;
+  }
+
+  /* ---- Farbschemata (global, familienweit synchronisiert) ---- */
+  html[data-farbschema="ozean"] {
+    --navbg: #1c1f24; --navbg2: #2b2f36; --sage: #8fd4c9; --leaf: #8fd4c9; --moss: #4fa89c;
+  }
+  html[data-farbschema="schnee"] {
+    --navbg: #1c1f24; --navbg2: #2b2f36; --sage: #c9cdd3; --leaf: #f0f0f2; --moss: #5b5f66;
+  }
+  html[data-farbschema="fjord"] {
+    --navbg: #1c1f24; --navbg2: #2b2f36; --sage: #9cc0ec; --leaf: #9cc0ec; --moss: #5b8bc9;
+  }
+  html[data-farbschema="bernstein"] {
+    --navbg: #1c1f24; --navbg2: #2b2f36; --sage: #e6c878; --leaf: #e6c878; --moss: #c9a24d;
+  }
+  /* Im Dunkelmodus soll der Hauptbereich bei allen Nicht-Wald-Farbthemen ebenfalls
+     neutral-anthrazit statt warm-braun sein, damit Header und Inhalt zusammenpassen. */
+  html[data-dark="1"][data-farbschema] {
+    --cream: #191b1f; --parchment: #24262c; --white: #2a2d33;
+    --soil: #eceef0; --bark: #a7acb5;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--cream); color: var(--soil); min-height: 100vh; padding-bottom: 40px; }
+
+  .theme-btn { background: none; border: none; color: var(--leaf); font-size: 0.95rem; cursor: pointer; padding: 3px 4px; flex-shrink: 0; }
+  .theme-popup { display: none; position: absolute; right: 12px; top: 54px; background: var(--white, #fff); border-radius: var(--radius-md, 10px); box-shadow: var(--shadow-md, 0 8px 26px rgba(59,47,30,0.2)); padding: 10px; z-index: 50; }
+  .theme-popup.zeigen { display: flex; gap: 8px; flex-wrap: wrap; max-width: 216px; }
+  .theme-swatch { width: 40px; height: 40px; border-radius: var(--radius-sm, 8px); border: 2px solid transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; background: var(--cream); }
+  .theme-swatch.aktiv { border-color: var(--moss); }
+  .theme-farbe-trenner { flex-basis: 100%; height: 1px; background: rgba(0,0,0,0.08); margin: 2px 0; }
+  .theme-swatch.farbe { border: 2px solid rgba(0,0,0,0.1); }
+  .theme-swatch.farbe.aktiv { border-color: var(--moss); border-width: 3px; }
+  .theme-farbe-custom { position: relative; overflow: hidden; background: conic-gradient(red,yellow,lime,cyan,blue,magenta,red); }
+  .theme-farbe-custom-input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; border: none; padding: 0; }
+  .theme-foto-swatch { border: 2px dashed var(--bark); background: var(--cream); position: relative; overflow: hidden; }
+  .theme-foto-input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+  body.bg-wuerfel {
+    background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22190%22%20height%3D%22190%22%20viewBox%3D%220%200%20190%20190%22%3E%3Cg%20opacity%3D%220.1%22%3E%3Cg%20transform%3D%22translate%2815%2C15%29%20scale%280.7%29%20rotate%28-8%29%22%3E%3Crect%20x%3D%22-14%22%20y%3D%22-14%22%20width%3D%2228%22%20height%3D%2228%22%20rx%3D%225%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22/%3E%3Ccircle%20cx%3D%22-6%22%20cy%3D%22-6%22%20r%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22/%3E%3Ccircle%20cx%3D%226%22%20cy%3D%226%22%20r%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22/%3E%3Ccircle%20cx%3D%220%22%20cy%3D%220%22%20r%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22/%3E%3Ccircle%20cx%3D%22-6%22%20cy%3D%226%22%20r%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22/%3E%3Ccircle%20cx%3D%226%22%20cy%3D%22-6%22%20r%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%28115%2C25%29%20scale%280.6%29%20rotate%2810%29%22%3E%3Cpath%20d%3D%22M%20-20%200%20C%20-20%20-10%2C%20-12%20-12%2C%20-6%20-10%20L%206%20-10%20C%2012%20-12%2C%2020%20-10%2C%2020%200%20C%2020%2010%2C%2014%2014%2C%2010%208%20L%20-10%208%20C%20-14%2014%2C%20-20%2010%2C%20-20%200%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cline%20x1%3D%22-13%22%20y1%3D%22-1%22%20x2%3D%22-13%22%20y2%3D%225%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3Cline%20x1%3D%22-16%22%20y1%3D%222%22%20x2%3D%22-10%22%20y2%3D%222%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%22-2%22%20r%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22/%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%222%22%20r%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%2860%2C115%29%20scale%280.6%29%20rotate%286%29%22%3E%3Crect%20x%3D%22-14%22%20y%3D%22-14%22%20width%3D%2228%22%20height%3D%2228%22%20rx%3D%225%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22/%3E%3Ccircle%20cx%3D%22-6%22%20cy%3D%22-6%22%20r%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22/%3E%3Ccircle%20cx%3D%226%22%20cy%3D%226%22%20r%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22/%3E%3Ccircle%20cx%3D%220%22%20cy%3D%220%22%20r%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22/%3E%3Ccircle%20cx%3D%22-6%22%20cy%3D%226%22%20r%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22/%3E%3Ccircle%20cx%3D%226%22%20cy%3D%22-6%22%20r%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    background-repeat: repeat;
+  }
+  body.bg-sterne {
+    background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22190%22%20height%3D%22190%22%20viewBox%3D%220%200%20190%20190%22%3E%3Cg%20opacity%3D%220.1%22%3E%3Cg%20transform%3D%22translate%2815%2C15%29%20scale%280.75%29%20rotate%280%29%22%3E%3Cpolygon%20points%3D%220.0%2C-14.0%20-3.5%2C-4.9%20-13.3%2C-4.3%20-5.7%2C1.9%20-8.2%2C11.3%20-0.0%2C6.0%208.2%2C11.3%205.7%2C1.9%2013.3%2C-4.3%203.5%2C-4.9%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%28115%2C25%29%20scale%280.55%29%20rotate%2820%29%22%3E%3Cpolygon%20points%3D%220.0%2C-14.0%20-3.5%2C-4.9%20-13.3%2C-4.3%20-5.7%2C1.9%20-8.2%2C11.3%20-0.0%2C6.0%208.2%2C11.3%205.7%2C1.9%2013.3%2C-4.3%203.5%2C-4.9%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%2860%2C115%29%20scale%280.65%29%20rotate%28-15%29%22%3E%3Cpolygon%20points%3D%220.0%2C-14.0%20-3.5%2C-4.9%20-13.3%2C-4.3%20-5.7%2C1.9%20-8.2%2C11.3%20-0.0%2C6.0%208.2%2C11.3%205.7%2C1.9%2013.3%2C-4.3%203.5%2C-4.9%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    background-repeat: repeat;
+  }
+  button, input, select, textarea { font-family: inherit; -webkit-tap-highlight-color: transparent; }
+  :focus-visible { outline: 2px solid var(--terracotta); outline-offset: 2px; border-radius: 4px; }
+
+  header.top { position: relative; background: linear-gradient(135deg, var(--navbg2), var(--navbg)); color: var(--leaf); padding: 6px 12px; }
+
+  header.top::after { content: ''; position: absolute; left: 0; right: 0; bottom: -3px; height: 3px; background: linear-gradient(90deg, var(--moss), var(--sage) 35%, var(--leaf) 65%, var(--moss)); opacity: 0.85; z-index: 1; }
+  header.top .titel-zeile { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  header.top h1 { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 700; }
+  .add-btn { background: var(--terracotta); color: var(--white); border: none; border-radius: var(--radius-pill); font-size: 0.82rem; font-weight: 700; padding: 7px 15px; cursor: pointer; }
+  .suchzeile { display: flex; gap: 8px; margin-bottom: 8px; }
+  .suchzeile input { flex: 1; padding: 9px 12px; border-radius: var(--radius-pill); border: none; font-size: 0.85rem; background: #1e160f; color: var(--leaf); }
+  .suchzeile input::placeholder { color: #6b7a63; }
+  .filter-reihe { display: flex; gap: 5px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 6px; scrollbar-width: none; }
+  .filter-reihe::-webkit-scrollbar { display: none; }
+  .filter-chip { flex: 0 0 auto; background: transparent; border: 1px solid #4a3a28; color: var(--sage); font-size: 0.72rem; font-weight: 600; padding: 5px 12px; border-radius: var(--radius-pill); cursor: pointer; white-space: nowrap; }
+  .filter-chip.active { background: var(--moss); color: var(--leaf); border-color: var(--moss); }
+
+  main { padding: 12px 14px; max-width: 680px; margin: 0 auto; }
+  @media (min-width: 1000px) {
+    main { max-width: 1200px; }
+    .spiel-grid { grid-template-columns: repeat(auto-fill, minmax(195px, 1fr)); gap: 14px; }
+  }
+
+  .stat-reihe { display: flex; gap: 8px; margin-bottom: 12px; }
+  .stat-box { flex: 1; background: var(--white); border-radius: var(--radius-md); padding: 10px; text-align: center; box-shadow: var(--shadow-soft); }
+  .stat-box .wert { font-size: 1.1rem; font-weight: 700; color: var(--moss); }
+  .stat-box .label { font-size: 0.62rem; color: var(--bark); text-transform: uppercase; letter-spacing: 0.02em; margin-top: 2px; }
+
+  .view-toggle { display: flex; gap: 4px; background: #1e160f; border-radius: var(--radius-pill); padding: 3px; width: fit-content; }
+  .view-toggle button { border: none; background: transparent; color: var(--sage); font-size: 0.75rem; font-weight: 600; padding: 6px 14px; border-radius: var(--radius-pill); cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+  .view-toggle button.active { background: var(--moss); color: var(--leaf); }
+
+  .karte { background: var(--white); border-radius: var(--radius-md); padding: 14px; margin-bottom: 12px; box-shadow: var(--shadow-soft); }
+  .karte h3 { font-family: 'Playfair Display', serif; font-size: 0.95rem; margin-bottom: 10px; color: var(--soil); }
+
+  .add-sport-btn { width: 100%; background: var(--white); border: 1px dashed var(--sage); color: var(--moss); border-radius: var(--radius-md); padding: 10px; font-size: 0.85rem; font-weight: 700; cursor: pointer; margin-bottom: 12px; }
+
+  .chart-balken-reihe { display: flex; align-items: flex-end; gap: 4px; height: 90px; margin-bottom: 6px; }
+  .chart-balken-spalte { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 3px; }
+  .chart-balken { width: 100%; background: var(--moss); border-radius: 3px 3px 0 0; min-height: 2px; }
+  .chart-balken-label { font-size: 0.58rem; color: var(--bark); white-space: nowrap; }
+  .chart-leer { font-size: 0.78rem; color: var(--bark); opacity: 0.7; padding: 10px 0; }
+
+  .top-spiel-zeile { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--parchment); }
+  .top-spiel-zeile:last-child { border-bottom: none; }
+  .top-spiel-rang { font-weight: 700; color: var(--bark); font-size: 0.85rem; min-width: 18px; }
+  .top-spiel-name { flex: 1; font-size: 0.85rem; font-weight: 600; }
+  .top-spiel-zeit { font-size: 0.75rem; color: var(--moss); font-weight: 700; }
+
+  .verlauf-zeile { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--parchment); font-size: 0.82rem; }
+  .verlauf-zeile:last-child { border-bottom: none; }
+  .verlauf-datum { font-size: 0.68rem; color: var(--bark); min-width: 64px; }
+  .verlauf-loeschen { background: none; border: none; color: var(--parchment); font-size: 0.95rem; cursor: pointer; }
+  .verlauf-loeschen:hover { color: var(--terracotta-text); }
+
+  .spiel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 10px; }
+  .spiel-karte { background: var(--white); border-radius: var(--radius-md); padding: 12px; box-shadow: var(--shadow-soft); cursor: pointer; display: flex; flex-direction: column; gap: 6px; border-top: 3px solid var(--moss); }
+  .spiel-titel { font-size: 0.88rem; font-weight: 700; line-height: 1.25; }
+  .spiel-chips { display: flex; gap: 4px; flex-wrap: wrap; }
+  .mini-chip { font-size: 0.6rem; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-pill); white-space: nowrap; }
+  .sterne-reihe { display: flex; gap: 1px; margin-top: 2px; }
+  .sterne-reihe .stern { font-size: 0.85rem; color: var(--parchment); }
+  .sterne-reihe .stern.aktiv { color: var(--gold); }
+  .spiel-zeit { font-size: 0.66rem; color: var(--bark); }
+
+  .leer-hinweis { text-align: center; color: var(--soil); font-size: 0.85rem; padding: 46px 16px; opacity: 1; font-weight: 500; }
+  .leer-hinweis .em { font-size: 2.2rem; display: block; margin-bottom: 8px; }
+
+  .modal-bg { position: fixed; inset: 0; background: rgba(42,32,22,0.45); display: none; align-items: flex-end; justify-content: center; z-index: 100; }
+  .modal-bg.zeigen { display: flex; }
+  .modal { background: var(--cream); border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding: 18px 18px 24px; width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-md); }
+  @media (min-width: 560px) { .modal-bg { align-items: center; } .modal { border-radius: var(--radius-lg); } }
+  .modal h2 { font-family: 'Playfair Display', serif; font-size: 1.1rem; margin-bottom: 14px; }
+  .feld { margin-bottom: 12px; }
+  .feld label { display: block; font-size: 0.7rem; font-weight: 700; color: var(--bark); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.03em; }
+  .feld input, .feld select, .feld textarea { width: 100%; padding: 9px 11px; border: 1px solid var(--parchment); border-radius: var(--radius-sm); font-size: 0.9rem; background: var(--white); color: var(--soil); }
+  .zeile { display: flex; gap: 10px; }
+  .zeile .feld { flex: 1; }
+  .opt-reihe { display: flex; gap: 6px; flex-wrap: wrap; }
+  .opt { padding: 6px 12px; border-radius: var(--radius-pill); font-size: 0.75rem; font-weight: 600; border: 1px solid var(--parchment); background: var(--white); color: var(--bark); cursor: pointer; }
+  .opt.aktiv { color: var(--white); border-color: transparent; }
+  .sterne-eingabe { display: flex; gap: 4px; }
+  .sterne-eingabe button { background: none; border: none; font-size: 1.6rem; color: var(--parchment); cursor: pointer; padding: 0 2px; }
+  .sterne-eingabe button.aktiv { color: var(--gold); }
+  /* Teil-gefüllte Sterne (z.B. 3,7): Verlauf gold→leer, auf die Sternform zugeschnitten */
+  .stern-teil { background: linear-gradient(90deg, var(--gold) var(--f, 0%), var(--parchment) var(--f, 0%)); -webkit-background-clip: text; background-clip: text; color: transparent !important; }
+  .sterne-wert { font-size: 0.68rem; font-weight: 700; color: var(--bark); margin-left: 4px; align-self: center; }
+  /* Links: Bild füllt den freien Platz, Felder sitzen unten bündig mit der letzten Bewertungszeile */
+  .bew-layout { display: flex; gap: 12px; align-items: stretch; margin-bottom: 12px; }
+  .bew-layout .feld-spalte { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .bew-layout .feld-spalte > .feld:last-child, .bew-layout .bewertung-spalte { margin-bottom: 0; }
+  .bew-layout .bewertung-spalte { flex: 1.3; min-width: 0; }
+  .bild-feld { flex: 1; display: flex; flex-direction: column; }
+  .bew-layout .feld-spalte .feld { margin-bottom: 8px; }
+  .bew-layout .feld-spalte input, .bew-layout .feld-spalte select { padding: 7px 9px; }
+  .bild-box { position: relative; flex: 1; min-height: 80px; border: 1.5px dashed var(--parchment); border-radius: var(--radius-sm); background: var(--white); overflow: hidden; cursor: pointer; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 0.75rem; font-weight: 600; color: var(--bark); }
+  .bild-box.hat-bild { border-style: solid; }
+  .bild-box img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .bild-box input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; z-index: 1; }
+  .bild-entfernen { position: absolute; top: 5px; right: 5px; z-index: 2; width: 26px; height: 26px; border-radius: 50%; border: none; background: rgba(42,32,22,0.7); color: #fff; font-size: 0.8rem; cursor: pointer; display: none; }
+  .bild-box.hat-bild .bild-entfernen { display: block; }
+  .spiel-cover { margin: -12px -12px 2px; height: 96px; background-size: cover; background-position: center; border-radius: 0; }
+  .bew-zeile { display: flex; align-items: center; justify-content: space-between; gap: 4px; min-height: 32px; }
+  .bew-zeile span { flex: 1; min-width: 0; font-size: 0.72rem; color: var(--soil); line-height: 1.15; overflow-wrap: anywhere; }
+  .bew-sterne { display: flex; flex-shrink: 0; }
+  .bew-sterne button { border: none; font-size: 1.2rem; line-height: 1; padding: 2px 1px; cursor: pointer; }
+  @media (max-width: 380px) { .bew-sterne button { font-size: 1.1rem; padding: 2px 0; } }
+  .bew-sterne button:disabled { cursor: default; }
+  .bew-gesamt { padding-bottom: 2px; }
+  .bew-gesamt span { font-weight: 700; font-size: 0.8rem; }
+  .bew-gesamt .bew-sterne button { font-size: 1.3rem; }
+  .bew-hinweis { font-size: 0.64rem; color: var(--bark); margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px solid var(--parchment); min-height: 1em; }
+  .modal-btns { display: flex; gap: 8px; margin-top: 16px; }
+  .btn { flex: 1; padding: 11px; border-radius: var(--radius-pill); border: none; font-weight: 700; font-size: 0.85rem; cursor: pointer; }
+  .btn-primary { background: var(--moss); color: var(--leaf); }
+  .btn-secondary { background: var(--white); color: var(--bark); border: 1px solid var(--parchment); }
+  .btn-danger { background: transparent; color: var(--terracotta-text); border: 1px solid var(--terracotta); }
+
+  /* Sehr breite Bildschirme: Content etwas breiter + dezente Deko-Streifen im Rand */
+  .deko-rand { display: none; position: fixed; top: 0; bottom: 0; width: 220px; background-repeat: repeat-y; background-position: center top; pointer-events: none; z-index: -1; }
+  .deko-rand.links { left: 0; }
+  .deko-rand.rechts { right: 0; transform: scaleX(-1); }
+  @media (min-width: 1600px) {
+    main { max-width: 1440px; }
+    .deko-rand { display: block; background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22220%22%20height%3D%221400%22%20viewBox%3D%220%200%20220%201400%22%3E%3Cg%20opacity%3D%220.16%22%3E%3Cg%20transform%3D%22translate%2860%2C90%29%20scale%280.85%29%20rotate%28-12%29%22%3E%3Crect%20x%3D%22-14%22%20y%3D%22-14%22%20width%3D%2228%22%20height%3D%2228%22%20rx%3D%225%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22/%3E%3Ccircle%20cx%3D%22-6%22%20cy%3D%22-6%22%20r%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22/%3E%3Ccircle%20cx%3D%226%22%20cy%3D%226%22%20r%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22/%3E%3Ccircle%20cx%3D%220%22%20cy%3D%220%22%20r%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22/%3E%3Ccircle%20cx%3D%22-6%22%20cy%3D%226%22%20r%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22/%3E%3Ccircle%20cx%3D%226%22%20cy%3D%22-6%22%20r%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%28150%2C260%29%20scale%280.85%29%20rotate%2815%29%22%3E%3Cpath%20d%3D%22M%20-20%200%20C%20-20%20-10%2C%20-12%20-12%2C%20-6%20-10%20L%206%20-10%20C%2012%20-12%2C%2020%20-10%2C%2020%200%20C%2020%2010%2C%2014%2014%2C%2010%208%20L%20-10%208%20C%20-14%2014%2C%20-20%2010%2C%20-20%200%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cline%20x1%3D%22-13%22%20y1%3D%22-1%22%20x2%3D%22-13%22%20y2%3D%225%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22/%3E%3Cline%20x1%3D%22-16%22%20y1%3D%222%22%20x2%3D%22-10%22%20y2%3D%222%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22/%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%22-2%22%20r%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22/%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%222%22%20r%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%2860%2C430%29%20scale%280.85%29%20rotate%28-6%29%22%3E%3Cpolygon%20points%3D%220.0%2C-14.0%20-3.5%2C-4.9%20-13.3%2C-4.3%20-5.7%2C1.9%20-8.2%2C11.3%20-0.0%2C6.0%208.2%2C11.3%205.7%2C1.9%2013.3%2C-4.3%203.5%2C-4.9%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%28150%2C640%29%20scale%280.85%29%20rotate%2810%29%22%3E%3Crect%20x%3D%22-14%22%20y%3D%22-14%22%20width%3D%2228%22%20height%3D%2228%22%20rx%3D%225%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22/%3E%3Ccircle%20cx%3D%22-6%22%20cy%3D%22-6%22%20r%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22/%3E%3Ccircle%20cx%3D%226%22%20cy%3D%226%22%20r%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22/%3E%3Ccircle%20cx%3D%220%22%20cy%3D%220%22%20r%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22/%3E%3Ccircle%20cx%3D%22-6%22%20cy%3D%226%22%20r%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22/%3E%3Ccircle%20cx%3D%226%22%20cy%3D%22-6%22%20r%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%2860%2C810%29%20scale%280.85%29%20rotate%28-15%29%22%3E%3Cpath%20d%3D%22M%20-20%200%20C%20-20%20-10%2C%20-12%20-12%2C%20-6%20-10%20L%206%20-10%20C%2012%20-12%2C%2020%20-10%2C%2020%200%20C%2020%2010%2C%2014%2014%2C%2010%208%20L%20-10%208%20C%20-14%2014%2C%20-20%2010%2C%20-20%200%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cline%20x1%3D%22-13%22%20y1%3D%22-1%22%20x2%3D%22-13%22%20y2%3D%225%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22/%3E%3Cline%20x1%3D%22-16%22%20y1%3D%222%22%20x2%3D%22-10%22%20y2%3D%222%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22/%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%22-2%22%20r%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22/%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%222%22%20r%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%28150%2C980%29%20scale%280.85%29%20rotate%286%29%22%3E%3Cpolygon%20points%3D%220.0%2C-14.0%20-3.5%2C-4.9%20-13.3%2C-4.3%20-5.7%2C1.9%20-8.2%2C11.3%20-0.0%2C6.0%208.2%2C11.3%205.7%2C1.9%2013.3%2C-4.3%203.5%2C-4.9%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%2860%2C1180%29%20scale%280.85%29%20rotate%28-10%29%22%3E%3Crect%20x%3D%22-14%22%20y%3D%22-14%22%20width%3D%2228%22%20height%3D%2228%22%20rx%3D%225%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22/%3E%3Ccircle%20cx%3D%22-6%22%20cy%3D%22-6%22%20r%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22/%3E%3Ccircle%20cx%3D%226%22%20cy%3D%226%22%20r%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22/%3E%3Ccircle%20cx%3D%220%22%20cy%3D%220%22%20r%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22/%3E%3Ccircle%20cx%3D%22-6%22%20cy%3D%226%22%20r%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22/%3E%3Ccircle%20cx%3D%226%22%20cy%3D%22-6%22%20r%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%28150%2C1340%29%20scale%280.85%29%20rotate%2812%29%22%3E%3Cpath%20d%3D%22M%20-20%200%20C%20-20%20-10%2C%20-12%20-12%2C%20-6%20-10%20L%206%20-10%20C%2012%20-12%2C%2020%20-10%2C%2020%200%20C%2020%2010%2C%2014%2014%2C%2010%208%20L%20-10%208%20C%20-14%2014%2C%20-20%2010%2C%20-20%200%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cline%20x1%3D%22-13%22%20y1%3D%22-1%22%20x2%3D%22-13%22%20y2%3D%225%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22/%3E%3Cline%20x1%3D%22-16%22%20y1%3D%222%22%20x2%3D%22-10%22%20y2%3D%222%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22/%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%22-2%22%20r%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22/%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%222%22%20r%3D%222%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.4%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); }
+  }
+
+  /* Kopfzeile kompakter: Modulname bleibt immer einzeilig (notfalls mit ...),
+     Icons rücken näher zusammen. Ergänzt auf Arthurs Wunsch, robust über alle
+     leicht unterschiedlichen Header-Varianten der Module hinweg. */
+  header.top .titel-zeile, header .hdr-right { gap: 4px !important; }
+  header.top .titel-zeile h1, header h1 { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* ---- Medien-spezifisch ---- */
+  .typ-reihe-kopf { margin-bottom: 8px; }
+  .fortschritt-zeile { display: flex; align-items: center; gap: 5px; }
+  .fortschritt-zeile input { min-width: 0; text-align: center; }
+  .fortschritt-zeile .trenner { font-size: 0.75rem; color: var(--bark); flex-shrink: 0; }
+  .spiel-fortschritt { display: flex; align-items: center; gap: 8px; font-size: 0.7rem; color: var(--bark); font-weight: 600; }
+  .fortschritt-balken { flex: 1; height: 5px; background: var(--parchment); border-radius: 3px; overflow: hidden; }
+  .fortschritt-balken div { height: 100%; background: var(--moss); }
+  .plus-eins { margin-left: auto; flex-shrink: 0; background: var(--cream); border: 1px solid var(--parchment); color: var(--moss); font-weight: 700; font-size: 0.7rem; border-radius: var(--radius-pill); padding: 3px 9px; cursor: pointer; }
+
+</style>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
+<script src="personen.js"></script>
+<script src="sync.js"></script>
+</head>
+<body>
+<div class="deko-rand links" aria-hidden="true"></div>
+<div class="deko-rand rechts" aria-hidden="true"></div>
+
+<header class="top">
+  <div class="titel-zeile">
+    <h1>🍿 Medien</h1>
+    <button class="theme-btn" id="btnThemeAuswahl" title="Hintergrundmuster wählen">🎨</button>
+    <button class="add-btn" id="btnNeu">＋ Neu</button>
+  </div>
+  <div class="filter-reihe typ-reihe-kopf" id="typFilterReihe"></div>
+  <div class="suchzeile" style="display:flex; align-items:center; gap:6px;">
+    <input type="text" id="fSuche" placeholder="Titel suchen ..." style="flex:1;">
+    <button class="filter-chip" id="btnSortRichtung" style="flex:0 0 auto;">🔤 A–Z</button>
+  </div>
+  <div class="filter-reihe" id="personFilterReihe"></div>
+  <div class="filter-reihe" id="statusFilterReihe" style="margin-top:5px;"></div>
+</header>
+  <div class="theme-popup" id="themePopup">
+    <div class="theme-swatch" data-theme="" title="Kein Muster">✕</div>
+    <div class="theme-swatch" data-theme="bg-sterne" title="Sterne">⭐</div>
+    <div class="theme-farbe-trenner"></div>
+    <div class="theme-swatch farbe" data-theme="farbe:#f7d9dd" style="background:#f7d9dd" title="Pastell Rosa"></div>
+    <div class="theme-swatch farbe" data-theme="farbe:#d9ebf7" style="background:#d9ebf7" title="Pastell Blau"></div>
+    <div class="theme-swatch farbe" data-theme="farbe:#dcefd9" style="background:#dcefd9" title="Pastell Grün"></div>
+    <div class="theme-swatch farbe" data-theme="farbe:#f7ecd9" style="background:#f7ecd9" title="Pastell Gelb"></div>
+    <div class="theme-swatch farbe" data-theme="farbe:#e8d9f7" style="background:#e8d9f7" title="Pastell Lila"></div>
+    <div class="theme-swatch farbe" data-theme="farbe:#f7d9c4" style="background:#f7d9c4" title="Pastell Pfirsich"></div>
+    <div class="theme-swatch farbe" data-theme="farbe:#a8dadc" style="background:#a8dadc" title="Türkis"></div>
+    <div class="theme-swatch farbe" data-theme="farbe:#f4a261" style="background:#f4a261" title="Koralle"></div>
+    <label class="theme-swatch farbe theme-farbe-custom" title="Eigene Farbe">
+      <input type="color" class="theme-farbe-custom-input" value="#f7d9dd">
+    </label>
+    <label class="theme-swatch theme-foto-swatch" title="Eigenes Foto hochladen">
+      📷<input type="file" accept="image/*" class="theme-foto-input">
+    </label>
+  </div>
+
+<main>
+  <div class="stat-reihe" id="statReihe"></div>
+  <div class="spiel-grid" id="eintragGrid"></div>
+  <div class="leer-hinweis" id="leerHinweis" style="display:none;"><span class="em">🍿</span><span id="leerText"></span></div>
+</main>
+
+<div class="modal-bg" id="modalEdit">
+  <div class="modal">
+    <h2 id="editKopf">Neuer Eintrag</h2>
+    <div class="feld">
+      <label for="fTitel">Titel</label>
+      <input type="text" id="fTitel" placeholder="z.B. One Piece">
+    </div>
+    <div class="feld">
+      <label>Art</label>
+      <div class="opt-reihe" id="editTypReihe"></div>
+    </div>
+    <div class="feld">
+      <label>Person</label>
+      <div class="opt-reihe" id="editPersonReihe"></div>
+    </div>
+    <div class="bew-layout">
+      <div class="feld-spalte">
+        <div class="feld bild-feld">
+          <label>Bild</label>
+          <div class="bild-box" id="bildBox">
+            <span id="bildPlatzhalter">📷<br>Bild hinzufügen</span>
+            <img id="bildVorschau" alt="" style="display:none;">
+            <input type="file" accept="image/*" id="fBild" aria-label="Bild auswählen">
+            <button type="button" class="bild-entfernen" id="btnBildEntfernen" aria-label="Bild entfernen">✕</button>
+          </div>
+        </div>
+        <div class="feld">
+          <label for="fWo" id="fWoLabel">Wo</label>
+          <select id="fWo"></select>
+        </div>
+        <div class="feld">
+          <label for="fStatus">Status</label>
+          <select id="fStatus"></select>
+        </div>
+        <div class="feld" id="fFortschrittFeld">
+          <label id="fFortschrittLabel">Fortschritt</label>
+          <div class="fortschritt-zeile">
+            <input type="number" id="fFortA" min="0" inputmode="numeric">
+            <span class="trenner" id="fFortTrenner">von</span>
+            <input type="number" id="fFortB" min="0" inputmode="numeric">
+          </div>
+        </div>
+      </div>
+      <div class="feld bewertung-spalte">
+        <label>Bewertung</label>
+        <div class="bew-zeile bew-gesamt"><span>Gesamt</span><div class="bew-sterne" id="bewGesamtSterne"></div></div>
+        <div class="bew-hinweis" id="bewGesamtHinweis"></div>
+        <div id="bewKriterien"></div>
+      </div>
+    </div>
+    <div class="feld">
+      <label for="fNotiz">Notiz (optional)</label>
+      <textarea id="fNotiz" placeholder="z.B. Empfehlung von …, Lieblingsfigur, Eindruck …"></textarea>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnSpeichern">Speichern</button>
+    </div>
+    <div class="modal-btns" id="loeschZeile" style="display:none;">
+      <button class="btn btn-danger" id="btnLoeschen">Löschen</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  // ---------- HANDY-ZURÜCK-TASTE ABFANGEN ----------
+  // Ohne eigene Behandlung navigiert der native Zurück-Knopf des Smartphones durch die
+  // Browser-Historie "hindurch" und die App landet auf einer leeren Zwischenseite.
+  // Stattdessen: schließt zuerst jedes offene Fenster/Popup; ist nichts offen, passiert
+  // bewusst gar nichts (statt die App zu verlassen bzw. leerzuräumen).
+  function zurueckTasteUeberlagerungenSchliessen() {
+    let geschlossen = false;
+    document.querySelectorAll('.modal-bg, .theme-popup').forEach(el => {
+      const sichtbar = el.style.display === 'flex' || el.style.display === 'block' || el.classList.contains('zeigen');
+      if (sichtbar) { el.style.display = 'none'; el.classList.remove('zeigen'); geschlossen = true; }
+    });
+    return geschlossen;
+  }
+  try {
+    history.pushState({ zurueckBasis: true }, '', location.href);
+    window.addEventListener('popstate', function () {
+      zurueckTasteUeberlagerungenSchliessen();
+      history.pushState({ zurueckBasis: true }, '', location.href);
+    });
+  } catch (e) {}
+  // ---------- KURZE STATUSMELDUNG (TOAST), optional mit Rückgängig-Aktion ----------
+  function showTempStatus(text, sekunden, optionen) {
+    optionen = optionen || {};
+    let el = document.getElementById('tempStatus');
+    if (!el) { el = document.createElement('div'); el.id = 'tempStatus'; document.body.appendChild(el); }
+    el.style.cssText =
+      'position:fixed;left:50%;bottom:24px;transform:translate(-50%,0);' +
+      'background:#2a2016;color:#bcd196;padding:10px 18px;border-radius:22px;' +
+      'font-size:0.85rem;font-weight:600;box-shadow:0 4px 14px rgba(0,0,0,0.25);' +
+      'opacity:1;pointer-events:' + (optionen.rueckgaengig ? 'auto' : 'none') + ';transition:opacity .2s, transform .2s;z-index:9999;' +
+      'max-width:88vw;text-align:center;font-family:Inter,system-ui,sans-serif;' +
+      'display:flex;align-items:center;gap:12px;';
+    el.innerHTML = '';
+    const textSpan = document.createElement('span');
+    textSpan.textContent = text;
+    el.appendChild(textSpan);
+    if (typeof optionen.rueckgaengig === 'function') {
+      const btn = document.createElement('button');
+      btn.textContent = 'Rückgängig';
+      btn.style.cssText = 'background:none;border:none;color:#e8c98a;font-weight:700;font-size:0.85rem;cursor:pointer;padding:2px 4px;flex-shrink:0;text-decoration:underline;';
+      btn.addEventListener('click', () => {
+        clearTimeout(el._timeout);
+        try { optionen.rueckgaengig(); } catch (e) { console.warn('showTempStatus: Rückgängig-Aktion fehlgeschlagen', e); }
+        el.style.opacity = '0';
+        el.style.transform = 'translate(-50%,20px)';
+      });
+      el.appendChild(btn);
+    }
+    clearTimeout(el._timeout);
+    el._timeout = setTimeout(() => {
+      el.style.opacity = '0';
+      el.style.transform = 'translate(-50%,20px)';
+    }, (sekunden || 2.5) * 1000);
+  }
+
+  function __pullToRefreshModalOffen() {
+    return !!document.querySelector('.modal-bg.zeigen') ||
+      Array.from(document.querySelectorAll('.modal-bg')).some(el => el.style.display === 'flex' || el.style.display === 'block');
+  }
+  // ---------- PULL-TO-REFRESH (von oben nach unten wischen) ----------
+  (function () {
+    let startY = 0, ziehend = false, ausgeloest = false;
+    const SCHWELLE = 130;
+    let indikator = null;
+    function indikatorZeigen(strecke) {
+      if (!indikator) {
+        indikator = document.createElement('div');
+        indikator.id = '__pullToRefreshIndikator';
+        indikator.style.cssText =
+          'position:fixed;top:8px;left:50%;transform:translate(-50%,-40px) rotate(0deg);' +
+          'width:34px;height:34px;border-radius:50%;background:#2a2016;color:#bcd196;' +
+          'display:flex;align-items:center;justify-content:center;font-size:1.1rem;' +
+          'z-index:9998;transition:opacity .15s;box-shadow:0 3px 10px rgba(0,0,0,0.25);opacity:0;';
+        document.body.appendChild(indikator);
+      }
+      const anteil = Math.min(1, strecke / SCHWELLE);
+      indikator.style.opacity = String(anteil);
+      indikator.style.transform = 'translate(-50%,' + (-40 + anteil * 56) + 'px) rotate(' + (anteil * 180) + 'deg)';
+      indikator.textContent = anteil >= 1 ? '↻' : '↓';
+    }
+    function indikatorAusblenden() { if (indikator) indikator.style.opacity = '0'; }
+    document.addEventListener('touchstart', (e) => {
+      if (window.scrollY > 0 || e.touches.length !== 1 || __pullToRefreshModalOffen()) { ziehend = false; return; }
+      startY = e.touches[0].clientY; ziehend = true; ausgeloest = false;
+    }, { passive: true });
+    document.addEventListener('touchmove', (e) => {
+      if (!ziehend) return;
+      const strecke = e.touches[0].clientY - startY;
+      if (strecke <= 0) { indikatorAusblenden(); return; }
+      if (window.scrollY > 0 || __pullToRefreshModalOffen()) { ziehend = false; indikatorAusblenden(); return; }
+      indikatorZeigen(strecke);
+      if (strecke >= SCHWELLE) ausgeloest = true;
+    }, { passive: true });
+    document.addEventListener('touchend', () => {
+      if (ziehend && ausgeloest) {
+        if (indikator) { indikator.textContent = '↻'; indikator.style.opacity = '1'; }
+        location.reload();
+      } else { indikatorAusblenden(); }
+      ziehend = false;
+    }, { passive: true });
+  })();
+
+
+  // ============================================================
+  // MEDIEN: Manga, Bücher, Anime, Filme & Serien (Aufbau wie Gaming)
+  // ============================================================
+  const KEY_EINTRAEGE = 'medien_eintraege';
+  const KEY_BILDER = 'medien_bilder';          // eigenes Sync-Dokument (1-MB-Grenze je Dokument)
+  const KEY_AKTIVE_PERSON = 'medien_personFilter';
+  const KEY_TYP_FILTER = 'medien_typFilter';
+  const KEY_SORT = 'medien_sortRichtung';
+  const BILD_MAX_KANTE = 360;
+  const BILDER_WARNGRENZE = 850 * 1024;
+
+  const PERSONEN = [{ id: 'alle', label: 'Alle' }].concat(window.PLANER_PERSONEN || [
+    { id: 'mama',    label: 'Mama' },
+    { id: 'papa',    label: 'Papa' },
+    { id: 'familie', label: 'Familie' },
+  ]);
+
+  // Wo man etwas liest bzw. schaut
+  const WO_LESEN_MANGA = [
+    { id: 'print', label: 'Print', icon: '📘' }, { id: 'ebook', label: 'E-Book', icon: '📱' },
+    { id: 'online', label: 'Online/Webtoon', icon: '🌐' }, { id: 'geliehen', label: 'Ausgeliehen', icon: '🤝' },
+    { id: 'sonstiges', label: 'Sonstiges', icon: '📦' },
+  ];
+  const WO_LESEN_BUCH = [
+    { id: 'print', label: 'Print', icon: '📘' }, { id: 'ebook', label: 'E-Book', icon: '📱' },
+    { id: 'hoerbuch', label: 'Hörbuch', icon: '🎧' }, { id: 'geliehen', label: 'Ausgeliehen', icon: '🤝' },
+    { id: 'sonstiges', label: 'Sonstiges', icon: '📦' },
+  ];
+  const WO_SCHAUEN = [
+    { id: 'netflix', label: 'Netflix', icon: '📺' }, { id: 'prime', label: 'Prime Video', icon: '📺' },
+    { id: 'disney', label: 'Disney+', icon: '📺' }, { id: 'crunchyroll', label: 'Crunchyroll', icon: '📺' },
+    { id: 'appletv', label: 'Apple TV+', icon: '📺' }, { id: 'wow', label: 'WOW', icon: '📺' },
+    { id: 'tv', label: 'TV/Mediathek', icon: '📡' }, { id: 'kino', label: 'Kino', icon: '🎟️' },
+    { id: 'disc', label: 'DVD/Blu-ray', icon: '💿' }, { id: 'sonstiges', label: 'Sonstiges', icon: '📦' },
+  ];
+
+  // Gemeinsame Bewertungspunkte + je Art zwei passende
+  const K = {
+    story: 'Story', charaktere: 'Charaktere', spannung: 'Spannung', atmosphaere: 'Atmo\u00adsphäre',
+    worldbuilding: 'World\u00adbuilding', spass: 'Spaß', zeichenstil: 'Zeichen\u00adstil', schreibstil: 'Schreib\u00adstil',
+    animation: 'Animation', soundtrack: 'Sound\u00adtrack', schauspiel: 'Schau\u00adspiel', tempo: 'Tempo',
+  };
+  function kriterien(ids) { return ids.map(id => ({ id, label: K[id] })); }
+
+  // fort: Fortschritt-Felder (a/b) je Art; null = kein Fortschritt (Film)
+  const TYPEN = [
+    { id: 'manga', label: 'Manga', icon: '📚', farbe: '#c46b41', gruppe: 'manga', lesen: true, wo: WO_LESEN_MANGA,
+      fort: { label: 'Band', a: 'Band', trenner: 'von', b: 'gesamt', art: 'bis' },
+      kriterien: kriterien(['story','charaktere','zeichenstil','spannung','tempo','atmosphaere','worldbuilding','spass']) },
+    { id: 'buch', label: 'Buch', icon: '📖', farbe: '#7d6339', gruppe: 'buch', lesen: true, wo: WO_LESEN_BUCH,
+      fort: { label: 'Seite', a: 'Seite', trenner: 'von', b: 'gesamt', art: 'bis' },
+      kriterien: kriterien(['story','charaktere','schreibstil','spannung','tempo','atmosphaere','worldbuilding','spass']) },
+    { id: 'anime', label: 'Anime', icon: '🍥', farbe: '#b0578d', gruppe: 'anime', lesen: false, wo: WO_SCHAUEN,
+      fort: { label: 'Staffel · Folge', a: 'Staffel', trenner: '·', b: 'Folge', art: 'staffel' },
+      kriterien: kriterien(['story','charaktere','animation','soundtrack','spannung','atmosphaere','worldbuilding','spass']) },
+    { id: 'film', label: 'Film', icon: '🎬', farbe: '#5b8bb5', gruppe: 'film', lesen: false, wo: WO_SCHAUEN,
+      fort: null,
+      kriterien: kriterien(['story','charaktere','schauspiel','soundtrack','spannung','atmosphaere','worldbuilding','spass']) },
+    { id: 'serie', label: 'Serie', icon: '📺', farbe: '#4f6f45', gruppe: 'film', lesen: false, wo: WO_SCHAUEN,
+      fort: { label: 'Staffel · Folge', a: 'Staffel', trenner: '·', b: 'Folge', art: 'staffel' },
+      kriterien: kriterien(['story','charaktere','schauspiel','soundtrack','spannung','atmosphaere','worldbuilding','spass']) },
+  ];
+  // Umschalter oben: Filme und Serien teilen sich einen Reiter
+  const TYP_FILTER = [
+    { id: 'alle', label: 'Alle' },
+    { id: 'manga', label: '📚 Manga' },
+    { id: 'buch', label: '📖 Bücher' },
+    { id: 'anime', label: '🍥 Anime' },
+    { id: 'film', label: '🎬 Filme/Serien' },
+  ];
+  function typInfo(id) { return TYPEN.find(t => t.id === id) || TYPEN[0]; }
+
+  // Status-IDs sind für alle Arten gleich, nur die Worte passen sich an
+  const STATUS_BASIS = [
+    { id: 'wunschliste', icon: '💭', farbe: '#5b8bb5' },
+    { id: 'aktiv',       icon: '▶️', farbe: '#4f6f45' },
+    { id: 'pausiert',    icon: '⏸️', farbe: '#c99a3a' },
+    { id: 'beendet',     icon: '🏆', farbe: '#7fa476' },
+    { id: 'abgebrochen', icon: '⏹️', farbe: '#a8532e' },
+  ];
+  // lesen: true = Lese-Wörter, false = Schau-Wörter, null = neutral (gemischte Ansicht)
+  function statusListe(lesen) {
+    const aktiv = lesen === true ? 'Lese ich' : lesen === false ? 'Schaue ich' : 'Dabei';
+    const beendet = lesen === true ? 'Gelesen' : lesen === false ? 'Gesehen' : 'Beendet';
+    const labels = { wunschliste: 'Wunschliste', aktiv, pausiert: 'Pausiert', beendet, abgebrochen: 'Abgebrochen' };
+    return STATUS_BASIS.map(s => Object.assign({ label: labels[s.id] }, s));
+  }
+  function statusInfo(id, lesen) { const l = statusListe(lesen); return l.find(s => s.id === id) || l[0]; }
+
+  function neueId(prefix) { return prefix + Date.now() + Math.random().toString(36).slice(2,7); }
+  function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function laden(key, fallback) {
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) return fallback;
+      const geparst = JSON.parse(raw);
+      return (geparst === null || geparst === undefined) ? fallback : geparst;
+    } catch (e) { console.warn('Medien: Laden fehlgeschlagen', key, e); return fallback; }
+  }
+  function speichernEintraege() {
+    try { localStorage.setItem(KEY_EINTRAEGE, JSON.stringify(eintraege)); }
+    catch (e) { alert('Speichern fehlgeschlagen – ist der Speicher voll?'); }
+    if (window._sync) window._sync.melde();
+  }
+  let bilderSync = null;
+  function speichernBilder() {
+    try { localStorage.setItem(KEY_BILDER, JSON.stringify(bilder)); }
+    catch (e) { alert('Bild konnte nicht gespeichert werden – ist der Speicher voll?'); return; }
+    if (bilderSync) bilderSync.melde();
+    const groesse = new Blob([JSON.stringify(bilder)]).size;
+    if (groesse > BILDER_WARNGRENZE) alert('Achtung: Die Medien-Bilder belegen jetzt ' + Math.round(groesse / 1024) + ' KB. Ab 1 MB können sie nicht mehr synchronisiert werden. Lösch am besten ein paar ältere Bilder.');
+  }
+
+  let eintraege = laden(KEY_EINTRAEGE, []);
+  let bilder = laden(KEY_BILDER, {});
+  let personFilter = localStorage.getItem(KEY_AKTIVE_PERSON) || 'alle';
+  let typFilter = localStorage.getItem(KEY_TYP_FILTER) || 'alle';
+  let statusFilter = 'alle';
+  let suchtext = '';
+  let sortRichtung = localStorage.getItem(KEY_SORT) || 'az';
+
+  // ---------- Bewertung (gleiche Logik wie Gaming) ----------
+  function bewerteteKriterien(detail, typ) {
+    return typInfo(typ).kriterien.map(k => (detail || {})[k.id]).filter(w => w >= 1 && w <= 5);
+  }
+  function gesamtBewertung(detail, manuell, typ) {
+    const werte = bewerteteKriterien(detail, typ);
+    if (werte.length) return Math.round(werte.reduce((a, b) => a + b, 0) / werte.length * 10) / 10;
+    return manuell || 0;
+  }
+  function bewertungText(wert) { return wert.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 }); }
+  function sternFuellung(wert, i) { return Math.round(Math.max(0, Math.min(1, wert - (i - 1))) * 100) + '%'; }
+
+  // ---------- Filter ----------
+  function lesenFuerFilter() {
+    if (typFilter === 'manga' || typFilter === 'buch') return true;
+    if (typFilter === 'anime' || typFilter === 'film') return false;
+    return null;
+  }
+  function chipReihe(boxId, optionen, aktivId, onWahl) {
+    const box = document.getElementById(boxId);
+    box.innerHTML = '';
+    optionen.forEach(o => {
+      const chip = document.createElement('button');
+      chip.className = 'filter-chip' + (o.id === aktivId ? ' active' : '');
+      chip.textContent = (o.icon ? o.icon + ' ' : '') + o.label;
+      chip.addEventListener('click', () => onWahl(o.id));
+      box.appendChild(chip);
+    });
+  }
+  function renderFilter() {
+    chipReihe('typFilterReihe', TYP_FILTER, typFilter, (id) => {
+      typFilter = id;
+      try { localStorage.setItem(KEY_TYP_FILTER, id); } catch (e) {}
+      renderFilter(); renderAlles();
+    });
+    chipReihe('personFilterReihe', PERSONEN, personFilter, (id) => {
+      personFilter = id;
+      try { localStorage.setItem(KEY_AKTIVE_PERSON, id); } catch (e) {}
+      renderFilter(); renderAlles();
+    });
+    chipReihe('statusFilterReihe', [{ id: 'alle', label: 'Alle Status' }].concat(statusListe(lesenFuerFilter())), statusFilter, (id) => {
+      statusFilter = id; renderFilter(); renderAlles();
+    });
+    const platzhalter = { alle: 'Titel suchen ...', manga: 'Manga suchen ...', buch: 'Buch suchen ...', anime: 'Anime suchen ...', film: 'Film oder Serie suchen ...' };
+    document.getElementById('fSuche').placeholder = platzhalter[typFilter] || platzhalter.alle;
+  }
+  document.getElementById('fSuche').addEventListener('input', (e) => { suchtext = e.target.value.trim().toLowerCase(); renderAlles(); });
+
+  function passtZumTypFilter(e) { return typFilter === 'alle' || typInfo(e.typ).gruppe === typFilter; }
+  function basisListe() {
+    return eintraege.filter(e => passtZumTypFilter(e) && (personFilter === 'alle' || e.person === personFilter));
+  }
+  function gefilterteEintraege() {
+    const liste = basisListe().filter(e => {
+      if (statusFilter !== 'alle' && e.status !== statusFilter) return false;
+      if (suchtext && !e.titel.toLowerCase().includes(suchtext)) return false;
+      return true;
+    });
+    liste.sort((a, b) => sortRichtung === 'za' ? b.titel.localeCompare(a.titel) : a.titel.localeCompare(b.titel));
+    return liste;
+  }
+  function renderSortButton() {
+    document.getElementById('btnSortRichtung').textContent = sortRichtung === 'za' ? '🔤 Z–A' : '🔤 A–Z';
+  }
+  document.getElementById('btnSortRichtung').addEventListener('click', () => {
+    sortRichtung = sortRichtung === 'za' ? 'az' : 'za';
+    try { localStorage.setItem(KEY_SORT, sortRichtung); } catch (e) {}
+    renderSortButton(); renderGrid();
+  });
+
+  // ---------- Kennzahlen ----------
+  function renderStats() {
+    const basis = basisListe();
+    const lesen = lesenFuerFilter();
+    const box = document.getElementById('statReihe');
+    box.innerHTML = '';
+    [
+      { wert: basis.filter(e => e.status === 'aktiv').length, label: lesen === true ? 'Lese ich' : lesen === false ? 'Schaue ich' : 'Aktuell dabei' },
+      { wert: basis.filter(e => e.status === 'beendet').length, label: lesen === true ? 'Gelesen' : lesen === false ? 'Gesehen' : 'Beendet' },
+      { wert: basis.filter(e => e.status === 'wunschliste').length, label: 'Wunschliste' },
+    ].forEach(s => {
+      const el = document.createElement('div');
+      el.className = 'stat-box';
+      el.innerHTML = '<div class="wert">' + s.wert + '</div><div class="label">' + s.label + '</div>';
+      box.appendChild(el);
+    });
+  }
+
+  // ---------- Karten ----------
+  function sterneAnzeige(bewertung) {
+    let html = '<div class="sterne-reihe">';
+    for (let i = 1; i <= 5; i++) html += '<span class="stern stern-teil" style="--f:' + sternFuellung(bewertung, i) + '">★</span>';
+    if (bewertung > 0 && bewertung % 1 !== 0) html += '<span class="sterne-wert">' + bewertungText(bewertung) + '</span>';
+    return html + '</div>';
+  }
+  function zahl(v) { const n = parseInt(v, 10); return isNaN(n) ? null : n; }
+  // Fortschrittszeile auf der Karte, z.B. "Band 7 / 12" mit Balken oder "Staffel 2 · Folge 5"
+  function fortschrittHtml(e) {
+    const t = typInfo(e.typ);
+    if (!t.fort || !e.fortschritt) return '';
+    const a = zahl(e.fortschritt.a), b = zahl(e.fortschritt.b);
+    if (a === null && b === null) return '';
+    let text = '', balken = '';
+    if (t.fort.art === 'bis') {
+      if (a === null) return '';
+      text = t.fort.a + ' ' + a + (b ? ' / ' + b : '');
+      if (b) balken = '<div class="fortschritt-balken"><div style="width:' + Math.min(100, Math.round(a / b * 100)) + '%"></div></div>';
+    } else {
+      text = [a !== null ? 'Staffel ' + a : '', b !== null ? 'Folge ' + b : ''].filter(Boolean).join(' · ');
+    }
+    return '<span>' + text + '</span>' + balken;
+  }
+  // "+1" nur wo es Sinn ergibt: nächster Manga-Band bzw. nächste Folge (nicht Seiten)
+  function plusEinsFeld(e) {
+    if (e.status !== 'aktiv') return null;
+    if (e.typ === 'manga') return 'a';
+    if (e.typ === 'anime' || e.typ === 'serie') return 'b';
+    return null;
+  }
+
+  function eintragKarte(e) {
+    const t = typInfo(e.typ);
+    const stat = statusInfo(e.status, t.lesen);
+    const wo = t.wo.find(w => w.id === e.wo);
+    const karte = document.createElement('div');
+    karte.className = 'spiel-karte';
+    karte.style.borderTopColor = stat.farbe;
+    const fort = fortschrittHtml(e);
+    const plusFeld = plusEinsFeld(e);
+    karte.innerHTML =
+      (bilder[e.id] ? '<div class="spiel-cover" style="background-image:url(\'' + bilder[e.id] + '\')"></div>' : '') +
+      '<div class="spiel-titel">' + escapeHtml(e.titel) + '</div>' +
+      '<div class="spiel-chips">' +
+        '<span class="mini-chip" style="background:' + t.farbe + '22; color:' + t.farbe + ';">' + t.icon + ' ' + t.label + '</span>' +
+        '<span class="mini-chip" style="background:' + stat.farbe + '22; color:' + stat.farbe + ';">' + stat.icon + ' ' + stat.label + '</span>' +
+        (wo && wo.id !== 'sonstiges' ? '<span class="mini-chip" style="background:var(--parchment); color:var(--bark);">' + escapeHtml(wo.label) + '</span>' : '') +
+      '</div>' +
+      sterneAnzeige(e.bewertung || 0) +
+      ((fort || plusFeld) ? '<div class="spiel-fortschritt">' + fort + (plusFeld ? '<button type="button" class="plus-eins" title="' + (plusFeld === 'a' ? 'Nächster Band' : 'Nächste Folge') + '">＋1</button>' : '') + '</div>' : '');
+    karte.addEventListener('click', () => editModalOeffnen(e));
+    const plusBtn = karte.querySelector('.plus-eins');
+    if (plusBtn) plusBtn.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      if (!e.fortschritt) e.fortschritt = { a: '', b: '' };
+      const vorher = e.fortschritt[plusFeld];
+      e.fortschritt[plusFeld] = String((zahl(vorher) || 0) + 1);
+      speichernEintraege();
+      renderGrid();
+      showTempStatus(e.titel + ': ' + (plusFeld === 'a' ? 'Band ' : 'Folge ') + e.fortschritt[plusFeld], 4, {
+        rueckgaengig: () => { e.fortschritt[plusFeld] = vorher; speichernEintraege(); renderGrid(); }
+      });
+    });
+    return karte;
+  }
+
+  function renderGrid() {
+    const box = document.getElementById('eintragGrid');
+    box.innerHTML = '';
+    const liste = gefilterteEintraege();
+    document.getElementById('leerHinweis').style.display = liste.length ? 'none' : '';
+    document.getElementById('leerText').textContent = eintraege.length
+      ? 'Nichts gefunden. Filter oder Suche anpassen.'
+      : 'Noch nichts erfasst. Tippe auf „＋ Neu“ für den ersten Manga, das erste Buch, Anime, Film oder die erste Serie.';
+    liste.forEach(e => box.appendChild(eintragKarte(e)));
+  }
+  function renderAlles() { renderStats(); renderGrid(); }
+
+  // ============================================================
+  // BEARBEITEN / NEU
+  // ============================================================
+  let bearbeiteId = null;
+  let editTyp = 'manga', editPerson = 'mama', editWo = 'print', editStatus = 'wunschliste';
+  let editBewertung = 0, editDetail = {}, editBild = null;
+
+  function renderEditTypReihe() {
+    const box = document.getElementById('editTypReihe');
+    box.innerHTML = '';
+    TYPEN.forEach(t => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'opt' + (t.id === editTyp ? ' aktiv' : '');
+      btn.textContent = t.icon + ' ' + t.label;
+      if (t.id === editTyp) btn.style.background = t.farbe;
+      btn.addEventListener('click', () => { editTyp = t.id; typAbhaengigesRendern(); });
+      box.appendChild(btn);
+    });
+  }
+  function renderEditPersonReihe() {
+    const box = document.getElementById('editPersonReihe');
+    box.innerHTML = '';
+    PERSONEN.filter(p => p.id !== 'alle').forEach(p => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'opt' + (p.id === editPerson ? ' aktiv' : '');
+      btn.textContent = p.label;
+      if (p.id === editPerson) btn.style.background = 'var(--moss)';
+      btn.addEventListener('click', () => { editPerson = p.id; renderEditPersonReihe(); });
+      box.appendChild(btn);
+    });
+  }
+  function auswahlFuellen(id, optionen, wert) {
+    const sel = document.getElementById(id);
+    sel.innerHTML = optionen.map(o => '<option value="' + o.id + '">' + o.icon + ' ' + escapeHtml(o.label) + '</option>').join('');
+    sel.value = wert;
+    if (sel.value !== wert) sel.value = optionen[0].id;
+    return sel.value;
+  }
+  // Alles, was von der gewählten Art abhängt (Wo-Liste, Status-Wörter, Fortschritt, Bewertungspunkte)
+  function typAbhaengigesRendern() {
+    const t = typInfo(editTyp);
+    renderEditTypReihe();
+    document.getElementById('fWoLabel').textContent = t.lesen ? 'Format' : 'Wo';
+    editWo = auswahlFuellen('fWo', t.wo, editWo);
+    editStatus = auswahlFuellen('fStatus', statusListe(t.lesen), editStatus);
+    const feld = document.getElementById('fFortschrittFeld');
+    feld.style.display = t.fort ? '' : 'none';
+    if (t.fort) {
+      document.getElementById('fFortschrittLabel').textContent = t.fort.label;
+      document.getElementById('fFortA').placeholder = t.fort.a;
+      document.getElementById('fFortB').placeholder = t.fort.b;
+      document.getElementById('fFortTrenner').textContent = t.fort.trenner;
+    }
+    renderSterneEingabe();
+  }
+  document.getElementById('fWo').addEventListener('change', (e) => { editWo = e.target.value; });
+  document.getElementById('fStatus').addEventListener('change', (e) => { editStatus = e.target.value; });
+
+  function sterneKnoepfe(box, wert, klickbar, onWahl, name) {
+    box.innerHTML = '';
+    for (let i = 1; i <= 5; i++) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'stern-teil';
+      btn.style.setProperty('--f', sternFuellung(wert, i));
+      btn.textContent = '★';
+      btn.disabled = !klickbar;
+      btn.setAttribute('aria-label', name + ': ' + i + (i === 1 ? ' Stern' : ' Sterne'));
+      if (klickbar) btn.addEventListener('click', () => onWahl(wert === i ? 0 : i));
+      box.appendChild(btn);
+    }
+  }
+  function renderSterneEingabe() {
+    const anzahl = bewerteteKriterien(editDetail, editTyp).length;
+    const gesamt = gesamtBewertung(editDetail, editBewertung, editTyp);
+    sterneKnoepfe(document.getElementById('bewGesamtSterne'), gesamt, anzahl === 0,
+      (v) => { editBewertung = v; renderSterneEingabe(); }, 'Gesamt');
+    document.getElementById('bewGesamtHinweis').textContent = anzahl
+      ? 'Ø ' + bewertungText(gesamt) + ' aus ' + anzahl + (anzahl === 1 ? ' Punkt' : ' Punkten')
+      : (editBewertung ? 'Direkt vergeben' : 'Direkt vergeben oder einzeln bewerten');
+    const liste = document.getElementById('bewKriterien');
+    liste.innerHTML = '';
+    typInfo(editTyp).kriterien.forEach(k => {
+      const zeile = document.createElement('div');
+      zeile.className = 'bew-zeile';
+      zeile.innerHTML = '<span>' + k.label + '</span><div class="bew-sterne"></div>';
+      sterneKnoepfe(zeile.querySelector('.bew-sterne'), editDetail[k.id] || 0, true, (v) => {
+        if (v) editDetail[k.id] = v; else delete editDetail[k.id];
+        renderSterneEingabe();
+      }, k.label.replace(/\u00ad/g, ''));
+      liste.appendChild(zeile);
+    });
+  }
+
+  // ---------- Bild ----------
+  function renderBildFeld() {
+    const box = document.getElementById('bildBox');
+    const img = document.getElementById('bildVorschau');
+    box.classList.toggle('hat-bild', !!editBild);
+    img.style.display = editBild ? '' : 'none';
+    if (editBild) img.src = editBild; else img.removeAttribute('src');
+    document.getElementById('bildPlatzhalter').style.display = editBild ? 'none' : '';
+  }
+  function bildVerkleinern(datei) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const img = new Image();
+        img.onload = () => {
+          const faktor = Math.min(1, BILD_MAX_KANTE / Math.max(img.width, img.height));
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.round(img.width * faktor);
+          canvas.height = Math.round(img.height * faktor);
+          canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL('image/jpeg', 0.72));
+        };
+        img.onerror = () => reject(new Error('Datei ist kein gültiges Bild.'));
+        img.src = ev.target.result;
+      };
+      reader.onerror = () => reject(new Error('Bild konnte nicht gelesen werden.'));
+      reader.readAsDataURL(datei);
+    });
+  }
+  document.getElementById('fBild').addEventListener('change', async (e) => {
+    const datei = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (!datei) return;
+    try { editBild = await bildVerkleinern(datei); renderBildFeld(); }
+    catch (err) { alert(err.message); }
+  });
+  document.getElementById('btnBildEntfernen').addEventListener('click', (e) => {
+    e.stopPropagation(); editBild = null; renderBildFeld();
+  });
+
+  // ---------- Öffnen / Speichern / Löschen ----------
+  function editModalOeffnen(e) {
+    bearbeiteId = e ? e.id : null;
+    document.getElementById('editKopf').textContent = e ? 'Eintrag bearbeiten' : 'Neuer Eintrag';
+    document.getElementById('fTitel').value = e ? e.titel : '';
+    document.getElementById('fNotiz').value = e ? (e.notiz || '') : '';
+    // Neuer Eintrag: Art aus dem gewählten Reiter übernehmen (Filme/Serien → Film)
+    editTyp = e ? e.typ : (typFilter !== 'alle' ? typFilter : 'manga');
+    editPerson = e ? e.person : (personFilter !== 'alle' ? personFilter : (PERSONEN[1] ? PERSONEN[1].id : 'familie'));
+    editWo = e ? e.wo : typInfo(editTyp).wo[0].id;
+    editStatus = e ? e.status : 'wunschliste';
+    editDetail = Object.assign({}, (e && e.bewertungDetail) || {});
+    editBewertung = e ? (e.bewertungManuell || 0) : 0;
+    editBild = e ? (bilder[e.id] || null) : null;
+    document.getElementById('fFortA').value = e && e.fortschritt ? (e.fortschritt.a || '') : '';
+    document.getElementById('fFortB').value = e && e.fortschritt ? (e.fortschritt.b || '') : '';
+    renderEditPersonReihe();
+    typAbhaengigesRendern();
+    renderBildFeld();
+    document.getElementById('loeschZeile').style.display = e ? '' : 'none';
+    document.getElementById('modalEdit').classList.add('zeigen');
+    if (!e) document.getElementById('fTitel').focus();
+  }
+  function modalSchliessen() { document.getElementById('modalEdit').classList.remove('zeigen'); }
+  document.getElementById('btnNeu').addEventListener('click', () => editModalOeffnen(null));
+  document.getElementById('btnAbbrechen').addEventListener('click', modalSchliessen);
+  document.getElementById('modalEdit').addEventListener('click', (e) => { if (e.target.id === 'modalEdit') modalSchliessen(); });
+
+  document.getElementById('btnSpeichern').addEventListener('click', () => {
+    const titel = document.getElementById('fTitel').value.trim();
+    if (!titel) { alert('Bitte einen Titel eingeben.'); return; }
+    const t = typInfo(editTyp);
+    // Nur Punkte der gewählten Art speichern (nach einem Art-Wechsel fallen fremde weg)
+    const detail = {};
+    t.kriterien.forEach(k => { const w = editDetail[k.id]; if (w >= 1 && w <= 5) detail[k.id] = w; });
+    const alt = bearbeiteId ? eintraege.find(x => x.id === bearbeiteId) : null;
+    const neu = Object.assign({}, alt || {}, {
+      id: bearbeiteId || neueId('m'),
+      titel, typ: editTyp, person: editPerson, wo: editWo, status: editStatus,
+      fortschritt: t.fort ? { a: document.getElementById('fFortA').value.trim(), b: document.getElementById('fFortB').value.trim() } : null,
+      bewertung: gesamtBewertung(detail, editBewertung, editTyp),
+      bewertungDetail: detail,
+      bewertungManuell: editBewertung,
+      notiz: document.getElementById('fNotiz').value.trim(),
+      erstelltAm: alt ? (alt.erstelltAm || new Date().toISOString()) : new Date().toISOString(),
+    });
+    if (alt) eintraege = eintraege.map(x => x.id === bearbeiteId ? neu : x);
+    else eintraege.push(neu);
+    speichernEintraege();
+    if ((bilder[neu.id] || null) !== editBild) {
+      if (editBild) bilder[neu.id] = editBild; else delete bilder[neu.id];
+      speichernBilder();
+    }
+    modalSchliessen();
+    renderAlles();
+  });
+
+  document.getElementById('btnLoeschen').addEventListener('click', () => {
+    if (!bearbeiteId) return;
+    const index = eintraege.findIndex(x => x.id === bearbeiteId);
+    if (index === -1) return;
+    const entfernt = eintraege[index];
+    const entferntesBild = bilder[entfernt.id] || null;
+    eintraege.splice(index, 1);
+    speichernEintraege();
+    if (entferntesBild) { delete bilder[entfernt.id]; speichernBilder(); }
+    modalSchliessen();
+    renderAlles();
+    showTempStatus('Gelöscht: „' + entfernt.titel + '"', 6, {
+      rueckgaengig: () => {
+        eintraege.splice(index, 0, entfernt); speichernEintraege();
+        if (entferntesBild) { bilder[entfernt.id] = entferntesBild; speichernBilder(); }
+        renderAlles();
+      }
+    });
+  });
+
+  // ---------- Start ----------
+  if (!TYP_FILTER.some(f => f.id === typFilter)) typFilter = 'alle';
+  if (!PERSONEN.some(p => p.id === personFilter)) personFilter = 'alle';
+  renderSortButton();
+  renderFilter();
+  renderAlles();
+
+  if (window.PlanerSync) {
+    window._sync = window.PlanerSync.starteSync({
+      modul: 'medien',
+      keys: [KEY_EINTRAEGE],
+      onRemoteChange: function () { eintraege = laden(KEY_EINTRAEGE, eintraege); renderAlles(); },
+    });
+    bilderSync = window.PlanerSync.starteSync({
+      modul: 'medien_bilder',
+      keys: [KEY_BILDER],
+      onRemoteChange: function () { bilder = laden(KEY_BILDER, bilder); renderGrid(); },
+    });
+  }
+})();
+</script>
+
+<script>
+(function() {
+  var KEY_THEME = 'medien_hintergrundThema';
+  var KEY_FOTO = KEY_THEME.replace('hintergrundThema', 'hintergrundBildEigenes');
+  var klassen = ['bg-sterne'];
+  function themeAnwenden(id) {
+    document.body.classList.remove.apply(document.body.classList, klassen);
+    document.body.style.backgroundColor = '';
+    document.body.style.backgroundImage = '';
+    document.body.style.backgroundSize = '';
+    document.body.style.backgroundPosition = '';
+    document.body.style.backgroundRepeat = '';
+    var eigenesFoto = '';
+    try { eigenesFoto = localStorage.getItem(KEY_FOTO) || ''; } catch(e) {}
+    if (id === 'foto' && eigenesFoto) {
+      document.body.style.backgroundImage = 'linear-gradient(rgba(250,246,236,0.82),rgba(250,246,236,0.82)), url("' + eigenesFoto + '")';
+      document.body.style.backgroundSize = 'cover';
+      document.body.style.backgroundPosition = 'center';
+      document.body.style.backgroundRepeat = 'no-repeat';
+    }
+    else if (id && id.indexOf('farbe:') === 0) { document.body.style.backgroundColor = id.slice(6) + 'b3'; }
+    else if (id) document.body.classList.add(id);
+    document.querySelectorAll('.theme-swatch').forEach(function(s) { s.classList.toggle('aktiv', s.dataset.theme === id); });
+  }
+  var aktivesTheme = '';
+  try { aktivesTheme = localStorage.getItem(KEY_THEME) || ''; } catch(e) {}
+  themeAnwenden(aktivesTheme);
+  var customFarbeInput = document.querySelector('.theme-farbe-custom-input');
+  if (customFarbeInput) {
+    customFarbeInput.addEventListener('input', function() {
+      var neueId = 'farbe:' + customFarbeInput.value;
+      themeAnwenden(neueId);
+      try { localStorage.setItem(KEY_THEME, neueId); } catch(e) {}
+    });
+  }
+  var fotoInput = document.querySelector('.theme-foto-input');
+  if (fotoInput) {
+    fotoInput.addEventListener('change', function(e) {
+      var file = e.target.files && e.target.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function(ev) {
+        var img = new Image();
+        img.onload = function() {
+          var maxW = 900;
+          var scale = Math.min(1, maxW / img.width);
+          var canvas = document.createElement('canvas');
+          canvas.width = img.width * scale;
+          canvas.height = img.height * scale;
+          var ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          var dataUrl = canvas.toDataURL('image/jpeg', 0.65);
+          try {
+            localStorage.setItem(KEY_FOTO, dataUrl);
+            localStorage.setItem(KEY_THEME, 'foto');
+          } catch(err) { alert('Foto konnte nicht gespeichert werden (evtl. zu groß oder Speicher voll).'); return; }
+          themeAnwenden('foto');
+        };
+        img.onerror = function() { alert('Datei ist kein gültiges Bild.'); };
+        img.src = ev.target.result;
+      };
+      reader.onerror = function() { alert('Foto konnte nicht gelesen werden.'); };
+      reader.readAsDataURL(file);
+    });
+  }
+  var btn = document.getElementById('btnThemeAuswahl');
+  var popup = document.getElementById('themePopup');
+  if (btn && popup) {
+    btn.addEventListener('click', function() { popup.classList.toggle('zeigen'); });
+    document.querySelectorAll('.theme-swatch:not(.theme-farbe-custom):not(.theme-foto-swatch)').forEach(function(swatch) {
+      swatch.addEventListener('click', function() {
+        var id = swatch.dataset.theme;
+        themeAnwenden(id);
+        try { localStorage.setItem(KEY_THEME, id); } catch(e) {}
+        popup.classList.remove('zeigen');
+      });
+    });
+    document.addEventListener('click', function(e) {
+      if (popup.classList.contains('zeigen') && !popup.contains(e.target) && e.target.id !== 'btnThemeAuswahl') {
+        popup.classList.remove('zeigen');
+      }
+    });
+  }
+})();
+</script>
+</body>
+</html>

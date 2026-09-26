@@ -324,7 +324,11 @@
       { id: 'einkauf',     label: 'Einkauf',   emoji: '🛒', src: 'einkauf.html', syncKeys: ['einkauf_listen','einkauf_favoriten','einkauf_vorlagen','einkauf_preise'] },
       { id: 'kochen',      label: 'Kochen',    emoji: '🍳', src: 'kochen.html', syncKeys: ['kochen_rezepte','kochen_wochenplan'] },
       { id: 'vorratskammer', label: 'Vorratskammer', emoji: '🥫', src: 'vorratskammer.html', syncKeys: ['vorratskammer_items','vorratskammer_kategorien'] },
-      { id: 'gaming',      label: 'Gaming',    emoji: '🎮', src: 'gaming.html', syncKeys: ['gaming_spiele','gaming_sessions'] },
+      // zusatzSync: weitere Sync-Dokumente eines Moduls (z.B. Bilder, wegen 1-MB-Grenze je Dokument)
+      { id: 'gaming',      label: 'Gaming',    emoji: '🎮', src: 'gaming.html', syncKeys: ['gaming_spiele','gaming_sessions'],
+        zusatzSync: [{ modul: 'gaming_bilder', keys: ['gaming_bilder'] }] },
+      { id: 'medien',      label: 'Medien',    emoji: '🍿', src: 'medien.html', syncKeys: ['medien_eintraege'],
+        zusatzSync: [{ modul: 'medien_bilder', keys: ['medien_bilder'] }] },
       { id: 'handwerk',    label: 'Handwerk',  emoji: '🔨', src: 'handwerk.html', syncKeys: ['handwerk_projekte', 'handwerk_wartung'] },
       { id: 'haushalt',    label: 'Haushalt',  emoji: '🧹', src: 'haushalt.html', syncKeys: ['haushalt_aufgaben'] },
       { id: 'geldgeschenke', label: 'Geldgeschenke', emoji: '💶', src: 'geldgeschenke.html', syncKeys: ['geldgeschenke_liste'] },
@@ -875,6 +879,7 @@
         // die gerade wiederhergestellten Daten wieder überschreiben).
         if (window.PlanerSync) {
           const pushes = MODULE.filter(m => m.syncKeys).map(m => window.PlanerSync.pushWerte(m.id, m.syncKeys, m.syncTransform));
+          MODULE.forEach(m => (m.zusatzSync || []).forEach(z => pushes.push(window.PlanerSync.pushWerte(z.modul, z.keys))));
           Promise.all(pushes).then(() => {
             status.textContent = '✅ Wiederhergestellt und mit der Cloud synchronisiert.';
             frame.src = frame.src; // aktuellen Bereich neu laden, damit er die neuen Daten zeigt
