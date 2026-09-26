@@ -167,9 +167,10 @@
   .bild-box.hat-bild .bild-entfernen { display: block; }
   .spiel-cover { margin: -12px -12px 2px; height: 96px; background-size: cover; background-position: center; border-radius: 0; }
   .bew-zeile { display: flex; align-items: center; justify-content: space-between; gap: 4px; min-height: 32px; }
-  .bew-zeile span { font-size: 0.72rem; color: var(--soil); line-height: 1.15; }
+  .bew-zeile span { flex: 1; min-width: 0; font-size: 0.72rem; color: var(--soil); line-height: 1.15; overflow-wrap: anywhere; }
   .bew-sterne { display: flex; flex-shrink: 0; }
   .bew-sterne button { border: none; font-size: 1.2rem; line-height: 1; padding: 2px 1px; cursor: pointer; }
+  @media (max-width: 380px) { .bew-sterne button { font-size: 1.1rem; padding: 2px 0; } }
   .bew-sterne button:disabled { cursor: default; }
   .bew-gesamt { padding-bottom: 2px; }
   .bew-gesamt span { font-weight: 700; font-size: 0.8rem; }
@@ -549,13 +550,13 @@
   // Einzelbewertungen: jede 1–5 Sterne; nur bewertete Punkte fließen in den Durchschnitt ein
   const BEWERTUNGS_KRITERIEN = [
     { id: 'story',         label: 'Story' },
-    { id: 'spieldauer',    label: 'Spieldauer' },
+    { id: 'spieldauer',    label: 'Spiel\u00addauer' },
     { id: 'grafik',        label: 'Grafik' },
     { id: 'spass',         label: 'Spaß' },
     { id: 'musik',         label: 'Musik' },
-    { id: 'atmosphaere',   label: 'Atmosphäre' },
-    { id: 'worldbuilding', label: 'Worldbuilding' },
-    { id: 'mechanik',      label: 'Spielmechanik' },
+    { id: 'atmosphaere',   label: 'Atmo\u00adsphäre' },
+    { id: 'worldbuilding', label: 'World\u00adbuilding' },
+    { id: 'mechanik',      label: 'Spiel\u00admechanik' },
   ];
   function bewerteteKriterien(detail) {
     return BEWERTUNGS_KRITERIEN.map(k => (detail || {})[k.id]).filter(w => w >= 1 && w <= 5);
