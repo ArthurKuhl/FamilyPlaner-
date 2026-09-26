@@ -151,13 +151,25 @@
   /* Teil-gefüllte Sterne (z.B. 3,7): Verlauf gold→leer, auf die Sternform zugeschnitten */
   .stern-teil { background: linear-gradient(90deg, var(--gold) var(--f, 0%), var(--parchment) var(--f, 0%)); -webkit-background-clip: text; background-clip: text; color: transparent !important; }
   .sterne-wert { font-size: 0.68rem; font-weight: 700; color: var(--bark); margin-left: 4px; align-self: center; }
-  .bew-layout { display: flex; gap: 12px; align-items: flex-start; }
-  .bew-layout .feld-spalte { flex: 1; min-width: 0; }
+  /* Links: Bild füllt den freien Platz, Felder sitzen unten bündig mit der letzten Bewertungszeile */
+  .bew-layout { display: flex; gap: 12px; align-items: stretch; margin-bottom: 12px; }
+  .bew-layout .feld-spalte { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .bew-layout .feld-spalte > .feld:last-child, .bew-layout .bewertung-spalte { margin-bottom: 0; }
   .bew-layout .bewertung-spalte { flex: 1.3; min-width: 0; }
-  .bew-zeile { display: flex; align-items: center; justify-content: space-between; gap: 4px; min-height: 26px; }
+  .bild-feld { flex: 1; display: flex; flex-direction: column; }
+  .bew-layout .feld-spalte .feld { margin-bottom: 8px; }
+  .bew-layout .feld-spalte input, .bew-layout .feld-spalte select { padding: 7px 9px; }
+  .bild-box { position: relative; flex: 1; min-height: 80px; border: 1.5px dashed var(--parchment); border-radius: var(--radius-sm); background: var(--white); overflow: hidden; cursor: pointer; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 0.75rem; font-weight: 600; color: var(--bark); }
+  .bild-box.hat-bild { border-style: solid; }
+  .bild-box img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .bild-box input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; z-index: 1; }
+  .bild-entfernen { position: absolute; top: 5px; right: 5px; z-index: 2; width: 26px; height: 26px; border-radius: 50%; border: none; background: rgba(42,32,22,0.7); color: #fff; font-size: 0.8rem; cursor: pointer; display: none; }
+  .bild-box.hat-bild .bild-entfernen { display: block; }
+  .spiel-cover { margin: -12px -12px 2px; height: 96px; background-size: cover; background-position: center; border-radius: 0; }
+  .bew-zeile { display: flex; align-items: center; justify-content: space-between; gap: 4px; min-height: 32px; }
   .bew-zeile span { font-size: 0.72rem; color: var(--soil); line-height: 1.15; }
   .bew-sterne { display: flex; flex-shrink: 0; }
-  .bew-sterne button { border: none; font-size: 1.1rem; line-height: 1; padding: 2px 1px; cursor: pointer; }
+  .bew-sterne button { border: none; font-size: 1.2rem; line-height: 1; padding: 2px 1px; cursor: pointer; }
   .bew-sterne button:disabled { cursor: default; }
   .bew-gesamt { padding-bottom: 2px; }
   .bew-gesamt span { font-weight: 700; font-size: 0.8rem; }
@@ -349,6 +361,15 @@
     </div>
     <div class="bew-layout">
       <div class="feld-spalte">
+        <div class="feld bild-feld">
+          <label>Bild</label>
+          <div class="bild-box" id="bildBox">
+            <span id="bildPlatzhalter">📷<br>Bild hinzufügen</span>
+            <img id="bildVorschau" alt="" style="display:none;">
+            <input type="file" accept="image/*" id="fBild" aria-label="Bild auswählen">
+            <button type="button" class="bild-entfernen" id="btnBildEntfernen" aria-label="Bild entfernen">✕</button>
+          </div>
+        </div>
         <div class="feld">
           <label for="fPlattform">Plattform</label>
           <select id="fPlattform"></select>
@@ -357,13 +378,13 @@
           <label for="fStatus">Status</label>
           <select id="fStatus"></select>
         </div>
-        <div class="feld">
-          <label for="fSpielzeit">Spielzeit (Std.)</label>
-          <input type="number" id="fSpielzeit" min="0" step="0.5" placeholder="z.B. 12">
-        </div>
         <div class="feld" id="fGeschaetzteDauerFeld" style="display:none">
           <label for="fGeschaetzteDauer">Geschätzte Dauer (Std.)</label>
           <input type="number" id="fGeschaetzteDauer" min="0" step="0.5" placeholder="z.B. 40">
+        </div>
+        <div class="feld">
+          <label for="fSpielzeit">Spielzeit (Std.)</label>
+          <input type="number" id="fSpielzeit" min="0" step="0.5" placeholder="z.B. 12">
         </div>
       </div>
       <div class="feld bewertung-spalte">
@@ -570,6 +591,20 @@
   }
 
   let spiele = laden(KEY_SPIELE, []);
+  // Spielbilder liegen in einem eigenen Schlüssel + eigenem Sync-Dokument, damit die
+  // Spieleliste unter der 1-MB-Grenze von Firestore bleibt: { spielId: 'data:image/jpeg;base64,...' }
+  const KEY_BILDER = 'gaming_bilder';
+  const BILD_MAX_KANTE = 360;
+  const BILDER_WARNGRENZE = 850 * 1024;
+  let bilder = laden(KEY_BILDER, {});
+  let bilderSync = null;
+  function speichernBilder() {
+    try { localStorage.setItem(KEY_BILDER, JSON.stringify(bilder)); }
+    catch (e) { alert('Bild konnte nicht gespeichert werden – ist der Speicher voll?'); return; }
+    if (bilderSync) bilderSync.melde();
+    const groesse = new Blob([JSON.stringify(bilder)]).size;
+    if (groesse > BILDER_WARNGRENZE) alert('Achtung: Die Spielbilder belegen jetzt ' + Math.round(groesse / 1024) + ' KB. Ab 1 MB können sie nicht mehr synchronisiert werden. Lösch am besten ein paar ältere Bilder.');
+  }
   const KEY_SITZUNGEN = 'gaming_sessions';
   let sitzungen = laden(KEY_SITZUNGEN, []); // [{id, spielId, datum, minuten}]
   let personFilter = localStorage.getItem(KEY_AKTIVE_PERSON) || 'alle';
@@ -710,6 +745,7 @@
     karte.className = 'spiel-karte';
     karte.style.borderTopColor = stat.farbe;
     karte.innerHTML =
+      (bilder[s.id] ? '<div class="spiel-cover" style="background-image:url(\'' + bilder[s.id] + '\')"></div>' : '') +
       '<div class="spiel-titel">' + escapeHtml(s.titel) + '</div>' +
       '<div class="spiel-chips">' +
         '<span class="mini-chip" style="background:' + plat.farbe + '22; color:' + plat.farbe + ';">' + plat.icon + ' ' + plat.label + '</span>' +
@@ -737,6 +773,48 @@
   let editPerson = 'mama', editPlattform = 'pc', editStatus = 'wunschliste';
   let editBewertung = 0;  // direkt gesetzte Gesamtbewertung (gilt nur, solange keine Einzelpunkte bewertet sind)
   let editDetail = {};    // { story: 4, grafik: 5, ... }
+  let editBild = null;    // Bild im Formular; wird erst beim Speichern übernommen
+
+  function renderBildFeld() {
+    const box = document.getElementById('bildBox');
+    const img = document.getElementById('bildVorschau');
+    box.classList.toggle('hat-bild', !!editBild);
+    img.style.display = editBild ? '' : 'none';
+    if (editBild) img.src = editBild; else img.removeAttribute('src');
+    document.getElementById('bildPlatzhalter').style.display = editBild ? 'none' : '';
+  }
+  function bildVerkleinern(datei) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const img = new Image();
+        img.onload = () => {
+          const faktor = Math.min(1, BILD_MAX_KANTE / Math.max(img.width, img.height));
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.round(img.width * faktor);
+          canvas.height = Math.round(img.height * faktor);
+          canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL('image/jpeg', 0.72));
+        };
+        img.onerror = () => reject(new Error('Datei ist kein gültiges Bild.'));
+        img.src = ev.target.result;
+      };
+      reader.onerror = () => reject(new Error('Bild konnte nicht gelesen werden.'));
+      reader.readAsDataURL(datei);
+    });
+  }
+  document.getElementById('fBild').addEventListener('change', async (e) => {
+    const datei = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (!datei) return;
+    try { editBild = await bildVerkleinern(datei); renderBildFeld(); }
+    catch (err) { alert(err.message); }
+  });
+  document.getElementById('btnBildEntfernen').addEventListener('click', (e) => {
+    e.stopPropagation();
+    editBild = null;
+    renderBildFeld();
+  });
 
   function optReiheRendern(containerId, optionen, ausgewaehlt, onWahl) {
     const box = document.getElementById(containerId);
@@ -855,6 +933,8 @@
     editPlattform = s ? s.plattform : 'pc';
     editStatus = s ? s.status : 'wunschliste';
     editDetail = Object.assign({}, (s && s.bewertungDetail) || {});
+    editBild = s ? (bilder[s.id] || null) : null;
+    renderBildFeld();
     // Ältere Spiele haben nur "bewertung" – die gilt dann als direkt gesetzte Gesamtbewertung
     editBewertung = s ? (s.bewertungManuell !== undefined ? s.bewertungManuell : (bewerteteKriterien(editDetail).length ? 0 : (s.bewertung || 0))) : 0;
     renderEditPersonReihe(); renderEditPlattformReihe(); renderEditStatusReihe(); renderSterneEingabe();
@@ -902,6 +982,10 @@
     if (bearbeiteId) spiele = spiele.map(s => s.id === bearbeiteId ? Object.assign({}, s, neu) : s);
     else spiele.push(neu);
     speichernSpiele();
+    if ((bilder[neu.id] || null) !== editBild) {
+      if (editBild) bilder[neu.id] = editBild; else delete bilder[neu.id];
+      speichernBilder();
+    }
     document.getElementById('modalEdit').classList.remove('zeigen');
     entwurfUeberwachungStoppen(); entwurfLoeschen();
     renderAlles();
@@ -911,13 +995,19 @@
     const index = spiele.findIndex(s => s.id === bearbeiteId);
     if (index === -1) return;
     const entfernt = spiele[index];
+    const entferntesBild = bilder[entfernt.id] || null;
     spiele.splice(index, 1);
     speichernSpiele();
+    if (entferntesBild) { delete bilder[entfernt.id]; speichernBilder(); }
     document.getElementById('modalEdit').classList.remove('zeigen');
     entwurfUeberwachungStoppen(); entwurfLoeschen();
     renderAlles();
     showTempStatus('Gelöscht: „' + entfernt.titel + '"', 6, {
-      rueckgaengig: () => { spiele.splice(index, 0, entfernt); speichernSpiele(); renderAlles(); }
+      rueckgaengig: () => {
+        spiele.splice(index, 0, entfernt); speichernSpiele();
+        if (entferntesBild) { bilder[entfernt.id] = entferntesBild; speichernBilder(); }
+        renderAlles();
+      }
     });
   });
 
@@ -1148,6 +1238,14 @@
         sitzungen = laden(KEY_SITZUNGEN, sitzungen);
         renderAlles();
         if (aktiveAnsicht === 'statistik') renderStatistik();
+      },
+    });
+    bilderSync = window.PlanerSync.starteSync({
+      modul: 'gaming_bilder',
+      keys: [KEY_BILDER],
+      onRemoteChange: function () {
+        bilder = laden(KEY_BILDER, bilder);
+        renderGrid();
       },
     });
   }
