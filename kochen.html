@@ -683,8 +683,8 @@
       <input type="text" id="fTitel" placeholder="z.B. Kürbissuppe">
     </div>
     <div class="feld">
-      <label>Kategorie</label>
-      <div class="kategorie-reihe" id="editKategorieReihe"></div>
+      <label for="fKategorie">Kategorie</label>
+      <select id="fKategorie"></select>
     </div>
     <div class="feld">
       <label>Bewertung</label>
@@ -786,10 +786,12 @@
 
   const KATEGORIEN = [
     { id: 'fruehstueck', label: 'Frühstück',   icon: '🍳', farbe: '#4f6f45' },
+    { id: 'suppe',       label: 'Suppe',       icon: '🍜', farbe: '#b8743a' },
     { id: 'hauptspeise', label: 'Hauptspeise', icon: '🍲', farbe: '#c46b41' },
     { id: 'beilage',     label: 'Beilage',     icon: '🥗', farbe: '#7fa476' },
     { id: 'sossen_dips', label: 'Soßen/Dips/Aufstrich', icon: '🥣', farbe: '#c99a3a' },
     { id: 'dessert',     label: 'Dessert',     icon: '🍰', farbe: '#5b8bb5' },
+    { id: 'kuchen_torte',label: 'Kuchen/Torte',icon: '🎂', farbe: '#b0578d' },
     { id: 'gebaeck',     label: 'Gebäck',      icon: '🥐', farbe: '#7d6339' },
     { id: 'getraenke',   label: 'Getränke',    icon: '🥤', farbe: '#a8532e' },
     { id: 'sonstiges',   label: 'Sonstiges',   icon: '📦', farbe: '#7d6339' },
@@ -840,7 +842,7 @@
       zeit: document.getElementById('fZeit').value,
       notiz: document.getElementById('fNotiz').value,
       tags: document.getElementById('fTags').value,
-      kategorie: (document.querySelector('#editKategorieReihe .kategorie-opt.aktiv') || {}).dataset ? document.querySelector('#editKategorieReihe .kategorie-opt.aktiv').dataset.id : '',
+      kategorie: document.getElementById('fKategorie').value,
       aufwand: editAufwand,
       bewertung: editBewertung,
       zutaten: Array.from(document.querySelectorAll('#editZutatenListe .zutat-zeile')).map(z => ({
@@ -1683,23 +1685,12 @@
   });
 
   // --- BEARBEITEN / NEU ---
+  // Kategorie als Aufklappliste (spart Platz im Formular)
   function editKategorieReiheRendern(ausgewaehlt) {
-    const reihe = document.getElementById('editKategorieReihe');
-    reihe.innerHTML = '';
-    KATEGORIEN.forEach(k => {
-      const opt = document.createElement('button');
-      opt.type = 'button';
-      opt.className = 'kategorie-opt' + (k.id === ausgewaehlt ? ' aktiv' : '');
-      opt.textContent = k.icon + ' ' + k.label;
-      opt.dataset.id = k.id;
-      if (k.id === ausgewaehlt) opt.style.background = k.farbe;
-      opt.addEventListener('click', () => {
-        reihe.querySelectorAll('.kategorie-opt').forEach(o => { o.classList.remove('aktiv'); o.style.background = ''; });
-        opt.classList.add('aktiv');
-        opt.style.background = k.farbe;
-      });
-      reihe.appendChild(opt);
-    });
+    const sel = document.getElementById('fKategorie');
+    if (!sel.options.length) sel.innerHTML = KATEGORIEN.map(k => '<option value="' + k.id + '">' + k.icon + ' ' + escapeHtml(k.label) + '</option>').join('');
+    sel.value = ausgewaehlt || 'hauptspeise';
+    if (sel.value !== (ausgewaehlt || 'hauptspeise')) sel.value = 'sonstiges';
   }
 
   function zutatZeileErstellen(z) {
@@ -1930,7 +1921,6 @@
   document.getElementById('btnEditSpeichern').addEventListener('click', () => {
     const titel = document.getElementById('fTitel').value.trim();
     if (!titel) { alert('Bitte einen Titel eingeben.'); return; }
-    const gewaehlteKategorie = document.querySelector('#editKategorieReihe .kategorie-opt.aktiv');
     const portionenBasis = Math.max(1, parseInt(document.getElementById('fPortionen').value, 10) || 4);
     const zeit = Math.max(0, parseInt(document.getElementById('fZeit').value, 10) || 0);
 
@@ -1952,7 +1942,7 @@
 
     const neu = {
       id: bearbeiteId || neueId('r'),
-      titel, kategorie: gewaehlteKategorie ? gewaehlteKategorie.dataset.id : 'sonstiges',
+      titel, kategorie: document.getElementById('fKategorie').value || 'sonstiges',
       portionenBasis, zeit, zutaten, schritte, tags,
       notiz: document.getElementById('fNotiz').value.trim(),
       bewertung: editBewertung,
