@@ -157,6 +157,12 @@
     box-shadow: 0 3px 10px rgba(74,111,90,0.35);
   }
 
+  .uhr-import-btn { display: block; margin: 10px auto 0; background: none; border: none; color: var(--moss); font-weight: 700; font-size: 0.8rem; cursor: pointer; text-decoration: underline; }
+  .import-hinweis { font-size: 0.78rem; color: var(--bark); line-height: 1.45; margin-bottom: 8px; }
+  .import-zeile { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--parchment); font-size: 0.82rem; }
+  .import-zeile select { width: auto; padding: 4px 6px; border: 1px solid var(--parchment); border-radius: var(--radius-sm); background: var(--white); color: var(--soil); font-size: 0.8rem; }
+  .import-haken { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--soil); margin-top: 10px; }
+  .import-haken input { width: auto; }
   .sport-karte .add-sport-btn { margin-bottom: 8px; font-size: 1.05rem; padding: 16px; }
   .sport-nachtragen { width: 100%; background: var(--white); border: 1px dashed var(--sage); color: var(--moss); border-radius: var(--radius-md); padding: 10px; font-size: 0.85rem; font-weight: 700; cursor: pointer; }
   .sport-karte .sport-liste { margin-top: 10px; }
@@ -423,6 +429,14 @@
         <input type="number" step="1" class="metrik-input-zahl" id="fPuls" placeholder="–">
       </div>
       <div class="metrik-zeile">
+        <span class="metrik-label">👣 Schritte</span>
+        <input type="number" step="1" class="metrik-input-zahl" id="fSchritte" placeholder="–">
+      </div>
+      <div class="metrik-zeile">
+        <span class="metrik-label">🫁 SpO2 (%)</span>
+        <input type="number" step="1" min="50" max="100" class="metrik-input-zahl" id="fSpo2" placeholder="–">
+      </div>
+      <div class="metrik-zeile">
         <span class="metrik-label">💧 Wasser (Gläser)</span>
         <div class="stepper">
           <button id="btnWasserMinus" type="button">−</button>
@@ -446,6 +460,7 @@
           <span class="schalter-kugel"></span>
         </label>
       </div>
+      <button type="button" class="uhr-import-btn" id="btnUhrImport">⌚ Uhr-Daten importieren</button>
     </div>
 
 
@@ -1596,6 +1611,51 @@
   </div>
 </div>
 
+<div class="modal-bg" id="modalUhrImport">
+  <div class="modal">
+    <h2>⌚ Uhr-Daten importieren</h2>
+    <div class="import-hinweis">Exportiere die Daten auf dem Handy als <b>CSV</b> (Puls, Schritte, Schlaf, SpO2) oder deine Läufe als <b>GPX</b> und wähle die Datei hier aus. Mehrere GPX-Dateien auf einmal gehen auch.</div>
+    <div class="import-hinweis" id="importPersonText"></div>
+    <div class="feld">
+      <label for="fImportDatei">Datei</label>
+      <input type="file" id="fImportDatei" accept=".csv,.txt,.gpx,text/csv,application/gpx+xml" multiple>
+    </div>
+    <div class="import-hinweis" id="importDateiInfo"></div>
+    <div id="importCsvBereich" style="display:none;">
+      <div class="feld">
+        <label for="fImportMesswert">Messwert</label>
+        <select id="fImportMesswert">
+          <option value="puls">💓 Puls (Tages-Ø)</option>
+          <option value="schritte">👣 Schritte (Tagessumme)</option>
+          <option value="schlaf">😴 Schlaf (Std. je Nacht)</option>
+          <option value="spo2">🫁 SpO2 (Tages-Ø)</option>
+        </select>
+      </div>
+      <div class="zeile">
+        <div class="feld"><label for="fImportZeit">Zeit-Spalte</label><select id="fImportZeit"></select></div>
+        <div class="feld"><label for="fImportWert">Wert-Spalte</label><select id="fImportWert"></select></div>
+      </div>
+      <div id="importSchlafOptionen" style="display:none;">
+        <div class="zeile">
+          <div class="feld"><label for="fImportEnde">Ende-Spalte</label><select id="fImportEnde"></select></div>
+          <div class="feld" id="importSchlafEinheitFeld"><label for="fImportSchlafEinheit">Wert in</label>
+            <select id="fImportSchlafEinheit"><option value="h">Stunden</option><option value="min">Minuten</option><option value="s">Sekunden</option></select>
+          </div>
+        </div>
+      </div>
+      <div id="importVorschau"></div>
+    </div>
+    <div id="importGpxBereich" style="display:none;">
+      <div id="importGpxListe"></div>
+    </div>
+    <label class="import-haken"><input type="checkbox" id="fImportUeberschreiben"> Vorhandene Tageswerte überschreiben</label>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnImportAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnImportUebernehmen" disabled>Übernehmen</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="modalSport">
   <div class="modal">
     <h2 id="modalSportTitel">Sport-Einheit</h2>
@@ -1941,6 +2001,8 @@
     document.getElementById('fBlutdruckSys').value = eintrag.blutdruckSys || '';
     document.getElementById('fBlutdruckDia').value = eintrag.blutdruckDia || '';
     document.getElementById('fPuls').value = eintrag.puls || '';
+    document.getElementById('fSchritte').value = eintrag.schritte || '';
+    document.getElementById('fSpo2').value = eintrag.spo2 || '';
     document.getElementById('fRuhetag').checked = !!eintrag.ruhetag;
     document.getElementById('wasserWert').textContent = eintrag.wasser || 0;
     renderWasserZielBalken(eintrag.wasser || 0);
@@ -1993,6 +2055,11 @@
     eintrag.puls = e.target.value;
     speichern(KEY_TAGESWERTE, tageswerte);
   });
+  ['fSchritte', 'fSpo2'].forEach(id => document.getElementById(id).addEventListener('change', (e) => {
+    const eintrag = findeOderErstelleTageswert(aktivePerson, heuteISO());
+    eintrag[id === 'fSchritte' ? 'schritte' : 'spo2'] = e.target.value;
+    speichern(KEY_TAGESWERTE, tageswerte);
+  }));
   document.getElementById('fRuhetag').addEventListener('change', (e) => {
     const eintrag = findeOderErstelleTageswert(aktivePerson, heuteISO());
     eintrag.ruhetag = e.target.checked;
@@ -2571,6 +2638,293 @@
     renderAlles();
   });
 
+  // ============================================================
+  // UHR-DATEN IMPORTIEREN (CSV aus Health-Connect-Export-Apps, GPX-Läufe)
+  // Eine Web-App kann Health Connect nicht direkt lesen – daher Import per Datei.
+  // CSV-Formate unterscheiden sich je nach Export-App, deshalb: Spalten werden
+  // erraten und können im Dialog angepasst werden.
+  // ============================================================
+  const IMPORT_MESSWERTE = [
+    { id: 'puls',    label: '💓 Puls (Tages-Ø)',  feld: 'puls',    art: 'schnitt', muster: /heart|herz|puls|bpm/i },
+    { id: 'schritte',label: '👣 Schritte',        feld: 'schritte',art: 'summe',   muster: /step|schritt/i },
+    { id: 'schlaf',  label: '😴 Schlaf',          feld: 'schlaf',  art: 'schlaf',  muster: /sleep|schlaf/i },
+    { id: 'spo2',    label: '🫁 SpO2 (Tages-Ø)',   feld: 'spo2',    art: 'schnitt', muster: /spo2|oxygen|sauerstoff|saturation/i },
+  ];
+  let importCsv = null;   // { kopf: [...], zeilen: [[...]] }
+  let importGpx = [];     // [{ name, datum, dauer, km, route }]
+
+  function csvParsen(text) {
+    text = text.replace(/^\uFEFF/, '');
+    const ersteZeile = text.split(/\r?\n/)[0] || '';
+    const trenner = [';', '\t', ','].map(t => ({ t, n: ersteZeile.split(t).length })).sort((a, b) => b.n - a.n)[0].t;
+    const zeilen = [];
+    let zeile = [], feld = '', inQuotes = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (inQuotes) {
+        if (c === '"' && text[i + 1] === '"') { feld += '"'; i++; }
+        else if (c === '"') inQuotes = false;
+        else feld += c;
+      } else if (c === '"') inQuotes = true;
+      else if (c === trenner) { zeile.push(feld); feld = ''; }
+      else if (c === '\n' || c === '\r') {
+        if (c === '\r' && text[i + 1] === '\n') i++;
+        zeile.push(feld); feld = '';
+        if (zeile.some(f => f.trim() !== '')) zeilen.push(zeile);
+        zeile = [];
+      } else feld += c;
+    }
+    zeile.push(feld);
+    if (zeile.some(f => f.trim() !== '')) zeilen.push(zeile);
+    return { kopf: (zeilen.shift() || []).map(k => k.trim()), zeilen };
+  }
+
+  // Versteht ISO (2026-09-25T07:30), deutsche Schreibweise (25.09.2026 07:30) und Unix-Zeitstempel
+  function zeitParsen(wert) {
+    const s = String(wert || '').trim();
+    if (!s) return null;
+    if (/^\d{10}(\.\d+)?$/.test(s)) return new Date(parseFloat(s) * 1000);
+    if (/^\d{13}$/.test(s)) return new Date(parseInt(s, 10));
+    const de = s.match(/^(\d{1,2})\.(\d{1,2})\.(\d{2,4})(?:[ ,T]+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/);
+    if (de) {
+      const jahr = de[3].length === 2 ? 2000 + parseInt(de[3], 10) : parseInt(de[3], 10);
+      return new Date(jahr, parseInt(de[2], 10) - 1, parseInt(de[1], 10), parseInt(de[4] || 0, 10), parseInt(de[5] || 0, 10), parseInt(de[6] || 0, 10));
+    }
+    const nurDatum = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (nurDatum) return new Date(parseInt(nurDatum[1], 10), parseInt(nurDatum[2], 10) - 1, parseInt(nurDatum[3], 10));
+    const d = new Date(s.replace(' ', 'T'));
+    return isNaN(d.getTime()) ? null : d;
+  }
+  function zahlParsen(wert) {
+    let s = String(wert || '').trim().replace(/[^\d,.\-]/g, '');
+    if (s.includes(',') && !s.includes('.')) s = s.replace(',', '.');
+    else if (s.includes(',') && s.includes('.')) s = s.replace(/\./g, '').replace(',', '.');
+    const n = parseFloat(s);
+    return isNaN(n) ? null : n;
+  }
+
+  function spaltenAuswahl(id, kopf, vorwahl, leerText) {
+    const sel = document.getElementById(id);
+    sel.innerHTML = (leerText ? '<option value="-1">' + leerText + '</option>' : '') +
+      kopf.map((k, i) => '<option value="' + i + '">' + escapeHtml(k || ('Spalte ' + (i + 1))) + '</option>').join('');
+    sel.value = String(vorwahl);
+  }
+  function spalteRaten(kopf, muster, ausser) {
+    const i = kopf.findIndex((k, idx) => muster.test(k) && !(ausser || []).includes(idx));
+    return i;
+  }
+
+  function csvDialogAufbauen(dateiname) {
+    const kopf = importCsv.kopf;
+    // Messwert erraten: erst Spaltennamen, dann Dateiname und die ersten Zeilen
+    const zusatzText = [dateiname || ''].concat(importCsv.zeilen.slice(0, 3).map(z => z.join(' '))).join(' ');
+    const erkannt = IMPORT_MESSWERTE.find(m => kopf.some(k => m.muster.test(k)))
+      || IMPORT_MESSWERTE.find(m => m.muster.test(zusatzText))
+      || IMPORT_MESSWERTE[0];
+    document.getElementById('fImportMesswert').value = erkannt.id;
+    let zeitIdx = spalteRaten(kopf, /start|begin|date|datum|time|zeit/i);
+    if (zeitIdx < 0) zeitIdx = 0;
+    let endeIdx = spalteRaten(kopf, /end|ende/i, [zeitIdx]);
+    let wertIdx = spalteRaten(kopf, erkannt.muster, [zeitIdx, endeIdx]);
+    if (wertIdx < 0) wertIdx = spalteRaten(kopf, /value|wert|count|anzahl|bpm|percent|prozent|duration|dauer/i, [zeitIdx, endeIdx]);
+    if (wertIdx < 0) wertIdx = kopf.length > 1 ? 1 : 0;
+    spaltenAuswahl('fImportZeit', kopf, zeitIdx);
+    spaltenAuswahl('fImportWert', kopf, wertIdx);
+    spaltenAuswahl('fImportEnde', kopf, erkannt.art === 'schlaf' ? endeIdx : -1, '— keine —');
+    document.getElementById('importCsvBereich').style.display = '';
+    csvVorschau();
+  }
+
+  // Werte je Tag zusammenfassen; Ergebnis: [{ datum, wert }]
+  function csvAuswerten() {
+    const m = IMPORT_MESSWERTE.find(x => x.id === document.getElementById('fImportMesswert').value);
+    const zeitIdx = parseInt(document.getElementById('fImportZeit').value, 10);
+    const wertIdx = parseInt(document.getElementById('fImportWert').value, 10);
+    const endeIdx = parseInt(document.getElementById('fImportEnde').value, 10);
+    const einheit = document.getElementById('fImportSchlafEinheit').value;
+    const tage = {};
+    importCsv.zeilen.forEach(z => {
+      const zeit = zeitParsen(z[zeitIdx]);
+      if (!zeit) return;
+      let wert, datum = toISODatum(zeit);
+      if (m.art === 'schlaf' && endeIdx >= 0) {
+        // Schlafdauer aus Start und Ende; zählt für den Tag des Aufwachens
+        const ende = zeitParsen(z[endeIdx]);
+        if (!ende || ende <= zeit) return;
+        wert = (ende - zeit) / 3600000;
+        datum = toISODatum(ende);
+      } else {
+        wert = zahlParsen(z[wertIdx]);
+        if (wert === null) return;
+        if (m.art === 'schlaf') wert = einheit === 'min' ? wert / 60 : einheit === 's' ? wert / 3600 : wert;
+      }
+      (tage[datum] = tage[datum] || []).push(wert);
+    });
+    return Object.keys(tage).sort().map(datum => {
+      const w = tage[datum];
+      const summe = w.reduce((a, b) => a + b, 0);
+      let wert = m.art === 'schnitt' ? summe / w.length : summe;
+      wert = m.art === 'schlaf' ? Math.round(wert * 10) / 10 : Math.round(wert);
+      return { datum, wert };
+    }).filter(t => t.wert > 0 && !(m.art === 'schlaf' && t.wert > 24));
+  }
+
+  function csvVorschau() {
+    const m = IMPORT_MESSWERTE.find(x => x.id === document.getElementById('fImportMesswert').value);
+    document.getElementById('importSchlafOptionen').style.display = m.art === 'schlaf' ? '' : 'none';
+    const mitEnde = parseInt(document.getElementById('fImportEnde').value, 10) >= 0;
+    document.getElementById('importSchlafEinheitFeld').style.display = (m.art === 'schlaf' && !mitEnde) ? '' : 'none';
+    const tage = csvAuswerten();
+    const box = document.getElementById('importVorschau');
+    if (!tage.length) {
+      box.innerHTML = '<div class="import-hinweis">Keine passenden Werte gefunden – bitte die Spalten oben prüfen.</div>';
+    } else {
+      const einheit = { puls: ' bpm', schritte: ' Schritte', schlaf: ' Std.', spo2: ' %' }[m.id];
+      const letzte = tage.slice(-5).reverse();
+      box.innerHTML = '<div class="import-hinweis"><b>' + tage.length + ' Tage</b> erkannt (' +
+        ausISO(tage[0].datum).toLocaleDateString('de-DE') + ' – ' + ausISO(tage[tage.length - 1].datum).toLocaleDateString('de-DE') + '). Die neuesten:</div>' +
+        letzte.map(t => '<div class="import-zeile"><span>' + ausISO(t.datum).toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'short' }) + '</span><b>' + t.wert.toLocaleString('de-DE') + einheit + '</b></div>').join('');
+    }
+    document.getElementById('btnImportUebernehmen').disabled = !tage.length;
+  }
+  ['fImportMesswert', 'fImportZeit', 'fImportWert', 'fImportEnde', 'fImportSchlafEinheit'].forEach(id =>
+    document.getElementById(id).addEventListener('change', () => {
+      if (id === 'fImportMesswert' && importCsv) {
+        // Beim Wechsel des Messwerts passende Wert-Spalte neu raten
+        const m = IMPORT_MESSWERTE.find(x => x.id === document.getElementById('fImportMesswert').value);
+        const i = spalteRaten(importCsv.kopf, m.muster);
+        if (i >= 0) document.getElementById('fImportWert').value = String(i);
+      }
+      csvVorschau();
+    }));
+
+  // ---------- GPX (Läufe, Radtouren, Wanderungen) ----------
+  function distanzKm(a, b) {
+    const R = 6371, rad = Math.PI / 180;
+    const dLat = (b.lat - a.lat) * rad, dLng = (b.lng - a.lng) * rad;
+    const h = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * rad) * Math.cos(b.lat * rad) * Math.sin(dLng / 2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(h));
+  }
+  function gpxParsen(text, name) {
+    const doc = new DOMParser().parseFromString(text, 'application/xml');
+    const punkte = Array.from(doc.getElementsByTagName('trkpt')).map(p => {
+      const zeitEl = p.getElementsByTagName('time')[0];
+      return { lat: parseFloat(p.getAttribute('lat')), lng: parseFloat(p.getAttribute('lon')), t: zeitEl ? Date.parse(zeitEl.textContent) : null };
+    }).filter(p => !isNaN(p.lat) && !isNaN(p.lng));
+    if (punkte.length < 2) return null;
+    let km = 0;
+    for (let i = 1; i < punkte.length; i++) km += distanzKm(punkte[i - 1], punkte[i]);
+    const mitZeit = punkte.filter(p => p.t);
+    const start = mitZeit.length ? mitZeit[0].t : null;
+    const ende = mitZeit.length ? mitZeit[mitZeit.length - 1].t : null;
+    // Route ausdünnen (max. ~300 Punkte), damit das Sync-Dokument klein bleibt
+    const schritt = Math.max(1, Math.ceil(punkte.length / 300));
+    const route = punkte.filter((p, i) => i % schritt === 0 || i === punkte.length - 1).map(p => ({ lat: p.lat, lng: p.lng, t: p.t || undefined }));
+    const typName = (doc.getElementsByTagName('type')[0] || {}).textContent || '';
+    return {
+      name,
+      datum: start ? toISODatum(new Date(start)) : heuteISO(),
+      dauer: start && ende && ende > start ? Math.max(1, Math.round((ende - start) / 60000)) : null,
+      km: Math.round(km * 100) / 100,
+      route,
+      typ: /bik|cycl|rad/i.test(typName) ? 'radfahren' : /hik|walk|wander/i.test(typName) ? 'wandern' : 'laufen',
+    };
+  }
+  function gpxVorschau() {
+    const box = document.getElementById('importGpxListe');
+    box.innerHTML = '';
+    importGpx.forEach((g, i) => {
+      const zeile = document.createElement('div');
+      zeile.className = 'import-zeile';
+      zeile.innerHTML = '<span>' + ausISO(g.datum).toLocaleDateString('de-DE', { day: 'numeric', month: 'short' }) + ' · ' +
+        g.km.toLocaleString('de-DE') + ' km' + (g.dauer ? ' · ' + g.dauer + ' Min.' : '') + '</span>' +
+        '<select data-i="' + i + '">' + ['laufen', 'radfahren', 'wandern'].map(id => {
+          const t = typInfo(id); return '<option value="' + id + '"' + (id === g.typ ? ' selected' : '') + '>' + t.icon + ' ' + t.label + '</option>';
+        }).join('') + '</select>';
+      zeile.querySelector('select').addEventListener('change', (e) => { importGpx[i].typ = e.target.value; });
+      box.appendChild(zeile);
+    });
+    document.getElementById('importGpxBereich').style.display = importGpx.length ? '' : 'none';
+    document.getElementById('btnImportUebernehmen').disabled = !importGpx.length;
+  }
+
+  // ---------- Dialog ----------
+  function importZuruecksetzen() {
+    importCsv = null; importGpx = [];
+    document.getElementById('importCsvBereich').style.display = 'none';
+    document.getElementById('importGpxBereich').style.display = 'none';
+    document.getElementById('importDateiInfo').textContent = '';
+    document.getElementById('btnImportUebernehmen').disabled = true;
+  }
+  document.getElementById('btnUhrImport').addEventListener('click', () => {
+    importZuruecksetzen();
+    const person = PERSONEN.find(p => p.id === aktivePerson);
+    document.getElementById('importPersonText').textContent = 'Werte werden für ' + (person ? person.label : 'die gewählte Person') + ' übernommen.';
+    document.getElementById('modalUhrImport').classList.add('zeigen');
+  });
+  document.getElementById('btnImportAbbrechen').addEventListener('click', () => document.getElementById('modalUhrImport').classList.remove('zeigen'));
+  document.getElementById('modalUhrImport').addEventListener('click', (e) => { if (e.target.id === 'modalUhrImport') e.currentTarget.classList.remove('zeigen'); });
+
+  document.getElementById('fImportDatei').addEventListener('change', async (e) => {
+    const dateien = Array.from(e.target.files || []);
+    e.target.value = '';
+    if (!dateien.length) return;
+    importZuruecksetzen();
+    const gpxDateien = dateien.filter(d => /\.gpx$/i.test(d.name));
+    try {
+      if (gpxDateien.length) {
+        for (const d of gpxDateien) {
+          const g = gpxParsen(await d.text(), d.name);
+          if (g) importGpx.push(g);
+        }
+        importGpx.sort((a, b) => a.datum < b.datum ? -1 : 1);
+        document.getElementById('importDateiInfo').textContent = importGpx.length
+          ? importGpx.length + ' Strecke(n) erkannt – Sportart bei Bedarf anpassen.'
+          : 'In der GPX-Datei wurde keine Strecke gefunden.';
+        gpxVorschau();
+      } else {
+        const d = dateien[0];
+        importCsv = csvParsen(await d.text());
+        if (!importCsv.kopf.length || !importCsv.zeilen.length) {
+          document.getElementById('importDateiInfo').textContent = 'Die Datei enthält keine lesbaren Zeilen.';
+          importCsv = null; return;
+        }
+        document.getElementById('importDateiInfo').textContent = d.name + ': ' + importCsv.zeilen.length + ' Zeilen, ' + importCsv.kopf.length + ' Spalten.';
+        csvDialogAufbauen(d.name);
+      }
+    } catch (err) {
+      document.getElementById('importDateiInfo').textContent = 'Datei konnte nicht gelesen werden.';
+    }
+  });
+
+  document.getElementById('btnImportUebernehmen').addEventListener('click', () => {
+    const ueberschreiben = document.getElementById('fImportUeberschreiben').checked;
+    let neu = 0, uebersprungen = 0;
+    if (importCsv) {
+      const m = IMPORT_MESSWERTE.find(x => x.id === document.getElementById('fImportMesswert').value);
+      csvAuswerten().forEach(t => {
+        const eintrag = findeOderErstelleTageswert(aktivePerson, t.datum);
+        if (eintrag[m.feld] && !ueberschreiben) { uebersprungen++; return; }
+        eintrag[m.feld] = String(t.wert);
+        neu++;
+      });
+      speichern(KEY_TAGESWERTE, tageswerte);
+    } else if (importGpx.length) {
+      importGpx.forEach(g => {
+        // Doppelte vermeiden: gleicher Tag, gleiche Sportart, fast gleiche Strecke
+        const doppelt = sportEinheiten.some(s => s.person === aktivePerson && s.datum === g.datum && s.typ === g.typ && Math.abs((parseFloat(s.strecke) || 0) - g.km) < 0.05);
+        if (doppelt) { uebersprungen++; return; }
+        sportEinheiten.push({ id: neueId('s'), datum: g.datum, person: aktivePerson, typ: g.typ, dauer: g.dauer || 1,
+          strecke: String(g.km), uebung: '', notiz: '⌚ Import' + (g.dauer ? '' : ' (Dauer unbekannt, bitte ergänzen)'), gpsRoute: g.route });
+        neu++;
+      });
+      speichern(KEY_SPORT, sportEinheiten);
+    }
+    document.getElementById('modalUhrImport').classList.remove('zeigen');
+    renderAlles();
+    alert(neu + ' übernommen' + (uebersprungen ? ', ' + uebersprungen + ' übersprungen (' + (importCsv ? 'schon vorhanden' : 'bereits importiert') + ')' : '') + '.');
+  });
+
   // --- VERLAUF ---
   function letzteNTage(n) {
     const heute = ausISO(heuteISO());
@@ -2799,6 +3153,7 @@
       if (t.blutdruckSys && t.blutdruckDia) teile.push('RR ' + Math.round(parseFloat(t.blutdruckSys)) + '/' + Math.round(parseFloat(t.blutdruckDia)) + ' mmHg');
       if (t.puls) teile.push('Puls ' + Math.round(parseFloat(t.puls)) + ' bpm');
       if (t.gewicht) teile.push('Gewicht ' + formatZahl1(parseFloat(t.gewicht)) + ' kg');
+      if (t.spo2) teile.push('SpO2 ' + Math.round(parseFloat(t.spo2)) + ' %');
       if (!teile.length) return;
       irgendwas = true;
       zeilen.push(ausISO(datum).toLocaleDateString('de-DE') + ': ' + teile.join(' · '));
