@@ -93,6 +93,8 @@
   .hp-wand-kette-leiste button { background: var(--moss); color: #fff; border: none; border-radius: var(--radius-pill); padding: 5px 10px; font-size: 0.7rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
   .hp-wand-kette-leiste button#btnWandKetteAbbrechen { background: #c05030; }
 
+  .editor-hinweis { position: fixed; bottom: 58px; left: 50%; transform: translateX(-50%); z-index: 75; display: none; background: var(--terracotta); color: #fff; border: none; border-radius: var(--radius-pill); padding: 9px 18px; font: 700 0.85rem 'Inter', sans-serif; box-shadow: 0 3px 12px rgba(0,0,0,0.25); cursor: pointer; }
+  .editor-hinweis.zeigen { display: block; }
   .hp-status { position: fixed; bottom: 10px; left: 12px; right: 12px; z-index: 70; display: flex; gap: 10px; font-size: 0.66rem; color: var(--bark); background: var(--white); padding: 5px 10px; border-radius: var(--radius-pill); box-shadow: var(--shadow-soft); pointer-events: none; opacity: 0.92; flex-wrap: wrap; }
 
   .sidebar { width: 300px; flex-shrink: 0; background: var(--cream); border-left: 1px solid var(--parchment); padding: 14px 14px 56px; overflow-y: auto; }
@@ -337,6 +339,7 @@
   </div>
 </div>
 
+<button type="button" class="editor-hinweis" id="editorHinweis">✏️ Bearbeiten ↓</button>
 <div class="hp-status" id="hpStatus"></div>
 
 <!-- Neue Ebene -->
@@ -496,13 +499,27 @@
   function positioniereZoomWidget() {
     const widget = document.getElementById('hpZoomWidget');
     const rect = wrap.getBoundingClientRect();
-    widget.style.display = 'flex';
-    widget.style.top = Math.round(rect.top + 12) + 'px';
+    // Beim Hochscrollen klebt die Werkzeugleiste oben – das Widget bleibt darunter statt sie zu verdecken
+    const leiste = document.querySelector('.toolbar');
+    const leisteUnten = leiste ? leiste.getBoundingClientRect().bottom : 0;
+    const top = Math.max(rect.top, leisteUnten) + 12;
+    // Ist die Zeichenfläche fast aus dem Bild gescrollt, Widget ausblenden
+    widget.style.display = (rect.bottom - top) > 110 ? 'flex' : 'none';
+    widget.style.top = Math.round(top) + 'px';
     widget.style.left = Math.round(rect.left + 12) + 'px';
   }
   window.addEventListener('resize', positioniereZoomWidget);
   window.addEventListener('orientationchange', () => setTimeout(positioniereZoomWidget, 200));
   window.addEventListener('scroll', positioniereZoomWidget, { passive: true });
+  // Hinweis-Knopf zum Editor: antippen scrollt hin; verschwindet, sobald der Editor im Bild ist
+  document.getElementById('editorHinweis').addEventListener('click', () => {
+    document.getElementById('sidebar').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById('editorHinweis').classList.remove('zeigen');
+  });
+  window.addEventListener('scroll', () => {
+    const hinweis = document.getElementById('editorHinweis');
+    if (hinweis.classList.contains('zeigen') && document.getElementById('sidebar').getBoundingClientRect().top < window.innerHeight - 90) hinweis.classList.remove('zeigen');
+  }, { passive: true });
 
   function getPos(e) {
     const rect = canvas.getBoundingClientRect();
@@ -1249,6 +1266,8 @@
   const RAUM_FARBEN = ['#e8d9c4', '#d9e8dc', '#dce0e8', '#f0dce0', '#e8e0d9', '#d9e4e8'];
   function schliesseEditor() {
     selektion = { typ: null, id: null };
+    const hinweis = document.getElementById('editorHinweis');
+    if (hinweis) hinweis.classList.remove('zeigen');
     document.getElementById('editorLeer').style.display = 'block';
     document.getElementById('editorRaum').style.display = 'none';
     document.getElementById('editorWand').style.display = 'none';
@@ -1259,9 +1278,14 @@
   }
   // Scrollt den Bearbeiten-Bereich sichtbar ins Bild – auf dem Handy steht er unterhalb
   // der (oft hohen) Zeichenfläche und würde sonst leicht übersehen werden.
+  // Früher wurde hier automatisch zum Editor gescrollt – dadurch sprang die Zeichenfläche beim
+  // Antippen/Verschieben nach oben. Jetzt erscheint nur ein Hinweis-Knopf, wenn der Editor
+  // außer Sicht ist; gescrollt wird erst, wenn man ihn antippt.
   function scrolleZumEditor() {
     const sidebar = document.getElementById('sidebar');
-    if (sidebar) setTimeout(() => sidebar.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 30);
+    const hinweis = document.getElementById('editorHinweis');
+    if (!sidebar || !hinweis) return;
+    hinweis.classList.toggle('zeigen', sidebar.getBoundingClientRect().top > window.innerHeight - 90);
   }
   function raumAuswaehlen(r) {
     selektion = { typ: 'raum', id: r.id };
