@@ -80,6 +80,22 @@
   .modal { background: var(--white); border-radius: var(--radius-lg); padding: 20px; max-width: 480px; width: 100%; max-height: 86vh; overflow-y: auto; }
   .modal h2 { font-family: 'Playfair Display', serif; font-size: 1.15rem; margin-bottom: 6px; }
   .modal-btns { display: flex; justify-content: flex-end; margin-top: 14px; }
+  /* ---- Erfolge ---- */
+  .erfolg-kurz { font-size: 0.82rem; color: var(--bark); line-height: 1.45; }
+  .erfolg-kurz b { color: var(--soil); }
+  .erfolg-medaillen { font-size: 0.95rem; font-weight: 700; color: var(--soil); margin-top: 4px; }
+  .erfolg-abschnitt { margin-top: 16px; }
+  .erfolg-abschnitt h3 { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--bark); margin-bottom: 6px; }
+  .erfolg-zeile { padding: 8px 0; border-bottom: 1px solid var(--parchment); }
+  .erfolg-zeile:last-child { border-bottom: none; }
+  .erfolg-oben { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 0.85rem; font-weight: 600; color: var(--soil); }
+  .erfolg-oben .anzahl { font-size: 0.75rem; color: var(--bark); font-weight: 600; flex-shrink: 0; }
+  .erfolg-stufen { display: flex; gap: 6px; font-size: 1.2rem; margin: 4px 0; }
+  .erfolg-stufen .gesperrt { filter: grayscale(1); opacity: 0.3; }
+  .erfolg-balken { height: 5px; background: var(--parchment); border-radius: 3px; overflow: hidden; }
+  .erfolg-balken div { height: 100%; background: var(--moss); }
+  .erfolg-naechstes { font-size: 0.72rem; color: var(--bark); margin-top: 3px; }
+  .erfolg-leer { font-size: 0.8rem; color: var(--bark); opacity: 0.75; padding: 4px 0; }
   .btn { padding: 9px 16px; border-radius: var(--radius-pill); border: none; font-weight: 600; font-size: 0.85rem; cursor: pointer; }
   .btn-secondary { background: var(--parchment); color: var(--soil); }
 
@@ -212,6 +228,14 @@
     <div id="haushaltListe"></div>
   </div>
 
+  <div class="kachel" id="kachelErfolge" style="cursor:pointer;display:none;">
+    <div class="kachel-kopf">
+      <div class="kachel-titel">🏆 Erfolge</div>
+      <span class="kachel-pfeil">→</span>
+    </div>
+    <div class="erfolg-kurz" id="erfolgeKurz"></div>
+  </div>
+
   <div class="kachel" id="kachelAnleitung" style="cursor:pointer">
     <div class="kachel-kopf">
       <div class="kachel-titel">📖 Anleitung – was kann die App?</div>
@@ -232,6 +256,17 @@
     </div>
   </div>
 </main>
+
+<div class="modal-bg" id="modalErfolge">
+  <div class="modal">
+    <h2>🏆 Erfolge</h2>
+    <p style="font-size:0.8rem;color:var(--bark);">Stufen: 🥉 5 · 🥈 10 · 🥇 20 · 🏆 50 · 👑 100</p>
+    <div id="erfolgeListe"></div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnErfolgeSchliessen">Schließen</button>
+    </div>
+  </div>
+</div>
 
 <div class="modal-bg" id="modalAnleitung">
   <div class="modal">
@@ -850,6 +885,85 @@
   }
 
   // Kacheln von Modulen ausblenden, die in den Einstellungen (Modul-Übersicht) für dieses Gerät versteckt wurden
+  // ---------- ERFOLGE: Übersicht über alle Meilensteine der Module ----------
+  // Gleiche Stufen wie in Kochen, Gesundheit und Garten. Berechnet direkt aus den Daten,
+  // damit auch der Fortschritt zur nächsten Stufe sichtbar ist.
+  const ERFOLG_STUFEN = [5, 10, 20, 50, 100];
+  const ERFOLG_ICONS = { 5: '🥉', 10: '🥈', 20: '🥇', 50: '🏆', 100: '👑' };
+  function erfolgSpur(name, anzahl) {
+    const erreicht = ERFOLG_STUFEN.filter(st => anzahl >= st);
+    const naechste = ERFOLG_STUFEN.find(st => anzahl < st) || null;
+    const vorige = erreicht.length ? erreicht[erreicht.length - 1] : 0;
+    return { name, anzahl, erreicht, naechste, anteil: naechste ? (anzahl - vorige) / (naechste - vorige) : 1 };
+  }
+  function erfolgeSammeln() {
+    let versteckt = [];
+    try { versteckt = JSON.parse(localStorage.getItem('planer_versteckteModule') || '[]'); } catch (e) {}
+    const abschnitte = [];
+    if (!versteckt.includes('kochen')) {
+      const rezepte = laden('kochen_rezepte', []);
+      abschnitte.push({ titel: '📚 Rezeptsammlung', einheit: 'Rezepte', fehlt: ['Rezept', 'Rezepte'], spuren: [erfolgSpur('Rezepte angelegt', rezepte.length)] });
+      const gekocht = rezepte.filter(r => (r.kochZaehler || 0) > 0).sort((a, b) => (b.kochZaehler || 0) - (a.kochZaehler || 0));
+      abschnitte.push({ titel: '👨‍🍳 Am häufigsten gekocht', einheit: '× gekocht', fehlt: ['× kochen', '× kochen'], leer: 'Noch nichts als gekocht markiert.',
+        spuren: gekocht.slice(0, 5).map(r => erfolgSpur(r.titel || 'Rezept', r.kochZaehler || 0)) });
+    }
+    if (!versteckt.includes('gesundheit')) {
+      const log = laden('gesundheit_trainingslog', []);
+      const proPerson = {};
+      log.forEach(t => { proPerson[t.person] = (proPerson[t.person] || 0) + 1; });
+      abschnitte.push({ titel: '💪 Trainingseinheiten', einheit: 'Einheiten', fehlt: ['Einheit', 'Einheiten'], leer: 'Noch keine Einträge im Trainingslog.',
+        spuren: Object.keys(proPerson).sort((a, b) => proPerson[b] - proPerson[a]).map(p => erfolgSpur(PERSONEN_LABEL[p] || p, proPerson[p])) });
+    }
+    if (!versteckt.includes('garten')) {
+      const gartenDaten = laden('gartenplaner_v3', null);
+      const pflanzen = [];
+      if (gartenDaten && gartenDaten.gardens) {
+        Object.values(gartenDaten.gardens).forEach(g => (g.beds || []).forEach(bed => (bed.plants || []).forEach(p => {
+          const n = (p.harvests || []).length;
+          if (n) pflanzen.push({ name: (p.sym ? p.sym + ' ' : '') + (p.name || 'Pflanze') + (p.variety ? ' (' + p.variety + ')' : ''), n });
+        })));
+      }
+      pflanzen.sort((a, b) => b.n - a.n);
+      abschnitte.push({ titel: '🧺 Ernten je Pflanze', einheit: '× geerntet', fehlt: ['Ernte', 'Ernten'], leer: 'Noch keine Ernte eingetragen.',
+        spuren: pflanzen.slice(0, 5).map(p => erfolgSpur(p.name, p.n)) });
+    }
+    return abschnitte;
+  }
+  function renderErfolge() {
+    const abschnitte = erfolgeSammeln();
+    const kachel = document.getElementById('kachelErfolge');
+    if (!abschnitte.length) { kachel.style.display = 'none'; return; }
+    kachel.style.display = '';
+    const alleSpuren = abschnitte.flatMap(a => a.spuren.map(sp => Object.assign({ fehlt: a.fehlt }, sp)));
+    const medaillen = alleSpuren.flatMap(sp => sp.erreicht);
+    // Nächstes Ziel = Spur, der am wenigsten bis zur nächsten Stufe fehlt
+    const ziel = alleSpuren.filter(sp => sp.naechste).sort((a, b) => (a.naechste - a.anzahl) - (b.naechste - b.anzahl))[0];
+    const kurz = document.getElementById('erfolgeKurz');
+    const rest = ziel ? ziel.naechste - ziel.anzahl : 0;
+    // Zusammenfassung je Stufe, z.B. "🥉 5 · 🥈 4 · 🥇 1"
+    const jeStufe = ERFOLG_STUFEN.map(st => ({ st, n: medaillen.filter(m => m === st).length })).filter(x => x.n);
+    kurz.innerHTML = '<b>' + medaillen.length + ' Abzeichen</b> freigeschaltet' +
+      (jeStufe.length ? '<div class="erfolg-medaillen">' + jeStufe.map(x => ERFOLG_ICONS[x.st] + ' ' + x.n).join(' · ') + '</div>' : '') +
+      (ziel ? '<div style="margin-top:4px;">Nächstes: ' + ERFOLG_ICONS[ziel.naechste] + ' ' + escapeHtml(ziel.name) + ' – noch ' + rest + ' ' + ziel.fehlt[rest === 1 ? 0 : 1] + '</div>' : '');
+    const liste = document.getElementById('erfolgeListe');
+    liste.innerHTML = abschnitte.map(a => '<div class="erfolg-abschnitt"><h3>' + a.titel + '</h3>' +
+      (a.spuren.length ? a.spuren.map(sp =>
+        '<div class="erfolg-zeile">' +
+          '<div class="erfolg-oben"><span>' + escapeHtml(sp.name) + '</span><span class="anzahl">' + sp.anzahl + ' ' + a.einheit + '</span></div>' +
+          '<div class="erfolg-stufen">' + ERFOLG_STUFEN.map(st => '<span title="' + st + '"' + (sp.anzahl >= st ? '' : ' class="gesperrt"') + '>' + ERFOLG_ICONS[st] + '</span>').join('') + '</div>' +
+          (sp.naechste
+            ? '<div class="erfolg-balken"><div style="width:' + Math.round(sp.anteil * 100) + '%"></div></div><div class="erfolg-naechstes">Noch ' + (sp.naechste - sp.anzahl) + ' bis ' + ERFOLG_ICONS[sp.naechste] + ' (' + sp.naechste + ')</div>'
+            : '<div class="erfolg-naechstes">Alle Stufen erreicht 👑</div>') +
+        '</div>').join('')
+      : '<div class="erfolg-leer">' + a.leer + '</div>') + '</div>').join('');
+  }
+  document.getElementById('kachelErfolge').addEventListener('click', () => {
+    renderErfolge();
+    document.getElementById('modalErfolge').classList.add('zeigen');
+  });
+  document.getElementById('btnErfolgeSchliessen').addEventListener('click', () => document.getElementById('modalErfolge').classList.remove('zeigen'));
+  document.getElementById('modalErfolge').addEventListener('click', (e) => { if (e.target.id === 'modalErfolge') e.currentTarget.classList.remove('zeigen'); });
+
   const KACHEL_MODUL_MAP = { kachelTermine: 'termine', kachelEinkauf: 'einkauf', kachelSport: 'gesundheit', kachelKochen: 'kochen', kachelGarten: 'garten', kachelHaushalt: 'haushalt' };
   function versteckteKachelnAnwenden() {
     let versteckt = [];
@@ -862,6 +976,7 @@
     });
   }
 
+  renderErfolge();
   renderTermine();
   renderEinkauf();
   renderSport();
@@ -874,7 +989,7 @@
 
   // Bei Rückkehr auf die Startseite (z.B. nach Bearbeitung in einem anderen Modul) neu laden
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) { renderTermine(); renderEinkauf(); renderSport(); renderGartenWarnungen(); renderGartenPflanzErnte(); renderKochenHeute(); renderHaushalt(); renderDieseWoche(); feedbackEintraege = laden(KEY_FEEDBACK, feedbackEintraege); feedbackListeRendern(); versteckteKachelnAnwenden(); }
+    if (!document.hidden) { renderTermine(); renderEinkauf(); renderSport(); renderGartenWarnungen(); renderGartenPflanzErnte(); renderKochenHeute(); renderHaushalt(); renderDieseWoche(); renderErfolge(); feedbackEintraege = laden(KEY_FEEDBACK, feedbackEintraege); feedbackListeRendern(); versteckteKachelnAnwenden(); }
   });
 })();
 </script>
