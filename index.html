@@ -232,6 +232,10 @@
       </div>
       <button class="btn btn-primary" id="btnPersonHinzufuegen">+ Person hinzufügen</button>
       <div class="status-text" id="personenStatus" style="margin-top:8px;"></div>
+      <div style="border-top:1px solid #e5ddc8;margin-top:12px;padding-top:10px;">
+        <button class="btn btn-secondary" id="btnZuordnungPruefen">🔧 Alte Zuordnungen prüfen</button>
+        <div id="zuordnungBereich"></div>
+      </div>
       <button class="btn btn-secondary" id="btnPersonenSchliessen" style="margin-top:6px;">Schließen</button>
     </div>
   </div>
@@ -520,8 +524,168 @@
         });
       });
     }
+    // ---------- ALTE ZUORDNUNGEN REPARIEREN ----------
+    // Einträge (Termine, Sport, Spiele, ...) merken sich die Person über ihre ID. Wird eine
+    // Person gelöscht und neu angelegt, bekommt sie eine neue ID – alte Einträge hängen dann
+    // an einer ID ohne Namen. Diese Funktion findet solche IDs in allen Modulen und ordnet
+    // sie einer bestehenden Person zu.
+    const PERSON_FELDER = ['person', 'wer', 'fuer', 'personId', 'hinzugefuegtVon', 'teilnehmer'];
+    // Schlüssel, deren Objekt direkt nach Person-ID gegliedert ist: { papa: {...}, mama: {...} }
+    const PERSON_MAP_SCHLUESSEL = ['gesundheit_ziele', 'gesundheit_rechner', 'gesundheit_zyklus', 'gesundheit_trainingsMeilensteine', 'gesundheit_letzterSportTyp'];
+    function escZ(t) { return String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+    const ID_MUSTER = /^[a-z0-9]+$/; // Personen-IDs sind immer kleingeschriebene Slugs (schließt Freitext wie "Rezept: …" aus)
+
+    function datenSchluessel() {
+      const liste = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (!k || k === PERSONEN_KEY || /_bilder$/.test(k) || /^planer_|^firebase/.test(k)) continue;
+        liste.push(k);
+      }
+      return liste;
+    }
+    function modulLabelFuerSchluessel(k) {
+      const m = MODULE.find(m => (m.syncKeys || []).includes(k) || (m.zusatzSync || []).some(z => z.keys.includes(k)));
+      if (m) return m.label;
+      const praefix = k.split('_')[0];
+      const m2 = MODULE.find(x => x.id === praefix || (praefix === 'gartenplaner' && x.id === 'garten'));
+      return m2 ? m2.label : praefix;
+    }
+    // Läuft durch beliebig verschachtelte Daten und ruft besuche(wert, ersetzen) für jede Personen-Angabe auf
+    function personenAngabenDurchlaufen(wert, besuche) {
+      if (Array.isArray(wert)) { wert.forEach(v => personenAngabenDurchlaufen(v, besuche)); return; }
+      if (!wert || typeof wert !== 'object') return;
+      Object.keys(wert).forEach(feld => {
+        const v = wert[feld];
+        if (PERSON_FELDER.includes(feld)) {
+          if (typeof v === 'string' && ID_MUSTER.test(v)) besuche(v, (neu) => { wert[feld] = neu; });
+          else if (Array.isArray(v)) v.forEach((x, i) => { if (typeof x === 'string' && ID_MUSTER.test(x)) besuche(x, (neu) => { v[i] = neu; }); });
+        }
+        if (v && typeof v === 'object') personenAngabenDurchlaufen(v, besuche);
+      });
+    }
+    function verwaisteIdsFinden() {
+      const bekannt = new Set(holePersonen().map(p => p.id));
+      const funde = {}; // id -> { anzahl, module: Set }
+      const merken = (id, k) => {
+        if (bekannt.has(id) || id === 'alle') return;
+        if (!funde[id]) funde[id] = { anzahl: 0, module: new Set() };
+        funde[id].anzahl++;
+        funde[id].module.add(modulLabelFuerSchluessel(k));
+      };
+      datenSchluessel().forEach(k => {
+        let daten;
+        try { daten = JSON.parse(localStorage.getItem(k)); } catch (e) { return; }
+        if (!daten || typeof daten !== 'object') return;
+        personenAngabenDurchlaufen(daten, (id) => merken(id, k));
+        if (PERSON_MAP_SCHLUESSEL.includes(k) && !Array.isArray(daten)) Object.keys(daten).forEach(id => { if (ID_MUSTER.test(id)) merken(id, k); });
+      });
+      return funde;
+    }
+    // Werte zweier Personen zusammenführen (neue Person hat Vorrang, Listen werden vereint)
+    function zusammenfuehren(neu, alt) {
+      if (Array.isArray(neu) && Array.isArray(alt)) {
+        const vorhanden = new Set(neu.map(x => JSON.stringify(x)));
+        return neu.concat(alt.filter(x => !vorhanden.has(JSON.stringify(x))));
+      }
+      if (neu && alt && typeof neu === 'object' && typeof alt === 'object') {
+        const ergebnis = Object.assign({}, alt, neu);
+        Object.keys(neu).forEach(k => { if (k in alt) ergebnis[k] = zusammenfuehren(neu[k], alt[k]); });
+        return ergebnis;
+      }
+      return neu === undefined ? alt : neu;
+    }
+    function zuordnungenAnwenden(zuordnung) {
+      const geaendert = new Set();
+      datenSchluessel().forEach(k => {
+        const raw = localStorage.getItem(k);
+        let daten;
+        try { daten = JSON.parse(raw); } catch (e) { daten = undefined; }
+        if (daten === undefined || typeof daten !== 'object' || daten === null) {
+          // Einfache gemerkte Auswahl (z.B. aktive Person eines Moduls), nicht als JSON gespeichert
+          if (/person/i.test(k) && zuordnung[raw]) { localStorage.setItem(k, zuordnung[raw]); }
+          else if (/person/i.test(k) && typeof daten === 'string' && zuordnung[daten]) { localStorage.setItem(k, JSON.stringify(zuordnung[daten])); }
+          return;
+        }
+        let aenderung = false;
+        personenAngabenDurchlaufen(daten, (id, ersetzen) => { if (zuordnung[id]) { ersetzen(zuordnung[id]); aenderung = true; } });
+        if (PERSON_MAP_SCHLUESSEL.includes(k) && !Array.isArray(daten)) {
+          Object.keys(zuordnung).forEach(alt => {
+            if (!(alt in daten)) return;
+            const neu = zuordnung[alt];
+            daten[neu] = neu in daten ? zusammenfuehren(daten[neu], daten[alt]) : daten[alt];
+            delete daten[alt];
+            aenderung = true;
+          });
+        }
+        if (aenderung) {
+          // Mehrfach-Teilnehmer nach dem Umschreiben entdoppeln (z.B. ["papa","papa2"] -> ["papa2"])
+          (function entdoppeln(w) {
+            if (Array.isArray(w)) { w.forEach(entdoppeln); return; }
+            if (!w || typeof w !== 'object') return;
+            Object.keys(w).forEach(f => {
+              if (f === 'teilnehmer' && Array.isArray(w[f])) w[f] = Array.from(new Set(w[f]));
+              else entdoppeln(w[f]);
+            });
+          })(daten);
+          localStorage.setItem(k, JSON.stringify(daten));
+          geaendert.add(k);
+        }
+      });
+      // Geänderte Daten sofort in die Cloud schieben (nur betroffene Module)
+      const pushes = [];
+      if (window.PlanerSync) {
+        MODULE.forEach(m => {
+          if ((m.syncKeys || []).some(k => geaendert.has(k))) pushes.push(window.PlanerSync.pushWerte(m.id, m.syncKeys, m.syncTransform));
+          (m.zusatzSync || []).forEach(z => { if (z.keys.some(k => geaendert.has(k))) pushes.push(window.PlanerSync.pushWerte(z.modul, z.keys)); });
+        });
+      }
+      return Promise.all(pushes).then(() => geaendert.size);
+    }
+    function renderZuordnungen() {
+      const box = document.getElementById('zuordnungBereich');
+      const funde = verwaisteIdsFinden();
+      const ids = Object.keys(funde).sort((a, b) => funde[b].anzahl - funde[a].anzahl);
+      if (!ids.length) {
+        box.innerHTML = '<div style="font-size:0.8rem;color:var(--moss);margin-top:8px;">✓ Alles in Ordnung – alle Einträge gehören zu einer bestehenden Person.</div>';
+        return;
+      }
+      const personen = holePersonen();
+      const normal = (s) => String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
+      box.innerHTML = '<div style="font-size:0.78rem;color:var(--bark);margin:10px 0 6px;">Diese Einträge gehören zu Personen, die es nicht mehr gibt. Wähle, zu wem sie gehören sollen:</div>' +
+        ids.map(id => {
+          // Vorschlag: Person, deren Name zur alten ID passt ("papa" -> "Papa")
+          const vorschlag = personen.find(p => normal(p.label) === id.replace(/\d+$/, '')) || null;
+          return '<div style="padding:8px 0;border-bottom:1px solid #f0ead9;">' +
+            '<div style="font-size:0.85rem;"><b>' + escZ(id) + '</b> · ' + funde[id].anzahl + (funde[id].anzahl === 1 ? ' Eintrag' : ' Einträge') +
+            ' <span style="color:var(--bark);font-size:0.75rem;">(' + escZ(Array.from(funde[id].module).join(', ')) + ')</span></div>' +
+            '<select class="zuordnung-auswahl" data-id="' + escZ(id) + '" style="width:100%;margin-top:6px;padding:8px;border-radius:8px;border:1px solid #ddd;font-family:\'Inter\',sans-serif;">' +
+              '<option value="">— nicht ändern —</option>' +
+              personen.map(p => '<option value="' + escZ(p.id) + '"' + (vorschlag && vorschlag.id === p.id ? ' selected' : '') + '>→ ' + escZ(p.label) + '</option>').join('') +
+            '</select></div>';
+        }).join('') +
+        '<button class="btn btn-primary" id="btnZuordnungUebernehmen" style="margin-top:10px;">Zuordnungen übernehmen</button>';
+      document.getElementById('btnZuordnungUebernehmen').addEventListener('click', () => {
+        const zuordnung = {};
+        box.querySelectorAll('.zuordnung-auswahl').forEach(sel => { if (sel.value) zuordnung[sel.dataset.id] = sel.value; });
+        const paare = Object.keys(zuordnung);
+        if (!paare.length) { renderZuordnungen(); return; }
+        const text = paare.map(a => a + ' → ' + (personen.find(p => p.id === zuordnung[a]) || {}).label).join('\n');
+        if (!confirm('Folgende Zuordnungen werden in allen Modulen umgeschrieben und auf alle Geräte übertragen:\n\n' + text + '\n\nFortfahren?')) return;
+        const btn = document.getElementById('btnZuordnungUebernehmen');
+        btn.disabled = true; btn.textContent = 'Wird übernommen …';
+        zuordnungenAnwenden(zuordnung).then((anzahl) => {
+          // Offenes Modul neu laden, damit es nicht mit alten Daten im Speicher weiterarbeitet
+          bereichLaden(aktuellerBereichId(), { schreiben: false });
+          renderZuordnungen();
+          document.getElementById('personenStatus').textContent = '✓ Zuordnungen übernommen (' + anzahl + (anzahl === 1 ? ' Datenbereich' : ' Datenbereiche') + ' aktualisiert).';
+        });
+      });
+    }
+    document.getElementById('btnZuordnungPruefen').addEventListener('click', renderZuordnungen);
     document.getElementById('btnPersonen').addEventListener('click', () => {
       document.getElementById('personenStatus').textContent = '';
+      document.getElementById('zuordnungBereich').innerHTML = '';
       renderPersonenListe();
       document.getElementById('modalPersonen').classList.add('zeigen');
     });

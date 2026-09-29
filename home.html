@@ -912,7 +912,7 @@
       const proPerson = {};
       log.forEach(t => { proPerson[t.person] = (proPerson[t.person] || 0) + 1; });
       abschnitte.push({ titel: '💪 Trainingseinheiten', einheit: 'Einheiten', fehlt: ['Einheit', 'Einheiten'], leer: 'Noch keine Einträge im Trainingslog.',
-        spuren: Object.keys(proPerson).sort((a, b) => proPerson[b] - proPerson[a]).map(p => erfolgSpur(PERSONEN_LABEL[p] || p, proPerson[p])) });
+        spuren: Object.keys(proPerson).sort((a, b) => proPerson[b] - proPerson[a]).map(p => erfolgSpur(PERSONEN_LABEL[p] || (p + ' (alte Zuordnung)'), proPerson[p])) });
     }
     if (!versteckt.includes('garten')) {
       const gartenDaten = laden('gartenplaner_v3', null);
