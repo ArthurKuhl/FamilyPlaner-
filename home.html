@@ -260,7 +260,7 @@
 <div class="modal-bg" id="modalErfolge">
   <div class="modal">
     <h2>🏆 Erfolge</h2>
-    <p style="font-size:0.8rem;color:var(--bark);">Stufen: 🥉 5 · 🥈 10 · 🥇 20 · 🏆 50 · 👑 100</p>
+    <p style="font-size:0.8rem;color:var(--bark);">Stufen: 🥉 → 🥈 → 🥇 → 🏆 → 👑 · Anzahlen: 5 · 10 · 20 · 50 · 100</p>
     <div id="erfolgeListe"></div>
     <div class="modal-btns">
       <button class="btn btn-secondary" id="btnErfolgeSchliessen">Schließen</button>
@@ -888,18 +888,29 @@
   // ---------- ERFOLGE: Übersicht über alle Meilensteine der Module ----------
   // Gleiche Stufen wie in Kochen, Gesundheit und Garten. Berechnet direkt aus den Daten,
   // damit auch der Fortschritt zur nächsten Stufe sichtbar ist.
-  const ERFOLG_STUFEN = [5, 10, 20, 50, 100];
-  const ERFOLG_ICONS = { 5: '🥉', 10: '🥈', 20: '🥇', 50: '🏆', 100: '👑' };
-  function erfolgSpur(name, anzahl) {
-    const erreicht = ERFOLG_STUFEN.filter(st => anzahl >= st);
-    const naechste = ERFOLG_STUFEN.find(st => anzahl < st) || null;
-    const vorige = erreicht.length ? erreicht[erreicht.length - 1] : 0;
-    return { name, anzahl, erreicht, naechste, anteil: naechste ? (anzahl - vorige) / (naechste - vorige) : 1 };
+  const ERFOLG_STUFEN = [5, 10, 20, 50, 100];          // Anzahl-Erfolge (Rezepte, Kochen, Training, Ernten)
+  const ERFOLG_ICONS = ['🥉', '🥈', '🥇', '🏆', '👑'];  // Symbol je Stufe (Index 0–4)
+  // Strecken-Erfolge in km je Sportart (gleiche Werte wie in gesundheit.html)
+  const STRECKEN_STUFEN = {
+    laufen:    [10, 50, 100, 250, 500],
+    radfahren: [50, 250, 500, 1000, 2500],
+    wandern:   [10, 50, 100, 250, 500],
+    schwimmen: [1, 5, 10, 25, 50],
+  };
+  const STRECKEN_SPORT = { laufen: '🏃 Laufen', radfahren: '🚴 Radfahren', wandern: '🥾 Wandern', schwimmen: '🏊 Schwimmen' };
+  function zahlText(n) { return Number.isInteger(n) ? String(n) : n.toLocaleString('de-DE', { maximumFractionDigits: 1 }); }
+  function erfolgSpur(name, anzahl, stufen) {
+    stufen = stufen || ERFOLG_STUFEN;
+    const erreicht = stufen.filter(st => anzahl >= st).length;           // Anzahl erreichter Stufen
+    const naechste = erreicht < stufen.length ? stufen[erreicht] : null;
+    const vorige = erreicht ? stufen[erreicht - 1] : 0;
+    return { name, anzahl, stufen, erreicht, naechste, anteil: naechste ? (anzahl - vorige) / (naechste - vorige) : 1 };
   }
   function erfolgeSammeln() {
     let versteckt = [];
     try { versteckt = JSON.parse(localStorage.getItem('planer_versteckteModule') || '[]'); } catch (e) {}
     const abschnitte = [];
+    const personName = (p) => PERSONEN_LABEL[p] || (p + ' (alte Zuordnung)');
     if (!versteckt.includes('kochen')) {
       const rezepte = laden('kochen_rezepte', []);
       abschnitte.push({ titel: '📚 Rezeptsammlung', einheit: 'Rezepte', fehlt: ['Rezept', 'Rezepte'], spuren: [erfolgSpur('Rezepte angelegt', rezepte.length)] });
@@ -912,7 +923,22 @@
       const proPerson = {};
       log.forEach(t => { proPerson[t.person] = (proPerson[t.person] || 0) + 1; });
       abschnitte.push({ titel: '💪 Trainingseinheiten', einheit: 'Einheiten', fehlt: ['Einheit', 'Einheiten'], leer: 'Noch keine Einträge im Trainingslog.',
-        spuren: Object.keys(proPerson).sort((a, b) => proPerson[b] - proPerson[a]).map(p => erfolgSpur(PERSONEN_LABEL[p] || (p + ' (alte Zuordnung)'), proPerson[p])) });
+        spuren: Object.keys(proPerson).sort((a, b) => proPerson[b] - proPerson[a]).map(p => erfolgSpur(personName(p), proPerson[p])) });
+      // Zurückgelegte Strecke je Person und Sportart (Schwimmen wird in Metern erfasst → km)
+      const strecken = {};
+      laden('gesundheit_sport', []).forEach(s => {
+        if (!STRECKEN_STUFEN[s.typ]) return;
+        let km = parseFloat(String(s.strecke || '').replace(',', '.'));
+        if (isNaN(km) || km <= 0) return;
+        if (s.typ === 'schwimmen') km = km / 1000;
+        const schluessel = s.person + '|' + s.typ;
+        strecken[schluessel] = (strecken[schluessel] || 0) + km;
+      });
+      abschnitte.push({ titel: '🏅 Zurückgelegte Strecke', einheit: 'km', fehlt: ['km', 'km'], leer: 'Noch keine Strecke erfasst (Laufen, Radfahren, Wandern, Schwimmen).',
+        spuren: Object.keys(strecken).sort((a, b) => strecken[b] - strecken[a]).map(k => {
+          const [person, typ] = k.split('|');
+          return erfolgSpur(personName(person) + ' · ' + STRECKEN_SPORT[typ], Math.round(strecken[k] * 10) / 10, STRECKEN_STUFEN[typ]);
+        }) });
     }
     if (!versteckt.includes('garten')) {
       const gartenDaten = laden('gartenplaner_v3', null);
@@ -935,24 +961,24 @@
     if (!abschnitte.length) { kachel.style.display = 'none'; return; }
     kachel.style.display = '';
     const alleSpuren = abschnitte.flatMap(a => a.spuren.map(sp => Object.assign({ fehlt: a.fehlt }, sp)));
-    const medaillen = alleSpuren.flatMap(sp => sp.erreicht);
-    // Nächstes Ziel = Spur, der am wenigsten bis zur nächsten Stufe fehlt
-    const ziel = alleSpuren.filter(sp => sp.naechste).sort((a, b) => (a.naechste - a.anzahl) - (b.naechste - b.anzahl))[0];
+    // Nächstes Ziel = Spur, die ihrer nächsten Stufe anteilig am nächsten ist (vergleichbar über Anzahl und km)
+    const ziel = alleSpuren.filter(sp => sp.naechste).sort((a, b) => b.anteil - a.anteil)[0];
     const kurz = document.getElementById('erfolgeKurz');
-    const rest = ziel ? ziel.naechste - ziel.anzahl : 0;
+    const rest = ziel ? Math.round((ziel.naechste - ziel.anzahl) * 10) / 10 : 0;
+    const gesamt = alleSpuren.reduce((a, sp) => a + sp.erreicht, 0);
     // Zusammenfassung je Stufe, z.B. "🥉 5 · 🥈 4 · 🥇 1"
-    const jeStufe = ERFOLG_STUFEN.map(st => ({ st, n: medaillen.filter(m => m === st).length })).filter(x => x.n);
-    kurz.innerHTML = '<b>' + medaillen.length + ' Abzeichen</b> freigeschaltet' +
-      (jeStufe.length ? '<div class="erfolg-medaillen">' + jeStufe.map(x => ERFOLG_ICONS[x.st] + ' ' + x.n).join(' · ') + '</div>' : '') +
-      (ziel ? '<div style="margin-top:4px;">Nächstes: ' + ERFOLG_ICONS[ziel.naechste] + ' ' + escapeHtml(ziel.name) + ' – noch ' + rest + ' ' + ziel.fehlt[rest === 1 ? 0 : 1] + '</div>' : '');
+    const jeStufe = ERFOLG_ICONS.map((icon, i) => ({ icon, n: alleSpuren.filter(sp => sp.erreicht > i).length })).filter(x => x.n);
+    kurz.innerHTML = '<b>' + gesamt + ' Abzeichen</b> freigeschaltet' +
+      (jeStufe.length ? '<div class="erfolg-medaillen">' + jeStufe.map(x => x.icon + ' ' + x.n).join(' · ') + '</div>' : '') +
+      (ziel ? '<div style="margin-top:4px;">Nächstes: ' + ERFOLG_ICONS[ziel.erreicht] + ' ' + escapeHtml(ziel.name) + ' – noch ' + zahlText(rest) + ' ' + ziel.fehlt[rest === 1 ? 0 : 1] + '</div>' : '');
     const liste = document.getElementById('erfolgeListe');
     liste.innerHTML = abschnitte.map(a => '<div class="erfolg-abschnitt"><h3>' + a.titel + '</h3>' +
       (a.spuren.length ? a.spuren.map(sp =>
         '<div class="erfolg-zeile">' +
-          '<div class="erfolg-oben"><span>' + escapeHtml(sp.name) + '</span><span class="anzahl">' + sp.anzahl + ' ' + a.einheit + '</span></div>' +
-          '<div class="erfolg-stufen">' + ERFOLG_STUFEN.map(st => '<span title="' + st + '"' + (sp.anzahl >= st ? '' : ' class="gesperrt"') + '>' + ERFOLG_ICONS[st] + '</span>').join('') + '</div>' +
+          '<div class="erfolg-oben"><span>' + escapeHtml(sp.name) + '</span><span class="anzahl">' + zahlText(sp.anzahl) + ' ' + a.einheit + '</span></div>' +
+          '<div class="erfolg-stufen">' + sp.stufen.map((st, i) => '<span title="' + zahlText(st) + '"' + (i < sp.erreicht ? '' : ' class="gesperrt"') + '>' + ERFOLG_ICONS[i] + '</span>').join('') + '</div>' +
           (sp.naechste
-            ? '<div class="erfolg-balken"><div style="width:' + Math.round(sp.anteil * 100) + '%"></div></div><div class="erfolg-naechstes">Noch ' + (sp.naechste - sp.anzahl) + ' bis ' + ERFOLG_ICONS[sp.naechste] + ' (' + sp.naechste + ')</div>'
+            ? '<div class="erfolg-balken"><div style="width:' + Math.round(sp.anteil * 100) + '%"></div></div><div class="erfolg-naechstes">Noch ' + zahlText(Math.round((sp.naechste - sp.anzahl) * 10) / 10) + (a.einheit === 'km' ? ' km' : '') + ' bis ' + ERFOLG_ICONS[sp.erreicht] + ' (' + zahlText(sp.naechste) + (a.einheit === 'km' ? ' km' : '') + ')</div>'
             : '<div class="erfolg-naechstes">Alle Stufen erreicht 👑</div>') +
         '</div>').join('')
       : '<div class="erfolg-leer">' + a.leer + '</div>') + '</div>').join('');

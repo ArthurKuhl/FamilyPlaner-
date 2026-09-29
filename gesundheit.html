@@ -1919,6 +1919,51 @@
 
   let tageswerte = laden(KEY_TAGESWERTE, []); // [{id, datum, person, gewicht, schlaf, wasser, stimmung}]
   let sportEinheiten = laden(KEY_SPORT, []); // [{id, datum, person, typ, dauer, notiz}]
+
+  // ---------- STRECKEN-ERFOLGE (km je Person und Sportart; gleiche Stufen wie in home.html) ----------
+  const STRECKEN_STUFEN = {
+    laufen:    [10, 50, 100, 250, 500],
+    radfahren: [50, 250, 500, 1000, 2500],
+    wandern:   [10, 50, 100, 250, 500],
+    schwimmen: [1, 5, 10, 25, 50],
+  };
+  const STRECKEN_ICONS = ['🥉', '🥈', '🥇', '🏆', '👑'];
+  const KEY_STRECKEN_MEILENSTEINE = 'gesundheit_streckenMeilensteine'; // { person: { typ: [10, 50] } }, nur dieses Gerät
+  function streckeInKm(s) {
+    let km = parseFloat(String(s.strecke || '').replace(',', '.'));
+    if (isNaN(km) || km <= 0) return 0;
+    return s.typ === 'schwimmen' ? km / 1000 : km;
+  }
+  function gesamtStreckeKm(person, typ) {
+    return sportEinheiten.filter(s => s.person === person && s.typ === typ).reduce((a, s) => a + streckeInKm(s), 0);
+  }
+  let streckenMeilensteine = laden(KEY_STRECKEN_MEILENSTEINE, null);
+  if (!streckenMeilensteine) {
+    // Beim ersten Start: bereits erreichte Stufen nur vermerken, nicht nachträglich feiern
+    streckenMeilensteine = {};
+    sportEinheiten.forEach(s => {
+      const stufen = STRECKEN_STUFEN[s.typ];
+      if (!stufen) return;
+      const km = gesamtStreckeKm(s.person, s.typ);
+      (streckenMeilensteine[s.person] = streckenMeilensteine[s.person] || {})[s.typ] = stufen.filter(st => km >= st);
+    });
+    speichern(KEY_STRECKEN_MEILENSTEINE, streckenMeilensteine);
+  }
+  function pruefeStreckenMeilenstein(person, typ) {
+    const stufen = STRECKEN_STUFEN[typ];
+    if (!stufen) return;
+    const km = gesamtStreckeKm(person, typ);
+    const jePerson = streckenMeilensteine[person] = streckenMeilensteine[person] || {};
+    const erreicht = jePerson[typ] = jePerson[typ] || [];
+    const neu = stufen.filter(st => km >= st && !erreicht.includes(st));
+    if (!neu.length) return;
+    neu.forEach(st => erreicht.push(st));
+    speichern(KEY_STRECKEN_MEILENSTEINE, streckenMeilensteine);
+    const hoechste = neu[neu.length - 1];
+    const t = typInfo(typ);
+    meilensteinFeiern(STRECKEN_ICONS[stufen.indexOf(hoechste)] + ' Meilenstein erreicht!',
+      'Schon ' + hoechste.toLocaleString('de-DE') + ' km ' + t.label + ' insgesamt – stark! ' + t.icon);
+  }
   let aktivePerson = localStorage.getItem(KEY_AKTIVE_PERSON) || 'mama';
   let aktiveAnsicht = 'heute';
 
@@ -2631,6 +2676,7 @@
       sportEinheiten.push(neu);
     }
     letztenSportTypMerken(neu.person, neu.typ);
+    pruefeStreckenMeilenstein(neu.person, neu.typ);
     speichern(KEY_SPORT, sportEinheiten);
     document.getElementById('modalSport').classList.remove('zeigen');
     gpsAbbrechen();
@@ -2919,6 +2965,7 @@
         neu++;
       });
       speichern(KEY_SPORT, sportEinheiten);
+      Array.from(new Set(importGpx.map(g => g.typ))).forEach(typ => pruefeStreckenMeilenstein(aktivePerson, typ));
     }
     document.getElementById('modalUhrImport').classList.remove('zeigen');
     renderAlles();
