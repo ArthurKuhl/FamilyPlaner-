@@ -949,7 +949,7 @@
     <span id="sb1">Modus: Auswählen</span>
     <span id="sb2">Beete: 0</span>
     <span id="sb3">Pflanzen: 0</span>
-    <span id="sbWeather" style="cursor:pointer" onclick="switchTab('settings');setTimeout(()=>document.getElementById('weatherSettingsBox')?.scrollIntoView({behavior:'smooth',block:'center'}),100)"></span>
+    <span id="sbWeather" style="cursor:pointer" title="Wetter-Details anzeigen" onclick="oeffneWetterDetail()"></span>
     <span id="sb4" style="margin-left:auto;color:var(--leaf)"></span>
   </div>
 </div>
@@ -1837,6 +1837,16 @@
 </div>
 
 <!-- MODAL: Fotoalbum-Feld-Detail -->
+<div class="modal-bg" id="modalWetter" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal" style="max-width:480px;width:min(480px,94vw);max-height:88vh;overflow-y:auto;">
+    <h2>🌤 Wetter im Garten</h2>
+    <div id="wetterDetailInhalt"></div>
+    <div class="modal-btns">
+      <button class="btn-secondary" onclick="document.getElementById('modalWetter').style.display='none'">Schließen</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="modalZonen" style="display:none">
   <div class="modal" style="max-width:480px;">
     <h2>📌 Bereiche</h2>
@@ -3076,11 +3086,11 @@ async function fetchWeather(loc, forceRefresh) {
     return weatherCache;
   }
   try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${loc.lat}&longitude=${loc.lon}&current=temperature_2m,precipitation,weather_code&daily=precipitation_sum,precipitation_probability_max,temperature_2m_max,temperature_2m_min,weather_code&past_days=${WEATHER_PAST_DAYS}&forecast_days=3&timezone=auto`;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${loc.lat}&longitude=${loc.lon}&current=temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,weather_code,wind_speed_10m,wind_gusts_10m&hourly=temperature_2m,precipitation_probability,weather_code,soil_temperature_6cm,soil_moisture_1_to_3cm&daily=precipitation_sum,precipitation_probability_max,temperature_2m_max,temperature_2m_min,weather_code,sunrise,sunset,sunshine_duration,uv_index_max,wind_speed_10m_max,wind_gusts_10m_max,et0_fao_evapotranspiration&past_days=${WEATHER_PAST_DAYS}&forecast_days=3&timezone=auto`;
     const res = await fetch(url);
     if (!res.ok) throw new Error('Wetterdienst nicht erreichbar');
     const data = await res.json();
-    weatherCache = { lat: loc.lat, lon: loc.lon, fetchedAt: now, current: data.current, daily: data.daily };
+    weatherCache = { lat: loc.lat, lon: loc.lon, fetchedAt: now, current: data.current, daily: data.daily, hourly: data.hourly };
     renderWeatherUI(weatherCache);
     persistiereWetterHinweise();
     return weatherCache;
@@ -3108,6 +3118,7 @@ function weatherIcon(code) {
   if (code === 0) return '☀️';
   if (code <= 2) return '🌤';
   if (code === 3) return '☁️';
+  if (code === 45 || code === 48) return '🌫';
   if (code >= 51 && code <= 67) return '🌧';
   if (code >= 71 && code <= 77) return '🌨';
   if (code >= 80 && code <= 82) return '🌦';
@@ -3148,40 +3159,155 @@ function renderWeatherUI(w) {
         <span>${label}</span><span>${tmin}–${tmax}°C${frostDay}${heatDay}${hailDay}</span><span>${rain>0?`🌧 ${rain.toFixed(1)}mm (${prob}%)`:'trocken'}</span>
       </div>`;
     }).join('');
-    let frostBanner = '';
-    if (frostWarn) {
-      const isFrost = frostWarn.worst.level === 'frost';
-      const dayList = frostWarn.days.map(d => `${d.label} ${Math.round(d.tmin)}°C`).join(', ');
-      frostBanner = `<div style="font-size:0.74rem;padding:6px 9px;border-radius:7px;background:${isFrost?'#e3ecfb':'#f0f4fb'};border-left:3px solid ${isFrost?'#4a6fa5':'#8ea4c9'};margin-bottom:8px">
-        ❄️ <strong>${isFrost?'Frost erwartet':'Frostgefahr'}:</strong> ${dayList} – frostempfindliche Pflanzen abdecken oder reinholen.
-      </div>`;
-    }
-    let heatBanner = '';
-    if (heatWarn) {
-      const dayList = heatWarn.days.map(d => `${d.label} ${Math.round(d.tmax)}°C`).join(', ');
-      heatBanner = `<div style="font-size:0.74rem;padding:6px 9px;border-radius:7px;background:#fdf3e0;border-left:3px solid #d4880a;margin-bottom:8px">
-        🌡️ <strong>Hitze erwartet:</strong> ${dayList} – morgens/abends gießen statt mittags, Mulch hilft gegen Austrocknung, empfindliche Pflanzen ggf. beschatten.
-      </div>`;
-    }
-    let heavyRainBanner = '';
-    if (heavyRainWarn) {
-      const dayList = heavyRainWarn.days.map(d => `${d.label} ${Math.round(d.sum)}mm`).join(', ');
-      heavyRainBanner = `<div style="font-size:0.74rem;padding:6px 9px;border-radius:7px;background:#e3f0fb;border-left:3px solid #5b8bb5;margin-bottom:8px">
-        🌧️ <strong>Starkregen erwartet:</strong> ${dayList} – hohe Beete/Töpfe auf Staunässe prüfen, empfindliche Jungpflanzen ggf. schützen.
-      </div>`;
-    }
-    let hailBanner = '';
-    if (hailWarn) {
-      const dayList = hailWarn.days.map(d => d.label).join(', ');
-      hailBanner = `<div style="font-size:0.74rem;padding:6px 9px;border-radius:7px;background:#e3f0fb;border-left:3px solid #5b8bb5;margin-bottom:8px">
-        🧊 <strong>Hagelgefahr:</strong> ${dayList} – Vlies, Kisten oder Folie zum Abdecken empfindlicher Pflanzen bereitlegen.
-      </div>`;
-    }
-    settingsBox.innerHTML = frostBanner + heatBanner + heavyRainBanner + hailBanner + `<div style="margin-bottom:4px">${icon} Aktuell ${Math.round(cur.temperature_2m)}°C, Niederschlag ${cur.precipitation} mm</div>
+    settingsBox.innerHTML = wetterWarnBanner() + `<div style="margin-bottom:4px">${icon} Aktuell ${Math.round(cur.temperature_2m)}°C, Niederschlag ${cur.precipitation} mm</div>
       <div style="font-size:0.7rem;color:var(--bark);margin-bottom:6px">Regen letzte 2 Tage: ${recentRain.toFixed(1)} mm – fließt automatisch in den 🚿 Gießplan mit ein.</div>
       ${rows}
       <button class="btn-secondary" onclick="fetchWeather(null,true)" style="margin-top:6px">🔄 Aktualisieren</button>`;
   }
+}
+function wetterWarnBanner() {
+  const frostWarn = getUpcomingFrostWarning();
+  const heatWarn = getUpcomingHeatWarning();
+  const heavyRainWarn = getUpcomingHeavyRainWarning();
+  const hailWarn = getUpcomingHailWarning();
+    let frostBanner = '';
+  if (frostWarn) {
+    const isFrost = frostWarn.worst.level === 'frost';
+    const dayList = frostWarn.days.map(d => `${d.label} ${Math.round(d.tmin)}°C`).join(', ');
+    frostBanner = `<div style="font-size:0.74rem;padding:6px 9px;border-radius:7px;background:${isFrost?'#e3ecfb':'#f0f4fb'};border-left:3px solid ${isFrost?'#4a6fa5':'#8ea4c9'};margin-bottom:8px">
+      ❄️ <strong>${isFrost?'Frost erwartet':'Frostgefahr'}:</strong> ${dayList} – frostempfindliche Pflanzen abdecken oder reinholen.
+    </div>`;
+  }
+  let heatBanner = '';
+  if (heatWarn) {
+    const dayList = heatWarn.days.map(d => `${d.label} ${Math.round(d.tmax)}°C`).join(', ');
+    heatBanner = `<div style="font-size:0.74rem;padding:6px 9px;border-radius:7px;background:#fdf3e0;border-left:3px solid #d4880a;margin-bottom:8px">
+      🌡️ <strong>Hitze erwartet:</strong> ${dayList} – morgens/abends gießen statt mittags, Mulch hilft gegen Austrocknung, empfindliche Pflanzen ggf. beschatten.
+    </div>`;
+  }
+  let heavyRainBanner = '';
+  if (heavyRainWarn) {
+    const dayList = heavyRainWarn.days.map(d => `${d.label} ${Math.round(d.sum)}mm`).join(', ');
+    heavyRainBanner = `<div style="font-size:0.74rem;padding:6px 9px;border-radius:7px;background:#e3f0fb;border-left:3px solid #5b8bb5;margin-bottom:8px">
+      🌧️ <strong>Starkregen erwartet:</strong> ${dayList} – hohe Beete/Töpfe auf Staunässe prüfen, empfindliche Jungpflanzen ggf. schützen.
+    </div>`;
+  }
+  let hailBanner = '';
+  if (hailWarn) {
+    const dayList = hailWarn.days.map(d => d.label).join(', ');
+    hailBanner = `<div style="font-size:0.74rem;padding:6px 9px;border-radius:7px;background:#e3f0fb;border-left:3px solid #5b8bb5;margin-bottom:8px">
+      🧊 <strong>Hagelgefahr:</strong> ${dayList} – Vlies, Kisten oder Folie zum Abdecken empfindlicher Pflanzen bereitlegen.
+    </div>`;
+  }
+  return frostBanner + heatBanner + heavyRainBanner + hailBanner;
+}
+// ==================== WETTER-DETAILANSICHT (Tipp auf die Temperatur unten) ====================
+const WETTER_TEXTE = {
+  0: 'Klar', 1: 'Überwiegend klar', 2: 'Teils bewölkt', 3: 'Bedeckt', 45: 'Nebel', 48: 'Reifnebel',
+  51: 'Leichter Nieselregen', 53: 'Nieselregen', 55: 'Starker Nieselregen', 56: 'Gefrierender Niesel', 57: 'Gefrierender Niesel',
+  61: 'Leichter Regen', 63: 'Regen', 65: 'Starker Regen', 66: 'Gefrierender Regen', 67: 'Gefrierender Regen',
+  71: 'Leichter Schneefall', 73: 'Schneefall', 75: 'Starker Schneefall', 77: 'Schneegriesel',
+  80: 'Leichte Schauer', 81: 'Schauer', 82: 'Heftige Schauer', 85: 'Schneeschauer', 86: 'Starke Schneeschauer',
+  95: 'Gewitter', 96: 'Gewitter mit Hagel', 99: 'Schweres Gewitter mit Hagel',
+};
+function wetterText(code) { return WETTER_TEXTE[code] || ''; }
+function wetterUhrzeit(iso) { return iso ? iso.slice(11, 16) : '–'; }
+function wetterKachel(label, wert) {
+  return `<div style="background:var(--cream);border-radius:8px;padding:6px 8px;"><div style="font-size:0.62rem;color:var(--bark);text-transform:uppercase;letter-spacing:0.04em;">${label}</div><div style="font-size:0.85rem;font-weight:600;">${wert}</div></div>`;
+}
+function oeffneWetterDetail() {
+  const modal = document.getElementById('modalWetter');
+  const inhalt = document.getElementById('wetterDetailInhalt');
+  const w = weatherCache;
+  modal.style.display = 'flex';
+  if (!getWeatherSettings()) {
+    inhalt.innerHTML = `<p style="font-size:0.85rem;color:var(--bark);margin-bottom:10px;">Für die Wetterdaten braucht der Garten einen Standort.</p>
+      <button class="btn-primary" style="width:100%;" onclick="requestWeatherLocation();setTimeout(oeffneWetterDetail,2500)">📍 Standort freigeben</button>`;
+    return;
+  }
+  if (!w || !w.current) {
+    inhalt.innerHTML = '<p style="font-size:0.85rem;color:var(--bark);">Wetterdaten werden geladen …</p>';
+    fetchWeather(null, true).then(r => { if (r) oeffneWetterDetail(); else inhalt.innerHTML = '<p style="font-size:0.85rem;color:var(--bark);">⚠ Wetterdaten konnten nicht geladen werden (keine Internetverbindung?).</p>'; });
+    return;
+  }
+  const cur = w.current, d = w.daily, h = w.hourly;
+  // --- Aktuell ---
+  let html = `<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+      <div style="font-size:2.4rem;line-height:1;">${weatherIcon(cur.weather_code)}</div>
+      <div><div style="font-size:1.6rem;font-weight:700;line-height:1.1;">${Math.round(cur.temperature_2m)}°C</div>
+      <div style="font-size:0.78rem;color:var(--bark);">${wetterText(cur.weather_code)}${cur.apparent_temperature != null ? ' · gefühlt ' + Math.round(cur.apparent_temperature) + '°' : ''}</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px;">
+      ${wetterKachel('Wind', cur.wind_speed_10m != null ? Math.round(cur.wind_speed_10m) + ' km/h' : '–')}
+      ${wetterKachel('Böen', cur.wind_gusts_10m != null ? Math.round(cur.wind_gusts_10m) + ' km/h' : '–')}
+      ${wetterKachel('Luftfeuchte', cur.relative_humidity_2m != null ? cur.relative_humidity_2m + ' %' : '–')}
+    </div>`;
+  // --- Boden (für Aussaat und Gießen interessant) ---
+  if (h && h.time) {
+    const jetztIdx = Math.max(0, h.time.findIndex(t => new Date(t) >= new Date(Date.now() - 30 * 60000)));
+    const bodenT = h.soil_temperature_6cm ? h.soil_temperature_6cm[jetztIdx] : null;
+    const bodenF = h.soil_moisture_1_to_3cm ? h.soil_moisture_1_to_3cm[jetztIdx] : null;
+    if (bodenT != null || bodenF != null) {
+      const feuchteText = bodenF == null ? '–' : (bodenF < 0.15 ? 'trocken' : bodenF < 0.3 ? 'mittel' : 'feucht') + ' (' + Math.round(bodenF * 100) + ' %)';
+      html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;">
+        ${wetterKachel('🌱 Boden 6 cm', bodenT != null ? Math.round(bodenT) + '°C' : '–')}
+        ${wetterKachel('💧 Bodenfeuchte', feuchteText)}
+      </div>`;
+    }
+    // --- Stundenverlauf der nächsten 24 Stunden ---
+    const stunden = [];
+    for (let i = jetztIdx; i < Math.min(h.time.length, jetztIdx + 24); i++) stunden.push(i);
+    html += `<div style="font-size:0.72rem;font-weight:700;color:var(--bark);text-transform:uppercase;letter-spacing:0.05em;margin:4px 0 4px;">Nächste 24 Stunden</div>
+      <div style="display:flex;gap:4px;overflow-x:auto;padding-bottom:6px;margin-bottom:8px;scrollbar-width:thin;">` +
+      stunden.map(i => {
+        const p = h.precipitation_probability ? h.precipitation_probability[i] : null;
+        return `<div style="flex:0 0 46px;text-align:center;background:var(--cream);border-radius:8px;padding:5px 2px;">
+          <div style="font-size:0.62rem;color:var(--bark);">${wetterUhrzeit(h.time[i])}</div>
+          <div style="font-size:1rem;">${weatherIcon(h.weather_code ? h.weather_code[i] : null)}</div>
+          <div style="font-size:0.78rem;font-weight:700;">${Math.round(h.temperature_2m[i])}°</div>
+          <div style="font-size:0.6rem;color:#5b8bb5;min-height:0.8em;">${p ? p + '%' : ''}</div>
+        </div>`;
+      }).join('') + '</div>';
+  }
+  // --- Warnungen (Frost, Hitze, Starkregen, Hagel) ---
+  html += wetterWarnBanner();
+  // --- Heute, morgen, übermorgen ---
+  for (let o = 0; o < 3; o++) {
+    const idx = getWeatherDayIndex(o);
+    if (!d.time || d.time[idx] == null) continue;
+    const titel = o === 0 ? 'Heute' : o === 1 ? 'Morgen' : new Date(d.time[idx]).toLocaleDateString('de-DE', { weekday: 'long' });
+    const regen = d.precipitation_sum[idx] || 0, prob = d.precipitation_probability_max[idx];
+    const sonne = d.sunshine_duration ? d.sunshine_duration[idx] / 3600 : null;
+    const et0 = d.et0_fao_evapotranspiration ? d.et0_fao_evapotranspiration[idx] : null;
+    // Gießhinweis: Verdunstung deutlich höher als Regen → Beete trocknen aus
+    const bilanz = et0 != null ? regen - et0 : null;
+    const giessText = bilanz == null ? '' : bilanz < -2 ? '🚿 Gießen sinnvoll' : bilanz < 0 ? '🚿 evtl. gießen' : '💧 Regen reicht';
+    html += `<div style="border:1px solid var(--parchment);border-radius:10px;padding:9px 10px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;">
+        <strong style="font-size:0.9rem;">${weatherIcon(d.weather_code[idx])} ${titel}</strong>
+        <span style="font-size:0.85rem;font-weight:700;">${Math.round(d.temperature_2m_min[idx])}° / ${Math.round(d.temperature_2m_max[idx])}°</span>
+      </div>
+      <div style="font-size:0.75rem;color:var(--bark);margin-bottom:6px;">${wetterText(d.weather_code[idx])}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;">
+        ${wetterKachel('🌧 Regen', regen > 0 ? regen.toFixed(1).replace('.', ',') + ' mm' + (prob != null ? ' (' + prob + '%)' : '') : 'trocken')}
+        ${wetterKachel('💨 Wind / Böen', (d.wind_speed_10m_max ? Math.round(d.wind_speed_10m_max[idx]) : '–') + ' / ' + (d.wind_gusts_10m_max ? Math.round(d.wind_gusts_10m_max[idx]) : '–') + ' km/h')}
+        ${wetterKachel('☀️ Sonne', sonne != null ? sonne.toFixed(1).replace('.', ',') + ' Std.' : '–')}
+        ${wetterKachel('🔆 UV-Index', d.uv_index_max ? Math.round(d.uv_index_max[idx]) : '–')}
+        ${wetterKachel('🌅 Auf / Unter', d.sunrise ? wetterUhrzeit(d.sunrise[idx]) + ' / ' + wetterUhrzeit(d.sunset[idx]) : '–')}
+        ${wetterKachel('💦 Verdunstung', et0 != null ? et0.toFixed(1).replace('.', ',') + ' mm' + (giessText ? '<br><span style="font-size:0.7rem;font-weight:500;">' + giessText + '</span>' : '') : '–')}
+      </div>
+    </div>`;
+  }
+  const stand = new Date(w.fetchedAt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+  html += `<div style="display:flex;justify-content:space-between;align-items:center;font-size:0.68rem;color:var(--bark);">
+      <span>Stand ${stand} Uhr · Daten: Open-Meteo</span>
+      <button class="btn-secondary" style="padding:5px 10px;font-size:0.75rem;" onclick="fetchWeather(null,true).then(oeffneWetterDetail)">🔄 Aktualisieren</button>
+    </div>`;
+  inhalt.innerHTML = html;
+  // Nach oben: das Aktuell-Wetter soll zuerst sichtbar sein (auch wenn ein Knopf automatisch den Fokus bekommt)
+  const box = modal.querySelector('.modal');
+  box.scrollTop = 0;
+  setTimeout(() => { if (document.activeElement && box.contains(document.activeElement)) document.activeElement.blur(); box.scrollTop = 0; }, 80);
 }
 function getWeatherDayIndex(offset) {
   return WEATHER_PAST_DAYS + offset; // offset: 0=heute, -1=gestern, +1=morgen ...
