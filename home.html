@@ -80,6 +80,29 @@
   .modal { background: var(--white); border-radius: var(--radius-lg); padding: 20px; max-width: 480px; width: 100%; max-height: 86vh; overflow-y: auto; }
   .modal h2 { font-family: 'Playfair Display', serif; font-size: 1.15rem; margin-bottom: 6px; }
   .modal-btns { display: flex; justify-content: flex-end; margin-top: 14px; }
+  /* ---- Wetter ---- */
+  .wetter-jetzt { display: flex; align-items: center; gap: 12px; }
+  .wetter-symbol { font-size: 2rem; line-height: 1; }
+  .wetter-temp { font-size: 1.35rem; font-weight: 700; color: var(--soil); line-height: 1.1; }
+  .wetter-text { font-size: 0.78rem; color: var(--bark); }
+  .wetter-leer { font-size: 0.82rem; color: var(--bark); margin-bottom: 8px; }
+  .wetter-knopf { background: var(--moss); color: var(--leaf); border: none; border-radius: var(--radius-pill); padding: 8px 14px; font: 700 0.8rem 'Inter', sans-serif; cursor: pointer; }
+  .wetter-knopf.klein { padding: 5px 10px; font-size: 0.72rem; }
+  .wetter-warnung { margin-top: 8px; font-size: 0.75rem; font-weight: 600; color: #8a4a1f; background: #fbeee2; border-radius: 8px; padding: 6px 9px; line-height: 1.5; }
+  .wetter-stunden { display: flex; gap: 4px; overflow-x: auto; margin-top: 8px; padding-bottom: 4px; scrollbar-width: none; }
+  .wetter-stunden::-webkit-scrollbar { display: none; }
+  .wetter-stunde { flex: 1 0 44px; display: flex; flex-direction: column; align-items: center; gap: 1px; background: var(--cream); border-radius: 8px; padding: 5px 2px; font-size: 0.7rem; color: var(--bark); }
+  .wetter-stunde b { font-size: 0.95rem; font-weight: 400; }
+  .wetter-stunde span:nth-child(3) { font-weight: 700; color: var(--soil); font-size: 0.78rem; }
+  .wetter-stunde .regen { color: #5b8bb5; font-size: 0.62rem; min-height: 0.8em; }
+  .wetter-morgen { margin-top: 8px; font-size: 0.78rem; color: var(--bark); }
+  .wetter-felder { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 8px; }
+  .wetter-feld { background: var(--cream); border-radius: 8px; padding: 6px 8px; }
+  .wetter-feld div { font-size: 0.62rem; color: var(--bark); text-transform: uppercase; letter-spacing: 0.04em; }
+  .wetter-feld b { font-size: 0.85rem; color: var(--soil); }
+  .wetter-abschnitt { font-size: 0.72rem; font-weight: 700; color: var(--bark); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 12px; }
+  .wetter-tag { border: 1px solid var(--parchment); border-radius: 10px; padding: 9px 10px; margin-top: 8px; }
+  .wetter-tag-kopf { display: flex; justify-content: space-between; font-size: 0.9rem; color: var(--soil); }
   /* ---- Erfolge ---- */
   .erfolg-kurz { font-size: 0.82rem; color: var(--bark); line-height: 1.45; }
   .erfolg-kurz b { color: var(--soil); }
@@ -178,6 +201,14 @@
     <div id="listeDieseWoche"></div>
   </div>
 
+  <div class="kachel" id="kachelWetter" style="cursor:pointer">
+    <div class="kachel-kopf">
+      <div class="kachel-titel">🌤 Wetter</div>
+      <span class="kachel-pfeil">→</span>
+    </div>
+    <div id="wetterKurz"></div>
+  </div>
+
   <div class="kachel" id="kachelTermine">
     <div class="kachel-kopf">
       <div class="kachel-titel">🗓️ Termine heute</div>
@@ -256,6 +287,16 @@
     </div>
   </div>
 </main>
+
+<div class="modal-bg" id="modalWetter">
+  <div class="modal" style="max-height:88vh;overflow-y:auto;">
+    <h2>🌤 Wetter</h2>
+    <div id="wetterDetail"></div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnWetterSchliessen">Schließen</button>
+    </div>
+  </div>
+</div>
 
 <div class="modal-bg" id="modalErfolge">
   <div class="modal">
@@ -885,6 +926,182 @@
   }
 
   // Kacheln von Modulen ausblenden, die in den Einstellungen (Modul-Übersicht) für dieses Gerät versteckt wurden
+  // ---------- WETTER (eigener Abruf, unabhängig vom Gartenmodul) ----------
+  // Standort: 1) auf diesem Gerät gewählt, 2) sonst der Standort eines Gartens (synchronisiert),
+  // 3) sonst Knopf zum Freigeben. Daten von Open-Meteo, 30 Min. zwischengespeichert.
+  const KEY_WETTER_ORT = 'planer_wetterStandort';
+  const KEY_WETTER_CACHE = 'planer_wetterCache';
+  const WETTER_TEXTE = {
+    0: 'Klar', 1: 'Überwiegend klar', 2: 'Teils bewölkt', 3: 'Bedeckt', 45: 'Nebel', 48: 'Reifnebel',
+    51: 'Leichter Nieselregen', 53: 'Nieselregen', 55: 'Starker Nieselregen', 56: 'Gefrierender Niesel', 57: 'Gefrierender Niesel',
+    61: 'Leichter Regen', 63: 'Regen', 65: 'Starker Regen', 66: 'Gefrierender Regen', 67: 'Gefrierender Regen',
+    71: 'Leichter Schneefall', 73: 'Schneefall', 75: 'Starker Schneefall', 77: 'Schneegriesel',
+    80: 'Leichte Schauer', 81: 'Schauer', 82: 'Heftige Schauer', 85: 'Schneeschauer', 86: 'Starke Schneeschauer',
+    95: 'Gewitter', 96: 'Gewitter mit Hagel', 99: 'Schweres Gewitter mit Hagel',
+  };
+  function wetterSymbol(code) {
+    if (code === 0) return '☀️';
+    if (code <= 2) return '🌤';
+    if (code === 3) return '☁️';
+    if (code === 45 || code === 48) return '🌫';
+    if (code >= 51 && code <= 67) return '🌧';
+    if (code >= 71 && code <= 77) return '🌨';
+    if (code >= 80 && code <= 82) return '🌦';
+    if (code >= 85 && code <= 86) return '🌨';
+    if (code >= 95) return '⛈';
+    return '🌡';
+  }
+  function wetterStandort() {
+    const eigen = laden(KEY_WETTER_ORT, null);
+    if (eigen && eigen.lat != null) return eigen;
+    const garten = laden('gartenplaner_v3', null);
+    if (garten && garten.gardens) {
+      const g = Object.values(garten.gardens).find(x => x && x.weatherLoc && x.weatherLoc.lat != null);
+      if (g) return g.weatherLoc;
+    }
+    return null;
+  }
+  function kommazahl(n, stellen) { return Number(n).toFixed(stellen).replace('.', ','); }
+  function uhrzeit(iso) { return iso ? iso.slice(11, 16) : '–'; }
+  let wetterDaten = laden(KEY_WETTER_CACHE, null);
+
+  async function wetterLaden(erzwingen) {
+    const ort = wetterStandort();
+    if (!ort) { renderWetter(); return; }
+    const frisch = wetterDaten && wetterDaten.lat === ort.lat && wetterDaten.lon === ort.lon && (Date.now() - wetterDaten.geholt) < 30 * 60000;
+    if (frisch && !erzwingen) { renderWetter(); return; }
+    try {
+      const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + ort.lat + '&longitude=' + ort.lon +
+        '&current=temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,weather_code,wind_speed_10m,wind_gusts_10m' +
+        '&hourly=temperature_2m,precipitation_probability,weather_code' +
+        '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,sunrise,sunset,sunshine_duration,uv_index_max,wind_speed_10m_max,wind_gusts_10m_max' +
+        '&forecast_days=3&timezone=auto';
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Wetterdienst nicht erreichbar');
+      const d = await res.json();
+      wetterDaten = { lat: ort.lat, lon: ort.lon, geholt: Date.now(), current: d.current, hourly: d.hourly, daily: d.daily };
+      try { localStorage.setItem(KEY_WETTER_CACHE, JSON.stringify(wetterDaten)); } catch (e) {}
+    } catch (e) {
+      // Offline: mit den zuletzt gespeicherten Daten weiterarbeiten
+    }
+    renderWetter();
+  }
+  function standortFreigeben() {
+    const box = document.getElementById('wetterKurz');
+    if (!navigator.geolocation) { box.textContent = '⚠ Standortfreigabe wird von diesem Gerät nicht unterstützt.'; return; }
+    box.textContent = 'Standort wird abgefragt …';
+    navigator.geolocation.getCurrentPosition(pos => {
+      // Auf 2 Nachkommastellen runden (~1 km) – genau genug fürs Wetter
+      const ort = { lat: Math.round(pos.coords.latitude * 100) / 100, lon: Math.round(pos.coords.longitude * 100) / 100 };
+      try { localStorage.setItem(KEY_WETTER_ORT, JSON.stringify(ort)); } catch (e) {}
+      wetterLaden(true);
+    }, () => { box.textContent = '⚠ Standort konnte nicht ermittelt werden. Bitte die Standortfreigabe erlauben.'; }, { timeout: 10000 });
+  }
+  function stundenIndexJetzt(h) {
+    const grenze = Date.now() - 30 * 60000;
+    const i = h.time.findIndex(t => new Date(t).getTime() >= grenze);
+    return i < 0 ? 0 : i;
+  }
+  function wetterWarnungen(d) {
+    const liste = [];
+    for (let i = 0; i < Math.min(3, d.time.length); i++) {
+      const tag = i === 0 ? 'heute' : i === 1 ? 'morgen' : new Date(d.time[i]).toLocaleDateString('de-DE', { weekday: 'long' });
+      if (d.temperature_2m_min[i] <= 0) liste.push('❄️ Frost ' + tag + ' (' + Math.round(d.temperature_2m_min[i]) + '°)');
+      if (d.temperature_2m_max[i] >= 30) liste.push('🌡️ Hitze ' + tag + ' (' + Math.round(d.temperature_2m_max[i]) + '°)');
+      if (d.wind_gusts_10m_max && d.wind_gusts_10m_max[i] >= 60) liste.push('💨 Sturmböen ' + tag + ' (' + Math.round(d.wind_gusts_10m_max[i]) + ' km/h)');
+      if (d.precipitation_sum[i] >= 20) liste.push('🌧️ Starkregen ' + tag + ' (' + Math.round(d.precipitation_sum[i]) + ' mm)');
+      if (d.weather_code[i] >= 95) liste.push('⛈ Gewitter ' + tag);
+    }
+    return liste;
+  }
+  function renderWetter() {
+    const box = document.getElementById('wetterKurz');
+    if (!wetterStandort()) {
+      box.innerHTML = '<div class="wetter-leer">Für das Wetter braucht die App einmal deinen Standort.</div>' +
+        '<button type="button" class="wetter-knopf" id="btnWetterStandort">📍 Standort freigeben</button>';
+      document.getElementById('btnWetterStandort').addEventListener('click', (e) => { e.stopPropagation(); standortFreigeben(); });
+      return;
+    }
+    if (!wetterDaten || !wetterDaten.current) { box.innerHTML = '<div class="wetter-leer">Wetter wird geladen …</div>'; return; }
+    const c = wetterDaten.current, d = wetterDaten.daily, h = wetterDaten.hourly;
+    const warn = wetterWarnungen(d);
+    let stunden = '';
+    if (h && h.time) {
+      const start = stundenIndexJetzt(h);
+      for (let i = start; i < Math.min(h.time.length, start + 6); i++) {
+        const p = h.precipitation_probability ? h.precipitation_probability[i] : 0;
+        stunden += '<div class="wetter-stunde"><span>' + (i === start ? 'Jetzt' : uhrzeit(h.time[i])) + '</span><b>' + wetterSymbol(h.weather_code[i]) + '</b><span>' + Math.round(h.temperature_2m[i]) + '°</span>' +
+          '<span class="regen">' + (p >= 20 ? p + '%' : '') + '</span></div>';
+      }
+    }
+    box.innerHTML =
+      '<div class="wetter-jetzt"><div class="wetter-symbol">' + wetterSymbol(c.weather_code) + '</div>' +
+        '<div><div class="wetter-temp">' + Math.round(c.temperature_2m) + '°C</div>' +
+        '<div class="wetter-text">' + (WETTER_TEXTE[c.weather_code] || '') + ' · ' + Math.round(d.temperature_2m_min[0]) + '° / ' + Math.round(d.temperature_2m_max[0]) + '°' +
+        (d.precipitation_probability_max[0] >= 20 ? ' · 🌧 ' + d.precipitation_probability_max[0] + '%' : '') + '</div></div></div>' +
+      (warn.length ? '<div class="wetter-warnung">' + warn.join(' · ') + '</div>' : '') +
+      (stunden ? '<div class="wetter-stunden">' + stunden + '</div>' : '') +
+      '<div class="wetter-morgen">Morgen: ' + wetterSymbol(d.weather_code[1]) + ' ' + Math.round(d.temperature_2m_min[1]) + '° / ' + Math.round(d.temperature_2m_max[1]) + '°' +
+        (d.precipitation_sum[1] > 0 ? ' · ' + kommazahl(d.precipitation_sum[1], 1) + ' mm Regen' : ' · trocken') + '</div>';
+  }
+  function wetterDetailRendern() {
+    const box = document.getElementById('wetterDetail');
+    if (!wetterDaten || !wetterDaten.current) { box.innerHTML = '<p style="font-size:0.85rem;color:var(--bark);">Noch keine Wetterdaten.</p>'; return; }
+    const c = wetterDaten.current, d = wetterDaten.daily, h = wetterDaten.hourly;
+    const feld = (label, wert) => '<div class="wetter-feld"><div>' + label + '</div><b>' + wert + '</b></div>';
+    let html = '<div class="wetter-jetzt"><div class="wetter-symbol" style="font-size:2.4rem;">' + wetterSymbol(c.weather_code) + '</div>' +
+      '<div><div class="wetter-temp" style="font-size:1.6rem;">' + Math.round(c.temperature_2m) + '°C</div>' +
+      '<div class="wetter-text">' + (WETTER_TEXTE[c.weather_code] || '') + (c.apparent_temperature != null ? ' · gefühlt ' + Math.round(c.apparent_temperature) + '°' : '') + '</div></div></div>' +
+      '<div class="wetter-felder" style="grid-template-columns:repeat(3,1fr);">' +
+        feld('Wind', Math.round(c.wind_speed_10m) + ' km/h') + feld('Böen', Math.round(c.wind_gusts_10m) + ' km/h') + feld('Luftfeuchte', c.relative_humidity_2m + ' %') + '</div>';
+    const warn = wetterWarnungen(d);
+    if (warn.length) html += '<div class="wetter-warnung">' + warn.join('<br>') + '</div>';
+    if (h && h.time) {
+      const start = stundenIndexJetzt(h);
+      let s = '';
+      for (let i = start; i < Math.min(h.time.length, start + 24); i++) {
+        const p = h.precipitation_probability ? h.precipitation_probability[i] : 0;
+        s += '<div class="wetter-stunde"><span>' + uhrzeit(h.time[i]) + '</span><b>' + wetterSymbol(h.weather_code[i]) + '</b><span>' + Math.round(h.temperature_2m[i]) + '°</span><span class="regen">' + (p >= 10 ? p + '%' : '') + '</span></div>';
+      }
+      html += '<div class="wetter-abschnitt">Nächste 24 Stunden</div><div class="wetter-stunden">' + s + '</div>';
+    }
+    for (let i = 0; i < Math.min(3, d.time.length); i++) {
+      const titel = i === 0 ? 'Heute' : i === 1 ? 'Morgen' : new Date(d.time[i]).toLocaleDateString('de-DE', { weekday: 'long' });
+      const regen = d.precipitation_sum[i] || 0;
+      html += '<div class="wetter-tag"><div class="wetter-tag-kopf"><b>' + wetterSymbol(d.weather_code[i]) + ' ' + titel + '</b><b>' + Math.round(d.temperature_2m_min[i]) + '° / ' + Math.round(d.temperature_2m_max[i]) + '°</b></div>' +
+        '<div class="wetter-text" style="margin-bottom:6px;">' + (WETTER_TEXTE[d.weather_code[i]] || '') + '</div>' +
+        '<div class="wetter-felder">' +
+          feld('🌧 Regen', regen > 0 ? kommazahl(regen, 1) + ' mm (' + d.precipitation_probability_max[i] + '%)' : 'trocken') +
+          feld('💨 Wind / Böen', Math.round(d.wind_speed_10m_max[i]) + ' / ' + Math.round(d.wind_gusts_10m_max[i]) + ' km/h') +
+          feld('☀️ Sonne', kommazahl(d.sunshine_duration[i] / 3600, 1) + ' Std.') +
+          feld('🔆 UV-Index', Math.round(d.uv_index_max[i])) +
+          feld('🌅 Aufgang', uhrzeit(d.sunrise[i])) + feld('🌇 Untergang', uhrzeit(d.sunset[i])) +
+        '</div></div>';
+    }
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:0.68rem;color:var(--bark);margin-top:6px;">' +
+      '<span>Stand ' + new Date(wetterDaten.geholt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) + ' Uhr · Open-Meteo</span>' +
+      '<span style="display:flex;gap:6px;"><button type="button" class="wetter-knopf klein" id="btnWetterOrt">📍 Standort</button><button type="button" class="wetter-knopf klein" id="btnWetterNeu">🔄</button></span></div>';
+    box.innerHTML = html;
+    document.getElementById('btnWetterNeu').addEventListener('click', () => wetterLaden(true).then(wetterDetailRendern));
+    document.getElementById('btnWetterOrt').addEventListener('click', () => {
+      if (!confirm('Aktuellen Standort dieses Geräts für das Wetter verwenden?')) return;
+      document.getElementById('modalWetter').classList.remove('zeigen');
+      standortFreigeben();
+    });
+    box.parentElement.scrollTop = 0;
+  }
+  document.getElementById('kachelWetter').addEventListener('click', () => {
+    if (!wetterStandort() || !wetterDaten) return;
+    wetterDetailRendern();
+    document.getElementById('modalWetter').classList.add('zeigen');
+  });
+  document.getElementById('btnWetterSchliessen').addEventListener('click', () => document.getElementById('modalWetter').classList.remove('zeigen'));
+  document.getElementById('modalWetter').addEventListener('click', (e) => { if (e.target.id === 'modalWetter') e.currentTarget.classList.remove('zeigen'); });
+  renderWetter();
+  wetterLaden(false);
+  // Beim Zurückkehren zur Startseite ggf. auffrischen
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) wetterLaden(false); });
+
   // ---------- ERFOLGE: Übersicht über alle Meilensteine der Module ----------
   // Gleiche Stufen wie in Kochen, Gesundheit und Garten. Berechnet direkt aus den Daten,
   // damit auch der Fortschritt zur nächsten Stufe sichtbar ist.
