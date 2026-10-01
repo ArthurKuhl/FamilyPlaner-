@@ -1708,7 +1708,9 @@
 <div class="modal-bg" id="modalGpsRoute">
   <div class="modal">
     <h2>🗺️ Route</h2>
+    <div id="gpsRouteKarte" style="display:none;width:100%;height:280px;border-radius:var(--radius-md);border:1px solid var(--sand-dark);overflow:hidden;"></div>
     <svg id="gpsRouteSvg" viewBox="0 0 200 140" style="width:100%;height:auto;background:var(--cream);border-radius:var(--radius-md);border:1px solid var(--sand-dark);"></svg>
+    <div id="gpsRouteKartenHinweis" style="font-size:0.68rem;color:var(--bark);margin-top:4px;"></div>
     <div class="gps-werte" style="margin-top:10px;">
       <div class="gps-wert-block"><div class="gps-wert" id="gpsRouteDistanz">–</div><div class="gps-label">Distanz</div></div>
       <div class="gps-wert-block"><div class="gps-wert" id="gpsRouteDauer">–</div><div class="gps-label">Dauer</div></div>
@@ -1919,6 +1921,30 @@
 
   let tageswerte = laden(KEY_TAGESWERTE, []); // [{id, datum, person, gewicht, schlaf, wasser, stimmung}]
   let sportEinheiten = laden(KEY_SPORT, []); // [{id, datum, person, typ, dauer, notiz}]
+
+  // ---------- GPS-Routen klein halten ----------
+  // Das Sync-Dokument eines Moduls darf max. 1 MB groß sein. Eine ungekürzte Aufzeichnung hat
+  // schnell über 1000 Punkte – deshalb auf ~300 Punkte ausdünnen und Koordinaten auf 5 Nachkomma-
+  // stellen (~1 m) runden. Optisch ist davon nichts zu sehen.
+  const ROUTE_MAX_PUNKTE = 300;
+  function routeAusduennen(route) {
+    if (!Array.isArray(route) || route.length < 2) return route;
+    const schritt = Math.max(1, Math.ceil(route.length / ROUTE_MAX_PUNKTE));
+    return route.filter((p, i) => i % schritt === 0 || i === route.length - 1).map(p => {
+      const punkt = { lat: Math.round(p.lat * 1e5) / 1e5, lng: Math.round(p.lng * 1e5) / 1e5 };
+      if (p.t) punkt.t = p.t;
+      return punkt;
+    });
+  }
+  // Ältere, ungekürzte Routen einmalig ausdünnen (auch wenn sie per Sync von einem anderen Gerät kommen)
+  function bestehendeRoutenAusduennen() {
+    let geaendert = false;
+    sportEinheiten.forEach(s => {
+      if (Array.isArray(s.gpsRoute) && s.gpsRoute.length > ROUTE_MAX_PUNKTE) { s.gpsRoute = routeAusduennen(s.gpsRoute); geaendert = true; }
+    });
+    if (geaendert) speichern(KEY_SPORT, sportEinheiten);
+  }
+  bestehendeRoutenAusduennen();
 
   // ---------- STRECKEN-ERFOLGE (km je Person und Sportart; gleiche Stufen wie in home.html) ----------
   const STRECKEN_STUFEN = {
@@ -2644,6 +2670,55 @@
     const paceMinProKm = distanzKm > 0 ? (s.dauer / distanzKm) : 0;
     document.getElementById('gpsRoutePace').textContent = paceMinProKm > 0 ? paceMinProKm.toLocaleString('de-DE', { maximumFractionDigits: 1 }) + ' min/km' : '–';
     document.getElementById('modalGpsRoute').classList.add('zeigen');
+    routeAufKarteZeigen(route);
+  }
+
+  // ---------- Echte Karte (OpenStreetMap über Leaflet, wird erst bei Bedarf geladen) ----------
+  // Offline oder wenn das Laden scheitert, bleibt die einfache Linien-Ansicht (SVG) stehen.
+  let leafletLaden = null, routeKarte = null, routeEbene = null;
+  function leafletBereitstellen() {
+    if (window.L) return Promise.resolve(window.L);
+    if (leafletLaden) return leafletLaden;
+    leafletLaden = new Promise((resolve, reject) => {
+      const css = document.createElement('link');
+      css.rel = 'stylesheet';
+      css.href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
+      document.head.appendChild(css);
+      const js = document.createElement('script');
+      js.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
+      js.onload = () => window.L ? resolve(window.L) : reject(new Error('Leaflet fehlt'));
+      js.onerror = () => { leafletLaden = null; reject(new Error('Karte nicht ladbar')); };
+      document.head.appendChild(js);
+    });
+    return leafletLaden;
+  }
+  function routeAufKarteZeigen(route) {
+    const kartenBox = document.getElementById('gpsRouteKarte');
+    const svg = document.getElementById('gpsRouteSvg');
+    const hinweis = document.getElementById('gpsRouteKartenHinweis');
+    kartenBox.style.display = 'none'; svg.style.display = ''; hinweis.textContent = '';
+    if (!route || route.length < 2) return;
+    if (!navigator.onLine) { hinweis.textContent = 'Offline – Karte wird angezeigt, sobald du wieder online bist.'; return; }
+    hinweis.textContent = 'Karte wird geladen …';
+    leafletBereitstellen().then(L => {
+      kartenBox.style.display = ''; svg.style.display = 'none'; hinweis.textContent = '';
+      if (!routeKarte) {
+        routeKarte = L.map(kartenBox, { zoomControl: true, attributionControl: true });
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19, attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>',
+        }).addTo(routeKarte);
+      }
+      if (routeEbene) routeEbene.remove();
+      const punkte = route.map(p => [p.lat, p.lng]);
+      const punktStil = (farbe) => ({ radius: 7, color: '#fff', weight: 2, fillColor: farbe, fillOpacity: 1 });
+      routeEbene = L.layerGroup([
+        L.polyline(punkte, { color: '#4f6f45', weight: 5, opacity: 0.9, lineJoin: 'round' }),
+        L.circleMarker(punkte[0], punktStil('#4f6f45')).bindTooltip('Start'),
+        L.circleMarker(punkte[punkte.length - 1], punktStil('#c46b41')).bindTooltip('Ziel'),
+      ]).addTo(routeKarte);
+      // Das Fenster ist gerade erst sichtbar geworden – Größe neu messen, dann auf die Route zoomen
+      setTimeout(() => { routeKarte.invalidateSize(); routeKarte.fitBounds(L.latLngBounds(punkte), { padding: [20, 20] }); }, 60);
+    }).catch(() => { hinweis.textContent = 'Karte konnte nicht geladen werden – hier die vereinfachte Ansicht.'; });
   }
   function gpsRouteDistanzBerechnen(route) {
     let d = 0;
@@ -2668,7 +2743,7 @@
       uebung: TYP_UEBUNGSGRUPPEN[ausgewaehlterTyp] ? ausgewaehlteUebungen.join(', ') : '',
       notiz: document.getElementById('fSportNotiz').value.trim(),
     };
-    if (gpsAufgezeichneteRoute && gpsAufgezeichneteRoute.length >= 2) neu.gpsRoute = gpsAufgezeichneteRoute;
+    if (gpsAufgezeichneteRoute && gpsAufgezeichneteRoute.length >= 2) neu.gpsRoute = routeAusduennen(gpsAufgezeichneteRoute);
     else if (bestehend && bestehend.gpsRoute) neu.gpsRoute = bestehend.gpsRoute; // vorhandene Route beim Bearbeiten nicht verwerfen
     if (bestehend) {
       Object.assign(bestehend, neu);
@@ -2961,7 +3036,7 @@
         const doppelt = sportEinheiten.some(s => s.person === aktivePerson && s.datum === g.datum && s.typ === g.typ && Math.abs((parseFloat(s.strecke) || 0) - g.km) < 0.05);
         if (doppelt) { uebersprungen++; return; }
         sportEinheiten.push({ id: neueId('s'), datum: g.datum, person: aktivePerson, typ: g.typ, dauer: g.dauer || 1,
-          strecke: String(g.km), uebung: '', notiz: '⌚ Import' + (g.dauer ? '' : ' (Dauer unbekannt, bitte ergänzen)'), gpsRoute: g.route });
+          strecke: String(g.km), uebung: '', notiz: '⌚ Import' + (g.dauer ? '' : ' (Dauer unbekannt, bitte ergänzen)'), gpsRoute: routeAusduennen(g.route) });
         neu++;
       });
       speichern(KEY_SPORT, sportEinheiten);
@@ -5357,6 +5432,7 @@
       onRemoteChange: function () {
         tageswerte = laden(KEY_TAGESWERTE, tageswerte);
         sportEinheiten = laden(KEY_SPORT, sportEinheiten);
+        bestehendeRoutenAusduennen();
         rechnerDaten = laden(KEY_RECHNER, rechnerDaten);
         medikamente = laden(KEY_MEDIKAMENTE, medikamente);
         medErledigt = laden(KEY_MED_ERLEDIGT, medErledigt);
