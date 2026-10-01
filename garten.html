@@ -268,6 +268,26 @@
   .pp-header-placeholder { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 5.5rem; opacity: 0.18; pointer-events: none; z-index: 0; }
   .pp-tab-badge { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #c46b41; margin-left: 3px; vertical-align: super; }
   .pp-standort-reihe { display: flex; gap: 4px; min-width: 0; }
+  /* ---- Pflanzen-Bewertung ---- */
+  .gb-stern { background: linear-gradient(90deg, #c99a3a var(--f, 0%), #ddd3bd var(--f, 0%)); -webkit-background-clip: text; background-clip: text; color: transparent !important; }
+  .gb-knopf { border: none; font-size: 1.15rem; line-height: 1; padding: 2px 1px; cursor: pointer; }
+  .gb-knopf:disabled { cursor: default; }
+  .gb-gesamt { text-align: center; padding: 6px 0 10px; border-bottom: 1px solid var(--parchment); margin-bottom: 10px; }
+  .gb-gesamt-text { font-size: 0.78rem; color: var(--bark); margin-top: 2px; }
+  .gb-abschnitt { margin-bottom: 14px; }
+  .gb-zeile { display: flex; justify-content: space-between; align-items: center; gap: 6px; min-height: 30px; font-size: 0.8rem; color: var(--soil); }
+  .gb-zeile > span:first-child { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+  .gb-sterne { display: flex; flex-shrink: 0; }
+  .gb-kopf { font-weight: 700; font-size: 0.88rem; }
+  .gb-kopf .gb-knopf { font-size: 1.35rem; }
+  .gb-hinweis { font-size: 0.7rem; color: var(--bark); margin-bottom: 4px; }
+  .gb-unter { font-size: 0.72rem; font-weight: 700; color: var(--bark); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+  .gb-link { background: none; border: none; color: var(--moss); font-weight: 700; font-size: 0.78rem; cursor: pointer; padding: 0 0 12px; text-decoration: underline; }
+  .gb-daumen { flex: 1; padding: 9px; border-radius: var(--radius-pill); border: 1.5px solid var(--parchment); background: var(--white); font-weight: 700; font-size: 0.85rem; cursor: pointer; color: var(--bark); }
+  .gb-daumen.aktiv-ja { background: #e7f2e2; border-color: var(--moss); color: var(--moss); }
+  .gb-daumen.aktiv-nein { background: #fbe9e2; border-color: #c05030; color: #c05030; }
+  .gb-gruppe { border: 1px solid var(--parchment); border-radius: 10px; padding: 8px 10px; margin-bottom: 8px; }
+  .gb-eintrag { display: flex; justify-content: space-between; gap: 8px; font-size: 0.7rem; color: var(--bark); padding: 5px 0; border-top: 1px dashed var(--parchment); }
   .pp-standort-btn { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 6px 2px; border-radius: var(--radius-sm); border: 1.5px solid var(--parchment); background: var(--white); cursor: pointer; font-size: 0.95rem; color: var(--bark); transition: all 0.15s; }
   .pp-standort-btn span { font-size: 0.58rem; font-weight: 600; max-width: 100%; line-height: 1.15; text-align: center; overflow-wrap: anywhere; }
   .pp-standort-btn.aktiv { border-color: #4a6f5c; background: #f0f8ec; color: #2c2415; }
@@ -1000,6 +1020,7 @@
     <div class="pp-tab" onclick="switchPPTab('pests')">🐛 Schädlinge</div>
     <div class="pp-tab" onclick="switchPPTab('harvest')" id="ppTabHarvest">🧺 Ernte</div>
     <div class="pp-tab" onclick="switchPPTab('preserve')">🥫 Verwertung</div>
+    <div class="pp-tab" onclick="switchPPTab('bewertung')">⭐ Bewertung</div>
   </div>
 
   <!-- PP TAB: Info -->
@@ -1017,8 +1038,8 @@
           <button class="btn-secondary" type="button" onclick="openVarietyDB(document.getElementById('ppName').value)" style="margin-top:4px;font-size:0.68rem;padding:3px 8px">🌾 Sortendatenbank öffnen</button>
         </div>
         <div class="form-row">
-          <label>Bewertung (nach Ertrag/Geschmack, optional)</label>
-          <div id="ppSterneEingabe" style="display:flex;gap:4px;font-size:1.4rem;"></div>
+          <label>Bewertung</label>
+          <div id="ppSterneEingabe"></div>
         </div>
         <div class="form-row">
           <label>Gepflanzt am</label>
@@ -1112,6 +1133,9 @@
   <!-- PP TAB: Verwertung & Haltbarmachen -->
   <div class="pp-tab-content" id="ppt-preserve">
     <div id="preservePlantResult"></div>
+  </div>
+  <div class="pp-tab-content" id="ppt-bewertung">
+    <div id="ppBewertungInhalt"></div>
   </div>
   </div>
 
@@ -1236,6 +1260,7 @@
     <div class="pp-tab" onclick="switchFPTab('pests')">🐛 Schädlinge</div>
     <div class="pp-tab" onclick="switchFPTab('harvest')" id="fpTabHarvest">🧺 Ernte</div>
     <div class="pp-tab" onclick="switchFPTab('preserve')">🥫 Verwertung</div>
+    <div class="pp-tab" onclick="switchFPTab('bewertung')">⭐ Bewertung</div>
   </div>
 
   <!-- FP TAB: Info -->
@@ -1339,6 +1364,9 @@
   <!-- FP TAB: Verwertung & Haltbarmachen -->
   <div class="pp-tab-content" id="fpt-preserve">
     <div id="fpPreserveResult"></div>
+  </div>
+  <div class="pp-tab-content" id="fpt-bewertung">
+    <div id="fpBewertungInhalt"></div>
   </div>
   </div>
 
@@ -1837,6 +1865,18 @@
 </div>
 
 <!-- MODAL: Fotoalbum-Feld-Detail -->
+<div class="modal-bg" id="modalSortenVergleich" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal" style="max-width:480px;width:min(480px,94vw);max-height:88vh;overflow-y:auto;">
+    <h2>📊 Sorten-Vergleich</h2>
+    <p style="font-size:0.78rem;color:var(--bark);margin:2px 0 8px;">Alle bewerteten Pflanzen aus allen Gärten, gruppiert nach Pflanze und Sorte – mit Standort, Boden und Saison.</p>
+    <input type="text" id="gbVergleichSuche" placeholder="Pflanze oder Sorte suchen …" oninput="gbVergleichRendern()" style="width:100%;margin-bottom:10px;padding:8px 10px;border:1px solid var(--parchment);border-radius:var(--radius-sm);font-family:'Inter',sans-serif;">
+    <div id="gbVergleichListe"></div>
+    <div class="modal-btns">
+      <button class="btn-secondary" onclick="document.getElementById('modalSortenVergleich').style.display='none'">Schließen</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="modalWetter" style="display:none" onclick="if(event.target===this)this.style.display='none'">
   <div class="modal" style="max-width:480px;width:min(480px,94vw);max-height:88vh;overflow-y:auto;">
     <h2>🌤 Wetter im Garten</h2>
@@ -3202,6 +3242,234 @@ function wetterWarnBanner() {
   }
   return frostBanner + heatBanner + heavyRainBanner + hailBanner;
 }
+// ==================== PFLANZEN-BEWERTUNG (Pflanze + essbare Teile, Sorten-Vergleich) ====================
+// Gleiche Logik wie im Gaming-Modul: Einzelpunkte 1–5 ★, nur bewertete Punkte zählen in den
+// Durchschnitt; ohne Einzelpunkte kann der Abschnitt direkt bewertet werden.
+// Gespeichert am einzelnen Pflanzen-Objekt (Beet-Pflanze oder Einzelpflanze):
+//   plant.bewertungDetail = { pflanze:{}, essbar:{}, manuellPflanze, manuellEssbar, nochmal, boden, notiz, jahr, essbarZeigen }
+//   plant.bewertung       = Gesamtwert (für Listen und Karten)
+const GB_PFLANZE = [
+  { id: 'wuchs', label: 'Wuchs/Form' }, { id: 'bluete', label: 'Blüte/Farbe' }, { id: 'optik', label: 'Optik' },
+  { id: 'robust', label: 'Robustheit' }, { id: 'pflege', label: 'Pflege\u00adleicht' }, { id: 'schnitt', label: 'Schnitt\u00adverträglichkeit' },
+];
+const GB_ESSBAR = [
+  { id: 'ertrag', label: 'Ertrag' }, { id: 'geschmack', label: 'Geschmack' }, { id: 'biss', label: 'Biss/Festigkeit' },
+  { id: 'saftig', label: 'Saftigkeit' }, { id: 'mundgefuehl', label: 'Mundgefühl' }, { id: 'lager', label: 'Lager\u00adfähigkeit' },
+  { id: 'vielseitig', label: 'Vielseitigkeit' },
+];
+const GB_BODEN = [
+  ['', '– nicht angegeben –'], ['humus', '🌱 Gartenerde/Humus'], ['lehm', '🧱 Lehmig/schwer'], ['sand', '⏳ Sandig/leicht'],
+  ['hochbeet', '🪵 Hochbeet-Erde'], ['kuebel', '🪴 Kübel/Topf'], ['sonstiges', '📦 Sonstiges'],
+];
+const GB_ESSBAR_KATEGORIEN = ['Gemüse', 'Kräuter', 'Obst', 'Beeren'];
+
+function gbRund(n) { return Math.round(n * 10) / 10; }
+function gbText(n) { return n.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 }); }
+function gbAbschnitt(werte, manuell) {
+  const w = Object.values(werte || {}).filter(x => x >= 1 && x <= 5);
+  return w.length ? gbRund(w.reduce((a, b) => a + b, 0) / w.length) : (manuell || 0);
+}
+function gbGesamt(d) {
+  if (!d) return 0;
+  const teile = [gbAbschnitt(d.pflanze, d.manuellPflanze), gbAbschnitt(d.essbar, d.manuellEssbar)].filter(x => x > 0);
+  return teile.length ? gbRund(teile.reduce((a, b) => a + b, 0) / teile.length) : 0;
+}
+function gbIstEssbar(plant) {
+  const d = plant.bewertungDetail || {};
+  if (d.essbarZeigen === true) return true;
+  if (d.essbarZeigen === false) return false;
+  const stamm = PLANTS.find(p => p.name === (plant.name || '').trim());
+  return !!((stamm && GB_ESSBAR_KATEGORIEN.includes(stamm.cat)) || (plant.harvests || []).length || Object.keys(d.essbar || {}).length);
+}
+function gbSterneHtml(wert, groesse) {
+  let html = '';
+  for (let i = 1; i <= 5; i++) {
+    const f = Math.round(Math.max(0, Math.min(1, wert - (i - 1))) * 100);
+    html += `<span class="gb-stern" style="--f:${f}%;font-size:${groesse || '1rem'}">★</span>`;
+  }
+  return html;
+}
+// Holt die gerade geöffnete Pflanze samt Standort, je nach Panel
+function gbAktuellePflanze(prefix) {
+  if (prefix === 'pp') {
+    if (!activePlantBedId) return null;
+    const bed = getCurrentBeds().find(b => b.id === activePlantBedId.bedId);
+    const plant = bed && bed.plants[activePlantBedId.idx];
+    return plant ? { plant, standort: plant.location || '', bed } : null;
+  }
+  const fp = getCurrentFreiPflanzen().find(x => x.id === activeFreiPflanzeId);
+  return fp ? { plant: fp, standort: fp.standort || '', bed: null } : null;
+}
+function gbDetail(plant) {
+  if (!plant.bewertungDetail) {
+    // Übernahme der alten einfachen Sternbewertung als direkt gesetzter Wert
+    const d = { pflanze: {}, essbar: {}, manuellPflanze: 0, manuellEssbar: 0, nochmal: null, boden: '', notiz: '', jahr: null };
+    if (plant.bewertung > 0) {
+      if (gbIstEssbar(plant)) d.manuellEssbar = Math.round(plant.bewertung); else d.manuellPflanze = Math.round(plant.bewertung);
+    }
+    plant.bewertungDetail = d;
+  }
+  return plant.bewertungDetail;
+}
+function gbSpeichern(prefix) {
+  const akt = gbAktuellePflanze(prefix);
+  if (!akt) return;
+  const d = gbDetail(akt.plant);
+  d.jahr = new Date().getFullYear();
+  akt.plant.bewertung = gbGesamt(d);
+  saveData();
+  if (prefix === 'pp') {
+    if (akt.bed && selectedBed === akt.bed) renderBedPlantList(akt.bed, document.getElementById('bedPlantSearch')?.value || '');
+    renderPpSterneEingabe();
+  } else {
+    renderFreiPflanzenList();
+  }
+  gbRender(prefix);
+}
+function gbKnoepfe(prefix, wert, klickbar, aktion) {
+  let html = '';
+  for (let i = 1; i <= 5; i++) {
+    const f = Math.round(Math.max(0, Math.min(1, wert - (i - 1))) * 100);
+    html += `<button type="button" class="gb-stern gb-knopf" style="--f:${f}%" ${klickbar ? `onclick="gbSetzen('${prefix}','${aktion}',${wert === i ? 0 : i})"` : 'disabled'} aria-label="${i} Sterne">★</button>`;
+  }
+  return html;
+}
+// aktion: 'mp' = Pflanze direkt, 'me' = Essbar direkt, 'p:<id>' / 'e:<id>' = Einzelpunkt
+function gbSetzen(prefix, aktion, wert) {
+  const akt = gbAktuellePflanze(prefix);
+  if (!akt) return;
+  const d = gbDetail(akt.plant);
+  if (aktion === 'mp') d.manuellPflanze = wert;
+  else if (aktion === 'me') d.manuellEssbar = wert;
+  else {
+    const [bereich, id] = aktion.split(':');
+    const ziel = bereich === 'p' ? (d.pflanze = d.pflanze || {}) : (d.essbar = d.essbar || {});
+    if (wert) ziel[id] = wert; else delete ziel[id];
+  }
+  gbSpeichern(prefix);
+}
+function gbNochmal(prefix, wert) {
+  const akt = gbAktuellePflanze(prefix); if (!akt) return;
+  const d = gbDetail(akt.plant);
+  d.nochmal = d.nochmal === wert ? null : wert;
+  gbSpeichern(prefix);
+}
+function gbFeld(prefix, feld, wert) {
+  const akt = gbAktuellePflanze(prefix); if (!akt) return;
+  gbDetail(akt.plant)[feld] = wert;
+  akt.plant.bewertung = gbGesamt(akt.plant.bewertungDetail);
+  saveData();   // ohne Neuzeichnen, damit beim Tippen der Fokus bleibt
+}
+function gbEssbarUmschalten(prefix, an) {
+  const akt = gbAktuellePflanze(prefix); if (!akt) return;
+  const d = gbDetail(akt.plant);
+  d.essbarZeigen = an;
+  if (!an) { d.essbar = {}; d.manuellEssbar = 0; }
+  gbSpeichern(prefix);
+}
+function gbAbschnittHtml(prefix, titel, kriterien, werte, manuell, kuerzel, manuellAktion) {
+  const anzahl = Object.values(werte || {}).filter(x => x >= 1 && x <= 5).length;
+  const wert = gbAbschnitt(werte, manuell);
+  return `<div class="gb-abschnitt">
+    <div class="gb-zeile gb-kopf"><span>${titel}</span><div class="gb-sterne">${gbKnoepfe(prefix, wert, anzahl === 0, manuellAktion)}</div></div>
+    <div class="gb-hinweis">${anzahl ? 'Ø ' + gbText(wert) + ' aus ' + anzahl + (anzahl === 1 ? ' Punkt' : ' Punkten') : (manuell ? 'Direkt vergeben' : 'Direkt vergeben oder einzeln bewerten')}</div>
+    ${kriterien.map(k => `<div class="gb-zeile"><span>${k.label}</span><div class="gb-sterne">${gbKnoepfe(prefix, (werte || {})[k.id] || 0, true, kuerzel + ':' + k.id)}</div></div>`).join('')}
+  </div>`;
+}
+function gbRender(prefix) {
+  const box = document.getElementById(prefix + 'BewertungInhalt');
+  const akt = gbAktuellePflanze(prefix);
+  if (!box || !akt) return;
+  const plant = akt.plant, d = gbDetail(plant);
+  const gesamt = gbGesamt(d);
+  const essbar = gbIstEssbar(plant);
+  const standort = STANDORT_OPTIONEN.find(o => o.value === akt.standort);
+  let html = `<div class="gb-gesamt">
+      <div>${gbSterneHtml(gesamt, '1.5rem')}</div>
+      <div class="gb-gesamt-text">${gesamt ? '<b>' + gbText(gesamt) + '</b> Gesamt' + (d.jahr ? ' · Saison ' + d.jahr : '') : 'Noch nicht bewertet'}</div>
+    </div>`;
+  html += gbAbschnittHtml(prefix, '🌿 Pflanze', GB_PFLANZE, d.pflanze, d.manuellPflanze, 'p', 'mp');
+  if (essbar) {
+    html += gbAbschnittHtml(prefix, '🍅 Essbare Teile', GB_ESSBAR, d.essbar, d.manuellEssbar, 'e', 'me');
+    html += `<button type="button" class="gb-link" onclick="gbEssbarUmschalten('${prefix}', false)">Essbare Teile ausblenden</button>`;
+  } else {
+    html += `<button type="button" class="gb-link" onclick="gbEssbarUmschalten('${prefix}', true)">＋ Essbare Teile bewerten</button>`;
+  }
+  html += `<div class="gb-abschnitt">
+      <div class="gb-unter">Nochmal anbauen?</div>
+      <div style="display:flex;gap:8px;">
+        <button type="button" class="gb-daumen${d.nochmal === true ? ' aktiv-ja' : ''}" onclick="gbNochmal('${prefix}', true)">👍 Ja</button>
+        <button type="button" class="gb-daumen${d.nochmal === false ? ' aktiv-nein' : ''}" onclick="gbNochmal('${prefix}', false)">👎 Nein</button>
+      </div>
+    </div>
+    <div class="gb-abschnitt">
+      <div class="gb-unter">Bedingungen</div>
+      <div class="gb-hinweis" style="margin-bottom:6px;">Standort: ${standort ? standort.icon + ' ' + standort.label.replace(/\u00ad/g, '') : 'nicht angegeben'} <span style="opacity:0.7">(im Info-Tab änderbar)</span></div>
+      <div class="form-row"><label>Boden</label>
+        <select onchange="gbFeld('${prefix}','boden',this.value)">${GB_BODEN.map(([v, l]) => `<option value="${v}"${d.boden === v ? ' selected' : ''}>${l}</option>`).join('')}</select>
+      </div>
+      <div class="form-row"><label>Notiz zur Bewertung</label>
+        <textarea rows="2" placeholder="z.B. zu wenig Sonne, im Kübel schnell trocken …" oninput="gbFeld('${prefix}','notiz',this.value)">${escapeHtml(d.notiz || '')}</textarea>
+      </div>
+    </div>
+    <button type="button" class="btn-secondary" style="width:100%;" onclick="gbVergleichOeffnen('${escapeHtml((plant.name || '').replace(/'/g, ''))}')">📊 Sorten-Vergleich</button>`;
+  box.innerHTML = html;
+}
+
+// ---------- Sorten-Vergleich über alle Gärten ----------
+function gbAlleBewertungen() {
+  const liste = [];
+  Object.keys(gardens).forEach(gid => {
+    const g = gardens[gid];
+    (g.beds || []).filter(b => b.kind !== 'struktur').forEach(bed => (bed.plants || []).forEach(p => {
+      liste.push({ plant: p, name: p.name, sorte: p.variety, sym: p.sym, garten: g.name, ort: bed.name || 'Beet', standort: p.location });
+    }));
+    (g.freiPflanzen || []).forEach(fp => liste.push({ plant: fp, name: fp.name, sorte: fp.sorte, sym: fp.sym, garten: g.name, ort: 'Einzelpflanze', standort: fp.standort }));
+  });
+  return liste.filter(x => (x.plant.bewertung > 0) || (x.plant.bewertungDetail && x.plant.bewertungDetail.nochmal != null));
+}
+function gbVergleichOeffnen(suche) {
+  document.getElementById('gbVergleichSuche').value = suche || '';
+  gbVergleichRendern();
+  document.getElementById('modalSortenVergleich').style.display = 'flex';
+}
+function gbVergleichRendern() {
+  const suche = document.getElementById('gbVergleichSuche').value.trim().toLowerCase();
+  const gruppen = {};
+  gbAlleBewertungen().forEach(x => {
+    const name = (x.name || 'Unbenannt').trim(), sorte = (x.sorte || '').trim();
+    if (suche && !(name + ' ' + sorte).toLowerCase().includes(suche)) return;
+    const key = name.toLowerCase() + '|' + sorte.toLowerCase();
+    (gruppen[key] = gruppen[key] || { name, sorte, sym: x.sym, eintraege: [] }).eintraege.push(x);
+  });
+  const liste = Object.values(gruppen).map(gr => {
+    const mit = gr.eintraege.filter(e => e.plant.bewertung > 0);
+    const schnitt = (fn) => { const w = gr.eintraege.map(fn).filter(v => v > 0); return w.length ? gbRund(w.reduce((a, b) => a + b, 0) / w.length) : 0; };
+    return Object.assign(gr, {
+      gesamt: mit.length ? gbRund(mit.reduce((a, e) => a + e.plant.bewertung, 0) / mit.length) : 0,
+      pflanze: schnitt(e => { const d = e.plant.bewertungDetail; return d ? gbAbschnitt(d.pflanze, d.manuellPflanze) : 0; }),
+      essbar: schnitt(e => { const d = e.plant.bewertungDetail; return d ? gbAbschnitt(d.essbar, d.manuellEssbar) : 0; }),
+      ja: gr.eintraege.filter(e => e.plant.bewertungDetail && e.plant.bewertungDetail.nochmal === true).length,
+      nein: gr.eintraege.filter(e => e.plant.bewertungDetail && e.plant.bewertungDetail.nochmal === false).length,
+    });
+  }).sort((a, b) => b.gesamt - a.gesamt);
+  const box = document.getElementById('gbVergleichListe');
+  if (!liste.length) { box.innerHTML = '<div class="empty-state">' + (suche ? 'Keine Bewertungen zu „' + escapeHtml(suche) + '“.' : 'Noch keine Pflanze bewertet.') + '</div>'; return; }
+  const bodenLabel = (v) => (GB_BODEN.find(b => b[0] === v) || ['', ''])[1];
+  box.innerHTML = liste.map(gr => `<div class="gb-gruppe">
+      <div class="gb-zeile"><b>${gr.sym || '🌱'} ${escapeHtml(gr.name)}${gr.sorte ? ' <span style="font-weight:500;color:var(--bark)">· ' + escapeHtml(gr.sorte) + '</span>' : ''}</b>
+        <span style="white-space:nowrap">${gbSterneHtml(gr.gesamt, '0.9rem')} ${gr.gesamt ? gbText(gr.gesamt) : ''}</span></div>
+      <div class="gb-hinweis">${gr.eintraege.length} ${gr.eintraege.length === 1 ? 'Pflanze' : 'Pflanzen'}${gr.pflanze ? ' · 🌿 ' + gbText(gr.pflanze) : ''}${gr.essbar ? ' · 🍅 ' + gbText(gr.essbar) : ''}${gr.ja ? ' · 👍 ' + gr.ja : ''}${gr.nein ? ' · 👎 ' + gr.nein : ''}</div>
+      ${gr.eintraege.map(e => {
+        const d = e.plant.bewertungDetail || {};
+        const st = STANDORT_OPTIONEN.find(o => o.value === e.standort);
+        const teile = [escapeHtml(e.garten || '') + ' › ' + escapeHtml(e.ort), st ? st.icon + ' ' + st.label.replace(/\u00ad/g, '') : '', d.boden ? bodenLabel(d.boden) : '', d.jahr || ''].filter(Boolean);
+        return `<div class="gb-eintrag"><div>${teile.join(' · ')}${d.notiz ? '<div style="font-style:italic;">„' + escapeHtml(d.notiz) + '“</div>' : ''}</div>
+          <div style="white-space:nowrap;text-align:right;">${e.plant.bewertung ? gbText(e.plant.bewertung) + ' ★' : ''}${d.nochmal === true ? ' 👍' : d.nochmal === false ? ' 👎' : ''}</div></div>`;
+      }).join('')}
+    </div>`).join('');
+}
+
 // ==================== WETTER-DETAILANSICHT (Tipp auf die Temperatur unten) ====================
 const WETTER_TEXTE = {
   0: 'Klar', 1: 'Überwiegend klar', 2: 'Teils bewölkt', 3: 'Bedeckt', 45: 'Nebel', 48: 'Reifnebel',
@@ -6513,7 +6781,7 @@ function renderVollbildListe() {
         <button type="button" class="vlist-plant-zeile" data-bed-idx="${i}" data-plant-idx="${pi}">
           <span>${p.sym || '🌱'}</span>
           <span style="flex:1;text-align:left">${escapeHtml(p.name || 'Unbenannt')}${p.variety ? ' <span style="color:var(--bark);font-weight:400">(' + escapeHtml(p.variety) + ')</span>' : ''}</span>
-          ${p.bewertung ? `<span style="font-size:0.62rem;color:#c99a3a;white-space:nowrap;margin-left:6px;">${'★'.repeat(p.bewertung)}</span>` : ''}
+          ${p.bewertung ? `<span style="font-size:0.62rem;color:#c99a3a;white-space:nowrap;margin-left:6px;">${'★'.repeat(Math.round(p.bewertung))}</span>` : ''}
           ${meilensteinIconFuer((p.harvests||[]).length) ? `<span title="${(p.harvests||[]).length}× geerntet" style="margin-left:4px;">${meilensteinIconFuer((p.harvests||[]).length)}</span>` : ''}
           ${p.date ? `<span style="font-size:0.68rem;color:var(--bark);white-space:nowrap;margin-left:8px">🗓 ${new Date(p.date + 'T00:00:00').toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })}</span>` : ''}
         </button>`).join('');
@@ -6703,10 +6971,11 @@ function fpSchliessen() {
   hidePerennialInfo();
 }
 function switchFPTab(name) {
-  document.querySelectorAll('#freiPflanzePanel .pp-tab').forEach((t,i)=>{const names=['info','symptoms','pests','harvest','preserve'];t.classList.toggle('active',names[i]===name);});
+  document.querySelectorAll('#freiPflanzePanel .pp-tab').forEach((t,i)=>{const names=['info','symptoms','pests','harvest','preserve','bewertung'];t.classList.toggle('active',names[i]===name);});
   document.querySelectorAll('#freiPflanzePanel .pp-tab-content').forEach(el=>{el.classList.toggle('active',el.id==='fpt-'+name);});
   const panel = document.getElementById('freiPflanzePanel');
   if (panel) panel.scrollTo({ top: 0, behavior: 'smooth' });
+  if (name==='bewertung') gbRender('fp');
   if (name==='preserve') {
     const fp = getCurrentFreiPflanzen().find(x => x.id === activeFreiPflanzeId);
     if (fp) renderPreservePlantTab(fp.name || '', 'fpPreserveResult');
@@ -7055,17 +7324,13 @@ function pruefePflanzenMeilenstein(plant) {
 }
 let ppAktuelleBewertung = 0;
 function renderPpSterneEingabe() {
+  // Kurzanzeige im Info-Tab; bewertet wird im Tab "⭐ Bewertung"
   const box = document.getElementById('ppSterneEingabe');
   if (!box) return;
-  box.innerHTML = '';
-  for (let i = 1; i <= 5; i++) {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.style.cssText = 'background:none;border:none;cursor:pointer;padding:0;color:' + (i <= ppAktuelleBewertung ? '#c99a3a' : '#c9bfa8') + ';';
-    btn.textContent = '★';
-    btn.addEventListener('click', () => { ppAktuelleBewertung = (ppAktuelleBewertung === i) ? 0 : i; renderPpSterneEingabe(); savePlantInfo(); });
-    box.appendChild(btn);
-  }
+  const akt = gbAktuellePflanze('pp');
+  const wert = akt ? (akt.plant.bewertung || 0) : 0;
+  box.innerHTML = `<button type="button" onclick="switchPPTab('bewertung')" style="background:none;border:none;padding:0;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:'Inter',sans-serif;">
+    <span>${gbSterneHtml(wert, '1.3rem')}</span><span style="font-size:0.75rem;color:var(--moss);font-weight:700;">${wert ? gbText(wert) + ' · ' : ''}Bewerten →</span></button>`;
 }
 function openPlantPanel(bed,idx) {
   ppZoomZuruecksetzen();
@@ -7530,7 +7795,6 @@ function savePlantInfo(){
   plant.notes=document.getElementById('ppNotes').value;
   plant.date=document.getElementById('ppDate').value;
   plant.location=document.getElementById('ppLocation').value;
-  plant.bewertung=ppAktuelleBewertung;
   saveData(); draw();
   renderNeighbors(bed,activePlantBedId.idx);
   renderSowingHint(plant.name||'');
@@ -7635,10 +7899,11 @@ function openPreserveForPlant(plantName) {
   }, 60);
 }
 function switchPPTab(name){
-  document.querySelectorAll('#plantPanel .pp-tab').forEach((t,i)=>{const names=['info','neighbors','symptoms','pests','harvest','preserve'];t.classList.toggle('active',names[i]===name);});
+  document.querySelectorAll('#plantPanel .pp-tab').forEach((t,i)=>{const names=['info','neighbors','symptoms','pests','harvest','preserve','bewertung'];t.classList.toggle('active',names[i]===name);});
   document.querySelectorAll('#plantPanel .pp-tab-content').forEach(el=>{el.classList.toggle('active',el.id==='ppt-'+name);});
   const panel = document.getElementById('plantPanel');
   if (panel) panel.scrollTo({ top: 0, behavior: 'smooth' });
+  if (name==='bewertung') gbRender('pp');
   if (name==='preserve' && activePlantBedId) {
     const bed = getCurrentBeds().find(b=>b.id===activePlantBedId.bedId);
     const plant = bed && bed.plants[activePlantBedId.idx];
