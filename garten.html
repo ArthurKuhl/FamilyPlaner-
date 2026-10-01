@@ -267,9 +267,9 @@
   .pp-lebenszyklus-popover { position: fixed; max-width: 280px; background: #f0f8ec; border-left: 3px solid #4a6f5c; border-radius: var(--radius-sm); box-shadow: var(--shadow-md); padding: 10px 12px; font-size: 0.76rem; color: #2c2415; line-height: 1.4; z-index: 350; }
   .pp-header-placeholder { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 5.5rem; opacity: 0.18; pointer-events: none; z-index: 0; }
   .pp-tab-badge { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #c46b41; margin-left: 3px; vertical-align: super; }
-  .pp-standort-reihe { display: flex; gap: 6px; }
-  .pp-standort-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px; border-radius: var(--radius-sm); border: 1.5px solid var(--parchment); background: var(--white); cursor: pointer; font-size: 1.1rem; color: var(--bark); transition: all 0.15s; }
-  .pp-standort-btn span { font-size: 0.62rem; font-weight: 600; }
+  .pp-standort-reihe { display: flex; gap: 4px; min-width: 0; }
+  .pp-standort-btn { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 6px 2px; border-radius: var(--radius-sm); border: 1.5px solid var(--parchment); background: var(--white); cursor: pointer; font-size: 0.95rem; color: var(--bark); transition: all 0.15s; }
+  .pp-standort-btn span { font-size: 0.58rem; font-weight: 600; max-width: 100%; line-height: 1.15; text-align: center; overflow-wrap: anywhere; }
   .pp-standort-btn.aktiv { border-color: #4a6f5c; background: #f0f8ec; color: #2c2415; }
   .pp-foto-galerie { position: absolute; top: 14px; right: 14px; bottom: 14px; z-index: 2; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; overflow-y: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
   .pp-foto-galerie::-webkit-scrollbar { display: none; }
@@ -2083,6 +2083,7 @@ const HARVEST_USE_OPTIONS = [
   { key: 'einlegen', icon: METHOD_INFO.einlegen.icon, label: METHOD_INFO.einlegen.label },
   { key: 'marmelade', icon: METHOD_INFO.marmelade.icon, label: METHOD_INFO.marmelade.label },
   { key: 'saft', icon: METHOD_INFO.saft.icon, label: METHOD_INFO.saft.label },
+  { key: 'deko', icon: '💐', label: 'Dekoration' },
   { key: 'verschenkt', icon: '🎁', label: 'Verschenkt/Verkauft' },
   { key: 'sonstiges', icon: '📦', label: 'Sonstiges' },
 ];
@@ -4229,7 +4230,7 @@ function gartenTerminDirektEintragen(title, notes, dateObj) {
 // ---------- Standort-Auswahl als Icon-Buttons (Beet-Pflanzen & freistehende Pflanzen) ----------
 const STANDORT_OPTIONEN = [
   { value: 'Sonne (6+ Std.)', icon: '☀️', label: 'Sonne' },
-  { value: 'Halbschatten (3-6 Std.)', icon: '⛅', label: 'Halbschatten' },
+  { value: 'Halbschatten (3-6 Std.)', icon: '⛅', label: 'Halb\u00adschatten' }, // weiche Trennung, falls es eng wird
   { value: 'Schatten (<3 Std.)', icon: '☁️', label: 'Schatten' },
 ];
 function renderStandortReihe(containerId, selectId, onChange) {
