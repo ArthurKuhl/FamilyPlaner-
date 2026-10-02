@@ -706,6 +706,35 @@
     speichern(KEY_PREISE, preise);
     finanzenAusgabeErstellen(name, wert);
   }
+  // ---- Abgehakte Artikel landen im „📥 Eingang“ der Vorratskammer (dort einsortieren) ----
+  // Eigener Sync-Kanal für das Vorratskammer-Dokument, damit der Eingang auf allen Geräten ankommt.
+  const KEY_VORRAT_EINGANG = 'vorratskammer_eingang';
+  let vorratSyncHandle = null;
+  function starteVorratSync() {
+    if (typeof PlanerSync === 'undefined') return;
+    vorratSyncHandle = PlanerSync.starteSync({ modul: 'vorratskammer', keys: [KEY_VORRAT_EINGANG] });
+  }
+  function vorratEingangHinzufuegen(item) {
+    try {
+      const eingang = JSON.parse(localStorage.getItem(KEY_VORRAT_EINGANG) || '[]');
+      if (eingang.some(e => e.einkaufItemId === item.id)) return;
+      const menge = [item.menge, item.einheit].filter(Boolean).join(' ').trim();
+      eingang.push({ id: 'e_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name: item.name, menge,
+        einkaufKategorie: item.kategorie || 'sonstiges', datum: new Date().toISOString().slice(0, 10), einkaufItemId: item.id });
+      localStorage.setItem(KEY_VORRAT_EINGANG, JSON.stringify(eingang));
+      if (vorratSyncHandle) vorratSyncHandle.melde();
+    } catch (e) {}
+  }
+  // Wieder „nicht erledigt“ gesetzt → aus dem Eingang nehmen, falls dort noch nicht einsortiert
+  function vorratEingangEntfernen(itemId) {
+    try {
+      const eingang = JSON.parse(localStorage.getItem(KEY_VORRAT_EINGANG) || '[]');
+      const rest = eingang.filter(e => e.einkaufItemId !== itemId);
+      if (rest.length === eingang.length) return;
+      localStorage.setItem(KEY_VORRAT_EINGANG, JSON.stringify(rest));
+      if (vorratSyncHandle) vorratSyncHandle.melde();
+    } catch (e) {}
+  }
   // ---- Etappe 3: Preise automatisch als Ausgabe ins Finanzen-Modul übernehmen ----
   let finanzenSyncHandle = null;
   function starteFinanzenSync() {
@@ -1083,6 +1112,7 @@
       } else {
         item.erledigt = false;
         speichernListen();
+        vorratEingangEntfernen(item.id);
         renderAlles();
       }
     });
@@ -1175,6 +1205,7 @@
       speichern(KEY_KAUFHAEUFIGKEIT, kaufHaeufigkeit);
       item.erledigt = true;
       speichernListen();
+      vorratEingangHinzufuegen(item);
     }
     document.getElementById('modalPreisAbhaken').classList.remove('zeigen');
     renderAlles();
@@ -1768,6 +1799,7 @@
       },
     });
     starteFinanzenSync();
+    starteVorratSync();
   }
 })();
 </script>

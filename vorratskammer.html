@@ -76,6 +76,19 @@
 
   .kategorie-tabs { display: flex; gap: 5px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px; scrollbar-width: none; }
   .kategorie-tabs::-webkit-scrollbar { display: none; }
+  .eingang-box { background: var(--white); border: 1.5px solid var(--sage); border-radius: var(--radius-md); padding: 9px 11px; margin-bottom: 12px; }
+  .eingang-kopf { display: flex; justify-content: space-between; align-items: center; }
+  .eingang-titel { background: none; border: none; font: 700 0.9rem 'Inter', sans-serif; color: var(--soil); cursor: pointer; padding: 2px 0; display: flex; align-items: center; gap: 6px; }
+  .eingang-zahl { background: var(--terracotta); color: #fff; border-radius: var(--radius-pill); font-size: 0.7rem; padding: 1px 7px; }
+  .eingang-link { background: none; border: none; color: var(--bark); font-size: 0.72rem; text-decoration: underline; cursor: pointer; }
+  .eingang-hinweis { font-size: 0.72rem; color: var(--bark); margin: 2px 0 6px; }
+  .eingang-zeile { display: flex; align-items: center; gap: 8px; padding: 7px 0; border-top: 1px solid var(--parchment); }
+  .eingang-info { flex: 1; min-width: 0; font-size: 0.85rem; color: var(--soil); }
+  .eingang-info span { color: var(--bark); font-size: 0.78rem; }
+  .eingang-datum { font-size: 0.68rem; color: var(--bark); }
+  .eingang-knoepfe { display: flex; gap: 4px; flex-shrink: 0; }
+  .eingang-btn { border: 1px solid var(--parchment); background: var(--cream); color: var(--bark); border-radius: var(--radius-pill); padding: 5px 9px; font: 700 0.72rem 'Inter', sans-serif; cursor: pointer; white-space: nowrap; }
+  .eingang-btn.haupt { background: var(--moss); border-color: var(--moss); color: var(--leaf); }
   .kat-tab { position: relative; flex: 0 0 auto; background: transparent; border: 1px solid #4a3a28; color: var(--sage); font-size: 0.75rem; font-weight: 600; padding: 6px 14px; border-radius: var(--radius-pill); cursor: pointer; white-space: nowrap; }
   .kat-tab.active { background: var(--moss); color: var(--leaf); border-color: var(--moss); }
   .kat-tab .kt-del { margin-left: 6px; opacity: 0.7; }
@@ -222,6 +235,7 @@
   </div>
 
   <div id="ansichtVorrat">
+    <div class="eingang-box" id="eingangBox" style="display:none;"></div>
     <div class="werkzeug-zeile">
       <span class="anzahl-text" id="anzahlText"></span>
       <select id="sortAuswahl">
@@ -755,6 +769,7 @@
     dl.innerHTML = Object.values(werte).sort((a,b) => a.localeCompare(b,'de')).map(n => '<option value="' + escapeHtml(n) + '">').join('');
   }
   function itemFormOeffnen(id) {
+    eingangInBearbeitung = null; // wird nur beim Einsortieren aus dem Eingang danach gesetzt
     bearbeitenId = id || null;
     const item = id ? items.find(i => i.id === id) : null;
     document.getElementById('itemModalTitel').textContent = item ? 'Vorrat bearbeiten' : 'Neuer Vorrat';
@@ -786,6 +801,106 @@
   }
   document.getElementById('btnNeu').addEventListener('click', () => itemFormOeffnen(null));
 
+  // ---------- 📥 EINGANG VOM EINKAUF ----------
+  // Beim Abhaken im Einkauf landen Artikel hier und können in Ruhe einsortiert werden:
+  // vorhandenen Vorrat auffüllen, als neuen Vorrat anlegen oder verwerfen.
+  // Eintrag: { id, name, menge, einkaufKategorie, datum, einkaufItemId }
+  const KEY_EINGANG = 'vorratskammer_eingang';
+  const EINGANG_MAX_TAGE = 30; // ältere, nie einsortierte Einträge verschwinden von selbst
+  let eingang = laden(KEY_EINGANG, []);
+  let eingangInBearbeitung = null; // Eintrag, der gerade über das Formular einsortiert wird
+  // Lagerort-Vorschlag aus der Einkaufs-Kategorie
+  const EINGANG_LAGERORT = { tiefkuehl: 'gefrierfach', milchprodukte: 'kuehlschrank', fleisch_fisch: 'kuehlschrank', obst_gemuese: 'kuehlschrank', trockenwaren: 'vorratsschrank', getraenke: 'keller', brot: 'vorratsschrank' };
+  function eingangSpeichern() { speichern(KEY_EINGANG, eingang); }
+  function eingangAufraeumen() {
+    const grenze = new Date(Date.now() - EINGANG_MAX_TAGE * 86400000).toISOString().slice(0, 10);
+    const vorher = eingang.length;
+    eingang = eingang.filter(e => (e.datum || '') >= grenze);
+    if (eingang.length !== vorher) eingangSpeichern();
+  }
+  function passenderVorrat(name) {
+    const n = (name || '').trim().toLowerCase();
+    return items.find(i => (i.name || '').trim().toLowerCase() === n) || null;
+  }
+  function eingangEntfernen(id, mitRueckgaengig, text) {
+    const index = eingang.findIndex(e => e.id === id);
+    if (index === -1) return;
+    const entfernt = eingang.splice(index, 1)[0];
+    eingangSpeichern();
+    renderEingang();
+    if (mitRueckgaengig) showTempStatus(text || ('„' + entfernt.name + '“ verworfen'), 5, {
+      rueckgaengig: () => { eingang.splice(index, 0, entfernt); eingangSpeichern(); renderEingang(); }
+    });
+  }
+  function renderEingang() {
+    const box = document.getElementById('eingangBox');
+    if (!box) return;
+    if (!eingang.length) { box.style.display = 'none'; box.innerHTML = ''; return; }
+    box.style.display = '';
+    const offen = box.dataset.zu !== '1';
+    box.innerHTML =
+      '<div class="eingang-kopf"><button type="button" class="eingang-titel" id="btnEingangToggle">📥 Vom Einkauf <span class="eingang-zahl">' + eingang.length + '</span> ' + (offen ? '▾' : '▸') + '</button>' +
+      (offen ? '<button type="button" class="eingang-link" id="btnEingangAlleWeg">Alle verwerfen</button>' : '') + '</div>' +
+      (offen ? '<div class="eingang-hinweis">Abgehakt beim Einkauf – hier einsortieren oder verwerfen.</div>' +
+        eingang.map(e => {
+          const vorhanden = passenderVorrat(e.name);
+          return '<div class="eingang-zeile" data-id="' + e.id + '">' +
+            '<div class="eingang-info"><b>' + escapeHtml(e.name) + '</b>' + (e.menge ? ' <span>· ' + escapeHtml(e.menge) + '</span>' : '') +
+              '<div class="eingang-datum">' + ausISO(e.datum).toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'short' }) +
+              (vorhanden ? ' · schon im Vorrat' + (vorhanden.lagerort && lagerortInfo(vorhanden.lagerort) ? ' (' + lagerortInfo(vorhanden.lagerort).icon + ' ' + escapeHtml(lagerortInfo(vorhanden.lagerort).label) + ')' : '') : '') + '</div></div>' +
+            '<div class="eingang-knoepfe">' +
+              (vorhanden ? '<button type="button" class="eingang-btn haupt" data-aktion="auffuellen">↻ Auffüllen</button>' : '<button type="button" class="eingang-btn haupt" data-aktion="neu">＋ Einordnen</button>') +
+              (vorhanden ? '<button type="button" class="eingang-btn" data-aktion="neu" title="Als eigenen, neuen Eintrag anlegen">＋</button>' : '') +
+              '<button type="button" class="eingang-btn" data-aktion="weg" title="Nicht in den Vorrat" aria-label="Verwerfen">✕</button>' +
+            '</div></div>';
+        }).join('') : '');
+    document.getElementById('btnEingangToggle').addEventListener('click', () => { box.dataset.zu = offen ? '1' : ''; renderEingang(); });
+    const alleWeg = document.getElementById('btnEingangAlleWeg');
+    if (alleWeg) alleWeg.addEventListener('click', () => {
+      const sicherung = eingang.slice();
+      eingang = []; eingangSpeichern(); renderEingang();
+      showTempStatus(sicherung.length + ' Einträge verworfen', 6, { rueckgaengig: () => { eingang = sicherung; eingangSpeichern(); renderEingang(); } });
+    });
+    box.querySelectorAll('.eingang-btn').forEach(btn => btn.addEventListener('click', () => {
+      const id = btn.closest('.eingang-zeile').dataset.id;
+      const e = eingang.find(x => x.id === id);
+      if (!e) return;
+      const aktion = btn.dataset.aktion;
+      if (aktion === 'weg') { eingangEntfernen(id, true); return; }
+      if (aktion === 'auffuellen') {
+        const v = passenderVorrat(e.name);
+        if (!v) return;
+        const vorher = { bestand: v.bestand, gekauftAm: v.gekauftAm };
+        v.bestand = 'viel';
+        v.gekauftAm = e.datum;
+        speichern(KEY_ITEMS, items);
+        renderListe();
+        const index = eingang.indexOf(e);
+        eingang.splice(index, 1); eingangSpeichern(); renderEingang();
+        showTempStatus('↻ „' + v.name + '“ aufgefüllt', 5, {
+          rueckgaengig: () => { Object.assign(v, vorher); speichern(KEY_ITEMS, items); eingang.splice(index, 0, e); eingangSpeichern(); renderListe(); renderEingang(); }
+        });
+        return;
+      }
+      // Neu einordnen: Formular mit Vorschlägen öffnen; beim Speichern verschwindet der Eintrag aus dem Eingang
+      itemFormOeffnen(null);
+      eingangInBearbeitung = e.id;
+      document.getElementById('fName').value = e.name;
+      document.getElementById('fMenge').value = e.menge || '';
+      document.getElementById('fBestand').value = 'viel';
+      document.getElementById('fGekauft').value = e.datum || '';
+      const lagerVorschlag = EINGANG_LAGERORT[e.einkaufKategorie];
+      if (lagerVorschlag && !editLagerort) { editLagerort = lagerVorschlag; renderFormLagerortReihe(); }
+      if (e.einkaufKategorie === 'drogerie') {
+        // Drogerieartikel passen eher in eine eigene Kategorie – sonst bleibt die aktuelle Auswahl
+        const passend = alleKategorien().find(k => /drogerie|haushalt|bad/i.test(k.label));
+        if (passend) { editKategorie = passend.id; renderFormKategorieReihe(); }
+      }
+    }));
+  }
+  eingangAufraeumen();
+  renderEingang();
+
   // ---------- Ansicht umschalten: Vorrat / Verbrauch / Infos ----------
   function vorratAnsichtAnwenden(name) {
     document.getElementById('tabVorrat').classList.toggle('active', name === 'vorrat');
@@ -816,6 +931,7 @@
     ).join('');
   }
   document.getElementById('btnAbbrechen').addEventListener('click', () => {
+    eingangInBearbeitung = null;
     document.getElementById('modalItem').classList.remove('zeigen');
     entwurfUeberwachungStoppen(); entwurfLoeschen();
   });
@@ -848,6 +964,7 @@
       items.push(Object.assign({ id: neueId('v'), favorit: false }, daten));
     }
     speichern(KEY_ITEMS, items);
+    if (eingangInBearbeitung) { eingangEntfernen(eingangInBearbeitung, false); eingangInBearbeitung = null; }
     document.getElementById('modalItem').classList.remove('zeigen');
     entwurfUeberwachungStoppen(); entwurfLoeschen();
     aktiveKategorie = editKategorie;
@@ -875,9 +992,11 @@
   if (window.PlanerSync) {
     window._sync = window.PlanerSync.starteSync({
       modul: 'vorratskammer',
-      keys: [KEY_ITEMS, KEY_KATEGORIEN],
+      keys: [KEY_ITEMS, KEY_KATEGORIEN, KEY_EINGANG],
       onRemoteChange: function () {
         items = laden(KEY_ITEMS, items);
+        eingang = laden(KEY_EINGANG, eingang);
+        renderEingang();
         kategorienEigene = laden(KEY_KATEGORIEN, kategorienEigene);
         renderKatTabs();
         renderListe();
