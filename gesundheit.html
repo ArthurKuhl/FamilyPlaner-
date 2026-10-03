@@ -1672,6 +1672,7 @@
           <div class="gps-wert-block"><div class="gps-wert" id="gpsWertZeit">00:00</div><div class="gps-label">Zeit</div></div>
         </div>
         <div class="gps-status" id="gpsStatus">📍 Suche GPS-Signal ...</div>
+        <div class="gps-status" id="gpsWachHinweis" style="opacity:0.85;"></div>
         <button type="button" class="btn-gps-stop" id="btnGpsStop">⏹ Tracking stoppen &amp; übernehmen</button>
       </div>
     </div>
@@ -2604,6 +2605,7 @@
     document.getElementById('gpsStatus').textContent = '📍 Suche GPS-Signal ...';
     gpsAnzeigeAktualisieren();
     gpsTimerId = setInterval(gpsAnzeigeAktualisieren, 1000);
+    gpsWachHalten();
     gpsWatchId = navigator.geolocation.watchPosition(
       (pos) => {
         gpsPunkte.push({ lat: pos.coords.latitude, lng: pos.coords.longitude, t: Date.now() });
@@ -2619,7 +2621,41 @@
   function gpsStoppenIntern() {
     if (gpsWatchId !== null) { navigator.geolocation.clearWatch(gpsWatchId); gpsWatchId = null; }
     if (gpsTimerId !== null) { clearInterval(gpsTimerId); gpsTimerId = null; }
+    gpsWachFreigeben();
   }
+
+  // ---------- Bildschirm während des Trackings wachhalten ----------
+  // Bei gesperrtem Bildschirm liefert der Browser meist keine GPS-Positionen mehr – die Route
+  // bekäme Lücken. Deshalb (wie im Kochmodus) den Bildschirm anlassen; dunkler drehen geht trotzdem.
+  let gpsWakeLock = null;
+  let gpsVersteckt = false; // App war zwischendurch im Hintergrund → mögliche Lücke
+  async function gpsWachHalten() {
+    const hinweis = document.getElementById('gpsWachHinweis');
+    gpsVersteckt = false;
+    try {
+      if ('wakeLock' in navigator) {
+        gpsWakeLock = await navigator.wakeLock.request('screen');
+        gpsWakeLock.addEventListener('release', () => { gpsWakeLock = null; });
+        hinweis.textContent = '🔆 Bildschirm bleibt an, damit die Strecke vollständig aufgezeichnet wird. Bitte nicht sperren – dunkler drehen ist okay.';
+        return;
+      }
+    } catch (e) {}
+    hinweis.textContent = '⚠ Bitte den Bildschirm nicht sperren und die App offen lassen – sonst hat die Route Lücken.';
+  }
+  async function gpsWachFreigeben() {
+    try { if (gpsWakeLock) { await gpsWakeLock.release(); } } catch (e) {}
+    gpsWakeLock = null;
+    const hinweis = document.getElementById('gpsWachHinweis');
+    if (hinweis) hinweis.textContent = '';
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (gpsWatchId === null) return;
+    if (document.visibilityState === 'hidden') { gpsVersteckt = true; return; }
+    // Zurück in der App: Sperre neu anfordern (wird beim Verlassen automatisch aufgehoben)
+    if (!gpsWakeLock) gpsWachHalten().then(() => {
+      document.getElementById('gpsWachHinweis').textContent = '⚠ Die App war kurz im Hintergrund – dort fehlen evtl. Punkte. ' + document.getElementById('gpsWachHinweis').textContent;
+    });
+  });
   document.getElementById('btnGpsStop').addEventListener('click', () => {
     gpsStoppenIntern();
     const distanzKm = gpsGesamtDistanzKm();
