@@ -247,6 +247,12 @@
       <button class="btn btn-secondary" id="btnEinstZuPersonen" style="margin-bottom:14px;">👪 Personen verwalten</button>
 
       <div style="border-top:1px solid #e5ddc8;padding-top:14px;margin-bottom:16px;">
+        <div style="font-weight:700;color:var(--soil);margin-bottom:4px;">🔔 Erinnerungen aufs Handy</div>
+        <div style="font-size:0.72rem;color:var(--bark);margin-bottom:8px;">Kommen auch, wenn die App geschlossen ist. Gilt nur für dieses Gerät.</div>
+        <div id="pushBereich"></div>
+      </div>
+
+      <div style="border-top:1px solid #e5ddc8;padding-top:14px;margin-bottom:16px;">
         <div style="font-weight:700;color:var(--soil);margin-bottom:8px;">🔀 Reihenfolge der Module</div>
         <div id="reihenfolgeListe"></div>
       </div>
@@ -524,6 +530,139 @@
         });
       });
     }
+    // ============================================================
+    // 🔔 PUSH-ERINNERUNGEN (auch bei geschlossener App)
+    // Das Gerät meldet sich mit einem Push-Token unter planerFamilien/{familie}/geraete/{gerät}
+    // an. Die Server-Funktion (functions/index.js) prüft alle 5 Minuten, was fällig ist, und
+    // schickt die Erinnerung. Solange Push aktiv ist, schweigen die alten Erinnerungen in den
+    // Modulen (sonst käme alles doppelt).
+    // ============================================================
+    const PUSH_VAPID_KEY = 'BAaX_JYFbUkPy584mtdxtYrv_oiKA5SBsmL95unZF0v7X45hJlOOI67wrkX5n3fS2ahrSTjw-VRB_cRZyvxwASc';
+    const KEY_PUSH = 'planer_push'; // { aktiv, person, termine: 'aus'|'meine'|'alle', medikamente }
+    let pushLetzterStand = null;    // zuletzt hochgeladene Einstellungen (verhindert unnötige Schreibvorgänge)
+    function pushEinstellungen() {
+      try { return Object.assign({ aktiv: false, person: '', termine: 'meine', medikamente: true }, JSON.parse(localStorage.getItem(KEY_PUSH) || '{}')); }
+      catch (e) { return { aktiv: false, person: '', termine: 'meine', medikamente: true }; }
+    }
+    function pushEinstellungenSpeichern(e) { try { localStorage.setItem(KEY_PUSH, JSON.stringify(e)); } catch (err) {} }
+    function pushUnterstuetzt() { return 'Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window && typeof firebase !== 'undefined'; }
+    let messagingLaden = null;
+    function messagingBereit() {
+      if (firebase.messaging) return Promise.resolve();
+      if (!messagingLaden) messagingLaden = new Promise((ok, fehler) => {
+        const s = document.createElement('script');
+        s.src = 'https://www.gstatic.com/firebasejs/12.15.0/firebase-messaging-compat.js';
+        s.onload = ok; s.onerror = () => { messagingLaden = null; fehler(new Error('Push-Bibliothek nicht ladbar (offline?)')); };
+        document.head.appendChild(s);
+      });
+      return messagingLaden;
+    }
+    function angemeldet() {
+      return new Promise((ok) => {
+        if (!firebase.apps.length) { setTimeout(() => angemeldet().then(ok), 500); return; }
+        const aus = firebase.auth().onAuthStateChanged(u => { if (u) { aus(); ok(u); } });
+      });
+    }
+    function geraetDoc() {
+      const fid = window.PlanerSync && window.PlanerSync.familienId();
+      if (!fid) throw new Error('Kein Familiencode eingerichtet.');
+      return firebase.firestore().collection('planerFamilien').doc(fid).collection('geraete').doc(window.PlanerSync.geraeteId);
+    }
+    async function pushToken() {
+      await messagingBereit();
+      const reg = await navigator.serviceWorker.ready;
+      return firebase.messaging().getToken({ vapidKey: PUSH_VAPID_KEY, serviceWorkerRegistration: reg });
+    }
+    // Lädt Token + Einstellungen dieses Geräts hoch (nur wenn sich etwas geändert hat oder erzwungen)
+    async function pushGeraetAktualisieren(erzwingen) {
+      const e = pushEinstellungen();
+      if (!e.aktiv || !pushUnterstuetzt()) return;
+      if (Notification.permission !== 'granted') {
+        if (erzwingen) throw new Error('Benachrichtigungen sind für diese Seite nicht erlaubt.');
+        return;
+      }
+      await angemeldet();
+      const token = await pushToken();
+      let wasser = { aktiv: false, zeiten: [] };
+      try { wasser = Object.assign(wasser, JSON.parse(localStorage.getItem('gesundheit_wasserErinnerung') || '{}')); } catch (err) {}
+      const daten = {
+        aktiv: true, token, person: e.person || '', termine: e.termine, medikamente: !!e.medikamente,
+        wasser: { aktiv: !!wasser.aktiv, zeiten: Array.isArray(wasser.zeiten) ? wasser.zeiten : [] },
+        zeitzone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Berlin',
+        appUrl: location.origin + location.pathname.replace(/[^/]*$/, '') + 'index.html',
+        geraet: (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || '',
+      };
+      const stand = JSON.stringify(daten);
+      if (!erzwingen && stand === pushLetzterStand) return;
+      await geraetDoc().set(Object.assign({}, daten, { aktualisiert: firebase.firestore.FieldValue.serverTimestamp() }));
+      pushLetzterStand = stand;
+    }
+    async function pushAktivieren() {
+      const status = document.getElementById('pushStatus');
+      try {
+        if (!pushUnterstuetzt()) throw new Error('Dieser Browser unterstützt keine Push-Benachrichtigungen.');
+        const erlaubnis = await Notification.requestPermission();
+        if (erlaubnis !== 'granted') throw new Error('Benachrichtigungen wurden nicht erlaubt. Das lässt sich in den Browser-Einstellungen für diese Seite ändern.');
+        status.textContent = 'Wird eingerichtet …';
+        const e = pushEinstellungen();
+        e.aktiv = true;
+        if (!e.person) { const p = holePersonen()[0]; e.person = p ? p.id : ''; }
+        pushEinstellungenSpeichern(e);
+        await pushGeraetAktualisieren(true);
+        renderPushBereich('✓ Aktiv – Erinnerungen kommen ab jetzt auch bei geschlossener App.');
+      } catch (err) {
+        const e = pushEinstellungen(); e.aktiv = false; pushEinstellungenSpeichern(e);
+        renderPushBereich('⚠ ' + (err && err.message ? err.message : 'Einrichtung fehlgeschlagen.'));
+      }
+    }
+    async function pushDeaktivieren() {
+      const e = pushEinstellungen(); e.aktiv = false; pushEinstellungenSpeichern(e);
+      pushLetzterStand = null;
+      try { await angemeldet(); await geraetDoc().delete(); } catch (err) {}
+      try { if (firebase.messaging) await firebase.messaging().deleteToken(); } catch (err) {}
+      renderPushBereich('Push ist auf diesem Gerät aus. Erinnerungen kommen wieder nur bei offener App.');
+    }
+    function renderPushBereich(meldung) {
+      const box = document.getElementById('pushBereich');
+      if (!box) return;
+      const e = pushEinstellungen();
+      const stil = 'width:100%;padding:8px;border-radius:8px;border:1px solid #ddd;font-family:Inter,sans-serif;margin-top:4px;';
+      if (!pushUnterstuetzt()) { box.innerHTML = '<div style="font-size:0.78rem;color:var(--bark);">Dieser Browser unterstützt leider keine Push-Benachrichtigungen.</div>'; return; }
+      if (!e.aktiv) {
+        box.innerHTML = '<button class="btn btn-primary" id="btnPushAn">🔔 Auf diesem Gerät aktivieren</button>' +
+          '<div class="status-text" id="pushStatus" style="margin-top:6px;">' + (meldung || '') + '</div>';
+        document.getElementById('btnPushAn').addEventListener('click', pushAktivieren);
+        return;
+      }
+      const personen = holePersonen();
+      let wasser = {}; try { wasser = JSON.parse(localStorage.getItem('gesundheit_wasserErinnerung') || '{}'); } catch (err) {}
+      box.innerHTML =
+        '<label style="font-size:0.78rem;font-weight:600;color:var(--soil);display:block;margin-top:4px;">Wer nutzt dieses Gerät?</label>' +
+        '<select id="pushPerson" style="' + stil + '">' + personen.map(p => '<option value="' + p.id + '"' + (p.id === e.person ? ' selected' : '') + '>' + p.label + '</option>').join('') + '</select>' +
+        '<label style="font-size:0.78rem;font-weight:600;color:var(--soil);display:block;margin-top:10px;">🗓️ Termine</label>' +
+        '<select id="pushTermine" style="' + stil + '">' +
+          [['meine', 'Meine und Familien-Termine'], ['alle', 'Alle Termine'], ['aus', 'Keine']].map(([v, l]) => '<option value="' + v + '"' + (v === e.termine ? ' selected' : '') + '>' + l + '</option>').join('') + '</select>' +
+        '<label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:0.82rem;color:var(--soil);"><input type="checkbox" id="pushMedikamente"' + (e.medikamente ? ' checked' : '') + ' style="width:auto;"> 💊 Meine Medikamente (mit Uhrzeit)</label>' +
+        '<div style="font-size:0.74rem;color:var(--bark);margin-top:8px;">💧 Wasser: ' + (wasser.aktiv ? 'an (' + (wasser.zeiten || []).slice().sort().join(', ') + ' Uhr)' : 'aus') + ' – Zeiten im Gesundheitsmodul einstellen.</div>' +
+        '<button class="btn btn-secondary" id="btnPushAus" style="margin-top:10px;">Push auf diesem Gerät ausschalten</button>' +
+        '<div class="status-text" id="pushStatus" style="margin-top:6px;">' + (meldung || '✓ Aktiv') + '</div>';
+      const aendern = () => {
+        const neu = pushEinstellungen();
+        neu.person = document.getElementById('pushPerson').value;
+        neu.termine = document.getElementById('pushTermine').value;
+        neu.medikamente = document.getElementById('pushMedikamente').checked;
+        pushEinstellungenSpeichern(neu);
+        pushGeraetAktualisieren().then(() => { document.getElementById('pushStatus').textContent = '✓ Gespeichert'; })
+          .catch(err => { document.getElementById('pushStatus').textContent = '⚠ ' + (err.message || 'Speichern fehlgeschlagen'); });
+      };
+      ['pushPerson', 'pushTermine', 'pushMedikamente'].forEach(id => document.getElementById(id).addEventListener('change', aendern));
+      document.getElementById('btnPushAus').addEventListener('click', pushDeaktivieren);
+    }
+    // Beim Start und beim Zurückkehren: Token/Einstellungen auffrischen (z.B. geänderte Wasser-Zeiten)
+    setTimeout(() => pushGeraetAktualisieren().catch(() => {}), 4000);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) pushGeraetAktualisieren().catch(() => {}); });
+    setInterval(() => pushGeraetAktualisieren().catch(() => {}), 60000);
+
     // ---------- ALTE ZUORDNUNGEN REPARIEREN ----------
     // Einträge (Termine, Sport, Spiele, ...) merken sich die Person über ihre ID. Wird eine
     // Person gelöscht und neu angelegt, bekommt sie eine neue ID – alte Einträge hängen dann
@@ -795,6 +934,7 @@
     document.getElementById('btnEinstellungen').addEventListener('click', () => {
       // Merker für die Einrichtungs-Karte auf der Startseite: Module wurden einmal angeschaut
       try { localStorage.setItem('planer_einrichtung_module', '1'); } catch (e) {}
+      renderPushBereich();
       einstellungenBefuellen();
       document.getElementById('modalEinstellungen').classList.add('zeigen');
     });

@@ -2356,6 +2356,7 @@
   let letzteAusgeloesteMedZeit = null;
   function pruefeMedErinnerung() {
     if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    if ((function(){try{const p=JSON.parse(localStorage.getItem('planer_push')||'{}');return !!p.aktiv&&(p.medikamente!==false);}catch(e){return false;}})()) return; // läuft per Push über den Server
     const jetzt = new Date();
     const aktuelleZeit = String(jetzt.getHours()).padStart(2, '0') + ':' + String(jetzt.getMinutes()).padStart(2, '0');
     medikamente.filter(m => m.zeit === aktuelleZeit && !m.terminErinnerungId).forEach(m => {
@@ -2391,6 +2392,7 @@
     const einst = ladeWasserErinnerung();
     if (!einst.aktiv || !einst.zeiten || !einst.zeiten.length) return;
     if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    if ((function(){try{const p=JSON.parse(localStorage.getItem('planer_push')||'{}');return !!p.aktiv&&(true);}catch(e){return false;}})()) return; // läuft per Push über den Server
     const jetzt = new Date();
     const aktuelleZeit = String(jetzt.getHours()).padStart(2, '0') + ':' + String(jetzt.getMinutes()).padStart(2, '0');
     if (einst.zeiten.indexOf(aktuelleZeit) === -1) return;

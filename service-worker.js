@@ -1,7 +1,7 @@
 // Gartenplaner Service Worker
 // WICHTIG: CACHE_VERSION bei jedem Update der App-Datei erhöhen (z.B. 'v1' -> 'v2'),
 // sonst bekommen Nutzer weiterhin die alte, zwischengespeicherte Version ausgeliefert.
-const CACHE_VERSION = 'v366';
+const CACHE_VERSION = 'v367';
 const CACHE_NAME = 'planer-cache-' + CACHE_VERSION;
 
 const APP_SHELL = [
@@ -86,4 +86,29 @@ self.addEventListener('fetch', (event) => {
       })
       .catch(() => caches.match(req))
   );
+});
+
+// ---------- Push-Erinnerungen (vom Server über Firebase Cloud Messaging) ----------
+// Der Server schickt nur Daten (titel, text, tag, link); angezeigt wird hier selbst,
+// damit kein zusätzliches Firebase-Skript im Service Worker nötig ist.
+self.addEventListener('push', (event) => {
+  let inhalt = {};
+  try { inhalt = event.data ? event.data.json() : {}; } catch (e) {}
+  const d = inhalt.data || inhalt.notification || inhalt;
+  const titel = d.titel || d.title || 'Familienplaner';
+  event.waitUntil(self.registration.showNotification(titel, {
+    body: d.text || d.body || '',
+    tag: d.tag || undefined,
+    icon: 'icon-192.png',
+    badge: 'icon-192.png',
+    data: { link: d.link || './index.html' },
+  }));
+});
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const ziel = (event.notification.data && event.notification.data.link) || './index.html';
+  event.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((fenster) => {
+    for (const f of fenster) { if ('focus' in f) return f.focus(); }
+    return self.clients.openWindow(ziel);
+  }));
 });

@@ -599,6 +599,7 @@
     let ausgeloesteErinnerungenHeute = new Set();
     function pruefeTerminErinnerungen() {
       if (!('Notification' in window) || Notification.permission !== 'granted') return;
+      if ((function(){try{const p=JSON.parse(localStorage.getItem('planer_push')||'{}');return !!p.aktiv&&(p.termine!=='aus');}catch(e){return false;}})()) return; // läuft per Push über den Server
       const jetzt = new Date();
       const heuteIso = toISO(jetzt);
       if (ausgeloesteErinnerungenTag !== heuteIso) { ausgeloesteErinnerungenTag = heuteIso; ausgeloesteErinnerungenHeute = new Set(); }
