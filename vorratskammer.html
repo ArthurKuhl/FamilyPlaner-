@@ -716,6 +716,7 @@
       recurrence: { freq: 'keine', until: null }
     });
     speichern(KEY_TERMINE_EVENTS, events);
+    if (window._termineSync) window._termineSync.melde(); // sonst bliebe der Termin nur auf diesem Gerät
     showTempStatus('„' + item.name + '" wurde in die Termine eingetragen.');
   }
 
@@ -995,6 +996,7 @@
   renderListe();
 
   if (window.PlanerSync) {
+    window._termineSync = window.PlanerSync.starteSync({ modul: 'termine', keys: [KEY_TERMINE_EVENTS] });
     // Der Vorrat war bis v370 nicht synchronisiert – jedes Gerät hat womöglich eigene Einträge.
     // Beim ersten Abgleich je Gerät werden deshalb lokale und Cloud-Einträge VEREINT (nach id),
     // statt dass die Cloud-Version die lokalen Einträge überschreibt. Danach normaler Abgleich.
