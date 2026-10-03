@@ -1,7 +1,7 @@
 // Gartenplaner Service Worker
 // WICHTIG: CACHE_VERSION bei jedem Update der App-Datei erhöhen (z.B. 'v1' -> 'v2'),
 // sonst bekommen Nutzer weiterhin die alte, zwischengespeicherte Version ausgeliefert.
-const CACHE_VERSION = 'v367';
+const CACHE_VERSION = 'v368';
 const CACHE_NAME = 'planer-cache-' + CACHE_VERSION;
 
 const APP_SHELL = [
@@ -73,8 +73,12 @@ self.addEventListener('fetch', (event) => {
 
   if (req.method !== 'GET') return;
 
+  // Eigene App-Dateien immer beim Server nachfragen (cache: 'no-cache'), statt bis zu
+  // 10 Minuten eine vom Browser zwischengespeicherte alte Version zu bekommen.
+  // Unverändert antwortet GitHub Pages nur kurz mit "304 nicht geändert" – kostet kaum Daten.
+  const eigeneDatei = req.url.startsWith(self.location.origin);
   event.respondWith(
-    fetch(req)
+    (eigeneDatei ? fetch(req.url, { cache: 'no-cache', credentials: 'same-origin' }) : fetch(req))
       .then((networkResponse) => {
         // Erfolgreiche Antwort im Cache aktualisieren (nur same-origin, um Fehler bei
         // opaken Cross-Origin-Antworten zu vermeiden)
