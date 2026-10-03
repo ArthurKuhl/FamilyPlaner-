@@ -31,6 +31,19 @@ function hhmmZuMinuten(hhmm) {
   const m = /^(\d{1,2}):(\d{2})$/.exec(String(hhmm || '').trim());
   return m ? Number(m[1]) * 60 + Number(m[2]) : null;
 }
+function tageZwischen(vonISO, bisISO) {
+  const u = (iso) => { const [y, m, d] = iso.slice(0, 10).split('-').map(Number); return Date.UTC(y, m - 1, d); };
+  return Math.round((u(bisISO) - u(vonISO)) / 86400000);
+}
+function isoPlusTage(iso, tage) {
+  const [y, m, d] = iso.split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1, d + tage)).toISOString().slice(0, 10);
+}
+function isoPlusMonate(iso, monate) {
+  const [y, m, d] = iso.slice(0, 10).split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1 + monate, d)).toISOString().slice(0, 10);
+}
+const WARTUNG_MONATE = { monatlich: 1, vierteljaehrlich: 3, halbjaehrlich: 6, jaehrlich: 12 };
 function minutenZuHHMM(min) { return String(Math.floor(min / 60)).padStart(2, '0') + ':' + String(min % 60).padStart(2, '0'); }
 
 // Findet ein Termin (ggf. wiederkehrend) an diesem Datum statt? Gleiche Regeln wie in termine.html.
@@ -99,6 +112,60 @@ function faelligeErinnerungen(geraet, daten) {
       liste.push({ schluessel: `w_${ziel}`, titel: '💧 Zeit zu trinken!', text: 'Erinnerung aus deinem Gesundheit-Tagebuch.', seite: 'gesundheit' });
     });
   }
+  // ---- Tages-Erinnerungen (zur eingestellten Morgen-Uhrzeit des Geräts, Standard 08:00) ----
+  const tagesZiel = hhmmZuMinuten(geraet.tagesZeit || '08:00');
+  const fuerMich = (wer) => geraet.termine === 'alle' || wer === geraet.person || wer === 'familie' || !wer;
+
+  // Ganztägige Termine wie Geburtstage: am Tag morgens, optional zusätzlich am Vorabend um 18 Uhr
+  if (geraet.ganztaegig === 'tag' || geraet.ganztaegig === 'vortag') {
+    const morgen = isoPlusTage(datum, 1);
+    (daten.termine || []).forEach(ev => {
+      if (!ev || !ev.allDay || !fuerMich(ev.wer)) return;
+      if (terminAmTag(ev, datum) && imFenster(tagesZiel)) {
+        liste.push({ schluessel: `g_${ev.id}`, titel: '📅 Heute: ' + (ev.title || 'Termin'), text: ev.notes ? String(ev.notes).slice(0, 120) : 'Ganztägiger Termin', seite: 'termine' });
+      }
+      if (geraet.ganztaegig === 'vortag' && terminAmTag(ev, morgen) && imFenster(18 * 60)) {
+        liste.push({ schluessel: `gv_${ev.id}`, titel: '📅 Morgen: ' + (ev.title || 'Termin'), text: 'Kleine Vorab-Erinnerung für morgen.', seite: 'termine' });
+      }
+    });
+  }
+
+  // Vorrat: 3 Tage vorher, 1 Tag vorher und am Tag – zusammengefasst in einer Nachricht
+  if (geraet.vorrat && imFenster(tagesZiel)) {
+    const bald = [];
+    (daten.vorrat || []).forEach(it => {
+      const bis = it && (it.verfallsdatum || it.aufbrauchenBis);
+      if (!bis || it.bestand === 'leer') return;
+      const tage = tageZwischen(datum, bis);
+      if (tage === 0 || tage === 1 || tage === 3) bald.push({ name: it.name || 'Artikel', tage });
+    });
+    if (bald.length) {
+      bald.sort((a, b) => a.tage - b.tage);
+      const text = bald.map(b => b.name + ' (' + (b.tage === 0 ? 'heute' : b.tage === 1 ? 'morgen' : 'in 3 Tagen') + ')').join(', ');
+      liste.push({ schluessel: 'vorrat', titel: '🥫 Bald ablaufend', text: text.slice(0, 180), seite: 'vorratskammer' });
+    }
+  }
+
+  // Wartung: am Fälligkeitstag und danach wöchentlich, solange nicht erledigt
+  if (geraet.wartung && imFenster(tagesZiel)) {
+    const faellig = [];
+    (daten.wartung || []).forEach(w => {
+      if (!w || w.pausiert || w.turnus === 'einmalig') return;
+      const erledigt = w.erledigt || [];
+      const letzte = erledigt.length ? erledigt[erledigt.length - 1] : null;
+      if (!letzte || !letzte.datum) return; // ohne bisherige Erledigung gibt es kein Fälligkeitsdatum
+      const faelligAm = isoPlusMonate(letzte.datum, WARTUNG_MONATE[w.turnus] || 1);
+      const ueber = tageZwischen(faelligAm, datum);
+      if (ueber < 0 || ueber % 7 !== 0) return;
+      let zustaendig = null;
+      if (w.zuweisung === 'fest') zustaendig = w.person || null;
+      if (w.zuweisung === 'rotation' && (w.rotationPersonen || []).length) zustaendig = w.rotationPersonen[(w.rotationIndex || 0) % w.rotationPersonen.length];
+      if (zustaendig && zustaendig !== geraet.person) return;
+      faellig.push((w.icon ? w.icon + ' ' : '') + (w.titel || 'Wartung') + (ueber ? ' (seit ' + ueber + ' Tagen)' : ''));
+    });
+    if (faellig.length) liste.push({ schluessel: 'wartung', titel: '🔁 Wartung fällig', text: faellig.join(', ').slice(0, 180), seite: 'handwerk' });
+  }
+
   return liste.map(e => Object.assign(e, { datum, uhrzeit: minutenZuHHMM(minuten) }));
 }
 
@@ -122,16 +189,23 @@ exports.erinnerungen = onSchedule(
     });
 
     for (const { ref: familieRef, geraete } of proFamilie.values()) {
-      const [terminDoc, gesundheitDoc] = await Promise.all([
+      const brauchtVorrat = geraete.some(g => g.daten.vorrat);
+      const brauchtWartung = geraete.some(g => g.daten.wartung);
+      const leer = { exists: false };
+      const [terminDoc, gesundheitDoc, vorratDoc, handwerkDoc] = await Promise.all([
         familieRef.collection('daten').doc('termine').get(),
         familieRef.collection('daten').doc('gesundheit').get(),
+        brauchtVorrat ? familieRef.collection('daten').doc('vorratskammer').get() : leer,
+        brauchtWartung ? familieRef.collection('daten').doc('handwerk').get() : leer,
       ]);
-      const tw = (terminDoc.exists && terminDoc.data().werte) || {};
-      const gw = (gesundheitDoc.exists && gesundheitDoc.data().werte) || {};
+      const werteVon = (doc) => (doc.exists && doc.data().werte) || {};
+      const tw = werteVon(terminDoc), gw = werteVon(gesundheitDoc);
       const daten = {
         termine: tw.termine_events_v1 || [],
         medikamente: gw.gesundheit_medikamente || [],
         medErledigt: gw.gesundheit_medErledigt || {},
+        vorrat: werteVon(vorratDoc).vorratskammer_items || [],
+        wartung: werteVon(handwerkDoc).handwerk_wartung || [],
       };
 
       for (const geraet of geraete) {
@@ -176,5 +250,3 @@ exports.erinnerungen = onSchedule(
   }
 );
 
-// Für Tests
-exports._intern = { terminAmTag, faelligeErinnerungen, lokaleZeit };
