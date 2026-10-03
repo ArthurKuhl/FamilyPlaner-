@@ -157,6 +157,18 @@
     box-shadow: 0 3px 10px rgba(74,111,90,0.35);
   }
 
+  .btn-taschenmodus { display: block; width: 100%; margin-top: 8px; padding: 10px; border-radius: var(--radius-pill); border: 1.5px solid var(--parchment); background: var(--white); color: var(--soil); font-weight: 700; font-size: 0.85rem; cursor: pointer; }
+  .taschen-modus { position: fixed; inset: 0; z-index: 9999; background: #000; color: #8a8a8a; display: none; flex-direction: column; justify-content: space-between; padding: 40px 24px calc(30px + env(safe-area-inset-bottom, 0px)); touch-action: none; user-select: none; -webkit-user-select: none; }
+  .taschen-modus.zeigen { display: flex; }
+  .tm-oben { text-align: center; font-size: 0.85rem; letter-spacing: 0.05em; }
+  .tm-werte { display: flex; justify-content: space-around; text-align: center; }
+  .tm-wert { font-size: 2.6rem; font-weight: 700; color: #b8b8b8; font-variant-numeric: tabular-nums; }
+  .tm-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; }
+  .tm-unten { display: flex; flex-direction: column; gap: 18px; }
+  .tm-spur { --fortschritt: 0%; position: relative; height: 58px; border-radius: 29px; background: linear-gradient(90deg, #2a2a2a var(--fortschritt), #141414 var(--fortschritt)); border: 1px solid #333; overflow: hidden; }
+  .tm-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; padding-left: 40px; pointer-events: none; }
+  .tm-knopf { position: absolute; top: 4px; left: 4px; width: 50px; height: 50px; border-radius: 50%; background: #3a3a3a; color: #ddd; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; cursor: grab; touch-action: none; }
+  .tm-knopf.tm-stopp { background: #6b3420; }
   .uhr-import-btn { display: block; margin: 10px auto 0; background: none; border: none; color: var(--moss); font-weight: 700; font-size: 0.8rem; cursor: pointer; text-decoration: underline; }
   .import-hinweis { font-size: 0.78rem; color: var(--bark); line-height: 1.45; margin-bottom: 8px; }
   .import-zeile { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--parchment); font-size: 0.82rem; }
@@ -340,6 +352,17 @@
 <script src="sync.js"></script>
 </head>
 <body>
+<div class="taschen-modus" id="taschenModus" aria-label="Gesperrt – Tracking läuft">
+  <div class="tm-oben">🔒 Gesperrt · Tracking läuft</div>
+  <div class="tm-werte">
+    <div><div class="tm-wert" id="tmDistanz">0,00 km</div><div class="tm-label">Distanz</div></div>
+    <div><div class="tm-wert" id="tmZeit">00:00</div><div class="tm-label">Zeit</div></div>
+  </div>
+  <div class="tm-unten">
+    <div class="tm-spur" id="tmSpurStopp"><span class="tm-text">⏹ Schieben: Stoppen &amp; übernehmen</span><div class="tm-knopf tm-stopp">⏹</div></div>
+    <div class="tm-spur" id="tmSpurEntsperren"><span class="tm-text">🔓 Schieben zum Entsperren</span><div class="tm-knopf">➜</div></div>
+  </div>
+</div>
 <div class="deko-rand links" aria-hidden="true"></div>
 <div class="deko-rand rechts" aria-hidden="true"></div>
 
@@ -1674,6 +1697,7 @@
         <div class="gps-status" id="gpsStatus">📍 Suche GPS-Signal ...</div>
         <div class="gps-status" id="gpsWachHinweis" style="opacity:0.85;"></div>
         <button type="button" class="btn-gps-stop" id="btnGpsStop">⏹ Tracking stoppen &amp; übernehmen</button>
+        <button type="button" class="btn-taschenmodus" id="btnTaschenmodus">🔒 Taschenmodus – Bildschirm sperren</button>
       </div>
     </div>
     <div class="feld-trenner" id="fSportGpsTrenner" style="text-align:center;font-size:0.7rem;color:var(--bark);opacity:0.7;margin:4px 0 10px;">– oder manuell eintragen –</div>
@@ -2597,6 +2621,7 @@
     const sekunden = gpsStartZeit ? (Date.now() - gpsStartZeit) / 1000 : 0;
     document.getElementById('gpsWertZeit').textContent = gpsZeitText(sekunden);
     document.getElementById('gpsWertDistanz').textContent = gpsGesamtDistanzKm().toLocaleString('de-DE', { maximumFractionDigits: 2, minimumFractionDigits: 2 }) + ' km';
+    taschenmodusAnzeige();
   }
   document.getElementById('btnGpsStart').addEventListener('click', () => {
     if (!navigator.geolocation) { alert('GPS wird von diesem Browser nicht unterstützt.'); return; }
@@ -2673,7 +2698,63 @@
     document.getElementById('btnGpsStart').style.display = '';
     document.getElementById('btnGpsStart').textContent = '📍 GPS-Tracking erneut starten';
   });
+  // ---------- 🔒 TASCHENMODUS während des GPS-Trackings ----------
+  // Schwarzer Sperrbildschirm über der ganzen App: nichts lässt sich versehentlich antippen.
+  // Nur zwei Schieberegler funktionieren: "Entsperren" und "Stoppen & übernehmen".
+  // Der Bildschirm bleibt wach (Wake Lock), Schwarz spart bei OLED-Displays zusätzlich Akku.
+  let taschenmodusAktiv = false;
+  function taschenmodusAn() {
+    const ov = document.getElementById('taschenModus');
+    taschenmodusAktiv = true;
+    ov.classList.add('zeigen');
+    taschenmodusAnzeige();
+    try { window.parent.postMessage({ type: 'bildschirmSperre', an: true }, window.location.origin); } catch (e) {}
+  }
+  function taschenmodusAus() {
+    if (!taschenmodusAktiv) return;
+    taschenmodusAktiv = false;
+    document.getElementById('taschenModus').classList.remove('zeigen');
+    try { window.parent.postMessage({ type: 'bildschirmSperre', an: false }, window.location.origin); } catch (e) {}
+  }
+  function taschenmodusAnzeige() {
+    if (!taschenmodusAktiv) return;
+    document.getElementById('tmDistanz').textContent = document.getElementById('gpsWertDistanz').textContent;
+    document.getElementById('tmZeit').textContent = document.getElementById('gpsWertZeit').textContent;
+  }
+  // Schieberegler: Knopf ganz nach rechts ziehen löst die Aktion aus, sonst springt er zurück
+  function schieberEinrichten(spurId, aktion) {
+    const spur = document.getElementById(spurId);
+    const knopf = spur.querySelector('.tm-knopf');
+    let startX = null, weg = 0, max = 0;
+    knopf.addEventListener('pointerdown', (e) => {
+      startX = e.clientX; max = spur.clientWidth - knopf.offsetWidth - 8;
+      knopf.setPointerCapture(e.pointerId); knopf.style.transition = 'none';
+    });
+    knopf.addEventListener('pointermove', (e) => {
+      if (startX === null) return;
+      weg = Math.max(0, Math.min(max, e.clientX - startX));
+      knopf.style.transform = 'translateX(' + weg + 'px)';
+      spur.style.setProperty('--fortschritt', Math.round(weg / max * 100) + '%');
+    });
+    const ende = () => {
+      if (startX === null) return;
+      startX = null;
+      knopf.style.transition = 'transform 0.2s';
+      const geschafft = weg >= max * 0.85;
+      weg = 0; knopf.style.transform = 'translateX(0)'; spur.style.setProperty('--fortschritt', '0%');
+      if (geschafft) aktion();
+    };
+    knopf.addEventListener('pointerup', ende);
+    knopf.addEventListener('pointercancel', ende);
+  }
+  schieberEinrichten('tmSpurEntsperren', taschenmodusAus);
+  schieberEinrichten('tmSpurStopp', () => { taschenmodusAus(); document.getElementById('btnGpsStop').click(); });
+  // Alle anderen Berührungen auf dem Sperrbildschirm schlucken
+  ['click', 'dblclick', 'contextmenu'].forEach(t => document.getElementById('taschenModus').addEventListener(t, (e) => { if (!e.target.closest('.tm-knopf')) { e.preventDefault(); e.stopPropagation(); } }));
+  document.getElementById('btnTaschenmodus').addEventListener('click', taschenmodusAn);
+
   function gpsAbbrechen() {
+    taschenmodusAus();
     gpsStoppenIntern();
     gpsPunkte = [];
     gpsStartZeit = null;

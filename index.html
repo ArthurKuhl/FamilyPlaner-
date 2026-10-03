@@ -541,8 +541,9 @@
     const KEY_PUSH = 'planer_push'; // { aktiv, person, termine: 'aus'|'meine'|'alle', medikamente }
     let pushLetzterStand = null;    // zuletzt hochgeladene Einstellungen (verhindert unnötige Schreibvorgänge)
     function pushEinstellungen() {
-      try { return Object.assign({ aktiv: false, person: '', termine: 'meine', medikamente: true }, JSON.parse(localStorage.getItem(KEY_PUSH) || '{}')); }
-      catch (e) { return { aktiv: false, person: '', termine: 'meine', medikamente: true }; }
+      const standard = { aktiv: false, person: '', termine: 'meine', medikamente: true, ganztaegig: 'tag', vorrat: true, wartung: true, tagesZeit: '08:00' };
+      try { return Object.assign(standard, JSON.parse(localStorage.getItem(KEY_PUSH) || '{}')); }
+      catch (e) { return standard; }
     }
     function pushEinstellungenSpeichern(e) { try { localStorage.setItem(KEY_PUSH, JSON.stringify(e)); } catch (err) {} }
     function pushUnterstuetzt() { return 'Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window && typeof firebase !== 'undefined'; }
@@ -587,6 +588,7 @@
       try { wasser = Object.assign(wasser, JSON.parse(localStorage.getItem('gesundheit_wasserErinnerung') || '{}')); } catch (err) {}
       const daten = {
         aktiv: true, token, person: e.person || '', termine: e.termine, medikamente: !!e.medikamente,
+        ganztaegig: e.ganztaegig, vorrat: !!e.vorrat, wartung: !!e.wartung, tagesZeit: e.tagesZeit || '08:00',
         wasser: { aktiv: !!wasser.aktiv, zeiten: Array.isArray(wasser.zeiten) ? wasser.zeiten : [] },
         zeitzone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Berlin',
         appUrl: location.origin + location.pathname.replace(/[^/]*$/, '') + 'index.html',
@@ -643,6 +645,12 @@
         '<select id="pushTermine" style="' + stil + '">' +
           [['meine', 'Meine und Familien-Termine'], ['alle', 'Alle Termine'], ['aus', 'Keine']].map(([v, l]) => '<option value="' + v + '"' + (v === e.termine ? ' selected' : '') + '>' + l + '</option>').join('') + '</select>' +
         '<label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:0.82rem;color:var(--soil);"><input type="checkbox" id="pushMedikamente"' + (e.medikamente ? ' checked' : '') + ' style="width:auto;"> 💊 Meine Medikamente (mit Uhrzeit)</label>' +
+        '<div style="font-size:0.78rem;font-weight:700;color:var(--soil);margin-top:14px;">☀️ Tages-Erinnerungen um <input type="time" id="pushTagesZeit" value="' + (e.tagesZeit || '08:00') + '" style="width:auto;padding:3px 6px;font-size:0.8rem;"> Uhr</div>' +
+        '<label style="font-size:0.78rem;color:var(--soil);display:block;margin-top:8px;">🎂 Ganztägige Termine &amp; Geburtstage</label>' +
+        '<select id="pushGanztaegig" style="' + stil + '">' +
+          [['tag', 'Am Tag selbst'], ['vortag', 'Am Vorabend (18 Uhr) und am Tag'], ['aus', 'Keine']].map(([v, l]) => '<option value="' + v + '"' + (v === e.ganztaegig ? ' selected' : '') + '>' + l + '</option>').join('') + '</select>' +
+        '<label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:0.82rem;color:var(--soil);"><input type="checkbox" id="pushVorrat"' + (e.vorrat ? ' checked' : '') + ' style="width:auto;"> 🥫 Vorrat läuft ab (3 Tage, 1 Tag vorher, am Tag)</label>' +
+        '<label style="display:flex;align-items:center;gap:8px;margin-top:8px;font-size:0.82rem;color:var(--soil);"><input type="checkbox" id="pushWartung"' + (e.wartung ? ' checked' : '') + ' style="width:auto;"> 🔁 Fällige Wartungen (meine und offene)</label>' +
         '<div style="font-size:0.74rem;color:var(--bark);margin-top:8px;">💧 Wasser: ' + (wasser.aktiv ? 'an (' + (wasser.zeiten || []).slice().sort().join(', ') + ' Uhr)' : 'aus') + ' – Zeiten im Gesundheitsmodul einstellen.</div>' +
         '<button class="btn btn-secondary" id="btnPushAus" style="margin-top:10px;">Push auf diesem Gerät ausschalten</button>' +
         '<div class="status-text" id="pushStatus" style="margin-top:6px;">' + (meldung || '✓ Aktiv') + '</div>';
@@ -651,11 +659,15 @@
         neu.person = document.getElementById('pushPerson').value;
         neu.termine = document.getElementById('pushTermine').value;
         neu.medikamente = document.getElementById('pushMedikamente').checked;
+        neu.tagesZeit = document.getElementById('pushTagesZeit').value || '08:00';
+        neu.ganztaegig = document.getElementById('pushGanztaegig').value;
+        neu.vorrat = document.getElementById('pushVorrat').checked;
+        neu.wartung = document.getElementById('pushWartung').checked;
         pushEinstellungenSpeichern(neu);
         pushGeraetAktualisieren().then(() => { document.getElementById('pushStatus').textContent = '✓ Gespeichert'; })
           .catch(err => { document.getElementById('pushStatus').textContent = '⚠ ' + (err.message || 'Speichern fehlgeschlagen'); });
       };
-      ['pushPerson', 'pushTermine', 'pushMedikamente'].forEach(id => document.getElementById(id).addEventListener('change', aendern));
+      ['pushPerson', 'pushTermine', 'pushMedikamente', 'pushTagesZeit', 'pushGanztaegig', 'pushVorrat', 'pushWartung'].forEach(id => document.getElementById(id).addEventListener('change', aendern));
       document.getElementById('btnPushAus').addEventListener('click', pushDeaktivieren);
     }
     // Beim Start und beim Zurückkehren: Token/Einstellungen auffrischen (z.B. geänderte Wasser-Zeiten)
@@ -1076,6 +1088,19 @@
     window.addEventListener('message', (e) => {
       if (e.origin !== window.location.origin) return;
       if (e.data && e.data.type === 'navigiere' && e.data.modul) bereichLaden(e.data.modul);
+      // Taschenmodus beim Joggen: Modul-Leiste oben schwarz abdecken, damit nichts versehentlich angetippt wird
+      if (e.data && e.data.type === 'bildschirmSperre') {
+        let decke = document.getElementById('shellSperre');
+        if (!decke) {
+          decke = document.createElement('div');
+          decke.id = 'shellSperre';
+          decke.style.cssText = 'position:fixed;left:0;right:0;top:0;z-index:10000;background:#000;touch-action:none;display:none;';
+          ['click', 'touchstart', 'pointerdown', 'contextmenu'].forEach(t => decke.addEventListener(t, ev => { ev.preventDefault(); ev.stopPropagation(); }, { passive: false }));
+          document.body.appendChild(decke);
+        }
+        decke.style.height = Math.max(0, document.getElementById('modulFrame').getBoundingClientRect().top) + 'px';
+        decke.style.display = e.data.an ? 'block' : 'none';
+      }
       // Startseite kann Personenverwaltung und Einstellungen direkt öffnen (Einrichtungs-Karte, Zahnrad im Kopf)
       if (e.data && e.data.type === 'oeffneDialog') {
         const btnId = { personen: 'btnPersonen', einstellungen: 'btnEinstellungen' }[e.data.dialog];
