@@ -1,7 +1,7 @@
 // Gartenplaner Service Worker
 // WICHTIG: CACHE_VERSION bei jedem Update der App-Datei erhöhen (z.B. 'v1' -> 'v2'),
 // sonst bekommen Nutzer weiterhin die alte, zwischengespeicherte Version ausgeliefert.
-const CACHE_VERSION = 'v368';
+const CACHE_VERSION = 'v369';
 const CACHE_NAME = 'planer-cache-' + CACHE_VERSION;
 
 const APP_SHELL = [
@@ -110,9 +110,17 @@ self.addEventListener('push', (event) => {
 });
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const ziel = (event.notification.data && event.notification.data.link) || './index.html';
-  event.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((fenster) => {
-    for (const f of fenster) { if ('focus' in f) return f.focus(); }
-    return self.clients.openWindow(ziel);
-  }));
+  const ziel = new URL((event.notification.data && event.notification.data.link) || './index.html', self.location.href).href;
+  // Firefox (Android) holt beim "focus()" auf ein bestehendes Fenster nur den Browser nach vorn –
+  // und zeigt dann den zuletzt offenen Tab (z.B. GitHub). Deshalb wird die App-Adresse direkt
+  // geöffnet; nur wenn das nicht erlaubt ist, wird ein vorhandenes App-Fenster nach vorn geholt.
+  event.waitUntil((async () => {
+    try {
+      const neu = await self.clients.openWindow(ziel);
+      if (neu) return;
+    } catch (e) {}
+    const fenster = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    const appFenster = fenster.find(f => f.url.startsWith(self.registration.scope));
+    if (appFenster && 'focus' in appFenster) return appFenster.focus();
+  })());
 });
