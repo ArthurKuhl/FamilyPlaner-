@@ -936,6 +936,7 @@
 
           <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--parchment)">
             <div class="sidebar-title" style="margin-bottom:8px">🌱 Pflanzen in diesem Beet</div>
+            <button type="button" class="btn-secondary" id="btnBeetErinnerungen" style="display:none;width:100%;margin-bottom:8px;font-size:0.8rem;" onclick="beetPflanzErinnerungen()"></button>
             <input type="text" id="bedPlantSearch" placeholder="🔍 In dieser Liste filtern..." oninput="renderBedPlantList(selectedBed, this.value)" style="margin-bottom:8px"/>
             <div class="bed-list" id="bedPlantList"></div>
           </div>
@@ -1042,8 +1043,9 @@
           <div id="ppSterneEingabe"></div>
         </div>
         <div class="form-row">
-          <label>Gepflanzt am</label>
+          <label>Gepflanzt am / geplant für</label>
           <input type="date" id="ppDate" oninput="savePlantInfo()"/>
+          <div id="ppErinnerungBox"></div>
         </div>
       </div>
       <div style="flex:1;min-width:130px">
@@ -4482,18 +4484,118 @@ function gartenTerminDirektEintragen(title, notes, dateObj) {
       id: 't_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
       title: title,
       date: dateObj.getFullYear() + '-' + String(dateObj.getMonth()+1).padStart(2,'0') + '-' + String(dateObj.getDate()).padStart(2,'0'),
-      allDay: true,
-      startTime: '', endTime: '',
+      allDay: false,
+      startTime: gartenErinnerungsUhrzeit(), endTime: '', // mit Uhrzeit, damit der Push-Server erinnert
       wer: 'familie',
       location: '',
       notes: notes,
       erinnerung: 0,
       recurrence: { freq: 'keine', until: null }
     });
-    localStorage.setItem(KEY_TERMINE_EVENTS, JSON.stringify(events));
-    if (window._sync) window._sync.melde();
-    showTempStatus('📌 „' + title + '" wurde in die Termine eingetragen.', 4);
+    gartenTermineSpeichern(events);
+    showTempStatus('📌 „' + title + '" wurde für ' + gartenErinnerungsUhrzeit() + ' Uhr in die Termine eingetragen.', 4);
   } catch (e) { showTempStatus('⚠ Eintragen fehlgeschlagen.', 4); }
+}
+// ---------- Pflanz-Erinnerungen (geplante Pflanzungen → Termin mit Uhrzeit → Push) ----------
+// Liegt das Pflanzdatum einer Beet-Pflanze in der Zukunft, kann daraus ein Termin im
+// Termine-Modul werden. Der Termin bekommt eine Uhrzeit, damit der Push-Server erinnert,
+// und ist über plant.pflanzTerminId verknüpft (Datum ändern → Termin wandert mit).
+const KEY_GARTEN_ERINNERUNG_ZEIT = 'garten_erinnerungUhrzeit'; // geräte-lokal, Standard 09:00
+function gartenErinnerungsUhrzeit() {
+  try { return localStorage.getItem(KEY_GARTEN_ERINNERUNG_ZEIT) || '09:00'; } catch (e) { return '09:00'; }
+}
+function gartenTermineLaden() {
+  try { return JSON.parse(localStorage.getItem('termine_events_v1') || '[]') || []; } catch (e) { return []; }
+}
+function gartenTermineSpeichern(events) {
+  localStorage.setItem('termine_events_v1', JSON.stringify(events));
+  if (window._termineSync) window._termineSync.melde();
+}
+function pflanzIsoHeute() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function pflanzTerminTitel(plant) {
+  return '🌱 ' + [plant.name || 'Pflanze', plant.variety].filter(Boolean).join(' ') + ' pflanzen';
+}
+// Legt den Termin an bzw. aktualisiert ihn; gibt true zurück, wenn etwas geschrieben wurde
+function pflanzTerminSetzen(plant, bed, still) {
+  if (!plant || !plant.date || plant.date < pflanzIsoHeute()) return false;
+  const events = gartenTermineLaden();
+  const garten = gardens[currentGardenId] ? gardens[currentGardenId].name : '';
+  const notiz = 'Geplante Pflanzung aus dem Gartenplaner' + (bed && bed.name ? ' – ' + bed.name : '') + (garten ? ' (' + garten + ')' : '') + '.';
+  let ev = plant.pflanzTerminId ? events.find(e => e.id === plant.pflanzTerminId) : null;
+  if (ev) {
+    ev.date = plant.date; ev.title = pflanzTerminTitel(plant); ev.notes = notiz;
+  } else {
+    ev = {
+      id: 't_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+      title: pflanzTerminTitel(plant), date: plant.date, allDay: false,
+      startTime: gartenErinnerungsUhrzeit(), endTime: '', wer: 'familie', location: '',
+      notes: notiz, erinnerung: 0, recurrence: { freq: 'keine', until: null },
+    };
+    events.push(ev);
+    plant.pflanzTerminId = ev.id;
+  }
+  gartenTermineSpeichern(events);
+  if (!still) showTempStatus('🔔 Erinnerung am ' + new Date(plant.date + 'T00:00').toLocaleDateString('de-DE') + ' um ' + ev.startTime + ' Uhr eingetragen.', 4);
+  return true;
+}
+function pflanzTerminEntfernen(plant) {
+  if (!plant || !plant.pflanzTerminId) return;
+  const events = gartenTermineLaden();
+  const rest = events.filter(e => e.id !== plant.pflanzTerminId);
+  delete plant.pflanzTerminId;
+  if (rest.length !== events.length) gartenTermineSpeichern(rest);
+}
+function aktivePflanzeUndBeet() {
+  if (!activePlantBedId) return {};
+  const bed = getCurrentBeds().find(b => b.id === activePlantBedId.bedId);
+  return { bed, plant: bed && bed.plants[activePlantBedId.idx] };
+}
+function renderPflanzErinnerung() {
+  const box = document.getElementById('ppErinnerungBox');
+  if (!box) return;
+  const { plant } = aktivePflanzeUndBeet();
+  if (!plant || !plant.date || plant.date < pflanzIsoHeute()) { box.innerHTML = ''; return; }
+  const ev = plant.pflanzTerminId ? gartenTermineLaden().find(e => e.id === plant.pflanzTerminId) : null;
+  box.innerHTML = ev
+    ? `<div style="font-size:0.72rem;color:var(--moss);margin-top:4px;">🔔 Erinnerung am ${new Date(plant.date + 'T00:00').toLocaleDateString('de-DE')} um ${ev.startTime || '–'} Uhr
+        <button type="button" onclick="pflanzErinnerungAus()" style="background:none;border:none;color:var(--bark);text-decoration:underline;cursor:pointer;font-size:0.72rem;">entfernen</button></div>`
+    : `<div style="display:flex;align-items:center;gap:6px;margin-top:6px;flex-wrap:wrap;">
+        <button type="button" class="btn-secondary" style="padding:6px 10px;font-size:0.78rem;" onclick="pflanzErinnerungAn()">🔔 Erinnern</button>
+        <span style="font-size:0.72rem;color:var(--bark);">um</span>
+        <input type="time" value="${gartenErinnerungsUhrzeit()}" style="width:auto;padding:4px 6px;font-size:0.78rem;" title="Uhrzeit für Garten-Erinnerungen (gilt für dieses Gerät)"
+          onchange="try{localStorage.setItem('${KEY_GARTEN_ERINNERUNG_ZEIT}', this.value || '09:00')}catch(e){}">
+      </div>`;
+}
+function pflanzErinnerungAn() {
+  const { plant, bed } = aktivePflanzeUndBeet();
+  if (pflanzTerminSetzen(plant, bed)) { saveData(); renderPflanzErinnerung(); }
+}
+function pflanzErinnerungAus() {
+  const { plant } = aktivePflanzeUndBeet();
+  pflanzTerminEntfernen(plant); saveData(); renderPflanzErinnerung();
+  showTempStatus('Erinnerung entfernt.', 3);
+}
+// Beet: alle Pflanzen mit Zukunftsdatum auf einmal
+function beetPflanzErinnerungen() {
+  const bed = selectedBed;
+  if (!bed) return;
+  const kandidaten = (bed.plants || []).filter(p => p.date && p.date >= pflanzIsoHeute());
+  if (!kandidaten.length) { showTempStatus('In diesem Beet gibt es keine Pflanzen mit Pflanzdatum in der Zukunft.', 4); return; }
+  let neu = 0;
+  kandidaten.forEach(p => { const hatte = !!p.pflanzTerminId; if (pflanzTerminSetzen(p, bed, true) && !hatte) neu++; });
+  saveData();
+  renderBeetErinnerungKnopf();
+  showTempStatus('🔔 ' + kandidaten.length + ' Pflanz-Erinnerung' + (kandidaten.length === 1 ? '' : 'en') + ' eingetragen' + (neu < kandidaten.length ? ' (' + (kandidaten.length - neu) + ' davon aktualisiert)' : '') + '.', 5);
+}
+function renderBeetErinnerungKnopf() {
+  const btn = document.getElementById('btnBeetErinnerungen');
+  if (!btn) return;
+  const n = selectedBed ? (selectedBed.plants || []).filter(p => p.date && p.date >= pflanzIsoHeute()).length : 0;
+  btn.style.display = n ? '' : 'none';
+  btn.textContent = '🔔 Geplante Pflanzungen erinnern (' + n + ')';
 }
 // ---------- Standort-Auswahl als Icon-Buttons (Beet-Pflanzen & freistehende Pflanzen) ----------
 const STANDORT_OPTIONEN = [
@@ -5253,6 +5355,7 @@ function refreshSettingsUI() {
   }
 }
 function renderBedPlantList(bed, filter) {
+  setTimeout(renderBeetErinnerungKnopf, 0);
   const box = document.getElementById('bedPlantList');
   if (!box || !bed) return;
   filter = (filter || '').trim().toLowerCase();
@@ -7341,6 +7444,7 @@ function openPlantPanel(bed,idx) {
   document.getElementById('ppVariety').value=plant.variety||'';
   document.getElementById('ppNotes').value=plant.notes||'';
   document.getElementById('ppDate').value=plant.date||'';
+  setTimeout(renderPflanzErinnerung, 0);
   document.getElementById('ppLocation').value=plant.location||'';
   renderStandortReihe('ppStandortReihe', 'ppLocation', savePlantInfo);
   ppAktuelleBewertung = plant.bewertung || 0;
@@ -7793,9 +7897,16 @@ function savePlantInfo(){
   plant.name=document.getElementById('ppName').value;
   plant.variety=document.getElementById('ppVariety').value;
   plant.notes=document.getElementById('ppNotes').value;
+  const altesDatum = plant.date;
   plant.date=document.getElementById('ppDate').value;
   plant.location=document.getElementById('ppLocation').value;
+  // Verknüpfte Pflanz-Erinnerung mitführen: Datum/Name geändert → Termin anpassen; Datum weg oder vergangen → entfernen
+  if (plant.pflanzTerminId) {
+    if (plant.date && plant.date >= pflanzIsoHeute()) pflanzTerminSetzen(plant, bed, true);
+    else if (plant.date !== altesDatum) pflanzTerminEntfernen(plant);
+  }
   saveData(); draw();
+  renderPflanzErinnerung(); renderBeetErinnerungKnopf();
   renderNeighbors(bed,activePlantBedId.idx);
   renderSowingHint(plant.name||'');
   renderRueckschnittHint(plant.name||'', 'rueckschnittHint');
@@ -9648,6 +9759,12 @@ if (window.PlanerSync) {
       location.reload();
     },
   });
+}
+
+// Eigener Sync-Kanal fürs Termine-Dokument: Termine, die der Garten anlegt (📌 Pflege,
+// 🔔 Pflanz-Erinnerungen), landen so in der Cloud – sonst nur auf diesem Gerät und ohne Push.
+if (window.PlanerSync) {
+  window._termineSync = window.PlanerSync.starteSync({ modul: 'termine', keys: ['termine_events_v1'] });
 }
 
 // ==================== BARRIEREFREIHEIT: FOKUS-MANAGEMENT FÜR MODALS ====================
