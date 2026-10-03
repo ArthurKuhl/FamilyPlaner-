@@ -403,6 +403,11 @@
   </div>
 </div>
 
+<!-- Cloud-Sync: fehlte bisher, dadurch blieb der Hausplan nur auf dem jeweiligen Gerät -->
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
+<script src="sync.js"></script>
 <script src="gemeinsam.js"></script>
 <script>
 (function(){
@@ -1986,10 +1991,26 @@
   setTimeout(positioniereZoomWidget, 30);
 
   if (window.PlanerSync) {
+    // Wie bei der Vorratskammer: Beim ersten Abgleich je Gerät Projekte vereinen (nach id),
+    // leere Standard-Projekte eines frischen Geräts werden dabei nicht übernommen.
+    const KEY_SYNC_EINGERICHTET = 'hausplan_syncEingerichtet';
+    const ersterAbgleich = () => { try { return !localStorage.getItem(KEY_SYNC_EINGERICHTET); } catch (e) { return false; } };
+    const projektLeer = (p) => !(p.ebenen || []).some(e => (e.raeume || []).length || (e.waende || []).length || (e.moebel || []).length || (e.notizen || []).length);
     window._sync = window.PlanerSync.starteSync({
       modul: 'hausplan',
       keys: [KEY_HAUSPLAN],
+      vorAnwendungTransform: function (werte, lokal) {
+        const remote = werte[KEY_HAUSPLAN], hier = lokal[KEY_HAUSPLAN];
+        if (!ersterAbgleich() || !remote || !hier || !Array.isArray(remote.projekte) || !Array.isArray(hier.projekte)) return werte;
+        const ids = new Set(remote.projekte.map(p => p.id));
+        const zusaetzlich = hier.projekte.filter(p => !ids.has(p.id) && !projektLeer(p));
+        return Object.assign({}, werte, { [KEY_HAUSPLAN]: Object.assign({}, remote, { projekte: remote.projekte.concat(zusaetzlich) }) });
+      },
       onRemoteChange: function () {
+        if (ersterAbgleich()) {
+          try { localStorage.setItem(KEY_SYNC_EINGERICHTET, '1'); } catch (e) {}
+          setTimeout(() => { if (window._sync) window._sync.melde(); }, 500);
+        }
         daten = laden(KEY_HAUSPLAN, daten);
         schliesseEditor(); renderEbenenTabs(); draw(); updateStatus();
       },

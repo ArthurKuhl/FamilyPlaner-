@@ -412,6 +412,11 @@
   </div>
 </div>
 
+<!-- Cloud-Sync: fehlte bisher, dadurch blieb der Vorrat nur auf dem jeweiligen Gerät -->
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
+<script src="sync.js"></script>
 <script src="gemeinsam.js"></script>
 <script>
 (function(){
@@ -990,10 +995,33 @@
   renderListe();
 
   if (window.PlanerSync) {
+    // Der Vorrat war bis v370 nicht synchronisiert – jedes Gerät hat womöglich eigene Einträge.
+    // Beim ersten Abgleich je Gerät werden deshalb lokale und Cloud-Einträge VEREINT (nach id),
+    // statt dass die Cloud-Version die lokalen Einträge überschreibt. Danach normaler Abgleich.
+    const KEY_SYNC_EINGERICHTET = 'vorratskammer_syncEingerichtet';
+    const ersterAbgleich = () => { try { return !localStorage.getItem(KEY_SYNC_EINGERICHTET); } catch (e) { return false; } };
+    const vereinen = (remote, lokal) => {
+      const r = Array.isArray(remote) ? remote : [], l = Array.isArray(lokal) ? lokal : [];
+      const ids = new Set(r.map(x => x && x.id));
+      return r.concat(l.filter(x => x && !ids.has(x.id)));
+    };
     window._sync = window.PlanerSync.starteSync({
       modul: 'vorratskammer',
       keys: [KEY_ITEMS, KEY_KATEGORIEN, KEY_EINGANG],
+      vorAnwendungTransform: function (werte, lokal) {
+        if (!ersterAbgleich()) return werte;
+        return Object.assign({}, werte, {
+          [KEY_ITEMS]: vereinen(werte[KEY_ITEMS], lokal[KEY_ITEMS]),
+          [KEY_KATEGORIEN]: vereinen(werte[KEY_KATEGORIEN], lokal[KEY_KATEGORIEN]),
+          [KEY_EINGANG]: vereinen(werte[KEY_EINGANG], lokal[KEY_EINGANG]),
+        });
+      },
       onRemoteChange: function () {
+        if (ersterAbgleich()) {
+          // Vereinten Stand einmalig hochladen, damit alle Geräte alle Einträge bekommen
+          try { localStorage.setItem(KEY_SYNC_EINGERICHTET, '1'); } catch (e) {}
+          setTimeout(() => { if (window._sync) window._sync.melde(); }, 500);
+        }
         items = laden(KEY_ITEMS, items);
         eingang = laden(KEY_EINGANG, eingang);
         renderEingang();
