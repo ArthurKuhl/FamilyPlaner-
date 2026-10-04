@@ -742,6 +742,7 @@
     finanzenSyncHandle = PlanerSync.starteSync({
       modul: 'finanzen',
       keys: ['finanzen_kategorien', 'finanzen_ausgaben', 'finanzen_taschengeld_konten', 'finanzen_taschengeld_buchungen', 'finanzen_abos'],
+      ersterAbgleichVereinen: true, // lokale Finanzdaten beim ersten Abgleich nicht überschreiben
     });
   }
   function finanzenAusgabeErstellen(beschreibung, betrag) {

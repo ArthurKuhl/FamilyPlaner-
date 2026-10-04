@@ -171,6 +171,10 @@
   .fb-eintrag-btns button:hover { opacity: 1; }
 </style>
 <script src="personen.js"></script>
+<!-- Firebase fehlte bisher – dadurch lief der Sync hier nie -->
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
 <script src="sync.js"></script>
 </head>
 <body>
@@ -921,6 +925,7 @@
     window._sync = window.PlanerSync.starteSync({
       modul: 'home',
       keys: [KEY_FEEDBACK],
+      ersterAbgleichVereinen: true, // war bis v374 ohne Firebase eingebunden
       onRemoteChange: function () { feedbackEintraege = laden(KEY_FEEDBACK, feedbackEintraege); feedbackListeRendern(); },
     });
   }

@@ -6,6 +6,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Finanzen</title>
 <script src="personen.js"></script>
+<!-- Firebase fehlte bisher – dadurch lief der Sync hier nie -->
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
 <script src="sync.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap');
@@ -1083,6 +1087,7 @@
     finanzenSyncHandle = PlanerSync.starteSync({
       modul: 'finanzen',
       keys: [KEY_KATEGORIEN, KEY_AUSGABEN, KEY_TG_KONTEN, KEY_TG_BUCHUNGEN, KEY_ABOS, KEY_PREISE],
+      ersterAbgleichVereinen: true, // war bis v374 ohne Firebase eingebunden
       onRemoteChange: () => {
         kategorien = laden(KEY_KATEGORIEN, kategorien);
         ausgaben = laden(KEY_AUSGABEN, ausgaben);

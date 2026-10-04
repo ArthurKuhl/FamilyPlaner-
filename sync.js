@@ -163,7 +163,25 @@ window.PlanerSync = (function () {
     return remote;
   }
 
-  function starteSync({ modul, keys, onRemoteChange, transform, vorAnwendungTransform }) {
+  // Führt beim ersten Abgleich lokale und Cloud-Daten zusammen, statt lokal zu überschreiben.
+  // Listen mit Objekten werden über ihre id vereint, Objekte flach zusammengeführt (Cloud gewinnt).
+  function werteVereinen(remote, lokal) {
+    if (remote === undefined || remote === null) return lokal;
+    if (lokal === undefined || lokal === null) return remote;
+    if (Array.isArray(remote) && Array.isArray(lokal)) {
+      const schluessel = (x) => (x && typeof x === 'object' && x.id !== undefined) ? 'id:' + x.id : 'json:' + JSON.stringify(x);
+      const vorhanden = new Set(remote.map(schluessel));
+      return remote.concat(lokal.filter(x => !vorhanden.has(schluessel(x))));
+    }
+    if (typeof remote === 'object' && typeof lokal === 'object' && !Array.isArray(remote) && !Array.isArray(lokal)) {
+      return Object.assign({}, lokal, remote);
+    }
+    return remote;
+  }
+
+  // ersterAbgleichVereinen: für Module, die (versehentlich) eine Zeit lang nicht synchronisiert
+  // waren – jedes Gerät kann eigene Einträge haben, die beim ersten Abgleich nicht verloren gehen dürfen.
+  function starteSync({ modul, keys, onRemoteChange, transform, vorAnwendungTransform, ersterAbgleichVereinen }) {
     if (!verfuegbar) return { melde: function () {} };
     if (!holeFamilienId()) { setzeStatus('nicht_verfuegbar'); return { melde: function () {} }; }
     initFirebase();
@@ -191,8 +209,22 @@ window.PlanerSync = (function () {
       return out;
     }
 
+    const KEY_VEREINT = 'planer_syncVereint_' + modul + ':' + keys.slice().sort().join(',');
+    function vereinenNoetig() {
+      try { return !!ersterAbgleichVereinen && !localStorage.getItem(KEY_VEREINT); } catch (e) { return false; }
+    }
+    function vereinenErledigt() { try { localStorage.setItem(KEY_VEREINT, '1'); } catch (e) {} }
+
     function remoteAnwenden(werte, istErstmaligerAbgleich) {
       if (!werte) return;
+      let danachHochladen = false;
+      if (vereinenNoetig()) {
+        const lokal = localSnapshot();
+        werte = Object.assign({}, werte);
+        keys.forEach((k) => { if (Object.prototype.hasOwnProperty.call(lokal, k)) werte[k] = werteVereinen(werte[k], lokal[k]); });
+        vereinenErledigt();
+        danachHochladen = true;
+      }
       if (vorAnwendungTransform) {
         try { werte = vorAnwendungTransform(werte, localSnapshot()); } catch (e) { console.warn('PlanerSync vorAnwendungTransform Fehler', e); }
       }
@@ -204,6 +236,7 @@ window.PlanerSync = (function () {
       });
       wendeGeradeRemoteAn = false;
       if (onRemoteChange) { try { onRemoteChange(istErstmaligerAbgleich); } catch (e) { console.warn('PlanerSync onRemoteChange Fehler', e); } }
+      if (danachHochladen) setTimeout(push, 500); // vereinten Stand für alle Geräte hochladen
     }
 
     function push() {
@@ -234,10 +267,14 @@ window.PlanerSync = (function () {
     authReady.then(() => {
       abbestellen = docRef().onSnapshot((snap) => {
         setzeStatus('online');
-        if (!snap.exists) { push(); return; }
+        if (!snap.exists) { if (vereinenNoetig()) vereinenErledigt(); push(); return; }
         const data = snap.data();
         if (!data) return;
-        if (data._aktualisiertVon === geraeteId) return; // eigene Änderung, nicht erneut anwenden
+        if (data._aktualisiertVon === geraeteId) {
+          // Letzte Änderung kam von diesem Gerät: beim ersten Abgleich trotzdem einmal alles hochladen
+          if (vereinenNoetig()) { vereinenErledigt(); push(); }
+          return; // eigene Änderung, nicht erneut anwenden
+        }
         let stempelZeit = '';
         try { stempelZeit = data._aktualisiertAm && data._aktualisiertAm.toMillis ? String(data._aktualisiertAm.toMillis()) : ''; } catch (e) {}
         const stempel = data._aktualisiertVon + '|' + stempelZeit;
