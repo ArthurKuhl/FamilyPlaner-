@@ -80,6 +80,11 @@
   .add-btn { background: var(--terracotta); color: var(--white); border: none; border-radius: var(--radius-pill); font-size: 0.82rem; font-weight: 700; padding: 7px 15px; cursor: pointer; }
   .filter-reihe { display: flex; gap: 5px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px; scrollbar-width: none; }
   .filter-reihe::-webkit-scrollbar { display: none; }
+  .bereich-reihe { display: flex; gap: 6px; margin-bottom: 10px; }
+  .bereich-btn { flex: 1; padding: 9px 10px; border-radius: var(--radius-pill); border: 1.5px solid var(--parchment); background: var(--white); color: var(--bark); font: 700 0.85rem 'Inter', sans-serif; cursor: pointer; }
+  .bereich-btn.aktiv { background: var(--moss); border-color: var(--moss); color: var(--leaf); }
+  .privat-hinweis { background: var(--white); border: 1px dashed var(--sage); border-radius: var(--radius-md); padding: 14px; font-size: 0.85rem; color: var(--bark); line-height: 1.5; margin-bottom: 12px; }
+  .privat-hinweis select { margin-top: 8px; padding: 8px; border-radius: 8px; border: 1px solid var(--parchment); font-family: 'Inter', sans-serif; }
   .filter-chip { flex: 0 0 auto; background: transparent; border: 1px solid #4a3a28; color: var(--sage); font-size: 0.72rem; font-weight: 600; padding: 5px 12px; border-radius: var(--radius-pill); cursor: pointer; white-space: nowrap; }
   .filter-chip.active { background: var(--moss); color: var(--leaf); border-color: var(--moss); }
 
@@ -206,6 +211,11 @@
   </div>
 
 <main>
+  <div class="bereich-reihe">
+    <button type="button" class="bereich-btn" id="btnBereichFamilie">👪 Familie</button>
+    <button type="button" class="bereich-btn" id="btnBereichPrivat">🔒 Privat</button>
+  </div>
+  <div class="privat-hinweis" id="privatHinweis" style="display:none;"></div>
   <input type="text" class="notiz-suche" id="notizSuche" placeholder="🔍 Notizen durchsuchen ...">
   <div class="filter-reihe" id="tagFilterReihe" style="margin-bottom:10px;"></div>
   <div class="notiz-grid" id="notizGrid"></div>
@@ -240,6 +250,9 @@
     <div class="feld">
       <label for="fTags">Tags (optional, mit Komma trennen)</label>
       <input type="text" id="fTags" placeholder="z.B. Urlaub, Ideen, Wichtig">
+      <label id="fPrivatZeile" style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:0.85rem;text-transform:none;letter-spacing:0;color:var(--soil);font-weight:600;">
+        <input type="checkbox" id="fPrivat" style="width:auto;"> 🔒 Nur für mich (privat)
+      </label>
     </div>
     <div class="feld">
       <label>Farbe</label>
@@ -387,7 +400,75 @@
 
   const NOTIZ_FARBEN = ['#fffdf8', '#f7d9dd', '#d9ebf7', '#dcefd9', '#f7ecd9', '#e8d9f7', '#f7d9c4'];
 
-  let notizen = laden(KEY_NOTIZEN, []);
+  // ---------- Bereiche: 👪 Familie (für alle) und 🔒 Privat (nur die Person dieses Geräts) ----------
+  // Private Notizen liegen in einem eigenen Schlüssel + eigenem Cloud-Dokument pro Person.
+  // Andere Geräte laden dieses Dokument gar nicht erst – sie sehen weder Notizen noch Anzahl.
+  // Kein Passwortschutz: wer auf einem Gerät die Person umstellt, sieht deren Notizen.
+  const KEY_BEREICH = 'notizblock_bereich';
+  function geraetPerson() { try { return localStorage.getItem('planer_geraetIdentitaet') || ''; } catch (e) { return ''; } }
+  function privatKey() { return geraetPerson() ? 'notizblock_privat_' + geraetPerson() : null; }
+  let familienNotizen = laden(KEY_NOTIZEN, []);
+  let privatNotizen = privatKey() ? laden(privatKey(), []) : [];
+  let bereich = (() => { try { return localStorage.getItem(KEY_BEREICH) === 'privat' ? 'privat' : 'familie'; } catch (e) { return 'familie'; } })();
+  let notizen = bereich === 'privat' ? privatNotizen : familienNotizen;
+  let privatSync = null;
+  function notizenSpeichern(welcher) {
+    const ziel = welcher || bereich;
+    if (ziel === 'privat') {
+      if (!privatKey()) return;
+      try { localStorage.setItem(privatKey(), JSON.stringify(privatNotizen)); } catch (e) { alert('Speichern fehlgeschlagen – ist der Speicher voll?'); }
+      if (privatSync) privatSync.melde();
+    } else {
+      speichern(KEY_NOTIZEN, familienNotizen);
+    }
+  }
+  function personName(id) {
+    const p = (window.PLANER_PERSONEN || []).find(x => x.id === id);
+    return p ? p.label : id;
+  }
+  function privatSyncStarten() {
+    privatSync = null;
+    if (!window.PlanerSync || !privatKey()) return;
+    const key = privatKey();
+    privatSync = window.PlanerSync.starteSync({
+      modul: key, keys: [key], ersterAbgleichVereinen: true,
+      onRemoteChange: function () { privatNotizen = laden(key, privatNotizen); if (bereich === 'privat') { notizen = privatNotizen; renderTagFilter(); renderNotizen(); } },
+    });
+  }
+  function bereichAnwenden() {
+    const person = geraetPerson();
+    document.getElementById('btnBereichFamilie').classList.toggle('aktiv', bereich === 'familie');
+    document.getElementById('btnBereichPrivat').classList.toggle('aktiv', bereich === 'privat');
+    document.getElementById('btnBereichPrivat').textContent = '🔒 Privat' + (person ? ' · ' + personName(person) : '');
+    const hinweis = document.getElementById('privatHinweis');
+    const ohnePerson = bereich === 'privat' && !person;
+    hinweis.style.display = ohnePerson ? '' : 'none';
+    document.getElementById('btnNeu').style.visibility = ohnePerson ? 'hidden' : '';
+    if (ohnePerson) {
+      hinweis.innerHTML = 'Private Notizen gehören zu der Person, die dieses Gerät nutzt. Wer bist du?<br>' +
+        '<select id="privatPersonWahl"><option value="">– bitte wählen –</option>' +
+        (window.PLANER_PERSONEN || []).map(p => '<option value="' + p.id + '">' + escapeHtml(p.label) + '</option>').join('') + '</select>' +
+        '<div style="font-size:0.72rem;margin-top:6px;">Lässt sich später unter 💾 bei „Wer nutzt dieses Gerät?“ ändern.</div>';
+      document.getElementById('privatPersonWahl').addEventListener('change', (e) => {
+        if (!e.target.value) return;
+        try { localStorage.setItem('planer_geraetIdentitaet', e.target.value); } catch (err) {}
+        privatNotizen = laden(privatKey(), []);
+        privatSyncStarten();
+        notizen = privatNotizen;
+        bereichAnwenden();
+      });
+    }
+    notizen = bereich === 'privat' ? privatNotizen : familienNotizen;
+    document.getElementById('notizSuche').placeholder = bereich === 'privat' ? '🔍 Private Notizen durchsuchen ...' : '🔍 Notizen durchsuchen ...';
+    aktiverTagFilter = 'alle';
+    renderTagFilter();
+    renderNotizen();
+  }
+  function bereichWechseln(neu) {
+    bereich = neu;
+    try { localStorage.setItem(KEY_BEREICH, neu); } catch (e) {}
+    bereichAnwenden();
+  }
   let suchtext = '';
   let aktiverTagFilter = 'alle';
 
@@ -438,7 +519,10 @@
       return (b.geaendert || '') < (a.geaendert || '') ? -1 : 1;
     });
     box.innerHTML = '';
-    leer.style.display = liste.length ? 'none' : '';
+    leer.style.display = (liste.length || (bereich === 'privat' && !geraetPerson())) ? 'none' : '';
+    leer.innerHTML = '<span class="em">' + (bereich === 'privat' ? '🔒' : '📝') + '</span>' + (bereich === 'privat'
+      ? 'Noch keine privaten Notizen. Was du hier anlegst, sieht nur ' + escapeHtml(personName(geraetPerson())) + '.'
+      : 'Noch keine Notizen. Tippe auf „＋ Neu", um loszulegen.');
     liste.forEach(n => {
       const karte = document.createElement('div');
       karte.className = 'notiz-karte';
@@ -458,7 +542,7 @@
         if (e.target.closest('.notiz-pin-btn')) {
           e.stopPropagation();
           n.angeheftet = !n.angeheftet;
-          speichern(KEY_NOTIZEN, notizen);
+          notizenSpeichern();
           renderNotizen();
           return;
         }
@@ -469,7 +553,7 @@
           if (n.checkliste && n.checkliste[idx]) {
             n.checkliste[idx].erledigt = !n.checkliste[idx].erledigt;
             n.geaendert = new Date().toISOString();
-            speichern(KEY_NOTIZEN, notizen);
+            notizenSpeichern();
             renderNotizen();
           }
           return;
@@ -588,6 +672,8 @@
     checklisteBox.innerHTML = '';
     (n && n.checkliste && n.checkliste.length ? n.checkliste : []).forEach(p => checklisteBox.appendChild(checkpunktZeileErstellen(p.text, p.erledigt)));
     document.getElementById('editLoeschZeile').style.display = n ? '' : 'none';
+    document.getElementById('fPrivatZeile').style.display = geraetPerson() ? 'flex' : 'none';
+    document.getElementById('fPrivat').checked = bereich === 'privat';
     document.getElementById('modalEdit').classList.add('zeigen');
     setTimeout(() => document.getElementById(editTyp === 'checkliste' ? 'fTitel' : 'fText').focus(), 50);
 
@@ -632,7 +718,20 @@
     n.tags = tags;
     n.farbe = gewaehlteFarbe;
     n.geaendert = new Date().toISOString();
-    speichern(KEY_NOTIZEN, notizen);
+    const zielBereich = (geraetPerson() && document.getElementById('fPrivat').checked) ? 'privat' : 'familie';
+    if (zielBereich !== bereich) {
+      // Notiz wandert in den anderen Bereich
+      const quelle = bereich === 'privat' ? privatNotizen : familienNotizen;
+      const ziel = zielBereich === 'privat' ? privatNotizen : familienNotizen;
+      const i = quelle.indexOf(n);
+      if (i !== -1) quelle.splice(i, 1);
+      ziel.push(n);
+      notizenSpeichern(bereich);
+      notizenSpeichern(zielBereich);
+      showTempStatus(zielBereich === 'privat' ? '🔒 Notiz in „Privat“ verschoben' : '👪 Notiz für die Familie freigegeben', 4);
+    } else {
+      notizenSpeichern();
+    }
     document.getElementById('modalEdit').classList.remove('zeigen');
     entwurfUeberwachungStoppen(); entwurfLoeschen();
     renderTagFilter();
@@ -644,7 +743,7 @@
     if (index === -1) return;
     const entfernt = notizen[index];
     notizen.splice(index, 1);
-    speichern(KEY_NOTIZEN, notizen);
+    notizenSpeichern();
     document.getElementById('modalEdit').classList.remove('zeigen');
     entwurfUeberwachungStoppen(); entwurfLoeschen();
     renderTagFilter();
@@ -652,7 +751,7 @@
     showTempStatus('Notiz gelöscht', 6, {
       rueckgaengig: () => {
         notizen.splice(index, 0, entfernt);
-        speichern(KEY_NOTIZEN, notizen);
+        notizenSpeichern();
         renderTagFilter();
         renderNotizen();
       }
@@ -754,9 +853,13 @@
     window._sync = window.PlanerSync.starteSync({
       modul: 'notizblock',
       keys: [KEY_NOTIZEN],
-      onRemoteChange: function () { notizen = laden(KEY_NOTIZEN, notizen); renderTagFilter(); renderNotizen(); },
+      onRemoteChange: function () { familienNotizen = laden(KEY_NOTIZEN, familienNotizen); if (bereich === 'familie') { notizen = familienNotizen; renderTagFilter(); renderNotizen(); } },
     });
   }
+  privatSyncStarten();
+  document.getElementById('btnBereichFamilie').addEventListener('click', () => bereichWechseln('familie'));
+  document.getElementById('btnBereichPrivat').addEventListener('click', () => bereichWechseln('privat'));
+  bereichAnwenden();
 })();
 </script>
 </body>
