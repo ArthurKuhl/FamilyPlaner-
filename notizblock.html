@@ -142,6 +142,11 @@
   .feld { margin-bottom: 12px; }
   .feld label { display: block; font-size: 0.7rem; font-weight: 700; color: var(--bark); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.03em; }
   .feld input, .feld select, .feld textarea { width: 100%; padding: 9px 11px; border: 1px solid var(--parchment); border-radius: var(--radius-sm); font-size: 0.9rem; background: var(--white); color: var(--soil); }
+  /* Checklisten-Zeilen: allgemeine Feldbreite (100 %) darf hier nicht für die Checkbox gelten,
+     sonst frisst sie den Platz und das Textfeld schrumpft auf wenige Pixel */
+  .feld .checkliste-edit-zeile input[type="checkbox"] { flex: 0 0 auto; width: 20px; height: 20px; padding: 0; margin: 0; }
+  .feld .checkliste-edit-zeile input[type="text"] { flex: 1 1 auto; width: auto; min-width: 0; background: var(--white); color: var(--soil); }
+  .feld .checkliste-edit-zeile button { flex: 0 0 auto; }
   .opt-reihe { display: flex; gap: 6px; flex-wrap: wrap; }
   .opt { padding: 6px 12px; border-radius: var(--radius-pill); font-size: 0.75rem; font-weight: 600; border: 1px solid var(--parchment); background: var(--white); color: var(--bark); cursor: pointer; }
   .opt.aktiv { color: var(--white); border-color: transparent; background: var(--moss); }
