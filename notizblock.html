@@ -95,7 +95,19 @@
   }
 
   .notiz-suche { width: 100%; padding: 10px 14px; border: 1px solid var(--parchment); border-radius: var(--radius-pill); font-size: 0.85rem; background: var(--white); color: var(--soil); margin-bottom: 12px; }
-  .notiz-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+  /* Pinnwand: auf dem Handy zwei Notizen nebeneinander, leicht schräg angepinnt */
+  .notiz-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 10px; align-items: start; }
+  .notiz-grid .notiz-karte:nth-child(4n+1) { transform: rotate(-0.8deg); }
+  .notiz-grid .notiz-karte:nth-child(4n+2) { transform: rotate(0.6deg); }
+  .notiz-grid .notiz-karte:nth-child(4n+3) { transform: rotate(0.5deg); }
+  .notiz-grid .notiz-karte:nth-child(4n+4) { transform: rotate(-0.5deg); }
+  .notiz-grid .notiz-karte:active { transform: scale(0.98); }
+  .notiz-karte .notiz-text { -webkit-line-clamp: 9; }
+  .notiz-karte { word-break: break-word; }
+  @media (min-width: 1000px) { .notiz-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); } }
+  /* Farbige Zettel sind immer hell – Schrift darauf daher immer dunkel, auch im Dunkelmodus */
+  .notiz-karte.farbig .notiz-titel, .notiz-karte.farbig .notiz-text, .notiz-karte.farbig .notiz-check-zeile { color: #3a2e22; }
+  .notiz-karte.farbig .notiz-datum { color: #6b5a45; }
   .notiz-karte { border-radius: var(--radius-md); padding: 14px; box-shadow: var(--shadow-soft); cursor: pointer; display: flex; flex-direction: column; gap: 6px; min-height: 90px; background: var(--white); position: relative; }
   .notiz-titel { font-weight: 700; font-size: 0.95rem; color: var(--soil); font-family: 'Playfair Display', serif; padding-right: 22px; }
   .notiz-text { font-size: 0.82rem; color: var(--soil); white-space: pre-wrap; line-height: 1.45; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 7; -webkit-box-orient: vertical; }
@@ -525,8 +537,8 @@
       : 'Noch keine Notizen. Tippe auf „＋ Neu", um loszulegen.');
     liste.forEach(n => {
       const karte = document.createElement('div');
-      karte.className = 'notiz-karte';
-      karte.style.background = n.farbe || '#fffdf8';
+      karte.className = 'notiz-karte' + (n.farbe && n.farbe !== '#fffdf8' ? ' farbig' : '');
+      if (n.farbe && n.farbe !== '#fffdf8') karte.style.background = n.farbe; // weiß = Standard-Kartenfarbe (passt sich dem Dunkelmodus an)
       const inhaltHtml = n.typ === 'checkliste'
         ? '<div class="notiz-checkliste">' + (n.checkliste || []).slice(0, 8).map((p, i) =>
             '<div class="notiz-check-zeile' + (p.erledigt ? ' erledigt' : '') + '"><input type="checkbox" data-notizid="' + n.id + '" data-idx="' + i + '"' + (p.erledigt ? ' checked' : '') + '><span>' + escapeHtml(p.text) + '</span></div>'
