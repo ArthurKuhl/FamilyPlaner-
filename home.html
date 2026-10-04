@@ -80,6 +80,22 @@
   .modal { background: var(--white); border-radius: var(--radius-lg); padding: 20px; max-width: 480px; width: 100%; max-height: 86vh; overflow-y: auto; }
   .modal h2 { font-family: 'Playfair Display', serif; font-size: 1.15rem; margin-bottom: 6px; }
   .modal-btns { display: flex; justify-content: flex-end; margin-top: 14px; }
+  /* ---- Neuigkeiten & Community ---- */
+  .neu-eintrag { border-top: 1px solid var(--parchment); padding: 10px 0; }
+  .neu-eintrag.ungelesen .neu-kopf b::before { content: '● '; color: var(--terracotta); }
+  .neu-kopf { display: flex; justify-content: space-between; gap: 8px; font-size: 0.88rem; color: var(--soil); }
+  .neu-kopf span { font-size: 0.7rem; color: var(--bark); flex-shrink: 0; }
+  .neu-text { font-size: 0.8rem; color: var(--bark); white-space: pre-wrap; line-height: 1.5; margin-top: 4px; }
+  .comm-vorschau { font-size: 0.8rem; color: var(--bark); margin-top: 3px; overflow: hidden; text-overflow: ellipsis; }
+  .comm-vorschau b { color: var(--soil); }
+  .comm-schreiben { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+  .comm-schreiben input, .comm-schreiben textarea { width: 100%; padding: 8px 10px; border: 1px solid var(--parchment); border-radius: var(--radius-sm); background: var(--cream); color: var(--soil); font: 0.85rem 'Inter', sans-serif; resize: vertical; }
+  .comm-beitrag { border-top: 1px solid var(--parchment); padding: 9px 0; }
+  .comm-beitrag.eigener .comm-kopf b { color: var(--moss); }
+  .comm-kopf { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: var(--soil); }
+  .comm-kopf span { font-size: 0.68rem; color: var(--bark); margin-left: auto; }
+  .comm-loeschen { background: none; border: none; cursor: pointer; font-size: 0.85rem; opacity: 0.6; padding: 0 2px; }
+  .comm-text { font-size: 0.85rem; color: var(--soil); white-space: pre-wrap; line-height: 1.45; margin-top: 3px; word-break: break-word; }
   /* ---- Wetter ---- */
   .wetter-jetzt { display: flex; align-items: center; gap: 12px; }
   .wetter-symbol { font-size: 2rem; line-height: 1; }
@@ -263,6 +279,22 @@
     <div id="haushaltListe"></div>
   </div>
 
+  <div class="kachel" id="kachelNeuigkeiten" style="cursor:pointer;display:none;">
+    <div class="kachel-kopf">
+      <div class="kachel-titel">🆕 Was ist neu</div>
+      <span class="kachel-badge" id="badgeNeuigkeiten" style="display:none;">0</span>
+    </div>
+    <div class="erfolg-kurz" id="neuigkeitenKurz"></div>
+  </div>
+
+  <div class="kachel" id="kachelCommunity" style="cursor:pointer">
+    <div class="kachel-kopf">
+      <div class="kachel-titel">💬 Community</div>
+      <span class="kachel-badge" id="badgeCommunity" style="display:none;">0</span>
+    </div>
+    <div class="erfolg-kurz" id="communityKurz">Wird geladen …</div>
+  </div>
+
   <div class="kachel" id="kachelErfolge" style="cursor:pointer;display:none;">
     <div class="kachel-kopf">
       <div class="kachel-titel">🏆 Erfolge</div>
@@ -291,6 +323,32 @@
     </div>
   </div>
 </main>
+
+<div class="modal-bg" id="modalNeuigkeiten">
+  <div class="modal">
+    <h2>🆕 Was ist neu</h2>
+    <div id="neuigkeitenListe"></div>
+    <div class="modal-btns"><button class="btn btn-secondary" id="btnNeuigkeitenSchliessen">Schließen</button></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalCommunity">
+  <div class="modal">
+    <h2>💬 Community</h2>
+    <p style="font-size:0.75rem;color:var(--bark);margin:2px 0 10px;">Für alle, die die App nutzen – auch andere Familien. Bitte nichts Privates posten.</p>
+    <div class="comm-schreiben">
+      <input type="text" id="communityName" maxlength="30" placeholder="Dein Name (wird angezeigt)">
+      <textarea id="communityText" maxlength="500" rows="3" placeholder="Tipp, Frage, Idee …"></textarea>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+        <span id="communityZaehler" style="font-size:0.68rem;color:var(--bark);">0 / 500</span>
+        <button class="btn btn-primary" id="btnCommunitySenden" style="background:var(--moss);color:var(--leaf);">Posten</button>
+      </div>
+    </div>
+    <div id="communityListe"></div>
+    <div id="communityAdminInfo" style="font-size:0.6rem;color:var(--bark);opacity:0.6;margin-top:10px;word-break:break-all;"></div>
+    <div class="modal-btns"><button class="btn btn-secondary" id="btnCommunitySchliessen">Schließen</button></div>
+  </div>
+</div>
 
 <div class="modal-bg" id="modalWetter">
   <div class="modal" style="max-height:88vh;overflow-y:auto;">
@@ -931,6 +989,157 @@
   }
 
   // Kacheln von Modulen ausblenden, die in den Einstellungen (Modul-Übersicht) für dieses Gerät versteckt wurden
+  // ============================================================
+  // 🆕 WAS IST NEU – Neuigkeiten aus der Datei neuigkeiten.md im Repo
+  // Format je Eintrag:   ## 2026-10-04 | Titel
+  //                      Text (mehrere Zeilen möglich)
+  // ============================================================
+  const KEY_NEU_GELESEN = 'planer_neuigkeitenGelesen'; // Datum+Titel des neuesten gelesenen Eintrags
+  let neuigkeiten = [];
+  function neuigkeitenParsen(text) {
+    const liste = [];
+    let aktuell = null;
+    String(text || '').split(/\r?\n/).forEach(zeile => {
+      const kopf = /^##\s*(\d{4}-\d{2}-\d{2})\s*\|\s*(.+)$/.exec(zeile.trim());
+      if (kopf) { aktuell = { datum: kopf[1], titel: kopf[2].trim(), text: '' }; liste.push(aktuell); return; }
+      if (aktuell && !/^#\s/.test(zeile)) aktuell.text += zeile + '\n';
+    });
+    liste.forEach(e => { e.text = e.text.trim(); e.id = e.datum + '|' + e.titel; });
+    return liste.sort((a, b) => b.datum.localeCompare(a.datum));
+  }
+  function ungeleseneNeuigkeiten() {
+    let gelesen = '';
+    try { gelesen = localStorage.getItem(KEY_NEU_GELESEN) || ''; } catch (e) {}
+    if (!gelesen) return neuigkeiten.slice(0, 3).length; // erstes Mal: höchstens 3 als neu zeigen
+    const i = neuigkeiten.findIndex(e => e.id === gelesen);
+    return i === -1 ? neuigkeiten.length : i;
+  }
+  function renderNeuigkeitenKachel() {
+    const kachel = document.getElementById('kachelNeuigkeiten');
+    if (!neuigkeiten.length) { kachel.style.display = 'none'; return; }
+    kachel.style.display = '';
+    const n = ungeleseneNeuigkeiten();
+    const badge = document.getElementById('badgeNeuigkeiten');
+    badge.textContent = n;
+    badge.style.display = n ? '' : 'none';
+    const e = neuigkeiten[0];
+    document.getElementById('neuigkeitenKurz').innerHTML = '<b>' + escapeHtml(e.titel) + '</b><br><span style="opacity:0.75">' +
+      new Date(e.datum + 'T00:00').toLocaleDateString('de-DE', { day: 'numeric', month: 'long' }) + '</span>';
+  }
+  async function neuigkeitenLaden() {
+    try {
+      const res = await fetch('neuigkeiten.md', { cache: 'no-cache' });
+      if (!res.ok) return;
+      neuigkeiten = neuigkeitenParsen(await res.text());
+      renderNeuigkeitenKachel();
+    } catch (e) { /* offline – Kachel bleibt beim letzten Stand */ }
+  }
+  document.getElementById('kachelNeuigkeiten').addEventListener('click', () => {
+    document.getElementById('neuigkeitenListe').innerHTML = neuigkeiten.map((e, i) =>
+      '<div class="neu-eintrag' + (i < ungeleseneNeuigkeiten() ? ' ungelesen' : '') + '">' +
+        '<div class="neu-kopf"><b>' + escapeHtml(e.titel) + '</b><span>' + new Date(e.datum + 'T00:00').toLocaleDateString('de-DE') + '</span></div>' +
+        '<div class="neu-text">' + escapeHtml(e.text) + '</div></div>').join('');
+    document.getElementById('modalNeuigkeiten').classList.add('zeigen');
+    try { localStorage.setItem(KEY_NEU_GELESEN, neuigkeiten[0].id); } catch (e) {}
+    renderNeuigkeitenKachel();
+  });
+  document.getElementById('btnNeuigkeitenSchliessen').addEventListener('click', () => document.getElementById('modalNeuigkeiten').classList.remove('zeigen'));
+  document.getElementById('modalNeuigkeiten').addEventListener('click', (e) => { if (e.target.id === 'modalNeuigkeiten') e.currentTarget.classList.remove('zeigen'); });
+  neuigkeitenLaden();
+
+  // ============================================================
+  // 💬 COMMUNITY-PINNWAND – gemeinsam für alle App-Nutzer (über alle Familiencodes)
+  // Firestore: community/{beitrag} = { text, name, uid, erstellt }
+  // Schreiben/Löschen regeln die Firestore-Regeln (Länge, nur eigene Beiträge, Admins).
+  // ============================================================
+  const KEY_COMMUNITY_NAME = 'planer_communityName';
+  const KEY_COMMUNITY_GESEHEN = 'planer_communityGesehen';
+  let communityBeitraege = [], communityUid = null, communityAdmin = false, communityAbo = null;
+  function communityName() {
+    try {
+      const gespeichert = localStorage.getItem(KEY_COMMUNITY_NAME);
+      if (gespeichert) return gespeichert;
+      const ich = localStorage.getItem('planer_geraetIdentitaet');
+      return ich && PERSONEN_LABEL[ich] ? PERSONEN_LABEL[ich] : '';
+    } catch (e) { return ''; }
+  }
+  function zeitText(ts) {
+    const d = ts && ts.toDate ? ts.toDate() : null;
+    if (!d) return 'gerade eben';
+    return d.toLocaleDateString('de-DE', { day: 'numeric', month: 'short' }) + ', ' + d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+  }
+  function communityNeueAnzahl() {
+    let gesehen = 0;
+    try { gesehen = Number(localStorage.getItem(KEY_COMMUNITY_GESEHEN) || 0); } catch (e) {}
+    return communityBeitraege.filter(b => b.uid !== communityUid && b.erstellt && b.erstellt.toMillis && b.erstellt.toMillis() > gesehen).length;
+  }
+  function renderCommunityKachel() {
+    const box = document.getElementById('communityKurz');
+    const badge = document.getElementById('badgeCommunity');
+    const neu = communityNeueAnzahl();
+    badge.textContent = neu; badge.style.display = neu ? '' : 'none';
+    if (!communityBeitraege.length) { box.textContent = 'Noch keine Beiträge – schreib den ersten!'; return; }
+    box.innerHTML = communityBeitraege.slice(0, 2).map(b =>
+      '<div class="comm-vorschau"><b>' + escapeHtml(b.name) + ':</b> ' + escapeHtml(b.text.length > 90 ? b.text.slice(0, 90) + '…' : b.text) + '</div>').join('');
+  }
+  function renderCommunityListe() {
+    const liste = document.getElementById('communityListe');
+    if (!liste) return;
+    liste.innerHTML = communityBeitraege.length ? communityBeitraege.map(b => {
+      const darfLoeschen = b.uid === communityUid || communityAdmin;
+      return '<div class="comm-beitrag' + (b.uid === communityUid ? ' eigener' : '') + '">' +
+        '<div class="comm-kopf"><b>' + escapeHtml(b.name) + '</b><span>' + zeitText(b.erstellt) + '</span>' +
+        (darfLoeschen ? '<button type="button" class="comm-loeschen" data-id="' + b.id + '" title="Löschen">🗑</button>' : '') + '</div>' +
+        '<div class="comm-text">' + escapeHtml(b.text) + '</div></div>';
+    }).join('') : '<div style="font-size:0.82rem;color:var(--bark);padding:8px 0;">Noch keine Beiträge.</div>';
+    liste.querySelectorAll('.comm-loeschen').forEach(btn => btn.addEventListener('click', async () => {
+      if (!confirm('Diesen Beitrag löschen?')) return;
+      try { await firebase.firestore().collection('community').doc(btn.dataset.id).delete(); }
+      catch (e) { alert('Löschen nicht möglich: ' + (e.message || e)); }
+    }));
+  }
+  function communityStarten() {
+    if (typeof firebase === 'undefined' || !firebase.apps || !firebase.apps.length) { setTimeout(communityStarten, 800); return; }
+    firebase.auth().onAuthStateChanged(async (user) => {
+      if (!user || communityAbo) return;
+      communityUid = user.uid;
+      try { communityAdmin = (await firebase.firestore().collection('communityAdmins').doc(user.uid).get()).exists; } catch (e) { communityAdmin = false; }
+      communityAbo = firebase.firestore().collection('community').orderBy('erstellt', 'desc').limit(50).onSnapshot(snap => {
+        communityBeitraege = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
+        renderCommunityKachel(); renderCommunityListe();
+      }, err => { document.getElementById('communityKurz').textContent = '⚠ Community nicht erreichbar (' + (err.code || 'Fehler') + ').'; });
+    });
+  }
+  document.getElementById('kachelCommunity').addEventListener('click', () => {
+    document.getElementById('communityName').value = communityName();
+    document.getElementById('communityAdminInfo').textContent = communityUid ? 'Geräte-Kennung: ' + communityUid + (communityAdmin ? ' · 🛡 Admin' : '') : '';
+    renderCommunityListe();
+    document.getElementById('modalCommunity').classList.add('zeigen');
+    try { localStorage.setItem(KEY_COMMUNITY_GESEHEN, String(Date.now())); } catch (e) {}
+    renderCommunityKachel();
+  });
+  document.getElementById('btnCommunitySchliessen').addEventListener('click', () => document.getElementById('modalCommunity').classList.remove('zeigen'));
+  document.getElementById('modalCommunity').addEventListener('click', (e) => { if (e.target.id === 'modalCommunity') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('communityText').addEventListener('input', (e) => { document.getElementById('communityZaehler').textContent = e.target.value.length + ' / 500'; });
+  document.getElementById('btnCommunitySenden').addEventListener('click', async () => {
+    const name = document.getElementById('communityName').value.trim().slice(0, 30);
+    const text = document.getElementById('communityText').value.trim().slice(0, 500);
+    if (!name) { document.getElementById('communityName').focus(); return; }
+    if (!text || !communityUid) return;
+    try { localStorage.setItem(KEY_COMMUNITY_NAME, name); } catch (e) {}
+    const btn = document.getElementById('btnCommunitySenden');
+    btn.disabled = true;
+    try {
+      await firebase.firestore().collection('community').add({ text, name, uid: communityUid, erstellt: firebase.firestore.FieldValue.serverTimestamp() });
+      document.getElementById('communityText').value = '';
+      document.getElementById('communityZaehler').textContent = '0 / 500';
+    } catch (e) {
+      alert('Senden nicht möglich' + (e.code === 'permission-denied' ? ' – die Community-Regeln in Firebase sind noch nicht eingerichtet.' : ': ' + (e.message || e)));
+    }
+    btn.disabled = false;
+  });
+  communityStarten();
+
   // ---------- WETTER (eigener Abruf, unabhängig vom Gartenmodul) ----------
   // Standort: 1) auf diesem Gerät gewählt, 2) sonst der Standort eines Gartens (synchronisiert),
   // 3) sonst Knopf zum Freigeben. Daten von Open-Meteo, 30 Min. zwischengespeichert.
