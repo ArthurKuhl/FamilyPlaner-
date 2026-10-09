@@ -325,6 +325,24 @@
   .btn-timer-stop { background: var(--terracotta); color: var(--white); }
   .btn-timer-plus1 { background: var(--parchment); color: var(--soil); }
 
+  /* ---- Stoppuhr (Gesamtdauer) im Koch-Modus ---- */
+  .kochmodus-kopf h2 { flex: 1; min-width: 0; }
+  .stoppuhr-gruppe { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+  #btnStoppuhr { background: var(--parchment); color: var(--soil); border: none; border-radius: var(--radius-pill); padding: 6px 11px; font-size: 0.85rem; font-weight: 700; font-variant-numeric: tabular-nums; cursor: pointer; white-space: nowrap; }
+  #btnStoppuhr.pausiert { background: transparent; border: 1px dashed var(--bark); color: var(--bark); }
+  #btnStoppuhrReset { background: none; border: none; color: var(--bark); font-size: 0.95rem; cursor: pointer; padding: 4px; opacity: 0.7; }
+  .stoppuhr-hinweis { font-size: 0.66rem; color: var(--bark); text-align: right; margin: -2px 0 4px; min-height: 0.8em; }
+  .kochzeit-abschluss { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .kochzeit-abschluss input { width: 80px; padding: 8px; border-radius: var(--radius-sm); border: 1px solid var(--parchment); font-size: 0.95rem; font-weight: 700; background: var(--white); color: var(--soil); }
+  .kochzeit-gemessen { font-size: 0.72rem; color: var(--moss); font-weight: 600; }
+  .stat-zeit-zeile { display: flex; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--parchment); font-size: 0.85rem; }
+  .stat-zeit-zeile:last-child { border-bottom: none; }
+  .stat-zeit-name { flex: 1; min-width: 0; }
+  .stat-zeit-werte { flex-shrink: 0; text-align: right; font-size: 0.78rem; color: var(--bark); }
+  .stat-zeit-werte b { color: var(--soil); }
+  .trend-schneller { color: var(--moss); font-weight: 700; }
+  .trend-langsamer { color: var(--terracotta-text); font-weight: 700; }
+
   /* Sehr breite Bildschirme: Content etwas breiter + dezente Deko-Streifen im Rand */
   .deko-rand { display: none; position: fixed; top: 0; bottom: 0; width: 220px; background-repeat: repeat-y; background-position: center top; pointer-events: none; z-index: -1; }
   .deko-rand.links { left: 0; }
@@ -441,6 +459,11 @@
       <h3 style="margin-top:0;">🏆 Meistgekochte Rezepte</h3>
       <div id="statMeistgekochtListe"></div>
       <div class="leer-hinweis" id="statMeistgekochtLeer" style="display:none;padding:10px 0;">Noch nichts über den Koch-Modus als "fertig" markiert.</div>
+    </div>
+    <div class="karte">
+      <h3 style="margin-top:0;">⏱ Kochzeiten</h3>
+      <div id="statKochzeitenListe"></div>
+      <div class="leer-hinweis" id="statKochzeitenLeer" style="display:none;padding:10px 0;">Noch keine Zeiten gestoppt. Die Stoppuhr läuft automatisch im 👨‍🍳 Koch-Modus.</div>
     </div>
     <div class="karte">
       <h3>🗂 Verteilung nach Kategorie</h3>
@@ -574,6 +597,7 @@
     <button type="button" id="btnAlsTerminPlanen" style="margin-top:8px;width:100%;background:var(--white);border:1px solid var(--parchment);border-radius:var(--radius-pill);padding:9px;font-size:0.8rem;font-weight:700;color:var(--bark);cursor:pointer;">📅 Als Termin planen</button>
     <div id="terminPlanenBox" style="display:none;margin-top:8px;align-items:center;gap:8px;flex-wrap:wrap;">
       <input type="date" id="fTerminPlanenDatum" style="flex:1;min-width:120px;padding:8px;border-radius:var(--radius-sm);border:1px solid var(--parchment);">
+      <input type="time" id="fTerminPlanenZeit" title="Kochbeginn (optional)" style="padding:8px;border-radius:var(--radius-sm);border:1px solid var(--parchment);">
       <select id="fTerminPlanenErinnerung" style="padding:8px;border-radius:var(--radius-sm);border:1px solid var(--parchment);">
         <option value="0">Keine Erinnerung</option>
         <option value="15">15 Min. vorher</option>
@@ -583,6 +607,7 @@
         <option value="1440">1 Tag vorher</option>
       </select>
       <button type="button" class="btn btn-primary" id="btnTerminPlanenSpeichern" style="padding:8px 14px;">Eintragen</button>
+      <div id="terminPlanenDauerHinweis" style="flex-basis:100%;font-size:0.72rem;color:var(--bark);"></div>
       <div id="terminPlanenVorratHinweis" style="flex-basis:100%;font-size:0.72rem;color:var(--terracotta-text);"></div>
     </div>
     <div class="modal-btns">
@@ -600,8 +625,13 @@
   <div class="modal">
     <div class="kochmodus-kopf">
       <h2 id="kochmodusTitel"></h2>
+      <div class="stoppuhr-gruppe">
+        <button type="button" id="btnStoppuhr" title="Gesamte Kochzeit – antippen zum Pausieren">⏱ 00:00</button>
+        <button type="button" id="btnStoppuhrReset" title="Stoppuhr neu starten" aria-label="Stoppuhr neu starten">↺</button>
+      </div>
       <button id="btnKochmodusSchliessen" aria-label="Koch-Modus schließen">✕</button>
     </div>
+    <div class="stoppuhr-hinweis" id="stoppuhrHinweis"></div>
     <div class="kochmodus-fortschritt" id="kochmodusFortschritt"></div>
     <div class="kochmodus-schritt-box">
       <div class="kochmodus-schritt-text" id="kochmodusSchrittText"></div>
@@ -649,6 +679,14 @@
 <div class="modal-bg" id="modalKochNotizAbschluss">
   <div class="modal">
     <h2 id="kochNotizAbschlussTitel">Fertig gekocht!</h2>
+    <div class="feld" id="kochzeitAbschlussFeld" style="display:none;">
+      <label for="fKochzeitAbschluss">⏱ Gestoppte Kochzeit</label>
+      <div class="kochzeit-abschluss">
+        <input type="number" id="fKochzeitAbschluss" min="0" max="1440" step="1" inputmode="numeric"> <span>Min.</span>
+        <span class="kochzeit-gemessen" id="kochzeitAbschlussInfo"></span>
+      </div>
+      <div style="font-size:0.7rem;color:var(--bark);margin-top:4px;">Vergessen zu pausieren? Hier einfach korrigieren. Leer lassen = nicht speichern.</div>
+    </div>
     <div class="feld">
       <label>Bewertung (optional)</label>
       <div class="sterne-eingabe" id="kochNotizAbschlussSterne"></div>
@@ -959,6 +997,35 @@
   }
   document.getElementById('fZeit').addEventListener('input', aufwandVorschlagAnwenden);
 
+  // ---------- GESTOPPTE KOCHZEITEN (Stoppuhr im Koch-Modus) ----------
+  // Pro Rezept: r.kochzeiten = [{ d: 'JJJJ-MM-TT', min: 52 }, …] (die letzten 10), wird mit der Familie synchronisiert.
+  const KOCHZEITEN_MAX = 10;
+  const SCHNELL_GRENZE_MIN = 30;
+  function kochzeitInfo(r) {
+    const liste = (r && Array.isArray(r.kochzeiten)) ? r.kochzeiten.filter(k => k && k.min > 0) : [];
+    if (!liste.length) return null;
+    const werte = liste.map(k => k.min);
+    const schnitt = Math.round(werte.reduce((a, b) => a + b, 0) / werte.length);
+    const beste = Math.min.apply(null, werte);
+    let trend = 0; // < 0 = schneller geworden
+    if (werte.length >= 2) {
+      const frueher = werte.slice(0, -1);
+      trend = Math.round(werte[werte.length - 1] - frueher.reduce((a, b) => a + b, 0) / frueher.length);
+    }
+    return { schnitt, beste, anzahl: werte.length, letzte: werte[werte.length - 1], trend };
+  }
+  // Realistische Dauer eines Rezepts: gemessener Durchschnitt, sonst die angegebene Zeit
+  function effektiveKochzeit(r) {
+    const info = kochzeitInfo(r);
+    if (info) return info.schnitt;
+    return (r && r.zeit > 0) ? r.zeit : null;
+  }
+  function formatMinuten(min) {
+    if (min < 60) return min + ' Min.';
+    const h = Math.floor(min / 60), m = min % 60;
+    return h + ' Std.' + (m ? ' ' + m + ' Min.' : '');
+  }
+
   // ---------- ZULETZT GEKOCHT ----------
   function formatDatumKurz(isoDatum) {
     if (!isoDatum) return '';
@@ -1052,9 +1119,17 @@
       chip.addEventListener('click', () => { aktiverAufwandFilter = key; renderAufwandFilter(); renderGrid(); schliesseAlleFilterDropdowns(); });
       box.appendChild(chip);
     });
+    const schnellChip = document.createElement('button');
+    schnellChip.className = 'filter-chip' + (aktiverAufwandFilter === 'schnell' ? ' active' : '');
+    schnellChip.textContent = '⚡ Schnell (bis ' + SCHNELL_GRENZE_MIN + ' Min.)';
+    schnellChip.title = 'Nach gestoppter Kochzeit, sonst nach angegebener Zeit';
+    schnellChip.addEventListener('click', () => { aktiverAufwandFilter = 'schnell'; renderAufwandFilter(); renderGrid(); schliesseAlleFilterDropdowns(); });
+    box.appendChild(schnellChip);
     const aBtn = document.getElementById('btnFdAufwand');
     aBtn.classList.toggle('active', aktiverAufwandFilter !== 'alle');
-    const aLabel = aktiverAufwandFilter === 'alle' ? '⚙️ Aufwand' : AUFWAND_STUFEN[aktiverAufwandFilter].icon + ' ' + AUFWAND_STUFEN[aktiverAufwandFilter].label;
+    const aLabel = aktiverAufwandFilter === 'alle' ? '⚙️ Aufwand'
+      : aktiverAufwandFilter === 'schnell' ? '⚡ Schnell'
+      : AUFWAND_STUFEN[aktiverAufwandFilter].icon + ' ' + AUFWAND_STUFEN[aktiverAufwandFilter].label;
     aBtn.innerHTML = escapeHtml(aLabel) + ' <span class="fd-caret">▾</span>';
   }
 
@@ -1122,6 +1197,10 @@
       if (aktiverFilter !== 'alle' && r.kategorie !== aktiverFilter) return false;
       if (aktiverTagFilter !== 'alle' && !(r.tags || []).includes(aktiverTagFilter)) return false;
       if (nurFavoriten && !r.favorit) return false;
+      if (aktiverAufwandFilter === 'schnell') {
+        const z = effektiveKochzeit(r);
+        if (!z || z > SCHNELL_GRENZE_MIN) return false;
+      } else if (aktiverAufwandFilter !== 'alle' && r.aufwand !== aktiverAufwandFilter) return false;
       if (suchtext) {
         const titelTreffer = r.titel.toLowerCase().includes(suchtext);
         const zutatTreffer = (r.zutaten || []).some(z => (z.name || '').toLowerCase().includes(suchtext));
@@ -1170,7 +1249,9 @@
       (abzeichenIcon ? '<span class="meilenstein-abzeichen" title="' + (r.kochZaehler || 0) + '× gekocht">' + abzeichenIcon + '</span>' : '') +
       (r.foto ? '<img class="rezept-foto-thumb" src="' + r.foto + '" alt="">' : '<div class="rezept-kat-icon">' + kat.icon + '</div>') +
       '<div class="rezept-titel">' + escapeHtml(r.titel) + '</div>' +
-      '<div class="rezept-meta"><span>⏱ ' + r.zeit + ' Min.</span><span>🍽 ' + r.portionenBasis + '</span>' + (r.aufwand ? '<span>' + AUFWAND_STUFEN[r.aufwand].icon + '</span>' : '') + '</div>' +
+      '<div class="rezept-meta">' + (function () { const info = kochzeitInfo(r); return info
+        ? '<span title="Gestoppt: Ø aus ' + info.anzahl + '× Kochen">⏱ ~' + info.schnitt + ' Min.</span>'
+        : '<span>⏱ ' + r.zeit + ' Min.</span>'; })() + '<span>🍽 ' + r.portionenBasis + '</span>' + (r.aufwand ? '<span>' + AUFWAND_STUFEN[r.aufwand].icon + '</span>' : '') + '</div>' +
       sterneAnzeige(r.bewertung) +
       zutatTrefferHtml +
       tagsHtml;
@@ -1251,6 +1332,9 @@
     document.getElementById('detailTitel').innerHTML = escapeHtml(r.titel) + (detailAbzeichenIcon ? ' <span title="' + (r.kochZaehler || 0) + '× gekocht">' + detailAbzeichenIcon + '</span>' : '');
     document.getElementById('detailMeta').innerHTML =
       '<span>⏱ ' + r.zeit + ' Min.</span>' +
+      (function () { const info = kochzeitInfo(r); if (!info) return '';
+        return '<span class="kochzeit-gemessen" title="Mit der Stoppuhr im Koch-Modus gemessen">⏱ gestoppt: Ø ' + formatMinuten(info.schnitt) +
+          ' (' + info.anzahl + '×' + (info.anzahl > 1 ? ', beste ' + info.beste + ' Min.' : '') + ')</span>'; })() +
       (r.bewertung ? '<span style="display:inline-flex;vertical-align:middle;">' + sterneAnzeige(r.bewertung) + '</span>' : '') +
       (r.aufwand ? aufwandBadgeHtml(r.aufwand) : '') +
       (r.zuletztGekocht ? '<span style="font-size:0.7rem;color:var(--bark);">🕒 zuletzt gekocht: ' + formatDatumKurz(r.zuletztGekocht) + '</span>' : '');
@@ -1503,6 +1587,79 @@
     if (!kochmodusTimerIntervall) kochmodusTimerIntervall = setInterval(kochmodusTimerAnzeigeRendern, 1000);
     kochmodusTimerAnzeigeRendern();
   });
+  // ---------- STOPPUHR: Gesamtdauer des Kochens ----------
+  // Läuft automatisch ab Öffnen des Koch-Modus. Gespeichert wird nur die Startzeit (+ Pausen),
+  // daher stimmt die Zeit auch nach Bildschirm-aus, App-Wechsel oder Neuladen.
+  // Nur auf diesem Gerät (nicht synchronisiert) – erst die fertige Zeit landet am Rezept.
+  const KEY_STOPPUHR = 'kochen_stoppuhr';
+  const STOPPUHR_FORTSETZEN_MAX_MS = 6 * 60 * 60 * 1000; // innerhalb von 6 Std. wird fortgesetzt statt neu gestartet
+  let stoppuhr = null; // { rezeptId, start, pausiertSeit, pausenMs }
+  let stoppuhrIntervall = null;
+  function stoppuhrSpeichern() { try { if (stoppuhr) localStorage.setItem(KEY_STOPPUHR, JSON.stringify(stoppuhr)); else localStorage.removeItem(KEY_STOPPUHR); } catch (e) {} }
+  function stoppuhrLaden() { try { return JSON.parse(localStorage.getItem(KEY_STOPPUHR) || 'null'); } catch (e) { return null; } }
+  function stoppuhrMs() {
+    if (!stoppuhr) return 0;
+    const ende = stoppuhr.pausiertSeit || Date.now();
+    return Math.max(0, ende - stoppuhr.start - (stoppuhr.pausenMs || 0));
+  }
+  function stoppuhrFormat(ms) {
+    const sek = Math.floor(ms / 1000), h = Math.floor(sek / 3600), m = Math.floor((sek % 3600) / 60), s = sek % 60;
+    return (h ? h + ':' + String(m).padStart(2, '0') : String(m).padStart(2, '0')) + ':' + String(s).padStart(2, '0');
+  }
+  function stoppuhrRendern() {
+    const btn = document.getElementById('btnStoppuhr');
+    const hinweis = document.getElementById('stoppuhrHinweis');
+    if (!stoppuhr) { btn.textContent = '⏱ 00:00'; return; }
+    const pausiert = !!stoppuhr.pausiertSeit;
+    btn.textContent = (pausiert ? '⏸ ' : '⏱ ') + stoppuhrFormat(stoppuhrMs());
+    btn.classList.toggle('pausiert', pausiert);
+    if (pausiert) hinweis.textContent = 'Pausiert – antippen zum Weiterlaufen';
+    else if (hinweis.dataset.fest) hinweis.textContent = hinweis.dataset.fest;
+    else hinweis.textContent = '';
+  }
+  function stoppuhrStarten(r) {
+    const alt = stoppuhrLaden();
+    const hinweis = document.getElementById('stoppuhrHinweis');
+    hinweis.dataset.fest = '';
+    if (alt && alt.rezeptId === r.id && (Date.now() - alt.start) < STOPPUHR_FORTSETZEN_MAX_MS) {
+      stoppuhr = alt;
+      hinweis.dataset.fest = '↻ Stoppuhr läuft weiter vom letzten Öffnen';
+      setTimeout(() => { if (hinweis.dataset.fest) { hinweis.dataset.fest = ''; stoppuhrRendern(); } }, 6000);
+    } else {
+      stoppuhr = { rezeptId: r.id, start: Date.now(), pausiertSeit: null, pausenMs: 0 };
+    }
+    stoppuhrSpeichern();
+    if (stoppuhrIntervall) clearInterval(stoppuhrIntervall);
+    stoppuhrIntervall = setInterval(stoppuhrRendern, 1000);
+    stoppuhrRendern();
+  }
+  function stoppuhrAnzeigeStoppen() { if (stoppuhrIntervall) { clearInterval(stoppuhrIntervall); stoppuhrIntervall = null; } }
+  function stoppuhrUmschalten() {
+    if (!stoppuhr) return;
+    if (stoppuhr.pausiertSeit) { stoppuhr.pausenMs = (stoppuhr.pausenMs || 0) + (Date.now() - stoppuhr.pausiertSeit); stoppuhr.pausiertSeit = null; }
+    else stoppuhr.pausiertSeit = Date.now();
+    stoppuhrSpeichern();
+    stoppuhrRendern();
+  }
+  // Zurücksetzen mit Rückfrage direkt im Knopf (zweimal tippen), statt eines Browser-Dialogs
+  let stoppuhrResetBestaetigen = null;
+  function stoppuhrZuruecksetzen() {
+    const btn = document.getElementById('btnStoppuhrReset');
+    if (!stoppuhrResetBestaetigen) {
+      btn.textContent = 'Neu?';
+      stoppuhrResetBestaetigen = setTimeout(() => { btn.textContent = '↺'; stoppuhrResetBestaetigen = null; }, 3000);
+      return;
+    }
+    clearTimeout(stoppuhrResetBestaetigen); stoppuhrResetBestaetigen = null; btn.textContent = '↺';
+    if (!stoppuhr) return;
+    stoppuhr = { rezeptId: stoppuhr.rezeptId, start: Date.now(), pausiertSeit: null, pausenMs: 0 };
+    stoppuhrSpeichern();
+    stoppuhrRendern();
+  }
+  document.getElementById('btnStoppuhr').addEventListener('click', stoppuhrUmschalten);
+  document.getElementById('btnStoppuhrReset').addEventListener('click', stoppuhrZuruecksetzen);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && stoppuhrIntervall) stoppuhrRendern(); });
+
   function kochmodusZutatenRendern(r) {
     const faktor = detailPortionen / r.portionenBasis;
     const box = document.getElementById('kochmodusZutatenListe');
@@ -1523,10 +1680,12 @@
     kochmodusSchrittRendern(r);
     document.getElementById('modalKochmodus').classList.add('zeigen');
     kochmodusWakeLockAnfordern();
+    stoppuhrStarten(r);
   }
   function kochmodusSchliessen() {
     kochmodusWakeLockFreigeben();
     kochmodusTimerBeenden();
+    stoppuhrAnzeigeStoppen(); // Stoppuhr selbst bleibt gespeichert: erneutes Öffnen setzt sie fort
     document.getElementById('modalKochmodus').classList.remove('zeigen');
   }
   document.getElementById('btnKochmodusStart').addEventListener('click', kochmodusOeffnen);
@@ -1545,7 +1704,19 @@
     kochmodusSchrittIndex++;
     kochmodusSchrittRendern(r);
   });
+  let letzteGestoppteMinuten = null; // für die Korrektur im Abschluss-Fenster
   function kochmodusAbschliessen(r) {
+    letzteGestoppteMinuten = null;
+    if (stoppuhr && stoppuhr.rezeptId === r.id) {
+      const min = Math.round(stoppuhrMs() / 60000);
+      if (min >= 2) { // reines Durchklicken nicht als Kochzeit zählen
+        if (!Array.isArray(r.kochzeiten)) r.kochzeiten = [];
+        r.kochzeiten.push({ d: toISODatumKochen(new Date()), min: min });
+        if (r.kochzeiten.length > KOCHZEITEN_MAX) r.kochzeiten = r.kochzeiten.slice(-KOCHZEITEN_MAX);
+        letzteGestoppteMinuten = min;
+      }
+    }
+    stoppuhr = null; stoppuhrSpeichern();
     r.zuletztGekocht = new Date().toISOString();
     r.kochZaehler = (r.kochZaehler || 0) + 1;
     pruefeRezeptMeilenstein(r);
@@ -1577,13 +1748,45 @@
     document.getElementById('fKochNotizAbschluss').value = '';
     kochNotizAbschlussBewertung = r.bewertung || 0;
     renderKochNotizAbschlussSterne();
+    const zeitFeld = document.getElementById('kochzeitAbschlussFeld');
+    zeitFeld.style.display = letzteGestoppteMinuten ? '' : 'none';
+    if (letzteGestoppteMinuten) {
+      document.getElementById('fKochzeitAbschluss').value = letzteGestoppteMinuten;
+      const info = kochzeitInfo(r);
+      let text = '';
+      if (info && info.anzahl > 1) {
+        const vorher = r.kochzeiten.slice(0, -1).map(k => k.min);
+        const bisherBeste = Math.min.apply(null, vorher);
+        if (letzteGestoppteMinuten < bisherBeste) text = '🏅 Neue Bestzeit!';
+        else text = 'Ø bisher ' + Math.round(vorher.reduce((a, b) => a + b, 0) / vorher.length) + ' Min.';
+      }
+      document.getElementById('kochzeitAbschlussInfo').textContent = text;
+    }
     document.getElementById('modalKochNotizAbschluss').dataset.rezeptId = r.id;
     document.getElementById('modalKochNotizAbschluss').classList.add('zeigen');
   }
+  // Korrigierte (oder gelöschte) Kochzeit übernehmen – gilt für "Speichern" und "Überspringen"
+  function kochzeitKorrekturUebernehmen() {
+    if (!letzteGestoppteMinuten) return;
+    const id = document.getElementById('modalKochNotizAbschluss').dataset.rezeptId;
+    const r = rezepte.find(x => x.id === id);
+    if (!r || !Array.isArray(r.kochzeiten) || !r.kochzeiten.length) return;
+    const roh = document.getElementById('fKochzeitAbschluss').value.trim();
+    const neu = parseInt(roh, 10);
+    const letzter = r.kochzeiten[r.kochzeiten.length - 1];
+    if (!roh || !(neu > 0)) r.kochzeiten.pop();
+    else if (neu !== letzter.min) letzter.min = Math.min(neu, 1440);
+    else { letzteGestoppteMinuten = null; return; }
+    letzteGestoppteMinuten = null;
+    speichernRezepte();
+    renderGrid();
+  }
   document.getElementById('btnKochNotizAbschlussUeberspringen').addEventListener('click', () => {
+    kochzeitKorrekturUebernehmen();
     document.getElementById('modalKochNotizAbschluss').classList.remove('zeigen');
   });
   document.getElementById('btnKochNotizAbschlussSpeichern').addEventListener('click', () => {
+    kochzeitKorrekturUebernehmen();
     const text = document.getElementById('fKochNotizAbschluss').value.trim();
     const id = document.getElementById('modalKochNotizAbschluss').dataset.rezeptId;
     const r = rezepte.find(x => x.id === id);
@@ -1600,7 +1803,7 @@
     }
     document.getElementById('modalKochNotizAbschluss').classList.remove('zeigen');
   });
-  document.getElementById('modalKochNotizAbschluss').addEventListener('click', (e) => { if (e.target.id === 'modalKochNotizAbschluss') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('modalKochNotizAbschluss').addEventListener('click', (e) => { if (e.target.id === 'modalKochNotizAbschluss') { kochzeitKorrekturUebernehmen(); e.currentTarget.classList.remove('zeigen'); } });
   document.getElementById('btnKochmodusZutaten').addEventListener('click', () => {
     const box = document.getElementById('kochmodusZutatenListe');
     const zeigen = box.style.display === 'none';
@@ -1865,8 +2068,24 @@
       const heute = new Date();
       document.getElementById('fTerminPlanenDatum').value = heute.toISOString().slice(0, 10);
     }
-    if (zeigen) terminPlanenVorratHinweisRendern();
+    if (zeigen) { terminPlanenVorratHinweisRendern(); terminPlanenDauerHinweisRendern(); }
   });
+  function terminPlanenDauerHinweisRendern() {
+    const r = rezepte.find(x => x.id === detailId);
+    const box = document.getElementById('terminPlanenDauerHinweis');
+    if (!r) { box.textContent = ''; return; }
+    const dauer = effektiveKochzeit(r);
+    const zeit = document.getElementById('fTerminPlanenZeit').value;
+    if (!zeit) { box.textContent = '🕒 Mit Uhrzeit wird der Termin ' + (dauer ? formatMinuten(dauer) + ' lang' + (kochzeitInfo(r) ? ' (gestoppte Kochzeit)' : '') : 'mit Uhrzeit') + ' eingetragen – sonst ganztägig.'; return; }
+    if (!dauer) { box.textContent = '🕒 Für dieses Rezept ist keine Dauer bekannt – Termin ohne Ende.'; return; }
+    box.textContent = '🕒 ' + zeit + '–' + uhrzeitPlusMinuten(zeit, dauer) + ' Uhr' + (kochzeitInfo(r) ? ' (nach gestoppter Kochzeit)' : ' (nach Rezeptangabe)');
+  }
+  function uhrzeitPlusMinuten(hhmm, min) {
+    const [h, m] = hhmm.split(':').map(Number);
+    const gesamt = Math.min(23 * 60 + 59, h * 60 + m + min); // nicht über Mitternacht hinaus
+    return String(Math.floor(gesamt / 60)).padStart(2, '0') + ':' + String(gesamt % 60).padStart(2, '0');
+  }
+  document.getElementById('fTerminPlanenZeit').addEventListener('input', terminPlanenDauerHinweisRendern);
   function terminPlanenVorratHinweisRendern() {
     const r = rezepte.find(x => x.id === detailId);
     const hinweis = document.getElementById('terminPlanenVorratHinweis');
@@ -1887,23 +2106,26 @@
     const datum = document.getElementById('fTerminPlanenDatum').value;
     const erinnerung = Number(document.getElementById('fTerminPlanenErinnerung').value) || 0;
     if (!r || !datum) { alert('Bitte ein Datum wählen.'); return; }
+    const startZeit = document.getElementById('fTerminPlanenZeit').value;
+    const dauer = effektiveKochzeit(r);
     const events = laden(KEY_TERMINE_EVENTS, []);
     events.push({
       id: 't_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
       title: '🍽 ' + r.titel,
       date: datum,
-      allDay: true,
-      startTime: '', endTime: '',
+      allDay: !startZeit,
+      startTime: startZeit || '', endTime: (startZeit && dauer) ? uhrzeitPlusMinuten(startZeit, dauer) : '',
       wer: 'familie',
       location: '',
-      notes: 'Aus dem Kochen-Modul geplant (' + detailPortionen + ' Portionen).',
+      notes: 'Aus dem Kochen-Modul geplant (' + detailPortionen + ' Portionen).' + (dauer ? ' Kochzeit ca. ' + formatMinuten(dauer) + (kochzeitInfo(r) ? ' (gestoppt)' : '') + '.' : ''),
       erinnerung: erinnerung,
       recurrence: { freq: 'keine', until: null },
       rezeptId: r.id
     });
     speichern(KEY_TERMINE_EVENTS, events);
     document.getElementById('terminPlanenBox').style.display = 'none';
-    alert('„' + r.titel + '" wurde für den ' + formatDatumKurz(datum) + ' in die Termine eingetragen.');
+    document.getElementById('fTerminPlanenZeit').value = '';
+    alert('„' + r.titel + '" wurde für den ' + formatDatumKurz(datum) + (startZeit ? ' um ' + startZeit + ' Uhr' : '') + ' in die Termine eingetragen.');
   });
   document.getElementById('btnEditAbbrechen').addEventListener('click', () => {
     document.getElementById('modalEdit').classList.remove('zeigen');
@@ -2154,6 +2376,27 @@
       '<span class="stat-meistgekocht-name">' + escapeHtml(r.titel) + '</span>' +
       '<span class="stat-meistgekocht-zahl">' + r.kochZaehler + '×</span></div>'
     ).join('');
+
+    // Kochzeiten: Ø, Bestzeit und Trend je Rezept
+    const mitZeiten = rezepte.map(r => ({ r, info: kochzeitInfo(r) })).filter(x => x.info)
+      .sort((a, b) => b.info.anzahl - a.info.anzahl || a.info.schnitt - b.info.schnitt).slice(0, 10);
+    const zeitBox = document.getElementById('statKochzeitenListe');
+    document.getElementById('statKochzeitenLeer').style.display = mitZeiten.length ? 'none' : '';
+    let schnellstes = null;
+    mitZeiten.forEach(x => { if (!schnellstes || x.info.beste < schnellstes.info.beste) schnellstes = x; });
+    zeitBox.innerHTML = (schnellstes && mitZeiten.length > 1
+      ? '<div style="font-size:0.78rem;color:var(--bark);margin-bottom:6px;">⚡ Schnellstes Gericht: <b style="color:var(--soil);">' + escapeHtml(schnellstes.r.titel) + '</b> in ' + schnellstes.info.beste + ' Min.</div>' : '') +
+      mitZeiten.map(x => {
+        const i = x.info;
+        let trend = '';
+        if (i.anzahl >= 2 && Math.abs(i.trend) >= 2) {
+          trend = i.trend < 0
+            ? ' · <span class="trend-schneller" title="Letztes Mal schneller als im Schnitt davor">▼ ' + Math.abs(i.trend) + ' Min.</span>'
+            : ' · <span class="trend-langsamer" title="Letztes Mal langsamer als im Schnitt davor">▲ ' + i.trend + ' Min.</span>';
+        }
+        return '<div class="stat-zeit-zeile"><span class="stat-zeit-name">' + escapeHtml(x.r.titel) + '</span>' +
+          '<span class="stat-zeit-werte">Ø <b>' + i.schnitt + '</b> Min.' + (i.anzahl > 1 ? ' · beste ' + i.beste : '') + ' · ' + i.anzahl + '×' + trend + '</span></div>';
+      }).join('');
 
     const proKat = {};
     rezepte.forEach(r => { proKat[r.kategorie] = (proKat[r.kategorie] || 0) + 1; });
