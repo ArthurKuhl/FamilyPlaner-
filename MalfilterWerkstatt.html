@@ -166,8 +166,8 @@ const PAPER=[247,244,236];
 function bleistift(d,k){
   const c=channels(d),Ls=blur(c.L,W,H,2),s=sketch(c.L,Math.round(2+k*3),1.3+k*1.2),o=new Uint8ClampedArray(d.length),q=.6+.4*k;
   for(let i=0,j=0;i<W*H;i++,j+=4){
-    const dk=1-Ls[i]/255;let v=s[i];
-    v*=1-.5*h1[i]*ss(.4,.8,dk)*q;
+    const dk=1-Ls[i]/255;let v=s[i]*(1-.3*ss(.25,.85,dk));
+    v*=1-.45*h1[i]*ss(.3,.75,dk)*q;
     v*=1-.45*h2[i]*ss(.5,.9,dk)*q;
     v*=.975+.035*fine[i];
     o[j]=58+(PAPER[0]-58)*v;o[j+1]=60+(PAPER[1]-60)*v;o[j+2]=66+(PAPER[2]-66)*v;o[j+3]=255;}
@@ -179,32 +179,32 @@ function buntstift(d,k){
     let r=b.R[i],g=b.G[i],bb=b.B[i];const m=(r+g+bb)/3;r=m+(r-m)*1.2;g=m+(g-m)*1.2;bb=m+(bb-m)*1.2;
     const dk=1-c.L[i]/255;
     const cov=Math.min(1,cp1[i]*1.1+cp2[i]*1.1*ss(.3,.8,dk));
-    const mix=Math.min(1,((.5+.3*k)+.25*dk)*(.62+.5*cov));
+    const mix=Math.min(1,((.52+.3*k)+.22*dk)*(.74+.36*cov));
     const v=(1-(1-s[i])*.75)*(.985+.025*fine[i]);
     o[j]=(PAPER[0]+(r-PAPER[0])*mix)*v;o[j+1]=(PAPER[1]+(g-PAPER[1])*mix)*v;o[j+2]=(PAPER[2]+(bb-PAPER[2])*mix)*v;o[j+3]=255;}
   return o;
 }
 function aquarell(d,k){
   const c=channels(d);let b=kuwahara(c.R,c.G,c.B,Math.round(3+k*4));b=kuwahara(b.R,b.G,b.B,2);
-  const R=blur(b.R,W,H,1),G=blur(b.G,W,H,1),B=blur(b.B,W,H,1),n=W*H,L=new Float32Array(n);
+  const R=blur(b.R,W,H,2),G=blur(b.G,W,H,2),B=blur(b.B,W,H,2),n=W*H,L=new Float32Array(n);
   for(let i=0;i<n;i++)L[i]=.299*R[i]+.587*G[i]+.114*B[i];
   const lb=blur(L,W,H,3),sk=sketch(c.L,2,1.2),o=new Uint8ClampedArray(d.length);
   for(let i=0,j=0;i<n;i++,j+=4){
     let col=[R[i],G[i],B[i]];const m=(col[0]+col[1]+col[2])/3;
     let f=1+Math.min(0,L[i]-lb[i])/255*(2.5+2*k);f*=.92+.14*grainL[i];f*=.98+.03*fine[i];
-    const pen=1-(1-sk[i])*.15,wv=ss(222,245,L[i])*.7;
+    const pen=1-(1-sk[i])*.22,wv=ss(222,245,L[i])*.7;
     for(let ch=0;ch<3;ch++){let v=m+(col[ch]-m)*1.12;v=v+(PAPER[ch]-v)*.12;v=v*f*pen;v=v+(PAPER[ch]-v)*wv;o[j+ch]=v;}
     o[j+3]=255;}
   fadeEdges(o,.06);
   return o;
 }
 function pastell(d,k){
-  const c=channels(d),k0=kuwahara(c.R,c.G,c.B,Math.round(3+k*3)),b={R:blur(k0.R,W,H,2),G:blur(k0.G,W,H,2),B:blur(k0.B,W,H,2)},o=new Uint8ClampedArray(d.length);
+  const c=channels(d),k0=kuwahara(c.R,c.G,c.B,Math.round(3+k*3)),b={R:blur(k0.R,W,H,2),G:blur(k0.G,W,H,2),B:blur(k0.B,W,H,2)},sk=sketch(c.L,2,1.1),o=new Uint8ClampedArray(d.length);
   for(let i=0,j=0;i<W*H;i++,j+=4){
-    let r=b.R[i],g=b.G[i],bb=b.B[i];const m=(r+g+bb)/3;r=m+(r-m)*.95;g=m+(g-m)*.95;bb=m+(bb-m)*.95;
-    const lift=.22+.1*k;r+=(250-r)*lift;g+=(248-g)*lift;bb+=(242-bb)*lift;
-    const mix=(.82+.18*Math.min(1,pas[i]*1.4))*(.96+.04*fine[i]);
-    o[j]=PAPER[0]+(r-PAPER[0])*mix;o[j+1]=PAPER[1]+(g-PAPER[1])*mix;o[j+2]=PAPER[2]+(bb-PAPER[2])*mix;o[j+3]=255;}
+    let r=b.R[i],g=b.G[i],bb=b.B[i];const m=(r+g+bb)/3;r=m+(r-m)*1.08;g=m+(g-m)*1.08;bb=m+(bb-m)*1.08;
+    const lift=.12+.1*k;r+=(250-r)*lift;g+=(248-g)*lift;bb+=(242-bb)*lift;
+    const mix=(.82+.18*Math.min(1,pas[i]*1.4))*(.96+.04*fine[i]),v=1-(1-sk[i])*.35;
+    o[j]=(PAPER[0]+(r-PAPER[0])*mix)*v;o[j+1]=(PAPER[1]+(g-PAPER[1])*mix)*v;o[j+2]=(PAPER[2]+(bb-PAPER[2])*mix)*v;o[j+3]=255;}
   fadeEdges(o,.05);
   return o;
 }
