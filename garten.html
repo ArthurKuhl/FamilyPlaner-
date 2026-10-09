@@ -51,6 +51,9 @@
   .theme-popup.zeigen { display: flex; gap: 8px; }
   .theme-swatch { width: 40px; height: 40px; border-radius: var(--radius-sm, 8px); border: 2px solid transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; background: var(--cream); }
   .theme-swatch.aktiv { border-color: var(--moss); }
+  .theme-foto-swatch { border: 2px dashed var(--bark); background: var(--cream); position: relative; overflow: hidden; }
+  .theme-foto-swatch.aktiv { border-style: solid; border-color: var(--moss); }
+  .theme-foto-input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
   body.bg-pflanzen {
     background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22190%22%20height%3D%22190%22%20viewBox%3D%220%200%20190%20190%22%3E%3Cg%20opacity%3D%220.11%22%3E%3Cg%20transform%3D%22translate%2810%2C15%29%20scale%280.9%29%20rotate%28-10%29%22%3E%3Cline%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%2240%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3Cpath%20d%3D%22M%200%208%20C%208%204%2C%2014%208%2C%2016%2014%20C%2010%2016%2C%204%2014%2C%200%208%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M%200%2018%20C%20-8%2014%2C%20-14%2018%2C%20-16%2024%20C%20-10%2026%2C%20-4%2024%2C%200%2018%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M%200%2028%20C%208%2024%2C%2014%2028%2C%2016%2034%20C%2010%2036%2C%204%2034%2C%200%2028%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%28110%2C20%29%20scale%280.75%29%20rotate%2825%29%22%3E%3Cpath%20d%3D%22M%200%200%20C%2020%20-4%2C%2030%2014%2C%200%2034%20C%20-30%2014%2C%20-20%20-4%2C%200%200%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cline%20x1%3D%220%22%20y1%3D%222%22%20x2%3D%220%22%20y2%3D%2232%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3C/g%3E%3Cg%20transform%3D%22translate%2855%2C110%29%20scale%280.8%29%20rotate%2815%29%22%3E%3Cline%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%2240%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22/%3E%3Cpath%20d%3D%22M%200%208%20C%208%204%2C%2014%208%2C%2016%2014%20C%2010%2016%2C%204%2014%2C%200%208%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M%200%2018%20C%20-8%2014%2C%20-14%2018%2C%20-16%2024%20C%20-10%2026%2C%20-4%2024%2C%200%2018%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M%200%2028%20C%208%2024%2C%2014%2028%2C%2016%2034%20C%2010%2036%2C%204%2034%2C%200%2028%20Z%22%20fill%3D%22none%22%20stroke%3D%22%235a4832%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
     background-repeat: repeat;
@@ -482,6 +485,7 @@
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
 <script src="sync.js"></script>
+<script src="malfilter.js"></script>
 </head>
 <body>
 
@@ -499,6 +503,9 @@
 <div class="theme-swatch" data-theme="" title="Kein Muster">✕</div>
     <div class="theme-swatch" data-theme="bg-pflanzen" title="Beete & Pflanzen">🌿</div>
     <div class="theme-swatch" data-theme="bg-werkzeug" title="Gartenwerkzeug">🛠️</div>
+    <label class="theme-swatch theme-foto-swatch" title="Eigenes Foto als Hintergrund (mit Malstil)">
+      📷<input type="file" accept="image/*" class="theme-foto-input" id="gartenThemeFotoInput">
+    </label>
   </div>
 
 
@@ -4079,11 +4086,12 @@ function exportScaledPDF(scaleSel) {
 function handleBedPhoto(e) {
   const file = e.target.files && e.target.files[0];
   if (!file || !selectedBed) return;
-  const reader = new FileReader();
-  reader.onerror = () => { showTempStatus('⚠ Foto konnte nicht gelesen werden.', 5); document.getElementById('bedPhotoInput').value=''; };
-  reader.onload = (ev) => {
+  const bed = selectedBed; // Beet merken – der Malstil-Dialog kann einen Moment offen sein
+  const inputEl = document.getElementById('bedPhotoInput');
+  // Bild auf max. 480px verkleinern und im Tagebuch speichern (wie bisher)
+  function speichern(quelle) {
     const img = new Image();
-    img.onerror = () => { showTempStatus('⚠ Datei ist kein gültiges Bild.', 5); document.getElementById('bedPhotoInput').value=''; };
+    img.onerror = () => { showTempStatus('⚠ Datei ist kein gültiges Bild.', 5); inputEl.value=''; };
     img.onload = () => {
       const maxW = 480;
       const scale = Math.min(1, maxW / img.width);
@@ -4096,16 +4104,26 @@ function handleBedPhoto(e) {
       const date = document.getElementById('bedPhotoDate').value || new Date().toISOString().slice(0,10);
       const note = document.getElementById('bedPhotoNote').value || '';
       pushUndo();
-      if (!selectedBed.photoLog) selectedBed.photoLog = [];
-      selectedBed.photoLog.push({ date, photo: dataUrl, note });
+      if (!bed.photoLog) bed.photoLog = [];
+      bed.photoLog.push({ date, photo: dataUrl, note });
       saveData();
       document.getElementById('bedPhotoNote').value = '';
-      document.getElementById('bedPhotoInput').value = '';
-      renderBedPhotoLog(selectedBed);
+      inputEl.value = '';
+      if (selectedBed === bed) renderBedPhotoLog(bed);
       showTempStatus('📷 Foto zum Tagebuch hinzugefügt', 3);
     };
-    img.src = ev.target.result;
-  };
+    img.src = quelle;
+  }
+  // Mit Malfilter: erst Stil wählen (Original, Bleistift, Buntstift, Aquarell, Pastell)
+  if (window.Malfilter) {
+    window.Malfilter.dialog(file, { titel: '📷 Foto fürs Tagebuch' })
+      .then((ergebnis) => { if (ergebnis) speichern(ergebnis); else inputEl.value = ''; })
+      .catch(() => { showTempStatus('⚠ Datei ist kein gültiges Bild.', 5); inputEl.value=''; });
+    return;
+  }
+  const reader = new FileReader();
+  reader.onerror = () => { showTempStatus('⚠ Foto konnte nicht gelesen werden.', 5); inputEl.value=''; };
+  reader.onload = (ev) => speichern(ev.target.result);
   reader.readAsDataURL(file);
 }
 function renderBedPhotoLog(bed) {
@@ -9794,11 +9812,31 @@ if (window.PlanerSync) {
 <script>
 (function() {
   var KEY_THEME = 'garten_hintergrundThema';
+  var KEY_FOTO = 'garten_hintergrundBildEigenes'; // nur auf diesem Gerät, wird nicht synchronisiert
   var klassen = ['bg-pflanzen', 'bg-werkzeug'];
   function themeAnwenden(id) {
     document.body.classList.remove.apply(document.body.classList, klassen);
-    if (id) document.body.classList.add(id);
+    document.body.style.backgroundImage = '';
+    document.body.style.backgroundSize = '';
+    document.body.style.backgroundPosition = '';
+    document.body.style.backgroundRepeat = '';
+    document.body.style.backgroundAttachment = '';
+    var foto = '';
+    try { foto = localStorage.getItem(KEY_FOTO) || ''; } catch(e) {}
+    if (id === 'foto' && foto) {
+      document.body.style.backgroundImage = 'linear-gradient(rgba(250,246,236,0.82),rgba(250,246,236,0.82)), url("' + foto + '")';
+      document.body.style.backgroundSize = 'cover';
+      document.body.style.backgroundPosition = 'center';
+      document.body.style.backgroundRepeat = 'no-repeat';
+      document.body.style.backgroundAttachment = 'fixed';
+    } else if (id === 'foto') {
+      id = '';
+    } else if (id) {
+      document.body.classList.add(id);
+    }
     document.querySelectorAll('.theme-swatch').forEach(function(s) { s.classList.toggle('aktiv', s.dataset.theme === id); });
+    var fotoSwatch = document.querySelector('.theme-foto-swatch');
+    if (fotoSwatch) fotoSwatch.classList.toggle('aktiv', id === 'foto');
   }
   var aktivesTheme = '';
   try { aktivesTheme = localStorage.getItem(KEY_THEME) || ''; } catch(e) {}
@@ -9807,7 +9845,7 @@ if (window.PlanerSync) {
   var popup = document.getElementById('themePopup');
   if (btn && popup) {
     btn.addEventListener('click', function() { popup.classList.toggle('zeigen'); });
-    document.querySelectorAll('.theme-swatch').forEach(function(swatch) {
+    document.querySelectorAll('.theme-swatch[data-theme]').forEach(function(swatch) {
       swatch.addEventListener('click', function() {
         var id = swatch.dataset.theme;
         themeAnwenden(id);
@@ -9818,6 +9856,41 @@ if (window.PlanerSync) {
     document.addEventListener('click', function(e) {
       if (popup.classList.contains('zeigen') && !popup.contains(e.target) && e.target.id !== 'btnThemeAuswahl') {
         popup.classList.remove('zeigen');
+      }
+    });
+  }
+  // Eigenes Foto als Hintergrund – vorher optional im Malstil (Bleistift, Aquarell …)
+  var fotoInput = document.getElementById('gartenThemeFotoInput');
+  if (fotoInput) {
+    fotoInput.addEventListener('change', function(e) {
+      var file = e.target.files && e.target.files[0];
+      fotoInput.value = '';
+      if (popup) popup.classList.remove('zeigen');
+      if (!file) return;
+      var weiter = function(dataUrl) {
+        if (!dataUrl) return; // abgebrochen
+        try { localStorage.setItem(KEY_FOTO, dataUrl); }
+        catch (err) { if (typeof showTempStatus === 'function') showTempStatus('⚠ Foto konnte nicht gespeichert werden (Speicher voll?).', 5); return; }
+        try { localStorage.setItem(KEY_THEME, 'foto'); } catch(err) {}
+        themeAnwenden('foto');
+      };
+      if (window.Malfilter) {
+        window.Malfilter.dialog(file, { titel: '🎨 Hintergrund gestalten', hinweis: 'Das Bild bleibt nur auf diesem Gerät.' }).then(weiter)
+          .catch(function() { if (typeof showTempStatus === 'function') showTempStatus('⚠ Datei ist kein gültiges Bild.', 5); });
+      } else {
+        // Fallback ohne Malfilter: wie bisher verkleinern
+        var reader = new FileReader();
+        reader.onload = function(ev) {
+          var img = new Image();
+          img.onload = function() {
+            var scale = Math.min(1, 900 / img.width), c = document.createElement('canvas');
+            c.width = img.width * scale; c.height = img.height * scale;
+            c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+            weiter(c.toDataURL('image/jpeg', 0.65));
+          };
+          img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
       }
     });
   }

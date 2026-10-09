@@ -1,7 +1,7 @@
 /* malfilter.js – Familienplaner: Fotos in Bleistift/Buntstift/Aquarell/Pastell umwandeln.
    Rein clientseitig. API:
      Malfilter.anwenden(bildQuelle, stil, staerke0bis100) -> Promise<dataURL JPEG>
-     Malfilter.dialog(bildQuelle, {titel}) -> Promise<dataURL | null>   (Auswahl-Dialog mit Vorschau)
+     Malfilter.dialog(bildQuelle, {titel, hinweis}) -> Promise<dataURL | null>  (null = Abbrechen; bei "Original" das unveränderte Bild)
    bildQuelle: dataURL, Blob/File oder HTMLImageElement. Ergebnis max. 900px, JPEG q0.82. */
 (function(){
 'use strict';
@@ -167,19 +167,20 @@ function css(){
   const st=document.createElement('style');st.id='mf-css';
   st.textContent=`
 .mf-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99999;display:flex;align-items:center;justify-content:center;padding:12px}
-.mf-box{background:var(--card,#fff);color:var(--text,#222);border-radius:16px;max-width:520px;width:100%;max-height:94vh;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:12px;font-family:inherit}
+.mf-box{background:var(--white,#fffdf8);color:var(--soil,#3a2e1f);border-radius:16px;max-width:520px;width:100%;max-height:94vh;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:12px;font-family:inherit}
 .mf-box h3{margin:0;font-size:1.1rem}
-.mf-bild{position:relative;background:#f7f4ec;border-radius:10px;overflow:hidden;min-height:120px;display:flex;align-items:center;justify-content:center}
+.mf-bild{position:relative;background:var(--parchment,#ece0c7);border-radius:10px;overflow:hidden;min-height:120px;display:flex;align-items:center;justify-content:center}
 .mf-bild img{display:block;max-width:100%;max-height:52vh;user-select:none;-webkit-user-select:none}
 .mf-lade{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(255,255,255,.55);font-weight:700;color:#333}
 .mf-stile{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:6px}
 .mf-stile button,.mf-akt button{font:inherit;font-weight:700;padding:9px 8px;border-radius:999px;border:1px solid rgba(0,0,0,.15);background:rgba(0,0,0,.05);color:inherit;cursor:pointer}
-.mf-stile button.an{background:#3a7d44;border-color:#3a7d44;color:#fff}
+.mf-stile button.an{background:var(--moss,#4f6f45);border-color:var(--moss,#4f6f45);color:var(--cream,#fff)}
 .mf-reg{display:flex;align-items:center;gap:10px;font-size:.9rem}
-.mf-reg input{flex:1;accent-color:#3a7d44}
+.mf-reg input{flex:1;accent-color:var(--moss,#4f6f45)}
 .mf-akt{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
-.mf-akt .ok{background:#3a7d44;border-color:#3a7d44;color:#fff}
-[data-dark="true"] .mf-box,body.dark .mf-box{background:#23272a;color:#eee}
+.mf-akt .ok{background:var(--moss,#4f6f45);border-color:var(--moss,#4f6f45);color:var(--cream,#fff)}
+.mf-hinweis{font-size:.75rem;opacity:.75;margin:-4px 0 0}
+html[data-dark="1"] .mf-stile button,html[data-dark="1"] .mf-akt button{border-color:rgba(255,255,255,.18);background:rgba(255,255,255,.06)}
 `;
   document.head.appendChild(st);
 }
@@ -194,7 +195,7 @@ function dialog(q,opt){
       '<div class="mf-bild"><img alt="Vorschau"><div class="mf-lade">Male …</div></div>'+
       '<div class="mf-stile"><button data-s="original">Original</button>'+Object.keys(STILE).map(k=>'<button data-s="'+k+'">'+STILE[k].name+'</button>').join('')+'</div>'+
       '<label class="mf-reg">Stärke <input type="range" min="0" max="100" step="1"><b class="mf-wert"></b></label>'+
-      '<div class="mf-akt"><button class="ab">Abbrechen</button><button class="ok">Übernehmen</button></div></div>';
+      (opt.hinweis?'<p class="mf-hinweis">'+opt.hinweis+'</p>':'')+'<div class="mf-akt"><button class="ab">Abbrechen</button><button class="ok">Übernehmen</button></div></div>';
     document.body.appendChild(bg);
     const bi=bg.querySelector('img'),lade=bg.querySelector('.mf-lade'),reg=bg.querySelector('input'),wert=bg.querySelector('.mf-wert');
     reg.value=staerke;wert.textContent=staerke;
@@ -209,7 +210,7 @@ function dialog(q,opt){
     bg.querySelector('.mf-stile').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;stil=b.dataset.s;zeichne();});
     reg.addEventListener('input',()=>{staerke=+reg.value;wert.textContent=staerke;clearTimeout(t);t=setTimeout(zeichne,150);});
     bg.querySelector('.ab').onclick=()=>zu(null);
-    bg.querySelector('.ok').onclick=()=>zu(stil==='original'?null:akt);
+    bg.querySelector('.ok').onclick=()=>zu(akt);
     bg.addEventListener('click',e=>{if(e.target===bg)zu(null);});
     zeichne();
   });
