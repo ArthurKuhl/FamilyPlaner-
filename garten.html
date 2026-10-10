@@ -298,6 +298,7 @@
   .pp-foto-galerie::-webkit-scrollbar { display: none; }
   .pp-foto-thumb { position: relative; flex-shrink: 0; width: 46px; height: 46px; border-radius: 7px; overflow: hidden; border: 2px solid rgba(255,255,255,0.5); cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
   .pp-foto-thumb.aktuell { border-color: #8fc98a; }
+  .pp-foto-thumb.privat { border-style: dashed; }
   .pp-foto-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .pp-foto-thumb .pp-foto-datum { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.6); color: #fff; font-size: 0.42rem; text-align: center; padding: 1px 0; }
   .pp-foto-thumb-del { position: absolute; top: 1px; right: 1px; background: rgba(0,0,0,0.6); color: #fff; border: none; border-radius: 50%; width: 13px; height: 13px; font-size: 0.5rem; line-height: 1; cursor: pointer; padding: 0; }
@@ -484,7 +485,9 @@
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-storage-compat.js"></script>
 <script src="sync.js"></script>
+<script src="fotospeicher.js"></script>
 <script src="malfilter.js"></script>
 </head>
 <body>
@@ -1012,6 +1015,7 @@
     <button class="close-btn pp-close-btn-oben" aria-label="Pflanzenpanel schließen" onclick="closePlantPanel()">✕</button>
     <div class="pp-header-actions">
       <button type="button" class="pp-foto-btn" id="btnPpFotoOeffnen" title="Foto hinzufügen/ändern" aria-label="Foto hinzufügen">📷</button>
+      <button type="button" class="pp-foto-btn" id="btnPpFotoTeilen" title="Sichtbarkeit: Familie oder nur ich" aria-label="Sichtbarkeit umschalten" style="display:none;">👪</button>
       <button type="button" class="pp-foto-btn" id="btnPpFotoMalen" title="Foto als Malerei (Bleistift, Aquarell …)" aria-label="Malstil anwenden" style="display:none;">🎨</button>
       <button type="button" class="pp-foto-btn" id="btnPpFotoEntfernen" title="Foto entfernen" aria-label="Foto entfernen" style="display:none;">🗑</button>
     </div>
@@ -1255,6 +1259,7 @@
     <button class="close-btn pp-close-btn-oben" aria-label="Panel schließen" onclick="fpSchliessen()">✕</button>
     <div class="pp-header-actions">
       <button type="button" class="pp-foto-btn" id="btnFpFotoOeffnen" title="Foto hinzufügen/ändern" aria-label="Foto hinzufügen">📷</button>
+      <button type="button" class="pp-foto-btn" id="btnFpFotoTeilen" title="Sichtbarkeit: Familie oder nur ich" aria-label="Sichtbarkeit umschalten" style="display:none;">👪</button>
       <button type="button" class="pp-foto-btn" id="btnFpFotoMalen" title="Foto als Malerei (Bleistift, Aquarell …)" aria-label="Malstil anwenden" style="display:none;">🎨</button>
       <button type="button" class="pp-foto-btn" id="btnFpFotoEntfernen" title="Foto entfernen" aria-label="Foto entfernen" style="display:none;">🗑</button>
     </div>
@@ -7146,12 +7151,14 @@ function renderFreiPflanzePhoto(fp) {
   const header = document.getElementById('freiPflanzePanelHeader');
   const entfernenBtn = document.getElementById('btnFpFotoEntfernen');
   const malenBtn = document.getElementById('btnFpFotoMalen');
+  const teilenBtn = document.getElementById('btnFpFotoTeilen');
   const input = document.getElementById('fpPhotoInput');
   const platzhalter = document.getElementById('fpHeaderPlaceholder');
   if (input) input.value = '';
   const titelbild = ppFotoTitelbild(fp);
   if (titelbild) {
-    header.style.backgroundImage = 'url("' + titelbild.data + '")';
+    header.style.backgroundImage = 'url("' + fotoQuelle(titelbild) + '")';
+    fotoTeilenKnopfAktualisieren(teilenBtn, titelbild);
     entfernenBtn.style.display = '';
     if (malenBtn) malenBtn.style.display = window.Malfilter ? '' : 'none';
     if (platzhalter) platzhalter.textContent = '';
@@ -7159,18 +7166,20 @@ function renderFreiPflanzePhoto(fp) {
     header.style.backgroundImage = '';
     entfernenBtn.style.display = 'none';
     if (malenBtn) malenBtn.style.display = 'none';
+    if (teilenBtn) teilenBtn.style.display = 'none';
     if (platzhalter) platzhalter.textContent = fp.sym || '🌳';
   }
   const galerie = document.getElementById('fpFotoGalerie');
   galerie.innerHTML = '';
   fp.fotos.forEach((f, i) => {
+    if (!fotoQuelle(f)) return; // z.B. "🔒 Nur ich"-Foto eines anderen Familienmitglieds
     const thumb = document.createElement('div');
-    thumb.className = 'pp-foto-thumb' + (titelbild && f.id === titelbild.id ? ' aktuell' : '');
-    thumb.innerHTML = '<img src="' + f.data + '" alt="">' +
+    thumb.className = 'pp-foto-thumb' + (titelbild && f.id === titelbild.id ? ' aktuell' : '') + (f.geteilt === false ? ' privat' : '');
+    thumb.innerHTML = '<img src="' + fotoQuelle(f) + '" alt="" loading="lazy">' +
       (f.datum ? '<span class="pp-foto-datum">' + new Date(f.datum).toLocaleDateString('de-DE', {day:'2-digit',month:'2-digit',year:'2-digit'}) + '</span>' : '') +
       '<button type="button" class="pp-foto-thumb-titel" title="Als Titelbild festlegen" aria-label="Als Titelbild festlegen">📌</button>' +
       '<button type="button" class="pp-foto-thumb-del" title="Dieses Foto löschen" aria-label="Foto löschen">✕</button>';
-    thumb.querySelector('img').addEventListener('click', () => fotoLightboxOeffnen(f.data));
+    thumb.querySelector('img').addEventListener('click', () => fotoLightboxOeffnen(fotoQuelle(f)));
     thumb.querySelector('.pp-foto-thumb-titel').addEventListener('click', (e) => {
       e.stopPropagation();
       fp.fotoTitelbildId = f.id;
@@ -7180,7 +7189,7 @@ function renderFreiPflanzePhoto(fp) {
     thumb.querySelector('.pp-foto-thumb-del').addEventListener('click', (e) => {
       e.stopPropagation();
       pushUndo();
-      fp.fotos.splice(i, 1);
+      fotoCloudLoeschen(fp.fotos.splice(i, 1)[0]);
       if (fp.fotoTitelbildId === f.id) delete fp.fotoTitelbildId;
       saveData();
       renderFreiPflanzePhoto(fp);
@@ -7215,15 +7224,16 @@ function handleFreiPflanzePhoto(e) {
       if (!fp) return;
       pushUndo();
       ppFotosMigrieren(fp);
-      const neuesFoto = { id: fotoNeueId(), data: dataUrl, datum: new Date().toISOString().slice(0,10) };
+      const neuesFoto = { id: fotoNeueId(), data: dataUrl, datum: new Date().toISOString().slice(0,10), geteilt: img._geteilt !== false };
       fp.fotos.push(neuesFoto);
-      while (fp.fotos.length > PP_MAX_FOTOS) fp.fotos.shift();
+      while (fp.fotos.length > PP_MAX_FOTOS) fotoCloudLoeschen(fp.fotos.shift());
       fp.fotoTitelbildId = neuesFoto.id;
       ppFotoInSammelalbumEintragen(fp.name, dataUrl);
       saveData();
       renderFreiPflanzePhoto(fp);
+      familienFotosHochladen();
     };
-    malfilterVorschalten(ev.target.result, (quelle) => { img.src = quelle; });
+    malfilterVorschalten(ev.target.result, (quelle, geteilt) => { img._geteilt = geteilt; img.src = quelle; });
   };
   reader.readAsDataURL(file);
 }
@@ -7234,6 +7244,7 @@ function removeFreiPflanzePhoto() {
   ppFotosMigrieren(fp);
   const titelbild = ppFotoTitelbild(fp);
   if (titelbild) {
+    fotoCloudLoeschen(titelbild);
     fp.fotos = fp.fotos.filter(f => f.id !== titelbild.id);
     if (fp.fotoTitelbildId === titelbild.id) delete fp.fotoTitelbildId;
   }
@@ -7533,12 +7544,14 @@ function ppFotosMigrieren(obj) {
 // Liefert das aktuell als Titelbild festgelegte Foto – oder, falls keins explizit gesetzt
 // wurde (bzw. das gesetzte gelöscht wurde), das zuletzt hinzugefügte.
 function ppFotoTitelbild(obj) {
-  if (!obj.fotos || !obj.fotos.length) return null;
+  // Nur Fotos, die auf diesem Gerät anzeigbar sind (lokal vorhanden oder als 👪-Familienfoto in der Cloud)
+  const sichtbar = (obj.fotos || []).filter(f => f && (f.data || f.url));
+  if (!sichtbar.length) return null;
   if (obj.fotoTitelbildId) {
-    const treffer = obj.fotos.find(f => f.id === obj.fotoTitelbildId);
+    const treffer = sichtbar.find(f => f.id === obj.fotoTitelbildId);
     if (treffer) return treffer;
   }
-  return obj.fotos[obj.fotos.length - 1];
+  return sichtbar[sichtbar.length - 1];
 }
 function fotoLightboxOeffnen(dataUrl) {
   document.getElementById('fotoLightboxImg').src = dataUrl;
@@ -7552,12 +7565,14 @@ function renderPlantPhoto(plant) {
   const header = document.getElementById('plantPanelHeader');
   const entfernenBtn = document.getElementById('btnPpFotoEntfernen');
   const malenBtn = document.getElementById('btnPpFotoMalen');
+  const teilenBtn = document.getElementById('btnPpFotoTeilen');
   const input = document.getElementById('ppPhotoInput');
   const platzhalter = document.getElementById('ppHeaderPlaceholder');
   if (input) input.value = '';
   const titelbild = ppFotoTitelbild(plant);
   if (titelbild) {
-    header.style.backgroundImage = 'url("' + titelbild.data + '")';
+    header.style.backgroundImage = 'url("' + fotoQuelle(titelbild) + '")';
+    fotoTeilenKnopfAktualisieren(teilenBtn, titelbild);
     entfernenBtn.style.display = '';
     if (malenBtn) malenBtn.style.display = window.Malfilter ? '' : 'none';
     platzhalter.textContent = '';
@@ -7565,18 +7580,20 @@ function renderPlantPhoto(plant) {
     header.style.backgroundImage = '';
     entfernenBtn.style.display = 'none';
     if (malenBtn) malenBtn.style.display = 'none';
+    if (teilenBtn) teilenBtn.style.display = 'none';
     platzhalter.textContent = plant.sym || '🌿';
   }
   const galerie = document.getElementById('ppFotoGalerie');
   galerie.innerHTML = '';
   plant.fotos.forEach((f, i) => {
+    if (!fotoQuelle(f)) return; // z.B. "🔒 Nur ich"-Foto eines anderen Familienmitglieds
     const thumb = document.createElement('div');
-    thumb.className = 'pp-foto-thumb' + (titelbild && f.id === titelbild.id ? ' aktuell' : '');
-    thumb.innerHTML = '<img src="' + f.data + '" alt="">' +
+    thumb.className = 'pp-foto-thumb' + (titelbild && f.id === titelbild.id ? ' aktuell' : '') + (f.geteilt === false ? ' privat' : '');
+    thumb.innerHTML = '<img src="' + fotoQuelle(f) + '" alt="" loading="lazy">' +
       (f.datum ? '<span class="pp-foto-datum">' + new Date(f.datum).toLocaleDateString('de-DE', {day:'2-digit',month:'2-digit',year:'2-digit'}) + '</span>' : '') +
       '<button type="button" class="pp-foto-thumb-titel" title="Als Titelbild festlegen" aria-label="Als Titelbild festlegen">📌</button>' +
       '<button type="button" class="pp-foto-thumb-del" title="Dieses Foto löschen" aria-label="Foto löschen">✕</button>';
-    thumb.querySelector('img').addEventListener('click', () => fotoLightboxOeffnen(f.data));
+    thumb.querySelector('img').addEventListener('click', () => fotoLightboxOeffnen(fotoQuelle(f)));
     thumb.querySelector('.pp-foto-thumb-titel').addEventListener('click', (e) => {
       e.stopPropagation();
       plant.fotoTitelbildId = f.id;
@@ -7586,7 +7603,7 @@ function renderPlantPhoto(plant) {
     thumb.querySelector('.pp-foto-thumb-del').addEventListener('click', (e) => {
       e.stopPropagation();
       pushUndo();
-      plant.fotos.splice(i, 1);
+      fotoCloudLoeschen(plant.fotos.splice(i, 1)[0]);
       if (plant.fotoTitelbildId === f.id) delete plant.fotoTitelbildId;
       saveData();
       renderPlantPhoto(plant);
@@ -7623,15 +7640,16 @@ function handlePlantPhoto(e) {
       if (!plant) return;
       pushUndo();
       ppFotosMigrieren(plant);
-      const neuesFoto = { id: fotoNeueId(), data: dataUrl, datum: new Date().toISOString().slice(0,10) };
+      const neuesFoto = { id: fotoNeueId(), data: dataUrl, datum: new Date().toISOString().slice(0,10), geteilt: img._geteilt !== false };
       plant.fotos.push(neuesFoto);
-      while (plant.fotos.length > PP_MAX_FOTOS) plant.fotos.shift();
+      while (plant.fotos.length > PP_MAX_FOTOS) fotoCloudLoeschen(plant.fotos.shift());
       plant.fotoTitelbildId = neuesFoto.id;
       ppFotoInSammelalbumEintragen(plant.name, dataUrl);
       saveData();
       renderPlantPhoto(plant);
+      familienFotosHochladen();
     };
-    malfilterVorschalten(ev.target.result, (quelle) => { img.src = quelle; });
+    malfilterVorschalten(ev.target.result, (quelle, geteilt) => { img._geteilt = geteilt; img.src = quelle; });
   };
   reader.readAsDataURL(file);
 }
@@ -7645,6 +7663,7 @@ function removePlantPhoto() {
   ppFotosMigrieren(plant);
   const titelbild = ppFotoTitelbild(plant);
   if (titelbild) {
+    fotoCloudLoeschen(titelbild);
     plant.fotos = plant.fotos.filter(f => f.id !== titelbild.id);
     if (plant.fotoTitelbildId === titelbild.id) delete plant.fotoTitelbildId;
   }
@@ -7661,9 +7680,9 @@ document.getElementById('btnFpFotoEntfernen').addEventListener('click', (e) => {
 // Beim Hochladen: erst den Malstil-Dialog zeigen (Original/Bleistift/Buntstift/Aquarell/Pastell).
 // "Abbrechen" verwirft das Foto. Ohne malfilter.js wird das Foto direkt übernommen.
 function malfilterVorschalten(dataUrl, weiter) {
-  if (!window.Malfilter) { weiter(dataUrl); return; }
-  window.Malfilter.dialog(dataUrl, { titel: '📷 Foto hinzufügen' })
-    .then((ergebnis) => { if (ergebnis) weiter(ergebnis); })
+  if (!window.Malfilter) { weiter(dataUrl, true); return; }
+  window.Malfilter.dialog(dataUrl, { titel: '📷 Foto hinzufügen', mitStil: true, teilen: true })
+    .then((ergebnis) => { if (ergebnis) weiter(ergebnis.bild, ergebnis.geteilt); })
     .catch(() => showTempStatus('⚠ Datei ist kein gültiges Bild.', 5));
 }
 // Nachträglich: das aktuelle Titelbild in einen Malstil umwandeln.
@@ -7676,6 +7695,7 @@ function fotoMalstilAnwenden(obj, rendern) {
   ppFotosMigrieren(obj);
   const foto = ppFotoTitelbild(obj);
   if (!foto) return;
+  if (!foto.photo && !foto.data) { showTempStatus('ℹ️ Malstil geht nur auf dem Gerät, auf dem das Foto aufgenommen wurde.', 5); return; }
   const quelle = foto.photo || foto.data;
   window.Malfilter.dialog(quelle, { titel: '🎨 Foto als Malerei', mitStil: true,
       hinweis: foto.photo ? 'Das Original bleibt erhalten – „Original“ stellt es wieder her.' : 'Das Original wird aufbewahrt und lässt sich jederzeit wiederherstellen.' })
@@ -7685,7 +7705,8 @@ function fotoMalstilAnwenden(obj, rendern) {
         if (!foto.photo) return; // war schon das Original
         pushUndo();
         foto.data = foto.photo; delete foto.photo;
-        saveData(); rendern(obj);
+        if (foto.geteilt !== false) { fotoCloudLoeschen(foto); delete foto.url; delete foto.pfad; foto.neuerName = true; }
+        saveData(); rendern(obj); familienFotosHochladen();
         showTempStatus('↺ Originalfoto wiederhergestellt', 3);
         return;
       }
@@ -7698,14 +7719,99 @@ function fotoMalstilAnwenden(obj, rendern) {
         pushUndo();
         if (!foto.photo) foto.photo = foto.data;
         foto.data = c.toDataURL('image/jpeg', 0.72);
+        if (foto.geteilt !== false) { fotoCloudLoeschen(foto); delete foto.url; delete foto.pfad; foto.neuerName = true; }
         try { saveData(); } catch (err) { showTempStatus('⚠ Speichern fehlgeschlagen (Speicher voll?).', 5); return; }
         rendern(obj);
+        familienFotosHochladen();
         showTempStatus('🎨 Malstil übernommen', 3);
       };
       img.src = erg.bild;
     })
     .catch(() => showTempStatus('⚠ Foto konnte nicht bearbeitet werden.', 5));
 }
+// ==================== FAMILIENFOTOS (👪 Familie / 🔒 Nur ich) ====================
+// 👪-Fotos liegen als Datei in Firebase Storage (fotospeicher.js); im synchronisierten
+// Eintrag steht nur url/pfad – so bleibt das Garten-Dokument klein (1-MB-Grenze).
+// 🔒-Fotos bleiben nur auf diesem Gerät. Ältere Fotos ohne Angabe gelten als 👪 Familie.
+function fotoQuelle(f) { return (f && (f.data || f.url)) || ''; }
+function fotoCloudLoeschen(f) { if (f && f.pfad && window.FotoSpeicher) window.FotoSpeicher.loeschen(f.pfad); }
+function fotoTeilenKnopfAktualisieren(btn, foto) {
+  if (!btn) return;
+  const cloud = !!(window.FotoSpeicher && window.FotoSpeicher.verfuegbar());
+  btn.style.display = cloud ? '' : 'none';
+  const privat = foto.geteilt === false;
+  btn.textContent = privat ? '🔒' : '👪';
+  btn.title = privat ? 'Nur auf diesem Gerät – antippen, um es mit der Familie zu teilen'
+    : (foto.url ? 'Für die Familie sichtbar – antippen für „Nur ich“' : 'Wird mit der Familie geteilt (Upload ausstehend) – antippen für „Nur ich“');
+}
+// Alle Pflanzen- und Baumfotos (aller Gärten) durchgehen, die noch hochgeladen werden müssen
+function alleFotoListenObjekte() {
+  const liste = [];
+  Object.values(gardens || {}).forEach(g => {
+    (g.beds || []).forEach(b => (b.plants || []).forEach(p => { if (Array.isArray(p.fotos)) liste.push(p); }));
+    (g.freiPflanzen || []).forEach(fp => { if (Array.isArray(fp.fotos)) liste.push(fp); });
+  });
+  return liste;
+}
+let familienFotoUploadLaeuft = false;
+async function familienFotosHochladen() {
+  if (familienFotoUploadLaeuft || !window.FotoSpeicher || !window.FotoSpeicher.verfuegbar() || !navigator.onLine) return;
+  familienFotoUploadLaeuft = true;
+  let geaendert = false, fehler = false;
+  try {
+    for (const obj of alleFotoListenObjekte()) {
+      for (const f of obj.fotos) {
+        if (f.geteilt === false || f.url || !f.data) continue;
+        try {
+          const erg = await window.FotoSpeicher.hochladen(f.id, f.data, !!f.neuerName);
+          if (!obj.fotos.includes(f) || f.geteilt === false) { window.FotoSpeicher.loeschen(erg.pfad); continue; } // inzwischen gelöscht/umgestellt
+          f.url = erg.url; f.pfad = erg.pfad; f.geteilt = true; delete f.neuerName;
+          geaendert = true;
+        } catch (e) { console.warn('Familienfoto-Upload fehlgeschlagen', e); fehler = true; break; }
+      }
+      if (fehler) break;
+    }
+  } finally {
+    familienFotoUploadLaeuft = false;
+    if (geaendert) {
+      saveData();
+      if (activePlantBedId) { const b = getCurrentBeds().find(x => x.id === activePlantBedId.bedId); const p = b && b.plants[activePlantBedId.idx]; if (p && document.getElementById('plantPanel').classList.contains('open')) renderPlantPhoto(p); }
+      const fp = activeFreiPflanzeId && getCurrentFreiPflanzen().find(x => x.id === activeFreiPflanzeId);
+      if (fp) renderFreiPflanzePhoto(fp);
+    }
+  }
+}
+function fotoTeilenUmschalten(obj, rendern) {
+  if (!obj) return;
+  const foto = ppFotoTitelbild(obj);
+  if (!foto) return;
+  if (foto.geteilt === false) {
+    foto.geteilt = true;
+    saveData(); rendern(obj);
+    showTempStatus('👪 Wird mit der Familie geteilt …', 3);
+    familienFotosHochladen();
+    return;
+  }
+  if (!foto.data) { showTempStatus('ℹ️ „Nur ich“ geht nur auf dem Gerät, auf dem das Foto aufgenommen wurde.', 5); return; }
+  fotoCloudLoeschen(foto);
+  foto.geteilt = false; delete foto.url; delete foto.pfad;
+  saveData(); rendern(obj);
+  showTempStatus('🔒 Nur noch auf diesem Gerät sichtbar', 3);
+}
+document.getElementById('btnPpFotoTeilen').addEventListener('click', (e) => {
+  e.stopPropagation();
+  if (!activePlantBedId) return;
+  const bed = getCurrentBeds().find(b => b.id === activePlantBedId.bedId);
+  fotoTeilenUmschalten(bed && bed.plants[activePlantBedId.idx], renderPlantPhoto);
+});
+document.getElementById('btnFpFotoTeilen').addEventListener('click', (e) => {
+  e.stopPropagation();
+  fotoTeilenUmschalten(getCurrentFreiPflanzen().find(x => x.id === activeFreiPflanzeId), renderFreiPflanzePhoto);
+});
+// Ausstehende Uploads nachholen: kurz nach dem Start und sobald wieder Internet da ist
+setTimeout(familienFotosHochladen, 4000);
+window.addEventListener('online', () => setTimeout(familienFotosHochladen, 1500));
+
 document.getElementById('btnPpFotoMalen').addEventListener('click', (e) => {
   e.stopPropagation();
   if (!activePlantBedId) return;
@@ -7725,14 +7831,14 @@ document.getElementById('plantPanelHeader').addEventListener('click', (e) => {
   const plant = bed && bed.plants[activePlantBedId.idx];
   if (!plant) return;
   const titelbild = ppFotoTitelbild(plant);
-  if (titelbild) fotoLightboxOeffnen(titelbild.data);
+  if (titelbild) fotoLightboxOeffnen(fotoQuelle(titelbild));
 });
 document.getElementById('freiPflanzePanelHeader').addEventListener('click', (e) => {
   if (e.target.closest('.pp-header-actions, .pp-foto-galerie, .pp-lebenszyklus-badge, .close-btn')) return;
   const fp = getCurrentFreiPflanzen().find(x => x.id === activeFreiPflanzeId);
   if (!fp) return;
   const titelbild = ppFotoTitelbild(fp);
-  if (titelbild) fotoLightboxOeffnen(titelbild.data);
+  if (titelbild) fotoLightboxOeffnen(fotoQuelle(titelbild));
 });
 function togglePerennialInfo(e) {
   e.stopPropagation();

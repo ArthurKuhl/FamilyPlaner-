@@ -1,7 +1,7 @@
 /* malfilter.js – Familienplaner: Fotos in Bleistift/Buntstift/Aquarell/Pastell umwandeln.
    Rein clientseitig. API:
      Malfilter.anwenden(bildQuelle, stil, staerke0bis100) -> Promise<dataURL JPEG>
-     Malfilter.dialog(bildQuelle, {titel, hinweis}) -> Promise<dataURL | null>  (null = Abbrechen; bei "Original" das unveränderte Bild)
+     Malfilter.dialog(bildQuelle, {titel, hinweis}) -> Promise<dataURL | null>  (null = Abbrechen; bei "Original" das unveränderte Bild; mit {mitStil:true} -> {bild, stil, geteilt}; {teilen:true|false} zeigt die Auswahl 👪 Familie / 🔒 Nur ich)
    bildQuelle: dataURL, Blob/File oder HTMLImageElement. Ergebnis max. 900px, JPEG q0.82. */
 (function(){
 'use strict';
@@ -180,6 +180,9 @@ function css(){
 .mf-akt{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
 .mf-akt .ok{background:var(--moss,#4f6f45);border-color:var(--moss,#4f6f45);color:var(--cream,#fff)}
 .mf-hinweis{font-size:.75rem;opacity:.75;margin:-4px 0 0}
+.mf-teilen{display:flex;gap:6px;align-items:center;font-size:.85rem;flex-wrap:wrap}
+.mf-teilen button{font:inherit;font-weight:700;padding:7px 12px;border-radius:999px;border:1px solid rgba(0,0,0,.15);background:rgba(0,0,0,.05);color:inherit;cursor:pointer}
+.mf-teilen button.an{background:var(--moss,#4f6f45);border-color:var(--moss,#4f6f45);color:var(--cream,#fff)}
 html[data-dark="1"] .mf-stile button,html[data-dark="1"] .mf-akt button{border-color:rgba(255,255,255,.18);background:rgba(255,255,255,.06)}
 `;
   document.head.appendChild(st);
@@ -195,10 +198,14 @@ function dialog(q,opt){
       '<div class="mf-bild"><img alt="Vorschau"><div class="mf-lade">Male …</div></div>'+
       '<div class="mf-stile"><button data-s="original">Original</button>'+Object.keys(STILE).map(k=>'<button data-s="'+k+'">'+STILE[k].name+'</button>').join('')+'</div>'+
       '<label class="mf-reg">Stärke <input type="range" min="0" max="100" step="1"><b class="mf-wert"></b></label>'+
-      (opt.hinweis?'<p class="mf-hinweis">'+opt.hinweis+'</p>':'')+'<div class="mf-akt"><button class="ab">Abbrechen</button><button class="ok">Übernehmen</button></div></div>';
+      (opt.teilen!==undefined?'<div class="mf-teilen"><span>Sichtbar für:</span><button type="button" data-t="1">👪 Familie</button><button type="button" data-t="0">🔒 Nur ich</button></div>':'')+(opt.hinweis?'<p class="mf-hinweis">'+opt.hinweis+'</p>':'')+'<div class="mf-akt"><button class="ab">Abbrechen</button><button class="ok">Übernehmen</button></div></div>';
     document.body.appendChild(bg);
     const bi=bg.querySelector('img'),lade=bg.querySelector('.mf-lade'),reg=bg.querySelector('input'),wert=bg.querySelector('.mf-wert');
     reg.value=staerke;wert.textContent=staerke;
+    let geteilt=opt.teilen!==false;
+    function teilenRendern(){bg.querySelectorAll('.mf-teilen button').forEach(b=>b.classList.toggle('an',(b.dataset.t==='1')===geteilt));}
+    bg.querySelectorAll('.mf-teilen button').forEach(b=>b.addEventListener('click',()=>{geteilt=b.dataset.t==='1';teilenRendern();}));
+    teilenRendern();
     function zeichne(){
       bg.querySelectorAll('.mf-stile button').forEach(b=>b.classList.toggle('an',b.dataset.s===stil));
       reg.disabled=stil==='original';
@@ -210,7 +217,7 @@ function dialog(q,opt){
     bg.querySelector('.mf-stile').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;stil=b.dataset.s;zeichne();});
     reg.addEventListener('input',()=>{staerke=+reg.value;wert.textContent=staerke;clearTimeout(t);t=setTimeout(zeichne,150);});
     bg.querySelector('.ab').onclick=()=>zu(null);
-    bg.querySelector('.ok').onclick=()=>zu(akt);
+    bg.querySelector('.ok').onclick=()=>zu(opt.mitStil?{bild:akt,stil:stil,geteilt:geteilt}:akt);
     bg.addEventListener('click',e=>{if(e.target===bg)zu(null);});
     zeichne();
   });

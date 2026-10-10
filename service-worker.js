@@ -1,8 +1,9 @@
 // Gartenplaner Service Worker
 // WICHTIG: CACHE_VERSION bei jedem Update der App-Datei erhöhen (z.B. 'v1' -> 'v2'),
 // sonst bekommen Nutzer weiterhin die alte, zwischengespeicherte Version ausgeliefert.
-const CACHE_VERSION = 'v383';
+const CACHE_VERSION = 'v384';
 const CACHE_NAME = 'planer-cache-' + CACHE_VERSION;
+const FOTO_CACHE = 'planer-fotos'; // Familienfotos, versionsunabhängig
 
 const APP_SHELL = [
   './index.html',
@@ -28,6 +29,7 @@ const APP_SHELL = [
   './personen.js',
   './gemeinsam.js',
   './malfilter.js',
+  './fotospeicher.js',
   './manifest.webmanifest',
   './icon-192.png',
   './icon-512.png',
@@ -48,7 +50,7 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((keys) =>
       Promise.all(
         keys
-          .filter((key) => key.startsWith('planer-cache-') && key !== CACHE_NAME)
+          .filter((key) => key.startsWith('planer-cache-') && key !== CACHE_NAME) // 'planer-fotos' bleibt bewusst erhalten
           .map((key) => caches.delete(key))
       )
     )
@@ -73,6 +75,21 @@ self.addEventListener('fetch', (event) => {
   const req = event.request;
 
   if (req.method !== 'GET') return;
+
+  // 👪 Familienfotos aus Firebase Storage: "Cache zuerst". Jede Foto-Datei hat eine eigene,
+  // unveränderliche Adresse (bei Änderungen entsteht eine neue), daher reicht einmal laden –
+  // danach sind sie auch offline da. Nur echte Bild-Downloads (alt=media), keine Metadaten.
+  if (req.url.indexOf('firebasestorage.googleapis.com') !== -1 && req.url.indexOf('alt=media') !== -1) {
+    event.respondWith(
+      caches.open(FOTO_CACHE).then((cache) =>
+        cache.match(req).then((treffer) => treffer || fetch(req).then((antwort) => {
+          if (antwort && (antwort.ok || antwort.type === 'opaque')) cache.put(req, antwort.clone());
+          return antwort;
+        }))
+      )
+    );
+    return;
+  }
 
   // Eigene App-Dateien immer beim Server nachfragen (cache: 'no-cache'), statt bis zu
   // 10 Minuten eine vom Browser zwischengespeicherte alte Version zu bekommen.

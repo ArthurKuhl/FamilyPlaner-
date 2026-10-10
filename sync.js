@@ -133,7 +133,8 @@ window.PlanerSync = (function () {
   // FOTOS NICHT IN DIE CLOUD-DOKUMENTE (Firestore-Größenlimit: 1 MB pro Dokument)
   // Entfernt rekursiv alle Fotos aus den zu synchronisierenden Daten:
   //  - Eigenschaften namens "photo" (z.B. Garten-Tagebuch, Fotoalbum)
-  //  - Foto-Listen namens "fotos" (z.B. Pflanzen- und Baumfotos im Garten)
+  //  - bei Foto-Listen ("fotos") nur die eingebetteten Bilddaten – Einträge mit id, Datum und
+  //    ggf. Cloud-Adresse (url, für 👪-Familienfotos in Firebase Storage) bleiben erhalten
   //  - JEDE Eigenschaft, deren Wert ein eingebettetes Bild ist ("data:image/…"),
   //    z.B. Gartenfoto (bgImage) oder Pilz-Logbuch (foto) – auch künftige Felder.
   // Die Fotos bleiben lokal auf dem Gerät erhalten (siehe fotosWiederEinfuegen).
@@ -144,7 +145,7 @@ window.PlanerSync = (function () {
     if (objekt && typeof objekt === 'object') {
       const kopie = {};
       Object.keys(objekt).forEach((k) => {
-        if (k === 'photo' || k === 'fotos') return;
+        if (k === 'photo') return;
         if (istEingebettetesBild(objekt[k])) return;
         kopie[k] = entferneFotosTief(objekt[k]);
       });
@@ -315,6 +316,14 @@ window.PlanerSync = (function () {
     return { melde: melde, entferneFotosTief: entferneFotosTief };
   }
 
+  // Für Foto-Speicher (fotospeicher.js): wartet, bis Firebase + anonyme Anmeldung bereit sind
+  function authBereit() {
+    if (!verfuegbar || !holeFamilienId()) return Promise.reject(new Error('Cloud nicht verfügbar'));
+    initFirebase();
+    if (!verfuegbar || !authReady) return Promise.reject(new Error('Cloud nicht verfügbar'));
+    return authReady;
+  }
+
   function pushWerte(modul, keys, transform) {
     if (!verfuegbar) return Promise.resolve();
     if (!holeFamilienId()) return Promise.resolve();
@@ -348,6 +357,7 @@ window.PlanerSync = (function () {
     entferneFotosTief: entferneFotosTief,
     fotosWiederEinfuegen: fotosWiederEinfuegen,
     pushWerte: pushWerte,
+    authBereit: authBereit,
     status: function () { try { return localStorage.getItem(STATUS_KEY) || 'unbekannt'; } catch (e) { return 'unbekannt'; } },
     geraeteId: geraeteId,
     familienId: holeFamilienId,
