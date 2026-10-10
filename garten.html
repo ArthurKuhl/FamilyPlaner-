@@ -1012,6 +1012,7 @@
     <button class="close-btn pp-close-btn-oben" aria-label="Pflanzenpanel schließen" onclick="closePlantPanel()">✕</button>
     <div class="pp-header-actions">
       <button type="button" class="pp-foto-btn" id="btnPpFotoOeffnen" title="Foto hinzufügen/ändern" aria-label="Foto hinzufügen">📷</button>
+      <button type="button" class="pp-foto-btn" id="btnPpFotoMalen" title="Foto als Malerei (Bleistift, Aquarell …)" aria-label="Malstil anwenden" style="display:none;">🎨</button>
       <button type="button" class="pp-foto-btn" id="btnPpFotoEntfernen" title="Foto entfernen" aria-label="Foto entfernen" style="display:none;">🗑</button>
     </div>
     <input type="file" id="ppPhotoInput" accept="image/*" onchange="handlePlantPhoto(event)" style="display:none;"/>
@@ -1254,6 +1255,7 @@
     <button class="close-btn pp-close-btn-oben" aria-label="Panel schließen" onclick="fpSchliessen()">✕</button>
     <div class="pp-header-actions">
       <button type="button" class="pp-foto-btn" id="btnFpFotoOeffnen" title="Foto hinzufügen/ändern" aria-label="Foto hinzufügen">📷</button>
+      <button type="button" class="pp-foto-btn" id="btnFpFotoMalen" title="Foto als Malerei (Bleistift, Aquarell …)" aria-label="Malstil anwenden" style="display:none;">🎨</button>
       <button type="button" class="pp-foto-btn" id="btnFpFotoEntfernen" title="Foto entfernen" aria-label="Foto entfernen" style="display:none;">🗑</button>
     </div>
     <input type="file" id="fpPhotoInput" accept="image/*" onchange="handleFreiPflanzePhoto(event)" style="display:none;"/>
@@ -7143,6 +7145,7 @@ function renderFreiPflanzePhoto(fp) {
   ppFotosMigrieren(fp);
   const header = document.getElementById('freiPflanzePanelHeader');
   const entfernenBtn = document.getElementById('btnFpFotoEntfernen');
+  const malenBtn = document.getElementById('btnFpFotoMalen');
   const input = document.getElementById('fpPhotoInput');
   const platzhalter = document.getElementById('fpHeaderPlaceholder');
   if (input) input.value = '';
@@ -7150,10 +7153,12 @@ function renderFreiPflanzePhoto(fp) {
   if (titelbild) {
     header.style.backgroundImage = 'url("' + titelbild.data + '")';
     entfernenBtn.style.display = '';
+    if (malenBtn) malenBtn.style.display = window.Malfilter ? '' : 'none';
     if (platzhalter) platzhalter.textContent = '';
   } else {
     header.style.backgroundImage = '';
     entfernenBtn.style.display = 'none';
+    if (malenBtn) malenBtn.style.display = 'none';
     if (platzhalter) platzhalter.textContent = fp.sym || '🌳';
   }
   const galerie = document.getElementById('fpFotoGalerie');
@@ -7218,7 +7223,7 @@ function handleFreiPflanzePhoto(e) {
       saveData();
       renderFreiPflanzePhoto(fp);
     };
-    img.src = ev.target.result;
+    malfilterVorschalten(ev.target.result, (quelle) => { img.src = quelle; });
   };
   reader.readAsDataURL(file);
 }
@@ -7546,6 +7551,7 @@ function renderPlantPhoto(plant) {
   ppFotosMigrieren(plant);
   const header = document.getElementById('plantPanelHeader');
   const entfernenBtn = document.getElementById('btnPpFotoEntfernen');
+  const malenBtn = document.getElementById('btnPpFotoMalen');
   const input = document.getElementById('ppPhotoInput');
   const platzhalter = document.getElementById('ppHeaderPlaceholder');
   if (input) input.value = '';
@@ -7553,10 +7559,12 @@ function renderPlantPhoto(plant) {
   if (titelbild) {
     header.style.backgroundImage = 'url("' + titelbild.data + '")';
     entfernenBtn.style.display = '';
+    if (malenBtn) malenBtn.style.display = window.Malfilter ? '' : 'none';
     platzhalter.textContent = '';
   } else {
     header.style.backgroundImage = '';
     entfernenBtn.style.display = 'none';
+    if (malenBtn) malenBtn.style.display = 'none';
     platzhalter.textContent = plant.sym || '🌿';
   }
   const galerie = document.getElementById('ppFotoGalerie');
@@ -7623,7 +7631,7 @@ function handlePlantPhoto(e) {
       saveData();
       renderPlantPhoto(plant);
     };
-    img.src = ev.target.result;
+    malfilterVorschalten(ev.target.result, (quelle) => { img.src = quelle; });
   };
   reader.readAsDataURL(file);
 }
@@ -7648,6 +7656,68 @@ document.getElementById('btnPpFotoOeffnen').addEventListener('click', (e) => { e
 document.getElementById('btnPpFotoEntfernen').addEventListener('click', (e) => { e.stopPropagation(); removePlantPhoto(); });
 document.getElementById('btnFpFotoOeffnen').addEventListener('click', (e) => { e.stopPropagation(); document.getElementById('fpPhotoInput').click(); });
 document.getElementById('btnFpFotoEntfernen').addEventListener('click', (e) => { e.stopPropagation(); removeFreiPflanzePhoto(); });
+
+// ==================== MALSTIL FÜR PFLANZENFOTOS ====================
+// Beim Hochladen: erst den Malstil-Dialog zeigen (Original/Bleistift/Buntstift/Aquarell/Pastell).
+// "Abbrechen" verwirft das Foto. Ohne malfilter.js wird das Foto direkt übernommen.
+function malfilterVorschalten(dataUrl, weiter) {
+  if (!window.Malfilter) { weiter(dataUrl); return; }
+  window.Malfilter.dialog(dataUrl, { titel: '📷 Foto hinzufügen' })
+    .then((ergebnis) => { if (ergebnis) weiter(ergebnis); })
+    .catch(() => showTempStatus('⚠ Datei ist kein gültiges Bild.', 5));
+}
+// Nachträglich: das aktuelle Titelbild in einen Malstil umwandeln.
+// Das Original wird im Feld "photo" des Foto-Eintrags aufbewahrt – Felder namens "photo"
+// werden NICHT synchronisiert (siehe entferneFotosTief in sync.js), belasten also das
+// Cloud-Dokument nicht. Darüber lässt sich jederzeit zurück zum Original wechseln,
+// und neue Stile werden immer auf das Original angewendet (kein "Filter auf Filter").
+function fotoMalstilAnwenden(obj, rendern) {
+  if (!obj || !window.Malfilter) return;
+  ppFotosMigrieren(obj);
+  const foto = ppFotoTitelbild(obj);
+  if (!foto) return;
+  const quelle = foto.photo || foto.data;
+  window.Malfilter.dialog(quelle, { titel: '🎨 Foto als Malerei', mitStil: true,
+      hinweis: foto.photo ? 'Das Original bleibt erhalten – „Original“ stellt es wieder her.' : 'Das Original wird aufbewahrt und lässt sich jederzeit wiederherstellen.' })
+    .then((erg) => {
+      if (!erg) return;
+      if (erg.stil === 'original') {
+        if (!foto.photo) return; // war schon das Original
+        pushUndo();
+        foto.data = foto.photo; delete foto.photo;
+        saveData(); rendern(obj);
+        showTempStatus('↺ Originalfoto wiederhergestellt', 3);
+        return;
+      }
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, 480 / img.width);
+        const c = document.createElement('canvas');
+        c.width = img.width * scale; c.height = img.height * scale;
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        pushUndo();
+        if (!foto.photo) foto.photo = foto.data;
+        foto.data = c.toDataURL('image/jpeg', 0.72);
+        try { saveData(); } catch (err) { showTempStatus('⚠ Speichern fehlgeschlagen (Speicher voll?).', 5); return; }
+        rendern(obj);
+        showTempStatus('🎨 Malstil übernommen', 3);
+      };
+      img.src = erg.bild;
+    })
+    .catch(() => showTempStatus('⚠ Foto konnte nicht bearbeitet werden.', 5));
+}
+document.getElementById('btnPpFotoMalen').addEventListener('click', (e) => {
+  e.stopPropagation();
+  if (!activePlantBedId) return;
+  const bed = getCurrentBeds().find(b => b.id === activePlantBedId.bedId);
+  const plant = bed && bed.plants[activePlantBedId.idx];
+  fotoMalstilAnwenden(plant, renderPlantPhoto);
+});
+document.getElementById('btnFpFotoMalen').addEventListener('click', (e) => {
+  e.stopPropagation();
+  const fp = getCurrentFreiPflanzen().find(x => x.id === activeFreiPflanzeId);
+  fotoMalstilAnwenden(fp, renderFreiPflanzePhoto);
+});
 document.getElementById('plantPanelHeader').addEventListener('click', (e) => {
   if (e.target.closest('.pp-header-actions, .pp-foto-galerie, .pp-lebenszyklus-badge, .close-btn')) return;
   if (!activePlantBedId) return;
@@ -9745,16 +9815,16 @@ if (window.PlanerSync) {
     modul: 'garten',
     keys: GARTEN_SYNC_SCHLUESSEL,
     transform: function (werte) {
-      if (werte.gartenplaner_v3) werte.gartenplaner_v3 = window.PlanerSync.entferneFotosTief(werte.gartenplaner_v3);
-      return werte;
+      // Alle Garten-Schlüssel ohne Fotos hochladen (Pflanzen, Tagebuch, Gartenfoto, Pilz-Logbuch …)
+      return window.PlanerSync.entferneFotosTief(werte);
     },
     vorAnwendungTransform: function (remoteWerte, lokaleWerte) {
       // Eingehende Daten von einem anderen Gerät enthalten nie Fotos (siehe transform oben).
       // Damit dadurch keine lokal gespeicherten Fotos verloren gehen, werden sie hier aus
       // dem aktuellen lokalen Stand wieder eingefügt, bevor sie gespeichert werden.
-      if (remoteWerte.gartenplaner_v3 && lokaleWerte.gartenplaner_v3) {
-        remoteWerte.gartenplaner_v3 = window.PlanerSync.fotosWiederEinfuegen(remoteWerte.gartenplaner_v3, lokaleWerte.gartenplaner_v3);
-      }
+      Object.keys(remoteWerte).forEach(function (k) {
+        if (lokaleWerte[k] !== undefined) remoteWerte[k] = window.PlanerSync.fotosWiederEinfuegen(remoteWerte[k], lokaleWerte[k]);
+      });
       return remoteWerte;
     },
     onRemoteChange: function (istErstmaligerAbgleich) {

@@ -129,13 +129,23 @@ window.PlanerSync = (function () {
     }
   }
 
-  // Entfernt rekursiv alle Eigenschaften namens "photo" (Firestore-Größenlimit: 1 MB pro Dokument)
+  // ---------------------------------------------------------------------------
+  // FOTOS NICHT IN DIE CLOUD-DOKUMENTE (Firestore-Größenlimit: 1 MB pro Dokument)
+  // Entfernt rekursiv alle Fotos aus den zu synchronisierenden Daten:
+  //  - Eigenschaften namens "photo" (z.B. Garten-Tagebuch, Fotoalbum)
+  //  - Foto-Listen namens "fotos" (z.B. Pflanzen- und Baumfotos im Garten)
+  //  - JEDE Eigenschaft, deren Wert ein eingebettetes Bild ist ("data:image/…"),
+  //    z.B. Gartenfoto (bgImage) oder Pilz-Logbuch (foto) – auch künftige Felder.
+  // Die Fotos bleiben lokal auf dem Gerät erhalten (siehe fotosWiederEinfuegen).
+  // ---------------------------------------------------------------------------
+  function istEingebettetesBild(wert) { return typeof wert === 'string' && wert.indexOf('data:image') === 0; }
   function entferneFotosTief(objekt) {
     if (Array.isArray(objekt)) return objekt.map(entferneFotosTief);
     if (objekt && typeof objekt === 'object') {
       const kopie = {};
       Object.keys(objekt).forEach((k) => {
-        if (k === 'photo') return;
+        if (k === 'photo' || k === 'fotos') return;
+        if (istEingebettetesBild(objekt[k])) return;
         kopie[k] = entferneFotosTief(objekt[k]);
       });
       return kopie;
@@ -143,21 +153,29 @@ window.PlanerSync = (function () {
     return objekt;
   }
 
-  // Fügt lokal vorhandene "photo"-Felder wieder in eingehende (foto-lose) Remote-Daten ein,
+  // Fügt lokal vorhandene Fotos wieder in eingehende (foto-lose) Remote-Daten ein,
   // damit ein eingehender Sync von einem anderen Gerät niemals lokal gespeicherte Fotos löscht.
-  // Geht davon aus, dass Remote- und Lokal-Struktur an derselben Stelle dieselbe Form haben
-  // (funktioniert zuverlässig, solange nicht gleichzeitig auf beiden Geräten dieselbe Stelle
-  // strukturell verändert wird, z.B. Beete in unterschiedlicher Reihenfolge neu angelegt).
+  // Listen-Einträge werden – wenn vorhanden – über ihre id einander zugeordnet, sonst über
+  // die Position (wie bisher).
   function fotosWiederEinfuegen(remote, lokal) {
     if (Array.isArray(remote)) {
       if (!Array.isArray(lokal)) return remote;
-      return remote.map((item, i) => fotosWiederEinfuegen(item, lokal[i]));
+      const lokalNachId = {};
+      lokal.forEach((x) => { if (x && typeof x === 'object' && x.id !== undefined) lokalNachId['id:' + x.id] = x; });
+      return remote.map((item, i) => {
+        let gegenstueck = lokal[i];
+        if (item && typeof item === 'object' && item.id !== undefined) gegenstueck = lokalNachId['id:' + item.id];
+        return fotosWiederEinfuegen(item, gegenstueck);
+      });
     }
     if (remote && typeof remote === 'object') {
       if (!lokal || typeof lokal !== 'object') return remote;
       const ergebnis = Object.assign({}, remote);
       Object.keys(ergebnis).forEach((k) => { ergebnis[k] = fotosWiederEinfuegen(ergebnis[k], lokal[k]); });
-      if (lokal.photo && !ergebnis.photo) ergebnis.photo = lokal.photo;
+      Object.keys(lokal).forEach((k) => {
+        if (ergebnis[k] !== undefined) return;
+        if (k === 'photo' || k === 'fotos' || istEingebettetesBild(lokal[k])) ergebnis[k] = lokal[k];
+      });
       return ergebnis;
     }
     return remote;
