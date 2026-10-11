@@ -1931,7 +1931,11 @@
     <textarea id="albumDetailNotiz" placeholder="Notiz (z.B. wo/wann meist zu finden)…" onblur="albumNotizSpeichern()" style="display:none;width:100%;min-height:52px;margin-bottom:10px;padding:8px 10px;border-radius:var(--radius-sm);border:1px solid var(--parchment);font-family:'Inter',sans-serif;font-size:0.8rem;resize:vertical"></textarea>
     <div class="album-detail-fotos" id="albumDetailFotos"></div>
     <input type="file" accept="image/*" capture="environment" id="albumFotoInput" style="display:none" onchange="handleAlbumFotoUpload(event)">
-    <button class="btn-add-entry" style="width:100%;padding:10px;margin-top:4px" onclick="document.getElementById('albumFotoInput').click()">📷 Foto hinzufügen</button>
+    <input type="file" accept="image/*" id="albumFotoInputGalerie" style="display:none" onchange="handleAlbumFotoUpload(event); this.value='';">
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn-add-entry" style="flex:1;padding:10px" onclick="document.getElementById('albumFotoInput').click()">📷 Foto machen</button>
+      <button class="btn-add-entry" style="flex:1;padding:10px" onclick="document.getElementById('albumFotoInputGalerie').click()">🖼 Aus Galerie</button>
+    </div>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="closeAlbumDetail()">Schließen</button>
     </div>
@@ -9523,7 +9527,7 @@ function pilzFormOeffnen(id) {
       <div class="feld"><label>Notizen</label><textarea id="fPilzNotiz" placeholder="z.B. bestimmt von Pilzsachverständigem, Begleitbäume, Menge">${e ? escapeHtml(e.notiz||'') : ''}</textarea></div>
       <div class="feld"><label>Foto</label>
         <div id="pilzFotoVorschau" style="margin-bottom:6px">${pilzFotoDaten ? `<img src="${pilzFotoDaten}" style="width:100%;max-width:220px;border-radius:10px;display:block">` : ''}</div>
-        <input type="file" accept="image/*" capture="environment" onchange="handlePilzFoto(event)">
+        <input type="file" accept="image/*" onchange="handlePilzFoto(event)">
       </div>
       <div class="modal-btns">
         <button class="btn-secondary" onclick="document.getElementById('modalPilz').remove()">Abbrechen</button>
