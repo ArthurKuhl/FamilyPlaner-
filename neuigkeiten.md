@@ -2,7 +2,8 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
-## 2026-10-12 | 🗓️ Kalenderformat kann jetzt umgeschaltet werden zwischen Tabellen- und Listenansicht.
+## 2026-10-12 | 🗓️ zweites Kalenderformat verfügbar 
+Kalender kann jetzt umgeschaltet werden zwischen Tabellen- und Listenansicht.
 
 ## 2026-10-12 | 👪 Fotos teilen oder 🔒 für sich behalten
 Pflanzen- und Rezeptfotos werden jetzt mit der ganzen Familie geteilt. Wer ein Foto lieber nur für sich möchte, stellt es beim Hochladen oder später über 👪/🔒 auf „Nur ich“.
