@@ -113,6 +113,28 @@
   .cal-dots { display: flex; gap: 2px; margin-top: 3px; flex-wrap: wrap; justify-content: center; }
   .cal-dot { width: 6px; height: 6px; border-radius: 50%; }
 
+  /* Tagesliste (Kalender als eine Spalte, jeder Tag eine Zeile) */
+  .monat-label-gruppe { display: flex; align-items: center; gap: 8px; }
+  .cal-nav .ansicht-umschalter { width: 30px; height: 30px; font-size: 0.9rem; }
+  .tagesliste { max-width: 820px; margin: 0 auto; display: flex; flex-direction: column; gap: 3px; }
+  .tl-kw { font-size: 0.66rem; font-weight: 700; color: var(--bark); text-transform: uppercase; letter-spacing: .05em; padding: 10px 2px 3px; border-bottom: 1px solid var(--parchment); margin-bottom: 3px; }
+  .tl-kw:first-child { padding-top: 0; }
+  .tl-tag { display: flex; gap: 10px; align-items: stretch; background: var(--white); border: 1px solid var(--parchment); border-radius: var(--radius-sm); padding: 6px 8px; cursor: pointer; min-height: 38px; }
+  .tl-tag.wochenende { background: var(--parchment); }
+  .tl-tag.heute { border: 2px solid var(--terracotta); }
+  .tl-tag.feiertag { background: #fdf1ee; }
+  html[data-dark="1"] .tl-tag.feiertag { background: #3a2622; }
+  .tl-datum { width: 46px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1; }
+  .tl-wd { font-size: 0.62rem; font-weight: 700; color: var(--bark); text-transform: uppercase; }
+  .tl-nr { font-size: 1.05rem; font-weight: 700; color: var(--soil); }
+  .tl-tag.feiertag .tl-nr, .tl-tag.feiertag .tl-wd { color: #c0392b; }
+  .tl-inhalt { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 3px; }
+  .tl-feiertag { font-size: 0.68rem; color: #c0392b; font-weight: 600; }
+  .tl-termin { display: flex; gap: 8px; align-items: baseline; font-size: 0.82rem; color: var(--soil); border-left: 3px solid var(--moss); padding: 2px 0 2px 7px; border-radius: 2px; }
+  .tl-termin .tl-zeit { font-size: 0.7rem; font-weight: 700; color: var(--bark); min-width: 38px; flex-shrink: 0; }
+  .tl-termin .tl-titel { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tl-leer { font-size: 0.75rem; color: var(--bark); opacity: 0.45; }
+
   /* Liste */
   .tag-gruppe { margin-bottom: 14px; }
   .tag-titel { font-size: 0.72rem; font-weight: 700; color: var(--bark); text-transform: uppercase; letter-spacing: .03em; margin-bottom: 6px; padding-left: 2px; }
@@ -239,10 +261,14 @@
     <section id="kalenderView">
       <div class="cal-nav">
         <button id="calPrev" aria-label="Vorheriger Monat">‹</button>
-        <span class="monat-label" id="monatLabel"></span>
+        <span class="monat-label-gruppe">
+          <span class="monat-label" id="monatLabel"></span>
+          <button type="button" id="btnKalenderAnsicht" class="ansicht-umschalter" aria-label="Ansicht wechseln" title="Zwischen Monatsraster und Tagesliste wechseln">☰</button>
+        </span>
         <button id="calNext" aria-label="Nächster Monat">›</button>
       </div>
       <div class="cal-grid" id="calGrid"></div>
+      <div class="tagesliste" id="calTagesliste" style="display:none;"></div>
     </section>
 
     <section id="listeView" style="display:none;">
@@ -677,8 +703,80 @@
     const monatLabel = document.getElementById('monatLabel');
     const MONATSNAMEN = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 
+    // --- Ansicht im Kalender-Reiter: Monatsraster oder Tagesliste (geräte-lokal gemerkt) ---
+    const KEY_KALENDER_ANSICHT = 'termine_kalenderAnsicht';
+    let kalenderAnsicht = 'raster';
+    try { if (localStorage.getItem(KEY_KALENDER_ANSICHT) === 'liste') kalenderAnsicht = 'liste'; } catch (e) {}
+    let tageslisteZuHeuteScrollen = true;
+    document.getElementById('btnKalenderAnsicht').addEventListener('click', () => {
+      kalenderAnsicht = kalenderAnsicht === 'liste' ? 'raster' : 'liste';
+      try { localStorage.setItem(KEY_KALENDER_ANSICHT, kalenderAnsicht); } catch (e) {}
+      tageslisteZuHeuteScrollen = true;
+      renderKalender();
+    });
+    function kalenderwoche(d) {
+      const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+      const wt = t.getUTCDay() || 7;
+      t.setUTCDate(t.getUTCDate() + 4 - wt);
+      const jahrStart = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
+      return Math.ceil((((t - jahrStart) / 86400000) + 1) / 7);
+    }
+    async function renderTagesliste() {
+      const box = document.getElementById('calTagesliste');
+      const heuteISO = toISO(heute());
+      const feiertage = await ladeFeiertage(kalenderJahr);
+      const tageImMonat = new Date(kalenderJahr, kalenderMonat + 1, 0).getDate();
+      const von = toISO(new Date(kalenderJahr, kalenderMonat, 1));
+      const bis = toISO(new Date(kalenderJahr, kalenderMonat, tageImMonat));
+      const proTag = {};
+      alleVorkommen(von, bis).forEach(t => { (proTag[t.datum] = proTag[t.datum] || []).push(t); });
+      box.innerHTML = '';
+      let heuteZeile = null, letzteKW = null;
+      for (let n = 1; n <= tageImMonat; n++) {
+        const tag = new Date(kalenderJahr, kalenderMonat, n);
+        const iso = toISO(tag);
+        const kw = kalenderwoche(tag);
+        if (kw !== letzteKW) {
+          const kwEl = document.createElement('div'); kwEl.className = 'tl-kw'; kwEl.textContent = 'KW ' + kw;
+          box.appendChild(kwEl); letzteKW = kw;
+        }
+        const wt = tag.getDay();
+        const feiertag = feiertage[iso];
+        const termine = (proTag[iso] || []).slice().sort((a, b) =>
+          (a.ev.allDay === b.ev.allDay ? 0 : a.ev.allDay ? -1 : 1) || (a.ev.startTime || '').localeCompare(b.ev.startTime || ''));
+        const zeile = document.createElement('div');
+        zeile.className = 'tl-tag' + (wt === 0 || wt === 6 ? ' wochenende' : '') + (iso === heuteISO ? ' heute' : '') + (feiertag ? ' feiertag' : '');
+        zeile.innerHTML = '<div class="tl-datum"><span class="tl-wd">' + WOCHENTAGE[(wt + 6) % 7] + '</span><span class="tl-nr">' + n + '.</span></div><div class="tl-inhalt"></div>';
+        const inhalt = zeile.querySelector('.tl-inhalt');
+        if (feiertag) { const f = document.createElement('div'); f.className = 'tl-feiertag'; f.textContent = '🎉 ' + feiertag; inhalt.appendChild(f); }
+        termine.forEach(t => {
+          const el = document.createElement('div'); el.className = 'tl-termin';
+          el.style.borderLeftColor = farbeFuer(t.ev.wer);
+          el.innerHTML = '<span class="tl-zeit">' + (t.ev.allDay ? 'ganzt.' : escapeHtml(t.ev.startTime || '')) + '</span><span class="tl-titel">' + escapeHtml(t.ev.title) + '</span>';
+          el.addEventListener('click', (e) => { e.stopPropagation(); terminModalOeffnen(t.ev, t.datum); });
+          inhalt.appendChild(el);
+        });
+        if (!termine.length && !feiertag) { const l = document.createElement('div'); l.className = 'tl-leer'; l.textContent = '＋'; inhalt.appendChild(l); }
+        // Leerer Tag: direkt neuen Termin anlegen; Tag mit Einträgen: Tagesübersicht wie im Raster
+        zeile.addEventListener('click', () => { if (termine.length) tagDetailOeffnen(iso); else terminModalOeffnen(null, iso); });
+        box.appendChild(zeile);
+        if (iso === heuteISO) heuteZeile = zeile;
+      }
+      if (tageslisteZuHeuteScrollen) {
+        tageslisteZuHeuteScrollen = false;
+        if (heuteZeile) setTimeout(() => { try { heuteZeile.scrollIntoView({ block: 'center' }); } catch (e) {} }, 50);
+      }
+    }
+
     async function renderKalender() {
       monatLabel.textContent = MONATSNAMEN[kalenderMonat] + ' ' + kalenderJahr;
+      const istListe = kalenderAnsicht === 'liste';
+      const umschalter = document.getElementById('btnKalenderAnsicht');
+      umschalter.textContent = istListe ? '▦' : '☰';
+      umschalter.title = istListe ? 'Monatsraster anzeigen' : 'Tagesliste anzeigen';
+      calGrid.style.display = istListe ? 'none' : '';
+      document.getElementById('calTagesliste').style.display = istListe ? '' : 'none';
+      if (istListe) { await renderTagesliste(); return; }
       calGrid.innerHTML = '';
       WOCHENTAGE.forEach(wd => {
         const el = document.createElement('div'); el.className='cal-wd'; el.textContent = wd; calGrid.appendChild(el);
