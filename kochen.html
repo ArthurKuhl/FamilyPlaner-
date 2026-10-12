@@ -222,6 +222,7 @@
   .dfb-placeholder { font-size: 0.62rem; color: #8a7a5c; opacity: 0.75; line-height: 1.3; }
   .detail-foto-box .herz { position: absolute; top: 4px; right: 4px; font-size: 1rem; background: rgba(255,255,255,0.88); border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; padding: 0; border: none; cursor: pointer; opacity: 0.85; }
   .detail-foto-box .herz.aktiv { color: var(--terracotta); opacity: 1; }
+  .detail-foto-box .foto-teilen { position: absolute; bottom: 4px; left: 4px; font-size: 0.85rem; background: rgba(255,255,255,0.88); border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; padding: 0; border: none; cursor: pointer; }
   .detail-kat-chip { font-size: 0.68rem; font-weight: 700; padding: 3px 10px; border-radius: var(--radius-pill); }
   .detail-meta-reihe { display: flex; gap: 8px; align-items: center; font-size: 0.78rem; color: var(--bark); margin: 6px 0 10px; flex-wrap: wrap; }
   .karte { background: var(--white); border-radius: var(--radius-md); padding: 14px; box-shadow: var(--shadow-soft); margin-bottom: 12px; }
@@ -372,7 +373,10 @@
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-storage-compat.js"></script>
 <script src="sync.js"></script>
+<script src="fotospeicher.js"></script>
+<script src="malfilter.js"></script>
 </head>
 <body>
 <div class="deko-rand links" aria-hidden="true"></div>
@@ -570,6 +574,7 @@
         <span class="dfb-placeholder" id="detailFotoPlatzhalter">📷<br>Foto</span>
         <img id="detailFotoImg" style="display:none;" alt="Foto des fertigen Gerichts">
         <button type="button" class="herz" id="detailHerz">♡</button>
+        <button type="button" class="foto-teilen" id="detailFotoTeilen" style="display:none;" aria-label="Sichtbarkeit des Fotos umschalten">👪</button>
       </div>
       <input type="file" id="detailFotoInput" accept="image/*" style="display:none">
     </div>
@@ -1247,7 +1252,7 @@
     karte.innerHTML =
       '<button class="herz' + (r.favorit ? ' aktiv' : '') + '" data-id="' + r.id + '">' + (r.favorit ? '♥' : '♡') + '</button>' +
       (abzeichenIcon ? '<span class="meilenstein-abzeichen" title="' + (r.kochZaehler || 0) + '× gekocht">' + abzeichenIcon + '</span>' : '') +
-      (r.foto ? '<img class="rezept-foto-thumb" src="' + r.foto + '" alt="">' : '<div class="rezept-kat-icon">' + kat.icon + '</div>') +
+      (rezeptFotoQuelle(r) ? '<img class="rezept-foto-thumb" src="' + rezeptFotoQuelle(r) + '" alt="" loading="lazy">' : '<div class="rezept-kat-icon">' + kat.icon + '</div>') +
       '<div class="rezept-titel">' + escapeHtml(r.titel) + '</div>' +
       '<div class="rezept-meta">' + (function () { const info = kochzeitInfo(r); return info
         ? '<span title="Gestoppt: Ø aus ' + info.anzahl + '× Kochen">⏱ ~' + info.schnitt + ' Min.</span>'
@@ -1271,24 +1276,65 @@
     return n.toLocaleString('de-DE', { maximumFractionDigits: 2 });
   }
 
+  // --- FAMILIENFOTOS (👪 Familie / 🔒 Nur ich) ---
+  // 👪-Fotos liegen in Firebase Storage (fotospeicher.js), im Rezept steht nur fotoUrl/fotoPfad –
+  // das Kochen-Dokument bleibt so klein (1-MB-Grenze). 🔒-Fotos bleiben nur auf diesem Gerät.
+  // Ältere Rezeptfotos ohne Angabe gelten als 👪 Familie und werden automatisch hochgeladen.
+  function rezeptFotoQuelle(r) { return (r && (r.foto || r.fotoUrl)) || ''; }
+  function rezeptFotoCloudLoeschen(r) { if (r && r.fotoPfad && window.FotoSpeicher) window.FotoSpeicher.loeschen(r.fotoPfad); }
+  let rezeptFotoUploadLaeuft = false;
+  async function rezeptFotosHochladen() {
+    if (rezeptFotoUploadLaeuft || !window.FotoSpeicher || !window.FotoSpeicher.verfuegbar() || !navigator.onLine) return;
+    rezeptFotoUploadLaeuft = true;
+    let geaendert = false;
+    try {
+      for (const r of rezepte.slice()) {
+        if (!r.foto || r.fotoUrl || r.fotoGeteilt === false) continue;
+        const daten = r.foto;
+        try {
+          const erg = await window.FotoSpeicher.hochladen('rezept_' + r.id, daten, true);
+          const aktuell = rezepte.find(x => x.id === r.id);
+          if (!aktuell || aktuell.foto !== daten || aktuell.fotoGeteilt === false) { window.FotoSpeicher.loeschen(erg.pfad); continue; }
+          aktuell.fotoUrl = erg.url; aktuell.fotoPfad = erg.pfad; aktuell.fotoGeteilt = true;
+          geaendert = true;
+        } catch (e) { console.warn('Rezeptfoto-Upload fehlgeschlagen', e); break; }
+      }
+    } finally {
+      rezeptFotoUploadLaeuft = false;
+      if (geaendert) {
+        speichernRezepte();
+        const r = detailId && rezepte.find(x => x.id === detailId);
+        if (r && document.getElementById('modalDetail').classList.contains('zeigen')) renderDetailFoto(r);
+      }
+    }
+  }
+  setTimeout(rezeptFotosHochladen, 4000);
+  window.addEventListener('online', () => setTimeout(rezeptFotosHochladen, 1500));
+
   // --- FOTO VOM FERTIGEN GERICHT ---
   function renderDetailFoto(r) {
     const box = document.getElementById('detailFotoBox');
     const img = document.getElementById('detailFotoImg');
     const platzhalter = document.getElementById('detailFotoPlatzhalter');
-    if (r.foto) {
-      img.src = r.foto;
+    const teilenBtn = document.getElementById('detailFotoTeilen');
+    if (rezeptFotoQuelle(r)) {
+      img.src = rezeptFotoQuelle(r);
       img.style.display = '';
       platzhalter.style.display = 'none';
       box.classList.add('gefuellt');
+      const cloud = !!(window.FotoSpeicher && window.FotoSpeicher.verfuegbar());
+      teilenBtn.style.display = cloud ? '' : 'none';
+      teilenBtn.textContent = r.fotoGeteilt === false ? '🔒' : '👪';
+      teilenBtn.title = r.fotoGeteilt === false ? 'Foto nur auf diesem Gerät – antippen zum Teilen mit der Familie' : 'Foto für die Familie sichtbar – antippen für „Nur ich“';
     } else {
+      teilenBtn.style.display = 'none';
       img.style.display = 'none';
       platzhalter.style.display = '';
       box.classList.remove('gefuellt');
     }
   }
   document.getElementById('detailFotoBox').addEventListener('click', (e) => {
-    if (e.target.closest('#detailHerz')) return;
+    if (e.target.closest('#detailHerz, #detailFotoTeilen')) return;
     document.getElementById('detailFotoInput').click();
   });
   document.getElementById('detailFotoInput').addEventListener('change', (e) => {
@@ -1298,6 +1344,7 @@
     const reader = new FileReader();
     reader.onload = (ev) => {
       const img = new Image();
+      let geteilt = true;
       img.onload = () => {
         const maxW = 640;
         const scale = Math.min(1, maxW / img.width);
@@ -1305,15 +1352,43 @@
         c.width = img.width * scale;
         c.height = img.height * scale;
         c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        rezeptFotoCloudLoeschen(r); // altes Familienfoto ersetzen
         r.foto = c.toDataURL('image/jpeg', 0.75);
+        r.fotoGeteilt = geteilt;
+        delete r.fotoUrl; delete r.fotoPfad;
         speichernRezepte();
         renderDetailFoto(r);
         renderGrid();
         document.getElementById('detailFotoInput').value = '';
+        rezeptFotosHochladen();
       };
-      img.src = ev.target.result;
+      if (window.Malfilter) {
+        window.Malfilter.dialog(ev.target.result, { titel: '📷 Foto vom Gericht', mitStil: true, teilen: true })
+          .then((erg) => { if (!erg) { document.getElementById('detailFotoInput').value = ''; return; } geteilt = erg.geteilt; img.src = erg.bild; })
+          .catch(() => alert('Datei ist kein gültiges Bild.'));
+      } else {
+        img.src = ev.target.result;
+      }
     };
     reader.readAsDataURL(file);
+  });
+
+  document.getElementById('detailFotoTeilen').addEventListener('click', (e) => {
+    e.stopPropagation();
+    const r = rezepte.find(x => x.id === detailId);
+    if (!r) return;
+    if (r.fotoGeteilt === false) {
+      r.fotoGeteilt = true;
+      speichernRezepte(); renderDetailFoto(r);
+      showTempStatus('👪 Foto wird mit der Familie geteilt …', 3);
+      rezeptFotosHochladen();
+      return;
+    }
+    if (!r.foto) { showTempStatus('ℹ️ „Nur ich“ geht nur auf dem Gerät, auf dem das Foto aufgenommen wurde.', 5); return; }
+    rezeptFotoCloudLoeschen(r);
+    r.fotoGeteilt = false; delete r.fotoUrl; delete r.fotoPfad;
+    speichernRezepte(); renderDetailFoto(r);
+    showTempStatus('🔒 Foto nur noch auf diesem Gerät', 3);
   });
 
   // --- DETAILANSICHT ---
@@ -2171,6 +2246,9 @@
       aufwand: editAufwand,
       favorit: bearbeiteId ? (rezepte.find(x => x.id === bearbeiteId)?.favorit || false) : false,
       foto: bearbeiteId ? (rezepte.find(x => x.id === bearbeiteId)?.foto || '') : '',
+      fotoUrl: bearbeiteId ? (rezepte.find(x => x.id === bearbeiteId)?.fotoUrl || undefined) : undefined,
+      fotoPfad: bearbeiteId ? (rezepte.find(x => x.id === bearbeiteId)?.fotoPfad || undefined) : undefined,
+      fotoGeteilt: bearbeiteId ? rezepte.find(x => x.id === bearbeiteId)?.fotoGeteilt : undefined,
       zuletztGekocht: bearbeiteId ? (rezepte.find(x => x.id === bearbeiteId)?.zuletztGekocht || null) : null,
       kochZaehler: bearbeiteId ? (rezepte.find(x => x.id === bearbeiteId)?.kochZaehler || 0) : 0,
       meilensteineGekocht: bearbeiteId ? (rezepte.find(x => x.id === bearbeiteId)?.meilensteineGekocht || []) : [],
@@ -2199,8 +2277,11 @@
     entwurfLoeschen();
     renderFilter();
     renderGrid();
+    // Familienfoto in der Cloud erst nach Ablauf der Rückgängig-Zeit löschen
+    const fotoLoeschTimer = setTimeout(() => rezeptFotoCloudLoeschen(entfernt), 8000);
     showTempStatus('Gelöscht: „' + entfernt.titel + '"', 6, {
       rueckgaengig: () => {
+        clearTimeout(fotoLoeschTimer);
         rezepte.splice(index, 0, entfernt);
         speichernRezepte();
         renderFilter();
@@ -2445,6 +2526,14 @@
     window._sync = window.PlanerSync.starteSync({
       modul: 'kochen',
       keys: [KEY_REZEPTE, KEY_WOCHENPLAN],
+      // Rezeptfotos nie als Bilddaten ins Dokument (1-MB-Grenze) – nur die Cloud-Adresse (fotoUrl)
+      transform: function (werte) { return window.PlanerSync.entferneFotosTief(werte); },
+      vorAnwendungTransform: function (remoteWerte, lokaleWerte) {
+        Object.keys(remoteWerte).forEach(function (k) {
+          if (lokaleWerte[k] !== undefined) remoteWerte[k] = window.PlanerSync.fotosWiederEinfuegen(remoteWerte[k], lokaleWerte[k]);
+        });
+        return remoteWerte;
+      },
       onRemoteChange: function () {
         rezepte = laden(KEY_REZEPTE, rezepte);
         wochenplan = laden(KEY_WOCHENPLAN, wochenplan);
