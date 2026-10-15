@@ -87,6 +87,28 @@
   .ansicht-tabs { display: flex; gap: 6px; margin-bottom: 8px; }
   .ansicht-tab { flex: 1; background: transparent; border: 1px solid #4a3a28; color: var(--sage); font-size: 0.78rem; font-weight: 700; padding: 7px 10px; border-radius: var(--radius-pill); cursor: pointer; }
   .ansicht-tab.active { background: var(--terracotta); color: var(--white); border-color: var(--terracotta); }
+
+  /* ---- 🪵 Paletten-Ideen ---- */
+  .pal-wissen { background: var(--white); border-radius: var(--radius-md); padding: 10px 14px; margin-bottom: 10px; box-shadow: var(--shadow-soft); }
+  .pal-wissen summary { font-weight: 700; cursor: pointer; padding: 4px 0; }
+  .pal-wissen ul { margin: 8px 0 4px 18px; font-size: 0.85rem; line-height: 1.5; }
+  .pal-svg { width: 100%; height: auto; display: block; border-radius: var(--radius-sm); margin-top: 8px; border: 1px solid var(--parchment); }
+  .pal-ueberschrift { margin: 16px 2px 8px; font-size: 1rem; }
+  .pal-liste { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px; }
+  .pal-karte { display: flex; align-items: center; gap: 12px; text-align: left; background: var(--white); border: 1px solid var(--parchment); border-radius: var(--radius-md); padding: 12px; cursor: pointer; box-shadow: var(--shadow-soft); color: var(--soil); font: inherit; }
+  .pal-icon { font-size: 1.8rem; flex-shrink: 0; }
+  .pal-icon.gross { font-size: 2.2rem; }
+  .pal-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .pal-titel { font-weight: 700; font-size: 0.9rem; }
+  .pal-meta { font-size: 0.75rem; color: var(--bark); }
+  .pal-detail-kopf { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .pal-detail-kopf h2 { font-size: 1.1rem; margin: 0; }
+  .pal-beschreibung { font-size: 0.88rem; line-height: 1.5; margin-bottom: 8px; }
+  .pal-zeichnung { margin-bottom: 10px; }
+  .pal-hinweis { font-size: 0.68rem; color: var(--bark); text-align: right; margin-top: 3px; }
+  .pal-fakten { background: var(--parchment); border-radius: var(--radius-sm); padding: 8px 12px; font-size: 0.82rem; line-height: 1.6; margin-bottom: 8px; }
+  #palDetailInhalt h3 { font-size: 0.95rem; margin: 12px 0 4px; }
+  .pal-material, .pal-schritte { margin-left: 20px; font-size: 0.86rem; line-height: 1.55; }
   .wartung-liste { display: grid; grid-template-columns: 1fr; gap: 10px; }
   @media (min-width: 1000px) { .wartung-liste { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); } }
   .wartung-karte { background: var(--white); border-radius: var(--radius-md); padding: 12px; box-shadow: var(--shadow-soft); display: flex; align-items: center; gap: 10px; border-left: 4px solid var(--parchment); cursor: pointer; }
@@ -219,6 +241,7 @@
   <div class="ansicht-tabs">
     <button class="ansicht-tab active" id="tabProjekte">📋 Projekte</button>
     <button class="ansicht-tab" id="tabWartung">🔁 Wartung</button>
+    <button class="ansicht-tab" id="tabPaletten">🪵 Paletten</button>
   </div>
   <div class="suchzeile" id="ansichtProjekteKopf" style="display:flex; align-items:center; gap:6px;">
     <input type="text" id="fSuche" placeholder="Projekt suchen ..." style="flex:1;">
@@ -260,6 +283,18 @@
     <div class="wartung-liste" id="wartungListe"></div>
     <div class="leer-hinweis" id="wartungLeerHinweis" style="display:none;">
       <span class="em">🔁</span>Noch keine wiederkehrende Wartung angelegt.<br>Tippe auf „＋ Neu", um z.B. Rauchmelder-Batterie oder Dachrinne reinigen anzulegen.
+    </div>
+  </div>
+
+  <div id="ansichtPaletten" style="display:none;"></div>
+
+  <div class="modal-bg" id="palettenModal">
+    <div class="modal" style="width:min(640px,96vw);max-height:90vh;overflow-y:auto">
+      <div id="palDetailInhalt"></div>
+      <div class="modal-btns" style="margin-top:14px;">
+        <button class="btn btn-secondary" id="btnPalSchliessen">Schließen</button>
+        <button class="btn btn-primary" id="btnPalUebernehmen">📋 Als Projekt übernehmen</button>
+      </div>
     </div>
   </div>
 
@@ -1583,8 +1618,22 @@
     document.getElementById('ansichtProjekteKopf').style.display = (aktiveAnsicht === 'projekte') ? 'flex' : 'none';
     document.getElementById('filterReihe').style.display = (aktiveAnsicht === 'projekte') ? '' : 'none';
     document.getElementById('wartungFilterReihe').style.display = (aktiveAnsicht === 'wartung') ? '' : 'none';
+    document.getElementById('tabPaletten').classList.toggle('active', aktiveAnsicht === 'paletten');
+    document.getElementById('ansichtPaletten').style.display = (aktiveAnsicht === 'paletten') ? '' : 'none';
     if (aktiveAnsicht === 'wartung') { renderWartungFilter(); renderWartungListe(); }
+    if (aktiveAnsicht === 'paletten' && window.palettenIdeenRendern) window.palettenIdeenRendern();
   }
+  document.getElementById('tabPaletten').addEventListener('click', () => { aktiveAnsicht = 'paletten'; ansichtAnwenden(); });
+  // Für die Paletten-Ideen: Beispielprojekt als eigenes Projekt (Status "Idee") anlegen
+  window.handwerkProjektAnlegen = function (vorlage) {
+    const neu = Object.assign({ id: neueId('p'), status: 'idee', person: null, budgetGeplant: null, fertigAm: null, erstelltAm: new Date().toISOString() }, vorlage);
+    neu.material = (vorlage.material || []).map(m => Object.assign({ id: neueId('m') }, m));
+    projekte.push(neu);
+    speichernProjekte();
+    aktiveAnsicht = 'projekte'; ansichtAnwenden(); renderGrid();
+    if (typeof showTempStatus === 'function') showTempStatus('📋 „' + neu.titel + '“ als Projekt angelegt', 3);
+    else alert('„' + neu.titel + '“ wurde als Projekt angelegt.');
+  };
   document.getElementById('tabProjekte').addEventListener('click', () => { aktiveAnsicht = 'projekte'; ansichtAnwenden(); });
   document.getElementById('tabWartung').addEventListener('click', () => { aktiveAnsicht = 'wartung'; ansichtAnwenden(); });
   document.getElementById('btnInfosModal').addEventListener('click', () => {
@@ -2088,6 +2137,260 @@
     });
   }
 })();
+</script>
+<script>
+// ============================================================
+// 🪵 PALETTEN-IDEEN: Beispielprojekte mit maßstäblichen Zeichnungen (Maße in mm)
+// Grundlage: Europalette (EPAL) 1200 × 800 × 144 mm. Zeichnungen vereinfacht.
+// ============================================================
+(function () {
+  'use strict';
+  let FS = 44; // Schriftgröße in mm – breite Zeichnungen setzen sie höher, damit sie auf dem Handy lesbar bleibt
+  const HOLZ = '#d9b382', KANTE = '#8a6237', DUNKEL = '#b88a55', POLSTER = '#9fb7c9', ERDE = '#7a5a3a', LINIE = '#3a2e1f';
+
+  // ---------- Zeichen-Helfer (Koordinaten in mm) ----------
+  function r(x, y, w, h, fill, extra) {
+    return '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" fill="' + (fill || HOLZ) + '" stroke="' + KANTE + '" stroke-width="4"' + (extra || '') + '/>';
+  }
+  function txt(x, y, t, opt) {
+    opt = opt || {};
+    return '<text x="' + x + '" y="' + y + '" font-size="' + (opt.gr || FS) + '" font-family="Inter,system-ui,sans-serif" font-weight="' + (opt.fett ? 700 : 500) + '" fill="' + (opt.farbe || LINIE) + '" text-anchor="' + (opt.anker || 'middle') + '"' + (opt.drehen ? ' transform="rotate(-90 ' + x + ' ' + y + ')"' : '') + '>' + t + '</text>';
+  }
+  // Maßlinie waagerecht (über/unter einem Bauteil)
+  function massH(x1, x2, y, label) {
+    return '<g stroke="' + LINIE + '" stroke-width="3"><line x1="' + x1 + '" y1="' + y + '" x2="' + x2 + '" y2="' + y + '"/>' +
+      '<line x1="' + x1 + '" y1="' + (y - 18) + '" x2="' + x1 + '" y2="' + (y + 18) + '"/><line x1="' + x2 + '" y1="' + (y - 18) + '" x2="' + x2 + '" y2="' + (y + 18) + '"/></g>' +
+      txt((x1 + x2) / 2, y - 14, label);
+  }
+  // Maßlinie senkrecht
+  function massV(x, y1, y2, label, links) {
+    const tx = links ? x - 16 : x + 52; // gedrehter Text wächst nach links – rechts mehr Abstand zur Linie
+    return '<g stroke="' + LINIE + '" stroke-width="3"><line x1="' + x + '" y1="' + y1 + '" x2="' + x + '" y2="' + y2 + '"/>' +
+      '<line x1="' + (x - 18) + '" y1="' + y1 + '" x2="' + (x + 18) + '" y2="' + y1 + '"/><line x1="' + (x - 18) + '" y1="' + y2 + '" x2="' + (x + 18) + '" y2="' + y2 + '"/></g>' +
+      txt(tx, (y1 + y2) / 2, label, { drehen: true, anker: 'middle' }).replace('rotate(-90 ', 'rotate(-90 ');
+  }
+  // Europalette von der langen Seite (1200 mm breit, 144 mm hoch), x/y = linke obere Ecke
+  function palLang(x, y, laenge) {
+    laenge = laenge || 1200;
+    const k = 145;
+    let s = r(x, y, laenge, 22) + r(x, y + 22, laenge, 22, DUNKEL);
+    [0, (laenge - k) / 2, laenge - k].forEach(dx => { s += r(x + dx, y + 44, k, 78); });
+    s += r(x, y + 122, laenge, 22);
+    return s;
+  }
+  // Europalette von der kurzen Seite (800 mm breit)
+  function palKurz(x, y) {
+    let s = '';
+    // Deckbretter im Querschnitt
+    const breiten = [145, 100, 145, 100, 145], luecke = (800 - 635) / 4;
+    let dx = 0;
+    breiten.forEach(b => { s += r(x + dx, y, b, 22); dx += b + luecke; });
+    s += r(x, y + 22, 800, 22, DUNKEL);
+    [0, 327.5, 655].forEach(d => { s += r(x + d, y + 44, 145, 78); });
+    [[0, 100], [327.5, 145], [700, 100]].forEach(([d, b]) => { s += r(x + d, y + 122, b, 22); });
+    return s;
+  }
+  // Palette von oben (Deckbretter sichtbar), l = Länge (x), b = Breite (y)
+  function palOben(x, y, l, b, drehen) {
+    let s = r(x, y, l, b, '#e8d2ad');
+    const breiten = [145, 100, 145, 100, 145], luecke = (800 - 635) / 4;
+    let d = 0;
+    breiten.forEach(w => {
+      s += drehen ? r(x + d * (l / 800), y, w * (l / 800), b) : r(x, y + d * (b / 800), l, w * (b / 800));
+      d += w + luecke;
+    });
+    return s;
+  }
+  function svg(breite, hoehe, inhalt, titel) {
+    const pad = Math.max(130, FS * 2.6);
+    return '<svg class="pal-svg" viewBox="' + (-pad) + ' ' + (-pad) + ' ' + (breite + 2 * pad) + ' ' + (hoehe + 2 * pad) + '" role="img" aria-label="' + titel + '">' +
+      '<rect x="' + (-pad) + '" y="' + (-pad) + '" width="' + (breite + 2 * pad) + '" height="' + (hoehe + 2 * pad) + '" fill="#fffdf8"/>' + inhalt + '</svg>';
+  }
+  function boden(x1, x2, y) { return '<line x1="' + x1 + '" y1="' + y + '" x2="' + x2 + '" y2="' + y + '" stroke="#9a8b74" stroke-width="5" stroke-dasharray="20 12"/>'; }
+
+  // ---------- Zeichnungen ----------
+  const ZEICHNUNG = {
+    europalette: () => {
+      FS = 82;
+      // links: lange Seite, rechts: kurze Seite
+      let s = palLang(0, 0) + massH(0, 1200, 250, '1200') + massV(-40, 0, 144, '144', true) +
+        txt(600, -40, 'Lange Seite', { fett: true });
+      s += '<g transform="translate(1400 0)">' + palKurz(0, 0) + massH(0, 800, 250, '800') + txt(400, -40, 'Kurze Seite', { fett: true }) + '</g>';
+      return svg(2200, 260, s, 'Europalette Ansichten');
+    },
+    sofa: () => {
+      FS = 86;
+      // Vorderansicht: 2 × 2 Paletten nebeneinander (je 1200), Lehne = halbe Paletten
+      let s = '';
+      s += r(0, 0, 2400, 400, '#c9a272') + txt(1200, 230, 'Rückenlehne: 2 halbe Paletten');
+      s += r(0, 400, 2400, 120, POLSTER, ' rx="30"') + txt(1200, 482, 'Sitzpolster 120 mm', { gr: 60 });
+      s += palLang(0, 520) + palLang(1200, 520) + palLang(0, 664) + palLang(1200, 664);
+      s += boden(-60, 2460, 808);
+      s += massH(0, 2400, 900, '2400') + massV(2470, 400, 808, 'Sitz ca. 408') + massV(-70, 0, 808, 'ca. 808', true);
+      return svg(2700, 960, s, 'Paletten-Lounge Vorderansicht');
+    },
+    bett: () => {
+      FS = 80;
+      // Draufsicht: 2 × 2 Paletten = 2400 × 1600, Matratze 1600 × 2000
+      let s = palOben(0, 0, 1200, 800) + palOben(1200, 0, 1200, 800) + palOben(0, 800, 1200, 800) + palOben(1200, 800, 1200, 800);
+      s += '<rect x="400" y="0" width="2000" height="1600" fill="rgba(159,183,201,0.55)" stroke="#5b7a92" stroke-width="8" stroke-dasharray="40 20"/>' +
+        txt(1400, 820, 'Matratze 160 × 200', { gr: 70, fett: true, farbe: '#2f4a5f' }) +
+        txt(200, 800, 'Ablage', { fett: true }) + txt(200, 880, '400 mm');
+      s += massH(0, 2400, 1700, '2400') + massV(2480, 0, 1600, '1600') + massH(400, 2400, -40, '2000 Liegefläche');
+      return svg(2600, 1760, s, 'Palettenbett Draufsicht');
+    },
+    couchtisch: () => {
+      FS = 46;
+      let s = r(-10, -12, 1220, 12, 'rgba(180,210,225,0.7)') + txt(600, -40, 'optional: Glasplatte 1200 × 800 × 8', { gr: 40 });
+      s += palLang(0, 0) + palLang(0, 144);
+      [60, 1060].forEach(x => { s += '<rect x="' + (x + 20) + '" y="288" width="40" height="30" fill="#777"/><circle cx="' + (x + 40) + '" cy="340" r="35" fill="#555" stroke="#333" stroke-width="5"/>'; });
+      s += boden(-60, 1260, 375);
+      s += massH(0, 1200, 460, '1200') + massV(1270, 0, 375, 'ca. 375') + massV(-60, 0, 288, '288', true);
+      return svg(1360, 480, s, 'Couchtisch Vorderansicht');
+    },
+    kraeuterwand: () => {
+      FS = 48;
+      // Palette hochkant: 800 breit, 1200 hoch; Deckbretter waagerecht
+      let s = r(0, 0, 800, 1200, '#e8d2ad');
+      const breiten = [145, 100, 145, 100, 145], luecke = (1200 - 635) / 4;
+      let y = 0;
+      breiten.forEach(b => { s += r(0, y, 800, b); y += b + luecke; });
+      // Pflanzfächer: Boden unter den Lücken 1, 2, 4
+      [[145, 1], [245 + luecke, 2], [390 + 2 * luecke + 100 + luecke, 3]].forEach(([yy, n]) => {
+        const fy = yy + luecke - 22;
+        s += r(0, fy, 800, 22, DUNKEL);
+        s += '<path d="M40 ' + (fy - 6) + ' q60 -70 120 0 q60 -80 120 0 q60 -60 120 0 q60 -70 120 0 q60 -60 120 0 q60 -70 120 0" fill="#6f9e4f" stroke="#4f6f45" stroke-width="5"/>';
+      });
+      s += boden(-60, 860, 1200);
+      s += massH(0, 800, 1290, '800') + massV(880, 0, 1200, '1200') + txt(400, -40, 'Ansicht von vorn (Palette hochkant)', { gr: 40 });
+      return svg(960, 1310, s, 'Kräuterwand Vorderansicht');
+    },
+    komposter: () => {
+      FS = 52;
+      // Draufsicht: vorne/hinten 1200 lang, Seiten dazwischen
+      const d = 144;
+      let s = r(0, 0, 1200, d) + r(0, d + 1200, 1200, d, '#e6c79a', ' stroke-dasharray="30 15"') + r(0, d, d, 1200) + r(1200 - d, d, d, 1200);
+      s += '<rect x="' + d + '" y="' + d + '" width="' + (1200 - 2 * d) + '" height="1200" fill="#8a6a45" opacity="0.35"/>' + txt(600, 760, 'Kompost', { gr: 64, fett: true, farbe: '#5a4128' });
+      s += txt(600, d + 1200 + 100, 'Vorderwand abnehmbar', { gr: 42 });
+      s += massH(0, 1200, -40, '1200') + massV(1290, 0, 1200 + 2 * d, 'ca. 1490') + massH(d, 1200 - d, 380, 'innen ca. 910');
+      return svg(1400, 1490, s, 'Komposter Draufsicht');
+    },
+    hochbeet: () => {
+      FS = 46;
+      // Seitenansicht: 3 Aufsatzrahmen à 200 mm
+      let s = '';
+      [0, 200, 400].forEach(y => { s += r(0, y, 1200, 200) + '<rect x="0" y="' + (y + 90) + '" width="1200" height="8" fill="#a8784a"/>'; [0, 1110].forEach(x => { s += '<rect x="' + (x + 20) + '" y="' + (y + 20) + '" width="50" height="160" fill="#9c9c9c" stroke="#666" stroke-width="3"/>'; }); });
+      s += '<path d="M0 0 q150 -60 300 0 q150 -60 300 0 q150 -60 300 0 q150 -60 300 0" fill="#6f9e4f" stroke="#4f6f45" stroke-width="5"/>';
+      s += boden(-60, 1260, 600);
+      s += massH(0, 1200, 690, '1200') + massV(1280, 0, 600, '600 (3 Rahmen)') + massV(-50, 0, 200, '200', true);
+      return svg(1400, 710, s, 'Hochbeet aus Aufsatzrahmen');
+    },
+    wandregal: () => {
+      FS = 48;
+      // Halbe Palette (1200 × ca. 400) hochkant an der Wand, Seitenansicht schematisch von vorn
+      let s = r(0, 0, 400, 1200, '#e8d2ad');
+      [0, 527.5, 1055].forEach(y => { s += r(0, y, 400, 145, HOLZ); });
+      [[145, 'Fach 1'], [672.5, 'Fach 2']].forEach(([y, t]) => { s += r(0, y + 340, 400, 22, DUNKEL) + txt(200, y + 200, t, { gr: 44 }); });
+      s += massH(0, 400, 1290, 'ca. 400') + massV(470, 0, 1200, '1200') + txt(200, -40, 'halbe Palette, hochkant', { gr: 40 });
+      return svg(560, 1310, s, 'Wandregal');
+    },
+  };
+
+  // ---------- Projekte ----------
+  const PROJEKTE = [
+    { id: 'sofa', icon: '🛋️', titel: 'Lounge-Sofa für Terrasse oder Balkon', schwierigkeit: 'mittel', zeit: '1 Tag', masse: '2400 × 800 mm, Sitzhöhe ca. 41 cm mit Polster, Gesamthöhe ca. 81 cm',
+      beschreibung: 'Der Klassiker: vier Paletten als Sitzfläche (zwei Lagen), dazu eine halbierte Palette als Rückenlehne. Mit Outdoor-Polstern ein gemütlicher Platz für 3–4 Personen.',
+      material: [['5', 'Stück', 'Europaletten (4 Sitz, 1 für Lehne)'], ['1', 'Paket', 'Holzschrauben 6 × 120 mm (Lagen verbinden)'], ['1', 'Paket', 'Holzschrauben 5 × 80 mm (Lehne)'], ['4', 'Stück', 'Flachverbinder / Lochplatten'], ['1', 'Set', 'Sitz- und Rückenpolster 120 × 80 cm'], ['1', 'Dose', 'Holzlasur für außen']],
+      werkzeug: 'Akkuschrauber, Stichsäge oder Handkreissäge, Schleifer (Körnung 80/120), Zollstock, Schutzbrille',
+      schritte: ['Paletten säubern, abstehende Nägel entfernen und Sitzflächen/Kanten schleifen.', 'Eine Palette mittig zwischen den Klötzen halbieren – ergibt die zwei Lehnenteile (je ca. 1200 × 400 mm).', 'Je zwei Paletten übereinander legen und an den Klötzen von oben verschrauben (6 × 120 mm).', 'Die beiden Stapel nebeneinander stellen und mit Flachverbindern auf der Rückseite verbinden.', 'Lehnenteile hochkant hinten aufsetzen und von hinten in die Klötze verschrauben.', 'Lasieren, trocknen lassen, Polster auflegen.'] },
+    { id: 'bett', icon: '🛏️', titel: 'Palettenbett 160 × 200 mit Ablage', schwierigkeit: 'einfach', zeit: '½ Tag', masse: '2400 × 1600 mm, Höhe 144 mm (1 Lage) oder 288 mm (2 Lagen)',
+      beschreibung: 'Vier Paletten ergeben genau 2400 × 1600 mm – Platz für eine 160er-Matratze plus 40 cm Ablage am Kopfende für Lampe und Buch. Wer höher liegen will, nimmt zwei Lagen (8 Paletten).',
+      material: [['4', 'Stück', 'Europaletten (8 für zwei Lagen)'], ['8', 'Stück', 'Flachverbinder'], ['1', 'Paket', 'Holzschrauben 4 × 30 mm'], ['8', 'Stück', 'Filzgleiter oder Möbelfüße'], ['1', 'Stück', 'Lattenrost oder Matratzenunterlage (für Belüftung)']],
+      werkzeug: 'Akkuschrauber, Schleifer, Staubsauger, Zollstock',
+      schritte: ['Nur saubere, trockene Paletten mit HT-Stempel verwenden (fürs Schlafzimmer besonders wichtig).', 'Gründlich schleifen – vor allem die Oberseite und alle Kanten, an denen man sich stoßen kann.', 'Paletten 2 × 2 auslegen (lange Seiten in Bettlänge) und unten mit Flachverbindern verbinden.', 'Filzgleiter unter die Klötze, damit nichts kratzt und das Bett nicht rutscht.', 'Lattenrost oder Unterlage auflegen, Matratze ans Fußende schieben – vorne bleibt die Ablage.'] },
+    { id: 'couchtisch', icon: '🪑', titel: 'Couchtisch auf Rollen', schwierigkeit: 'einfach', zeit: '2–3 Stunden', masse: '1200 × 800 mm, Höhe ca. 37 cm',
+      beschreibung: 'Zwei Paletten übereinander, darunter Lenkrollen. Die Zwischenräume eignen sich als Fächer für Zeitschriften. Mit Glasplatte wird die Oberfläche glatt und pflegeleicht.',
+      material: [['2', 'Stück', 'Europaletten'], ['4', 'Stück', 'Lenkrollen ca. 75 mm, 2 davon mit Bremse'], ['16', 'Stück', 'Schrauben für Rollen 5 × 30 mm'], ['1', 'Paket', 'Holzschrauben 6 × 120 mm'], ['1', 'Stück', 'Glasplatte 1200 × 800 × 8 mm (optional)'], ['1', 'Dose', 'Möbelöl oder Klarlack']],
+      werkzeug: 'Akkuschrauber, Schleifer, Pinsel',
+      schritte: ['Beide Paletten gründlich schleifen, besonders die spätere Tischoberfläche.', 'Paletten übereinanderlegen und durch die Klötze verschrauben.', 'Tisch umdrehen, Rollen unter die vier Eckklötze schrauben.', 'Ölen oder lackieren, trocknen lassen.', 'Optional Glasplatte mit kleinen Silikon-Puffern auflegen.'] },
+    { id: 'kraeuterwand', icon: '🌿', titel: 'Vertikaler Kräutergarten', schwierigkeit: 'einfach', zeit: '2–3 Stunden', masse: '800 × 1200 mm, 3 Pflanzfächer',
+      beschreibung: 'Eine Palette hochkant an Wand oder Zaun – drei Zwischenräume werden mit einem Boden zu Pflanzkästen. Platzsparend für Balkon und Terrasse, ideal für Kräuter und Erdbeeren.',
+      material: [['1', 'Stück', 'Europalette'], ['3', 'Stück', 'Bretter 800 × 100 × 22 mm (z. B. aus einer zweiten Palette)'], ['1', 'Rolle', 'Unkrautvlies oder Teichfolie (Innenseite)'], ['1', 'Paket', 'Tackerklammern'], ['2', 'Stück', 'Winkel zur Wandbefestigung'], ['40', 'Liter', 'Kräutererde']],
+      werkzeug: 'Akkuschrauber, Tacker, Cuttermesser',
+      schritte: ['Palette säubern und lasieren (Außenbereich).', 'Unter drei Lücken der Vorderseite jeweils ein Brett als Boden schrauben.', 'Die Fächer innen mit Vlies auskleiden und festtackern – unten kleine Löcher für Wasserablauf lassen.', 'Palette aufstellen und mit Winkeln sicher an Wand oder Zaun befestigen (Kippgefahr!).', 'Erde einfüllen, Kräuter pflanzen, angießen.'] },
+    { id: 'komposter', icon: '♻️', titel: 'Kompostbehälter', schwierigkeit: 'einfach', zeit: '1–2 Stunden', masse: 'außen ca. 1200 × 1490 mm, Höhe 800 mm, ca. 0,9 m³',
+      beschreibung: 'Vier Paletten hochkant – fertig ist ein luftiger Komposter. Die Lücken sorgen für Belüftung, die Vorderwand lässt sich abnehmen, um den reifen Kompost unten zu entnehmen.',
+      material: [['4', 'Stück', 'Europaletten'], ['6', 'Stück', 'Winkelverbinder'], ['1', 'Paket', 'Holzschrauben 5 × 50 mm'], ['2', 'Stück', 'Haken-und-Öse oder Spannriemen (Vorderwand)'], ['1', 'Stück', 'Hasendraht 1 × 1,5 m (optional, gegen Nager)']],
+      werkzeug: 'Akkuschrauber, Spaten (Untergrund ebnen)',
+      schritte: ['Halbschattigen Platz wählen, Boden ebnen – Kompost braucht Kontakt zum Erdreich.', 'Optional Hasendraht als Boden auslegen.', 'Rückwand und beide Seitenwände hochkant (1200 lang, 800 hoch) aufstellen und mit Winkeln verschrauben.', 'Vorderwand nur mit Haken/Riemen befestigen, damit sie abnehmbar bleibt.', 'Grob- und Feinmaterial schichten – fertig.'] },
+    { id: 'hochbeet', icon: '🥕', titel: 'Hochbeet aus Palettenrahmen', schwierigkeit: 'einfach', zeit: '1–2 Stunden', masse: '1200 × 800 mm, Höhe 600 mm (3 Rahmen), ca. 0,5 m³ Füllung',
+      beschreibung: 'Keine Palette, aber ihr Zubehör: Aufsatzrahmen (1200 × 800 × 200 mm) mit Klappscharnieren lassen sich ohne Werkzeug stapeln. Schnellster Weg zum Hochbeet – passt perfekt zu deinem Gartenplaner.',
+      material: [['3', 'Stück', 'Palettenaufsatzrahmen 1200 × 800 × 200 mm'], ['1', 'Rolle', 'Wühlmausgitter ca. 1,2 × 0,8 m'], ['1', 'Rolle', 'Noppenfolie oder Teichfolie (Innenwände)'], ['1', 'Paket', 'Tackerklammern'], ['500', 'Liter', 'Füllung: Äste, Laub, Kompost, Erde']],
+      werkzeug: 'Tacker, Cuttermesser, Spaten',
+      schritte: ['Ebenen, sonnigen Platz wählen und Wühlmausgitter auslegen.', 'Ersten Rahmen aufklappen und aufs Gitter stellen, weitere Rahmen exakt darauf setzen.', 'Innenwände mit Folie auskleiden (Noppen zum Holz) und oben festtackern – schützt vor Fäulnis.', 'Schichtweise füllen: unten Äste, dann Laub/Grasschnitt, Kompost, oben Pflanzerde.', 'Im Gartenplaner als Beet 120 × 80 cm anlegen 😉'] },
+    { id: 'wandregal', icon: '📚', titel: 'Wandregal aus halber Palette', schwierigkeit: 'mittel', zeit: '2–3 Stunden', masse: 'ca. 400 × 1200 mm, 2 Fächer',
+      beschreibung: 'Eine Palette ergibt zwei Regale: einmal längs zwischen den Klötzen durchsägen, hochkant an die Wand – fertig ist ein rustikales Regal für Bücher, Gewürze oder Schuhe im Flur.',
+      material: [['1', 'Stück', 'Europalette (ergibt 2 Regale)'], ['2', 'Stück', 'Bretter 400 × 145 × 22 mm als Fachböden'], ['4', 'Stück', 'Schwerlastdübel + Schrauben 8 × 80 mm'], ['1', 'Dose', 'Möbelöl oder Lasur']],
+      werkzeug: 'Handkreissäge oder Stichsäge, Akkuschrauber, Bohrmaschine, Wasserwaage, Schleifer',
+      schritte: ['Palette mittig zwischen den Klötzen längs durchsägen (gibt zwei Hälften à ca. 400 mm).', 'Schnittkanten und Flächen schleifen.', 'Fachböden unten in die Lücken schrauben.', 'Ölen oder lasieren.', 'Mit Wasserwaage ausrichten und mit Schwerlastdübeln an der Wand befestigen – Wand vorher auf Leitungen prüfen.'] },
+  ];
+
+  const GRUNDWISSEN = '<details class="pal-wissen" open><summary>📏 Europalette – Maße &amp; Aufbau</summary>' + ZEICHNUNG.europalette() +
+    '<ul><li><b>Maße:</b> 1200 × 800 × 144 mm, ca. 25 kg</li><li><b>Oben:</b> 5 Deckbretter (22 mm), darunter 3 Querbretter</li><li><b>Klötze:</b> 9 Stück, 78 mm hoch</li><li><b>Unten:</b> 3 Bodenbretter</li></ul></details>' +
+    '<details class="pal-wissen"><summary>⚠️ Worauf achten?</summary><ul>' +
+    '<li><b>Stempel prüfen:</b> <b>HT</b> = hitzebehandelt, gut geeignet. <b>MB</b> = mit Methylbromid begast – nicht für Möbel oder Hochbeete verwenden.</li>' +
+    '<li><b>Sauber und trocken:</b> keine Öl-, Chemikalien- oder Schimmelflecken – man weiß nie, was transportiert wurde. Für Innenräume und Essbares besonders wichtig.</li>' +
+    '<li><b>Herkunft:</b> Europaletten sind Tauschware und haben einen Wert – nicht einfach mitnehmen, sondern gebraucht kaufen (Kleinanzeigen, Baustoffhandel) oder nachfragen.</li>' +
+    '<li><b>Vorbereiten:</b> Nägel kontrollieren, gründlich schleifen (80er, dann 120er Körnung), für draußen lasieren.</li>' +
+    '<li><b>Tragfähigkeit:</b> Paletten sind robust, aber Verbindungen (Schrauben, Verbinder) bestimmen die Stabilität – lieber eine Schraube mehr.</li></ul></details>';
+
+  function karteHtml(p) {
+    return '<button type="button" class="pal-karte" data-id="' + p.id + '">' +
+      '<span class="pal-icon">' + p.icon + '</span>' +
+      '<span class="pal-text"><span class="pal-titel">' + p.titel + '</span>' +
+      '<span class="pal-meta">' + ({ einfach: '🟢 einfach', mittel: '🟡 mittel' }[p.schwierigkeit] || '') + ' · ⏱ ' + p.zeit + '</span></span></button>';
+  }
+  function detailHtml(p) {
+    return '<div class="pal-detail-kopf"><span class="pal-icon gross">' + p.icon + '</span><h2>' + p.titel + '</h2></div>' +
+      '<p class="pal-beschreibung">' + p.beschreibung + '</p>' +
+      '<div class="pal-zeichnung">' + ZEICHNUNG[p.id]() + '<div class="pal-hinweis">Maße in mm · Zeichnung vereinfacht, nicht maßstabsgetreu im Detail</div></div>' +
+      '<div class="pal-fakten"><div>📐 <b>Maße:</b> ' + p.masse + '</div><div>⏱ <b>Zeit:</b> ' + p.zeit + '</div><div>🧰 <b>Werkzeug:</b> ' + p.werkzeug + '</div></div>' +
+      '<h3>🧾 Material</h3><ul class="pal-material">' + p.material.map(m => '<li><b>' + m[0] + ' ' + m[1] + '</b> ' + m[2] + '</li>').join('') + '</ul>' +
+      '<h3>🔨 Schritte</h3><ol class="pal-schritte">' + p.schritte.map(s => '<li>' + s + '</li>').join('') + '</ol>';
+  }
+
+  let aktuelles = null;
+  function oeffnen(id) {
+    aktuelles = PROJEKTE.find(p => p.id === id);
+    if (!aktuelles) return;
+    document.getElementById('palDetailInhalt').innerHTML = detailHtml(aktuelles);
+    const m = document.getElementById('palettenModal');
+    m.classList.add('zeigen');
+    m.querySelector('.modal').scrollTop = 0;
+  }
+  function schliessen() { document.getElementById('palettenModal').classList.remove('zeigen'); }
+
+  window.palettenIdeenRendern = function () {
+    const box = document.getElementById('ansichtPaletten');
+    if (box.dataset.gerendert) return;
+    box.dataset.gerendert = '1';
+    box.innerHTML = GRUNDWISSEN + '<h3 class="pal-ueberschrift">💡 Projektideen</h3><div class="pal-liste">' + PROJEKTE.map(karteHtml).join('') + '</div>';
+    box.querySelectorAll('.pal-karte').forEach(b => b.addEventListener('click', () => oeffnen(b.dataset.id)));
+  };
+  document.getElementById('btnPalSchliessen').addEventListener('click', schliessen);
+  document.getElementById('palettenModal').addEventListener('click', (e) => { if (e.target.id === 'palettenModal') schliessen(); });
+  document.getElementById('btnPalUebernehmen').addEventListener('click', () => {
+    if (!aktuelles || !window.handwerkProjektAnlegen) return;
+    window.handwerkProjektAnlegen({
+      titel: aktuelles.icon + ' ' + aktuelles.titel,
+      material: aktuelles.material.map(m => ({ menge: m[0], einheit: m[1], name: m[2], preis: '' })),
+      schritte: aktuelles.schritte.map(s => ({ text: s, erledigt: false })),
+      notiz: 'Paletten-Idee · Maße: ' + aktuelles.masse + '\nWerkzeug: ' + aktuelles.werkzeug,
+    });
+    schliessen();
+  });
+})();
+
 </script>
 </body>
 </html>
