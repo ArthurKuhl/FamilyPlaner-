@@ -6094,6 +6094,24 @@ function onDown(e) {
     showTempStatus('✓ Platziert – Details ergänzen und speichern', 4);
     return;
   }
+  festTipp = null;
+  if (mode==='select') {
+    // Fixierte Elemente: nicht verschiebbar, aber ein kurzer Tipp öffnet die Infos (siehe onUp)
+    const pkt = (e.touches && e.touches[0]) || e;
+    const festMerken = (daten) => { festTipp = Object.assign({ cx: pkt.clientX, cy: pkt.clientY, t: Date.now() }, daten); };
+    const fpFest = hitTestFreiPflanze(x, y);
+    if (fpFest && fpFest.locked) { festMerken({ typ: 'fp', item: fpFest }); return; }
+    for (let i=getCurrentBeds().length-1;i>=0;i--) {
+      const bed=getCurrentBeds()[i];
+      if (!bed.locked) continue;
+      for (let j=(bed.plants||[]).length-1;j>=0;j--) {
+        const pl=bed.plants[j];
+        if (Math.hypot(x-(bed.x+rotX(pl.rx,pl.ry,bed.rotation||0)), y-(bed.y+rotY(pl.rx,pl.ry,bed.rotation||0)))<16) { festMerken({ typ: 'pflanze', bed, idx: j }); return; }
+      }
+    }
+    const beetFest = hitTest(x, y);
+    if (beetFest && beetFest.locked) festMerken({ typ: 'beet', bed: beetFest });
+  }
   if (mode==='select') {
     const fpHit = hitTestFreiPflanze(x, y);
     if (fpHit && !fpHit.locked) {
@@ -6293,7 +6311,21 @@ function hidePlantTooltip() {
   if (tip) tip.style.display = 'none';
   if (hoverConflictBedId !== null) { hoverConflictBedId = null; draw(); }
 }
+let festTipp = null; // angetipptes fixiertes Element (Freipflanze, Pflanze in fixiertem Beet, fixiertes Beet)
+function festTippAuswerten(e) {
+  const t = festTipp; festTipp = null;
+  if (!t) return false;
+  const pkt = (e && e.changedTouches && e.changedTouches[0]) || e || {};
+  const bewegt = Math.hypot((pkt.clientX || 0) - t.cx, (pkt.clientY || 0) - t.cy);
+  if (bewegt > 12 || Date.now() - t.t > 800) return false; // war Scrollen oder langes Halten, kein Tipp
+  if (t.typ === 'fp') { openFreiPflanzePanel(t.item); draw(); return true; }
+  if (t.typ === 'pflanze') { selectedPlantOnCanvas = { bedId: t.bed.id, idx: t.idx }; openPlantPanel(t.bed, t.idx); draw(); return true; }
+  if (t.typ === 'beet') { selectedBeds = [t.bed]; selectedBed = t.bed; showBedEditor(t.bed); hideBulkBar(); draw(); renderBedList(); return true; }
+  return false;
+}
+canvas.addEventListener('touchcancel', () => { festTipp = null; });
 function onUp(e) {
+  if (festTippAuswerten(e)) return;
   if (zoneDrawing) {
     zoneDrawing = false;
     const start = zoneDrawStart, cur = zoneDrawCur || zoneDrawStart;
