@@ -2,6 +2,9 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
+## 2026-10-16 | 🗓️ Neuer Tab "Paletten" im Handwerk-Modul
+Es wurden einige Bauanleitungen aus Paletten hinzugefügt.
+
 ## 2026-10-12 | 🗓️ zweites Kalenderformat verfügbar 
 Kalender kann jetzt umgeschaltet werden zwischen Tabellen- und Listenansicht.
 
