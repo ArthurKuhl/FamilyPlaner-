@@ -1030,7 +1030,7 @@
     <input type="file" id="ppPhotoInput" accept="image/*" onchange="handlePlantPhoto(event)" style="display:none;"/>
     <div class="pp-header-placeholder" id="ppHeaderPlaceholder"></div>
     <div class="pp-foto-galerie" id="ppFotoGalerie"></div>
-    <div class="plant-panel-title" id="ppTitle">Pflanze</div>
+    <div class="plant-panel-title" id="ppTitle" title="Antippen zum Umbenennen" style="cursor:text">Pflanze</div>
     <div class="pp-position" id="ppPosition"></div>
   </div>
   <div class="pp-body">
@@ -1275,7 +1275,7 @@
     <input type="file" id="fpPhotoInput" accept="image/*" onchange="handleFreiPflanzePhoto(event)" style="display:none;"/>
     <div class="pp-header-placeholder" id="fpHeaderPlaceholder"></div>
     <div class="pp-foto-galerie" id="fpFotoGalerie"></div>
-    <div class="plant-panel-title" id="freiPflanzeTitel">🌳 Baum/Strauch</div>
+    <div class="plant-panel-title" id="freiPflanzeTitel" title="Antippen zum Umbenennen" style="cursor:text">🌳 Baum/Strauch</div>
     <div class="pp-position" id="fpPosition"></div>
   </div>
   <div class="pp-body">
@@ -2864,21 +2864,29 @@ const PFLANZEN_BEDINGUNGEN = {
   'Petunie': ['V','v','S','Nährstoffreich, durchlässig','Regengeschützt am schönsten','Regelmäßig düngen; Verblühtes entfernen'],
   'Hortensie': ['HS','v','M','Humos, leicht sauer, feucht','Halbschattig, keine pralle Mittagssonne','Mit Regenwasser gießen; nicht austrocknen lassen'],
 };
-const PFLANZEN_BEDINGUNGEN_ALIAS = { 'feigenbaum': 'Feige', 'pflaume': 'Pflaumenbaum', 'weinrebe': 'Traube', 'wein': 'Traube', 'weintraube': 'Traube', 'apfel': 'Apfelbaum', 'birne': 'Birnbaum', 'kirsche': 'Kirschbaum', 'süßkirsche': 'Kirschbaum', 'sauerkirsche': 'Kirschbaum', 'tomaten': 'Tomate', 'gurken': 'Gurke', 'porree': 'Lauch (Porree)', 'lauch': 'Lauch (Porree)', 'tagetes': 'Studentenblume (Tagetes)', 'möhre': 'Karotte', 'möhren': 'Karotte', 'karotten': 'Karotte', 'zucchini': 'Zucchini', 'kartoffeln': 'Kartoffel', 'erdbeeren': 'Erdbeere', 'himbeeren': 'Himbeere', 'heidelbeeren': 'Heidelbeere', 'blaubeere': 'Heidelbeere', 'johannisbeeren': 'Johannisbeere', 'brombeeren': 'Brombeere', 'stachelbeeren': 'Stachelbeere', 'aprikosenbaum': 'Aprikose', 'pfirsichbaum': 'Pfirsich', 'walnussbaum': 'Walnuss', 'quitte': 'Japanische Quitte', 'kiwibeere': 'Kiwi', 'buchs': 'Buchsbaum' };
-function pflanzenBedingungenFinden(name) {
-  if (!name) return null;
+const PFLANZEN_BEDINGUNGEN_ALIAS = { 'feigenbaum': 'Feige', 'pflaume': 'Pflaumenbaum', 'weinrebe': 'Traube', 'wein': 'Traube', 'weintraube': 'Traube', 'apfel': 'Apfelbaum', 'birne': 'Birnbaum', 'kirsche': 'Kirschbaum', 'süßkirsche': 'Kirschbaum', 'sauerkirsche': 'Kirschbaum', 'tomaten': 'Tomate', 'gurken': 'Gurke', 'porree': 'Lauch (Porree)', 'lauch': 'Lauch (Porree)', 'tagetes': 'Studentenblume (Tagetes)', 'möhre': 'Karotte', 'möhren': 'Karotte', 'karotten': 'Karotte', 'zucchini': 'Zucchini', 'kartoffeln': 'Kartoffel', 'erdbeeren': 'Erdbeere', 'himbeeren': 'Himbeere', 'heidelbeeren': 'Heidelbeere', 'blaubeere': 'Heidelbeere', 'johannisbeeren': 'Johannisbeere', 'brombeeren': 'Brombeere', 'stachelbeeren': 'Stachelbeere', 'aprikosenbaum': 'Aprikose', 'birnenbaum': 'Birnbaum', 'kirschenbaum': 'Kirschbaum', 'pflaumen': 'Pflaumenbaum', 'zwetschgenbaum': 'Zwetschge', 'zwetschke': 'Zwetschge', 'pfirsichbaum': 'Pfirsich', 'walnussbaum': 'Walnuss', 'quitte': 'Japanische Quitte', 'kiwibeere': 'Kiwi', 'buchs': 'Buchsbaum' };
+// Findet zu einem frei eingegebenen Pflanzennamen den passenden Schlüssel einer Tabelle
+// (z.B. "Birne", "Birnenbaum" -> "Birnbaum"; "Feigenbaum" -> "Feige"; "Kirsche" -> "Kirschbaum").
+function pflanzenSchluesselFinden(name, tabelle) {
+  if (!name || !tabelle) return null;
   const n = String(name).trim();
-  if (PFLANZEN_BEDINGUNGEN[n]) return PFLANZEN_BEDINGUNGEN[n];
+  if (tabelle[n]) return n;
+  const schluessel = Object.keys(tabelle);
+  const finde = (kandidat) => schluessel.find(k => k.toLowerCase() === kandidat);
   const klein = n.toLowerCase();
-  const direkt = Object.keys(PFLANZEN_BEDINGUNGEN).find(k => k.toLowerCase() === klein);
-  if (direkt) return PFLANZEN_BEDINGUNGEN[direkt];
-  if (PFLANZEN_BEDINGUNGEN_ALIAS[klein]) return PFLANZEN_BEDINGUNGEN[PFLANZEN_BEDINGUNGEN_ALIAS[klein]];
-  // "Apfel" -> "Apfelbaum", "Feigenbaum" -> "Feige"
-  const mitBaum = Object.keys(PFLANZEN_BEDINGUNGEN).find(k => k.toLowerCase() === klein + 'baum');
-  if (mitBaum) return PFLANZEN_BEDINGUNGEN[mitBaum];
-  const ohneBaum = klein.replace(/n?baum$/, '');
-  const treffer = Object.keys(PFLANZEN_BEDINGUNGEN).find(k => k.toLowerCase() === ohneBaum);
-  return treffer ? PFLANZEN_BEDINGUNGEN[treffer] : null;
+  const stamm = klein.replace(/e?n?baum$/, '');          // birnenbaum -> birn, feigenbaum -> feig, apfelbaum -> apfel
+  const kandidaten = [klein, PFLANZEN_BEDINGUNGEN_ALIAS[klein] && PFLANZEN_BEDINGUNGEN_ALIAS[klein].toLowerCase(),
+    klein + 'baum', klein + 'nbaum', klein.replace(/e$/, '') + 'baum',
+    stamm, stamm + 'e', stamm + 'baum', stamm + 'ebaum'];
+  for (const k of kandidaten) { if (!k) continue; const t = finde(k); if (t) return t; }
+  // Alias-Ziel kann in dieser Tabelle anders heißen (z.B. "Pflaumenbaum" vs. "Pflaume")
+  const alias = PFLANZEN_BEDINGUNGEN_ALIAS[klein] || PFLANZEN_BEDINGUNGEN_ALIAS[stamm + 'e'];
+  if (alias) { const t = finde(alias.toLowerCase()) || finde(alias.toLowerCase().replace(/n?baum$/, '')); if (t) return t; }
+  return null;
+}
+function pflanzenBedingungenFinden(name) {
+  const k = pflanzenSchluesselFinden(name, PFLANZEN_BEDINGUNGEN);
+  return k ? PFLANZEN_BEDINGUNGEN[k] : null;
 }
 const BED_LICHT = { V: ['☀️', 'Vollsonnig'], S: ['☀️', 'Sonnig'], SH: ['🌤️', 'Sonnig bis halbschattig'], H: ['⛅', 'Halbschattig'], HS: ['☁️', 'Halbschattig bis schattig'] };
 const BED_WASSER = { w: ['🌵', 'Wenig Wasser, eher trocken'], m: ['💧', 'Mäßig gießen'], v: ['💦', 'Gleichmäßig feucht halten'] };
@@ -2905,7 +2913,7 @@ function renderBedingungenHint(plantName, targetId) {
 function renderRueckschnittHint(plantName, targetId) {
   const box = document.getElementById(targetId);
   if (!box) return;
-  const info = RUECKSCHNITT[plantName];
+  const info = RUECKSCHNITT[pflanzenSchluesselFinden(plantName, RUECKSCHNITT) || plantName];
   if (!info || !info.monate) { box.style.display = 'none'; box.innerHTML = ''; return; }
   const currentMonth = new Date().getMonth() + 1;
   const aktiv = isInWindow(info.monate, currentMonth);
@@ -7983,6 +7991,7 @@ document.getElementById('btnFpFotoMalen').addEventListener('click', (e) => {
 });
 document.getElementById('plantPanelHeader').addEventListener('click', (e) => {
   if (e.target.closest('.pp-header-actions, .pp-foto-galerie, .pp-lebenszyklus-badge, .close-btn')) return;
+  if (e.target.closest('#ppTitle')) { const f = document.getElementById('ppName'); f.scrollIntoView({ block: 'center', behavior: 'smooth' }); f.focus(); f.select(); return; }
   if (!activePlantBedId) return;
   const bed = getCurrentBeds().find(b => b.id === activePlantBedId.bedId);
   const plant = bed && bed.plants[activePlantBedId.idx];
@@ -7992,6 +8001,7 @@ document.getElementById('plantPanelHeader').addEventListener('click', (e) => {
 });
 document.getElementById('freiPflanzePanelHeader').addEventListener('click', (e) => {
   if (e.target.closest('.pp-header-actions, .pp-foto-galerie, .pp-lebenszyklus-badge, .close-btn')) return;
+  if (e.target.closest('#freiPflanzeTitel')) { const f = document.getElementById('fpName'); f.scrollIntoView({ block: 'center', behavior: 'smooth' }); f.focus(); f.select(); return; }
   const fp = getCurrentFreiPflanzen().find(x => x.id === activeFreiPflanzeId);
   if (!fp) return;
   const titelbild = ppFotoTitelbild(fp);
