@@ -300,6 +300,13 @@
   .pp-foto-thumb { position: relative; flex-shrink: 0; width: 46px; height: 46px; border-radius: 7px; overflow: hidden; border: 2px solid rgba(255,255,255,0.5); cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
   .pp-foto-thumb.aktuell { border-color: #8fc98a; }
   .pp-foto-thumb.privat { border-style: dashed; }
+  /* Standort & Bedingungen der Pflanze */
+  .bedingungen-box { background: var(--white); border: 1px solid var(--parchment); border-left: 4px solid var(--moss); border-radius: 9px; padding: 10px 12px; font-size: 0.8rem; color: var(--soil); }
+  .bedingungen-titel { font-weight: 700; margin-bottom: 6px; }
+  .bed-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  .bed-chip { background: var(--parchment); border-radius: 999px; padding: 4px 10px; font-size: 0.75rem; font-weight: 600; }
+  .bed-zeile { line-height: 1.45; margin-top: 4px; }
+  .bed-vorbeugen { background: rgba(79,111,69,0.10); border-radius: 6px; padding: 6px 8px; margin-top: 8px; }
   .pp-foto-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .pp-foto-thumb .pp-foto-datum { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.6); color: #fff; font-size: 0.42rem; text-align: center; padding: 1px 0; }
   .pp-foto-thumb-del { position: absolute; top: 1px; right: 1px; background: rgba(0,0,0,0.6); color: #fff; border: none; border-radius: 50%; width: 13px; height: 13px; font-size: 0.5rem; line-height: 1; cursor: pointer; padding: 0; }
@@ -1080,6 +1087,7 @@
     </div>
     <div id="sowingHint" style="display:none;margin-top:12px"></div>
     <div id="rueckschnittHint" style="display:none;margin-top:12px"></div>
+    <div id="bedingungenHint" style="display:none;margin-top:12px"></div>
   </div>
 
   <!-- PP TAB: Nachbarn (Mischkultur) -->
@@ -1318,6 +1326,7 @@
     </div>
     <div id="fpSowingHint" style="display:none;margin-top:12px"></div>
     <div id="fpRueckschnittHint" style="display:none;margin-top:12px"></div>
+    <div id="fpBedingungenHint" style="display:none;margin-top:12px"></div>
   </div>
 
   <!-- FP TAB: Blatt-/Fruchtsymptome -->
@@ -2753,6 +2762,146 @@ function renderSowingHint(plantName, targetId) {
   </div>`;
   box.style.display='block';
 }
+// ==================== STANDORT & BEDINGUNGEN je Pflanze ====================
+// Kompakte Angaben, was die Pflanze bevorzugt – Grundlage gegen Kümmerwuchs und Krankheiten.
+// [Licht, Wasser, Nährstoffe, Boden, Klima/Luft, Krankheiten vorbeugen]
+// Licht: V=vollsonnig, S=sonnig, SH=sonnig–halbschattig, H=halbschattig, HS=halbschattig–schattig
+// Wasser: w=wenig/trocken, m=mäßig, v=viel/gleichmäßig feucht · Nährstoffe: S=Starkzehrer, M=Mittelzehrer, W=Schwachzehrer
+const PFLANZEN_BEDINGUNGEN = {
+  // ---- Gemüse ----
+  'Tomate': ['V','v','S','Humos, nährstoffreich, durchlässig','Warm, windgeschützt, Regenschutz ideal (Dach/Gewächshaus)','Nur von unten gießen, Blätter trocken halten; untere Blätter entfernen – beugt Kraut- und Braunfäule vor'],
+  'Karotte': ['SH','m','M','Locker, tiefgründig, sandig-humos, steinfrei','Luftig – trocknet nach Regen schnell ab','Mischkultur mit Zwiebeln oder Lauch hält die Möhrenfliege fern; Kulturschutznetz hilft zusätzlich'],
+  'Salat': ['SH','v','M','Humos, feinkrümelig, gleichmäßig feucht','Mag es nicht zu heiß – im Hochsommer leichter Schatten','Nicht zu eng pflanzen und morgens gießen, damit die Blätter abtrocknen – beugt Falschem Mehltau vor'],
+  'Paprika': ['V','m','S','Humos, nährstoffreich, warm','Sehr wärmebedürftig, windgeschützt – Gewächshaus oder Südwand','Staunässe vermeiden; nicht zu kalt gießen (Wasser vorwärmen)'],
+  'Gurke': ['V','v','S','Humos, locker, nährstoffreich, warm','Warm und windgeschützt, hohe Luftfeuchte mögen Freilandgurken','Gießen mit lauwarmem Wasser direkt an die Wurzel; luftig erziehen gegen Mehltau'],
+  'Zwiebel': ['V','w','W','Locker, durchlässig, nicht frisch gedüngt','Luftig und eher trocken','Weiter Fruchtwechsel (4 Jahre) und kein frischer Mist – beugt Zwiebelfliege und Fäulnis vor'],
+  'Bohnen': ['S','m','W','Locker, warm, humos','Warm, windgeschützt; frostempfindlich','Erst ab ca. 10 °C Bodentemperatur säen; nicht über die Blätter gießen (Brennfleckenkrankheit)'],
+  'Brokkoli': ['SH','v','S','Humos, nährstoffreich, kalkhaltig','Kühl-feucht ist ideal, große Hitze mag er nicht','Kohl-Fruchtwechsel von 3–4 Jahren gegen Kohlhernie; Netz gegen Kohlweißling'],
+  'Aubergine': ['V','m','S','Humos, warm, nährstoffreich','Braucht viel Wärme – Gewächshaus oder geschützte Südseite','Gleichmäßig gießen, nicht nass halten; auf Blattläuse und Spinnmilben achten'],
+  'Zucchini': ['V','v','S','Sehr nährstoffreich, humos, gerne mit Kompost','Warm, windgeschützt','Blätter trocken halten und Abstand lassen – beugt Echtem Mehltau vor'],
+  'Kürbis': ['V','v','S','Sehr nährstoffreich, gerne direkt am Kompost','Warm, viel Platz','Früchte auf ein Brett oder Stroh legen gegen Fäulnis; luftig halten gegen Mehltau'],
+  'Kartoffel': ['S','m','M','Locker, humos, leicht sauer bis neutral','Luftig, sonnig','Nicht neben Tomaten pflanzen; Fruchtwechsel und luftiger Stand gegen Kraut- und Knollenfäule'],
+  'Rote Bete': ['SH','m','M','Humos, tiefgründig, locker','Robust, verträgt kühle Witterung','Gleichmäßig feucht halten – Trockenstress macht die Knollen holzig'],
+  'Radieschen': ['SH','v','W','Locker, humos, feucht','Kühle Witterung bevorzugt – im Sommer schnell scharf/holzig','Gleichmäßig feucht halten; Netz gegen Erdflöhe'],
+  'Rettich': ['SH','v','M','Locker, tiefgründig, humos','Mag kühle Temperaturen','Gleichmäßige Feuchte verhindert Platzen; Netz gegen Erdflöhe und Kohlfliege'],
+  'Lauch (Porree)': ['S','m','S','Humos, nährstoffreich, tiefgründig','Robust, winterhart je nach Sorte','Kulturschutznetz gegen Lauchmotte und Minierfliege'],
+  'Knoblauch': ['V','w','W','Locker, durchlässig, eher trocken','Sonnig und luftig','Staunässe unbedingt vermeiden (Fäulnis); nicht nach anderen Zwiebelgewächsen pflanzen'],
+  'Kohlrabi': ['SH','v','M','Humos, nährstoffreich, gleichmäßig feucht','Kühl bis mild','Gleichmäßig gießen gegen Aufplatzen; Netz gegen Kohlfliege'],
+  'Blumenkohl': ['SH','v','S','Tiefgründig, nährstoffreich, kalkhaltig','Gleichmäßig kühl-feucht','Nie austrocknen lassen; Kohl-Fruchtwechsel gegen Kohlhernie'],
+  'Weißkohl': ['S','v','S','Schwer, nährstoffreich, kalkhaltig','Robust, verträgt Kühle','Fruchtwechsel 3–4 Jahre (Kohlhernie); Netz gegen Kohlweißling'],
+  'Rotkohl': ['S','v','S','Schwer, nährstoffreich, kalkhaltig','Robust, verträgt Kühle','Fruchtwechsel 3–4 Jahre (Kohlhernie); Netz gegen Kohlweißling'],
+  'Spinat': ['SH','m','M','Humos, feucht, nährstoffreich','Kühle Jahreszeiten – schießt bei Hitze und langen Tagen','Nicht zu dicht säen, luftig halten gegen Falschen Mehltau'],
+  'Mangold': ['SH','m','M','Humos, tiefgründig','Robust, hitze- und kälteverträglich','Ältere Blätter regelmäßig ernten, dann bleibt die Pflanze luftig und gesund'],
+  'Rucola': ['SH','m','W','Locker, durchlässig','Im Sommer leichter Schatten','Netz gegen Erdflöhe; feucht halten, sonst wird er scharf'],
+  'Feldsalat': ['SH','m','W','Fest, unkrautfrei, nicht frisch gelockert','Kältefest, für Herbst und Winter','Nicht zu dicht säen und Blätter trocken halten gegen Mehltau'],
+  'Spargel': ['V','m','M','Sandig, locker, gut durchwärmt','Sonnig, warm','Staunässe vermeiden; Laub erst im Spätherbst abschneiden (stärkt die Pflanze)'],
+  'Sellerie': ['SH','v','S','Humos, nährstoffreich, feucht','Mag gleichmäßige Wärme','Nicht zu tief pflanzen; Abstand und luftiger Stand gegen Blattflecken (Septoria)'],
+  'Fenchel': ['S','v','M','Humos, tiefgründig, gleichmäßig feucht','Warm, aber nicht zu heiß','Gleichmäßig gießen – Trockenheit lässt ihn schießen'],
+  'Erbsen': ['SH','m','W','Locker, humos, kalkhaltig','Mag kühle Frühjahrswitterung','Rankhilfe für Luftigkeit; Fruchtwechsel von 4–5 Jahren gegen Fußkrankheiten'],
+  'Mais': ['V','m','S','Humos, nährstoffreich, warm','Warm, windgeschützt; im Block statt in einer Reihe pflanzen (bessere Bestäubung)','Erst bei warmem Boden säen; anhäufeln für Standfestigkeit'],
+  'Süßkartoffel': ['V','m','M','Locker, sandig-humos, warm','Sehr wärmebedürftig, frostempfindlich','Staunässe vermeiden; schwarze Mulchfolie wärmt den Boden'],
+  // ---- Kräuter ----
+  'Basilikum': ['V','m','M','Humos, durchlässig, warm','Wärmebedürftig, windgeschützt, unter 10 °C leidet er','Morgens und nicht über die Blätter gießen; Staunässe vermeiden (Wurzelfäule)'],
+  'Petersilie': ['SH','m','M','Humos, tiefgründig, gleichmäßig feucht','Mag keine pralle Mittagssonne','Nicht jedes Jahr an dieselbe Stelle (unverträglich mit sich selbst) – beugt Wurzelkrankheiten vor'],
+  'Schnittlauch': ['SH','m','M','Humos, feucht','Robust, winterhart','Regelmäßig schneiden; bei Rost befallene Halme bodennah abschneiden'],
+  'Dill': ['S','m','W','Locker, humos','Windgeschützt (zarte Stängel)','Direkt säen, nicht umpflanzen; nicht zu dicht'],
+  'Thymian': ['V','w','W','Mager, sandig-steinig, kalkhaltig','Trocken, warm, luftig – mediterran','Keinesfalls düngen oder nass halten – Staunässe ist die häufigste Todesursache'],
+  'Rosmarin': ['V','w','W','Durchlässig, sandig, kalkhaltig','Warm und trocken; in rauen Lagen im Kübel frostfrei überwintern','Drainage ist alles – Staunässe führt zu Wurzelfäule'],
+  'Minze': ['HS','v','M','Humos, feucht','Verträgt Halbschatten gut','Mit Wurzelsperre oder im Topf pflanzen; luftig halten gegen Minzrost'],
+  'Salbei': ['V','w','W','Durchlässig, mager, kalkhaltig','Warm, trocken','Nicht düngen; im Frühjahr zurückschneiden, damit er nicht verholzt'],
+  'Oregano': ['V','w','W','Mager, trocken, kalkhaltig','Warm, sonnig','Kaum gießen und nicht düngen – dann am aromatischsten'],
+  'Majoran': ['V','m','W','Durchlässig, humos-sandig','Wärmebedürftig, meist einjährig gezogen','Staunässe vermeiden'],
+  'Estragon': ['S','m','W','Durchlässig, nährstoffarm','Sonnig, warm','Alle 3–4 Jahre teilen, sonst lässt das Aroma nach'],
+  'Kerbel': ['H','v','W','Humos, feucht','Kühl und halbschattig – schießt bei Hitze','Folgesaaten statt einer großen Saat'],
+  'Liebstöckel': ['SH','v','S','Humos, tiefgründig, nährstoffreich','Robust, winterhart','Ausreichend Platz (wird groß); gleichmäßig feucht halten'],
+  'Bohnenkraut': ['V','w','W','Durchlässig, mager, kalkhaltig','Warm, sonnig','Nicht düngen; Nachbar zu Bohnen hält Läuse fern'],
+  'Zitronenmelisse': ['SH','m','M','Humos, durchlässig','Robust','Kräftiger Rückschnitt nach der Blüte fördert gesunden Neuaustrieb'],
+  'Borretsch': ['S','m','M','Locker, humos','Robust, sät sich selbst aus','Ausreichend Abstand gegen Mehltau'],
+  // ---- Beeren & Obst ----
+  'Erdbeere': ['S','m','M','Humos, durchlässig, leicht sauer','Sonnig und luftig','Stroh unterlegen gegen Grauschimmel; alle 3–4 Jahre neuer Standort'],
+  'Himbeere': ['SH','m','M','Humos, locker, leicht sauer','Mag es luftig, keine Staunässe','Abgetragene Ruten entfernen; Staunässe vermeiden (Rutenkrankheit, Wurzelfäule)'],
+  'Heidelbeere': ['SH','v','W','Sauer (pH 4–5), humos – Moorbeeterde, kein Kalk','Sonnig, Boden gleichmäßig feucht','Nur mit Regenwasser gießen (Leitungswasser ist oft kalkhaltig) und mit Rindenmulch abdecken'],
+  'Johannisbeere': ['SH','m','M','Humos, frisch','Luftig, verträgt Halbschatten','Auslichten für Luftzirkulation – beugt Mehltau und Blattfallkrankheit vor'],
+  'Brombeere': ['S','m','M','Humos, durchlässig','Sonnig, Rankgerüst nötig','Abgetragene Ruten entfernen; luftig binden gegen Rutenkrankheit'],
+  'Stachelbeere': ['SH','m','M','Humos, frisch','Luftig','Auslichten und mehltauresistente Sorten wählen (Amerikanischer Stachelbeermehltau)'],
+  'Japanische Weinbeere': ['SH','m','M','Humos, durchlässig','Robust, winterhart','Abgetragene Ruten entfernen; luftig halten'],
+  'Traube': ['V','w','M','Durchlässig, tiefgründig, warm','Warm, sonnig – Südwand ideal','Laubwand auslichten (Luft an die Trauben) gegen Mehltau und Grauschimmel'],
+  'Kamtschatka-Beere': ['SH','m','M','Humos, frisch','Sehr frosthart, blüht früh','Zwei Sorten für die Befruchtung; Vogelschutznetz zur Reife'],
+  'Apfelbaum': ['S','m','M','Humos, tiefgründig, nährstoffreich','Luftig, gute Durchlüftung der Krone','Jährlicher Auslichtungsschnitt gegen Schorf; Fallobst und Mumien entfernen'],
+  'Birnbaum': ['S','m','M','Tiefgründig, warm, humos','Warm, geschützt (blüht früh)','Wacholder in der Nähe meiden (Birnengitterrost); Krone luftig halten'],
+  'Kirschbaum': ['S','m','M','Durchlässig, tiefgründig','Sonnig, luftig','Schnitt nach der Ernte im Sommer – Wunden heilen besser; Staunässe meiden'],
+  'Pflaumenbaum': ['S','m','M','Humos, frisch, nährstoffreich','Mag gleichmäßige Feuchte','Fruchtmumien entfernen (Monilia); Krone auslichten'],
+  'Japanische Quitte': ['SH','w','W','Durchlässig, anspruchslos','Robust, winterhart','Wenig anfällig; nach der Blüte auslichten'],
+  'Zwetschge': ['S','m','M','Humos, frisch, nährstoffreich','Mag gleichmäßige Feuchte','Fruchtmumien entfernen (Monilia); Krone auslichten'],
+  'Mirabelle': ['S','m','M','Durchlässig, humos, warm','Warm, sonnig','Fruchtmumien entfernen; luftige Krone'],
+  'Weißdorn': ['SH','w','W','Anspruchslos, auch kalkhaltig','Robust, wertvoll für Vögel und Insekten','In der Nähe von Obstbäumen auf Feuerbrand achten'],
+  'Schlehe': ['SH','w','W','Anspruchslos, kalkverträglich','Sehr robust, bildet Ausläufer','Wurzelsperre einplanen, sonst breitet sie sich stark aus'],
+  'Feige': ['V','m','M','Durchlässig, mäßig nährstoffreich, kalkverträglich','Sehr wärmeliebend – Südwand, windgeschützt; Winterschutz in rauen Lagen','Staunässe vermeiden; im Winter Wurzelbereich mulchen und Krone mit Vlies schützen'],
+  'Aprikose': ['V','m','M','Durchlässig, warm, humos','Warm, geschützt – blüht sehr früh (Spätfrost)','Spalier an Südwand; Schnitt im Sommer gegen Pilzinfektionen'],
+  'Pfirsich': ['V','m','M','Durchlässig, humos, warm','Warm, geschützt','Kräuselkrankheit: resistente Sorten wählen, Regenschutz im Frühjahr hilft'],
+  'Kiwi': ['V','v','M','Humos, leicht sauer, durchlässig','Warm, windgeschützt, Rankgerüst','Männliche und weibliche Pflanze nötig (außer selbstfruchtbare Sorten); Spätfrostschutz'],
+  'Walnuss': ['S','m','M','Tiefgründig, nährstoffreich','Braucht viel Platz','Laub hemmt anderes Wachstum – nicht direkt neben Beete pflanzen'],
+  'Lavendel': ['V','w','W','Mager, sandig, kalkhaltig','Trocken und warm','Nicht düngen, Staunässe vermeiden; nach der Blüte um ein Drittel zurückschneiden'],
+  'Flieder': ['S','m','M','Humos, kalkverträglich','Robust, winterhart','Verblühtes entfernen; Wurzelausläufer regelmäßig abstechen'],
+  'Forsythie': ['SH','m','M','Anspruchslos','Robust','Nach der Blüte älteste Triebe bodennah auslichten'],
+  'Buchsbaum': ['HS','m','M','Kalkhaltig, humos','Verträgt Schatten','Bei trockenem, bedecktem Wetter schneiden; regelmäßig auf Buchsbaumzünsler prüfen'],
+  // ---- Blumen ----
+  'Sonnenblume': ['V','m','S','Nährstoffreich, tiefgründig','Sonnig, windgeschützt (Stütze bei hohen Sorten)','Ausreichend Abstand gegen Mehltau'],
+  'Tulpe': ['S','w','M','Durchlässig, sandig-humos','Sommer trocken – Zwiebeln ruhen','Staunässe vermeiden (Zwiebelfäule); Laub erst nach dem Vergilben entfernen'],
+  'Narzisse': ['SH','m','M','Durchlässig, humos','Robust, verwildert gerne','Laub nach der Blüte stehen lassen, bis es gelb ist – stärkt die Zwiebel'],
+  'Rose': ['S','m','S','Tiefgründig, humos, nährstoffreich','Luftig, sonnig – nicht in Ecken','Morgens an der Wurzel gießen, Laub trocken halten; Falllaub entfernen gegen Sternrußtau'],
+  'Dahlie': ['V','v','S','Humos, nährstoffreich, durchlässig','Frostempfindlich – Knollen frostfrei überwintern','Schneckenschutz beim Austrieb; luftig pflanzen gegen Mehltau'],
+  'Ringelblume': ['SH','m','W','Anspruchslos','Robust, sät sich selbst aus','Bei Mehltau befallene Blätter entfernen; nicht zu dicht'],
+  'Kapuzinerkresse': ['S','m','W','Mager – zu viel Dünger gibt nur Blätter','Frostempfindlich','Lockt Läuse von Nachbarpflanzen weg (Fangpflanze)'],
+  'Studentenblume (Tagetes)': ['V','m','M','Humos, durchlässig','Wärmeliebend, frostempfindlich','Hält Nematoden im Boden fern; Schneckenschutz bei Jungpflanzen'],
+  'Stiefmütterchen': ['SH','m','M','Humos, feucht','Kühle Jahreszeit','Verblühtes entfernen; nicht in Staunässe'],
+  'Zinnie': ['V','m','M','Humos, durchlässig','Warm, sonnig','Von unten gießen, luftig pflanzen gegen Mehltau'],
+  'Margerite': ['S','m','M','Durchlässig, humos','Sonnig','Rückschnitt nach der ersten Blüte fördert Nachblüte'],
+  'Kornblume': ['S','w','W','Mager, durchlässig','Anspruchslos','Direkt säen; nicht düngen'],
+  'Klatschmohn': ['V','w','W','Mager, durchlässig','Anspruchslos, sät sich selbst aus','Direkt säen – verträgt kein Umpflanzen'],
+  'Pfingstrose': ['S','m','M','Tiefgründig, humos','Langlebig, ungern umgepflanzt','Nicht zu tief pflanzen (sonst keine Blüte); befallene Triebe bei Grauschimmel entfernen'],
+  'Geranie': ['V','m','M','Humos, durchlässig (Balkonerde)','Frostempfindlich – frostfrei überwintern','Nicht über die Blätter gießen; Staunässe vermeiden'],
+  'Petunie': ['V','v','S','Nährstoffreich, durchlässig','Regengeschützt am schönsten','Regelmäßig düngen; Verblühtes entfernen'],
+  'Hortensie': ['HS','v','M','Humos, leicht sauer, feucht','Halbschattig, keine pralle Mittagssonne','Mit Regenwasser gießen; nicht austrocknen lassen'],
+};
+const PFLANZEN_BEDINGUNGEN_ALIAS = { 'feigenbaum': 'Feige', 'pflaume': 'Pflaumenbaum', 'weinrebe': 'Traube', 'wein': 'Traube', 'weintraube': 'Traube', 'apfel': 'Apfelbaum', 'birne': 'Birnbaum', 'kirsche': 'Kirschbaum', 'süßkirsche': 'Kirschbaum', 'sauerkirsche': 'Kirschbaum', 'tomaten': 'Tomate', 'gurken': 'Gurke', 'porree': 'Lauch (Porree)', 'lauch': 'Lauch (Porree)', 'tagetes': 'Studentenblume (Tagetes)', 'möhre': 'Karotte', 'möhren': 'Karotte', 'karotten': 'Karotte', 'zucchini': 'Zucchini', 'kartoffeln': 'Kartoffel', 'erdbeeren': 'Erdbeere', 'himbeeren': 'Himbeere', 'heidelbeeren': 'Heidelbeere', 'blaubeere': 'Heidelbeere', 'johannisbeeren': 'Johannisbeere', 'brombeeren': 'Brombeere', 'stachelbeeren': 'Stachelbeere', 'aprikosenbaum': 'Aprikose', 'pfirsichbaum': 'Pfirsich', 'walnussbaum': 'Walnuss', 'quitte': 'Japanische Quitte', 'kiwibeere': 'Kiwi', 'buchs': 'Buchsbaum' };
+function pflanzenBedingungenFinden(name) {
+  if (!name) return null;
+  const n = String(name).trim();
+  if (PFLANZEN_BEDINGUNGEN[n]) return PFLANZEN_BEDINGUNGEN[n];
+  const klein = n.toLowerCase();
+  const direkt = Object.keys(PFLANZEN_BEDINGUNGEN).find(k => k.toLowerCase() === klein);
+  if (direkt) return PFLANZEN_BEDINGUNGEN[direkt];
+  if (PFLANZEN_BEDINGUNGEN_ALIAS[klein]) return PFLANZEN_BEDINGUNGEN[PFLANZEN_BEDINGUNGEN_ALIAS[klein]];
+  // "Apfel" -> "Apfelbaum", "Feigenbaum" -> "Feige"
+  const mitBaum = Object.keys(PFLANZEN_BEDINGUNGEN).find(k => k.toLowerCase() === klein + 'baum');
+  if (mitBaum) return PFLANZEN_BEDINGUNGEN[mitBaum];
+  const ohneBaum = klein.replace(/n?baum$/, '');
+  const treffer = Object.keys(PFLANZEN_BEDINGUNGEN).find(k => k.toLowerCase() === ohneBaum);
+  return treffer ? PFLANZEN_BEDINGUNGEN[treffer] : null;
+}
+const BED_LICHT = { V: ['☀️', 'Vollsonnig'], S: ['☀️', 'Sonnig'], SH: ['🌤️', 'Sonnig bis halbschattig'], H: ['⛅', 'Halbschattig'], HS: ['☁️', 'Halbschattig bis schattig'] };
+const BED_WASSER = { w: ['🌵', 'Wenig Wasser, eher trocken'], m: ['💧', 'Mäßig gießen'], v: ['💦', 'Gleichmäßig feucht halten'] };
+const BED_NAEHR = { S: ['🍽️', 'Starkzehrer'], M: ['🥣', 'Mittelzehrer'], W: ['🥄', 'Schwachzehrer'] };
+function renderBedingungenHint(plantName, targetId) {
+  const box = document.getElementById(targetId);
+  if (!box) return;
+  const b = pflanzenBedingungenFinden(plantName);
+  if (!b) { box.style.display = 'none'; box.innerHTML = ''; return; }
+  const [licht, wasser, naehr, boden, klima, vorbeugen] = b;
+  const chip = (arr) => arr ? '<span class="bed-chip">' + arr[0] + ' ' + arr[1] + '</span>' : '';
+  const plantDef = (typeof PLANTS !== 'undefined') ? PLANTS.find(p => p.name === plantName) : null;
+  box.innerHTML = '<div class="bedingungen-box">' +
+    '<div class="bedingungen-titel">🌱 Bevorzugt</div>' +
+    '<div class="bed-chips">' + chip(BED_LICHT[licht]) + chip(BED_WASSER[wasser]) + chip(BED_NAEHR[naehr]) +
+      (plantDef && plantDef.frostTender ? '<span class="bed-chip">❄️ Frostempfindlich</span>' : '') + '</div>' +
+    '<div class="bed-zeile"><b>🪨 Boden:</b> ' + escapeHtml(boden) + '</div>' +
+    '<div class="bed-zeile"><b>🌬️ Klima &amp; Lage:</b> ' + escapeHtml(klima) + '</div>' +
+    '<div class="bed-zeile bed-vorbeugen"><b>🛡️ Gesund halten:</b> ' + escapeHtml(vorbeugen) + '</div>' +
+  '</div>';
+  box.style.display = 'block';
+}
+
 function renderRueckschnittHint(plantName, targetId) {
   const box = document.getElementById(targetId);
   if (!box) return;
@@ -7057,6 +7206,7 @@ function openFreiPflanzePanel(fp) {
   renderFreiPflanzePhoto(fp);
   renderSowingHint(fp.name || '', 'fpSowingHint');
   renderRueckschnittHint(fp.name || '', 'fpRueckschnittHint');
+  renderBedingungenHint(fp.name || '', 'fpBedingungenHint');
   document.getElementById('fpHarvestDate').value = new Date().toISOString().slice(0,10);
   document.getElementById('fpHarvestAmount').value = '';
   document.getElementById('fpHarvestMethod').value = '';
@@ -7149,6 +7299,7 @@ function fpAutoSave() {
   document.getElementById('freiPflanzeTitel').innerHTML = escapeHtml((fp.sym||'🌳') + ' ' + (fp.name || 'Baum/Strauch')) + (isPerennial(fp.name)?' <button type="button" class="pp-lebenszyklus-badge" onclick="togglePerennialInfo(event)" title="Mehr erfahren" aria-label="Info: mehrjährig">🔄</button>':'');
   renderSowingHint(fp.name || '', 'fpSowingHint');
   renderRueckschnittHint(fp.name || '', 'fpRueckschnittHint');
+  renderBedingungenHint(fp.name || '', 'fpBedingungenHint');
   if (document.getElementById('fpt-preserve')?.classList.contains('active')) renderPreservePlantTab(fp.name || '', 'fpPreserveResult');
 }
 function renderFreiPflanzePhoto(fp) {
@@ -7496,6 +7647,7 @@ function openPlantPanel(bed,idx) {
   renderNeighbors(bed,idx);
   renderSowingHint(plant.name||'');
   renderRueckschnittHint(plant.name||'', 'rueckschnittHint');
+  renderBedingungenHint(plant.name||'', 'bedingungenHint');
   renderVarietyDatalist(plant.name||'');
   document.getElementById('ppHarvestDate').value = new Date().toISOString().slice(0,10);
   document.getElementById('ppHarvestAmount').value = '';
@@ -8109,6 +8261,7 @@ function savePlantInfo(){
   renderNeighbors(bed,activePlantBedId.idx);
   renderSowingHint(plant.name||'');
   renderRueckschnittHint(plant.name||'', 'rueckschnittHint');
+  renderBedingungenHint(plant.name||'', 'bedingungenHint');
   renderVarietyDatalist(plant.name||'');
   if (document.getElementById('ppt-preserve')?.classList.contains('active')) renderPreservePlantTab(plant.name||'');
   if (selectedBed===bed) renderBedPlantList(bed, document.getElementById('bedPlantSearch')?.value||'');
