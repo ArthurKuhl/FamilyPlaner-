@@ -2026,6 +2026,10 @@ const PLANTS = [
   { sym: '🌿', name: 'Sellerie', cat: 'Gemüse' }, { sym: '🌿', name: 'Fenchel', cat: 'Gemüse' },
   { sym: '🟢', name: 'Erbsen', cat: 'Gemüse' }, { sym: '🌽', name: 'Mais', cat: 'Gemüse', frostTender: true },
   { sym: '🍠', name: 'Süßkartoffel', cat: 'Gemüse', frostTender: true },
+  { sym: '🌶️', name: 'Chili', cat: 'Gemüse', frostTender: true }, { sym: '🟢', name: 'Tomatillo', cat: 'Gemüse', frostTender: true },
+  { sym: '🥬', name: 'Spitzkohl', cat: 'Gemüse' }, { sym: '🥬', name: 'Palmkohl', cat: 'Gemüse' },
+  { sym: '🥬', name: 'Meerkohl', cat: 'Gemüse', perennial: true }, { sym: '🌿', name: 'Artischocke', cat: 'Gemüse', perennial: true },
+  { sym: '🥔', name: 'Topinambur', cat: 'Gemüse', perennial: true },
   { sym: '🥗', name: 'Gemüse (allgemein)', cat: 'Gemüse' },
   // Kräuter
   { sym: '🌿', name: 'Kräuter', cat: 'Kräuter' }, { sym: '🌿', name: 'Basilikum', cat: 'Kräuter', frostTender: true },
@@ -2036,13 +2040,14 @@ const PLANTS = [
   { sym: '🌿', name: 'Majoran', cat: 'Kräuter' }, { sym: '🌿', name: 'Estragon', cat: 'Kräuter', perennial: true },
   { sym: '🌿', name: 'Kerbel', cat: 'Kräuter' }, { sym: '🌿', name: 'Liebstöckel', cat: 'Kräuter', perennial: true },
   { sym: '🌿', name: 'Bohnenkraut', cat: 'Kräuter' }, { sym: '🌿', name: 'Zitronenmelisse', cat: 'Kräuter', perennial: true },
-  { sym: '🌼', name: 'Borretsch', cat: 'Kräuter' },
+  { sym: '🌼', name: 'Borretsch', cat: 'Kräuter' }, { sym: '💜', name: 'Lavendel', cat: 'Kräuter', perennial: true },
   // Beeren
   { sym: '🍓', name: 'Erdbeere', cat: 'Beeren', perennial: true }, { sym: '🍇', name: 'Himbeere', cat: 'Beeren', perennial: true },
   { sym: '🫐', name: 'Heidelbeere', cat: 'Beeren', perennial: true }, { sym: '🔴', name: 'Johannisbeere', cat: 'Beeren', perennial: true },
   { sym: '🫐', name: 'Brombeere', cat: 'Beeren', perennial: true }, { sym: '🟢', name: 'Stachelbeere', cat: 'Beeren', perennial: true },
   { sym: '🍇', name: 'Japanische Weinbeere', cat: 'Beeren', perennial: true }, { sym: '🍇', name: 'Traube', cat: 'Beeren', perennial: true },
   { sym: '🔵', name: 'Kamtschatka-Beere', cat: 'Beeren', perennial: true },
+  { sym: '🟠', name: 'Physalis (Andenbeere)', cat: 'Beeren', frostTender: true }, { sym: '🫐', name: 'Felsenbirne', cat: 'Beeren', perennial: true },
   { sym: '🍓', name: 'Beere (allgemein)', cat: 'Beeren', perennial: true },
   // Obst
   { sym: '🍎', name: 'Apfelbaum', cat: 'Obst', perennial: true }, { sym: '🍐', name: 'Birnbaum', cat: 'Obst', perennial: true },
@@ -2050,6 +2055,7 @@ const PLANTS = [
   { sym: '🍐', name: 'Japanische Quitte', cat: 'Obst', perennial: true }, { sym: '🍑', name: 'Zwetschge', cat: 'Obst', perennial: true },
   { sym: '🟡', name: 'Mirabelle', cat: 'Obst', perennial: true }, { sym: '🔴', name: 'Weißdorn', cat: 'Obst', perennial: true },
   { sym: '🔵', name: 'Schlehe', cat: 'Obst', perennial: true },
+  { sym: '🟣', name: 'Feige', cat: 'Obst', perennial: true }, { sym: '🔴', name: 'Granatapfel', cat: 'Obst', perennial: true, frostTender: true },
   { sym: '🌳', name: 'Obst (allgemein)', cat: 'Obst', perennial: true },
   // Blumen
   { sym: '🌺', name: 'Blume', cat: 'Blumen' }, { sym: '🌻', name: 'Sonnenblume', cat: 'Blumen' },
@@ -2061,6 +2067,9 @@ const PLANTS = [
   { sym: '🔵', name: 'Kornblume', cat: 'Blumen' }, { sym: '🔴', name: 'Klatschmohn', cat: 'Blumen' },
   { sym: '🌸', name: 'Pfingstrose', cat: 'Blumen', perennial: true }, { sym: '🌺', name: 'Geranie', cat: 'Blumen', frostTender: true },
   { sym: '🌸', name: 'Petunie', cat: 'Blumen', frostTender: true }, { sym: '💙', name: 'Hortensie', cat: 'Blumen', perennial: true },
+  { sym: '🌸', name: 'Zierkirsche (Kirschblüte)', cat: 'Blumen', perennial: true }, { sym: '🌺', name: 'Hibiskus', cat: 'Blumen', perennial: true },
+  { sym: '🌷', name: 'Löwenmäulchen', cat: 'Blumen' }, { sym: '💜', name: 'Strandflieder', cat: 'Blumen', perennial: true },
+  { sym: '🌸', name: 'Fetthenne', cat: 'Blumen', perennial: true },
 ];
 
 // ==================== VERWERTUNG & HALTBARMACHEN ====================
@@ -2158,6 +2167,18 @@ const PRESERVATION = {
   'Weißdorn': { methods: ['trocknen','marmelade'] },
   'Schlehe': { methods: ['marmelade','saft'], note: 'Erst nach dem ersten Frost (oder ein paar Tage im Gefrierfach) verliert sie einen Teil ihrer Herbe.' },
   'Obst (allgemein)': { methods: ['einkochen','einfrieren','trocknen','saft'] },
+  'Chili': { methods: ['trocknen','einlegen','fermentieren','einfrieren'], note: 'Getrocknet am Faden aufgefädelt hält sich Chili jahrelang; als Chilisoße fermentiert oder in Öl eingelegt (Öl-Ansatz immer im Kühlschrank und zügig verbrauchen).' },
+  'Tomatillo': { methods: ['einkochen','einfrieren'], note: 'Klassiker: Salsa Verde einkochen. In der Hülle halten sich die Früchte auch 2–3 Wochen kühl gelagert.' },
+  'Spitzkohl': { methods: ['fermentieren','einfrieren'], note: 'Zart und schnell gar – eignet sich gut für Krautsalat und fermentiertes Kraut; frisch hält er nur ca. 1–2 Wochen im Kühlschrank.' },
+  'Palmkohl': { methods: ['einfrieren','trocknen'], note: 'Blätter blanchiert einfrieren oder im Ofen zu Kohlchips trocknen. Laufend die unteren Blätter ernten.' },
+  'Meerkohl': { methods: [], note: 'Junge Triebe und Blütenknospen am besten frisch – wie Spargel oder Brokkoli dünsten.' },
+  'Artischocke': { methods: ['einlegen','einfrieren'], note: 'Herzen kurz vorkochen und in Öl einlegen oder blanchiert einfrieren.' },
+  'Topinambur': { methods: ['lagern','einlegen'], note: 'Am besten den Winter über im Boden lassen und frostfreie Tage zum Ernten nutzen – geerntet trocknen die Knollen schnell aus (feucht in Sand lagern).' },
+  'Lavendel': { methods: ['trocknen'], note: 'Blütenstände kurz vor dem vollen Aufblühen schneiden und kopfüber trocknen – für Säckchen, Tee oder Lavendelzucker.' },
+  'Physalis (Andenbeere)': { methods: ['marmelade','trocknen'], note: 'In der Hülle halten sich reife Früchte mehrere Wochen kühl und luftig.' },
+  'Felsenbirne': { methods: ['marmelade','trocknen','saft'] },
+  'Granatapfel': { methods: ['saft','einfrieren'], note: 'Ganze Früchte halten sich kühl gelagert 1–2 Monate; ausgelöste Kerne lassen sich gut einfrieren.' },
+  'Feige': { methods: ['trocknen','marmelade','einfrieren'], note: 'Frische Feigen halten nur 2–3 Tage – zügig verarbeiten.' },
 };
 function getPreservationInfo(plantName) {
   const name = (plantName||'').trim();
@@ -2236,6 +2257,9 @@ const SPACING = {
   'Ringelblume': 20, 'Kapuzinerkresse': 25, 'Studentenblume (Tagetes)': 20, 'Stiefmütterchen': 15,
   'Zinnie': 25, 'Margerite': 30, 'Kornblume': 20, 'Klatschmohn': 20,
   'Pfingstrose': 80, 'Geranie': 25, 'Petunie': 20, 'Hortensie': 100,
+  'Chili': 40, 'Tomatillo': 80, 'Spitzkohl': 40, 'Palmkohl': 50, 'Meerkohl': 60, 'Artischocke': 100,
+  'Topinambur': 50, 'Lavendel': 40, 'Physalis (Andenbeere)': 80, 'Felsenbirne': 300, 'Granatapfel': 200, 'Feige': 300,
+  'Zierkirsche (Kirschblüte)': 500, 'Hibiskus': 100, 'Löwenmäulchen': 25, 'Strandflieder': 40, 'Fetthenne': 40,
 };
 
 // ==================== SYMPTOMS DATA ====================
@@ -2319,6 +2343,12 @@ const COMPANIONS = {
   'Ringelblume': { good: ['Tomate','Gurke','Weißkohl','Rotkohl','Kartoffel'],                                      bad: [] },
   'Kapuzinerkresse': { good: ['Weißkohl','Rotkohl','Gurke','Apfelbaum'],                                           bad: [] },
   'Studentenblume (Tagetes)': { good: ['Tomate','Kartoffel','Weißkohl','Rotkohl'],                                 bad: [] },
+  'Chili':       { good: ['Basilikum','Zwiebel','Karotte','Kräuter','Studentenblume (Tagetes)'],                    bad: ['Bohnen','Fenchel','Kohlrabi'] },
+  'Tomatillo':   { good: ['Basilikum','Zwiebel','Karotte','Ringelblume'],                                       bad: ['Kartoffel','Fenchel'] },
+  'Physalis (Andenbeere)': { good: ['Basilikum','Ringelblume','Studentenblume (Tagetes)'],                    bad: ['Kartoffel'] },
+  'Spitzkohl':   { good: ['Sellerie','Salat','Spinat','Bohnen','Thymian','Ringelblume','Kapuzinerkresse'],      bad: ['Tomate','Erdbeere','Zwiebel','Knoblauch'] },
+  'Palmkohl':    { good: ['Sellerie','Salat','Spinat','Bohnen','Thymian','Ringelblume','Kapuzinerkresse'],      bad: ['Tomate','Erdbeere','Zwiebel','Knoblauch'] },
+  'Artischocke': { good: ['Salat','Ringelblume','Kapuzinerkresse'],                                             bad: [] },
 };
 function plantWouldConflict(bed, name) {
   if (!name) return false;
@@ -2440,6 +2470,23 @@ const CARE_INFO = {
   'Geranie':     { waterDays: 2, fertilizeDays: 14, harvestDays: 0 },
   'Petunie':     { waterDays: 2, fertilizeDays: 14, harvestDays: 0 },
   'Hortensie':   { waterDays: 3, fertilizeDays: 21, harvestDays: 0 },
+  'Chili':       { waterDays: 3, fertilizeDays: 14, harvestDays: 100 },
+  'Tomatillo':   { waterDays: 3, fertilizeDays: 14, harvestDays: 80 },
+  'Spitzkohl':   { waterDays: 3, fertilizeDays: 14, harvestDays: 70 },
+  'Palmkohl':    { waterDays: 3, fertilizeDays: 21, harvestDays: 90 },
+  'Meerkohl':    { waterDays: 5, fertilizeDays: 0,  harvestDays: 0 },
+  'Artischocke': { waterDays: 3, fertilizeDays: 21, harvestDays: 0 },
+  'Topinambur':  { waterDays: 6, fertilizeDays: 0,  harvestDays: 0 },
+  'Lavendel':    { waterDays: 6, fertilizeDays: 0,  harvestDays: 0 },
+  'Physalis (Andenbeere)': { waterDays: 3, fertilizeDays: 28, harvestDays: 110 },
+  'Felsenbirne': { waterDays: 6, fertilizeDays: 0,  harvestDays: 0 },
+  'Granatapfel': { waterDays: 4, fertilizeDays: 21, harvestDays: 0 },
+  'Feige':       { waterDays: 4, fertilizeDays: 21, harvestDays: 0 },
+  'Zierkirsche (Kirschblüte)': { waterDays: 6, fertilizeDays: 0, harvestDays: 0 },
+  'Hibiskus':    { waterDays: 3, fertilizeDays: 21, harvestDays: 0 },
+  'Löwenmäulchen': { waterDays: 2, fertilizeDays: 14, harvestDays: 0 },
+  'Strandflieder': { waterDays: 6, fertilizeDays: 0, harvestDays: 0 },
+  'Fetthenne':   { waterDays: 7, fertilizeDays: 0,  harvestDays: 0 },
 };
 // ==================== RÜCKSCHNITT-KALENDER (Gehölze) ====================
 // Monate: 1=Jan … 12=Dez. monate: [vonMonat, bisMonat] – bevorzugte Zeitspanne für den
@@ -2467,6 +2514,14 @@ const RUECKSCHNITT = {
   'Brombeere':      { monate: [8,9],  hinweis: 'Nach der Ernte alte Ruten bodennah zurückschneiden.' },
   'Buchsbaum':      { monate: [6,6],  hinweis: 'Formschnitt außerhalb der Vogelbrutzeit (in Deutschland: radikaler Rückschnitt 1. März – 30. Sept. gesetzlich untersagt, § 39 BNatSchG – leichter Formschnitt bleibt erlaubt).' },
   'Hecke':          { monate: [6,6],  hinweis: 'Formschnitt außerhalb der Vogelbrutzeit (in Deutschland: radikaler Rückschnitt 1. März – 30. Sept. gesetzlich untersagt, § 39 BNatSchG – leichter Formschnitt bleibt erlaubt).' },
+  'Zierkirsche (Kirschblüte)': { monate: [6,7], hinweis: 'Nur im Sommer nach der Blüte schneiden – Winterschnitt begünstigt Monilia und Gummifluss. Möglichst wenig schneiden.' },
+  'Felsenbirne':    { monate: [2,3],  hinweis: 'Nur gelegentlich auslichten (alte, sich kreuzende Triebe) – kein Formschnitt nötig.' },
+  'Hibiskus':       { monate: [2,3],  hinweis: 'Spätwinter; blüht am diesjährigen Holz – ein Rückschnitt fördert die Blüte.' },
+  'Granatapfel':    { monate: [3,3],  hinweis: 'Vor dem Austrieb leicht auslichten und zu lange Triebe einkürzen.' },
+  'Kamtschatka-Beere': { monate: [7,8], hinweis: 'Nach der Ernte ältere, vergreiste Triebe auslichten.' },
+  'Japanische Weinbeere': { monate: [8,9], hinweis: 'Nach der Ernte abgetragene Ruten bodennah entfernen.' },
+  'Fetthenne':      { monate: [2,3],  hinweis: 'Trockene Blütenstände über Winter stehen lassen (Winterschmuck, Insektenquartier), im Spätwinter bodennah abschneiden.' },
+  'Strandflieder':  { monate: [3,3],  hinweis: 'Vertrocknetes im Frühjahr bodennah entfernen.' },
 };
 // ==================== AUSSAATKALENDER ====================
 // Monate: 1=Jan … 12=Dez. null = kein Wert.
@@ -2530,6 +2585,16 @@ const SOWING = {
   'Sonnenblume':   { vorziehen:[4,4],  direktsaat:[5,6], auspflanzen:[5,6]  },
   'Petunie':       { vorziehen:[2,3],  direktsaat:null,  auspflanzen:[5,6]  },
   'Stiefmütterchen':{ vorziehen:[6,7], direktsaat:null,  auspflanzen:[9,10] },
+  'Chili':        { vorziehen:[1,3],  direktsaat:null,  auspflanzen:[5,6]  },
+  'Tomatillo':    { vorziehen:[3,4],  direktsaat:null,  auspflanzen:[5,6]  },
+  'Physalis (Andenbeere)': { vorziehen:[2,3], direktsaat:null, auspflanzen:[5,6] },
+  'Spitzkohl':    { vorziehen:[2,4],  direktsaat:null,  auspflanzen:[4,6]  },
+  'Palmkohl':     { vorziehen:[4,5],  direktsaat:[5,6], auspflanzen:[6,7]  },
+  'Meerkohl':     { vorziehen:[3,4],  direktsaat:[4,5], auspflanzen:[5,6]  },
+  'Artischocke':  { vorziehen:[2,3],  direktsaat:null,  auspflanzen:[5,5]  },
+  'Topinambur':   { vorziehen:null,   direktsaat:null,  auspflanzen:[3,4]  },
+  'Löwenmäulchen':{ vorziehen:[2,3],  direktsaat:[4,5], auspflanzen:[5,5]  },
+  'Strandflieder':{ vorziehen:[3,4],  direktsaat:null,  auspflanzen:[5,5]  },
 };
 // Typische Erntemonate für Mitteleuropa (grobe Richtwerte, wie beim Aussaatkalender).
 // Bei Bereichen, die übers Jahresende hinausgehen (z.B. Winterlauch), ist der Startmonat
@@ -2546,6 +2611,9 @@ const HARVEST_WINDOW = {
   'Minze': [5,9], 'Majoran': [6,9], 'Zitronenmelisse': [5,9], 'Liebstöckel': [5,9], 'Bohnenkraut': [6,9],
   'Lavendel': [6,8], 'Borretsch': [6,9], 'Kerbel': [5,8], 'Estragon': [6,9], 'Erdbeere': [6,7],
   'Ringelblume': [6,9], 'Kapuzinerkresse': [6,9], 'Sonnenblume': [9,10],
+  'Chili': [7,10], 'Tomatillo': [8,10], 'Physalis (Andenbeere)': [8,10], 'Spitzkohl': [6,9], 'Palmkohl': [10,2],
+  'Meerkohl': [4,5], 'Artischocke': [7,9], 'Topinambur': [10,3], 'Felsenbirne': [6,7], 'Granatapfel': [10,11],
+  'Feige': [8,10], 'Kamtschatka-Beere': [5,6], 'Japanische Weinbeere': [7,8],
 };
 function isInHarvestWindow(r, month) {
   if (!r) return false;
@@ -3013,8 +3081,24 @@ const PFLANZEN_BEDINGUNGEN = {
   'Geranie': ['V','m','M','Humos, durchlässig (Balkonerde)','Frostempfindlich – frostfrei überwintern','Nicht über die Blätter gießen; Staunässe vermeiden'],
   'Petunie': ['V','v','S','Nährstoffreich, durchlässig','Regengeschützt am schönsten','Regelmäßig düngen; Verblühtes entfernen'],
   'Hortensie': ['HS','v','M','Humos, leicht sauer, feucht','Halbschattig, keine pralle Mittagssonne','Mit Regenwasser gießen; nicht austrocknen lassen'],
+  // ---- Ergänzungen ----
+  'Chili': ['V','m','S','Humos, durchlässig, nährstoffreich','Sehr wärmebedürftig – Südseite, Gewächshaus oder Kübel an der Hauswand','Lieber etwas zu trocken als zu nass; Blattunterseiten auf Läuse und Spinnmilben prüfen. Mehrjährig möglich: hell und kühl (10–15 °C) überwintern'],
+  'Tomatillo': ['V','m','S','Humos, nährstoffreich, durchlässig','Warm und windgeschützt; frostempfindlich','Mindestens zwei Pflanzen setzen (nicht selbstfruchtbar); stützen und luftig halten'],
+  'Physalis (Andenbeere)': ['V','m','M','Durchlässig, nur mäßig nährstoffreich – zu viel Dünger gibt nur Blätter','Warm und geschützt, frostempfindlich','Sparsam düngen und stützen; erst ernten, wenn die Hülle papiertrocken ist'],
+  'Spitzkohl': ['SH','v','S','Humos, nährstoffreich, kalkhaltig','Kühl-feucht ist ideal, große Hitze mag er nicht','Kohl-Fruchtwechsel 3–4 Jahre gegen Kohlhernie; Kulturschutznetz gegen Kohlweißling und Kohlfliege'],
+  'Palmkohl': ['SH','m','S','Humos, nährstoffreich, tiefgründig','Robust und frosthart – Frost macht die Blätter milder','Kohl-Fruchtwechsel einhalten; Netz gegen Kohlweißling; untere Blätter laufend ernten, das hält die Pflanze luftig'],
+  'Meerkohl': ['S','m','M','Tiefgründig, durchlässig, sandig-humos, kalkhaltig','Küstenpflanze – verträgt Wind und salzige Luft, sehr winterhart','Keine Staunässe; nicht neben andere Kohlarten setzen (Kohlhernie, Kohlweißling)'],
+  'Artischocke': ['V','m','S','Tiefgründig, humos, nährstoffreich, durchlässig','Warm und geschützt; im Winter Wurzelbereich dick mit Laub/Stroh abdecken','Winternässe vermeiden (Wurzelfäule); auf Blattläuse an den Knospen achten'],
+  'Topinambur': ['SH','m','M','Anspruchslos, locker – fast jeder Gartenboden','Robust und winterhart, wird 2–3 m hoch','Wuchert: Wurzelsperre oder eigene Ecke einplanen; Mehltau im Spätsommer ist meist harmlos'],
+  'Felsenbirne': ['SH','m','W','Anspruchslos, durchlässig, gern kalkhaltig','Sehr frosthart, stadtklimafest','Kaum krankheitsanfällig; Vogelschutznetz zur Reife im Juni'],
+  'Granatapfel': ['V','w','M','Durchlässig, auch kiesig – im Kübel Kübelpflanzenerde','Sehr wärmeliebend, je nach Sorte nur bis ca. −10 °C – meist im Kübel, hell und kühl überwintern','Staunässe vermeiden, im Winter sparsam gießen'],
+  'Zierkirsche (Kirschblüte)': ['S','m','M','Humos, durchlässig, nicht zu nass','Sonnig mit Platz; frosthart','Schnitt nur im Sommer nach der Blüte (Monilia, Gummifluss); welke Triebspitzen nach der Blüte entfernen'],
+  'Hibiskus': ['S','m','M','Humos, durchlässig, nährstoffreich','Warm und geschützt; junge Pflanzen im Winter mulchen','Treibt spät aus (oft erst Mai/Juni) – nicht zu früh aufgeben; auf Blattläuse achten'],
+  'Löwenmäulchen': ['S','m','M','Humos, durchlässig','Sonnig; verträgt leichte Fröste','Verblühtes abschneiden verlängert die Blüte; luftig pflanzen gegen Rost'],
+  'Strandflieder': ['V','w','W','Durchlässig, sandig, eher mager','Küstenpflanze – verträgt Wind, Trockenheit und Salz','Keine Staunässe, kaum düngen; Blüten lassen sich gut trocknen'],
+  'Fetthenne': ['V','w','W','Durchlässig, mager, auch steinig','Hitze- und trockenheitsverträglich','Nicht zu fett düngen, sonst kippen die Stiele auseinander; Staunässe vermeiden'],
 };
-const PFLANZEN_BEDINGUNGEN_ALIAS = { 'feigenbaum': 'Feige', 'pflaume': 'Pflaumenbaum', 'weinrebe': 'Traube', 'wein': 'Traube', 'weintraube': 'Traube', 'apfel': 'Apfelbaum', 'birne': 'Birnbaum', 'kirsche': 'Kirschbaum', 'süßkirsche': 'Kirschbaum', 'sauerkirsche': 'Kirschbaum', 'tomaten': 'Tomate', 'gurken': 'Gurke', 'porree': 'Lauch (Porree)', 'lauch': 'Lauch (Porree)', 'tagetes': 'Studentenblume (Tagetes)', 'möhre': 'Karotte', 'möhren': 'Karotte', 'karotten': 'Karotte', 'zucchini': 'Zucchini', 'kartoffeln': 'Kartoffel', 'erdbeeren': 'Erdbeere', 'himbeeren': 'Himbeere', 'heidelbeeren': 'Heidelbeere', 'blaubeere': 'Heidelbeere', 'johannisbeeren': 'Johannisbeere', 'brombeeren': 'Brombeere', 'stachelbeeren': 'Stachelbeere', 'aprikosenbaum': 'Aprikose', 'birnenbaum': 'Birnbaum', 'kirschenbaum': 'Kirschbaum', 'pflaumen': 'Pflaumenbaum', 'zwetschgenbaum': 'Zwetschge', 'zwetschke': 'Zwetschge', 'pfirsichbaum': 'Pfirsich', 'walnussbaum': 'Walnuss', 'quitte': 'Japanische Quitte', 'kiwibeere': 'Kiwi', 'buchs': 'Buchsbaum' };
+const PFLANZEN_BEDINGUNGEN_ALIAS = { 'feigenbaum': 'Feige', 'pflaume': 'Pflaumenbaum', 'weinrebe': 'Traube', 'wein': 'Traube', 'weintraube': 'Traube', 'apfel': 'Apfelbaum', 'birne': 'Birnbaum', 'kirsche': 'Kirschbaum', 'süßkirsche': 'Kirschbaum', 'sauerkirsche': 'Kirschbaum', 'tomaten': 'Tomate', 'gurken': 'Gurke', 'porree': 'Lauch (Porree)', 'lauch': 'Lauch (Porree)', 'tagetes': 'Studentenblume (Tagetes)', 'möhre': 'Karotte', 'möhren': 'Karotte', 'karotten': 'Karotte', 'zucchini': 'Zucchini', 'kartoffeln': 'Kartoffel', 'erdbeeren': 'Erdbeere', 'himbeeren': 'Himbeere', 'heidelbeeren': 'Heidelbeere', 'blaubeere': 'Heidelbeere', 'johannisbeeren': 'Johannisbeere', 'brombeeren': 'Brombeere', 'stachelbeeren': 'Stachelbeere', 'aprikosenbaum': 'Aprikose', 'birnenbaum': 'Birnbaum', 'kirschenbaum': 'Kirschbaum', 'pflaumen': 'Pflaumenbaum', 'zwetschgenbaum': 'Zwetschge', 'zwetschke': 'Zwetschge', 'pfirsichbaum': 'Pfirsich', 'walnussbaum': 'Walnuss', 'quitte': 'Japanische Quitte', 'kiwibeere': 'Kiwi', 'buchs': 'Buchsbaum', 'chilis': 'Chili', 'chilli': 'Chili', 'chillies': 'Chili', 'peperoni': 'Chili', 'peperoncini': 'Chili', 'artischocken': 'Artischocke', 'physalis': 'Physalis (Andenbeere)', 'andenbeere': 'Physalis (Andenbeere)', 'andenbeeren': 'Physalis (Andenbeere)', 'kapstachelbeere': 'Physalis (Andenbeere)', 'tomatillos': 'Tomatillo', 'granatäpfel': 'Granatapfel', 'granatapfelbaum': 'Granatapfel', 'schwarzkohl': 'Palmkohl', 'cavolo nero': 'Palmkohl', 'felsenbirnen': 'Felsenbirne', 'kirschblütenbaum': 'Zierkirsche (Kirschblüte)', 'kirschblüte': 'Zierkirsche (Kirschblüte)', 'zierkirsche': 'Zierkirsche (Kirschblüte)', 'japanische zierkirsche': 'Zierkirsche (Kirschblüte)', 'sakura': 'Zierkirsche (Kirschblüte)', 'garteneibisch': 'Hibiskus', 'hortensien': 'Hortensie', 'rosen': 'Rose', 'sedum': 'Fetthenne', 'limonium': 'Strandflieder', 'löwenmaul': 'Löwenmäulchen', 'kamtschatkabeere': 'Kamtschatka-Beere', 'maibeere': 'Kamtschatka-Beere', 'haskap': 'Kamtschatka-Beere', 'weinbeere': 'Japanische Weinbeere' };
 // Findet zu einem frei eingegebenen Pflanzennamen den passenden Schlüssel einer Tabelle
 // (z.B. "Birne", "Birnenbaum" -> "Birnbaum"; "Feigenbaum" -> "Feige"; "Kirsche" -> "Kirschbaum").
 function pflanzenSchluesselFinden(name, tabelle) {
@@ -3207,10 +3291,29 @@ const PLANT_STECKBRIEFE = {
   'Kirschbaum': { standort: 'Sonnig, warm', boden: 'Durchlässig, nicht zu nass', aussaat: 'Pflanzung im Herbst oder zeitigen Frühjahr', ernte: 'Juni/Juli', pflege: 'Schnitt nur im Sommer (Vermeidung von Krankheiten über Schnittwunden im Winter)', besonderheit: 'Vogelschutznetz meist nötig, Vögel sind schnell vor Ort' },
   'Pflaumenbaum': { standort: 'Sonnig, warm', boden: 'Nährstoffreich, durchlässig', aussaat: 'Pflanzung im Herbst oder zeitigen Frühjahr', ernte: 'August/September', pflege: 'Schnitt nach der Ernte im Sommer', besonderheit: 'Anfällig für Scharkakrankheit – bei Symptomen Fachberatung hinzuziehen' },
   'Japanische Quitte': { standort: 'Sonnig bis halbschattig', boden: 'Durchlässig, anspruchslos', aussaat: 'Pflanzung im Herbst oder Frühjahr', ernte: 'Oktober, vor dem ersten starken Frost', pflege: 'Pflegeleicht, gelegentlicher Auslichtungsschnitt', besonderheit: 'Früchte sind roh ungenießbar, aber ideal für Gelee und Kompott (viel Pektin)' },
-  'Feigenbaum': { standort: 'Vollsonnig, warm, windgeschützt (Südwand ideal)', boden: 'Durchlässig, mäßig nährstoffreich', aussaat: 'Pflanzung im Frühjahr', ernte: 'Spätsommer bis Herbst, in milden Lagen zwei Ernten möglich', pflege: 'In kälteren Regionen Winterschutz (Vlies/Mulch) nötig', besonderheit: 'In rauen Lagen am besten im Kübel kultivieren und frostfrei überwintern' },
+  'Feige': { standort: 'Vollsonnig, warm, windgeschützt (Südwand ideal)', boden: 'Durchlässig, mäßig nährstoffreich', aussaat: 'Pflanzung im Frühjahr', ernte: 'Spätsommer bis Herbst, in milden Lagen zwei Ernten möglich', pflege: 'In kälteren Regionen Winterschutz (Vlies/Mulch) nötig', besonderheit: 'In rauen Lagen am besten im Kübel kultivieren und frostfrei überwintern' },
   'Walnussbaum': { standort: 'Sonnig, viel Platz (wird groß)', boden: 'Tiefgründig, nährstoffreich', aussaat: 'Pflanzung im Herbst', ernte: 'September/Oktober', pflege: 'Kaum Pflege nötig, sehr genügsam sobald etabliert', besonderheit: 'Wurzelausscheidungen hemmen das Wachstum vieler anderer Pflanzen in der Nähe (Juglon)' },
   'Rose': { standort: 'Sonnig, luftig', boden: 'Nährstoffreich, durchlässig', aussaat: 'Pflanzung im Herbst oder Frühjahr', ernte: '–', pflege: 'Rückschnitt im Frühjahr, regelmäßig düngen', besonderheit: 'Nicht am gleichen Standort wie eine Vorgänger-Rose neu pflanzen ("Rosenmüdigkeit" des Bodens)' },
   'Lavendel': { standort: 'Vollsonnig, warm', boden: 'Trocken, durchlässig, kalkhaltig, mager', aussaat: 'Pflanzung im Frühjahr', ernte: 'Blüte Juni bis August, zum Trocknen kurz vor Vollblüte schneiden', pflege: 'Wenig gießen, im Frühjahr zurückschneiden (nicht ins alte Holz)', besonderheit: 'Verträgt keine Staunässe – bei schwerem Boden Sand/Kies einarbeiten' },
+  'Chili': { standort: 'Vollsonnig, sehr warm, windgeschützt', boden: 'Humos, durchlässig, nährstoffreich', aussaat: 'Vorkultur ab Januar/Februar bei 25 °C (keimt langsam), auspflanzen nach den Eisheiligen', ernte: 'Juli bis Oktober, laufend', pflege: 'Mäßig gießen, alle 2 Wochen düngen, bei Fruchtbehang stützen', besonderheit: 'Je länger die Früchte hängen, desto schärfer – mehrjährig hell und kühl überwintern möglich' },
+  'Tomatillo': { standort: 'Vollsonnig, warm', boden: 'Humos, nährstoffreich, durchlässig', aussaat: 'Vorkultur März/April, auspflanzen nach den Eisheiligen', ernte: 'August bis Oktober, wenn die Hülle aufplatzt', pflege: 'Stützen, regelmäßig gießen – wächst buschig und breit', besonderheit: 'Mindestens zwei Pflanzen nötig, sonst kaum Fruchtansatz. Basis der mexikanischen Salsa Verde' },
+  'Physalis (Andenbeere)': { standort: 'Vollsonnig, warm, geschützt', boden: 'Durchlässig, mäßig nährstoffreich', aussaat: 'Vorkultur Februar/März, auspflanzen nach den Eisheiligen', ernte: 'August bis zum ersten Frost', pflege: 'Stützen, nur sparsam düngen (sonst viel Laub, wenig Früchte)', besonderheit: 'Reif, wenn die Hülle papiertrocken und braun ist – Früchte reifen in der Hülle noch nach' },
+  'Spitzkohl': { standort: 'Sonnig bis halbschattig', boden: 'Humos, nährstoffreich, kalkhaltig', aussaat: 'Vorkultur ab Februar, auspflanzen ab April', ernte: 'Juni bis September', pflege: 'Gleichmäßig feucht halten, anhäufeln, Kulturschutznetz', besonderheit: 'Zarter und schneller reif als Weißkohl – ideal als erster Kohl im Jahr' },
+  'Palmkohl': { standort: 'Sonnig bis halbschattig', boden: 'Humos, nährstoffreich, tiefgründig', aussaat: 'Vorkultur April/Mai, auspflanzen Juni/Juli', ernte: 'Oktober bis Februar, Blatt für Blatt von unten', pflege: 'Gleichmäßig gießen, ggf. stützen – wird bis 1 m hoch', besonderheit: 'Auch Schwarzkohl/Cavolo Nero genannt; Frost macht ihn milder und süßer' },
+  'Meerkohl': { standort: 'Sonnig', boden: 'Tiefgründig, durchlässig, sandig, kalkhaltig', aussaat: 'Vorkultur März/April oder Wurzelstecklinge im Frühjahr', ernte: 'Ab dem 3. Jahr: April/Mai junge Triebe (gebleicht wie Spargel)', pflege: 'Anspruchslos; für zarte Triebe im Spätwinter mit einem Eimer abdecken', besonderheit: 'Mehrjähriges Küstengemüse, Blätter, Knospen und Blüten sind essbar – schöne Blattschmuckpflanze' },
+  'Artischocke': { standort: 'Vollsonnig, warm, geschützt', boden: 'Tiefgründig, humos, nährstoffreich', aussaat: 'Vorkultur Februar/März, auspflanzen Mitte Mai', ernte: 'Juli bis September, solange die Knospen geschlossen sind', pflege: 'Viel Wasser und Kompost; im Winter Wurzelbereich dick abdecken', besonderheit: 'Mehrjährig, braucht aber Winterschutz. Ungeerntet entstehen leuchtend violette Blüten – Bienenmagnet' },
+  'Topinambur': { standort: 'Sonnig bis halbschattig', boden: 'Anspruchslos, locker', aussaat: 'Knollen März/April ca. 10 cm tief legen', ernte: 'Oktober bis März, bei Bedarf frisch ausgraben', pflege: 'Kaum Pflege nötig; bei Wind ggf. stützen', besonderheit: 'Wuchert stark – jede vergessene Knolle treibt neu aus. Schöne gelbe Spätsommerblüten, guter Sichtschutz' },
+  'Felsenbirne': { standort: 'Sonnig bis halbschattig', boden: 'Anspruchslos, durchlässig', aussaat: 'Pflanzung im Herbst oder Frühjahr', ernte: 'Juni/Juli', pflege: 'Sehr pflegeleicht, nur gelegentlich auslichten', besonderheit: 'Ganzjährig schön: weiße Blüte im April, essbare blaue Beeren (Geschmack nach Marzipan), leuchtend rote Herbstfärbung' },
+  'Granatapfel': { standort: 'Vollsonnig, heiß, geschützt', boden: 'Durchlässig, auch kiesig', aussaat: 'Pflanzung im Frühjahr (meist im Kübel)', ernte: 'Oktober/November – nur in warmen Sommern', pflege: 'Im Sommer reichlich gießen, im Winter fast trocken halten; hell und kühl (2–8 °C) überwintern', besonderheit: 'Einige Sorten (z. B. aus dem Kaukasus) vertragen kurz bis ca. −10 °C – auch als Zierpflanze mit orangeroten Blüten schön' },
+  'Zierkirsche (Kirschblüte)': { standort: 'Sonnig, mit Platz zur Entfaltung', boden: 'Humos, durchlässig, nicht staunass', aussaat: 'Pflanzung im Herbst oder Frühjahr', ernte: '–', pflege: 'Wenig schneiden, wenn dann im Sommer nach der Blüte; junge Bäume in Trockenphasen wässern', besonderheit: 'Japanische Blütenkirsche: Blüte im April, oft auch schöne Herbstfärbung. Früchte (wenn vorhanden) sind klein und sauer' },
+  'Hibiskus': { standort: 'Sonnig, warm, geschützt', boden: 'Humos, durchlässig, nährstoffreich', aussaat: 'Pflanzung im Frühjahr, damit er bis zum Winter einwurzelt', ernte: '–', pflege: 'Im Sommer gleichmäßig gießen, im Spätwinter zurückschneiden', besonderheit: 'Garten-Hibiskus (Hibiscus syriacus) ist winterhart, blüht Juli bis September und treibt erst spät im Mai/Juni aus' },
+  'Löwenmäulchen': { standort: 'Sonnig', boden: 'Humos, durchlässig', aussaat: 'Vorkultur Februar/März (Lichtkeimer) oder Direktsaat ab April', ernte: 'Schnittblume Juni bis Oktober', pflege: 'Verblühtes regelmäßig abschneiden, hohe Sorten stützen', besonderheit: 'Hummeln öffnen die Blüten – Kinder lieben es, das „Maul“ seitlich zu drücken' },
+  'Strandflieder': { standort: 'Vollsonnig', boden: 'Durchlässig, sandig, mager', aussaat: 'Vorkultur März/April, auspflanzen im Mai', ernte: 'Blüten Juli bis September zum Trocknen schneiden', pflege: 'Kaum gießen, nicht düngen', besonderheit: 'Ideale Trockenblume – behält die Farbe; verträgt Hitze und Salz' },
+  'Fetthenne': { standort: 'Vollsonnig', boden: 'Durchlässig, mager, auch steinig', aussaat: 'Pflanzung im Frühjahr oder Teilung', ernte: '–', pflege: 'Nahezu pflegefrei; trockene Blütenstände erst im Spätwinter abschneiden', besonderheit: 'Späte Blüte (August–Oktober) ist eine wichtige Bienen- und Schmetterlingsweide' },
+  'Hortensie': { standort: 'Halbschattig, keine pralle Mittagssonne', boden: 'Humos, leicht sauer, gleichmäßig feucht', aussaat: 'Pflanzung im Frühjahr oder Herbst', ernte: '–', pflege: 'Viel gießen (am besten Regenwasser); Bauernhortensien nur Verblühtes entfernen, Rispenhortensien im Frühjahr kräftig zurückschneiden', besonderheit: 'Blaue Blüten nur bei saurem Boden mit Aluminium – in kalkhaltigem Boden werden sie rosa' },
+  'Blumenkohl': { standort: 'Sonnig', boden: 'Humos, nährstoffreich, kalkhaltig, gleichmäßig feucht', aussaat: 'Vorkultur März/April, auspflanzen Mai/Juni', ernte: 'Juni bis Oktober, solange die Blume fest und geschlossen ist', pflege: 'Gleichmäßig gießen, Blume mit eingeknickten Blättern beschatten', besonderheit: 'Anspruchsvollster Kohl – bei Trockenstress bildet er nur kleine Blumen' },
+  'Kamtschatka-Beere': { standort: 'Sonnig bis halbschattig', boden: 'Humos, frisch', aussaat: 'Pflanzung im Herbst oder Frühjahr, zwei Sorten zur Befruchtung', ernte: 'Ende Mai/Juni – eine der ersten Beeren im Jahr', pflege: 'Pflegeleicht, nach der Ernte auslichten', besonderheit: 'Sehr frosthart (bis −40 °C), auch Maibeere oder Haskap genannt' },
+  'Japanische Weinbeere': { standort: 'Sonnig bis halbschattig', boden: 'Humos, durchlässig', aussaat: 'Pflanzung im Herbst oder Frühjahr', ernte: 'Juli/August', pflege: 'Ruten anbinden, abgetragene Ruten nach der Ernte entfernen', besonderheit: 'Die rötlich behaarten Ruten sind auch im Winter ein Hingucker; Früchte süß-säuerlich' },
 };
 function populateSteckbriefSelect() {
   const sel = document.getElementById('steckbriefSel');
@@ -5117,6 +5220,12 @@ const FAMILIES = {
   'Rosmarin':'verschiedene', 'Minze':'verschiedene', 'Salbei':'verschiedene', 'Oregano':'verschiedene',
   'Majoran':'verschiedene', 'Estragon':'verschiedene', 'Liebstöckel':'verschiedene', 'Zitronenmelisse':'verschiedene',
   'Kerbel':'verschiedene', 'Bohnenkraut':'verschiedene', 'Lavendel':'verschiedene', 'Borretsch':'verschiedene',
+  'Chili':'Nachtschattengewächse', 'Tomatillo':'Nachtschattengewächse', 'Physalis (Andenbeere)':'Nachtschattengewächse',
+  'Spitzkohl':'Kohlgewächse', 'Palmkohl':'Kohlgewächse', 'Meerkohl':'Kohlgewächse',
+  'Artischocke':'Korbblütler', 'Topinambur':'Korbblütler',
+  'Felsenbirne':'Rosengewächse', 'Zierkirsche (Kirschblüte)':'Rosengewächse',
+  'Granatapfel':'Weiderichgewächse', 'Feige':'Maulbeergewächse', 'Hibiskus':'Malvengewächse',
+  'Löwenmäulchen':'Wegerichgewächse', 'Strandflieder':'Bleiwurzgewächse', 'Fetthenne':'Dickblattgewächse', 'Hortensie':'Hortensiengewächse',
 };
 function getFamily(name){ return FAMILIES[(name||'').trim()] || null; }
 function getYearOf(entry){
@@ -7714,7 +7823,8 @@ function buildPlantGrid(filter) {
         <span class="sym">${p.sym}</span><span>${p.name}${p.perennial?' <span title="Mehrjährig – bleibt über Jahre im Beet" style="opacity:0.6">🔄</span>':''}</span>
       </div>`).join('')}</div>`;
   }
-  const eigeneTreffer = customPlants.filter(p => !onlyPerennial && (!filter || p.name.toLowerCase().includes(filter)));
+  const standardNamen = new Set(PLANTS.map(p => p.name.toLowerCase()));
+  const eigeneTreffer = customPlants.filter(p => !standardNamen.has(p.name.toLowerCase()) && !onlyPerennial && (!filter || p.name.toLowerCase().includes(filter)));
   if (eigeneTreffer.length || !filter) {
     html += `<div style="font-size:0.72rem;font-weight:600;color:var(--bark);margin:8px 0 4px">✨ Eigene Pflanzen</div>`;
     html += `<div class="plant-grid">${eigeneTreffer.map(p=>`
@@ -7727,7 +7837,7 @@ function buildPlantGrid(filter) {
   }
   document.getElementById('plantCatalog').innerHTML = html || '<div class="empty-state">Keine Treffer.</div>';
   const densSel=document.getElementById('densityPlantSel');
-  if(densSel) densSel.innerHTML='<option value="">– Pflanze wählen –</option>'+PLANTS.map(p=>`<option value="${p.name}">${p.sym} ${p.name}</option>`).join('')+customPlants.map(p=>`<option value="${p.name}">${p.sym} ${p.name}</option>`).join('');
+  if(densSel) densSel.innerHTML='<option value="">– Pflanze wählen –</option>'+PLANTS.map(p=>`<option value="${p.name}">${p.sym} ${p.name}</option>`).join('')+customPlants.filter(p=>!standardNamen.has(p.name.toLowerCase())).map(p=>`<option value="${p.name}">${p.sym} ${p.name}</option>`).join('');
 }
 function selectPlantType(sym,name,el){
   selectedPlantSym=sym;selectedPlantName=name;
