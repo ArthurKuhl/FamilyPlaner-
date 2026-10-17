@@ -300,6 +300,30 @@
   .pp-foto-thumb { position: relative; flex-shrink: 0; width: 46px; height: 46px; border-radius: 7px; overflow: hidden; border: 2px solid rgba(255,255,255,0.5); cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
   .pp-foto-thumb.aktuell { border-color: #8fc98a; }
   .pp-foto-thumb.privat { border-style: dashed; }
+  /* Aussaatkalender: Ansichten, Sortierung, Filter */
+  .saat-steuerung { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+  .saat-reihe { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; padding-bottom: 2px; }
+  .saat-reihe::-webkit-scrollbar { display: none; }
+  .saat-reihe .saat-label { font-size: 0.66rem; font-weight: 700; color: var(--bark); text-transform: uppercase; letter-spacing: .04em; align-self: center; flex-shrink: 0; min-width: 58px; }
+  .saat-chip { flex-shrink: 0; background: transparent; border: 1px solid var(--parchment); color: var(--bark); font-size: 0.72rem; font-weight: 600; padding: 5px 11px; border-radius: 999px; cursor: pointer; white-space: nowrap; font-family: inherit; }
+  .saat-chip.an { background: var(--moss); border-color: var(--moss); color: var(--leaf, #fff); }
+  .saat-gruppe { grid-column: 1 / -1; font-size: 0.7rem; font-weight: 700; color: var(--bark); text-transform: uppercase; letter-spacing: .04em; padding: 10px 2px 3px; border-bottom: 1px solid var(--parchment); }
+  .saat-jahr { display: grid; grid-template-columns: minmax(96px, 1.4fr) repeat(12, minmax(14px, 1fr)); gap: 2px 1px; align-items: center; font-size: 0.72rem; }
+  .saat-jahr .mon { text-align: center; font-size: 0.6rem; font-weight: 700; color: var(--bark); padding-bottom: 3px; }
+  .saat-jahr .mon.jetzt { color: var(--moss); }
+  .saat-jahr .name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 4px; }
+  .saat-jahr .zelle { height: 20px; display: flex; flex-direction: column; gap: 1px; padding: 1px 0; border-radius: 2px; }
+  .saat-jahr .zelle.jetzt { box-shadow: inset 1px 0 0 rgba(122,158,114,0.6), inset -1px 0 0 rgba(122,158,114,0.6); }
+  .saat-jahr .zelle i { flex: 1; border-radius: 1px; }
+  .saat-legende { display: flex; gap: 10px; flex-wrap: wrap; font-size: 0.68rem; color: var(--bark); margin: 4px 0 8px; }
+  .saat-legende span::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; background: var(--f); }
+  .saat-monat-kopf { display: flex; align-items: center; justify-content: center; gap: 14px; margin: 4px 0 10px; font-weight: 700; }
+  .saat-monat-kopf button { background: none; border: 1px solid var(--parchment); border-radius: 999px; width: 32px; height: 32px; cursor: pointer; color: var(--moss); font-size: 1rem; }
+  .saat-phase { margin-bottom: 12px; }
+  .saat-phase h4 { font-size: 0.82rem; margin: 0 0 6px; }
+  .saat-phase .saat-pflanzen { display: flex; flex-wrap: wrap; gap: 6px; }
+  .saat-pflanze { background: var(--parchment); border-radius: 999px; padding: 4px 10px; font-size: 0.76rem; }
+  .saat-pflanze.neu { outline: 2px solid var(--moss); }
   /* Standort & Bedingungen der Pflanze */
   .bedingungen-box { background: var(--white); border: 1px solid var(--parchment); border-left: 4px solid var(--moss); border-radius: 9px; padding: 10px 12px; font-size: 0.8rem; color: var(--soil); }
   .bedingungen-titel { font-weight: 700; margin-bottom: 6px; }
@@ -1187,9 +1211,10 @@
   <div class="modal" style="width:min(640px,96vw);max-height:88vh;overflow-y:auto">
     <h2>🗓 Aussaatkalender</h2>
     <p style="font-size:0.72rem;color:var(--bark);margin-bottom:10px">Richtwerte für Mitteleuropa. Vorziehen = drinnen, Direktsaat = außen, Auspflanzen = ab ins Beet.</p>
-    <div style="margin-bottom:10px">
+    <div style="margin-bottom:8px">
       <input type="text" id="sowingSearch" placeholder="🔍 Pflanze filtern..." oninput="renderSowingCalendar(this.value)" style="max-width:260px"/>
     </div>
+    <div class="saat-steuerung" id="saatSteuerung"></div>
     <div id="sowingCalendarContent"></div>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="document.getElementById('sowingModal').style.display='none'">Schließen</button>
@@ -2681,16 +2706,137 @@ function createSowingReminderDirekt(name, phaseKey, startMonth) {
   const icon = phaseKey === 'rueckschnitt' ? '✂️' : '🌱';
   gartenTerminDirektEintragen(`${icon} ${label}: ${name}`, `Gartenplaner-Erinnerung: Zeit für "${label}" von ${name}.`, start);
 }
+// ---------- Aussaatkalender: Ansicht, Sortierung & Filter (geräte-lokal gemerkt) ----------
+const SAAT_FARBEN = { vorziehen: '#7aa6c9', direktsaat: '#c99a3a', auspflanzen: '#6f9e4f' };
+const SAAT_KATEGORIEN = [['Gemüse', ['Gemüse']], ['Kräuter', ['Kräuter']], ['Obst & Beeren', ['Obst', 'Beeren']], ['Blumen', ['Blumen']]];
+let saatOpt = { ansicht: 'tabelle', sort: 'az', filter: 'alle', monat: null };
+try { Object.assign(saatOpt, JSON.parse(localStorage.getItem('garten_saatOptionen') || '{}')); } catch (e) {}
+saatOpt.monat = null; // Monatsansicht startet immer beim aktuellen Monat
+function saatOptSetzen(k, v) {
+  saatOpt[k] = v;
+  try { localStorage.setItem('garten_saatOptionen', JSON.stringify({ ansicht: saatOpt.ansicht, sort: saatOpt.sort, filter: saatOpt.filter })); } catch (e) {}
+  renderSowingCalendar(document.getElementById('sowingSearch')?.value || '');
+}
+function saatKategorie(name) {
+  const p = PLANTS.find(x => x.name === name);
+  const cat = p ? p.cat : '';
+  const k = SAAT_KATEGORIEN.find(([, cats]) => cats.includes(cat));
+  return k ? k[0] : 'Sonstige';
+}
+function saatImGarten() {
+  const namen = new Set();
+  getCurrentBeds().forEach(b => (b.plants || []).forEach(p => p.name && namen.add(p.name)));
+  getCurrentFreiPflanzen().forEach(fp => fp.name && namen.add(fp.name));
+  return namen;
+}
+// Monate bis zum nächsten Start einer Phase (0 = gerade aktiv) – für "Als Nächstes dran"
+function saatMonateBisNaechstes(s) {
+  const jetzt = new Date().getMonth() + 1;
+  let best = 99;
+  [s.vorziehen, s.direktsaat, s.auspflanzen].map(adjustRange).filter(Boolean).forEach(r => {
+    const d = isInWindow(r, jetzt) ? 0 : ((r[0] - jetzt + 12) % 12);
+    if (d < best) best = d;
+  });
+  return best;
+}
+function saatSteuerungRendern() {
+  const box = document.getElementById('saatSteuerung');
+  if (!box) return;
+  const chip = (k, v, t) => '<button type="button" class="saat-chip' + (saatOpt[k] === v ? ' an' : '') + '" onclick="saatOptSetzen(\'' + k + '\',\'' + v + '\')">' + t + '</button>';
+  const sortZeile = saatOpt.ansicht === 'monat' ? '' :
+    '<div class="saat-reihe"><span class="saat-label">Sortieren</span>' + chip('sort', 'az', '🔤 A–Z') + chip('sort', 'naechstes', '⏳ Als Nächstes dran') + chip('sort', 'kategorie', '🗂️ Nach Art') + '</div>';
+  box.innerHTML =
+    '<div class="saat-reihe"><span class="saat-label">Ansicht</span>' + chip('ansicht', 'tabelle', '📋 Tabelle') + chip('ansicht', 'jahr', '📊 Jahresübersicht') + chip('ansicht', 'monat', '📅 Nach Monat') + '</div>' +
+    sortZeile +
+    '<div class="saat-reihe"><span class="saat-label">Zeigen</span>' + chip('filter', 'alle', 'Alle') + chip('filter', 'garten', '🌱 In meinem Garten') + chip('filter', 'aktiv', '✅ Jetzt dran') + chip('filter', 'saatgut', '🌰 Saatgut da') +
+      SAAT_KATEGORIEN.map(([k]) => chip('filter', 'kat:' + k, k)).join('') + '</div>';
+}
+function saatEintraegeFiltern(filter) {
+  const jetzt = new Date().getMonth() + 1;
+  const imGarten = saatOpt.filter === 'garten' ? saatImGarten() : null;
+  return Object.entries(SOWING).filter(([name, s]) => {
+    if (filter && !name.toLowerCase().includes(filter)) return false;
+    const f = saatOpt.filter;
+    if (f === 'garten') return imGarten.has(name);
+    if (f === 'aktiv') return getSowingUrgency([s.vorziehen, s.direktsaat, s.auspflanzen]).active;
+    if (f === 'saatgut') return hasSeedInStock(name);
+    if (f.indexOf('kat:') === 0) return saatKategorie(name) === f.slice(4);
+    return true;
+  });
+}
+function saatEintraegeSortieren(entries) {
+  const az = (a, b) => a[0].localeCompare(b[0]);
+  if (saatOpt.sort === 'naechstes') return entries.sort((a, b) => saatMonateBisNaechstes(a[1]) - saatMonateBisNaechstes(b[1]) || az(a, b));
+  if (saatOpt.sort === 'kategorie') {
+    const reihenfolge = SAAT_KATEGORIEN.map(k => k[0]).concat('Sonstige');
+    return entries.sort((a, b) => reihenfolge.indexOf(saatKategorie(a[0])) - reihenfolge.indexOf(saatKategorie(b[0])) || az(a, b));
+  }
+  return entries.sort(az);
+}
+// Gruppen-Überschrift, wenn sich Art bzw. "dran in X Monaten" ändert
+function saatGruppenTitel(name, s) {
+  if (saatOpt.sort === 'kategorie') return saatKategorie(name);
+  if (saatOpt.sort === 'naechstes') {
+    const m = saatMonateBisNaechstes(s);
+    if (m === 0) return '✅ Jetzt dran';
+    if (m === 1) return 'Nächsten Monat (' + MONTH_NAMES[((new Date().getMonth() + 1) % 12) + 1] + ')';
+    if (m > 12) return 'Ohne Termin';
+    return 'In ' + m + ' Monaten (' + MONTH_NAMES[((new Date().getMonth() + m) % 12) + 1] + ')';
+  }
+  return null;
+}
+function renderSaatJahr(entries) {
+  const jetzt = new Date().getMonth() + 1;
+  let h = '<div class="saat-legende"><span style="--f:' + SAAT_FARBEN.vorziehen + '">🏠 Vorziehen</span><span style="--f:' + SAAT_FARBEN.direktsaat + '">🌍 Direktsaat</span><span style="--f:' + SAAT_FARBEN.auspflanzen + '">🌱 Auspflanzen</span></div>';
+  h += '<div class="saat-jahr"><span></span>' + [1,2,3,4,5,6,7,8,9,10,11,12].map(m => '<span class="mon' + (m === jetzt ? ' jetzt' : '') + '">' + MONTH_NAMES[m].charAt(0) + '</span>').join('');
+  let letzteGruppe = null;
+  entries.forEach(([name, s]) => {
+    const g = saatGruppenTitel(name, s);
+    if (g && g !== letzteGruppe) { h += '<div class="saat-gruppe">' + g + '</div>'; letzteGruppe = g; }
+    const plant = PLANTS.find(p => p.name === name);
+    const phasen = ['vorziehen', 'direktsaat', 'auspflanzen'].map(k => [k, adjustRange(s[k])]);
+    h += '<span class="name" title="' + escapeHtml(name) + '">' + (plant ? plant.sym : '🌿') + ' ' + escapeHtml(name) + '</span>';
+    for (let m = 1; m <= 12; m++) {
+      h += '<span class="zelle' + (m === jetzt ? ' jetzt' : '') + '">' + phasen.map(([k, r]) => '<i style="background:' + (r && isInWindow(r, m) ? SAAT_FARBEN[k] : 'transparent') + '"></i>').join('') + '</span>';
+    }
+  });
+  return h + '</div>';
+}
+function renderSaatMonat(entries) {
+  const jetzt = new Date().getMonth() + 1;
+  const m = saatOpt.monat || jetzt;
+  const vorher = m === 1 ? 12 : m - 1;
+  const phasen = [['vorziehen', '🏠 Vorziehen (drinnen)'], ['direktsaat', '🌍 Direktsaat (draußen)'], ['auspflanzen', '🌱 Auspflanzen ins Beet']];
+  const MONATE_LANG = ['', 'Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+  let h = '<div class="saat-monat-kopf"><button type="button" onclick="saatOpt.monat=' + (m === 1 ? 12 : m - 1) + ';renderSowingCalendar(document.getElementById(\'sowingSearch\').value)" aria-label="Vorheriger Monat">‹</button><span>' + MONATE_LANG[m] + (m === jetzt ? ' (jetzt)' : '') + '</span><button type="button" onclick="saatOpt.monat=' + (m === 12 ? 1 : m + 1) + ';renderSowingCalendar(document.getElementById(\'sowingSearch\').value)" aria-label="Nächster Monat">›</button></div>';
+  let irgendwas = false;
+  phasen.forEach(([k, titel]) => {
+    const liste = entries.filter(([, s]) => { const r = adjustRange(s[k]); return r && isInWindow(r, m); }).sort((a, b) => a[0].localeCompare(b[0]));
+    if (!liste.length) return;
+    irgendwas = true;
+    h += '<div class="saat-phase"><h4>' + titel + ' <span style="font-weight:400;color:var(--bark)">· ' + liste.length + '</span></h4><div class="saat-pflanzen">' +
+      liste.map(([name, s]) => {
+        const r = adjustRange(s[k]);
+        const neu = r && !isInWindow(r, vorher); // beginnt in diesem Monat
+        const plant = PLANTS.find(p => p.name === name);
+        return '<span class="saat-pflanze' + (neu ? ' neu' : '') + '" title="' + (neu ? 'Startet in diesem Monat' : 'Läuft schon seit ' + MONTH_NAMES[r[0]]) + '">' + (plant ? plant.sym : '🌿') + ' ' + escapeHtml(name) + '</span>';
+      }).join('') + '</div></div>';
+  });
+  if (!irgendwas) h += '<div class="empty-state">In diesem Monat steht nichts an – Zeit für Planung, Werkzeugpflege und Saatgut-Bestellung. 🌰</div>';
+  else h += '<p style="font-size:0.66rem;color:var(--bark)">Grün umrandet = startet in diesem Monat.</p>';
+  return h;
+}
 function renderSowingCalendar(filter) {
   filter=(filter||'').trim().toLowerCase();
+  saatSteuerungRendern();
   const currentMonth = new Date().getMonth()+1;
-  const entries = Object.entries(SOWING)
-    .filter(([name])=>!filter||name.toLowerCase().includes(filter))
-    .sort((a,b)=>a[0].localeCompare(b[0]));
+  const entries = saatEintraegeSortieren(saatEintraegeFiltern(filter));
   if (!entries.length) {
-    document.getElementById('sowingCalendarContent').innerHTML='<div class="empty-state">Keine Treffer.</div>';
+    document.getElementById('sowingCalendarContent').innerHTML='<div class="empty-state">Keine Treffer' + (saatOpt.filter !== 'alle' ? ' – Filter „Alle“ wählen, um alles zu sehen.' : '.') + '</div>';
     return;
   }
+  if (saatOpt.ansicht === 'jahr') { document.getElementById('sowingCalendarContent').innerHTML = renderSaatJahr(entries); return; }
+  if (saatOpt.ansicht === 'monat') { document.getElementById('sowingCalendarContent').innerHTML = renderSaatMonat(entries); return; }
   // Alle Zeilen teilen sich EIN gemeinsames Grid (statt je Zeile ein eigenes), damit die
   // Spaltenbreiten über die gesamte Liste hinweg konsistent ausgerichtet sind.
   let gridCells = `<div style="display:contents;font-size:0.7rem;font-weight:600;color:var(--bark)">
@@ -2699,13 +2845,17 @@ function renderSowingCalendar(filter) {
     <span style="padding:4px 8px;border-bottom:1px solid var(--parchment);margin-bottom:6px">🌍 Direktsaat</span>
     <span style="padding:4px 8px;border-bottom:1px solid var(--parchment);margin-bottom:6px">🌱 Auspflanzen</span>
   </div>`;
+  let letzteGruppe = null;
   entries.forEach(([name, s])=>{
+    const gruppe = saatGruppenTitel(name, s);
+    if (gruppe && gruppe !== letzteGruppe) { gridCells += '<div class="saat-gruppe">' + gruppe + '</div>'; letzteGruppe = gruppe; }
     const plant = PLANTS.find(p=>p.name===name);
     const sym = plant ? plant.sym : '🌿';
     const urgency = getSowingUrgency([s.vorziehen, s.direktsaat, s.auspflanzen]);
     const inStock = hasSeedInStock(name);
     const istZeitkritisch = urgency.active || urgency.soonDays !== null;
-    const rowBg = urgency.active ? '#f0f8ec' : (urgency.soonDays !== null ? '#fdf6e3' : 'transparent');
+    // Halbtransparent, damit es im hellen UND dunklen Modus lesbar bleibt
+    const rowBg = urgency.active ? 'rgba(122,158,114,0.22)' : (urgency.soonDays !== null ? 'rgba(201,154,58,0.16)' : 'transparent');
 
     // Saatgut-Status wird für JEDE Pflanze ohne Vorrat konsistent angezeigt (kleines Symbol
     // neben dem Namen), damit nicht mal ein "+ erfassen" da ist und mal nicht. Nur bei
