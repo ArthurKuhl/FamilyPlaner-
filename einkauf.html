@@ -135,6 +135,8 @@
     flex: 1; padding: 11px 13px; border: 1px solid var(--parchment); border-radius: var(--radius-pill);
     font-size: 0.9rem; background: var(--white); color: var(--soil);
   }
+  .quick-add input { min-width: 0; }
+  .quick-add input.menge-feld { flex: 0 0 84px; padding: 11px 10px; text-align: center; }
   .quick-add button {
     background: var(--terracotta); color: var(--white); border: none; border-radius: var(--radius-pill);
     padding: 0 18px; font-weight: 700; font-size: 0.85rem; cursor: pointer;
@@ -166,7 +168,8 @@
   .item-info { flex: 1; min-width: 0; }
   .item-name { font-size: 0.9rem; font-weight: 500; min-width: 0; overflow-wrap: anywhere; }
   .item-zeile.erledigt .item-name { text-decoration: line-through; color: var(--bark); opacity: 0.65; }
-  .item-menge { font-size: 0.75rem; color: var(--bark); font-weight: 600; white-space: nowrap; }
+  .item-menge { display: inline-block; font-size: 0.8rem; font-weight: 700; white-space: nowrap; color: var(--soil); background: rgba(196,114,74,0.18); border: 1px solid rgba(196,114,74,0.45); border-radius: var(--radius-pill); padding: 1px 9px; margin-right: 6px; vertical-align: 1px; }
+  .item-zeile.erledigt .item-menge { opacity: 0.55; }
   .item-loeschen { background: none; border: none; color: var(--parchment); font-size: 1rem; padding: 2px 4px; cursor: pointer; }
   .item-loeschen:hover { color: var(--terracotta-text); }
 
@@ -281,7 +284,8 @@
     <button class="vorlagen-erinnerung-schliessen" id="btnVorlagenErinnerungSchliessen" aria-label="Schließen">✕</button>
   </div>
   <div class="quick-add">
-    <input type="text" id="fSchnellEingabe" placeholder="z.B. 500g Mehl, 3 Äpfel, Zahnpasta ..." autocomplete="off">
+    <input type="text" id="fSchnellEingabe" placeholder="Produkt, z.B. Mehl, Äpfel ..." autocomplete="off">
+    <input type="text" id="fSchnellMenge" class="menge-feld" placeholder="Menge" autocomplete="off" aria-label="Menge, z.B. 2 oder 500 g">
     <button id="btnHinzufuegen">＋</button>
   </div>
   <select id="fWocheneinkaufMarkt" style="display:none;width:100%;margin:-6px 0 12px;padding:8px 10px;border-radius:var(--radius-md);border:1px solid var(--parchment);background:var(--white);color:var(--soil);font-size:0.85rem;">
@@ -1061,11 +1065,22 @@
     return true;
   }
 
+  // Eigenes Mengenfeld: "2", "500 g", "2 Packungen", "1,5 kg" -> Zahl + Einheit; sonst Freitext als Einheit
+  function parseMengenFeld(text) {
+    const t = (text || '').trim();
+    if (!t) return null;
+    const m = t.match(/^(\d+(?:[.,]\d+)?)\s*[x×]?\s*(.*)$/i);
+    if (m) return { menge: m[1].replace(',', '.'), einheit: m[2].trim() };
+    return { menge: '', einheit: t };
+  }
   function itemHinzufuegen() {
     const eingabe = document.getElementById('fSchnellEingabe');
+    const mengenFeld = document.getElementById('fSchnellMenge');
     const text = eingabe.value.trim();
-    if (!text) return;
-    const { menge, einheit, name } = parseSchnellEingabe(text);
+    if (!text) { if (mengenFeld.value.trim()) eingabe.focus(); return; }
+    const feldMenge = parseMengenFeld(mengenFeld.value);
+    let { menge, einheit, name } = parseSchnellEingabe(text);
+    if (feldMenge) { menge = feldMenge.menge; einheit = feldMenge.einheit; name = text; }
     let liste = aktiveListe();
     if (istUebersichtAktiv()) {
       const gewaehlterMarktId = document.getElementById('fWocheneinkaufMarkt').value;
@@ -1084,27 +1099,29 @@
     speichernListen();
     speichernFavoriten();
     eingabe.value = '';
+    mengenFeld.value = '';
     renderAlles();
     eingabe.focus();
   }
   document.getElementById('btnHinzufuegen').addEventListener('click', itemHinzufuegen);
   document.getElementById('fSchnellEingabe').addEventListener('keydown', (e) => { if (e.key === 'Enter') itemHinzufuegen(); });
+  document.getElementById('fSchnellMenge').addEventListener('keydown', (e) => { if (e.key === 'Enter') itemHinzufuegen(); });
 
   // --- Item-Zeilen rendern ---
   function itemZeile(item, listeId) {
     listeId = listeId || aktiveListeId;
     const zeile = document.createElement('div');
     zeile.className = 'item-zeile' + (item.erledigt ? ' erledigt' : '');
-    const mengeText = [item.menge, item.einheit].filter(Boolean).join(' ');
+    const mengeZahl = String(item.menge || '').replace('.', ','); // deutsche Schreibweise: 1,5 kg
+    const mengeText = (mengeZahl && !item.einheit) ? mengeZahl + '×' : [mengeZahl, item.einheit].filter(Boolean).join(' ');
     const person = personInfo(item.hinzugefuegtVon);
     const badge = person ? '<span class="hinzu-badge" style="background:' + person.farbe + '22; color:' + person.farbe + ';">' + escapeHtml(person.label) + '</span>' : '';
     const sterne = bewertungHolen(item.name);
     const sterneHtml = sterne ? bewertungSterneHtml(sterne, '0.62rem') : '';
     zeile.innerHTML =
       '<span class="item-checkbox">' + (item.erledigt ? '✓' : '') + '</span>' +
-      '<div class="item-info"><span class="item-name">' + escapeHtml(item.name) + '</span>' +
+      '<div class="item-info">' + (mengeText ? '<span class="item-menge">' + escapeHtml(mengeText) + '</span>' : '') + '<span class="item-name">' + escapeHtml(item.name) + '</span>' +
       (badge || sterneHtml ? '<div class="item-unterzeile">' + badge + sterneHtml + '</div>' : '') + '</div>' +
-      (mengeText ? '<span class="item-menge">' + escapeHtml(mengeText) + '</span>' : '') +
       '<button class="item-loeschen" aria-label="Löschen">✕</button>';
     zeile.querySelector('.item-checkbox').addEventListener('click', (e) => {
       e.stopPropagation();
