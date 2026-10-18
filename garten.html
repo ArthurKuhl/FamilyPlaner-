@@ -101,8 +101,9 @@
   header h1 .hdr-sub { font-family: 'Inter', sans-serif; font-size: 0.66rem; font-weight: 500; color: var(--sage); letter-spacing: 0.03em; text-transform: uppercase; }
   header .hdr-right { display: flex; align-items: center; gap: 10px; min-width: 0; flex-wrap: nowrap; }
   #statusMsg { font-size: 0.72rem; color: var(--leaf); background: rgba(255,255,255,0.08); padding: 4px 12px; border-radius: var(--radius-pill); transition: all 0.2s; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 120px; align-self: center; }
+  /* Slogan nur auf breiten Bildschirmen (Tablet/PC) – auf dem Handy bricht sonst der Titel um */
+  @media (max-width: 700px) { header h1 .hdr-sub { display: none; } }
   @media (max-width: 360px) {
-    header h1 .hdr-sub { display: none; }
     #statusMsg { max-width: 90px; padding: 4px 8px; font-size: 0.66rem; }
   }
   .btn-help { background: transparent; border: 1px solid rgba(255,255,255,0.18); color: var(--leaf); width: 26px; height: 26px; border-radius: 50%; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; font-family: 'Inter', sans-serif; }
@@ -165,9 +166,37 @@
   #vollbildListeWrap.aktiv { display: block; }
   .vlist-beet { background: var(--white); border-radius: var(--radius-md); margin-bottom: 10px; box-shadow: var(--shadow-soft); overflow: hidden; padding: 4px 0; }
   .vlist-beet-ueberschrift { display: flex; align-items: center; gap: 8px; padding: 4px 6px 8px; font-weight: 700; font-size: 0.8rem; margin-top: 16px; border-bottom: 1px solid var(--parchment); }
-  .vlist-plant-zeile { width: 100%; display: flex; align-items: center; gap: 8px; padding: 9px 6px; border-top: 1px solid var(--parchment); border-left: none; border-right: none; border-bottom: none; cursor: pointer; border-radius: var(--radius-sm); background: none; font-family: inherit; font-size: inherit; color: inherit; text-align: left; touch-action: manipulation; }
+  .vlist-plant-zeile { width: 100%; display: flex; align-items: center; gap: 9px; padding: 8px 12px; border-top: 1px solid var(--parchment); border-left: none; border-right: none; border-bottom: none; cursor: pointer; border-radius: var(--radius-sm); background: none; font-family: inherit; font-size: inherit; color: inherit; text-align: left; touch-action: manipulation; }
   .vlist-plant-zeile:hover { background: var(--cream); }
-  .vlist-frei-karte { width: 100%; display: flex; align-items: center; gap: 8px; background: var(--white); border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 8px; box-shadow: var(--shadow-soft); cursor: pointer; border: none; font-family: inherit; font-size: inherit; color: inherit; text-align: left; touch-action: manipulation; }
+  .vlist-frei-karte { width: 100%; display: flex; align-items: center; gap: 9px; background: var(--white); border-radius: var(--radius-md); padding: 10px 10px; box-shadow: var(--shadow-soft); cursor: pointer; border: none; font-family: inherit; font-size: inherit; color: inherit; text-align: left; touch-action: manipulation; min-width: 0; }
+  .vlist-steuerung { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 12px; padding-bottom: 2px; }
+  .vlist-karte { background: var(--white); border-radius: var(--radius-md); box-shadow: var(--shadow-soft); margin-bottom: 10px; overflow: hidden; }
+  .vlist-beet-karte { border-left: 5px solid #7a9e72; }
+  .vlist-beet-kopf { width: 100%; display: flex; align-items: center; gap: 9px; padding: 11px 12px; background: none; border: none; font-family: inherit; color: inherit; text-align: left; cursor: pointer; touch-action: manipulation; }
+  .vlist-beet-titel { flex: 1; min-width: 0; font-weight: 700; font-size: 0.88rem; display: flex; flex-direction: column; gap: 2px; }
+  .vlist-beet-info { font-weight: 500; font-size: 0.7rem; color: var(--bark); }
+  .vlist-beet-inhalt .vlist-plant-zeile { border-top: 1px solid var(--parchment); }
+  .vlist-karte > .vlist-plant-zeile:first-child { border-top: none; }
+  .vlist-pfeil { color: var(--bark); font-size: 0.8rem; flex-shrink: 0; }
+  .vlist-bild { width: 30px; height: 30px; flex-shrink: 0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 1.1rem; overflow: hidden; background: rgba(127,164,118,0.14); }
+  .vlist-bild.gross { width: 40px; height: 40px; font-size: 1.35rem; }
+  .vlist-bild img { width: 100%; height: 100%; object-fit: cover; }
+  .vlist-name { flex: 1; min-width: 0; font-size: 0.86rem; font-weight: 500; overflow-wrap: anywhere; }
+  .vlist-sorte { color: var(--bark); font-weight: 400; font-size: 0.74rem; }
+  .vlist-zusatz { display: block; font-size: 0.68rem; color: var(--bark); font-weight: 400; margin-top: 1px; }
+  .vlist-anzahl { display: inline-block; font-size: 0.72rem; font-weight: 700; padding: 0 7px; margin-left: 4px; border-radius: 999px; background: rgba(127,164,118,0.22); color: var(--soil); }
+  .vlist-sterne { font-size: 0.62rem; color: #c99a3a; white-space: nowrap; }
+  .vlist-status-reihe { display: inline-flex; gap: 3px; flex-shrink: 0; }
+  .vlist-status { font-size: 0.8rem; line-height: 1; padding: 3px 4px; border-radius: 7px; background: rgba(127,127,127,0.12); }
+  .vlist-status.dringend { background: rgba(196,107,65,0.22); }
+  .vlist-gruppe-inhalt { background: rgba(127,164,118,0.07); }
+  .vlist-gruppe-inhalt .vlist-plant-zeile { padding-left: 22px; }
+  .vlist-frei-titel { font-size: 0.74rem; font-weight: 700; color: var(--bark); margin: 10px 2px 6px; }
+  .vlist-frei-raster { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .vlist-frei-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+  .vlist-frei-text .vlist-sorte { font-size: 0.68rem; }
+  .vlist-frei-auf { grid-column: 1 / -1; background: var(--white); border-radius: var(--radius-md); box-shadow: var(--shadow-soft); overflow: hidden; }
+  .vlist-frei-auf .vlist-plant-zeile + .vlist-plant-zeile { border-top: 1px solid var(--parchment); }
 
   /* DESKTOP: mehr Platz auf großen Bildschirmen sinnvoll nutzen */
   @media (min-width: 1100px) {
@@ -7343,51 +7372,205 @@ function applyGartenAnsichtModus() {
     setTimeout(positioniereZoomWidget, 30);
   }
 }
-// Flache Pflanzenliste mit Beet-Namen als (nicht anklickbaren) Zwischenüberschriften.
-// Nur die einzelnen Pflanzen-Zeilen sind klickbar und öffnen direkt die Pflanzeninfo.
+// ==================== BEETÜBERSICHT (Listenansicht) ====================
+// Sortierung (nach Beet / nach Pflanze / zu tun) und zugeklappte Beete werden pro Gerät gemerkt.
+const VLIST_SORT_KEY = 'garten_vlistSortierung';
+const VLIST_ZU_KEY = 'garten_vlistZugeklappt';
+let vlistSort = (() => { try { return localStorage.getItem(VLIST_SORT_KEY) || 'beet'; } catch (e) { return 'beet'; } })();
+let vlistZu = (() => { try { return JSON.parse(localStorage.getItem(VLIST_ZU_KEY) || '{}') || {}; } catch (e) { return {}; } })();
+const vlistOffeneGruppen = new Set(); // aufgeklappte ×N-Gruppen (nur für diese Sitzung)
+function vlistSortSetzen(s) {
+  vlistSort = s; try { localStorage.setItem(VLIST_SORT_KEY, s); } catch (e) {}
+  renderVollbildListe();
+}
+function vlistBeetUmschalten(key) {
+  if (vlistZu[key]) delete vlistZu[key]; else vlistZu[key] = true;
+  try { localStorage.setItem(VLIST_ZU_KEY, JSON.stringify(vlistZu)); } catch (e) {}
+  renderVollbildListe();
+}
+function vlistGruppeUmschalten(key) {
+  if (vlistOffeneGruppen.has(key)) vlistOffeneGruppen.delete(key); else vlistOffeneGruppen.add(key);
+  renderVollbildListe();
+}
+// Status-Hinweise einer Pflanze. bed/pIdx nur bei Beet-Pflanzen (Gießen, Düngen, Mischkultur).
+// Liefert [{icon, text, prio}] – prio 1 = dringend (heute), 2 = Hinweis.
+function vlistStatus(p, bed, pIdx) {
+  const name = (p.name || '').trim();
+  const out = [];
+  const monat = new Date().getMonth() + 1;
+  const heute = new Date(); heute.setHours(0, 0, 0, 0);
+  const info = CARE_INFO[name];
+  let gepflanzt = p.date ? new Date(p.date + 'T00:00:00') : null;
+  if (gepflanzt && isNaN(gepflanzt.getTime())) gepflanzt = null;
+  const alter = gepflanzt ? daysBetween(gepflanzt, heute) : null;
+  if (bed && info && alter !== null && alter >= 0) {
+    const basis = `${bed.id}_${pIdx}`;
+    if (info.waterDays > 0 && alter % info.waterDays === 0 && !isCareTaskDone(basis + '_water'))
+      out.push({ icon: '💧', text: 'Heute gießen', prio: 1, art: 'water' });
+    if (info.fertilizeDays > 0 && alter % info.fertilizeDays <= 1 && !isCareTaskDone(basis + '_fertilize'))
+      out.push({ icon: '🌿', text: 'Düngen fällig', prio: 1, art: 'fertilize' });
+    if (info.harvestDays > 0 && info.harvestDays - alter <= 0 && !isCareTaskDone(basis + '_harvest'))
+      out.push({ icon: '🧺', text: 'Erntereif', prio: 1, art: 'harvest' });
+  }
+  // Mehrjährige/Gehölze ohne Tageszähler: typische Erntemonate
+  if (!out.some(s => s.art === 'harvest') && (!info || !(info.harvestDays > 0)) && isInHarvestWindow(HARVEST_WINDOW[name], monat))
+    out.push({ icon: '🧺', text: 'Erntezeit (' + monthRange(HARVEST_WINDOW[name]) + ')', prio: 2, art: 'harvest' });
+  const schnittKey = pflanzenSchluesselFinden(name, RUECKSCHNITT);
+  if (schnittKey && isInHarvestWindow(RUECKSCHNITT[schnittKey].monate, monat))
+    out.push({ icon: '✂️', text: 'Rückschnitt jetzt (' + monthRange(RUECKSCHNITT[schnittKey].monate) + ')', prio: 2, art: 'schnitt' });
+  if (bed && plantHasConflict(bed, pIdx))
+    out.push({ icon: '⚠️', text: 'Verträgt sich nicht mit einem Nachbarn im Beet', prio: 2, art: 'konflikt' });
+  if (isFrostTender(name) && getUpcomingFrostWarning() && (!gepflanzt || gepflanzt <= heute))
+    out.push({ icon: '❄️', text: 'Frost angesagt – frostempfindlich', prio: 1, art: 'frost' });
+  return out;
+}
+function vlistStatusHtml(liste) {
+  // gleiche Symbole nur einmal zeigen (bei zusammengefassten Gruppen)
+  const gesehen = new Set();
+  return liste.filter(s => !gesehen.has(s.icon) && gesehen.add(s.icon))
+    .map(s => `<span class="vlist-status${s.prio === 1 ? ' dringend' : ''}" title="${escapeHtml(s.text)}">${s.icon}</span>`).join('');
+}
+function vlistBildHtml(p, gross) {
+  const f = ppFotoTitelbild(p);
+  const cls = 'vlist-bild' + (gross ? ' gross' : '');
+  return f ? `<span class="${cls}"><img src="${escapeHtml(fotoQuelle(f))}" alt="" loading="lazy"></span>`
+           : `<span class="${cls}">${p.sym || '🌱'}</span>`;
+}
+function vlistDatum(d) {
+  if (!d) return '';
+  const x = new Date(d + 'T00:00:00');
+  return isNaN(x.getTime()) ? '' : x.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
+}
+// Eine anklickbare Pflanzenzeile. ziel: {bedIdx, plantIdx} oder {freiIdx}
+function vlistZeileHtml(p, ziel, status, zusatz) {
+  const attrs = ziel.freiIdx !== undefined ? `data-frei-idx="${ziel.freiIdx}"` : `data-bed-idx="${ziel.bedIdx}" data-plant-idx="${ziel.plantIdx}"`;
+  const sorte = p.variety || p.sorte;
+  const ernten = (p.harvests || []).length;
+  return `<button type="button" class="vlist-plant-zeile" ${attrs}>
+      ${vlistBildHtml(p)}
+      <span class="vlist-name">${escapeHtml(p.name || 'Unbenannt')}${sorte ? ' <span class="vlist-sorte">(' + escapeHtml(sorte) + ')</span>' : ''}
+        ${zusatz ? `<span class="vlist-zusatz">${zusatz}</span>` : ''}</span>
+      ${p.bewertung ? `<span class="vlist-sterne">${'★'.repeat(Math.round(p.bewertung))}</span>` : ''}
+      ${meilensteinIconFuer(ernten) ? `<span title="${ernten}× geerntet">${meilensteinIconFuer(ernten)}</span>` : ''}
+      <span class="vlist-status-reihe">${vlistStatusHtml(status)}</span>
+    </button>`;
+}
+// Fasst gleiche Pflanzen (Name + Sorte) zusammen. eintraege: [{p, ziel, status, zusatz}]
+function vlistGruppiertHtml(eintraege, gruppenPrefix) {
+  const gruppen = [];
+  const map = {};
+  eintraege.forEach(e => {
+    const k = ((e.p.name || '') + '|' + (e.p.variety || e.p.sorte || '') + '|' + (e.gruppeExtra || '')).toLowerCase();
+    if (!map[k]) { map[k] = { key: gruppenPrefix + ':' + k, liste: [] }; gruppen.push(map[k]); }
+    map[k].liste.push(e);
+  });
+  return gruppen.map(g => {
+    if (g.liste.length === 1) { const e = g.liste[0]; return vlistZeileHtml(e.p, e.ziel, e.status, e.zusatz); }
+    const e0 = g.liste[0];
+    const offen = vlistOffeneGruppen.has(g.key);
+    const alleStatus = g.liste.flatMap(e => e.status);
+    const sorte = e0.p.variety || e0.p.sorte;
+    const kopf = `<button type="button" class="vlist-plant-zeile vlist-gruppe-kopf" data-gruppe="${escapeHtml(g.key)}" aria-expanded="${offen}">
+        ${vlistBildHtml(e0.p)}
+        <span class="vlist-name">${escapeHtml(e0.p.name || 'Unbenannt')}${sorte ? ' <span class="vlist-sorte">(' + escapeHtml(sorte) + ')</span>' : ''}
+          <span class="vlist-anzahl">×${g.liste.length}</span>
+          ${(() => { const z = [...new Set(g.liste.map(e => e.zusatz).filter(Boolean))]; return z.length ? `<span class="vlist-zusatz">${z.join(' · ')}</span>` : ''; })()}</span>
+        <span class="vlist-status-reihe">${vlistStatusHtml(alleStatus)}</span>
+        <span class="vlist-pfeil">${offen ? '▾' : '▸'}</span>
+      </button>`;
+    if (!offen) return kopf;
+    return kopf + '<div class="vlist-gruppe-inhalt">' + g.liste.map((e, n) =>
+      vlistZeileHtml(e.p, e.ziel, e.status, e.zusatz || (vlistDatum(e.p.date) ? '🗓 ' + vlistDatum(e.p.date) : '#' + (n + 1)))).join('') + '</div>';
+  }).join('');
+}
+function vlistBeetZusammenfassung(eintraege) {
+  const zaehle = art => eintraege.filter(e => e.status.some(s => s.art === art && s.prio === 1)).length;
+  const teile = [];
+  const w = zaehle('water'), h = zaehle('harvest'), d = zaehle('fertilize'), f = zaehle('frost');
+  if (w) teile.push('💧 ' + w + '× gießen');
+  if (h) teile.push('🧺 ' + h + '× ernten');
+  if (d) teile.push('🌿 ' + d + '× düngen');
+  if (f) teile.push('❄️ Frost');
+  return teile.length ? teile.join(' · ') : '<span style="opacity:0.7">✓ nichts fällig</span>';
+}
+const VLIST_FREI_GRUPPEN = [['Obst', '🌳 Obstbäume'], ['Beeren', '🫐 Beerensträucher'], ['Blumen', '🌸 Zierpflanzen'], ['', '🌿 Sonstige']];
 function renderVollbildListe() {
   const box = document.getElementById('vollbildListeWrap');
   if (!box) return;
   const beds = getCurrentBeds();
   const frei = getCurrentFreiPflanzen();
-  let html = '<div class="sidebar-title" style="margin-bottom:10px">🌱 Pflanzen nach Beet</div>';
-  const bedsMitPflanzen = sortedBedsWithIndex(beds).filter(({ bed }) => bed.kind !== 'struktur');
-  const gesamtPflanzen = bedsMitPflanzen.reduce((sum, { bed }) => sum + (bed.plants || []).length, 0);
-  if (!gesamtPflanzen) {
-    html += '<div class="empty-state">Noch keine Pflanzen in einem Beet.</div>';
+  const bedsMitPflanzen = sortedBedsWithIndex(beds).filter(({ bed }) => bed.kind !== 'struktur' && (bed.plants || []).length);
+  const beetEintraege = [];
+  bedsMitPflanzen.forEach(({ bed, i }) => (bed.plants || []).forEach((p, pi) =>
+    beetEintraege.push({ p, bed, ziel: { bedIdx: i, plantIdx: pi }, status: vlistStatus(p, bed, pi), beetName: bed.name || 'Beet ' + (i + 1) })));
+  const freiEintraege = frei.map((fp, i) => ({ p: fp, ziel: { freiIdx: i }, status: vlistStatus(fp, null, null), beetName: '🌳 freistehend' }));
+
+  const chip = (k, label) => `<button type="button" class="saat-chip${vlistSort === k ? ' an' : ''}" data-vlist-sort="${k}">${label}</button>`;
+  let html = `<div class="vlist-steuerung">${chip('beet', '📍 Nach Beet')}${chip('pflanze', '🔤 Nach Pflanze')}${chip('todo', '✅ Zu tun')}</div>`;
+
+  if (vlistSort === 'pflanze') {
+    const alle = beetEintraege.map(e => Object.assign({}, e, { zusatz: escapeHtml(e.beetName) }))
+      .concat(freiEintraege.map(e => Object.assign({}, e, { zusatz: 'freistehend' })));
+    alle.sort((a, b) => (a.p.name || '').localeCompare(b.p.name || '', 'de'));
+    html += alle.length ? `<div class="vlist-beet vlist-karte">${vlistGruppiertHtml(alle, 'pfl')}</div>`
+                        : '<div class="empty-state">Noch keine Pflanzen.</div>';
+  } else if (vlistSort === 'todo') {
+    const offen = beetEintraege.concat(freiEintraege).filter(e => e.status.length)
+      .map(e => Object.assign({}, e, { gruppeExtra: e.beetName, zusatz: escapeHtml(e.beetName) + ' · ' + e.status.map(s => escapeHtml(s.text)).join(' · ') }));
+    offen.sort((a, b) => Math.min(...a.status.map(s => s.prio)) - Math.min(...b.status.map(s => s.prio)) || (a.p.name || '').localeCompare(b.p.name || '', 'de'));
+    html += offen.length ? `<div class="vlist-beet vlist-karte">${vlistGruppiertHtml(offen, 'todo')}</div>`
+                         : '<div class="empty-state">🎉 Gerade ist nichts zu tun.</div>';
   } else {
+    if (!bedsMitPflanzen.length) html += '<div class="empty-state">Noch keine Pflanzen in einem Beet.</div>';
     html += bedsMitPflanzen.map(({ bed, i }) => {
-      if (!(bed.plants || []).length) return '';
-      const plantsHtml = bed.plants.map((p, pi) => `
-        <button type="button" class="vlist-plant-zeile" data-bed-idx="${i}" data-plant-idx="${pi}">
-          <span>${p.sym || '🌱'}</span>
-          <span style="flex:1;text-align:left">${escapeHtml(p.name || 'Unbenannt')}${p.variety ? ' <span style="color:var(--bark);font-weight:400">(' + escapeHtml(p.variety) + ')</span>' : ''}</span>
-          ${p.bewertung ? `<span style="font-size:0.62rem;color:#c99a3a;white-space:nowrap;margin-left:6px;">${'★'.repeat(Math.round(p.bewertung))}</span>` : ''}
-          ${meilensteinIconFuer((p.harvests||[]).length) ? `<span title="${(p.harvests||[]).length}× geerntet" style="margin-left:4px;">${meilensteinIconFuer((p.harvests||[]).length)}</span>` : ''}
-          ${p.date ? `<span style="font-size:0.68rem;color:var(--bark);white-space:nowrap;margin-left:8px">🗓 ${new Date(p.date + 'T00:00:00').toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })}</span>` : ''}
-        </button>`).join('');
-      return `
-      <div class="vlist-beet-ueberschrift" style="border-left:4px solid ${bed.color || '#7a9e72'}">
-        <span class="bed-color-dot" style="display:inline-block;background:${bed.color}"></span>
-        <span>${escapeHtml(bed.name || 'Beet ' + (i + 1))}</span>
-        <span style="font-size:0.68rem;color:var(--bark);margin-left:auto">${bed.plants.length}🌱</span>
-      </div>
-      <div class="vlist-beet">${plantsHtml}</div>`;
+      const key = bed.id || ('idx' + i);
+      const zu = !!vlistZu[key];
+      const eintraege = beetEintraege.filter(e => e.bed === bed);
+      return `<div class="vlist-karte vlist-beet-karte" style="border-left-color:${bed.color || '#7a9e72'}">
+        <button type="button" class="vlist-beet-kopf" data-beet-key="${escapeHtml(key)}" aria-expanded="${!zu}">
+          <span class="bed-color-dot" style="display:inline-block;background:${bed.color || '#7a9e72'}"></span>
+          <span class="vlist-beet-titel">${escapeHtml(bed.name || 'Beet ' + (i + 1))}
+            <span class="vlist-beet-info">${eintraege.length} 🌱 · ${vlistBeetZusammenfassung(eintraege)}</span></span>
+          <span class="vlist-pfeil">${zu ? '▸' : '▾'}</span>
+        </button>
+        ${zu ? '' : `<div class="vlist-beet-inhalt">${vlistGruppiertHtml(eintraege, 'b' + key)}</div>`}
+      </div>`;
     }).join('');
-  }
-  html += '<div class="sidebar-title" style="margin:18px 0 10px">🌳 Freistehende Pflanzen</div>';
-  if (!frei.length) {
-    html += '<div class="empty-state">Keine freistehenden Bäume/Sträucher.</div>';
-  } else {
-    html += frei.map((fp, i) => `
-      <button type="button" class="vlist-frei-karte" data-frei-idx="${i}">
-        <span style="font-size:1.2rem">${fp.sym || '🌳'}</span>
-        <span>${escapeHtml(fp.name || 'Unbenannt')}${fp.sorte ? ' (' + escapeHtml(fp.sorte) + ')' : ''}</span>
-      </button>`).join('');
+    // Freistehende Pflanzen: nach Art gruppiert, zweispaltig
+    html += '<div class="sidebar-title" style="margin:18px 0 10px">🌳 Freistehende Pflanzen</div>';
+    if (!freiEintraege.length) {
+      html += '<div class="empty-state">Keine freistehenden Bäume/Sträucher.</div>';
+    } else {
+      const catVon = e => (PLANTS.find(x => x.name === (e.p.name || '').trim()) || {}).cat || '';
+      VLIST_FREI_GRUPPEN.forEach(([cat, titel]) => {
+        const teil = freiEintraege.filter(e => { const c = catVon(e); return cat ? c === cat : !VLIST_FREI_GRUPPEN.some(([k]) => k && k === c); });
+        if (!teil.length) return;
+        // gleiche Pflanzen zusammenfassen
+        const gruppen = []; const map = {};
+        teil.forEach(e => { const k = ((e.p.name || '') + '|' + (e.p.sorte || '')).toLowerCase(); if (!map[k]) { map[k] = []; gruppen.push(map[k]); } map[k].push(e); });
+        html += `<div class="vlist-frei-titel">${titel}</div><div class="vlist-frei-raster">` + gruppen.map(g => {
+          const e0 = g[0];
+          const gKey = 'frei:' + ((e0.p.name || '') + '|' + (e0.p.sorte || '')).toLowerCase();
+          const offen = g.length > 1 && vlistOffeneGruppen.has(gKey);
+          const attr = g.length > 1 ? `data-gruppe="${escapeHtml(gKey)}"` : `data-frei-idx="${e0.ziel.freiIdx}"`;
+          const karte = `<button type="button" class="vlist-frei-karte" ${attr}>
+              ${vlistBildHtml(e0.p, true)}
+              <span class="vlist-frei-text"><span class="vlist-name">${escapeHtml(e0.p.name || 'Unbenannt')}${g.length > 1 ? ` <span class="vlist-anzahl">×${g.length}</span>` : ''}</span>
+                ${e0.p.sorte ? `<span class="vlist-sorte">${escapeHtml(e0.p.sorte)}</span>` : ''}
+                <span class="vlist-status-reihe">${vlistStatusHtml(g.flatMap(e => e.status))}</span></span>
+            </button>`;
+          if (!offen) return karte;
+          return karte + `<div class="vlist-frei-auf">` + g.map((e, n) => vlistZeileHtml(e.p, e.ziel, e.status, '#' + (n + 1))).join('') + '</div>';
+        }).join('') + '</div>';
+      });
+    }
   }
   box.innerHTML = html;
   // Direkt nach dem Einfügen ins DOM angehängt (nicht delegiert) – jeder Button bekommt
   // seinen Listener im selben Moment, in dem er erzeugt wird.
+  box.querySelectorAll('[data-vlist-sort]').forEach(btn => btn.addEventListener('click', () => vlistSortSetzen(btn.dataset.vlistSort)));
+  box.querySelectorAll('[data-beet-key]').forEach(btn => btn.addEventListener('click', () => vlistBeetUmschalten(btn.dataset.beetKey)));
+  box.querySelectorAll('[data-gruppe]').forEach(btn => btn.addEventListener('click', () => vlistGruppeUmschalten(btn.dataset.gruppe)));
   box.querySelectorAll('[data-plant-idx]').forEach(btn => {
     btn.addEventListener('click', () => {
       const bed = getCurrentBeds()[parseInt(btn.dataset.bedIdx, 10)];
