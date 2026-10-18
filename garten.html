@@ -197,6 +197,22 @@
   .vlist-frei-text .vlist-sorte { font-size: 0.68rem; }
   .vlist-frei-auf { grid-column: 1 / -1; background: var(--white); border-radius: var(--radius-md); box-shadow: var(--shadow-soft); overflow: hidden; }
   .vlist-frei-auf .vlist-plant-zeile + .vlist-plant-zeile { border-top: 1px solid var(--parchment); }
+  /* Beet-Foto (rund, links in der Beet-Kopfzeile) */
+  .vlist-beet-kopf-zeile { display: flex; align-items: center; padding-left: 10px; }
+  .vlist-beet-kopf-zeile .vlist-beet-kopf { padding-left: 8px; }
+  .vlist-beet-foto { width: 42px; height: 42px; flex-shrink: 0; border-radius: 50%; border: 2px solid var(--bf, #7a9e72); padding: 0; overflow: hidden; background: rgba(127,164,118,0.14); display: inline-flex; align-items: center; justify-content: center; font-size: 1rem; cursor: pointer; touch-action: manipulation; }
+  .vlist-beet-foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .vlist-beet-foto.leer { opacity: 0.6; border-style: dashed; }
+  .vlist-hinweis-zahl { color: var(--terracotta-text); font-weight: 700; }
+  /* Beet-Hinweise (Mischkultur, Nährstoffe, Fruchtfolge, Platz …) */
+  .beet-hinweise { margin: 0 12px 8px; border-radius: var(--radius-sm); border: 1px solid var(--parchment); overflow: hidden; background: rgba(127,164,118,0.06); }
+  .beet-hinweise-kopf { width: 100%; display: flex; align-items: center; gap: 6px; padding: 8px 10px; background: none; border: none; font-family: inherit; font-size: 0.76rem; font-weight: 700; color: var(--soil); cursor: pointer; text-align: left; touch-action: manipulation; }
+  .beet-hinweise-kopf .vlist-pfeil { margin-left: auto; }
+  .beet-hinweis { display: flex; gap: 8px; padding: 6px 10px; font-size: 0.75rem; line-height: 1.4; color: var(--soil); border-top: 1px solid var(--parchment); }
+  .beet-hinweise > .beet-hinweis:first-child { border-top: none; }
+  .beet-hinweis .bh-icon { flex-shrink: 0; }
+  .beet-hinweis.warn { background: rgba(196,107,65,0.11); }
+  .beet-hinweis.gut { background: rgba(122,158,114,0.12); }
 
   /* DESKTOP: mehr Platz auf großen Bildschirmen sinnvoll nutzen */
   @media (min-width: 1100px) {
@@ -938,6 +954,10 @@
             <label>Name</label>
             <input type="text" id="editName" oninput="updateSelectedBed()" />
           </div>
+          <div class="form-row" id="editBeetFotoRow">
+            <label>Beet-Foto</label>
+            <button type="button" id="btnEditBeetFoto" onclick="if(selectedBed)beetFotoOeffnen(selectedBed.id)" style="display:flex;align-items:center;gap:10px;width:100%;padding:6px 8px;border:1px dashed var(--parchment);border-radius:var(--radius-sm);background:var(--cream);cursor:pointer;font-family:inherit;color:var(--bark);font-size:0.76rem;text-align:left"></button>
+          </div>
           <div class="form-row">
             <label>Rotation</label>
             <div class="rotation-wrap">
@@ -997,6 +1017,11 @@
               <option value="">– Pflanze wählen –</option>
             </select>
             <div id="densityResult" style="font-size:0.74rem;color:var(--bark);margin-top:4px"></div>
+          </div>
+
+          <div id="bedHinweiseSection" style="margin:6px 0 12px">
+            <div class="sidebar-title" style="margin-bottom:6px">💡 Hinweise zum Beet</div>
+            <div id="bedHinweiseBox"></div>
           </div>
 
           <div id="editPlantSection" style="margin-top:6px;padding-top:12px;border-top:1px solid var(--parchment)">
@@ -1452,6 +1477,20 @@
 
   <div class="pp-footer">
     <button class="btn-secondary" id="fpLoeschenBtn" onclick="fpLoeschen()" style="color:#c05030;border-color:#c05030;width:100%">🗑 Entfernen</button>
+  </div>
+</div>
+
+<!-- MODAL: Beet-Foto (ein Bild vom ganzen Beet) -->
+<div class="modal-bg" id="beetFotoModal" style="display:none" onclick="if(event.target===this)beetFotoModalSchliessen()">
+  <div class="modal" style="width:min(420px,94vw);max-height:88vh;overflow-y:auto">
+    <h2 id="beetFotoTitel">📷 Beet-Foto</h2>
+    <div id="beetFotoVorschau"></div>
+    <input type="file" id="beetFotoInput" accept="image/*" style="display:none" onchange="handleBeetFoto(event)">
+    <div id="beetFotoKnoepfe" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px"></div>
+    <div id="beetFotoInfo" style="font-size:0.7rem;color:var(--bark);margin-top:8px"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="beetFotoModalSchliessen()">Schließen</button>
+    </div>
   </div>
 </div>
 
@@ -5831,6 +5870,7 @@ function refreshSettingsUI() {
 }
 function renderBedPlantList(bed, filter) {
   setTimeout(renderBeetErinnerungKnopf, 0);
+  renderBeetHinweiseSidebar(bed);
   const box = document.getElementById('bedPlantList');
   if (!box || !bed) return;
   filter = (filter || '').trim().toLowerCase();
@@ -7154,6 +7194,7 @@ function showBedEditor(bed) {
   switchBedEditorTab('eigenschaften');
   document.getElementById('btnDeleteSelected').textContent = istStruktur ? '🗑 Element löschen' : '🗑 Beet löschen';
   document.getElementById('editName').value=bed.name||'';
+  renderBeetFotoEditor(bed);
   document.getElementById('editRot').value=bed.rotation||0;
   document.getElementById('rotVal').textContent=(bed.rotation||0)+'°';
   if (bed.shape==='circle') {
@@ -7346,6 +7387,285 @@ function sortedBedsWithIndex(beds) {
   }
   return withIdx;
 }
+// ==================== BEET-FOTO (ein Bild vom ganzen Beet) ====================
+// Gleicher Aufbau wie bei Pflanzenfotos (bed.fotos), daher funktionieren 👪 Familie / 🔒 Nur ich,
+// Malstil und Cloud-Upload automatisch mit. Pro Beet gibt es genau ein Foto.
+let beetFotoBedId = null;
+function beetFotoBeet() { return getCurrentBeds().find(b => b.id === beetFotoBedId) || null; }
+function beetFotoOeffnen(bedId) {
+  beetFotoBedId = bedId;
+  beetFotoModalRendern();
+  document.getElementById('beetFotoModal').style.display = 'flex';
+}
+function beetFotoModalSchliessen() {
+  document.getElementById('beetFotoModal').style.display = 'none';
+  beetFotoBedId = null;
+}
+function beetFotoModalRendern() {
+  const bed = beetFotoBeet();
+  if (!bed) return;
+  ppFotosMigrieren(bed);
+  const foto = ppFotoTitelbild(bed);
+  document.getElementById('beetFotoTitel').textContent = '📷 ' + (bed.name || 'Beet');
+  document.getElementById('beetFotoVorschau').innerHTML = foto
+    ? `<img src="${escapeHtml(fotoQuelle(foto))}" alt="" onclick="fotoLightboxOeffnen(this.src)" style="width:100%;max-height:50vh;object-fit:cover;border-radius:var(--radius-md);display:block;cursor:zoom-in;border:3px solid ${bed.color || '#7a9e72'}">`
+    : `<div style="padding:28px 12px;text-align:center;border:2px dashed var(--parchment);border-radius:var(--radius-md);color:var(--bark);font-size:0.8rem">Noch kein Foto vom Beet.<br>Ein Bild vom ganzen Beet hilft, es in der Liste schneller wiederzuerkennen.</div>`;
+  const knopf = (text, aktion, extra) => `<button type="button" class="btn-secondary" style="width:auto;flex:1 1 auto;margin:0;${extra || ''}" onclick="${aktion}">${text}</button>`;
+  const knoepfe = [knopf('📷 ' + (foto ? 'Foto ändern' : 'Foto hinzufügen'), "document.getElementById('beetFotoInput').click()")];
+  let info = '';
+  if (foto) {
+    if (window.Malfilter && (foto.data || foto.photo)) knoepfe.push(knopf('🎨 Malstil', 'beetFotoMalen()'));
+    if (window.FotoSpeicher && window.FotoSpeicher.verfuegbar()) {
+      knoepfe.push(knopf(foto.geteilt === false ? '🔒 Nur ich' : '👪 Familie', 'beetFotoTeilen()'));
+      info = foto.geteilt === false ? '🔒 Nur auf diesem Gerät sichtbar – antippen, um es mit der Familie zu teilen.'
+        : (foto.url ? '👪 Für die ganze Familie sichtbar.' : '👪 Wird mit der Familie geteilt (Upload ausstehend).');
+    }
+    knoepfe.push(knopf('🗑 Entfernen', 'beetFotoEntfernen()', 'color:#c05030;border-color:#c05030'));
+    if (foto.datum) info = 'Aufgenommen am ' + new Date(foto.datum + 'T00:00').toLocaleDateString('de-DE') + (info ? ' · ' + info : '');
+  }
+  document.getElementById('beetFotoKnoepfe').innerHTML = knoepfe.join('');
+  document.getElementById('beetFotoInfo').textContent = info;
+}
+function handleBeetFoto(e) {
+  const file = e.target.files && e.target.files[0];
+  e.target.value = '';
+  const bed = beetFotoBeet();
+  if (!file || !bed) return;
+  const modal = document.getElementById('beetFotoModal');
+  const speichern = (quelle, geteilt) => {
+    const img = new Image();
+    img.onerror = () => { showTempStatus('⚠ Datei ist kein gültiges Bild.', 5); beetFotoOeffnen(bed.id); };
+    img.onload = () => {
+      const maxW = 640; // etwas breiter als Pflanzenfotos – ganze Beete sind meist Querformat
+      const scale = Math.min(1, maxW / img.width);
+      const c = document.createElement('canvas');
+      c.width = img.width * scale; c.height = img.height * scale;
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      pushUndo();
+      ppFotosMigrieren(bed);
+      const alte = bed.fotos;
+      bed.fotos = [{ id: fotoNeueId(), data: c.toDataURL('image/jpeg', 0.72), datum: new Date().toISOString().slice(0, 10), geteilt: geteilt !== false }];
+      delete bed.fotoTitelbildId;
+      alte.forEach(fotoCloudLoeschen);
+      saveData();
+      beetFotoAnsichtenAktualisieren();
+      beetFotoOeffnen(bed.id);
+      familienFotosHochladen();
+      showTempStatus('📷 Beet-Foto gespeichert', 3);
+    };
+    img.src = quelle;
+  };
+  const reader = new FileReader();
+  reader.onerror = () => showTempStatus('⚠ Foto konnte nicht gelesen werden.', 5);
+  reader.onload = (ev) => {
+    if (!window.Malfilter) { speichern(ev.target.result, true); return; }
+    modal.style.display = 'none'; // Malstil-Dialog nicht hinter dem Fenster verstecken
+    window.Malfilter.dialog(ev.target.result, { titel: '📷 Foto vom Beet', mitStil: true, teilen: true })
+      .then((erg) => { if (erg) speichern(erg.bild, erg.geteilt); else beetFotoOeffnen(bed.id); })
+      .catch(() => { showTempStatus('⚠ Datei ist kein gültiges Bild.', 5); beetFotoOeffnen(bed.id); });
+  };
+  reader.readAsDataURL(file);
+}
+function beetFotoMalen() {
+  const bed = beetFotoBeet();
+  if (!bed) return;
+  document.getElementById('beetFotoModal').style.display = 'none';
+  fotoMalstilAnwenden(bed, () => { beetFotoAnsichtenAktualisieren(); beetFotoOeffnen(bed.id); });
+}
+function beetFotoTeilen() {
+  const bed = beetFotoBeet();
+  if (!bed) return;
+  fotoTeilenUmschalten(bed, () => { beetFotoModalRendern(); beetFotoAnsichtenAktualisieren(); });
+}
+function beetFotoEntfernen() {
+  const bed = beetFotoBeet();
+  if (!bed || !confirm('Foto von „' + (bed.name || 'Beet') + '“ entfernen?')) return;
+  pushUndo();
+  ppFotosMigrieren(bed);
+  const alte = bed.fotos;
+  bed.fotos = [];
+  delete bed.fotoTitelbildId;
+  alte.forEach(fotoCloudLoeschen);
+  saveData();
+  beetFotoModalRendern();
+  beetFotoAnsichtenAktualisieren();
+}
+function beetFotoAnsichtenAktualisieren() {
+  const liste = document.getElementById('vollbildListeWrap');
+  if (liste && liste.classList.contains('aktiv')) renderVollbildListe();
+  if (selectedBed) renderBeetFotoEditor(selectedBed);
+}
+function renderBeetFotoEditor(bed) {
+  const row = document.getElementById('editBeetFotoRow');
+  const btn = document.getElementById('btnEditBeetFoto');
+  if (!row || !btn) return;
+  if (!bed || bed.kind === 'struktur') { row.style.display = 'none'; return; }
+  row.style.display = '';
+  const foto = ppFotoTitelbild(bed);
+  btn.innerHTML = foto
+    ? `<img src="${escapeHtml(fotoQuelle(foto))}" alt="" style="width:46px;height:46px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid ${bed.color || '#7a9e72'}"><span>Foto ansehen / ändern${foto.geteilt === false ? ' · 🔒 nur ich' : ''}</span>`
+    : `<span style="font-size:1.3rem">📷</span><span>Foto vom ganzen Beet hinzufügen</span>`;
+}
+
+// ==================== BEET-HINWEISE ====================
+// Wertet die Pflanzen eines Beets gemeinsam aus: Mischkultur, Nährstoffbedarf, Fruchtfolge,
+// Gehölze/wuchernde Pflanzen und Platzbedarf. Nutzt nur vorhandene Tabellen
+// (COMPANIONS, PFLANZEN_BEDINGUNGEN, SPACING, FAMILIES), nichts wird gespeichert.
+const BEET_WUCHERND = {
+  'Minze': ['warn', 'bildet lange Ausläufer und überwuchert Nachbarn – am besten mit Wurzelsperre oder im eingegrabenen Topf'],
+  'Topinambur': ['warn', 'wuchert über Knollen, jede vergessene Knolle treibt neu aus – eigene Ecke oder Wurzelsperre einplanen'],
+  'Schlehe': ['warn', 'bildet viele Wurzelausläufer – im Beet kaum zu bändigen'],
+  'Brombeere': ['warn', 'treibt Ausläufer und wurzelt an den Rutenspitzen ein – Rankgerüst und Abstand einplanen'],
+  'Himbeere': ['info', 'wandert mit Ausläufern – eine Rhizomsperre hält sie an ihrem Platz'],
+  'Zitronenmelisse': ['info', 'sät sich stark selbst aus – Blütenstände vor der Samenreife abschneiden'],
+  'Borretsch': ['info', 'sät sich reichlich selbst aus – Sämlinge im Frühjahr ausdünnen'],
+};
+function zahlDe(n) { return (Math.round(n * 10) / 10).toLocaleString('de-DE'); }
+function beetIstGehoelz(name) { return isPerennial(name) && (SPACING[name] || 0) >= 200; }
+function beetHinweise(bed) {
+  if (!bed || bed.kind === 'struktur') return [];
+  const plants = (bed.plants || []).filter(p => (p.name || '').trim());
+  if (!plants.length) return [];
+  const e = escapeHtml;
+  const warn = [], info = [], gut = [];
+  const namen = [...new Set(plants.map(p => p.name.trim()))];
+
+  // 1. Mischkultur: schlechte Nachbarn
+  const schlecht = new Set();
+  getBedConflicts(bed).forEach(([i, j]) => {
+    schlecht.add([bed.plants[i].name.trim(), bed.plants[j].name.trim()].sort((a, b) => a.localeCompare(b, 'de')).join('|'));
+  });
+  schlecht.forEach(k => {
+    const [a, b] = k.split('|');
+    warn.push({ icon: '🚫', text: `<b>${e(a)}</b> und <b>${e(b)}</b> vertragen sich nicht – möglichst in verschiedene Beete oder weit auseinander setzen.` });
+  });
+
+  // 2. Fruchtfolge (eine Meldung pro Pflanzenfamilie)
+  const famGesehen = new Set();
+  plants.forEach(p => {
+    const w = getFruchtfolgeWarning(bed, p.name);
+    if (w && !famGesehen.has(w.fam)) {
+      famGesehen.add(w.fam);
+      warn.push({ icon: '🔄', text: `Fruchtfolge: <b>${e(w.fam)}</b> (${e(p.name.trim())}) stand ${w.yearsAgo === 1 ? 'letztes Jahr' : 'vor ' + w.yearsAgo + ' Jahren'} schon hier – besser 3–4 Jahre Pause.` });
+    }
+  });
+
+  // 3. Bäume/große Sträucher im Beet
+  namen.filter(beetIstGehoelz).forEach(n => {
+    warn.push({ icon: '🌳', text: `<b>${e(n)}</b> wird ein großes Gehölz (ca. ${zahlDe(SPACING[n] / 100)} m Pflanzabstand) – beschattet und durchwurzelt das Beet. Besser frei stehend setzen (🌳 Frei platzieren).` });
+  });
+
+  // 4. Wuchernde Pflanzen
+  namen.filter(n => BEET_WUCHERND[n] && !beetIstGehoelz(n)).forEach(n => {
+    const [art, text] = BEET_WUCHERND[n];
+    (art === 'warn' ? warn : info).push({ icon: '🌿', text: `<b>${e(n)}</b> ${text}.` });
+  });
+
+  // 5. Nährstoffbedarf (Stark-/Mittel-/Schwachzehrer, Gehölze ausgenommen)
+  const zehrer = { S: [], M: [], W: [] }, anzahl = { S: 0, M: 0, W: 0 };
+  plants.forEach(p => {
+    const n = p.name.trim();
+    if (beetIstGehoelz(n)) return;
+    const b = pflanzenBedingungenFinden(n);
+    if (!b || !anzahl.hasOwnProperty(b[2])) return;
+    anzahl[b[2]]++;
+    if (!zehrer[b[2]].includes(n)) zehrer[b[2]].push(n);
+  });
+  const bekannt = anzahl.S + anzahl.M + anzahl.W;
+  if (bekannt) {
+    const anteil = anzahl.S / bekannt;
+    if ((anzahl.S >= 3 && anteil >= 0.5) || (anzahl.S >= 2 && anteil >= 0.66)) {
+      warn.push({ icon: '🍽️', text: `Viele Starkzehrer (${zehrer.S.map(e).join(', ')}) – der Boden wird stark ausgelaugt. Reichlich Kompost geben und nächstes Jahr hier Mittel- oder Schwachzehrer anbauen.` });
+    } else if (anzahl.S && anzahl.W) {
+      info.push({ icon: '🥄', text: `Stark- und Schwachzehrer gemischt – Kompost/Dünger gezielt an ${zehrer.S.map(e).join(', ')} geben statt flächig.` });
+    }
+    const teile = [];
+    if (anzahl.S) teile.push(`🍽️ ${anzahl.S}× Stark`);
+    if (anzahl.M) teile.push(`🥣 ${anzahl.M}× Mittel`);
+    if (anzahl.W) teile.push(`🥄 ${anzahl.W}× Schwach`);
+    info.push({ icon: '🌱', text: 'Nährstoffbedarf: ' + teile.join(' · ') });
+  }
+
+  // 6. Mehrjährige zwischen Einjährigen
+  const mehrj = namen.filter(n => isPerennial(n) && !beetIstGehoelz(n) && !BEET_WUCHERND[n]);
+  if (mehrj.length && namen.some(n => !isPerennial(n))) {
+    info.push({ icon: '🔁', text: `Mehrjährig: ${mehrj.map(e).join(', ')} – bleibt stehen, beim Umgraben und in der Fruchtfolge mit einplanen.` });
+  }
+
+  // 7. Platzbedarf (Pflanzabstand² je Pflanze gegen die Beetfläche)
+  const flaeche = bedAreaPx2(bed) * getScale() * getScale() / 10000;
+  let bedarf = 0, gezaehlt = 0;
+  plants.forEach(p => {
+    const n = p.name.trim(), abstand = SPACING[n];
+    if (!abstand || beetIstGehoelz(n)) return;
+    bedarf += (abstand / 100) * (abstand / 100);
+    gezaehlt++;
+  });
+  if (flaeche > 0 && gezaehlt) {
+    if (bedarf > flaeche * 1.2) {
+      warn.push({ icon: '📏', text: `Eng bepflanzt: die Pflanzen brauchen ca. ${zahlDe(bedarf)} m², das Beet hat ${zahlDe(flaeche)} m². Mehr Abstand beugt Pilzkrankheiten vor.` });
+    } else if (bedarf < flaeche * 0.5 && flaeche - bedarf >= 0.5) {
+      info.push({ icon: '📏', text: `Noch Platz: ca. ${zahlDe(flaeche - bedarf)} m² von ${zahlDe(flaeche)} m² sind frei.` });
+    }
+  }
+
+  // 8. Gute Nachbarn im Beet
+  const gutePaare = [];
+  for (let i = 0; i < namen.length; i++) for (let j = i + 1; j < namen.length; j++) {
+    const a = namen[i], b = namen[j], ca = COMPANIONS[a], cb = COMPANIONS[b];
+    if ((ca && ca.good.includes(b)) || (cb && cb.good.includes(a))) gutePaare.push(`${e(a)} + ${e(b)}`);
+  }
+  if (gutePaare.length) gut.push({ icon: '🤝', text: 'Gute Nachbarn: ' + gutePaare.slice(0, 4).join(', ') + (gutePaare.length > 4 ? ` und ${gutePaare.length - 4} weitere` : '') });
+
+  // 9. Vorschläge: was würde gut dazupassen (gut mit möglichst vielen, mit keinem schlecht)
+  const kandidaten = new Set(Object.keys(COMPANIONS));
+  namen.forEach(n => ((COMPANIONS[n] || {}).good || []).forEach(k => kandidaten.add(k)));
+  const passend = [];
+  kandidaten.forEach(k => {
+    if (namen.includes(k) || k === 'Kräuter' || k === 'Blume' || beetIstGehoelz(k) || !PLANTS.some(p => p.name === k)) return;
+    if (plantWouldConflict(bed, k) || getFruchtfolgeWarning(bed, k)) return;
+    const ck = COMPANIONS[k];
+    const freunde = namen.filter(n => (ck && ck.good.includes(n)) || (COMPANIONS[n] && COMPANIONS[n].good.includes(k))).length;
+    if (freunde) passend.push([k, freunde]);
+  });
+  passend.sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'de'));
+  if (passend.length) {
+    info.push({ icon: '💡', text: 'Würde gut dazupassen: ' + passend.slice(0, 4).map(([n]) => { const p = PLANTS.find(x => x.name === n); return (p ? p.sym + ' ' : '') + e(n); }).join(', ') });
+  }
+
+  return warn.map(h => Object.assign(h, { art: 'warn' }))
+    .concat(gut.map(h => Object.assign(h, { art: 'gut' })), info.map(h => Object.assign(h, { art: 'info' })));
+}
+function beetHinweiseZeilenHtml(hinweise) {
+  return hinweise.map(h => `<div class="beet-hinweis ${h.art}"><span class="bh-icon">${h.icon}</span><span>${h.text}</span></div>`).join('');
+}
+// Listenansicht: aufklappbar; mit Warnungen standardmäßig offen, sonst zu
+const vlistHinweiseUmgeschaltet = new Set();
+function vlistHinweiseUmschalten(key) {
+  if (vlistHinweiseUmgeschaltet.has(key)) vlistHinweiseUmgeschaltet.delete(key); else vlistHinweiseUmgeschaltet.add(key);
+  renderVollbildListe();
+}
+function beetHinweiseBlockHtml(hinweise, key) {
+  if (!hinweise.length) return '';
+  const warnAnzahl = hinweise.filter(h => h.art === 'warn').length;
+  const offen = (warnAnzahl > 0) !== vlistHinweiseUmgeschaltet.has(String(key));
+  const titel = warnAnzahl ? `⚠️ ${warnAnzahl} ${warnAnzahl === 1 ? 'Hinweis' : 'Hinweise'} zum Beet` : `💡 Tipps zum Beet (${hinweise.length})`;
+  return `<div class="beet-hinweise">
+    <button type="button" class="beet-hinweise-kopf" data-hinweise-key="${escapeHtml(String(key))}" aria-expanded="${offen}">${titel}<span class="vlist-pfeil">${offen ? '▾' : '▸'}</span></button>
+    ${offen ? beetHinweiseZeilenHtml(hinweise) : ''}
+  </div>`;
+}
+// Beet-Editor (Seitenleiste, Tab „Übersicht“): immer vollständig
+function renderBeetHinweiseSidebar(bed) {
+  const box = document.getElementById('bedHinweiseBox');
+  if (!box) return;
+  if (!bed || bed.kind === 'struktur') { box.innerHTML = ''; return; }
+  const hinweise = beetHinweise(bed);
+  box.innerHTML = hinweise.length
+    ? `<div class="beet-hinweise" style="margin:0">${beetHinweiseZeilenHtml(hinweise)}</div>`
+    : '<div style="font-size:0.74rem;color:var(--bark)">Sobald Pflanzen im Beet stehen, erscheinen hier Hinweise zu Nachbarschaft, Nährstoffen und Platz.</div>';
+}
+
 // ==================== ANSICHTS-UMSCHALTUNG (Karte+Liste / nur Liste / nur Karte) ====================
 let gartenAnsichtModus = 'standard';
 try { gartenAnsichtModus = localStorage.getItem('garten_ansichtModus') || 'standard'; } catch (e) {}
@@ -7526,14 +7846,20 @@ function renderVollbildListe() {
       const key = bed.id || ('idx' + i);
       const zu = !!vlistZu[key];
       const eintraege = beetEintraege.filter(e => e.bed === bed);
-      return `<div class="vlist-karte vlist-beet-karte" style="border-left-color:${bed.color || '#7a9e72'}">
-        <button type="button" class="vlist-beet-kopf" data-beet-key="${escapeHtml(key)}" aria-expanded="${!zu}">
-          <span class="bed-color-dot" style="display:inline-block;background:${bed.color || '#7a9e72'}"></span>
-          <span class="vlist-beet-titel">${escapeHtml(bed.name || 'Beet ' + (i + 1))}
-            <span class="vlist-beet-info">${eintraege.length} 🌱 · ${vlistBeetZusammenfassung(eintraege)}</span></span>
-          <span class="vlist-pfeil">${zu ? '▸' : '▾'}</span>
-        </button>
-        ${zu ? '' : `<div class="vlist-beet-inhalt">${vlistGruppiertHtml(eintraege, 'b' + key)}</div>`}
+      const hinweise = beetHinweise(bed);
+      const warnAnzahl = hinweise.filter(h => h.art === 'warn').length;
+      const farbe = bed.color || '#7a9e72';
+      const foto = ppFotoTitelbild(bed);
+      return `<div class="vlist-karte vlist-beet-karte" style="border-left-color:${farbe}">
+        <div class="vlist-beet-kopf-zeile">
+          <button type="button" class="vlist-beet-foto${foto ? '' : ' leer'}" style="--bf:${farbe}" data-beet-foto="${escapeHtml(String(bed.id))}" title="${foto ? 'Beet-Foto ansehen oder ändern' : 'Foto vom Beet hinzufügen'}" aria-label="Beet-Foto">${foto ? `<img src="${escapeHtml(fotoQuelle(foto))}" alt="" loading="lazy">` : '📷'}</button>
+          <button type="button" class="vlist-beet-kopf" data-beet-key="${escapeHtml(key)}" aria-expanded="${!zu}">
+            <span class="vlist-beet-titel">${escapeHtml(bed.name || 'Beet ' + (i + 1))}
+              <span class="vlist-beet-info">${eintraege.length} 🌱 · ${vlistBeetZusammenfassung(eintraege)}${warnAnzahl ? ` · <span class="vlist-hinweis-zahl">⚠️ ${warnAnzahl}</span>` : ''}</span></span>
+            <span class="vlist-pfeil">${zu ? '▸' : '▾'}</span>
+          </button>
+        </div>
+        ${zu ? '' : `<div class="vlist-beet-inhalt">${beetHinweiseBlockHtml(hinweise, key)}${vlistGruppiertHtml(eintraege, 'b' + key)}</div>`}
       </div>`;
     }).join('');
     // Freistehende Pflanzen: nach Art gruppiert, zweispaltig
@@ -7571,6 +7897,11 @@ function renderVollbildListe() {
   box.querySelectorAll('[data-vlist-sort]').forEach(btn => btn.addEventListener('click', () => vlistSortSetzen(btn.dataset.vlistSort)));
   box.querySelectorAll('[data-beet-key]').forEach(btn => btn.addEventListener('click', () => vlistBeetUmschalten(btn.dataset.beetKey)));
   box.querySelectorAll('[data-gruppe]').forEach(btn => btn.addEventListener('click', () => vlistGruppeUmschalten(btn.dataset.gruppe)));
+  box.querySelectorAll('[data-hinweise-key]').forEach(btn => btn.addEventListener('click', () => vlistHinweiseUmschalten(btn.dataset.hinweiseKey)));
+  box.querySelectorAll('[data-beet-foto]').forEach(btn => btn.addEventListener('click', () => {
+    const bed = getCurrentBeds().find(b => String(b.id) === btn.dataset.beetFoto);
+    if (bed) beetFotoOeffnen(bed.id);
+  }));
   box.querySelectorAll('[data-plant-idx]').forEach(btn => {
     btn.addEventListener('click', () => {
       const bed = getCurrentBeds()[parseInt(btn.dataset.bedIdx, 10)];
@@ -8374,7 +8705,13 @@ function fotoMalstilAnwenden(obj, rendern) {
 // Eintrag steht nur url/pfad – so bleibt das Garten-Dokument klein (1-MB-Grenze).
 // 🔒-Fotos bleiben nur auf diesem Gerät. Ältere Fotos ohne Angabe gelten als 👪 Familie.
 function fotoQuelle(f) { return (f && (f.data || f.url)) || ''; }
-function fotoCloudLoeschen(f) { if (f && f.pfad && window.FotoSpeicher) window.FotoSpeicher.loeschen(f.pfad); }
+function fotoCloudLoeschen(f) {
+  if (!f || !f.pfad || !window.FotoSpeicher) return;
+  // Kopien (z.B. „Für nächstes Jahr übernehmen“, „Element duplizieren“) teilen sich dieselbe Datei –
+  // nur löschen, wenn kein anderer Eintrag sie mehr verwendet.
+  const nochVerwendet = alleFotoListenObjekte().some(o => o.fotos.some(x => x !== f && x.pfad === f.pfad));
+  if (!nochVerwendet) window.FotoSpeicher.loeschen(f.pfad);
+}
 function fotoTeilenKnopfAktualisieren(btn, foto) {
   if (!btn) return;
   const cloud = !!(window.FotoSpeicher && window.FotoSpeicher.verfuegbar());
@@ -8388,7 +8725,10 @@ function fotoTeilenKnopfAktualisieren(btn, foto) {
 function alleFotoListenObjekte() {
   const liste = [];
   Object.values(gardens || {}).forEach(g => {
-    (g.beds || []).forEach(b => (b.plants || []).forEach(p => { if (Array.isArray(p.fotos)) liste.push(p); }));
+    (g.beds || []).forEach(b => {
+      if (Array.isArray(b.fotos)) liste.push(b); // Beet-Foto
+      (b.plants || []).forEach(p => { if (Array.isArray(p.fotos)) liste.push(p); });
+    });
     (g.freiPflanzen || []).forEach(fp => { if (Array.isArray(fp.fotos)) liste.push(fp); });
   });
   return liste;
@@ -8418,6 +8758,8 @@ async function familienFotosHochladen() {
       if (activePlantBedId) { const b = getCurrentBeds().find(x => x.id === activePlantBedId.bedId); const p = b && b.plants[activePlantBedId.idx]; if (p && document.getElementById('plantPanel').classList.contains('open')) renderPlantPhoto(p); }
       const fp = activeFreiPflanzeId && getCurrentFreiPflanzen().find(x => x.id === activeFreiPflanzeId);
       if (fp) renderFreiPflanzePhoto(fp);
+      beetFotoAnsichtenAktualisieren();
+      if (document.getElementById('beetFotoModal').style.display === 'flex') beetFotoModalRendern();
     }
   }
 }
