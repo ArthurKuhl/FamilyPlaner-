@@ -2,6 +2,15 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
+## 2026-10-19 | 📷 Mehr aus dem Strichcode
+Nach dem Scannen zeigt eine Produktkarte Nutri-Score, Verarbeitungsgrad, Bio/vegan, Allergene, Zutaten und Nährwerte. Das Produkt landet gleich in der passenden Abteilung (neu: 🍫 Süßes & Snacks), in der Vorratskammer mit passendem Lagerort. Einmal gescannte Produkte kennt danach die ganze Familie – auch ohne Netz und als Vorschlag beim Tippen. Auch Drogerieartikel werden jetzt gefunden.
+
+## 2026-10-19 | ⚠️ Allergien je Person
+Unter 👪 Personen lassen sich pro Person Allergien und Unverträglichkeiten ankreuzen. Einkauf und Vorratskammer warnen dann bei passenden Produkten („⚠ Malia: enthält Nüsse“).
+
+## 2026-10-19 | 🍽️ Nährwerte & Allergene beim Kochen
+Jedes Rezept zeigt jetzt geschätzte Kalorien, Eiweiß, Kohlenhydrate und Fett pro Portion sowie vermutete Allergene. Rezepte, die für jemanden in der Familie ungeeignet sind, tragen ein ⚠ – auch im Wochenplan. Der Filter „🛡️ Verträglich“ zeigt nur Rezepte, die alle essen können.
+
 ## 2026-10-19 | 🔗 Rezept per Link
 Beim neuen Rezept oben einfach einen Link einfügen (z.B. von Chefkoch) und auf „Holen“ tippen: Titel, Portionen, Zeit, Zutaten und Schritte werden übernommen. Vor dem Speichern lässt sich alles noch anpassen.
 
