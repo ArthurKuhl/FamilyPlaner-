@@ -288,7 +288,7 @@ window.PlanerSync = (function () {
   //  - auf einer Seite geändert → die Änderung gewinnt; auf beiden geändert → die andere Seite gewinnt
   // Listen werden über die id ihrer Einträge zugeordnet, Objekte Feld für Feld.
   // ---------------------------------------------------------------------------
-  const ZUSAMMENFUEHREN_MODULE = ['einkauf', 'termine', 'notizblock', 'haushalt', 'vorratskammer', 'geldgeschenke', 'finanzen', 'ausfluege', 'personen', 'kinder'];
+  const ZUSAMMENFUEHREN_MODULE = ['einkauf', 'termine', 'notizblock', 'haushalt', 'vorratskammer', 'geldgeschenke', 'finanzen', 'ausfluege', 'personen', 'kinder', 'fahrzeuge'];
   function gleich(a, b) { return JSON.stringify(a) === JSON.stringify(b); }
   function istObjekt(x) { return x !== null && typeof x === 'object' && !Array.isArray(x); }
   function hatIds(arr) { return arr.length > 0 && arr.every(x => istObjekt(x) && x.id !== undefined && x.id !== null); }

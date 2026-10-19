@@ -115,7 +115,7 @@
   .mehr-kachel.active { border-color: var(--moss); box-shadow: 0 0 0 2px var(--moss) inset; }
   .mehr-kachel.fav { background: rgba(201,154,58,0.18); border-color: var(--gold, #c99a3a); }
   .mehr-stern { position: absolute; top: 3px; right: 6px; font-size: 0.85rem; color: var(--gold, #c99a3a); }
-  .mehr-werkzeuge { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 10px; }
+  .mehr-werkzeuge { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 10px; }
   .mehr-werkzeug { position: relative; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 9px 2px; border-radius: 12px; border: none;
     background: var(--parchment, #ece0c7); color: var(--soil); font-family: inherit; font-size: 0.66rem; font-weight: 600; cursor: pointer; }
   .mehr-werkzeug .em { font-size: 1.15rem; line-height: 1; }
@@ -292,7 +292,8 @@
         <button type="button" class="mehr-werkzeug" id="btnMehrSuche"><span class="em">🔍</span>Suchen</button>
         <button type="button" class="mehr-werkzeug" id="btnMehrBackup"><span class="em">💾</span>Sichern</button>
         <button type="button" class="mehr-werkzeug" id="btnMehrPersonen"><span class="em">👪</span>Personen</button>
-        <button type="button" class="mehr-werkzeug" id="btnMehrEinstellungen"><span class="em">⚙️</span>Einstellungen</button>
+        <button type="button" class="mehr-werkzeug" id="btnMehrRueckblick"><span class="em">🎉</span>Rückblick</button>
+        <button type="button" class="mehr-werkzeug" id="btnMehrEinstellungen"><span class="em">⚙️</span>Optionen</button>
       </div>
       <button type="button" class="mehr-bearbeiten" id="btnMehrBearbeiten">✏️ Leiste anpassen</button>
     </div>
@@ -468,6 +469,7 @@
         zusatzSync: [{ modul: 'medien_bilder', keys: ['medien_bilder'] }] },
       { id: 'handwerk',    label: 'Handwerk',  emoji: '🔨', src: 'handwerk.html', syncKeys: ['handwerk_projekte', 'handwerk_wartung'] },
       { id: 'haushalt',    label: 'Haushalt',  emoji: '🧹', src: 'haushalt.html', syncKeys: ['haushalt_aufgaben'] },
+      { id: 'fahrzeuge',   label: 'Fahrzeuge', emoji: '🚗', src: 'fahrzeuge.html', syncKeys: ['fahrzeuge_liste', 'fahrzeuge_tanken', 'fahrzeuge_werkstatt'] },
       { id: 'kinder',      label: 'Kinderecke', emoji: '🧒', src: 'kinder.html', syncKeys: ['kinder_einstellungen', 'kinder_sterne'] },
       { id: 'geldgeschenke', label: 'Geldgeschenke', emoji: '💶', src: 'geldgeschenke.html', syncKeys: ['geldgeschenke_liste'] },
       { id: 'notizblock',  label: 'Notizblock', emoji: '📝', src: 'notizblock.html', syncKeys: ['notizblock_liste'] },
@@ -1217,6 +1219,7 @@
     document.getElementById('modalMehr').addEventListener('click', (e) => { if (e.target.id === 'modalMehr') mehrSchliessen(); });
     document.getElementById('btnMehrSchliessen').addEventListener('click', mehrSchliessen);
     document.getElementById('btnMehrBearbeiten').addEventListener('click', () => { mehrBearbeiten = !mehrBearbeiten; renderMehr(); });
+    document.getElementById('btnMehrRueckblick').addEventListener('click', () => { mehrSchliessen(); bereichLaden('home', { aktion: 'rueckblick' }); });
     [['btnMehrSuche', 'btnSuche'], ['btnMehrBackup', 'btnBackup'], ['btnMehrPersonen', 'btnPersonen'], ['btnMehrEinstellungen', 'btnEinstellungen']].forEach(([von, ziel]) => {
       document.getElementById(von).addEventListener('click', () => { mehrSchliessen(); document.getElementById(ziel).click(); });
     });

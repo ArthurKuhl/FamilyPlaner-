@@ -86,6 +86,23 @@
   .anordnen-steuerung button:disabled { opacity: 0.3; cursor: default; }
   @media (min-width: 1000px) { main { max-width: 1200px; } }
 
+  /* 🎉 Jahresrückblick */
+  .kachel-rueckblick { background: linear-gradient(135deg, rgba(232,201,138,0.35), rgba(122,150,96,0.25)) !important; }
+  .rb-overlay { position: fixed; inset: 0; z-index: 900; background: rgba(10,8,5,0.6); display: none; align-items: center; justify-content: center; padding: 16px; }
+  .rb-karte { width: min(520px, 100%); max-height: 92vh; overflow-y: auto; border-radius: 22px; padding: 22px 18px 16px; background: linear-gradient(160deg, #2f4a2a, #14100c); color: #f0e8d8; box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
+  .rb-karte h2 { font-family: Georgia, serif; color: #e8c98a; text-align: center; margin: 0 0 4px; font-size: 1.5rem; }
+  .rb-unter { text-align: center; font-size: 0.8rem; color: #cfe3b8; margin-bottom: 16px; }
+  .rb-punkt { display: flex; gap: 14px; align-items: center; background: rgba(255,255,255,0.07); border-radius: 14px; padding: 12px 14px; margin-bottom: 8px; animation: rbRein 0.45s ease both; }
+  .rb-icon { font-size: 1.9rem; flex-shrink: 0; }
+  .rb-zahl { font-size: 1.35rem; font-weight: 800; color: #e8c98a; line-height: 1.1; }
+  .rb-text { font-size: 0.86rem; }
+  .rb-extra { font-size: 0.74rem; color: #bcd196; margin-top: 2px; }
+  .rb-knoepfe { display: flex; gap: 8px; margin-top: 14px; }
+  .rb-knoepfe button { flex: 1; padding: 11px; border-radius: 12px; border: none; font-family: inherit; font-weight: 700; font-size: 0.88rem; cursor: pointer; }
+  .rb-teilen { background: #e8c98a; color: #2a2014; }
+  .rb-zu { background: rgba(255,255,255,0.12); color: #f0e8d8; }
+  @keyframes rbRein { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .rb-punkt { animation: none; } }
   .kachel {
     background: var(--white); border-radius: var(--radius-md); padding: 14px; margin-bottom: 12px;
     box-shadow: var(--shadow-soft); cursor: pointer; transition: transform 0.1s; border-top: 3px solid var(--moss);
@@ -260,6 +277,14 @@
     <button class="einrichtung-schritt" id="btnEinrichtungPersonen">👪 Personen anlegen<span class="haken" id="hakenPersonen">Offen</span></button>
     <button class="einrichtung-schritt" id="btnEinrichtungModule">🧩 Module auswählen<span class="haken" id="hakenModule">Offen</span></button>
     <button class="einrichtung-ausblenden" id="btnEinrichtungAusblenden">Ausblenden</button>
+  </div>
+
+  <div class="kachel kachel-rueckblick" id="kachelRueckblick" style="cursor:pointer;display:none;">
+    <div class="kachel-kopf">
+      <div class="kachel-titel">🎉 Euer Familienjahr</div>
+      <span class="kachel-pfeil">→</span>
+    </div>
+    <div id="rueckblickKachelText" style="font-size:0.85rem;line-height:1.4"></div>
   </div>
 
   <div class="kachel" id="kachelDieseWoche" style="cursor:default;display:none;">
@@ -1058,6 +1083,7 @@
     { titel: '🎮 Gaming', text: 'Bibliothek der eigenen Spiele, Wunschliste, aktuelle Gaming-News.' },
     { titel: '🔨 Handwerk', text: 'Projekte mit Material und Skizzen-Tool (Formen zeichnen, auswählen, verschieben, duplizieren, löschen), Wartungsplan für wiederkehrende Aufgaben.' },
     { titel: '🧹 Haushalt', text: 'Aufgaben mit Turnus und Zuständigkeit, Verlauf erledigter Aufgaben.' },
+    { titel: '🚗 Fahrzeuge', text: 'TÜV, Service und Reifenwechsel im Blick (mit Erinnerung), Tankbuch mit Verbrauch und Werkstattkosten.' },
     { titel: '🧒 Kinderecke', text: 'Für die Kinder: eigene Aufgaben mit Sternen und Belohnungen, Taschengeld-Stand, Tier-Entdeckungen und Geburtstags-Countdown.' },
     { titel: '💶 Geldgeschenke', text: 'Wer hat wem wieviel zu welchem Anlass geschenkt – Übersicht als Gedächtnisstütze für faire Gegengeschenke.' },
     { titel: '📝 Notizblock', text: 'Einfache, farbige Notizzettel mit Suche – bewusst schlicht gehalten.' },
@@ -1720,6 +1746,192 @@
   });
   anwenden();
 })();
+</script>
+<div class="rb-overlay" id="rueckblickOverlay" onclick="if(event.target===this)this.style.display='none'">
+  <div class="rb-karte" role="dialog" aria-labelledby="rueckblickTitel">
+    <h2 id="rueckblickTitel">Euer Familienjahr</h2>
+    <div class="rb-unter">🎉 Was ihr zusammen erlebt habt</div>
+    <div id="rueckblickInhalt"></div>
+    <div class="rb-knoepfe">
+      <button type="button" class="rb-teilen" id="btnRueckblickTeilen">📤 Als Bild teilen</button>
+      <button type="button" class="rb-zu" id="btnRueckblickZu">Schließen</button>
+    </div>
+  </div>
+</div>
+<script>
+
+  // ============================================================
+  // 🎉 EUER FAMILIENJAHR – Jahresrückblick über alle Bereiche (Dezember/Januar als Kachel,
+  // sonst über ☰ Mehr → „🎉 Rückblick“). Rechnet nur mit vorhandenen Daten, nichts wird gespeichert.
+  // ============================================================
+  const rbEsc = (t) => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  function rueckblickJahr() {
+    const h = new Date();
+    return h.getMonth() === 0 ? h.getFullYear() - 1 : h.getFullYear(); // im Januar: das vergangene Jahr
+  }
+  function rueckblickDaten(J) {
+    const Y = String(J);
+    const lies = (k, f) => { try { const r = localStorage.getItem(k); return r === null ? f : JSON.parse(r); } catch (e) { return f; } };
+    const imJahr = (d) => typeof d === 'string' && d.slice(0, 4) === Y;
+    const personenListe = (window.PLANER_PERSONEN && window.PLANER_PERSONEN.length) ? window.PLANER_PERSONEN : lies('planer_personenListe', []);
+    const pname = (id) => (personenListe.find(p => p.id === id) || {}).label || id;
+    const punkte = [];
+
+    // 🌱 Garten
+    const garten = lies('gartenplaner_v3', null);
+    let ernten = 0, kg = 0, tiere = 0;
+    const proPflanze = {};
+    if (garten && garten.gardens) {
+      Object.values(garten.gardens).forEach(g => {
+        const pflanzen = [];
+        (g.beds || []).forEach(b => (b.plants || []).forEach(p => pflanzen.push(p)));
+        (g.freiPflanzen || []).forEach(p => pflanzen.push(p));
+        pflanzen.forEach(p => (p.harvests || []).forEach(hv => {
+          if (!imJahr(hv.date)) return;
+          ernten++;
+          const menge = parseFloat(hv.amount) || 0;
+          if (hv.unit === 'kg') kg += menge; else if (hv.unit === 'g') kg += menge / 1000;
+          const n = (p.name || '').trim() || 'Unbekannt';
+          proPflanze[n] = (proPflanze[n] || 0) + 1;
+        }));
+        Object.values(g.tierSichtungen || {}).forEach(s => { if (imJahr(s.erst)) tiere++; });
+      });
+    }
+    const topPflanze = Object.entries(proPflanze).sort((a, b) => b[1] - a[1])[0];
+    if (ernten) punkte.push({ icon: '🧺', zahl: kg >= 1 ? kg.toLocaleString('de-DE', { maximumFractionDigits: 1 }) + ' kg' : String(ernten), text: kg >= 1 ? 'geerntet in ' + ernten + (ernten === 1 ? ' Ernte' : ' Ernten') : (ernten === 1 ? 'Ernte eingetragen' : 'Ernten eingetragen'), extra: topPflanze ? 'Spitzenreiter: ' + topPflanze[0] : '' });
+    if (tiere) punkte.push({ icon: '🦔', zahl: String(tiere), text: tiere === 1 ? 'Tierart im Garten entdeckt' : 'Tierarten im Garten entdeckt' });
+
+    // 🍳 Kochen
+    const rezepte = lies('kochen_rezepte', []);
+    const gekocht = rezepte.filter(r => (r.kochzeiten || []).some(k => imJahr(k.d || k.datum)) || imJahr(r.zuletztGekocht));
+    if (gekocht.length) {
+      const top = gekocht.slice().sort((a, b) => (b.kochZaehler || 0) - (a.kochZaehler || 0))[0];
+      punkte.push({ icon: '🍳', zahl: String(gekocht.length), text: gekocht.length === 1 ? 'Rezept gekocht' : 'verschiedene Rezepte gekocht', extra: top && top.titel ? 'Lieblingsgericht: ' + top.titel : '' });
+    }
+
+    // 🧭 Ausflüge
+    const ausfluege = lies('ausfluege_planung', []), erlebt = lies('ausfluege_erlebt', []);
+    const heute = new Date();
+    const ziele = [];
+    ausfluege.forEach(a => { if (imJahr(a.datum) && new Date(a.datum) <= heute) ziele.push((a.ort || a.titel || '').trim()); });
+    erlebt.forEach(e => { if (imJahr(e.datum) && !e.ausflugId) ziele.push((e.titel || '').trim()); });
+    if (ziele.length) punkte.push({ icon: '🧭', zahl: String(ziele.length), text: ziele.length === 1 ? 'Ausflug' : 'Ausflüge', extra: ziele.filter(Boolean).slice(0, 3).join(', ') });
+
+    // 🏃 Sport
+    const sport = lies('gesundheit_sport', []), training = lies('gesundheit_trainingslog', []);
+    const einheiten = sport.filter(s => imJahr(s.datum)).length + training.filter(t => imJahr(t.datum)).length;
+    const minuten = sport.filter(s => imJahr(s.datum)).reduce((s, x) => s + (Number(x.dauer) || 0), 0);
+    if (einheiten) punkte.push({ icon: '💪', zahl: String(einheiten), text: 'Sport-Einheiten', extra: minuten >= 60 ? Math.round(minuten / 60) + ' Stunden in Bewegung' : '' });
+
+    // 🧹 Haushalt
+    const aufgaben = lies('haushalt_aufgaben', []);
+    const proPerson = {};
+    let erledigt = 0;
+    aufgaben.forEach(a => (a.erledigt || []).forEach(e => { if (!imJahr(e.datum)) return; erledigt++; if (e.von) proPerson[e.von] = (proPerson[e.von] || 0) + 1; }));
+    const fleissig = Object.entries(proPerson).sort((a, b) => b[1] - a[1])[0];
+    if (erledigt) punkte.push({ icon: '🧹', zahl: String(erledigt), text: 'Haushaltsaufgaben erledigt', extra: fleissig ? 'Fleißigste Hand: ' + pname(fleissig[0]) + ' (' + fleissig[1] + '×)' : '' });
+
+    // ⭐ Kinderecke
+    const kinderEinst = lies('kinder_einstellungen', {});
+    const sterneBuch = lies('kinder_sterne', []);
+    (kinderEinst.kinder || []).forEach(k => {
+      const st = (proPerson[k] || 0) + sterneBuch.filter(b => b.personId === k && imJahr(b.datum) && b.anzahl > 0).reduce((s, b) => s + b.anzahl, 0);
+      if (st) punkte.push({ icon: '⭐', zahl: String(st), text: 'Sterne gesammelt von ' + pname(k) });
+    });
+
+    // 🎮 Gaming
+    const sitzungen = lies('gaming_sessions', []), spiele = lies('gaming_spiele', []);
+    const spielMin = {};
+    sitzungen.forEach(s => { if (imJahr(s.datum)) spielMin[s.spielId] = (spielMin[s.spielId] || 0) + (Number(s.minuten) || 0); });
+    const gesamtMin = Object.values(spielMin).reduce((a, b) => a + b, 0);
+    if (gesamtMin >= 60) {
+      const topSpiel = Object.entries(spielMin).sort((a, b) => b[1] - a[1])[0];
+      const sp = spiele.find(s => s.id === topSpiel[0]);
+      punkte.push({ icon: '🎮', zahl: Math.round(gesamtMin / 60) + ' h', text: 'gespielt', extra: sp ? 'Meistgespielt: ' + (sp.titel || sp.name || '') : '' });
+    }
+
+    // 🚗 Fahrzeuge
+    const tanken = lies('fahrzeuge_tanken', []), werkstatt = lies('fahrzeuge_werkstatt', []);
+    const kmProFz = {};
+    tanken.concat(werkstatt).forEach(x => {
+      if (!imJahr(x.datum) || !(Number(x.km) > 0)) return;
+      const r = kmProFz[x.fahrzeugId] || (kmProFz[x.fahrzeugId] = { min: Infinity, max: 0 });
+      r.min = Math.min(r.min, Number(x.km)); r.max = Math.max(r.max, Number(x.km));
+    });
+    const km = Object.values(kmProFz).reduce((s, r) => s + Math.max(0, r.max - r.min), 0);
+    if (km >= 100) punkte.push({ icon: '🚗', zahl: km.toLocaleString('de-DE') + ' km', text: 'gefahren (laut Tankbuch)' });
+
+    // 🗓️ Termine
+    const termine = lies('termine_events_v1', []).filter(e => imJahr(e.date) && (!e.recurrence || e.recurrence.freq === 'keine')).length;
+    if (termine) punkte.push({ icon: '🗓️', zahl: String(termine), text: 'Termine im Kalender' });
+
+    return punkte;
+  }
+  function rueckblickOeffnen() {
+    const J = rueckblickJahr();
+    const punkte = rueckblickDaten(J);
+    const ov = document.getElementById('rueckblickOverlay');
+    document.getElementById('rueckblickTitel').textContent = 'Euer Familienjahr ' + J;
+    document.getElementById('rueckblickInhalt').innerHTML = punkte.length
+      ? punkte.map((p, i) => '<div class="rb-punkt" style="animation-delay:' + (i * 0.08) + 's"><span class="rb-icon">' + p.icon + '</span><div><div class="rb-zahl">' + rbEsc(p.zahl) + '</div><div class="rb-text">' + rbEsc(p.text) + '</div>' +
+          (p.extra ? '<div class="rb-extra">' + rbEsc(p.extra) + '</div>' : '') + '</div></div>').join('')
+      : '<div class="rb-punkt"><span class="rb-icon">🌱</span><div><div class="rb-text">Für ' + J + ' gibt es noch nicht genug Einträge – das wird schon!</div></div></div>';
+    ov.style.display = 'flex';
+    ov._punkte = punkte; ov._jahr = J;
+  }
+  function rueckblickSchliessen() { document.getElementById('rueckblickOverlay').style.display = 'none'; }
+  // Als Bild (1080×1350) zum Teilen in WhatsApp & Co.
+  function rueckblickBild(punkte, J) {
+    const c = document.createElement('canvas');
+    c.width = 1080; c.height = 1350;
+    const x = c.getContext('2d');
+    const g = x.createLinearGradient(0, 0, 1080, 1350);
+    g.addColorStop(0, '#2f4a2a'); g.addColorStop(1, '#14100c');
+    x.fillStyle = g; x.fillRect(0, 0, 1080, 1350);
+    x.fillStyle = '#e8c98a'; x.font = '700 64px Georgia, serif'; x.textAlign = 'center';
+    x.fillText('Euer Familienjahr ' + J, 540, 130);
+    x.fillStyle = '#cfe3b8'; x.font = '400 32px system-ui, sans-serif'; x.fillText('🎉 Der Rückblick aus dem Familienplaner', 540, 185);
+    const liste = punkte.slice(0, 8);
+    const zeile = Math.min(140, 1040 / Math.max(1, liste.length));
+    const start = 250 + Math.max(0, (1040 - liste.length * zeile) / 2.5);
+    liste.forEach((p, i) => {
+      const y = start + i * zeile;
+      x.fillStyle = 'rgba(255,255,255,0.08)'; x.beginPath();
+      if (x.roundRect) x.roundRect(70, y, 940, zeile - 18, 24); else x.rect(70, y, 940, zeile - 18);
+      x.fill();
+      x.textAlign = 'left'; x.font = '60px system-ui, sans-serif'; x.fillStyle = '#fff'; x.fillText(p.icon, 100, y + zeile / 2 + 4);
+      x.fillStyle = '#e8c98a'; x.font = '700 46px system-ui, sans-serif'; x.fillText(p.zahl, 200, y + zeile / 2 - 6);
+      const breite = x.measureText(p.zahl).width;
+      x.fillStyle = '#f0e8d8'; x.font = '400 32px system-ui, sans-serif'; x.fillText(p.text, 200 + breite + 18, y + zeile / 2 - 8);
+      if (p.extra) { x.fillStyle = '#bcd196'; x.font = '400 26px system-ui, sans-serif'; x.fillText(p.extra.length > 52 ? p.extra.slice(0, 51) + '…' : p.extra, 200, y + zeile / 2 + 32); }
+    });
+    return new Promise(ok => c.toBlob(ok, 'image/png'));
+  }
+  document.getElementById('btnRueckblickTeilen').addEventListener('click', async () => {
+    const ov = document.getElementById('rueckblickOverlay');
+    const blob = await rueckblickBild(ov._punkte || [], ov._jahr);
+    if (!blob) return;
+    const datei = new File([blob], 'familienjahr-' + ov._jahr + '.png', { type: 'image/png' });
+    try {
+      if (navigator.canShare && navigator.canShare({ files: [datei] })) { await navigator.share({ files: [datei], title: 'Euer Familienjahr ' + ov._jahr }); return; }
+    } catch (e) { if (e && e.name === 'AbortError') return; }
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = datei.name; document.body.appendChild(a); a.click(); a.remove();
+  });
+  document.getElementById('btnRueckblickZu').addEventListener('click', rueckblickSchliessen);
+  document.getElementById('kachelRueckblick').addEventListener('click', rueckblickOeffnen);
+  function rueckblickKachel() {
+    const m = new Date().getMonth();
+    const zeigen = m === 11 || m === 0; // Dezember und Januar
+    const k = document.getElementById('kachelRueckblick');
+    k.style.display = zeigen ? '' : 'none';
+    if (zeigen) document.getElementById('rueckblickKachelText').textContent = 'Was hat eure Familie ' + rueckblickJahr() + ' erlebt? Tippen zum Ansehen.';
+  }
+  window.addEventListener('message', (e) => {
+    if (e.origin === window.location.origin && e.data && e.data.type === 'shortcutAktion' && e.data.aktion === 'rueckblick') rueckblickOeffnen();
+  });
+  rueckblickKachel();
+
 </script>
 </body>
 </html>

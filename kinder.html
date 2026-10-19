@@ -60,6 +60,7 @@
   .aufgabe.fertig .a-titel { text-decoration: line-through; }
   .knopf-gross { border: none; border-radius: 999px; padding: 10px 16px; font: 800 0.92rem 'Inter', sans-serif; cursor: pointer; background: var(--moss); color: var(--on-moss, #fff); white-space: nowrap; }
   .knopf-gross.gold { background: linear-gradient(135deg, #f3c84b, #e8963c); color: #3a2410; }
+  .knopf-gross:disabled { opacity: 0.45; cursor: default; }
   .knopf-klein { background: none; border: 1px solid var(--parchment); color: var(--bark); border-radius: 999px; padding: 4px 10px; font: 600 0.75rem 'Inter', sans-serif; cursor: pointer; }
   .geld { font-size: 2.2rem; font-weight: 800; color: var(--moss-text, var(--moss)); }
   .buchung { display: flex; justify-content: space-between; font-size: 0.85rem; padding: 6px 0; border-bottom: 1px solid var(--parchment); }
@@ -106,6 +107,13 @@
       <input type="number" id="neuBelohnungSterne" min="1" value="10" style="width:70px;" aria-label="Sterne">
       <button class="knopf-gross" id="btnBelohnungNeu" style="padding:8px 12px;">＋</button>
     </div>
+    <h3>💶 Sterne gegen Taschengeld</h3>
+    <label class="check"><input type="checkbox" id="umrAktiv"> Kinder dürfen Sterne in Taschengeld tauschen</label>
+    <div style="display:flex;gap:6px;align-items:center;font-size:0.85rem;flex-wrap:wrap;">
+      <input type="number" id="umrSterne" min="1" style="width:64px;"> ⭐ =
+      <input type="number" id="umrBetrag" min="0.01" step="0.01" style="width:80px;"> €
+    </div>
+    <p class="klein" style="margin-top:4px;">Wird als Gutschrift auf das Taschengeld-Konto des Kindes gebucht (💶 Finanzen).</p>
     <p class="klein" style="margin-top:14px;">Aufgaben legt ihr im 🧹 Haushalt an und weist sie dem Kind fest oder per Rotation zu. Das Taschengeld kommt aus 💶 Finanzen.</p>
   </div>
 </div>
@@ -129,7 +137,9 @@
   function person(id) { return personen().find(p => p.id === id) || { id, label: id, farbe: '#7d6339' }; }
   function einstellungen() {
     const e = laden(KEY_EINST, {});
-    return { kinder: Array.isArray(e.kinder) ? e.kinder : [], belohnungen: Array.isArray(e.belohnungen) ? e.belohnungen : [
+    const u = e.umrechnung || {};
+    return { umrechnung: { aktiv: !!u.aktiv, sterne: Math.max(1, parseInt(u.sterne, 10) || 10), betrag: Math.max(0.01, Number(u.betrag) || 1) },
+      kinder: Array.isArray(e.kinder) ? e.kinder : [], belohnungen: Array.isArray(e.belohnungen) ? e.belohnungen : [
       { id: 'b1', text: 'Eis essen 🍦', sterne: 10 }, { id: 'b2', text: '30 Min. länger aufbleiben 🌙', sterne: 15 }, { id: 'b3', text: 'Ausflug aussuchen 🧭', sterne: 30 }] };
   }
 
@@ -196,12 +206,12 @@
   const euro = (n) => (Number(n) || 0).toLocaleString('de-DE', { style: 'currency', currency: 'EUR' });
 
   // ---------- Sync ----------
-  let sync = null, haushaltSync = null;
+  let sync = null, haushaltSync = null, finanzenSync = null;
   if (window.PlanerSync) {
     sync = window.PlanerSync.starteSync({ modul: 'kinder', keys: [KEY_EINST, KEY_STERNE], onRemoteChange: () => renderAlles() });
     haushaltSync = window.PlanerSync.starteSync({ modul: 'haushalt', keys: ['haushalt_aufgaben'], onRemoteChange: () => renderAlles() });
     // nur lesen, damit Taschengeld & Co. aktuell sind
-    window.PlanerSync.starteSync({ modul: 'finanzen', keys: ['finanzen_taschengeld_konten', 'finanzen_taschengeld_buchungen'], onRemoteChange: () => renderAlles() });
+    finanzenSync = window.PlanerSync.starteSync({ modul: 'finanzen', keys: ['finanzen_taschengeld_konten', 'finanzen_taschengeld_buchungen'], onRemoteChange: () => renderAlles() });
     window.PlanerSync.starteSync({ modul: 'termine', keys: ['termine_events_v1'], onRemoteChange: () => renderAlles() });
   }
 
@@ -241,12 +251,12 @@
     const farbe = kind.farbe || '#4f6f45';
     box.style.setProperty('--kf', farbe);
     const sterne = sterneVon(kind.id);
+    const tg = taschengeld(kind.id);
     const belohnungen = e.belohnungen.slice().sort((a, b) => a.sterne - b.sterne);
     const ziel = belohnungen.find(b => b.sterne > sterne) || null;
     const aufgaben = laden('haushalt_aufgaben', []).filter(a => !a.pausiert && zustaendig(a) === kind.id);
     const offen = aufgaben.filter(a => heuteFaellig(a) && !heuteErledigt(a));
     const fertig = aufgaben.filter(heuteErledigt);
-    const tg = taschengeld(kind.id);
     const sicht = tierSichtungen();
     const geb = tageBisGeburtstag(kind);
     const stunde = new Date().getHours();
@@ -267,6 +277,11 @@
     html += '<div class="karte"><h2>⭐ Meine Sterne <button class="knopf-klein" id="btnBonus" title="Für Eltern: einen Bonus-Stern vergeben">+⭐ Bonus</button></h2>' +
       '<div class="sterne-zeile"><span class="sterne-zahl">' + sterne + '</span><span>' + (ziel ? 'Noch <b>' + (ziel.sterne - sterne) + ' ⭐</b> bis:<br><b>' + esc(ziel.text) + '</b>' : (belohnungen.length ? 'Du kannst dir eine Belohnung aussuchen! 🎁' : '')) + '</span></div>';
     if (ziel) html += '<div class="balken"><span style="width:' + Math.min(100, Math.round(sterne / ziel.sterne * 100)) + '%"></span></div>';
+    if (e.umrechnung.aktiv && tg) {
+      const kann = sterne >= e.umrechnung.sterne;
+      html += '<div class="belohnung" style="margin-top:10px;"><span class="b-text">💶 ' + e.umrechnung.sterne + ' ⭐ = ' + euro(e.umrechnung.betrag) + ' Taschengeld</span>' +
+        '<button class="knopf-gross" id="btnSterneGeld" style="padding:7px 12px;"' + (kann ? '' : ' disabled title="Noch nicht genug Sterne"') + '>Tauschen</button></div>';
+    }
     const erreichbar = belohnungen.filter(b => b.sterne <= sterne);
     if (erreichbar.length) {
       html += '<p class="klein" style="margin:10px 0 6px;">🎁 Das kannst du dir schon holen:</p>' + erreichbar.map(b =>
@@ -300,6 +315,8 @@
       speichern(KEY_STERNE, liste, sync);
       konfetti(); renderAlles();
     });
+    const geldBtn = document.getElementById('btnSterneGeld');
+    if (geldBtn) geldBtn.addEventListener('click', () => sterneInGeld(kind));
     document.getElementById('btnTiere').addEventListener('click', () => {
       try { localStorage.setItem('garten_aktiveAnsicht', 'tiere'); } catch (err) {}
       try { window.parent.postMessage({ type: 'navigiere', modul: 'garten' }, window.location.origin); } catch (err) {}
@@ -326,6 +343,21 @@
     konfetti(); renderAlles();
   }
 
+  // ---------- ⭐ → 💶: Sterne ins Taschengeld tauschen (bucht wie „Gutschrift“ in Finanzen) ----------
+  function sterneInGeld(kind) {
+    const e = einstellungen();
+    const tg = taschengeld(kind.id);
+    if (!e.umrechnung.aktiv || !tg || sterneVon(kind.id) < e.umrechnung.sterne) return;
+    if (!confirm(e.umrechnung.sterne + ' ⭐ gegen ' + euro(e.umrechnung.betrag) + ' Taschengeld tauschen?')) return;
+    const buchungen = laden('finanzen_taschengeld_buchungen', []);
+    buchungen.push({ id: neueId('tgb'), kontoId: tg.konto.id, betrag: e.umrechnung.betrag, typ: 'gutschrift', beschreibung: '⭐ ' + e.umrechnung.sterne + ' Sterne eingetauscht', datum: heuteISO() });
+    speichern('finanzen_taschengeld_buchungen', buchungen, finanzenSync);
+    const liste = laden(KEY_STERNE, []);
+    liste.push({ id: neueId('st'), personId: kind.id, datum: new Date().toISOString(), anzahl: -e.umrechnung.sterne, grund: 'Taschengeld' });
+    speichern(KEY_STERNE, liste, sync);
+    konfetti(); renderAlles();
+  }
+
   // ---------- Einstellungen (Eltern) ----------
   function einstSpeichern(e) { speichern(KEY_EINST, e, sync); }
   function einstRendern() {
@@ -344,7 +376,21 @@
       const e2 = einstellungen(); e2.belohnungen = e2.belohnungen.filter(b => b.id !== btn.dataset.weg); einstSpeichern(e2); einstRendern(); renderAlles();
     }));
   }
-  function einstOeffnen() { einstRendern(); document.getElementById('modalEinst').classList.add('zeigen'); }
+  function einstOeffnen() {
+    einstRendern();
+    const u = einstellungen().umrechnung;
+    document.getElementById('umrAktiv').checked = u.aktiv;
+    document.getElementById('umrSterne').value = u.sterne;
+    document.getElementById('umrBetrag').value = u.betrag;
+    document.getElementById('modalEinst').classList.add('zeigen');
+  }
+  ['umrAktiv', 'umrSterne', 'umrBetrag'].forEach(id => document.getElementById(id).addEventListener('change', () => {
+    const e = einstellungen();
+    e.umrechnung = { aktiv: document.getElementById('umrAktiv').checked,
+      sterne: Math.max(1, parseInt(document.getElementById('umrSterne').value, 10) || 10),
+      betrag: Math.max(0.01, parseFloat(String(document.getElementById('umrBetrag').value).replace(',', '.')) || 1) };
+    einstSpeichern(e); renderAlles();
+  }));
   document.getElementById('btnEinstellungen').addEventListener('click', einstOeffnen);
   document.getElementById('btnEinstZu').addEventListener('click', () => document.getElementById('modalEinst').classList.remove('zeigen'));
   document.getElementById('modalEinst').addEventListener('click', (ev) => { if (ev.target.id === 'modalEinst') ev.currentTarget.classList.remove('zeigen'); });
