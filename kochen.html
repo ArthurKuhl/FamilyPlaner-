@@ -191,6 +191,12 @@
   .sterne-eingabe button { background: none; border: none; font-size: 1.6rem; color: var(--parchment); cursor: pointer; padding: 0 2px; }
   .sterne-eingabe button.aktiv { color: var(--gold); }
 
+  .link-import { border: 1px dashed var(--sage); border-radius: var(--radius-sm); padding: 10px; margin-bottom: 14px; background: var(--white); }
+  .link-import-titel { font-size: 0.8rem; font-weight: 700; color: var(--moss-text, var(--moss)); margin-bottom: 6px; }
+  .link-import-zeile { display: flex; gap: 6px; }
+  .link-import-zeile input { flex: 1; min-width: 0; padding: 8px 10px; border: 1px solid var(--parchment); border-radius: var(--radius-sm); font-size: 0.85rem; background: var(--white); color: var(--soil); }
+  .link-import-zeile button { border: none; border-radius: var(--radius-sm); padding: 8px 14px; font-weight: 700; background: var(--moss); color: var(--on-moss, #fff); cursor: pointer; font-family: inherit; }
+  .link-import-status { font-size: 0.75rem; margin-top: 6px; line-height: 1.4; }
   .unterliste-titel { font-size: 0.72rem; font-weight: 700; color: var(--bark); text-transform: uppercase; letter-spacing: 0.03em; margin: 16px 0 6px; }
   .zutat-zeile, .schritt-zeile { display: flex; gap: 6px; margin-bottom: 6px; align-items: center; }
   .zutat-zeile input.menge { width: 60px; flex: 0 0 60px; }
@@ -728,6 +734,14 @@
 <div class="modal-bg" id="modalEdit">
   <div class="modal">
     <h2 id="editTitelKopf">Neues Rezept</h2>
+    <div class="link-import" id="linkImportBox">
+      <div class="link-import-titel">🔗 Rezept aus dem Internet übernehmen</div>
+      <div class="link-import-zeile">
+        <input type="url" id="fRezeptLink" placeholder="Link einfügen, z.B. von chefkoch.de" inputmode="url" autocomplete="off">
+        <button type="button" id="btnRezeptLinkHolen">Holen</button>
+      </div>
+      <div class="link-import-status" id="linkImportStatus"></div>
+    </div>
     <div class="feld">
       <label for="fTitel">Titel</label>
       <input type="text" id="fTitel" placeholder="z.B. Kürbissuppe">
@@ -2095,6 +2109,51 @@
     aufwandVorschlagAnwenden();
   });
 
+  // ==================== 🔗 REZEPT PER LINK ====================
+  // Die Server-Funktion „rezeptImport“ (functions/index.js) lädt die Seite und liest das
+  // Rezept aus (schema.org/Recipe). Das Formular wird nur vorausgefüllt – vor dem Speichern
+  // kann alles noch angepasst werden.
+  const REZEPT_IMPORT_URL = 'https://europe-west3-familyplaner-733de.cloudfunctions.net/rezeptImport';
+  async function rezeptAusLinkHolen() {
+    const feld = document.getElementById('fRezeptLink');
+    const status = document.getElementById('linkImportStatus');
+    const knopf = document.getElementById('btnRezeptLinkHolen');
+    let link = feld.value.trim();
+    const treffer = link.match(/https?:\/\/\S+/); // auch „Schau mal: https://…“ aus dem Teilen-Menü
+    if (!treffer) { status.textContent = '⚠ Bitte einen Link einfügen, der mit https:// beginnt.'; return; }
+    link = treffer[0];
+    if (!window.PlanerSync || typeof firebase === 'undefined' || !navigator.onLine) { status.textContent = '⚠ Dafür braucht es Internet und die Cloud-Synchronisierung.'; return; }
+    knopf.disabled = true; status.textContent = '⏳ Rezept wird gelesen …';
+    try {
+      await window.PlanerSync.authBereit();
+      const token = await firebase.auth().currentUser.getIdToken();
+      const antwort = await fetch(REZEPT_IMPORT_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ url: link }) });
+      const d = await antwort.json().catch(() => ({}));
+      if (!antwort.ok) throw new Error(d.fehler || ('Fehler ' + antwort.status));
+      if (d.titel) document.getElementById('fTitel').value = d.titel;
+      if (d.portionen) document.getElementById('fPortionen').value = d.portionen;
+      if (d.zeit) document.getElementById('fZeit').value = d.zeit;
+      if (d.zutaten && d.zutaten.length) {
+        const box = document.getElementById('editZutatenListe'); box.innerHTML = '';
+        d.zutaten.forEach(z => box.appendChild(zutatZeileErstellen(z)));
+      }
+      if (d.schritte && d.schritte.length) {
+        const box = document.getElementById('editSchritteListe'); box.innerHTML = '';
+        d.schritte.forEach((t, i) => box.appendChild(schrittZeileErstellen(t, i + 1)));
+      }
+      if (d.tags && d.tags.length && !document.getElementById('fTags').value.trim()) document.getElementById('fTags').value = d.tags.join(', ');
+      let quelle = ''; try { quelle = new URL(d.quelle || link).hostname.replace(/^www\./, ''); } catch (e) {}
+      const notiz = document.getElementById('fNotiz');
+      notiz.value = [notiz.value.trim(), d.beschreibung, 'Quelle: ' + (d.quelle || link)].filter(Boolean).join('\n\n');
+      editAufwandManuell = false; aufwandVorschlagAnwenden();
+      status.textContent = '✓ Übernommen' + (quelle ? ' von ' + quelle : '') + ' – ' + (d.zutaten || []).length + ' Zutaten, ' + (d.schritte || []).length + ' Schritte. Bitte kurz prüfen und speichern.';
+    } catch (e) {
+      status.textContent = '⚠ ' + (/Failed to fetch|NetworkError/i.test(e.message) ? 'Der Rezept-Dienst ist nicht erreichbar (ist die Server-Funktion schon hochgeladen?).' : e.message);
+    } finally { knopf.disabled = false; }
+  }
+  document.getElementById('btnRezeptLinkHolen').addEventListener('click', rezeptAusLinkHolen);
+  document.getElementById('fRezeptLink').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); rezeptAusLinkHolen(); } });
+
   function editModalOeffnen(r) {
     bearbeiteId = r ? r.id : null;
     document.getElementById('editTitelKopf').textContent = r ? 'Rezept bearbeiten' : 'Neues Rezept';
@@ -2119,6 +2178,9 @@
     (r && r.schritte.length ? r.schritte : ['']).forEach((s, i) => schrittBox.appendChild(schrittZeileErstellen(s, i+1)));
 
     document.getElementById('editLoeschZeile').style.display = r ? '' : 'none';
+    document.getElementById('linkImportBox').style.display = r ? 'none' : '';
+    document.getElementById('fRezeptLink').value = '';
+    document.getElementById('linkImportStatus').textContent = '';
     document.getElementById('modalEdit').classList.add('zeigen');
     document.getElementById('modalDetail').classList.remove('zeigen');
     if (!r) aufwandVorschlagAnwenden();

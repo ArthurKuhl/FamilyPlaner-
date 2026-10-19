@@ -2,6 +2,18 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
+## 2026-10-19 | 🔗 Rezept per Link
+Beim neuen Rezept oben einfach einen Link einfügen (z.B. von Chefkoch) und auf „Holen“ tippen: Titel, Portionen, Zeit, Zutaten und Schritte werden übernommen. Vor dem Speichern lässt sich alles noch anpassen.
+
+## 2026-10-19 | 📲 Termine im Handy-Kalender
+Unter Termine → „📲 Kalender-App“ gibt es einen Abo-Link: Damit erscheinen eure Termine in Google Kalender, auf dem iPhone oder in Outlook und bleiben dort von selbst aktuell – auf Wunsch nur die einer Person.
+
+## 2026-10-19 | 📬 Sonntagsbrief
+Sonntags um 18 Uhr kommt ein kurzer Überblick über die neue Woche aufs Handy: Termine, Geburtstage, was gekocht wird und welche Vorräte bald weg müssen. Ausschalten lässt er sich unter ⚙️ → Erinnerungen aufs Handy.
+
+## 2026-10-19 | 🔒 Private Fotos sicher aufbewahrt
+„Nur ich“-Fotos können jetzt automatisch gesichert werden – verschlüsselt mit einem eigenen Passwort, sodass niemand sonst sie öffnen kann. Auf einem neuen Handy holt man sie mit demselben Passwort zurück. Einschalten unter ⚙️ → „🔒 Private Fotos sichern“.
+
 ## 2026-10-19 | 🎉 Euer Familienjahr
 Im Dezember und Januar erscheint auf der Übersicht der Jahresrückblick: Ernten, gekochte Lieblingsgerichte, Ausflüge, Sport, Haushalt, Sterne der Kinder, gefahrene Kilometer und mehr. Mit „📤 Als Bild teilen“ geht er als schönes Bild an Oma & Opa. Jederzeit auch über ☰ Mehr → 🎉 Rückblick.
 

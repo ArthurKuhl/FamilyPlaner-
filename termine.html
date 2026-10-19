@@ -230,7 +230,7 @@
     <div class="top-titel-zeile">
       <h1>🗓️ Termine</h1>
     <button class="theme-btn" id="btnThemeAuswahl" title="Hintergrundmuster wählen">🎨</button>
-      <button class="ics-btn" id="btnIcsExport">⬇ .ics exportieren</button>
+      <button class="ics-btn" id="btnKalenderApp" title="Termine in Google Kalender, iPhone oder Outlook anzeigen">📲 Kalender-App</button>
     </div>
     <div class="view-toggle" role="tablist">
       <button id="btnViewKalender" class="active" role="tab" aria-selected="true">Kalender</button>
@@ -367,6 +367,28 @@
         <button class="btn-primary" id="btnWunschSpeichern">Speichern</button>
       </div>
       <button class="btn-delete" id="btnWunschLoeschen" style="display:none;">Wunsch löschen</button>
+    </div>
+  </div>
+
+  <!-- Kalender-Abo / Export -->
+  <div class="modal-bg" id="modalAbo">
+    <div class="modal">
+      <h2>📲 In der Kalender-App anzeigen</h2>
+      <p style="font-size:0.8rem;line-height:1.5;margin-bottom:10px;">Mit einem <b>Abo</b> erscheinen eure Termine in Google Kalender, auf dem iPhone oder in Outlook – und bleiben dort von selbst aktuell. Änderungen kommen je nach App nach einer bis einigen Stunden an (Google bis zu einem Tag).</p>
+      <label style="font-size:0.78rem;font-weight:700;display:block;margin-bottom:4px;">Welche Termine?</label>
+      <select id="aboPerson" style="width:100%;padding:9px;border-radius:10px;border:1px solid var(--parchment,#ddd);font-family:inherit;margin-bottom:10px;"></select>
+      <div id="aboBereich" style="font-size:0.8rem;"></div>
+      <details style="margin-top:12px;font-size:0.76rem;line-height:1.5;">
+        <summary style="cursor:pointer;font-weight:700;">So geht's in der Kalender-App</summary>
+        <p style="margin-top:6px;"><b>iPhone:</b> „📲 Abonnieren“ antippen und bestätigen – oder Einstellungen → Kalender → Accounts → Account hinzufügen → Andere → Kalenderabo hinzufügen und den Link einfügen.</p>
+        <p style="margin-top:6px;"><b>Google Kalender:</b> am Computer auf calendar.google.com links bei „Weitere Kalender“ auf ＋ → „Per URL“ und den Link einfügen. Danach erscheint er auch in der Google-Kalender-App am Handy.</p>
+        <p style="margin-top:6px;"><b>Outlook:</b> Kalender hinzufügen → „Aus dem Internet abonnieren“.</p>
+        <p style="margin-top:6px;">Der Kalender ist nur zum Ansehen – neue Termine bitte weiter hier in der App eintragen.</p>
+      </details>
+      <div style="border-top:1px solid var(--parchment,#e5ddc8);margin-top:12px;padding-top:10px;">
+        <button class="btn-secondary" id="btnIcsExport" style="margin:0;">⬇ Einmalig als .ics-Datei herunterladen</button>
+      </div>
+      <button class="btn-secondary" data-close="modalAbo" style="margin-top:8px;">Schließen</button>
     </div>
   </div>
 
@@ -1513,6 +1535,69 @@
       a.click();
       a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 2000);
+    });
+
+    // ============================================================
+    // 📲 KALENDER-ABO: Link auf die Server-Funktion „kalender“ (functions/index.js).
+    // Der geheime Schlüssel liegt für die ganze Familie in daten/kalenderabo –
+    // „Neuer Link“ erzeugt einen neuen Schlüssel, alte Links funktionieren dann nicht mehr.
+    // ============================================================
+    const ABO_FUNKTION = 'https://europe-west3-familyplaner-733de.cloudfunctions.net/kalender';
+    let aboToken = null;
+    function aboDoc() { return firebase.firestore().collection('planerFamilien').doc(window.PlanerSync.familienId()).collection('daten').doc('kalenderabo'); }
+    function aboNeuerToken() { const b = crypto.getRandomValues(new Uint8Array(24)); return Array.from(b, x => x.toString(16).padStart(2, '0')).join(''); }
+    function aboLink() {
+      const p = document.getElementById('aboPerson').value;
+      return ABO_FUNKTION + '?f=' + encodeURIComponent(window.PlanerSync.familienId()) + '&t=' + aboToken + (p ? '&p=' + encodeURIComponent(p) : '');
+    }
+    function aboRendern(meldung) {
+      const box = document.getElementById('aboBereich');
+      if (!aboToken) {
+        box.innerHTML = '<button class="btn-primary" id="btnAboErzeugen" style="margin:0;">🔗 Abo-Link erzeugen</button>' + (meldung ? '<div style="margin-top:6px;">' + meldung + '</div>' : '');
+        document.getElementById('btnAboErzeugen').addEventListener('click', () => aboSpeichern(aboNeuerToken(), '✓ Link erzeugt.'));
+        return;
+      }
+      const link = aboLink();
+      box.innerHTML = '<input type="text" readonly id="aboLinkFeld" value="' + link + '" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--parchment,#ddd);font-size:0.72rem;font-family:monospace;" onclick="this.select()">' +
+        '<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">' +
+        '<a class="btn-primary" href="' + link.replace(/^https:/, 'webcal:') + '" style="flex:1;margin:0;text-align:center;text-decoration:none;">📲 Abonnieren</a>' +
+        '<button class="btn-secondary" id="btnAboKopieren" style="flex:1;margin:0;">📋 Link kopieren</button></div>' +
+        '<button type="button" id="btnAboNeu" style="margin-top:8px;background:none;border:none;color:var(--bark,#7a6a55);text-decoration:underline;font-size:0.74rem;cursor:pointer;font-family:inherit;">🔄 Neuen Link erzeugen (alte Abos hören auf zu funktionieren)</button>' +
+        (meldung ? '<div style="margin-top:6px;">' + meldung + '</div>' : '') +
+        '<div style="font-size:0.7rem;color:var(--bark,#7a6a55);margin-top:6px;">Wer diesen Link hat, kann eure Termine lesen – nur mit vertrauten Personen teilen.</div>';
+      document.getElementById('btnAboKopieren').addEventListener('click', async () => {
+        try { await navigator.clipboard.writeText(link); aboRendern('✓ Kopiert – jetzt in der Kalender-App einfügen.'); }
+        catch (e) { document.getElementById('aboLinkFeld').select(); }
+      });
+      document.getElementById('btnAboNeu').addEventListener('click', () => {
+        if (confirm('Neuen Link erzeugen? Kalender, die den alten Link abonniert haben, bekommen dann keine Termine mehr.')) aboSpeichern(aboNeuerToken(), '✓ Neuer Link – bitte in der Kalender-App neu abonnieren.');
+      });
+    }
+    async function aboSpeichern(token, meldung) {
+      document.getElementById('aboBereich').textContent = '⏳ …';
+      try {
+        await window.PlanerSync.authBereit();
+        await aboDoc().set({ token: token, erstellt: new Date().toISOString() });
+        aboToken = token; aboRendern(meldung);
+      } catch (e) { aboRendern('⚠ Konnte den Link nicht speichern (' + (e.code || e.message) + ').'); }
+    }
+    document.getElementById('aboPerson').innerHTML = '<option value="">Alle Termine</option>' +
+      WER_OPTIONEN.filter(p => p.id !== 'familie').map(p => '<option value="' + escapeHtml(p.id) + '">' + escapeHtml(p.label) + ' + Familie</option>').join('');
+    document.getElementById('aboPerson').addEventListener('change', () => aboRendern());
+    document.getElementById('btnKalenderApp').addEventListener('click', async () => {
+      document.getElementById('modalAbo').classList.add('zeigen');
+      const box = document.getElementById('aboBereich');
+      if (!window.PlanerSync || !window.PlanerSync.familienId || !window.PlanerSync.familienId() || typeof firebase === 'undefined') {
+        box.innerHTML = 'Das Abo braucht die Cloud-Synchronisierung (Familien-Code). Die einmalige Datei unten geht aber immer.'; return;
+      }
+      if (aboToken) { aboRendern(); return; }
+      box.textContent = '⏳ Lade …';
+      try {
+        await window.PlanerSync.authBereit();
+        const d = await aboDoc().get();
+        aboToken = d.exists && d.data().token ? d.data().token : null;
+        aboRendern();
+      } catch (e) { aboRendern(navigator.onLine ? '⚠ ' + (e.code || e.message) : '⚠ Gerade offline.'); }
     });
 
     if (window.PlanerSync) {

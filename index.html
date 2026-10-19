@@ -17,7 +17,9 @@
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-storage-compat.js"></script>
 <script src="sync.js"></script>
+<script src="fotosicherung.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
   :root {
@@ -380,6 +382,12 @@
       </div>
 
       <div style="border-top:1px solid #e5ddc8;padding-top:14px;margin-bottom:16px;">
+        <div style="font-weight:700;color:var(--soil);margin-bottom:4px;">🔒 Private Fotos sichern</div>
+        <div style="font-size:0.72rem;color:var(--bark);margin-bottom:8px;">„Nur ich“-Fotos liegen nur auf diesem Handy. Hier werden sie automatisch mit deinem eigenen Passwort verschlüsselt in der Cloud gesichert – niemand sonst kann sie öffnen, auch die Familie nicht.</div>
+        <div id="fotoSicherungBereich"></div>
+      </div>
+
+      <div style="border-top:1px solid #e5ddc8;padding-top:14px;margin-bottom:16px;">
         <div style="font-weight:700;color:var(--soil);margin-bottom:8px;">🔀 Reihenfolge der Module</div>
         <div id="reihenfolgeListe"></div>
       </div>
@@ -671,7 +679,7 @@
     const KEY_PUSH = 'planer_push'; // { aktiv, person, termine: 'aus'|'meine'|'alle', medikamente }
     let pushLetzterStand = null;    // zuletzt hochgeladene Einstellungen (verhindert unnötige Schreibvorgänge)
     function pushEinstellungen() {
-      const standard = { aktiv: false, person: '', termine: 'meine', medikamente: true, ganztaegig: 'tag', vorrat: true, wartung: true, tagesZeit: '08:00' };
+      const standard = { aktiv: false, person: '', termine: 'meine', medikamente: true, ganztaegig: 'tag', vorrat: true, wartung: true, tagesZeit: '08:00', sonntagsbrief: true };
       try { return Object.assign(standard, JSON.parse(localStorage.getItem(KEY_PUSH) || '{}')); }
       catch (e) { return standard; }
     }
@@ -718,7 +726,7 @@
       try { wasser = Object.assign(wasser, JSON.parse(localStorage.getItem('gesundheit_wasserErinnerung') || '{}')); } catch (err) {}
       const daten = {
         aktiv: true, token, person: e.person || '', termine: e.termine, medikamente: !!e.medikamente,
-        ganztaegig: e.ganztaegig, vorrat: !!e.vorrat, wartung: !!e.wartung, tagesZeit: e.tagesZeit || '08:00',
+        ganztaegig: e.ganztaegig, vorrat: !!e.vorrat, wartung: !!e.wartung, tagesZeit: e.tagesZeit || '08:00', sonntagsbrief: e.sonntagsbrief !== false,
         wasser: { aktiv: !!wasser.aktiv, zeiten: Array.isArray(wasser.zeiten) ? wasser.zeiten : [] },
         zeitzone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Berlin',
         appUrl: location.origin + location.pathname.replace(/[^/]*$/, '') + 'index.html',
@@ -754,6 +762,83 @@
       try { if (firebase.messaging) await firebase.messaging().deleteToken(); } catch (err) {}
       renderPushBereich('Push ist auf diesem Gerät aus. Erinnerungen kommen wieder nur bei offener App.');
     }
+    // ---------- 🔒 Private Fotos sichern (fotosicherung.js) ----------
+    function fsSchluesselNichtSynchron() {
+      // Schlüssel, die komplett (mit Bildern) synchronisiert werden, sind schon in der Cloud –
+      // nur Module mit Foto-Filter (Garten, Kochen) und rein lokale Daten werden gesichert.
+      const keys = [];
+      MODULE.forEach(m => {
+        if (!m.syncTransform) (m.syncKeys || []).forEach(k => keys.push(k));
+        (m.zusatzSync || []).forEach(z => (z.keys || []).forEach(k => keys.push(k)));
+      });
+      return keys;
+    }
+    function renderFotoSicherung(meldung) {
+      const box = document.getElementById('fotoSicherungBereich');
+      if (!box || !window.FotoSicherung) return;
+      const FS = window.FotoSicherung, z = FS.zustand();
+      const feld = (id, ph) => '<input type="password" id="' + id + '" placeholder="' + ph + '" autocomplete="new-password" style="width:100%;padding:9px 10px;border-radius:10px;border:1px solid #ddd;font-family:Inter,sans-serif;font-size:0.85rem;margin-top:6px;">';
+      const status = '<div class="status-text" id="fsStatus" style="margin-top:6px;font-size:0.78rem;">' + (meldung || '') + '</div>';
+      if (!FS.verfuegbar()) { box.innerHTML = '<div style="font-size:0.78rem;color:var(--bark);">Braucht einen Familien-Code und Internet.</div>'; return; }
+      if (!z.aktiv) {
+        box.innerHTML = feld('fsPw1', 'Eigenes Passwort (mind. 8 Zeichen)') + feld('fsPw2', 'Passwort wiederholen') +
+          '<div style="font-size:0.7rem;color:#a0522d;margin-top:6px;">⚠ Passwort gut merken: Ohne es lässt sich die Sicherung nicht mehr öffnen – auch nicht von uns.</div>' +
+          '<button class="btn btn-primary" id="btnFsAn" style="margin-top:8px;">🔒 Sicherung einschalten</button>' +
+          '<button class="btn btn-secondary" id="btnFsZurueck" style="margin-top:6px;">♻️ Neues Handy? Fotos zurückholen</button>' + status;
+        document.getElementById('btnFsAn').addEventListener('click', async () => {
+          const a = document.getElementById('fsPw1').value, b = document.getElementById('fsPw2').value;
+          const st = document.getElementById('fsStatus');
+          if (a.length < 8) { st.textContent = '⚠ Bitte mindestens 8 Zeichen.'; return; }
+          if (a !== b) { st.textContent = '⚠ Die beiden Passwörter sind verschieden.'; return; }
+          st.textContent = '⏳ Wird eingerichtet und gesichert …';
+          try { const e = await FS.einschalten(a); renderFotoSicherung('✓ Eingeschaltet – ' + (e.anzahl || 0) + ' private Fotos gesichert.'); }
+          catch (err) { renderFotoSicherung('⚠ ' + fsFehlertext(err)); }
+        });
+        document.getElementById('btnFsZurueck').addEventListener('click', () => fotoSicherungZurueck(document.getElementById('fsPw1').value));
+        return;
+      }
+      const wann = z.letzte ? new Date(z.letzte).toLocaleString('de-DE', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'noch nie';
+      box.innerHTML = '<div style="font-size:0.82rem;color:var(--soil);">✓ Automatisch an · zuletzt ' + wann + ' · ' + (z.anzahl || 0) + ' Fotos</div>' +
+        (z.fehler ? '<div style="font-size:0.74rem;color:#a0522d;margin-top:4px;">Letzter Versuch: ' + fsFehlertext({ code: z.fehler }) + '</div>' : '') +
+        '<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">' +
+        '<button class="btn btn-secondary" id="btnFsJetzt" style="flex:1;margin:0;">⬆️ Jetzt sichern</button>' +
+        '<button class="btn btn-secondary" id="btnFsZurueck" style="flex:1;margin:0;">♻️ Zurückholen</button></div>' +
+        '<button class="btn btn-secondary" id="btnFsAus" style="margin-top:6px;">Sicherung ausschalten</button>' + status;
+      document.getElementById('btnFsJetzt').addEventListener('click', async () => {
+        document.getElementById('fsStatus').textContent = '⏳ Sichere …';
+        try { const e = await FS.sichern(); renderFotoSicherung(e.uebersprungen ? '⚠ Gerade nicht möglich (offline?).' : '✓ Gesichert – ' + e.neu + ' neu, ' + e.anzahl + ' insgesamt.'); }
+        catch (err) { renderFotoSicherung('⚠ ' + fsFehlertext(err)); }
+      });
+      document.getElementById('btnFsZurueck').addEventListener('click', () => fotoSicherungZurueck(''));
+      document.getElementById('btnFsAus').addEventListener('click', () => {
+        if (!confirm('Automatische Sicherung auf diesem Gerät ausschalten? Bereits gesicherte Fotos bleiben in der Cloud.')) return;
+        FS.ausschalten(); renderFotoSicherung('Sicherung ist aus.');
+      });
+    }
+    function fsFehlertext(err) {
+      const c = String((err && (err.code || err.message)) || err || '');
+      if (/unauthorized|permission/i.test(c)) return 'Die Cloud hat das Speichern abgelehnt (Storage-Regeln prüfen).';
+      if (/OperationError/i.test(c)) return 'Falsches Passwort.';
+      if (/network|retry-limit|Failed to fetch/i.test(c)) return 'Keine Verbindung – wird später automatisch wiederholt.';
+      return c.replace(/^storage\//, '') || 'Unbekannter Fehler';
+    }
+    async function fotoSicherungZurueck(vorgabe) {
+      const pw = vorgabe || prompt('Passwort deiner Foto-Sicherung:');
+      if (!pw) return;
+      const st = document.getElementById('fsStatus');
+      if (st) st.textContent = '⏳ Suche Sicherung und hole Fotos zurück …';
+      try {
+        const e = await window.FotoSicherung.wiederherstellen(pw);
+        if (e.keineSicherung) { renderFotoSicherung('⚠ Zu diesem Passwort gibt es keine Sicherung in dieser Familie.'); return; }
+        let text = '✓ ' + e.eingesetzt + ' Fotos zurückgeholt' + (e.vorhanden ? ', ' + e.vorhanden + ' waren schon da' : '') + '.';
+        if (e.ohneZiel) text += ' ' + e.ohneZiel + ' gehören zu Einträgen, die es nicht mehr gibt.';
+        if (e.speicherVoll) text += ' ⚠ Der Speicher des Browsers ist voll – nicht alles passte.';
+        renderFotoSicherung(text + ' Die Sicherung läuft ab jetzt automatisch.');
+        if (e.eingesetzt) { try { frame.contentWindow.location.reload(); } catch (err) {} }
+      } catch (err) { renderFotoSicherung('⚠ ' + fsFehlertext(err)); }
+    }
+    if (window.FotoSicherung) window.FotoSicherung.automatikStarten(fsSchluesselNichtSynchron);
+
     function renderPushBereich(meldung) {
       const box = document.getElementById('pushBereich');
       if (!box) return;
@@ -781,6 +866,7 @@
           [['tag', 'Am Tag selbst'], ['vortag', 'Am Vorabend (18 Uhr) und am Tag'], ['aus', 'Keine']].map(([v, l]) => '<option value="' + v + '"' + (v === e.ganztaegig ? ' selected' : '') + '>' + l + '</option>').join('') + '</select>' +
         '<label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:0.82rem;color:var(--soil);"><input type="checkbox" id="pushVorrat"' + (e.vorrat ? ' checked' : '') + ' style="width:auto;"> 🥫 Vorrat läuft ab (3 Tage, 1 Tag vorher, am Tag)</label>' +
         '<label style="display:flex;align-items:center;gap:8px;margin-top:8px;font-size:0.82rem;color:var(--soil);"><input type="checkbox" id="pushWartung"' + (e.wartung ? ' checked' : '') + ' style="width:auto;"> 🔁 Fällige Wartungen (meine und offene)</label>' +
+        '<label style="display:flex;align-items:center;gap:8px;margin-top:8px;font-size:0.82rem;color:var(--soil);"><input type="checkbox" id="pushSonntagsbrief"' + (e.sonntagsbrief !== false ? ' checked' : '') + ' style="width:auto;"> 📬 Sonntagsbrief (So 18 Uhr: eure Woche im Überblick)</label>' +
         '<div style="font-size:0.74rem;color:var(--bark);margin-top:8px;">💧 Wasser: ' + (wasser.aktiv ? 'an (' + (wasser.zeiten || []).slice().sort().join(', ') + ' Uhr)' : 'aus') + ' – Zeiten im Gesundheitsmodul einstellen.</div>' +
         '<button class="btn btn-secondary" id="btnPushAus" style="margin-top:10px;">Push auf diesem Gerät ausschalten</button>' +
         '<div class="status-text" id="pushStatus" style="margin-top:6px;">' + (meldung || '✓ Aktiv') + '</div>';
@@ -793,11 +879,12 @@
         neu.ganztaegig = document.getElementById('pushGanztaegig').value;
         neu.vorrat = document.getElementById('pushVorrat').checked;
         neu.wartung = document.getElementById('pushWartung').checked;
+        neu.sonntagsbrief = document.getElementById('pushSonntagsbrief').checked;
         pushEinstellungenSpeichern(neu);
         pushGeraetAktualisieren().then(() => { document.getElementById('pushStatus').textContent = '✓ Gespeichert'; })
           .catch(err => { document.getElementById('pushStatus').textContent = '⚠ ' + (err.message || 'Speichern fehlgeschlagen'); });
       };
-      ['pushPerson', 'pushTermine', 'pushMedikamente', 'pushTagesZeit', 'pushGanztaegig', 'pushVorrat', 'pushWartung'].forEach(id => document.getElementById(id).addEventListener('change', aendern));
+      ['pushPerson', 'pushTermine', 'pushMedikamente', 'pushTagesZeit', 'pushGanztaegig', 'pushVorrat', 'pushWartung', 'pushSonntagsbrief'].forEach(id => document.getElementById(id).addEventListener('change', aendern));
       document.getElementById('btnPushAus').addEventListener('click', pushDeaktivieren);
     }
     // Beim Start und beim Zurückkehren: Token/Einstellungen auffrischen (z.B. geänderte Wasser-Zeiten)
@@ -1077,6 +1164,7 @@
       // Merker für die Einrichtungs-Karte auf der Startseite: Module wurden einmal angeschaut
       try { localStorage.setItem('planer_einrichtung_module', '1'); } catch (e) {}
       renderPushBereich();
+      renderFotoSicherung();
       einstellungenBefuellen();
       document.getElementById('modalEinstellungen').classList.add('zeigen');
     });
@@ -1473,7 +1561,7 @@
     // ============================================================
     // Schlüssel, die bewusst NICHT exportiert/importiert werden: geräte-/sitzungsspezifisch,
     // würden auf einem anderen Gerät keinen Sinn ergeben oder sich automatisch neu bilden.
-    const BACKUP_AUSSCHLUSS = ['planer_geraeteId', 'planer_syncStatus', 'planer_geraetIdentitaet'];
+    const BACKUP_AUSSCHLUSS = ['planer_geraeteId', 'planer_syncStatus', 'planer_geraetIdentitaet', 'planer_fotoSicherung'];
 
     function alleBackupSchluessel() {
       const keys = [];
