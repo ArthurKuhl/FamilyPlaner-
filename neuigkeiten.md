@@ -2,6 +2,15 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
+## 2026-10-19 | 🎉 Euer Familienjahr
+Im Dezember und Januar erscheint auf der Übersicht der Jahresrückblick: Ernten, gekochte Lieblingsgerichte, Ausflüge, Sport, Haushalt, Sterne der Kinder, gefahrene Kilometer und mehr. Mit „📤 Als Bild teilen“ geht er als schönes Bild an Oma & Opa. Jederzeit auch über ☰ Mehr → 🎉 Rückblick.
+
+## 2026-10-19 | 🚗 Fahrzeuge
+Neuer Bereich für Auto, Motorrad & Co.: TÜV, Inspektion und Reifenwechsel im Blick (mit 📅 Termin-Erinnerung), Tankbuch mit Verbrauch und Kosten pro Jahr und ein Werkstattheft. Eine eingetragene HU oder Inspektion setzt den nächsten Termin automatisch.
+
+## 2026-10-19 | ⭐ Sterne in Taschengeld tauschen
+In der Kinderecke lässt sich unter ⚙️ einstellen, wie viele Sterne wie viel Taschengeld wert sind (z.B. 10 ⭐ = 1 €). Die Kinder tauschen dann selbst – der Betrag landet direkt im Taschengeld-Konto unter Finanzen.
+
 ## 2026-10-19 | 🔍 Pflanzen per Foto bestimmen
 Im Pflanzen-Steckbrief (🔍) oder unter „🧺 Wissen & Historie → 🔍 Pflanze bestimmen“: Foto aufnehmen, Pl@ntNet schlägt die passende Art mit deutschem Namen vor – mit „Übernehmen“ wird die Pflanze direkt richtig benannt.
 
