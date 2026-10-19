@@ -221,6 +221,27 @@
   .beispiel-text { font-size: 0.74rem; color: var(--soil); line-height: 1.4; }
   .beispiel-tipp { font-size: 0.7rem; color: var(--moss-text, var(--moss)); margin-top: 4px; font-weight: 600; }
   html[data-dark="1"] .beispiel-tipp { color: var(--sage); }
+  /* 🔍 Pflanze bestimmen */
+  .pn-bilder { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pn-bild { position: relative; width: 74px; height: 74px; border-radius: 12px; overflow: hidden; border: 1px solid var(--parchment); }
+  .pn-bild img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .pn-bild button { position: absolute; top: 3px; right: 3px; width: 22px; height: 22px; border-radius: 50%; border: none; background: rgba(0,0,0,0.6); color: #fff; font-size: 0.7rem; cursor: pointer; }
+  .pn-bild-neu { width: 74px; height: 74px; border-radius: 12px; border: 2px dashed var(--sage); background: var(--white); color: var(--soil); cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 1.3rem; font-family: inherit; }
+  .pn-bild-neu span { font-size: 0.6rem; font-weight: 600; }
+  .pn-organe { display: flex; flex-wrap: wrap; gap: 5px; }
+  .pn-titel { font-weight: 700; font-size: 0.85rem; margin: 14px 0 6px; }
+  .pn-treffer { border: 1px solid var(--parchment); border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; background: var(--white); }
+  .pn-treffer.erster { border-color: var(--sage); box-shadow: 0 0 0 1px var(--sage) inset; }
+  .pn-treffer-kopf { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+  .pn-name { font-weight: 700; font-size: 0.95rem; }
+  .pn-prozent { font-weight: 700; font-size: 0.85rem; color: var(--moss-text, var(--moss)); }
+  .pn-wiss { font-size: 0.72rem; color: var(--bark); margin-top: 2px; }
+  .pn-balken { height: 6px; border-radius: 999px; background: var(--parchment); overflow: hidden; margin: 6px 0; }
+  .pn-balken span { display: block; height: 100%; background: var(--sage); }
+  .pn-knoepfe { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .pn-link { font-size: 0.75rem; color: var(--moss-text, var(--moss)); background: none; border: none; text-decoration: underline; cursor: pointer; font-family: inherit; }
+  .pn-fehler { margin-top: 12px; padding: 10px 12px; border-radius: 10px; background: rgba(196,107,65,0.12); font-size: 0.8rem; line-height: 1.45; }
+  .pn-fuss { font-size: 0.68rem; color: var(--bark); margin-top: 6px; line-height: 1.4; }
   #gartenToast { position: fixed; left: 50%; bottom: 22px; transform: translate(-50%, 30px); opacity: 0; z-index: 9999; display: flex; align-items: center; gap: 12px;
     background: #2a2016; color: #f0e8d8; padding: 10px 16px; border-radius: 22px; box-shadow: 0 4px 16px rgba(0,0,0,0.3); font-size: 0.84rem; font-weight: 600;
     width: max-content; max-width: calc(100vw - 24px); transition: opacity 0.2s, transform 0.2s; pointer-events: none; }
@@ -793,6 +814,7 @@
         <button class="tool-btn" onclick="openHarvestJournal();closeDropdowns()" title="Alle Ernten chronologisch, nach Jahr">🧺 Erntebuch</button>
         <button class="tool-btn" onclick="openVarietyDB();closeDropdowns()" title="Eigene Sortenerfahrungen">🌾 Sorten</button>
         <button class="tool-btn" onclick="openStats();closeDropdowns()" title="Überblick über Beete & Pflanzen">📊 Statistik</button>
+        <button class="tool-btn" onclick="pflanzeBestimmenOeffnen(null);closeDropdowns()" title="Unbekannte Pflanze per Foto bestimmen (Pl@ntNet)">🔍 Pflanze bestimmen</button>
       </div>
     </div>
     <div class="tool-sep"></div>
@@ -1225,6 +1247,7 @@
   <div class="plant-panel-header" id="plantPanelHeader">
     <button class="close-btn pp-close-btn-oben" aria-label="Pflanzenpanel schließen" onclick="closePlantPanel()">✕</button>
     <div class="pp-header-actions">
+      <button type="button" class="pp-foto-btn" id="btnPpBestimmen" title="Pflanze per Foto bestimmen (Pl@ntNet)" aria-label="Pflanze bestimmen" onclick="if(activePlantBedId)pflanzeBestimmenOeffnen({typ:'beet',bedId:activePlantBedId.bedId,idx:activePlantBedId.idx})">🔍</button>
       <button type="button" class="pp-foto-btn" id="btnPpFotoOeffnen" title="Foto hinzufügen/ändern" aria-label="Foto hinzufügen">📷</button>
       <button type="button" class="pp-foto-btn" id="btnPpFotoTeilen" title="Sichtbarkeit: Familie oder nur ich" aria-label="Sichtbarkeit umschalten" style="display:none;">👪</button>
       <button type="button" class="pp-foto-btn" id="btnPpFotoMalen" title="Foto als Malerei (Bleistift, Aquarell …)" aria-label="Malstil anwenden" style="display:none;">🎨</button>
@@ -1471,6 +1494,7 @@
   <div class="plant-panel-header" id="freiPflanzePanelHeader">
     <button class="close-btn pp-close-btn-oben" aria-label="Panel schließen" onclick="fpSchliessen()">✕</button>
     <div class="pp-header-actions">
+      <button type="button" class="pp-foto-btn" id="btnFpBestimmen" title="Pflanze per Foto bestimmen (Pl@ntNet)" aria-label="Pflanze bestimmen" onclick="if(activeFreiPflanzeId)pflanzeBestimmenOeffnen({typ:'frei',id:activeFreiPflanzeId})">🔍</button>
       <button type="button" class="pp-foto-btn" id="btnFpFotoOeffnen" title="Foto hinzufügen/ändern" aria-label="Foto hinzufügen">📷</button>
       <button type="button" class="pp-foto-btn" id="btnFpFotoTeilen" title="Sichtbarkeit: Familie oder nur ich" aria-label="Sichtbarkeit umschalten" style="display:none;">👪</button>
       <button type="button" class="pp-foto-btn" id="btnFpFotoMalen" title="Foto als Malerei (Bleistift, Aquarell …)" aria-label="Malstil anwenden" style="display:none;">🎨</button>
@@ -1615,6 +1639,41 @@
     <div id="beetFotoInfo" style="font-size:0.7rem;color:var(--bark);margin-top:8px"></div>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="beetFotoModalSchliessen()">Schließen</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Pflanze bestimmen (Pl@ntNet) -->
+<div class="modal-bg" id="plantnetModal" style="display:none" onclick="if(event.target===this)pflanzeBestimmenSchliessen()">
+  <div class="modal" style="width:min(480px,94vw);max-height:90vh;overflow-y:auto">
+    <h2>🔍 Pflanze bestimmen</h2>
+    <div id="pnSchluesselBox" style="display:none">
+      <p style="font-size:0.8rem;line-height:1.5;margin-bottom:10px">Die Bestimmung läuft über <b>Pl@ntNet</b> (kostenlos, 500 Bestimmungen am Tag). Dafür braucht die App einmalig einen Schlüssel:</p>
+      <ol style="font-size:0.78rem;line-height:1.5;margin:0 0 10px 18px">
+        <li>Auf <a href="https://my.plantnet.org/signup" target="_blank" rel="noopener">my.plantnet.org</a> kostenlos registrieren</li>
+        <li>Unter „Settings → API key“ einen Schlüssel erzeugen</li>
+        <li>„expose my API key“ anhaken und bei „Authorized domains“ die Adresse dieser App eintragen</li>
+      </ol>
+      <div style="display:flex;gap:6px"><input type="text" id="pnSchluesselInput" placeholder="Schlüssel einfügen" style="flex:1;min-width:0" autocomplete="off"><button type="button" class="tool-btn" onclick="pnSchluesselSpeichern()">Speichern</button></div>
+      <p style="font-size:0.7rem;color:var(--bark);margin-top:6px">Wird nur auf diesem Gerät gespeichert.</p>
+    </div>
+    <div id="pnHauptBox">
+      <p style="font-size:0.78rem;color:var(--bark);margin-bottom:8px">Bis zu 5 Fotos derselben Pflanze – je schärfer und näher (ein Blatt, eine Blüte), desto besser.</p>
+      <div class="pn-bilder" id="pnBilder"></div>
+      <input type="file" id="pnBildInput" accept="image/*" multiple style="display:none" onchange="pnBilderGewaehlt(event)">
+      <div style="font-size:0.74rem;font-weight:700;margin:10px 0 5px">Was ist auf den Fotos zu sehen?</div>
+      <div class="pn-organe">
+        <button type="button" class="saat-chip" data-pn-organ="auto" onclick="pnOrganSetzen('auto')">✨ Automatisch</button>
+        <button type="button" class="saat-chip" data-pn-organ="leaf" onclick="pnOrganSetzen('leaf')">🍃 Blatt</button>
+        <button type="button" class="saat-chip" data-pn-organ="flower" onclick="pnOrganSetzen('flower')">🌸 Blüte</button>
+        <button type="button" class="saat-chip" data-pn-organ="fruit" onclick="pnOrganSetzen('fruit')">🍎 Frucht</button>
+        <button type="button" class="saat-chip" data-pn-organ="bark" onclick="pnOrganSetzen('bark')">🪵 Rinde</button>
+      </div>
+      <button type="button" class="btn-primary" id="btnPnBestimmen" onclick="pnBestimmen()" style="margin-top:12px">🔍 Bestimmen</button>
+      <div id="pnErgebnis"></div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="pflanzeBestimmenSchliessen()">Schließen</button>
     </div>
   </div>
 </div>
@@ -4834,6 +4893,168 @@ function renderTemplateList() {
       <button class="bed-item-del" onclick="deleteTemplate('${t.id}')" title="Vorlage löschen">🗑</button>
     </div>`).join('');
 }
+// ==================== 🔍 PFLANZE BESTIMMEN (Pl@ntNet) ====================
+// Bis zu 5 Fotos einer Pflanze → Pl@ntNet schlägt die wahrscheinlichsten Arten vor (deutsche Namen).
+// Schlüssel: kostenlos auf my.plantnet.org, dort „expose my API key“ + eigene github.io-Adresse unter
+// „Authorized domains“ eintragen – dann funktioniert er nur von dieser App aus.
+const PLANTNET_KEY = ''; // familienweiter Schlüssel (hier eintragen); sonst pro Gerät im Bestimmen-Fenster
+const PLANTNET_KEY_LOKAL = 'garten_plantnetKey';
+let pnBilder = [];          // [{ blob, url }]
+let pnOrgan = 'auto';
+let pnKontext = null;       // { typ: 'beet', bedId, idx } | { typ: 'frei', id } | null (nur nachschlagen)
+function plantnetSchluessel() {
+  let lokal = '';
+  try { lokal = localStorage.getItem(PLANTNET_KEY_LOKAL) || ''; } catch (e) {}
+  return (lokal || PLANTNET_KEY || '').trim();
+}
+function pnBildVerkleinern(quelle) {
+  return new Promise((ok, fehler) => {
+    const img = new Image();
+    img.onload = () => {
+      const max = 1280, f = Math.min(1, max / Math.max(img.width, img.height));
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.width * f); c.height = Math.round(img.height * f);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      c.toBlob(b => b ? ok({ blob: b, url: URL.createObjectURL(b) }) : fehler(new Error('Bild')), 'image/jpeg', 0.85);
+    };
+    img.onerror = () => fehler(new Error('Bild konnte nicht gelesen werden'));
+    img.src = quelle;
+  });
+}
+function pflanzeBestimmenOeffnen(kontext) {
+  pnKontext = kontext || null;
+  pnBilder.forEach(b => URL.revokeObjectURL(b.url));
+  pnBilder = [];
+  document.getElementById('pnErgebnis').innerHTML = '';
+  // vorhandenes Foto der Pflanze gleich mitverwenden
+  let objekt = null;
+  if (pnKontext && pnKontext.typ === 'beet') { const bed = getCurrentBeds().find(b => b.id === pnKontext.bedId); objekt = bed && bed.plants[pnKontext.idx]; }
+  if (pnKontext && pnKontext.typ === 'frei') objekt = getCurrentFreiPflanzen().find(x => x.id === pnKontext.id);
+  const foto = objekt && typeof ppFotoTitelbild === 'function' ? ppFotoTitelbild(objekt) : null;
+  const daten = foto && (foto.data || foto.photo);
+  const fertig = () => { pnRendern(); document.getElementById('plantnetModal').style.display = 'flex'; };
+  if (daten && String(daten).indexOf('data:image') === 0) pnBildVerkleinern(daten).then(b => { pnBilder.push(b); fertig(); }).catch(fertig);
+  else fertig();
+}
+function pflanzeBestimmenSchliessen() { document.getElementById('plantnetModal').style.display = 'none'; }
+function pnRendern() {
+  const schluessel = plantnetSchluessel();
+  document.getElementById('pnSchluesselBox').style.display = schluessel ? 'none' : '';
+  document.getElementById('pnHauptBox').style.display = schluessel ? '' : 'none';
+  document.getElementById('pnBilder').innerHTML = pnBilder.map((b, i) =>
+    `<div class="pn-bild"><img src="${b.url}" alt=""><button type="button" onclick="pnBildEntfernen(${i})" aria-label="Foto entfernen">✕</button></div>`).join('') +
+    (pnBilder.length < 5 ? `<button type="button" class="pn-bild-neu" onclick="document.getElementById('pnBildInput').click()">📷<span>${pnBilder.length ? 'Noch ein Foto' : 'Foto aufnehmen'}</span></button>` : '');
+  document.querySelectorAll('[data-pn-organ]').forEach(b => b.classList.toggle('an', b.dataset.pnOrgan === pnOrgan));
+  document.getElementById('btnPnBestimmen').disabled = !pnBilder.length;
+}
+function pnBildEntfernen(i) { const b = pnBilder.splice(i, 1)[0]; if (b) URL.revokeObjectURL(b.url); pnRendern(); }
+function pnOrganSetzen(o) { pnOrgan = o; pnRendern(); }
+function pnBilderGewaehlt(e) {
+  const dateien = Array.from(e.target.files || []).slice(0, 5 - pnBilder.length);
+  e.target.value = '';
+  Promise.all(dateien.map(d => new Promise(ok => { const r = new FileReader(); r.onload = ev => ok(ev.target.result); r.onerror = () => ok(null); r.readAsDataURL(d); })))
+    .then(liste => Promise.all(liste.filter(Boolean).map(q => pnBildVerkleinern(q).catch(() => null))))
+    .then(bilder => { bilder.filter(Boolean).forEach(b => pnBilder.push(b)); pnRendern(); });
+}
+function pnSchluesselSpeichern() {
+  const wert = document.getElementById('pnSchluesselInput').value.trim();
+  if (!wert) return;
+  try { localStorage.setItem(PLANTNET_KEY_LOKAL, wert); } catch (e) {}
+  pnRendern();
+}
+function pnKatalogTreffer(namen) {
+  for (const n of namen) {
+    const k = String(n || '').trim().toLowerCase();
+    if (!k) continue;
+    const p = PLANTS.find(x => x.name.toLowerCase() === k || x.name.toLowerCase().replace(/\s*\(.*\)/, '') === k);
+    if (p) return p;
+    const alias = PFLANZEN_BEDINGUNGEN_ALIAS[k];
+    if (alias) { const p2 = PLANTS.find(x => x.name === alias); if (p2) return p2; }
+  }
+  return null;
+}
+let pnLetzteErgebnisse = [];
+async function pnBestimmen() {
+  const box = document.getElementById('pnErgebnis');
+  const schluessel = plantnetSchluessel();
+  if (!schluessel || !pnBilder.length) return;
+  if (!navigator.onLine) { box.innerHTML = '<div class="pn-fehler">⚠ Keine Internetverbindung.</div>'; return; }
+  const btn = document.getElementById('btnPnBestimmen');
+  btn.disabled = true; btn.textContent = '⏳ Pl@ntNet sucht …';
+  box.innerHTML = '';
+  try {
+    const fd = new FormData();
+    pnBilder.forEach((b, i) => { fd.append('images', b.blob, 'pflanze' + (i + 1) + '.jpg'); fd.append('organs', pnOrgan); });
+    const url = 'https://my-api.plantnet.org/v2/identify/all?api-key=' + encodeURIComponent(schluessel) + '&lang=de&nb-results=5';
+    const res = await fetch(url, { method: 'POST', body: fd });
+    let daten = null;
+    try { daten = await res.json(); } catch (e) {}
+    if (!res.ok) {
+      const meldung = res.status === 404 ? 'Keine Pflanze erkannt. Probier ein schärferes Foto aus der Nähe – am besten ein einzelnes Blatt, eine Blüte oder Frucht.'
+        : (res.status === 401 || res.status === 403) ? 'Der Schlüssel wird nicht akzeptiert. Ist er richtig, und ist diese Adresse bei Pl@ntNet unter „Authorized domains“ eingetragen?'
+        : res.status === 429 ? 'Das Tageskontingent ist aufgebraucht – morgen geht es wieder.'
+        : 'Pl@ntNet antwortet gerade nicht (' + res.status + (daten && daten.message ? ': ' + daten.message : '') + ').';
+      box.innerHTML = '<div class="pn-fehler">⚠ ' + escapeHtml(meldung) + '</div>' +
+        ((res.status === 401 || res.status === 403) ? '<button type="button" class="pn-link" onclick="pnSchluesselAendern()">Schlüssel ändern</button>' : '');
+      return;
+    }
+    pnLetzteErgebnisse = (daten.results || []).slice(0, 5);
+    if (!pnLetzteErgebnisse.length) { box.innerHTML = '<div class="pn-fehler">Keine Treffer – anderes Foto probieren.</div>'; return; }
+    box.innerHTML = '<div class="pn-titel">Wahrscheinlich ist es …</div>' + pnLetzteErgebnisse.map((r, i) => {
+      const sp = r.species || {};
+      const deutsch = (sp.commonNames || [])[0] || '';
+      const wiss = sp.scientificNameWithoutAuthor || sp.scientificName || '';
+      const katalog = pnKatalogTreffer((sp.commonNames || []).concat([wiss]));
+      const prozent = Math.round((r.score || 0) * 100);
+      return `<div class="pn-treffer${i === 0 ? ' erster' : ''}">
+        <div class="pn-treffer-kopf"><span class="pn-name">${katalog ? katalog.sym + ' ' : ''}${escapeHtml(deutsch || wiss)}</span><span class="pn-prozent">${prozent} %</span></div>
+        <div class="pn-wiss"><i>${escapeHtml(wiss)}</i>${sp.family && sp.family.scientificNameWithoutAuthor ? ' · ' + escapeHtml(sp.family.scientificNameWithoutAuthor) : ''}${(sp.commonNames || []).length > 1 ? ' · auch: ' + escapeHtml(sp.commonNames.slice(1, 3).join(', ')) : ''}</div>
+        <div class="pn-balken"><span style="width:${prozent}%"></span></div>
+        <div class="pn-knoepfe">
+          ${pnKontext ? `<button type="button" class="tool-btn" onclick="pnUebernehmen(${i})">✓ Übernehmen${katalog && katalog.name !== deutsch ? ' als „' + escapeHtml(katalog.name) + '“' : ''}</button>` : ''}
+          ${r.gbif && r.gbif.id ? `<a class="pn-link" href="https://www.gbif.org/species/${encodeURIComponent(r.gbif.id)}" target="_blank" rel="noopener">Mehr dazu ↗</a>` : ''}
+        </div>
+      </div>`;
+    }).join('') +
+    `<div class="pn-fuss">Bestimmung: Pl@ntNet${typeof daten.remainingIdentificationRequests === 'number' ? ' · heute noch ' + daten.remainingIdentificationRequests + ' Bestimmungen' : ''} · Ergebnisse sind Vorschläge, keine Garantie (Vorsicht bei Giftpflanzen und Pilzen!).</div>`;
+  } catch (e) {
+    box.innerHTML = '<div class="pn-fehler">⚠ Pl@ntNet war nicht erreichbar. Später erneut versuchen.</div>';
+  } finally {
+    btn.disabled = !pnBilder.length; btn.textContent = '🔍 Bestimmen';
+  }
+}
+function pnSchluesselAendern() {
+  try { localStorage.removeItem(PLANTNET_KEY_LOKAL); } catch (e) {}
+  document.getElementById('pnSchluesselBox').style.display = '';
+  document.getElementById('pnHauptBox').style.display = 'none';
+}
+function pnUebernehmen(i) {
+  const r = pnLetzteErgebnisse[i];
+  if (!r || !pnKontext) return;
+  const sp = r.species || {};
+  const katalog = pnKatalogTreffer((sp.commonNames || []).concat([sp.scientificNameWithoutAuthor || '']));
+  const name = katalog ? katalog.name : ((sp.commonNames || [])[0] || sp.scientificNameWithoutAuthor || 'Pflanze');
+  pushUndo();
+  if (pnKontext.typ === 'beet') {
+    const bed = getCurrentBeds().find(b => b.id === pnKontext.bedId);
+    const plant = bed && bed.plants[pnKontext.idx];
+    if (!plant) return;
+    if (katalog) plant.sym = katalog.sym;
+    document.getElementById('ppName').value = name;
+    savePlantInfo();
+    openPlantPanel(bed, pnKontext.idx);
+  } else if (pnKontext.typ === 'frei') {
+    const fp = getCurrentFreiPflanzen().find(x => x.id === pnKontext.id);
+    if (!fp) return;
+    if (katalog) fp.sym = katalog.sym;
+    document.getElementById('fpName').value = name;
+    fpAutoSave();
+    openFreiPflanzePanel(fp);
+  }
+  pflanzeBestimmenSchliessen();
+  showTempStatus('🔍 Als „' + name + '“ übernommen', 3);
+}
+
 // ==================== BEISPIELBEETE (bewährte Mischkultur-Kombinationen) ====================
 // Fest eingebaut, nicht synchronisiert. „Einfügen“ legt ein normales Beet an (Rechteck, Pflanzen
 // in Reihen nach Art gruppiert), danach ist es wie jedes andere Beet frei veränderbar.

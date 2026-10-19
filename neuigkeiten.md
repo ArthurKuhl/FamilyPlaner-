@@ -2,6 +2,9 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
+## 2026-10-19 | 🔍 Pflanzen per Foto bestimmen
+Im Pflanzen-Steckbrief (🔍) oder unter „🧺 Wissen & Historie → 🔍 Pflanze bestimmen“: Foto aufnehmen, Pl@ntNet schlägt die passende Art mit deutschem Namen vor – mit „Übernehmen“ wird die Pflanze direkt richtig benannt.
+
 ## 2026-10-19 | 🧒 Kinderecke
 Ein eigener Bereich für die Kinder: ihre Aufgaben mit „Erledigt! ⭐“, Sterne sammeln und gegen Belohnungen eintauschen, Taschengeld-Stand, Tier-Entdeckungen und ein Geburtstags-Countdown. Eltern legen unter ⚙️ fest, wer die Kinder sind und welche Belohnungen es gibt.
 
