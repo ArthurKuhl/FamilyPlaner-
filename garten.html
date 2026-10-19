@@ -132,7 +132,11 @@
   .tool-label { font-size: 0.62rem; color: var(--sage); font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; margin-top: 4px; }
   .tool-label:first-child { margin-top: 0; }
   .tool-btn { background: var(--moss); color: var(--on-moss, var(--leaf)); border: none; border-radius: var(--radius-sm); padding: 6px 11px; font-size: 0.75rem; font-family: 'Inter', sans-serif; cursor: pointer; transition: all 0.15s; font-weight: 500; }
-  .tool-btn:hover { background: var(--sage); color: var(--soil); box-shadow: var(--shadow-soft); }
+  /* Hover nur mit Maus – am Handy bliebe er nach dem Antippen „hängen“ */
+  @media (hover: hover) {
+    .tool-btn:hover { background: var(--sage); color: var(--soil); box-shadow: var(--shadow-soft); }
+    html[data-dark="1"] .tool-btn:hover { color: #16140f; }
+  }
   .tool-btn.active { background: var(--leaf); color: var(--soil); }
   .tool-btn:disabled { opacity: 0.4; cursor: not-allowed; }
   .tool-btn.danger { background: #7a2e1e; color: #f4c6b4; }
@@ -340,7 +344,8 @@
   .form-row input:focus, .form-row select:focus, .form-row textarea:focus { outline: none; border-color: var(--moss); box-shadow: 0 0 0 3px rgba(79,111,69,0.12); }
   .form-row textarea { resize: vertical; min-height: 52px; }
   .btn-primary { background: var(--moss); color: var(--on-moss, var(--white)); border: none; border-radius: var(--radius-pill); padding: 10px 14px; font-size: 0.8rem; font-family: 'Inter', sans-serif; font-weight: 700; cursor: pointer; width: 100%; transition: all 0.15s; }
-  .btn-primary:hover { background: var(--sage); box-shadow: var(--shadow-soft); }
+  @media (hover: hover) { .btn-primary:hover { filter: brightness(1.12); box-shadow: var(--shadow-soft); } }
+  .btn-primary:disabled { opacity: 0.55; cursor: default; }
   .btn-secondary { background: transparent; color: var(--moss-text, var(--moss)); border: 1px solid var(--moss); border-radius: var(--radius-pill); padding: 8px 12px; font-size: 0.78rem; font-family: 'Inter', sans-serif; font-weight: 700; cursor: pointer; width: 100%; margin-top: 5px; transition: all 0.15s; }
   .btn-secondary:hover { background: var(--moss); color: var(--on-moss, white); box-shadow: var(--shadow-soft); }
 
