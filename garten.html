@@ -205,6 +205,16 @@
   .vlist-beet-foto.leer { opacity: 0.6; border-style: dashed; }
   .vlist-hinweis-zahl { color: var(--terracotta-text); font-weight: 700; }
   /* Beet-Hinweise (Mischkultur, Nährstoffe, Fruchtfolge, Platz …) */
+  .beispiel-filter { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin-bottom: 10px; padding-bottom: 2px; }
+  .beispiel-filter::-webkit-scrollbar { display: none; }
+  .beispiel-karte { border: 1px solid var(--parchment); border-left: 4px solid var(--bf, #7a9e72); border-radius: var(--radius-md); padding: 10px 12px; margin-bottom: 8px; background: var(--white); }
+  .beispiel-kopf { display: flex; align-items: center; gap: 8px; }
+  .beispiel-titel { flex: 1; min-width: 0; font-weight: 700; font-size: 0.86rem; }
+  .beispiel-meta { font-size: 0.68rem; color: var(--bark); margin-top: 2px; }
+  .beispiel-pflanzen { display: flex; flex-wrap: wrap; gap: 4px; margin: 7px 0 5px; }
+  .beispiel-pflanzen span { background: var(--cream); border: 1px solid var(--parchment); border-radius: 999px; padding: 2px 8px; font-size: 0.72rem; }
+  .beispiel-text { font-size: 0.74rem; color: var(--soil); line-height: 1.4; }
+  .beispiel-tipp { font-size: 0.7rem; color: var(--moss); margin-top: 4px; font-weight: 600; }
   .beet-hinweise { margin: 0 12px 8px; border-radius: var(--radius-sm); border: 1px solid var(--parchment); overflow: hidden; background: rgba(127,164,118,0.06); }
   .beet-hinweise-kopf { width: 100%; display: flex; align-items: center; gap: 6px; padding: 8px 10px; background: none; border: none; font-family: inherit; font-size: 0.76rem; font-weight: 700; color: var(--soil); cursor: pointer; text-align: left; touch-action: manipulation; }
   .beet-hinweise-kopf .vlist-pfeil { margin-left: auto; }
@@ -1648,6 +1658,10 @@
     <h2>🧩 Beet-Vorlagen</h2>
     <p style="font-size:0.72rem;color:var(--bark);margin-bottom:10px">Speichere die Form, Farbe und Pflanzbelegung eines Beets als Vorlage und füge sie in beliebige Gärten ein. Gilt gartenübergreifend.</p>
     <div id="templateListBox" class="bed-list"></div>
+    <div class="sidebar-title" style="margin:18px 0 4px">📚 Beispielbeete</div>
+    <p style="font-size:0.72rem;color:var(--bark);margin-bottom:10px">Bewährte Mischkultur-Kombinationen zum Übernehmen – „Einfügen“ legt ein neues Beet mit allen Pflanzen an, danach frei anpassbar.</p>
+    <div class="beispiel-filter" id="beispielFilter"></div>
+    <div id="beispielBeeteBox"></div>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="document.getElementById('templateModal').style.display='none'">Schließen</button>
     </div>
@@ -4684,12 +4698,13 @@ function saveBedAsTemplate() {
 }
 function openTemplateModal() {
   renderTemplateList();
+  renderBeispielBeete();
   document.getElementById('templateModal').style.display = 'flex';
 }
 function renderTemplateList() {
   const box = document.getElementById('templateListBox');
   if (!bedTemplates.length) {
-    box.innerHTML = '<div class="empty-state">Noch keine Vorlagen gespeichert. Wähle ein Beet aus und klicke im Beet-Editor auf "💾 Als Vorlage speichern".</div>';
+    box.innerHTML = '<div style="font-size:0.74rem;color:var(--bark);padding:8px 10px;border:1px dashed var(--parchment);border-radius:var(--radius-sm)">Noch keine eigenen Vorlagen – im Beet-Editor über „💾 Als Vorlage speichern“ anlegen.</div>';
     return;
   }
   const shapeLabel = { circle: 'Rund', rect: 'Rechteckig', tri: 'Dreieckig', lshape: 'L-Form', freehand: 'Freiform' };
@@ -4704,6 +4719,104 @@ function renderTemplateList() {
       <button class="bed-item-del" onclick="deleteTemplate('${t.id}')" title="Vorlage löschen">🗑</button>
     </div>`).join('');
 }
+// ==================== BEISPIELBEETE (bewährte Mischkultur-Kombinationen) ====================
+// Fest eingebaut, nicht synchronisiert. „Einfügen“ legt ein normales Beet an (Rechteck, Pflanzen
+// in Reihen nach Art gruppiert), danach ist es wie jedes andere Beet frei veränderbar.
+// zehrer: Hauptkultur des Beets – S = Starkzehrer, M = Mittelzehrer, W = Schwachzehrer (für die Fruchtfolge)
+const BEISPIEL_BEETE = [
+  { id: 'tomate', icon: '🍅', name: 'Tomatenbeet', zehrer: 'S', w: 240, h: 120, farbe: '#c0633a',
+    pflanzen: [['Tomate', 4], ['Basilikum', 4], ['Karotte', 8], ['Zwiebel', 6], ['Ringelblume', 2]],
+    text: 'Basilikum und Ringelblume halten Schädlinge fern, Karotten und Zwiebeln nutzen den Platz zwischen den Tomaten.',
+    tipp: 'Mit Regendach oder an der Hauswand gibt es deutlich weniger Braunfäule.' },
+  { id: 'kohl', icon: '🥬', name: 'Kohlbeet', zehrer: 'S', w: 240, h: 120, farbe: '#4a6741',
+    pflanzen: [['Weißkohl', 4], ['Sellerie', 3], ['Salat', 6], ['Thymian', 2], ['Kapuzinerkresse', 2]],
+    text: 'Sellerie und Thymian verwirren den Kohlweißling, Kapuzinerkresse lockt Läuse weg, Salat füllt die Lücken, bis der Kohl groß ist.',
+    tipp: 'Kulturschutznetz drüber – dann bleibt der Kohl raupenfrei.' },
+  { id: 'gurke', icon: '🥒', name: 'Gurkenbeet', zehrer: 'S', w: 200, h: 120, farbe: '#7a9e72',
+    pflanzen: [['Gurke', 4], ['Dill', 3], ['Salat', 6], ['Radieschen', 12]],
+    text: 'Dill gilt als klassischer Gurkenbegleiter, Salat und Radieschen beschatten den Boden und sind geerntet, bevor die Gurken ranken.',
+    tipp: 'Rankhilfe einplanen und nur mit lauwarmem Wasser gießen.' },
+  { id: 'dreischwestern', icon: '🌽', name: 'Drei Schwestern', zehrer: 'S', w: 300, h: 200, farbe: '#d6a84a',
+    pflanzen: [['Mais', 9], ['Bohnen', 9], ['Kürbis', 2]],
+    text: 'Alte Mischkultur aus Amerika: Mais ist Rankhilfe für die Bohnen, die Bohnen binden Stickstoff, die Kürbisblätter beschatten den Boden.',
+    tipp: 'Erst den Mais säen, die Bohnen, wenn er ca. 15 cm hoch ist.' },
+  { id: 'wurzel', icon: '🥕', name: 'Wurzelbeet', zehrer: 'M', w: 150, h: 100, farbe: '#8b6f47',
+    pflanzen: [['Karotte', 12], ['Zwiebel', 10], ['Lauch (Porree)', 6], ['Radieschen', 12]],
+    text: 'Karotte und Zwiebel/Lauch schützen sich gegenseitig: die Möhrenfliege mag den Zwiebelgeruch nicht, die Zwiebelfliege nicht den der Möhre.',
+    tipp: 'Gut nach einem Starkzehrer-Beet – kein frischer Mist, sonst gabeln sich die Karotten.' },
+  { id: 'erdbeere', icon: '🍓', name: 'Erdbeerbeet', zehrer: 'M', w: 200, h: 100, farbe: '#c0633a',
+    pflanzen: [['Erdbeere', 8], ['Knoblauch', 6], ['Spinat', 6], ['Salat', 4]],
+    text: 'Knoblauch zwischen den Erdbeeren beugt Pilzkrankheiten vor, Spinat und Salat nutzen die Zeit, bis die Erdbeeren sich ausbreiten.',
+    tipp: 'Stroh unterlegen und nach 3–4 Jahren einen neuen Platz suchen.' },
+  { id: 'kraeuter', icon: '🌿', name: 'Kräuterbeet', zehrer: 'W', w: 150, h: 100, farbe: '#5b8bb5',
+    pflanzen: [['Thymian', 2], ['Rosmarin', 1], ['Salbei', 2], ['Oregano', 2], ['Schnittlauch', 3]],
+    text: 'Mediterrane Kräuter mögen es mager und trocken – sie brauchen kaum Dünger und blühen für Bienen.',
+    tipp: 'Sand oder Kies einarbeiten, Staunässe ist der größte Feind. Gut nach einem Starkzehrer-Beet.' },
+  { id: 'bienen', icon: '🐝', name: 'Bienenbeet', zehrer: 'W', w: 200, h: 100, farbe: '#d6a84a',
+    pflanzen: [['Ringelblume', 3], ['Borretsch', 2], ['Kornblume', 4], ['Lavendel', 2], ['Sonnenblume', 2]],
+    text: 'Blüht von Juni bis in den Herbst und lockt Bestäuber an – davon profitieren Gurken, Kürbis und Obst in der Nähe.',
+    tipp: 'Verblühtes abschneiden verlängert die Blüte, Borretsch sät sich gern selbst aus.' },
+];
+const BEISPIEL_ZEHRER = { S: '🍽️ Starkzehrer', M: '🥣 Mittelzehrer', W: '🥄 Schwachzehrer' };
+let beispielFilterWert = 'alle';
+function beispielFilterSetzen(f) { beispielFilterWert = f; renderBeispielBeete(); }
+function renderBeispielBeete() {
+  const filterBox = document.getElementById('beispielFilter');
+  const box = document.getElementById('beispielBeeteBox');
+  if (!filterBox || !box) return;
+  const chip = (k, t) => `<button type="button" class="saat-chip${beispielFilterWert === k ? ' an' : ''}" onclick="beispielFilterSetzen('${k}')">${t}</button>`;
+  filterBox.innerHTML = chip('alle', 'Alle') + chip('S', BEISPIEL_ZEHRER.S) + chip('M', BEISPIEL_ZEHRER.M) + chip('W', BEISPIEL_ZEHRER.W);
+  const liste = BEISPIEL_BEETE.filter(b => beispielFilterWert === 'alle' || b.zehrer === beispielFilterWert);
+  box.innerHTML = liste.map(b => {
+    const anzahl = b.pflanzen.reduce((s, [, n]) => s + n, 0);
+    const mehrjaehrig = b.pflanzen.some(([n]) => isPerennial(n));
+    const pflanzen = b.pflanzen.map(([n, a]) => {
+      const p = PLANTS.find(x => x.name === n);
+      return `<span>${p ? p.sym : '🌱'} ${escapeHtml(n)} ×${a}</span>`;
+    }).join('');
+    return `<div class="beispiel-karte" style="--bf:${b.farbe}">
+      <div class="beispiel-kopf">
+        <span class="beispiel-titel">${b.icon} ${escapeHtml(b.name)}
+          <div class="beispiel-meta">${BEISPIEL_ZEHRER[b.zehrer]} · ${zahlDe(b.w / 100)} × ${zahlDe(b.h / 100)} m · ${anzahl} Pflanzen${mehrjaehrig ? ' · 🔄 teils mehrjährig' : ''}</div></span>
+        <button class="tool-btn" style="padding:6px 10px;font-size:0.72rem;flex-shrink:0" onclick="beispielBeetEinfuegen('${b.id}')">➕ Einfügen</button>
+      </div>
+      <div class="beispiel-pflanzen">${pflanzen}</div>
+      <div class="beispiel-text">${escapeHtml(b.text)}</div>
+      ${b.tipp ? `<div class="beispiel-tipp">💡 ${escapeHtml(b.tipp)}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+function beispielBeetEinfuegen(id) {
+  const bsp = BEISPIEL_BEETE.find(b => b.id === id);
+  if (!bsp || !gardens[currentGardenId]) return;
+  // Pflanzen in einem Raster verteilen, nach Art gruppiert (Reihenfolge der Liste)
+  const namen = [];
+  bsp.pflanzen.forEach(([n, a]) => { for (let k = 0; k < a; k++) namen.push(n); });
+  const spalten = Math.max(1, Math.round(Math.sqrt(namen.length * bsp.w / bsp.h)));
+  const zeilen = Math.ceil(namen.length / spalten);
+  const zellW = bsp.w / spalten, zellH = bsp.h / zeilen;
+  const plants = namen.map((n, k) => ({
+    sym: (PLANTS.find(p => p.name === n) || {}).sym || '🌱', name: n, variety: '',
+    rx: -bsp.w / 2 + zellW * (k % spalten + 0.5), ry: -bsp.h / 2 + zellH * (Math.floor(k / spalten) + 0.5),
+    notes: '', date: '', location: '', pest: '', solution: '', harvests: [],
+  }));
+  // Name eindeutig machen, falls das Beispiel schon einmal eingefügt wurde
+  const vorhanden = getCurrentBeds().map(b => b.name);
+  let name = bsp.name, nr = 2;
+  while (vorhanden.includes(name)) name = bsp.name + ' ' + nr++;
+  pushUndo();
+  const jitter = () => Math.floor(Math.random() * 40) - 20;
+  const bed = { id: Date.now(), shape: 'rect', x: canvas.width / 2 + jitter(), y: canvas.height / 2 + jitter(),
+    w: bsp.w, h: bsp.h, color: bsp.farbe, name, rotation: 0, plants };
+  getCurrentBeds().push(bed);
+  selectedBed = bed; selectedBeds = [bed];
+  document.getElementById('templateModal').style.display = 'none';
+  showBedEditor(bed);
+  draw(); renderBedList(); saveData(); updateStatus();
+  beetFotoAnsichtenAktualisieren();
+  showTempStatus(`➕ „${name}“ angelegt – auf der Karte an die richtige Stelle ziehen`, 5);
+}
+
 function insertTemplate(id) {
   const tpl = bedTemplates.find(t => t.id === id);
   if (!tpl || !gardens[currentGardenId]) return;
@@ -7624,6 +7737,8 @@ function beetHinweise(bed) {
   kandidaten.forEach(k => {
     if (namen.includes(k) || k === 'Kräuter' || k === 'Blume' || beetIstGehoelz(k) || !PLANTS.some(p => p.name === k)) return;
     if (plantWouldConflict(bed, k) || getFruchtfolgeWarning(bed, k)) return;
+    const famK = getFamily(k); // gleiche Pflanzenfamilie wie schon im Beet (z.B. Kohl zu Kohl) ist kein guter Mischkultur-Tipp
+    if (famK && famK !== 'verschiedene' && namen.some(n => getFamily(n) === famK)) return;
     const ck = COMPANIONS[k];
     const freunde = namen.filter(n => (ck && ck.good.includes(n)) || (COMPANIONS[n] && COMPANIONS[n].good.includes(k))).length;
     if (freunde) passend.push([k, freunde]);
