@@ -86,6 +86,29 @@
     align-items: center; justify-content: center; z-index: 200; padding: 20px;
   }
   .modal-bg.zeigen { display: flex; }
+  /* 🔍 Suche über alle Bereiche */
+  #modalSuche { align-items: flex-start; padding-top: 6vh; }
+  #modalSuche .modal { max-width: 560px; max-height: 86vh; display: flex; flex-direction: column; padding: 16px; }
+  .suche-kopf { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
+  .suche-kopf input { flex: 1; min-width: 0; padding: 11px 14px; border-radius: 22px; border: 1px solid var(--parchment, #ece0c7); background: var(--white, #fff); color: var(--soil); font-family: 'Inter', sans-serif; font-size: 0.95rem; }
+  .suche-kopf button { background: none; border: none; font-size: 1.1rem; color: var(--bark); cursor: pointer; padding: 6px; }
+  #sucheErgebnisse { overflow-y: auto; min-height: 60px; }
+  .suche-leer { font-size: 0.82rem; color: var(--bark); padding: 18px 6px; text-align: center; line-height: 1.5; }
+  .suche-gruppe { margin-bottom: 12px; }
+  .suche-gruppe-kopf { display: flex; justify-content: space-between; width: 100%; background: none; border: none; font-family: inherit; font-size: 0.8rem; font-weight: 700; color: var(--moss); padding: 4px 2px; cursor: pointer; text-align: left; }
+  html[data-dark="1"] .suche-gruppe-kopf { color: var(--sage); }
+  .suche-gruppe-kopf span { font-weight: 600; color: var(--bark); }
+  .suche-treffer { display: flex; flex-direction: column; gap: 2px; width: 100%; text-align: left; background: var(--white, #fff); border: 1px solid var(--parchment, #ece0c7); border-radius: 10px; padding: 8px 11px; margin-bottom: 5px; cursor: pointer; font-family: inherit; color: var(--soil); }
+  .suche-treffer .st-titel { font-size: 0.86rem; font-weight: 600; }
+  .suche-treffer .st-text { font-size: 0.76rem; color: var(--soil); opacity: 0.85; }
+  .suche-treffer .st-kontext { font-size: 0.7rem; color: var(--bark); }
+  .suche-treffer mark { background: rgba(220,177,88,0.45); color: inherit; border-radius: 3px; padding: 0 1px; }
+  .suche-mehr { font-size: 0.72rem; color: var(--bark); padding: 0 4px; }
+  /* ✨ Update-Hinweis */
+  .update-hinweis { position: fixed; left: 50%; bottom: 18px; transform: translate(-50%, 140%); z-index: 9000; display: flex; align-items: center; gap: 10px; background: #2a2016; color: #f0e8d8; padding: 10px 12px 10px 16px; border-radius: 22px; box-shadow: 0 6px 20px rgba(0,0,0,0.3); font-size: 0.82rem; max-width: calc(100vw - 24px); transition: transform 0.3s; }
+  .update-hinweis.zeigen { transform: translate(-50%, 0); }
+  .update-hinweis span { white-space: nowrap; }
+  .update-hinweis button { background: none; border: none; color: #e8c98a; font-weight: 700; font-size: 0.8rem; cursor: pointer; padding: 2px 4px; white-space: nowrap; font-family: inherit; }
   .modal {
     background: var(--cream); border-radius: 18px; padding: 20px; width: 100%; max-width: 420px;
     max-height: 85vh; overflow-y: auto; box-shadow: 0 8px 30px rgba(0,0,0,0.3); color: var(--soil);
@@ -157,6 +180,7 @@
   <div class="shell">
     <nav class="modul-nav" id="modulNav" aria-label="Bereiche">
       <!-- Buttons werden per JS erzeugt -->
+      <button class="backup-btn" id="btnSuche" title="In allen Bereichen suchen">🔍</button>
       <button class="backup-btn" id="btnBackup" title="Sichern & Wiederherstellen">💾</button>
       <button class="backup-btn" id="btnPersonen" title="Personen verwalten">👪</button>
       <button class="backup-btn" id="btnEinstellungen" title="Einstellungen">⚙️</button>
@@ -191,6 +215,16 @@
         <button class="btn btn-primary" id="btnSetupBeitretenBestaetigen">Beitreten</button>
         <button class="setup-zurueck" id="btnSetupZurueck1">Zurück</button>
       </div>
+    </div>
+  </div>
+
+  <div class="modal-bg" id="modalSuche">
+    <div class="modal" role="dialog" aria-label="Suche in allen Bereichen">
+      <div class="suche-kopf">
+        <input type="search" id="sucheInput" placeholder="🔍 In allen Bereichen suchen …" autocomplete="off">
+        <button type="button" id="btnSucheSchliessen" aria-label="Suche schließen">✕</button>
+      </div>
+      <div id="sucheErgebnisse"></div>
     </div>
   </div>
 
@@ -1104,7 +1138,7 @@
       }
       // Startseite kann Personenverwaltung und Einstellungen direkt öffnen (Einrichtungs-Karte, Zahnrad im Kopf)
       if (e.data && e.data.type === 'oeffneDialog') {
-        const btnId = { personen: 'btnPersonen', einstellungen: 'btnEinstellungen' }[e.data.dialog];
+        const btnId = { personen: 'btnPersonen', einstellungen: 'btnEinstellungen', suche: 'btnSuche' }[e.data.dialog];
         if (btnId) document.getElementById(btnId).click();
       }
     });
@@ -1241,6 +1275,166 @@
       el.innerHTML = '📦 Genutzter Speicher: ~' + mb.toFixed(1) + ' MB (Browser-Limit meist 5–10 MB)' + warnung;
     }
 
+    // ============================================================
+    // 🔍 SUCHE ÜBER ALLE BEREICHE
+    // Durchsucht die gespeicherten Daten aller (sichtbaren) Module – rein lokal, ohne Cloud-Abfrage.
+    // Generisch: jedes Objekt mit einem „Titel-Feld“ (name, titel, …) wird zum Treffer, wenn
+    // eines seiner Textfelder den Suchbegriff enthält. Übergeordnete Titel (z.B. das Beet zu einer
+    // Pflanze) werden als Zusammenhang angezeigt.
+    // ============================================================
+    const SUCHE_TITELFELDER = ['name', 'titel', 'title', 'bezeichnung', 'produkt', 'anlass', 'text', 'beschreibung', 'notiz', 'inhalt'];
+    const SUCHE_IGNORIEREN = /^(id|.*Id|.*_id|datum|date|farbe|color|sym|icon|emoji|typ|type|status|url|pfad|shape|kind)$/i;
+    let sucheDaten = null; // [{ mod, wert }] – beim Öffnen einmal eingelesen
+    let sucheTimer = null;
+    function sucheEsc(t) { return String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+    function sucheNormal(t) { return String(t).toLowerCase(); }
+    function sucheTitelVon(obj) {
+      for (const f of SUCHE_TITELFELDER) {
+        const v = obj[f];
+        if (typeof v === 'string' && v.trim() && v.indexOf('data:') !== 0) return v.trim();
+      }
+      return '';
+    }
+    function sucheDatenEinlesen() {
+      const versteckt = versteckteModule();
+      sucheDaten = [];
+      MODULE.filter(m => !versteckt.includes(m.id)).forEach(mod => {
+        const keys = (mod.syncKeys || []).slice();
+        (mod.zusatzSync || []).forEach(z => { if (!/bilder/.test(z.modul)) keys.push.apply(keys, z.keys); });
+        keys.forEach(k => {
+          try {
+            const raw = localStorage.getItem(k);
+            if (raw) sucheDaten.push({ mod, wert: JSON.parse(raw) });
+          } catch (e) {}
+        });
+      });
+    }
+    function sucheAusfuehren(begriff) {
+      const q = sucheNormal(begriff.trim());
+      const proModul = new Map();
+      if (q.length < 2 || !sucheDaten) return proModul;
+      function treffer(mod, titel, kontext, ausschnitt) {
+        if (!proModul.has(mod.id)) proModul.set(mod.id, { mod, liste: [], gesehen: new Set() });
+        const e = proModul.get(mod.id);
+        const schluessel = titel + '|' + kontext + '|' + ausschnitt;
+        if (e.gesehen.has(schluessel)) return;
+        e.gesehen.add(schluessel);
+        e.liste.push({ titel, kontext, ausschnitt });
+      }
+      function laufen(wert, mod, vorfahren, tiefe) {
+        if (tiefe > 12 || wert === null || wert === undefined) return;
+        if (Array.isArray(wert)) {
+          wert.forEach(x => {
+            if (typeof x === 'string') {
+              if (x.indexOf('data:') !== 0 && sucheNormal(x).includes(q)) treffer(mod, x, vorfahren.slice(-2).join(' › '), '');
+            } else laufen(x, mod, vorfahren, tiefe + 1);
+          });
+          return;
+        }
+        if (typeof wert !== 'object') return;
+        const titel = sucheTitelVon(wert);
+        let fund = null;
+        Object.keys(wert).forEach(f => {
+          const v = wert[f];
+          if (fund || typeof v !== 'string' || SUCHE_IGNORIEREN.test(f) || v.indexOf('data:') === 0 || v.indexOf('http') === 0) return;
+          if (sucheNormal(v).includes(q)) fund = v;
+        });
+        if (fund) {
+          const zeigeTitel = titel || fund;
+          treffer(mod, zeigeTitel, vorfahren.slice(-2).join(' › '), fund !== zeigeTitel ? fund : '');
+        }
+        const neueVorfahren = titel ? vorfahren.concat(titel) : vorfahren;
+        Object.keys(wert).forEach(f => {
+          const v = wert[f];
+          if (v && typeof v === 'object') laufen(v, mod, neueVorfahren, tiefe + 1);
+        });
+      }
+      sucheDaten.forEach(({ mod, wert }) => laufen(wert, mod, [], 0));
+      return proModul;
+    }
+    function sucheMarkieren(text, begriff) {
+      const t = String(text);
+      const i = sucheNormal(t).indexOf(sucheNormal(begriff.trim()));
+      if (i === -1) return sucheEsc(t);
+      return sucheEsc(t.slice(0, i)) + '<mark>' + sucheEsc(t.slice(i, i + begriff.trim().length)) + '</mark>' + sucheEsc(t.slice(i + begriff.trim().length));
+    }
+    function sucheAusschnitt(text, begriff) {
+      const t = String(text).replace(/\s+/g, ' ');
+      if (t.length <= 90) return t;
+      const i = sucheNormal(t).indexOf(sucheNormal(begriff.trim()));
+      const start = Math.max(0, i - 35);
+      return (start > 0 ? '…' : '') + t.slice(start, start + 90) + (start + 90 < t.length ? '…' : '');
+    }
+    function sucheRendern() {
+      const begriff = document.getElementById('sucheInput').value;
+      const box = document.getElementById('sucheErgebnisse');
+      if (begriff.trim().length < 2) {
+        box.innerHTML = '<div class="suche-leer">Mindestens 2 Buchstaben eingeben – z.B. „Tomate“, „Zahnarzt“ oder „Mehl“.</div>';
+        return;
+      }
+      const proModul = sucheAusfuehren(begriff);
+      if (!proModul.size) { box.innerHTML = '<div class="suche-leer">Nichts gefunden für „' + sucheEsc(begriff.trim()) + '“.</div>'; return; }
+      // Reihenfolge wie in der Navigation
+      const reihenfolge = moduleInGespeicherterReihenfolge().map(m => m.id);
+      const gruppen = Array.from(proModul.values()).sort((a, b) => reihenfolge.indexOf(a.mod.id) - reihenfolge.indexOf(b.mod.id));
+      box.innerHTML = gruppen.map(g => {
+        const zeigen = g.liste.slice(0, 8);
+        return '<div class="suche-gruppe">' +
+          '<button type="button" class="suche-gruppe-kopf" data-modul="' + g.mod.id + '">' + g.mod.emoji + ' ' + sucheEsc(g.mod.label) + ' <span>' + g.liste.length + ' ›</span></button>' +
+          zeigen.map(t => '<button type="button" class="suche-treffer" data-modul="' + g.mod.id + '">' +
+            '<span class="st-titel">' + sucheMarkieren(sucheAusschnitt(t.titel, begriff), begriff) + '</span>' +
+            (t.ausschnitt ? '<span class="st-text">' + sucheMarkieren(sucheAusschnitt(t.ausschnitt, begriff), begriff) + '</span>' : '') +
+            (t.kontext ? '<span class="st-kontext">in ' + sucheEsc(t.kontext) + '</span>' : '') +
+          '</button>').join('') +
+          (g.liste.length > zeigen.length ? '<div class="suche-mehr">+ ' + (g.liste.length - zeigen.length) + ' weitere</div>' : '') +
+        '</div>';
+      }).join('');
+      box.querySelectorAll('[data-modul]').forEach(b => b.addEventListener('click', () => {
+        sucheSchliessen();
+        bereichLaden(b.dataset.modul);
+      }));
+    }
+    function sucheOeffnen() {
+      sucheDatenEinlesen();
+      const m = document.getElementById('modalSuche');
+      m.classList.add('zeigen');
+      const inp = document.getElementById('sucheInput');
+      sucheRendern();
+      setTimeout(() => { inp.focus(); inp.select(); }, 50);
+    }
+    function sucheSchliessen() { document.getElementById('modalSuche').classList.remove('zeigen'); }
+    document.getElementById('btnSuche').addEventListener('click', sucheOeffnen);
+    document.getElementById('btnSucheSchliessen').addEventListener('click', sucheSchliessen);
+    document.getElementById('modalSuche').addEventListener('click', (e) => { if (e.target.id === 'modalSuche') sucheSchliessen(); });
+    document.getElementById('sucheInput').addEventListener('input', () => { clearTimeout(sucheTimer); sucheTimer = setTimeout(sucheRendern, 150); });
+    document.getElementById('sucheInput').addEventListener('keydown', (e) => { if (e.key === 'Escape') sucheSchliessen(); });
+
+    // ============================================================
+    // ✨ UPDATE-HINWEIS: kurze Meldung, wenn seit dem letzten Öffnen eine neue Version geladen wurde
+    // ============================================================
+    const KEY_LETZTE_VERSION = 'planer_letzteVersion';
+    function updateHinweisPruefen(version) {
+      if (!version) return;
+      let alt = '';
+      try { alt = localStorage.getItem(KEY_LETZTE_VERSION) || ''; localStorage.setItem(KEY_LETZTE_VERSION, version); } catch (e) { return; }
+      if (!alt || alt === version) return;
+      let el = document.getElementById('updateHinweis');
+      if (!el) {
+        el = document.createElement('div');
+        el.id = 'updateHinweis';
+        el.className = 'update-hinweis';
+        document.body.appendChild(el);
+      }
+      el.innerHTML = '<span>✨ Update <b>' + sucheEsc(version) + '</b> geladen</span>' +
+        '<button type="button" id="btnUpdateNeu">Was ist neu?</button>' +
+        '<button type="button" id="btnUpdateZu" aria-label="Schließen">✕</button>';
+      el.classList.add('zeigen');
+      const zu = () => el.classList.remove('zeigen');
+      document.getElementById('btnUpdateNeu').addEventListener('click', () => { zu(); bereichLaden('home'); });
+      document.getElementById('btnUpdateZu').addEventListener('click', zu);
+      setTimeout(zu, 9000);
+    }
+
     // ---------- APP-VERSION ----------
     function frageVersionAb() {
       if (navigator.serviceWorker && navigator.serviceWorker.controller) {
@@ -1259,9 +1453,12 @@
           const status = document.getElementById('versionStatus');
           if (badge) badge.textContent = event.data.version;
           if (status) status.textContent = 'App-Version: ' + event.data.version;
+          updateHinweisPruefen(event.data.version);
         }
       });
       navigator.serviceWorker.ready.then(() => frageVersionAb());
+      // Neuer Service Worker hat übernommen (frisches Update) → Version erneut abfragen
+      navigator.serviceWorker.addEventListener('controllerchange', () => setTimeout(frageVersionAb, 300));
     }
 
     // ---------- FOTOS FINDEN & AUFRÄUMEN ----------

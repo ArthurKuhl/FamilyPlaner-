@@ -2,6 +2,15 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
+## 2026-10-19 | 🦔 Tiere im Garten
+Neuer Bereich im Garten: 26 heimische Tiere von der Holzbiene bis zum Igel – was sie fressen, wo sie wohnen und wie man sie in den Garten lockt. Dazu Bauanleitungen (Insektenhotel, Sandarium, Igelhaus …), Futterpflanzen nach Jahreszeit und für Kinder „👀 Gesehen!“ zum Sammeln eurer Entdeckungen.
+
+## 2026-10-18 | 📚 Beispielbeete
+Unter 🥫 Bestand → 🧩 Vorlagen gibt es jetzt 8 bewährte Mischkultur-Beete (Tomaten-, Kohl-, Kräuterbeet, Drei Schwestern …) zum direkten Einfügen.
+
+## 2026-10-18 | 💡 Beet-Hinweise & 📷 Beet-Foto
+Jedes Beet zeigt jetzt Hinweise: schlechte Nachbarn, zu viele Starkzehrer, Fruchtfolge, Platz – und was gut dazupassen würde. Außerdem kann jedes Beet ein eigenes Foto bekommen.
+
 ## 2026-10-16 | 🗓️ Neuer Tab "Paletten" im Handwerk-Modul
 Es wurden einige Bauanleitungen aus Paletten hinzugefügt.
 
