@@ -332,7 +332,10 @@
     <h2 id="itemModalTitel">Neuer Vorrat</h2>
     <div class="feld">
       <label for="fName">Name</label>
-      <input type="text" id="fName" placeholder="z.B. Nudeln, Kopfschmerztabletten">
+      <div style="display:flex;gap:6px;">
+        <input type="text" id="fName" placeholder="z.B. Nudeln, Kopfschmerztabletten" style="flex:1;min-width:0;">
+        <button type="button" id="btnVorratScannen" title="Strichcode scannen" aria-label="Strichcode scannen" style="flex-shrink:0;background:var(--white);border:1px solid var(--parchment);border-radius:var(--radius-md);padding:0 12px;font-size:1.05rem;cursor:pointer;">📷</button>
+      </div>
     </div>
     <div class="zeile">
       <div class="feld">
@@ -422,6 +425,7 @@
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
 <script src="sync.js"></script>
+<script src="scanner.js"></script>
 <script src="gemeinsam.js"></script>
 <script>
 (function(){
@@ -1124,6 +1128,21 @@
       }
     });
   }
+})();
+
+// 📷 Strichcode scannen → Name und Menge vorausfüllen
+(function () {
+  const btn = document.getElementById('btnVorratScannen');
+  if (!btn) return;
+  btn.addEventListener('click', async () => {
+    if (!window.PlanerScanner) return;
+    const p = await window.PlanerScanner.scannen();
+    if (!p) return;
+    const name = document.getElementById('fName'), menge = document.getElementById('fMenge');
+    if (p.gefunden) { name.value = p.name; if (menge && !menge.value && p.menge) menge.value = p.menge; }
+    else alert(p.fehler === 'offline' ? 'Keine Verbindung – Produkt bitte eintippen.' : 'Produkt ' + p.code + ' ist noch nicht in der Datenbank – bitte eintippen.');
+    name.focus();
+  });
 })();
 </script>
 </body>

@@ -2,6 +2,15 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
+## 2026-10-19 | 🧒 Kinderecke
+Ein eigener Bereich für die Kinder: ihre Aufgaben mit „Erledigt! ⭐“, Sterne sammeln und gegen Belohnungen eintauschen, Taschengeld-Stand, Tier-Entdeckungen und ein Geburtstags-Countdown. Eltern legen unter ⚙️ fest, wer die Kinder sind und welche Belohnungen es gibt.
+
+## 2026-10-19 | 🔄 Sicherer Abgleich zwischen den Handys
+Ändern zwei gleichzeitig die Einkaufsliste, Termine oder Notizen – oder eine(r) ist im Supermarkt ohne Netz – gehen keine Einträge mehr verloren. Die Änderungen werden jetzt Eintrag für Eintrag zusammengeführt.
+
+## 2026-10-19 | 🌱 Garten trifft Küche & weitere Helfer
+Kochen zeigt mit „🌱 Garten“ Rezepte mit Zutaten, die gerade bei dir reif sind. Ernten lassen sich direkt an die Vorratskammer übergeben. Neu außerdem: 📤 Einkaufsliste teilen (z.B. per WhatsApp), 📷 Strichcode scannen in Einkauf und Vorratskammer, 🎤 Diktieren beim ＋ und eine „Heute“-Zeile oben auf der Übersicht.
+
 ## 2026-10-19 | 📱 Neue Navigation & ＋ Schnell festhalten
 Am Handy sitzen die wichtigsten Bereiche jetzt unten in Daumennähe – welche vier, legst du unter ☰ Mehr → „✏️ Leiste anpassen“ fest. Über das orange ＋ kommt etwas sofort auf die Einkaufsliste, in die Termine oder den Notizblock, egal wo du gerade bist.
 

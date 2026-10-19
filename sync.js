@@ -277,6 +277,70 @@ window.PlanerSync = (function () {
 
   // ersterAbgleichVereinen: für Module, die (versehentlich) eine Zeit lang nicht synchronisiert
   // waren – jedes Gerät kann eigene Einträge haben, die beim ersten Abgleich nicht verloren gehen dürfen.
+  // ---------------------------------------------------------------------------
+  // 3-WEGE-ZUSAMMENFÜHREN (für Listen-Module ohne Fotos)
+  // Bisher gewann beim Sync einfach der zuletzt hochgeladene Stand – ändern zwei Geräte
+  // gleichzeitig (oder eines offline im Supermarkt), ging ein Eintrag verloren.
+  // Jetzt merkt sich jedes Gerät den zuletzt gemeinsamen Stand („Basis“) und führt
+  // eigene und fremde Änderungen Eintrag für Eintrag zusammen:
+  //  - neu hinzugefügt (hier oder dort) → bleibt
+  //  - auf einer Seite gelöscht, auf der anderen unverändert → wird gelöscht
+  //  - auf einer Seite geändert → die Änderung gewinnt; auf beiden geändert → die andere Seite gewinnt
+  // Listen werden über die id ihrer Einträge zugeordnet, Objekte Feld für Feld.
+  // ---------------------------------------------------------------------------
+  const ZUSAMMENFUEHREN_MODULE = ['einkauf', 'termine', 'notizblock', 'haushalt', 'vorratskammer', 'geldgeschenke', 'finanzen', 'ausfluege', 'personen', 'kinder'];
+  function gleich(a, b) { return JSON.stringify(a) === JSON.stringify(b); }
+  function istObjekt(x) { return x !== null && typeof x === 'object' && !Array.isArray(x); }
+  function hatIds(arr) { return arr.length > 0 && arr.every(x => istObjekt(x) && x.id !== undefined && x.id !== null); }
+  function listenVereinen(b, l, r) {
+    const b2 = Array.isArray(b) ? b : [];
+    const mitIds = (l.length || r.length) && (l.length === 0 || hatIds(l)) && (r.length === 0 || hatIds(r)) && (b2.length === 0 || hatIds(b2));
+    const schl = mitIds ? (x) => 'id:' + x.id : (x) => 'v:' + JSON.stringify(x);
+    const B = new Map(b2.map(x => [schl(x), x]));
+    const L = new Map(l.map(x => [schl(x), x]));
+    const ergebnis = [];
+    const erledigt = new Set();
+    r.forEach(item => {
+      const k = schl(item);
+      if (erledigt.has(k)) return;
+      erledigt.add(k);
+      if (L.has(k)) { ergebnis.push(mitIds ? dreiWege(B.get(k), L.get(k), item) : item); return; }
+      // fehlt lokal: hier gelöscht (war in der Basis) – außer die andere Seite hat ihn inzwischen geändert
+      if (B.has(k) && gleich(B.get(k), item)) return;
+      ergebnis.push(item);
+    });
+    l.forEach((item, i) => {
+      const k = schl(item);
+      if (erledigt.has(k)) return;
+      erledigt.add(k);
+      // fehlt in der Cloud: dort gelöscht (war in der Basis) – außer hier inzwischen geändert
+      if (B.has(k) && gleich(B.get(k), item)) return;
+      ergebnis.splice(Math.min(i, ergebnis.length), 0, item); // ungefähr an der alten Stelle einfügen
+    });
+    return ergebnis;
+  }
+  function dreiWege(b, l, r) {
+    if (l === undefined) return r;
+    if (r === undefined) return l;
+    if (gleich(l, r)) return l;
+    if (b !== undefined && gleich(l, b)) return r;
+    if (b !== undefined && gleich(r, b)) return l;
+    if (Array.isArray(l) && Array.isArray(r)) return listenVereinen(b, l, r);
+    if (istObjekt(l) && istObjekt(r)) {
+      const bo = istObjekt(b) ? b : {};
+      const ergebnis = {};
+      new Set(Object.keys(r).concat(Object.keys(l))).forEach(k => {
+        const inL = Object.prototype.hasOwnProperty.call(l, k), inR = Object.prototype.hasOwnProperty.call(r, k);
+        const inB = Object.prototype.hasOwnProperty.call(bo, k);
+        if (inL && inR) { ergebnis[k] = dreiWege(bo[k], l[k], r[k]); return; }
+        if (inR) { if (!(inB && gleich(bo[k], r[k]))) ergebnis[k] = r[k]; return; }   // lokal gelöscht?
+        if (!(inB && gleich(bo[k], l[k]))) ergebnis[k] = l[k];                        // dort gelöscht?
+      });
+      return ergebnis;
+    }
+    return r; // echter Widerspruch bei einem Einzelwert: die andere Seite gewinnt
+  }
+
   function starteSync({ modul, keys, onRemoteChange, transform, vorAnwendungTransform, ersterAbgleichVereinen }) {
     if (!verfuegbar) return { melde: function () {} };
     if (!holeFamilienId()) { setzeStatus('nicht_verfuegbar'); return { melde: function () {} }; }
@@ -286,6 +350,11 @@ window.PlanerSync = (function () {
     let wendeGeradeRemoteAn = false;
     let pushTimer = null;
     let abbestellen = null;
+
+    // Zusammenführen nur für Module ohne Foto-Umwandlung (siehe oben)
+    const zusammenfuehren = !transform && ZUSAMMENFUEHREN_MODULE.some(m => modul === m || modul.indexOf(m + '_') === 0);
+    let serverVerbunden = false; // erst nach einer echten Server-Antwort hochladen (nicht aus dem Offline-Zwischenspeicher)
+    let ausstehend = false;      // lokale Änderungen, die noch nicht hochgeladen werden konnten
 
     function docRef() { return docRefFuer(modul); }
 
@@ -305,6 +374,26 @@ window.PlanerSync = (function () {
       return out;
     }
 
+    // Basis = zuletzt gemeinsamer Stand mit der Cloud, je Schlüssel gespeichert (überlebt Neustarts)
+    const basisKey = (k) => 'planer_syncBasis:' + modul + '/' + k;
+    function basisLesen() {
+      const out = {};
+      keys.forEach((k) => { try { const raw = localStorage.getItem(basisKey(k)); if (raw !== null) out[k] = JSON.parse(raw); } catch (e) {} });
+      return out;
+    }
+    function basisSetzen(werte) {
+      if (!zusammenfuehren || !werte) return;
+      keys.forEach((k) => {
+        if (!Object.prototype.hasOwnProperty.call(werte, k) || werte[k] === null || werte[k] === undefined) return;
+        try { localStorage.setItem(basisKey(k), JSON.stringify(werte[k])); } catch (e) {}
+      });
+    }
+    function lokalGeaendert() {
+      if (!zusammenfuehren) return false;
+      const lokal = localSnapshot(), basis = basisLesen();
+      return keys.some(k => Object.prototype.hasOwnProperty.call(lokal, k) && !gleich(lokal[k], basis[k]));
+    }
+
     const KEY_VEREINT = 'planer_syncVereint_' + modul + ':' + keys.slice().sort().join(',');
     function vereinenNoetig() {
       try { return !!ersterAbgleichVereinen && !localStorage.getItem(KEY_VEREINT); } catch (e) { return false; }
@@ -314,12 +403,25 @@ window.PlanerSync = (function () {
     function remoteAnwenden(werte, istErstmaligerAbgleich) {
       if (!werte) return;
       let danachHochladen = false;
+      const cloudStand = werte;
       if (vereinenNoetig()) {
         const lokal = localSnapshot();
         werte = Object.assign({}, werte);
         keys.forEach((k) => { if (Object.prototype.hasOwnProperty.call(lokal, k)) werte[k] = werteVereinen(werte[k], lokal[k]); });
         vereinenErledigt();
         danachHochladen = true;
+      } else if (zusammenfuehren) {
+        const lokal = localSnapshot(), basis = basisLesen();
+        werte = Object.assign({}, werte);
+        keys.forEach((k) => {
+          if (!Object.prototype.hasOwnProperty.call(werte, k) || werte[k] === null || werte[k] === undefined) return;
+          if (!Object.prototype.hasOwnProperty.call(lokal, k)) return;
+          // Ohne bekannte Basis (erster Abgleich nach dem Update) gilt wie bisher der Cloud-Stand –
+          // so tauchen auf einem lange nicht geöffneten Gerät keine längst erledigten Einträge wieder auf.
+          if (!Object.prototype.hasOwnProperty.call(basis, k)) return;
+          werte[k] = dreiWege(basis[k], lokal[k], werte[k]);
+          if (!gleich(werte[k], cloudStand[k])) danachHochladen = true;
+        });
       }
       if (vorAnwendungTransform) {
         try { werte = vorAnwendungTransform(werte, localSnapshot()); } catch (e) { console.warn('PlanerSync vorAnwendungTransform Fehler', e); }
@@ -331,11 +433,17 @@ window.PlanerSync = (function () {
         try { localStorage.setItem(k, JSON.stringify(werte[k])); } catch (e) {}
       });
       wendeGeradeRemoteAn = false;
+      basisSetzen(cloudStand);
       if (onRemoteChange) { try { onRemoteChange(istErstmaligerAbgleich); } catch (e) { console.warn('PlanerSync onRemoteChange Fehler', e); } }
-      if (danachHochladen) setTimeout(push, 500); // vereinten Stand für alle Geräte hochladen
+      if (danachHochladen) { ausstehend = true; setTimeout(push, 500); } // vereinten Stand für alle Geräte hochladen
     }
 
     function push() {
+      // Listen-Module: offline oder ohne bestätigte Server-Verbindung NICHT hochladen. Firestore würde den
+      // Schreibvorgang sonst zwischenspeichern und später blind über neuere Änderungen anderer legen.
+      // Stattdessen wird beim nächsten Server-Kontakt erst zusammengeführt, dann hochgeladen.
+      if (zusammenfuehren && (!navigator.onLine || !serverVerbunden)) { ausstehend = true; setzeStatus('verbindet'); return; }
+      if (zusammenfuehren) { pushZusammenfuehren(); return; }
       authReady.then(() => {
         let werte = localSnapshot();
         if (transform) { try { werte = transform(werte); } catch (e) { console.warn('PlanerSync transform Fehler', e); } }
@@ -352,6 +460,54 @@ window.PlanerSync = (function () {
       });
     }
 
+    // Hochladen als Transaktion: aktuellen Cloud-Stand lesen, mit lokalen Änderungen zusammenführen,
+    // schreiben – alles in einem Schritt. Laden zwei Geräte gleichzeitig hoch, wiederholt Firestore
+    // die Transaktion automatisch mit dem neuen Stand, sodass nichts verloren geht.
+    let pushLaeuft = false, pushNochmal = false;
+    function pushZusammenfuehren() {
+      if (pushLaeuft) { pushNochmal = true; return; }
+      pushLaeuft = true;
+      const lokalStart = localSnapshot();
+      authReady.then(() => db.runTransaction((tx) => {
+        const ref = docRef();
+        return tx.get(ref).then((snap) => {
+          const cloud = (snap.exists && snap.data() && snap.data().werte) || {};
+          const basis = basisLesen();
+          const ergebnis = {};
+          keys.forEach((k) => {
+            if (!Object.prototype.hasOwnProperty.call(lokalStart, k)) return;
+            const inCloud = Object.prototype.hasOwnProperty.call(cloud, k) && cloud[k] !== null && cloud[k] !== undefined;
+            ergebnis[k] = (inCloud && Object.prototype.hasOwnProperty.call(basis, k)) ? dreiWege(basis[k], lokalStart[k], cloud[k]) : lokalStart[k];
+          });
+          tx.set(ref, {
+            werte: ergebnis,
+            _aktualisiertVon: geraeteId,
+            _aktualisiertAm: firebase.firestore.FieldValue.serverTimestamp(),
+          }, { merge: true });
+          return ergebnis;
+        });
+      })).then((ergebnis) => {
+        ausstehend = false;
+        basisSetzen(ergebnis);
+        setzeStatus('online');
+        // Brachte die Cloud Neues mit, lokal übernehmen – aber nur, wenn hier inzwischen niemand weitergetippt hat
+        if (!gleich(localSnapshot(), lokalStart)) { pushNochmal = true; }
+        else if (!gleich(ergebnis, lokalStart)) {
+          wendeGeradeRemoteAn = true;
+          keys.forEach((k) => { if (Object.prototype.hasOwnProperty.call(ergebnis, k)) { try { localStorage.setItem(k, JSON.stringify(ergebnis[k])); } catch (e) {} } });
+          wendeGeradeRemoteAn = false;
+          if (onRemoteChange) { try { onRemoteChange(false); } catch (e) { console.warn('PlanerSync onRemoteChange Fehler', e); } }
+        }
+      }).catch((err) => {
+        ausstehend = true; // beim nächsten Server-Kontakt erneut versuchen
+        console.warn('PlanerSync: Zusammenführen/Hochladen fehlgeschlagen für', modul, err);
+        setzeStatus(navigator.onLine ? 'fehler' : 'verbindet');
+      }).then(() => {
+        pushLaeuft = false;
+        if (pushNochmal) { pushNochmal = false; setTimeout(push, 300); }
+      });
+    }
+
     // Firestores onSnapshot feuert beim Verbindungsaufbau IMMER sofort mit dem aktuellen
     // Stand (oft sogar zweimal: einmal aus dem lokalen Cache, einmal vom Server bestätigt) –
     // das ist keine "neue" Änderung. Ohne Abgleich würde jedes Öffnen eines Bereichs, dessen
@@ -361,28 +517,46 @@ window.PlanerSync = (function () {
     let letzterVerarbeiteterStempel = null;
     authReady = authReady || Promise.resolve();
     authReady.then(() => {
-      abbestellen = docRef().onSnapshot((snap) => {
-        setzeStatus('online');
-        if (!snap.exists) { if (vereinenNoetig()) vereinenErledigt(); push(); return; }
+      abbestellen = docRef().onSnapshot({ includeMetadataChanges: zusammenfuehren }, (snap) => {
+        const vomServer = !(snap.metadata && snap.metadata.fromCache);
+        const geradeVerbunden = vomServer && !serverVerbunden;
+        if (vomServer) serverVerbunden = true;
+        if (vomServer || !zusammenfuehren) setzeStatus('online');
+        if (!snap.exists) { if (vereinenNoetig()) vereinenErledigt(); if (!zusammenfuehren || vomServer) push(); return; }
         const data = snap.data();
         if (!data) return;
         if (data._aktualisiertVon === geraeteId) {
           // Letzte Änderung kam von diesem Gerät: beim ersten Abgleich trotzdem einmal alles hochladen
           if (vereinenNoetig()) { vereinenErledigt(); push(); }
+          else if (zusammenfuehren && vomServer && !(snap.metadata && snap.metadata.hasPendingWrites)) {
+            // bestätigter eigener Stand = neue Basis; liegen lokal noch Änderungen (z.B. offline gemacht oder
+            // von einem anderen Bereich eingetragen), jetzt hochladen
+            if (letzterVerarbeiteterStempel === null) { letzterVerarbeiteterStempel = 'eigen'; if (!lokalGeaendert() && data.werte) basisSetzen(data.werte); }
+            if (ausstehend || lokalGeaendert()) push();
+          }
           return; // eigene Änderung, nicht erneut anwenden
         }
         let stempelZeit = '';
         try { stempelZeit = data._aktualisiertAm && data._aktualisiertAm.toMillis ? String(data._aktualisiertAm.toMillis()) : ''; } catch (e) {}
         const stempel = data._aktualisiertVon + '|' + stempelZeit;
-        if (stempel === letzterVerarbeiteterStempel) return; // gleicher Stand wie zuvor, keine echte neue Änderung
+        // Wieder verbunden mit offenen lokalen Änderungen: auch bei gleichem Stand zusammenführen + hochladen
+        const nachholen = zusammenfuehren && vomServer && (ausstehend || (geradeVerbunden && lokalGeaendert()));
+        if (stempel === letzterVerarbeiteterStempel && !nachholen) return; // gleicher Stand wie zuvor, keine echte neue Änderung
+        if (zusammenfuehren && !vomServer && letzterVerarbeiteterStempel !== null) return; // Zwischenspeicher-Echo, Server-Antwort abwarten
         const istErstmaligerAbgleich = letzterVerarbeiteterStempel === null;
         letzterVerarbeiteterStempel = stempel;
         remoteAnwenden(data.werte, istErstmaligerAbgleich);
+        if (nachholen && !ausstehend && lokalGeaendert()) push();
       }, (err) => {
         console.warn('PlanerSync: Verbindung fehlgeschlagen für', modul, err);
         setzeStatus('fehler');
       });
     });
+    // Zurück online: ausstehende Änderungen beim nächsten Server-Kontakt nachholen
+    if (zusammenfuehren) {
+      window.addEventListener('offline', () => { serverVerbunden = false; });
+      window.addEventListener('online', () => { if (ausstehend || lokalGeaendert()) setTimeout(push, 1500); });
+    }
 
     function melde() {
       if (wendeGeradeRemoteAn) return;
@@ -433,6 +607,7 @@ window.PlanerSync = (function () {
     starteSync: starteSync,
     entferneFotosTief: entferneFotosTief,
     fotosWiederEinfuegen: fotosWiederEinfuegen,
+    _dreiWege: dreiWege,
     pushWerte: pushWerte,
     authBereit: authBereit,
     status: function () { try { return localStorage.getItem(STATUS_KEY) || 'unbekannt'; } catch (e) { return 'unbekannt'; } },

@@ -124,6 +124,7 @@
 
   .filter-dropdown-row { display: flex; gap: 6px; }
   .filter-dropdown { position: relative; flex: 1; min-width: 0; }
+  .filter-schalter { flex: 1; min-width: 0; }
   .filter-dropdown-btn {
     width: 100%; background: transparent; border: 1px solid #4a3a28; color: var(--sage); font-size: 0.72rem;
     font-weight: 600; padding: 6px 8px; border-radius: var(--radius-pill); cursor: pointer;
@@ -421,6 +422,7 @@
       <button type="button" class="filter-dropdown-btn" id="btnFdAufwand">⚙️ Aufwand <span class="fd-caret">▾</span></button>
       <div class="filter-dropdown-panel" id="aufwandFilterReihe"></div>
     </div>
+    <div class="filter-schalter" id="fdGarten" style="display:none"><button type="button" class="filter-dropdown-btn" id="btnGartenFilter" title="Rezepte mit Zutaten, die gerade im eigenen Garten reif sind">🌱 Garten</button></div>
   </div>
   <div class="theme-popup" id="themePopup">
     <div class="theme-swatch" data-theme="" title="Kein Muster">✕</div>
@@ -876,6 +878,76 @@
   let aktiverTagFilter = 'alle';
   let aktiverAufwandFilter = 'alle';
   let nurFavoriten = false;
+  let nurGarten = false;
+  // ---- 🌱 AUS DEM GARTEN: Zutaten, die gerade im eigenen Garten reif sind oder frisch geerntet wurden ----
+  const GARTEN_ERNTEZEIT = {
+    'Tomate':[7,10],'Paprika':[7,10],'Chili':[7,10],'Aubergine':[7,10],'Gurke':[6,9],'Zucchini':[6,10],'Kürbis':[9,10],
+    'Karotte':[6,10],'Salat':[5,10],'Radieschen':[4,10],'Rettich':[6,10],'Spinat':[4,6],'Mangold':[6,10],
+    'Rucola':[5,10],'Feldsalat':[10,3],'Brokkoli':[6,10],'Blumenkohl':[6,10],'Weißkohl':[8,11],'Rotkohl':[8,11],'Spitzkohl':[6,10],'Palmkohl':[9,2],
+    'Kohlrabi':[5,10],'Bohnen':[7,9],'Erbsen':[6,7],'Mais':[8,9],'Kartoffel':[7,9],'Rote Bete':[7,10],
+    'Zwiebel':[7,9],'Lauch (Porree)':[9,2],'Knoblauch':[6,7],'Sellerie':[9,10],'Fenchel':[8,10],'Spargel':[4,6],
+    'Süßkartoffel':[9,10],'Basilikum':[6,9],'Petersilie':[5,10],'Schnittlauch':[4,9],'Dill':[6,9],'Thymian':[5,10],'Rosmarin':[1,12],
+    'Salbei':[5,10],'Oregano':[6,9],'Minze':[5,9],'Erdbeere':[6,7],'Himbeere':[7,9],'Johannisbeere':[6,7],'Stachelbeere':[6,7],
+    'Brombeere':[8,9],'Heidelbeere':[7,8],'Apfelbaum':[8,10],'Birnbaum':[8,10],'Kirschbaum':[6,7],'Pflaumenbaum':[8,9],'Zwetschge':[8,9],
+    'Mirabelle':[8,8],'Feige':[8,10],'Topinambur':[10,3],'Meerrettich':[10,3],
+  };
+  // So heißen Gartenpflanzen in Zutatenlisten (Wortanfänge, kleingeschrieben)
+  const GARTEN_ZUTATNAMEN = {
+    'Karotte':['karotte','möhre','möhrchen','mohrrübe'],'Lauch (Porree)':['lauch','porree'],'Apfelbaum':['apfel','äpfel'],'Birnbaum':['birne'],
+    'Kirschbaum':['kirsche'],'Pflaumenbaum':['pflaume'],'Zwetschge':['zwetschge','zwetschke'],'Rote Bete':['rote bete','rote beete','rote rübe'],
+    'Kartoffel':['kartoffel'],'Bohnen':['bohne'],'Erbsen':['erbse'],'Weißkohl':['weißkohl','weisskohl'],'Spitzkohl':['spitzkohl'],'Palmkohl':['palmkohl','schwarzkohl'],
+    'Tomate':['tomate','cherrytomate','kirschtomate'],'Chili':['chili','peperoni'],'Paprika':['paprika'],'Zwiebel':['zwiebel','frühlingszwiebel'],
+    'Sellerie':['sellerie','staudensellerie','knollensellerie'],'Salat':['salat','kopfsalat','eisbergsalat','romanasalat'],
+  };
+  function inMonatsFenster(r, m) { if (!r) return false; return r[0] <= r[1] ? (m >= r[0] && m <= r[1]) : (m >= r[0] || m <= r[1]); }
+  function gartenZutaten() {
+    let daten = null;
+    try { daten = JSON.parse(localStorage.getItem('gartenplaner_v3') || 'null'); } catch (e) {}
+    const g = daten && daten.gardens && daten.gardens[daten.currentGardenId];
+    if (!g) return [];
+    const monat = new Date().getMonth() + 1;
+    const vor3Wochen = new Date(Date.now() - 21 * 864e5).toISOString().slice(0, 10);
+    const namen = new Set();
+    const pflanzen = [];
+    (g.beds || []).forEach(b => (b.plants || []).forEach(p => pflanzen.push(p)));
+    (g.freiPflanzen || []).forEach(p => pflanzen.push(p));
+    pflanzen.forEach(p => {
+      const name = (p.name || '').trim();
+      if (!name) return;
+      const frischGeerntet = (p.harvests || []).some(h => h.date && h.date >= vor3Wochen);
+      if (frischGeerntet || inMonatsFenster(GARTEN_ERNTEZEIT[name], monat)) namen.add(name);
+    });
+    return Array.from(namen);
+  }
+  function zutatAusGarten(zutatName, gartenListe) {
+    const z = String(zutatName || '').toLowerCase();
+    if (!z) return null;
+    const woerter = z.split(/[\s,/()-]+/).filter(Boolean);
+    return gartenListe.find(pflanze => {
+      const stamm = pflanze.replace(/\s*\(.*\)/, '').toLowerCase();
+      const varianten = GARTEN_ZUTATNAMEN[pflanze] || [stamm];
+      // ganze Phrase (z.B. „rote bete“) oder ein Wort, das mit dem Namen beginnt („tomaten“, „möhren“)
+      return varianten.some(v => v.indexOf(' ') !== -1 ? z.indexOf(v) !== -1 : woerter.some(w => w.indexOf(v) === 0 || (v.length > 4 && w.indexOf(v.slice(0, -1)) === 0 && w.length <= v.length + 2)));
+    }) || null;
+  }
+  function gartenTreffer(r, gartenListe) {
+    const treffer = new Set();
+    (r.zutaten || []).forEach(z => { const p = zutatAusGarten(z.name, gartenListe); if (p) treffer.add(p.replace(/\s*\(.*\)/, '')); });
+    return Array.from(treffer);
+  }
+  let gartenListeCache = null;
+  function gartenListe() { if (!gartenListeCache) gartenListeCache = gartenZutaten(); return gartenListeCache; }
+  function renderGartenFilter() {
+    const btn = document.getElementById('btnGartenFilter');
+    if (!btn) return;
+    const liste = gartenListe();
+    const anzahl = liste.length ? rezepte.filter(r => gartenTreffer(r, liste).length).length : 0;
+    document.getElementById('fdGarten').style.display = anzahl ? '' : 'none';
+    if (!anzahl) nurGarten = false;
+    btn.classList.toggle('active', nurGarten);
+    btn.textContent = '🌱 Garten (' + anzahl + ')';
+    btn.title = anzahl + ' Rezepte mit Zutaten aus deinem Garten – gerade reif oder frisch geerntet: ' + liste.join(', ');
+  }
   let suchtext = '';
   let bearbeiteId = null;
   let editBewertung = 0;
@@ -1070,6 +1142,7 @@
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const dropdown = btn.closest('.filter-dropdown');
+      if (!dropdown) { schliesseAlleFilterDropdowns(); return; } // einfacher Schalter (z.B. 🌱 Aus dem Garten)
       const warOffen = dropdown.classList.contains('offen');
       schliesseAlleFilterDropdowns();
       if (!warOffen) dropdown.classList.add('offen');
@@ -1110,6 +1183,7 @@
 
     renderTagFilter();
     renderAufwandFilter();
+    renderGartenFilter();
   }
 
   function renderAufwandFilter() {
@@ -1172,6 +1246,7 @@
     tBtn.innerHTML = escapeHtml(aktiverTagFilter === 'alle' ? '🏷️ Tags' : '#' + aktiverTagFilter) + ' <span class="fd-caret">▾</span>';
   }
   document.getElementById('fSuche').addEventListener('input', (e) => { suchtext = e.target.value.trim().toLowerCase(); renderGrid(); });
+  document.getElementById('btnGartenFilter').addEventListener('click', () => { nurGarten = !nurGarten; renderGartenFilter(); renderGrid(); });
 
   // --- GRID ---
   const KEY_SORT_RICHTUNG = 'kochen_sortRichtung';
@@ -1207,6 +1282,7 @@
       if (aktiverFilter !== 'alle' && r.kategorie !== aktiverFilter) return false;
       if (aktiverTagFilter !== 'alle' && !(r.tags || []).includes(aktiverTagFilter)) return false;
       if (nurFavoriten && !r.favorit) return false;
+      if (nurGarten && !gartenTreffer(r, gartenListe()).length) return false;
       if (aktiverAufwandFilter === 'schnell') {
         const z = effektiveKochzeit(r);
         if (!z || z > SCHNELL_GRENZE_MIN) return false;
@@ -1218,7 +1294,11 @@
       }
       return true;
     });
-    if (sortKriterium === 'zuletztGekocht') {
+    if (nurGarten) {
+      // meiste Garten-Zutaten zuerst
+      const gl = gartenListe();
+      gefiltert.sort((a, b) => gartenTreffer(b, gl).length - gartenTreffer(a, gl).length || a.titel.localeCompare(b.titel));
+    } else if (sortKriterium === 'zuletztGekocht') {
       gefiltert.sort((a, b) => {
         const za = a.zuletztGekocht ? new Date(a.zuletztGekocht).getTime() : 0;
         const zb = b.zuletztGekocht ? new Date(b.zuletztGekocht).getTime() : 0;
@@ -1252,6 +1332,10 @@
     if (suchtext && !r.titel.toLowerCase().includes(suchtext)) {
       const treffer = (r.zutaten || []).find(z => (z.name || '').toLowerCase().includes(suchtext));
       if (treffer) zutatTrefferHtml = '<div class="rezept-zutat-treffer">🥕 enthält: ' + escapeHtml(treffer.name) + '</div>';
+    }
+    if (nurGarten) {
+      const gt = gartenTreffer(r, gartenListe());
+      if (gt.length) zutatTrefferHtml += '<div class="rezept-zutat-treffer">🌱 aus dem Garten: ' + escapeHtml(gt.join(', ')) + '</div>';
     }
     const abzeichenIcon = meilensteinIconFuer(r.kochZaehler || 0);
     karte.innerHTML =

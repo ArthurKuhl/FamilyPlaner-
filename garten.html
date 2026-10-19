@@ -221,6 +221,11 @@
   .beispiel-text { font-size: 0.74rem; color: var(--soil); line-height: 1.4; }
   .beispiel-tipp { font-size: 0.7rem; color: var(--moss-text, var(--moss)); margin-top: 4px; font-weight: 600; }
   html[data-dark="1"] .beispiel-tipp { color: var(--sage); }
+  #gartenToast { position: fixed; left: 50%; bottom: 22px; transform: translate(-50%, 30px); opacity: 0; z-index: 9999; display: flex; align-items: center; gap: 12px;
+    background: #2a2016; color: #f0e8d8; padding: 10px 16px; border-radius: 22px; box-shadow: 0 4px 16px rgba(0,0,0,0.3); font-size: 0.84rem; font-weight: 600;
+    width: max-content; max-width: calc(100vw - 24px); transition: opacity 0.2s, transform 0.2s; pointer-events: none; }
+  #gartenToast.zeigen { opacity: 1; transform: translate(-50%, 0); }
+  #gartenToast button { background: none; border: none; color: #e8c98a; font: inherit; font-weight: 700; cursor: pointer; padding: 2px 4px; white-space: nowrap; text-decoration: underline; }
   /* ---------- Tiere im Garten ---------- */
   .tier-fortschritt { background: var(--white); border: 1px solid var(--parchment); border-radius: var(--radius-md); padding: 10px 14px; margin-bottom: 12px; }
   .tier-fortschritt-text { font-size: 0.8rem; margin-bottom: 6px; }
@@ -7294,7 +7299,32 @@ function zeigeLoeschToast(text, rueckgaengigFn, sekunden) {
     }, { passive: true });
   })();
 
-function showTempStatus(text, seconds) {
+// Kurzmeldung unten am Bildschirm (die alte Statusanzeige in der Kopfzeile ist ausgeblendet).
+// Optional mit Knopf: showTempStatus('Text', 6, { label: '→ Vorratskammer', aktion: () => … })
+function showTempStatus(text, seconds, knopf) {
+  let toast = document.getElementById('gartenToast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'gartenToast';
+    toast.setAttribute('role', 'status');
+    toast.setAttribute('aria-live', 'polite');
+    document.body.appendChild(toast);
+  }
+  toast.innerHTML = '';
+  const span = document.createElement('span');
+  span.textContent = text;
+  toast.appendChild(span);
+  if (knopf && typeof knopf.aktion === 'function') {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = knopf.label || 'OK';
+    b.addEventListener('click', () => { toast.classList.remove('zeigen'); try { knopf.aktion(); } catch (e) { console.warn(e); } });
+    toast.appendChild(b);
+  }
+  toast.style.pointerEvents = knopf ? 'auto' : 'none';
+  toast.classList.add('zeigen');
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => toast.classList.remove('zeigen'), (seconds || 3) * 1000 + (knopf ? 2000 : 0));
   const el = document.getElementById('statusMsg');
   if (!el) return;
   el.textContent = text;
@@ -8468,7 +8498,8 @@ function addFreiPflanzeHarvest() {
   document.getElementById('fpHarvestMethod').value = '';
   document.getElementById('fpHarvestNote').value = '';
   renderFreiPflanzeHarvestLog(fp);
-  showTempStatus(`🧺 Ernte eingetragen: ${amount} ${unit}`, 3);
+  const ernteName = (fp.name || '').trim() || 'Ernte';
+  showTempStatus(`🧺 Ernte eingetragen: ${amount} ${unit}`, 5, { label: '→ Vorratskammer', aktion: () => ernteInVorratskammer(ernteName, amount, unit, date) });
 }
 function deleteFreiPflanzeHarvestEntry(hIdx) {
   const fp = getCurrentFreiPflanzen().find(x => x.id === activeFreiPflanzeId);
@@ -9227,6 +9258,17 @@ function renderHarvestJournal(entries, years) {
 
   box.innerHTML = html;
 }
+// Ernte direkt in den Eingang der Vorratskammer legen (dort wird sie einsortiert) – gleicher Weg wie beim Einkauf
+function ernteInVorratskammer(name, amount, unit, date) {
+  try {
+    const eingang = JSON.parse(localStorage.getItem('vorratskammer_eingang') || '[]');
+    eingang.push({ id: 'e_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name: name,
+      menge: (amount + ' ' + (unit || '')).trim(), einkaufKategorie: 'obst_gemuese', datum: date || new Date().toISOString().slice(0, 10), quelle: 'garten' });
+    localStorage.setItem('vorratskammer_eingang', JSON.stringify(eingang));
+    if (window._vorratSync) window._vorratSync.melde();
+    showTempStatus('📥 „' + name + '“ liegt jetzt im Eingang der Vorratskammer', 4);
+  } catch (e) { showTempStatus('⚠ Konnte nicht an die Vorratskammer übergeben werden.', 5); }
+}
 function addHarvestEntry() {
   if (!activePlantBedId) return;
   const bed = getCurrentBeds().find(b=>b.id===activePlantBedId.bedId);
@@ -9252,7 +9294,8 @@ function addHarvestEntry() {
   document.getElementById('ppHarvestMethod').value = '';
   document.getElementById('ppHarvestNote').value = '';
   renderHarvestLog(bed, activePlantBedId.idx);
-  showTempStatus(`🧺 Ernte eingetragen: ${amount} ${unit}`, 3);
+  const ernteName = (plant.name || '').trim() || 'Ernte';
+  showTempStatus(`🧺 Ernte eingetragen: ${amount} ${unit}`, 5, { label: '→ Vorratskammer', aktion: () => ernteInVorratskammer(ernteName, amount, unit, date) });
 }
 function deleteHarvestEntry(hIdx) {
   if (!activePlantBedId) return;
@@ -11738,6 +11781,8 @@ if (window.PlanerSync) {
 // 🔔 Pflanz-Erinnerungen), landen so in der Cloud – sonst nur auf diesem Gerät und ohne Push.
 if (window.PlanerSync) {
   window._termineSync = window.PlanerSync.starteSync({ modul: 'termine', keys: ['termine_events_v1'] });
+  // Eingang der Vorratskammer (Ernte → Vorratskammer)
+  window._vorratSync = window.PlanerSync.starteSync({ modul: 'vorratskammer', keys: ['vorratskammer_eingang'] });
 }
 
 // ==================== BARRIEREFREIHEIT: FOKUS-MANAGEMENT FÜR MODALS ====================

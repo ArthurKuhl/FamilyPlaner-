@@ -124,6 +124,13 @@
   .schnell-input { width: 100%; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--parchment, #ddd); background: var(--white, #fff); color: var(--soil);
     font-family: 'Inter', sans-serif; font-size: 1rem; margin: 6px 0 12px; }
   .modal .schnell-ziel { margin-bottom: 8px; }
+  .schnell-zeile { display: flex; gap: 8px; align-items: center; margin: 6px 0 12px; }
+  .schnell-zeile .schnell-input { margin: 0; flex: 1; min-width: 0; }
+  .schnell-mikro { flex-shrink: 0; width: 46px; height: 46px; border-radius: 50%; border: none; background: var(--parchment, #ece0c7); font-size: 1.25rem; cursor: pointer; }
+  .schnell-mikro.hoert { background: var(--terracotta); animation: mikroPuls 1s ease-in-out infinite; }
+  @keyframes mikroPuls { 50% { box-shadow: 0 0 0 8px rgba(196,107,65,0.25); } }
+  .schnell-hinweis { font-size: 0.75rem; color: var(--bark); margin: -6px 0 10px; min-height: 0; }
+  .schnell-hinweis:empty { display: none; }
   /* 🧩 Schlanker Start */
   .setup-modul-liste { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; text-align: left; margin: 4px 0 14px; max-height: 46vh; overflow-y: auto; }
   .setup-modul { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: #fff; border: 1px solid #e5dccb; border-radius: 10px; font-size: 0.82rem; color: var(--soil); cursor: pointer; }
@@ -237,7 +244,7 @@
       <span class="sync-status" id="syncStatus" title="Sync-Status">⏳</span>
     </nav>
     <div class="modul-frame-wrap">
-      <iframe class="modul-frame" id="modulFrame" title="Aktueller Bereich" allow="geolocation; notifications"></iframe>
+      <iframe class="modul-frame" id="modulFrame" title="Aktueller Bereich" allow="geolocation; notifications; camera; microphone"></iframe>
     </div>
     <nav class="untere-leiste" id="untereLeiste" aria-label="Schnellzugriff"></nav>
   </div>
@@ -294,7 +301,11 @@
   <div class="modal-bg blatt" id="modalSchnell">
     <div class="modal" role="dialog" aria-label="Schnell festhalten">
       <div class="blatt-kopf"><h2 style="margin:0">＋ Schnell festhalten</h2><button type="button" id="btnSchnellSchliessen" aria-label="Schließen">✕</button></div>
-      <input type="text" class="schnell-input" id="schnellText" placeholder="z.B. Milch, Zahnarzt Do 10 Uhr, Idee …" autocomplete="off">
+      <div class="schnell-zeile">
+        <input type="text" class="schnell-input" id="schnellText" placeholder="z.B. Milch, Zahnarzt Do 10 Uhr, Idee …" autocomplete="off">
+        <button type="button" class="schnell-mikro" id="btnSchnellMikro" title="Diktieren" aria-label="Diktieren" style="display:none">🎤</button>
+      </div>
+      <div class="schnell-hinweis" id="schnellHinweis"></div>
       <div id="schnellZiele"></div>
     </div>
   </div>
@@ -457,6 +468,7 @@
         zusatzSync: [{ modul: 'medien_bilder', keys: ['medien_bilder'] }] },
       { id: 'handwerk',    label: 'Handwerk',  emoji: '🔨', src: 'handwerk.html', syncKeys: ['handwerk_projekte', 'handwerk_wartung'] },
       { id: 'haushalt',    label: 'Haushalt',  emoji: '🧹', src: 'haushalt.html', syncKeys: ['haushalt_aufgaben'] },
+      { id: 'kinder',      label: 'Kinderecke', emoji: '🧒', src: 'kinder.html', syncKeys: ['kinder_einstellungen', 'kinder_sterne'] },
       { id: 'geldgeschenke', label: 'Geldgeschenke', emoji: '💶', src: 'geldgeschenke.html', syncKeys: ['geldgeschenke_liste'] },
       { id: 'notizblock',  label: 'Notizblock', emoji: '📝', src: 'notizblock.html', syncKeys: ['notizblock_liste'] },
       { id: 'ausfluege',   label: 'Ausflüge', emoji: '🧭', src: 'ausfluege.html', syncKeys: ['ausfluege_planung', 'ausfluege_erlebt'] },
@@ -1227,10 +1239,52 @@
       box.querySelectorAll('[data-schnell]').forEach(b => b.addEventListener('click', () => schnellAbschicken(b.dataset.schnell)));
       const inp = document.getElementById('schnellText');
       inp.value = '';
+      document.getElementById('schnellHinweis').textContent = '';
       document.getElementById('modalSchnell').classList.add('zeigen');
       setTimeout(() => inp.focus(), 60);
     }
-    function schnellSchliessen() { document.getElementById('modalSchnell').classList.remove('zeigen'); }
+    function schnellSchliessen() { mikroStopp(); document.getElementById('modalSchnell').classList.remove('zeigen'); }
+
+    // 🎤 Diktieren (Spracherkennung des Browsers – Chrome/Android, Edge, Safari; nicht Firefox)
+    const Spracherkennung = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let erkennung = null;
+    function mikroStopp() {
+      if (erkennung) { try { erkennung.stop(); } catch (e) {} }
+      erkennung = null;
+      document.getElementById('btnSchnellMikro').classList.remove('hoert');
+    }
+    if (Spracherkennung) {
+      const mikro = document.getElementById('btnSchnellMikro');
+      mikro.style.display = '';
+      mikro.addEventListener('click', () => {
+        if (erkennung) { mikroStopp(); return; }
+        const inp = document.getElementById('schnellText');
+        const hinweis = document.getElementById('schnellHinweis');
+        const vorher = inp.value.trim();
+        erkennung = new Spracherkennung();
+        erkennung.lang = 'de-DE';
+        erkennung.interimResults = true;
+        erkennung.maxAlternatives = 1;
+        mikro.classList.add('hoert');
+        hinweis.textContent = '🎤 Sprich jetzt … z.B. „Milch und Eier“';
+        erkennung.onresult = (ev) => {
+          let text = '';
+          for (let i = 0; i < ev.results.length; i++) text += ev.results[i][0].transcript;
+          inp.value = (vorher ? vorher + ' ' : '') + text.trim();
+        };
+        erkennung.onerror = (ev) => {
+          hinweis.textContent = ev.error === 'not-allowed' || ev.error === 'service-not-allowed'
+            ? '⚠ Mikrofon nicht erlaubt – in den Browser-Einstellungen freigeben.'
+            : ev.error === 'no-speech' ? 'Nichts gehört – nochmal versuchen?' : '⚠ Spracherkennung gerade nicht verfügbar (' + ev.error + ').';
+        };
+        erkennung.onend = () => {
+          mikro.classList.remove('hoert');
+          erkennung = null;
+          if (/^🎤/.test(hinweis.textContent)) hinweis.textContent = inp.value.trim() ? 'Jetzt unten auswählen, wohin es soll.' : '';
+        };
+        try { erkennung.start(); } catch (e) { mikroStopp(); }
+      });
+    }
     function schnellAbschicken(modul) {
       const text = document.getElementById('schnellText').value.trim();
       schnellSchliessen();

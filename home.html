@@ -58,6 +58,11 @@
   .einrichtung-ausblenden { background: none; border: none; color: var(--bark); font: 600 0.78rem 'Inter', sans-serif; padding: 4px 0 0; cursor: pointer; text-decoration: underline; }
   header.top .gruss { font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 700; }
   header.top .datum { font-size: 0.8rem; color: var(--sage); margin-top: 2px; text-transform: capitalize; }
+  .heute-zeile { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+  .heute-zeile:empty { display: none; }
+  .heute-chip { display: inline-flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.09); color: var(--leaf); border: none; border-radius: 999px;
+    padding: 4px 10px; font: 600 0.76rem 'Inter', sans-serif; cursor: pointer; white-space: nowrap; }
+  .heute-chip.wichtig { background: rgba(217,133,90,0.28); }
 
   main { padding: 14px; max-width: 640px; margin: 0 auto; }
 
@@ -230,6 +235,7 @@
   <div>
     <div class="gruss" id="grussText">Hallo!</div>
     <div class="datum" id="datumText"></div>
+    <div class="heute-zeile" id="heuteZeile"></div>
   </div>
   <div style="display:flex;align-items:flex-start;gap:4px;">
     <button class="kopf-zahnrad" id="btnKachelnAnordnen" title="Kacheln anordnen" aria-label="Kacheln anordnen">↕️</button>
@@ -612,8 +618,11 @@
   function farbeFuerWer(wer) { return (WER_OPTIONEN.find(w => w.id === wer) || WER_OPTIONEN[0]).farbe; }
 
   function vorkommenHeute(ev, heuteISO) {
-    let d = new Date(ev.date);
-    const bisWiederholung = ev.recurrence && ev.recurrence.until ? new Date(ev.recurrence.until) : null;
+    // Datum als lokalen Tag lesen – new Date('JJJJ-MM-TT') wäre UTC-Mitternacht und läge in
+    // Deutschland bei 01:00/02:00 Uhr, wodurch heutige Termine nie als „heute“ erkannt wurden
+    if (!ev.date) return false;
+    let d = ausISO(String(ev.date).slice(0, 10));
+    const bisWiederholung = ev.recurrence && ev.recurrence.until ? ausISO(String(ev.recurrence.until).slice(0, 10)) : null;
     const freq = ev.recurrence ? ev.recurrence.freq : 'keine';
     const heuteDatum = ausISO(heuteISO);
     let sicherheitszaehler = 0;
@@ -713,6 +722,61 @@
     ).join('');
   }
   document.getElementById('kachelEinkauf').addEventListener('click', () => navigiere('einkauf'));
+  // ============================================================
+  // HEUTE AUF EINEN BLICK – eine Zeile unter dem Datum (Wetter, Termine, Einkauf, Aufgaben,
+  // Geburtstage der nächsten 7 Tage, bald ablaufende Vorräte). Jeder Punkt führt in den Bereich.
+  // ============================================================
+  function renderHeuteZeile() {
+    const box = document.getElementById('heuteZeile');
+    if (!box) return;
+    const lies = (k, f) => { try { const r = localStorage.getItem(k); return r === null ? f : JSON.parse(r); } catch (e) { return f; } };
+    const versteckt = lies('planer_versteckteModule', []);
+    const sichtbar = (m) => !versteckt.includes(m);
+    const chips = [];
+    try {
+      if (typeof wetterDaten !== 'undefined' && wetterDaten && wetterDaten.current) {
+        chips.push({ text: wetterSymbol(wetterDaten.current.weather_code) + ' ' + Math.round(wetterDaten.current.temperature_2m) + '°', ziel: null });
+      }
+    } catch (e) {}
+    const heuteISO = toISODatum(heute());
+    const events = lies('termine_events_v1', []);
+    if (sichtbar('termine')) {
+      const anzahl = events.filter(ev => vorkommenHeute(ev, heuteISO)).length;
+      if (anzahl) chips.push({ text: '🗓️ ' + anzahl + (anzahl === 1 ? ' Termin' : ' Termine'), ziel: 'termine' });
+      // Geburtstage in den nächsten 7 Tagen (jährlich wiederkehrend)
+      const h = heute();
+      events.filter(ev => /geburtstag|🎂/i.test(ev.title || '') && ev.date).forEach(ev => {
+        const [, m, d] = ev.date.split('-').map(Number);
+        let n = new Date(h.getFullYear(), m - 1, d);
+        if (n < h) n = new Date(h.getFullYear() + 1, m - 1, d);
+        const tage = Math.round((n - h) / 864e5);
+        if (tage > 7) return;
+        const name = String(ev.title).replace(/\b(geburtstag|von)\b|🎂|'s\b|’s\b/gi, '').replace(/\s+/g, ' ').trim() || 'Geburtstag';
+        chips.push({ text: '🎂 ' + name + (tage === 0 ? ' heute!' : tage === 1 ? ' morgen' : ' in ' + tage + ' Tagen'), ziel: 'termine', wichtig: tage <= 1 });
+      });
+    }
+    if (sichtbar('einkauf')) {
+      const offen = lies('einkauf_listen', []).reduce((s, l) => s + (l.items || []).filter(i => !i.erledigt).length, 0);
+      if (offen) chips.push({ text: '🛒 ' + offen + ' einzukaufen', ziel: 'einkauf' });
+    }
+    if (sichtbar('haushalt')) {
+      try {
+        const faellig = lies('haushalt_aufgaben', []).filter(a => haushaltIstFaelligOffen(a)).length;
+        if (faellig) chips.push({ text: '🧹 ' + faellig + (faellig === 1 ? ' Aufgabe' : ' Aufgaben'), ziel: 'haushalt' });
+      } catch (e) {}
+    }
+    if (sichtbar('vorratskammer')) {
+      const h = heute();
+      const bald = lies('vorratskammer_items', []).filter(i => {
+        const d = i.verfallsdatum || i.aufbrauchenBis;
+        return d && (ausISO(d) - h) / 864e5 <= 3;
+      });
+      if (bald.length) chips.push({ text: '⏳ ' + bald[0].name + (bald.length > 1 ? ' +' + (bald.length - 1) : '') + ' läuft ab', ziel: 'vorratskammer', wichtig: true });
+    }
+    box.innerHTML = chips.map((c, i) => '<button type="button" class="heute-chip' + (c.wichtig ? ' wichtig' : '') + '" data-i="' + i + '">' + escapeHtml(c.text) + '</button>').join('');
+    box.querySelectorAll('[data-i]').forEach(b => b.addEventListener('click', () => { const c = chips[+b.dataset.i]; if (c.ziel) navigiere(c.ziel); }));
+  }
+
 
   // ============================================================
   // SPORT HEUTE
@@ -793,8 +857,22 @@
     }
     const monat = new Date().getMonth() + 1;
     const anzahlPflanzbar = Object.values(SOWING_KURZ).filter(([direkt, aus]) => inFenster(verschieben(direkt), monat) || inFenster(verschieben(aus), monat)).length;
-    const anzahlErntbar = Object.values(HARVEST_KURZ).filter(r => inFenster(r, monat)).length;
-    box.textContent = '🌱 ' + anzahlPflanzbar + ' Pflanzen aktuell pflanzbar · 🧺 ' + anzahlErntbar + ' erntbar';
+    // Erntbar: nur was tatsächlich im eigenen Garten steht (sonst wie bisher der ganze Katalog)
+    const g = gartenDaten && gartenDaten.gardens && gartenDaten.gardens[gartenDaten.currentGardenId];
+    const eigene = new Set();
+    if (g) {
+      (g.beds || []).forEach(b => (b.plants || []).forEach(p => { if (p && p.name) eigene.add(p.name.trim()); }));
+      (g.freiPflanzen || []).forEach(p => { if (p && p.name) eigene.add(p.name.trim()); });
+    }
+    if (eigene.size) {
+      const reif = Array.from(eigene).filter(n => HARVEST_KURZ[n] && inFenster(HARVEST_KURZ[n], monat));
+      box.textContent = '🌱 ' + anzahlPflanzbar + ' Pflanzen aktuell pflanzbar · 🧺 ' + (reif.length
+        ? reif.length + ' bei dir erntbar: ' + reif.slice(0, 4).join(', ') + (reif.length > 4 ? ' …' : '')
+        : 'bei dir gerade nichts erntbar');
+    } else {
+      const anzahlErntbar = Object.values(HARVEST_KURZ).filter(r => inFenster(r, monat)).length;
+      box.textContent = '🌱 ' + anzahlPflanzbar + ' Pflanzen aktuell pflanzbar · 🧺 ' + anzahlErntbar + ' erntbar';
+    }
   }
 
   function renderGartenWarnungen() {
@@ -980,6 +1058,7 @@
     { titel: '🎮 Gaming', text: 'Bibliothek der eigenen Spiele, Wunschliste, aktuelle Gaming-News.' },
     { titel: '🔨 Handwerk', text: 'Projekte mit Material und Skizzen-Tool (Formen zeichnen, auswählen, verschieben, duplizieren, löschen), Wartungsplan für wiederkehrende Aufgaben.' },
     { titel: '🧹 Haushalt', text: 'Aufgaben mit Turnus und Zuständigkeit, Verlauf erledigter Aufgaben.' },
+    { titel: '🧒 Kinderecke', text: 'Für die Kinder: eigene Aufgaben mit Sternen und Belohnungen, Taschengeld-Stand, Tier-Entdeckungen und Geburtstags-Countdown.' },
     { titel: '💶 Geldgeschenke', text: 'Wer hat wem wieviel zu welchem Anlass geschenkt – Übersicht als Gedächtnisstütze für faire Gegengeschenke.' },
     { titel: '📝 Notizblock', text: 'Einfache, farbige Notizzettel mit Suche – bewusst schlicht gehalten.' },
     { titel: '🧭 Ausflüge', text: 'Ausflugsplanung mit Packliste und wer dabei war.' },
@@ -1331,6 +1410,7 @@
     return liste;
   }
   function renderWetter() {
+    setTimeout(renderHeuteZeile, 0);
     const box = document.getElementById('wetterKurz');
     if (!wetterStandort()) {
       box.innerHTML = '<div class="wetter-leer">Für das Wetter braucht die App einmal deinen Standort.</div>' +
@@ -1538,6 +1618,7 @@
   renderErfolge();
   renderTermine();
   renderEinkauf();
+  renderHeuteZeile();
   renderSport();
   renderGartenWarnungen();
   renderGartenPflanzErnte();
@@ -1548,7 +1629,7 @@
 
   // Bei Rückkehr auf die Startseite (z.B. nach Bearbeitung in einem anderen Modul) neu laden
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) { renderTermine(); renderEinkauf(); renderSport(); renderGartenWarnungen(); renderGartenPflanzErnte(); renderKochenHeute(); renderHaushalt(); renderDieseWoche(); renderErfolge(); feedbackEintraege = laden(KEY_FEEDBACK, feedbackEintraege); feedbackListeRendern(); versteckteKachelnAnwenden(); }
+    if (!document.hidden) { renderHeuteZeile(); renderTermine(); renderEinkauf(); renderSport(); renderGartenWarnungen(); renderGartenPflanzErnte(); renderKochenHeute(); renderHaushalt(); renderDieseWoche(); renderErfolge(); feedbackEintraege = laden(KEY_FEEDBACK, feedbackEintraege); feedbackListeRendern(); versteckteKachelnAnwenden(); }
   });
 })();
 </script>

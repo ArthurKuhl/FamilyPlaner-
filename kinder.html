@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<script>(function(){try{var m=localStorage.getItem('planer_darkMode');if(m==='dunkel'||(m==='auto'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.setAttribute('data-dark','1');}var s=localStorage.getItem('planer_schriftgroesse');if(s==='gross'){document.documentElement.style.fontSize='19px';}var f=localStorage.getItem('planer_farbschema');if(f&&f!=='wald'){document.documentElement.setAttribute('data-farbschema',f);}}catch(e){}})();</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kinderecke</title>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
+<script src="personen.js"></script>
+<script src="sync.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap');
+  :root {
+    --soil: #3a2e1f; --moss: #4f6f45; --sage: #7fa476; --leaf: #bcd196;
+    --cream: #faf6ec; --parchment: #ece0c7; --bark: #7d6339;
+    --terracotta: #c46b41; --gold: #c99a3a; --white: #fffdf8; --navbg: #2a2016; --navbg2: #3a2e1f;
+    --radius-sm: 8px; --radius-md: 14px; --radius-lg: 20px; --radius-pill: 22px;
+    --shadow-soft: 0 2px 10px rgba(59,47,30,0.08); --shadow-md: 0 8px 26px rgba(59,47,30,0.2);
+  }
+  html[data-dark="1"] {
+    --soil: #f0e8d8; --moss: #6fae5e; --sage: #9bc98a; --leaf: #cfe3b8;
+    --cream: #1e1b16; --parchment: #2b261e; --bark: #c2b393;
+    --terracotta: #d9855a; --gold: #dcb158; --white: #2f2a22; --navbg: #14100c; --navbg2: #221a12;
+  }
+  html[data-farbschema="ozean"] { --navbg: #1c1f24; --navbg2: #2b2f36; --sage: #8fd4c9; --leaf: #8fd4c9; --moss: #4fa89c; }
+  html[data-farbschema="schnee"] { --navbg: #1c1f24; --navbg2: #2b2f36; --sage: #c9cdd3; --leaf: #f0f0f2; --moss: #5b5f66; }
+  html[data-farbschema="fjord"] { --navbg: #1c1f24; --navbg2: #2b2f36; --sage: #9cc0ec; --leaf: #9cc0ec; --moss: #5b8bc9; }
+  html[data-farbschema="bernstein"] { --navbg: #1c1f24; --navbg2: #2b2f36; --sage: #e6c878; --leaf: #e6c878; --moss: #c9a24d; }
+  html[data-dark="1"][data-farbschema] { --cream: #191b1f; --parchment: #24262c; --white: #2a2d33; --soil: #eceef0; --bark: #a7acb5; }
+  html[data-dark="1"] { --moss-text: var(--sage); --on-moss: #16140f; }
+  html[data-dark="1"][data-farbschema="schnee"] { --on-moss: #f4f5f6; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { overflow-x: hidden; max-width: 100%; }
+  body { font-family: 'Inter', sans-serif; background: var(--cream); color: var(--soil); min-height: 100vh; padding-bottom: 40px; }
+  header.top { background: linear-gradient(135deg, var(--navbg2), var(--navbg)); color: var(--leaf); padding: 8px 14px 12px; }
+  .titel-zeile { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-bottom: 10px; }
+  .titel-zeile h1 { font-family: 'Playfair Display', serif; font-size: 1.15rem; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .kopf-btn { background: none; border: none; color: var(--leaf); font-size: 1.05rem; cursor: pointer; padding: 4px 6px; }
+  .kind-reihe { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+  .kind-reihe::-webkit-scrollbar { display: none; }
+  .kind-btn { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; padding: 8px 16px 8px 8px; border-radius: 999px; border: 2px solid transparent;
+    background: rgba(255,255,255,0.08); color: var(--leaf); font: 700 0.95rem 'Inter', sans-serif; cursor: pointer; }
+  .kind-btn .avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; font-size: 0.95rem; }
+  .kind-btn.aktiv { background: var(--white); color: var(--soil); border-color: var(--kf, var(--moss)); }
+  main { padding: 14px; max-width: 640px; margin: 0 auto; display: grid; gap: 14px; }
+  .karte { background: var(--white); border-radius: var(--radius-lg); padding: 16px; box-shadow: var(--shadow-soft); border-top: 5px solid var(--kf, var(--moss)); }
+  .karte h2 { font-family: 'Playfair Display', serif; font-size: 1.1rem; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .gruss { font-size: 1.5rem; font-weight: 800; font-family: 'Playfair Display', serif; }
+  .gruss-sub { font-size: 0.9rem; color: var(--bark); margin-top: 2px; }
+  .sterne-zahl { font-size: 2.6rem; font-weight: 800; line-height: 1; color: var(--gold); }
+  .sterne-zeile { display: flex; align-items: center; gap: 14px; }
+  .balken { height: 14px; border-radius: 999px; background: var(--parchment); overflow: hidden; margin: 10px 0 4px; }
+  .balken span { display: block; height: 100%; background: linear-gradient(90deg, #f3c84b, #e8963c); border-radius: 999px; transition: width 0.5s; }
+  .klein { font-size: 0.8rem; color: var(--bark); }
+  .aufgabe { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: var(--radius-md); background: var(--cream); margin-bottom: 8px; }
+  .aufgabe .a-titel { flex: 1; font-weight: 700; font-size: 1rem; }
+  .aufgabe.fertig { opacity: 0.6; }
+  .aufgabe.fertig .a-titel { text-decoration: line-through; }
+  .knopf-gross { border: none; border-radius: 999px; padding: 10px 16px; font: 800 0.92rem 'Inter', sans-serif; cursor: pointer; background: var(--moss); color: var(--on-moss, #fff); white-space: nowrap; }
+  .knopf-gross.gold { background: linear-gradient(135deg, #f3c84b, #e8963c); color: #3a2410; }
+  .knopf-klein { background: none; border: 1px solid var(--parchment); color: var(--bark); border-radius: 999px; padding: 4px 10px; font: 600 0.75rem 'Inter', sans-serif; cursor: pointer; }
+  .geld { font-size: 2.2rem; font-weight: 800; color: var(--moss-text, var(--moss)); }
+  .buchung { display: flex; justify-content: space-between; font-size: 0.85rem; padding: 6px 0; border-bottom: 1px solid var(--parchment); }
+  .buchung .plus { color: var(--moss-text, var(--moss)); font-weight: 700; }
+  .buchung .minus { color: var(--terracotta); font-weight: 700; }
+  .tiere { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 12px; }
+  .tier { display: flex; flex-direction: column; align-items: center; width: 64px; font-size: 0.66rem; text-align: center; gap: 2px; }
+  .tier .t-icon { font-size: 1.7rem; width: 48px; height: 48px; border-radius: 50%; background: rgba(127,164,118,0.18); display: flex; align-items: center; justify-content: center; }
+  .tier.unbekannt .t-icon { filter: grayscale(1); opacity: 0.35; }
+  .belohnung { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: var(--radius-md); background: var(--cream); margin-bottom: 6px; }
+  .belohnung .b-text { flex: 1; font-weight: 600; }
+  .leer { text-align: center; padding: 30px 16px; color: var(--bark); line-height: 1.5; }
+  .leer .em { font-size: 2.6rem; display: block; margin-bottom: 8px; }
+  .modal-bg { position: fixed; inset: 0; background: rgba(42,32,22,0.55); display: none; align-items: flex-end; justify-content: center; z-index: 200; }
+  .modal-bg.zeigen { display: flex; }
+  .modal { background: var(--cream); width: 100%; max-width: 560px; max-height: 88vh; overflow-y: auto; border-radius: 20px 20px 0 0; padding: 18px 16px 24px; color: var(--soil); }
+  .modal h3 { font-size: 1rem; margin: 14px 0 8px; }
+  .modal label.check { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 10px; background: var(--white); margin-bottom: 6px; font-weight: 600; }
+  .modal input[type=text], .modal input[type=number] { padding: 9px 10px; border-radius: 10px; border: 1px solid var(--parchment); background: var(--white); color: var(--soil); font: inherit; min-width: 0; }
+  .konfetti { position: fixed; top: -20px; font-size: 1.6rem; z-index: 9999; pointer-events: none; animation: fallen 1.8s ease-in forwards; }
+  @keyframes fallen { to { transform: translateY(105vh) rotate(540deg); opacity: 0.2; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="titel-zeile">
+    <h1>🧒 Kinderecke</h1>
+    <button class="kopf-btn" id="btnEinstellungen" title="Für Eltern: Kinder und Belohnungen festlegen" aria-label="Einstellungen">⚙️</button>
+  </div>
+  <div class="kind-reihe" id="kindReihe"></div>
+</header>
+<main id="inhalt"></main>
+
+<div class="modal-bg" id="modalEinst">
+  <div class="modal" role="dialog" aria-label="Einstellungen Kinderecke">
+    <div style="display:flex;justify-content:space-between;align-items:center;"><strong style="font-size:1.05rem;">⚙️ Für Eltern</strong><button class="knopf-klein" id="btnEinstZu">Fertig</button></div>
+    <h3>Wer sind die Kinder?</h3>
+    <div id="einstKinder"></div>
+    <h3>🎁 Belohnungen</h3>
+    <p class="klein" style="margin-bottom:8px;">Für jede erledigte Haushaltsaufgabe gibt es einen ⭐. Gesammelte Sterne können gegen Belohnungen eingetauscht werden.</p>
+    <div id="einstBelohnungen"></div>
+    <div style="display:flex;gap:6px;margin-top:8px;">
+      <input type="text" id="neuBelohnungText" placeholder="z.B. Eis essen 🍦" style="flex:1;">
+      <input type="number" id="neuBelohnungSterne" min="1" value="10" style="width:70px;" aria-label="Sterne">
+      <button class="knopf-gross" id="btnBelohnungNeu" style="padding:8px 12px;">＋</button>
+    </div>
+    <p class="klein" style="margin-top:14px;">Aufgaben legt ihr im 🧹 Haushalt an und weist sie dem Kind fest oder per Rotation zu. Das Taschengeld kommt aus 💶 Finanzen.</p>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  const KEY_EINST = 'kinder_einstellungen';   // { kinder: [personId], belohnungen: [{id, text, sterne}] }
+  const KEY_STERNE = 'kinder_sterne';         // [{ id, personId, datum, anzahl (+ Bonus / − eingelöst), grund }]
+  const KEY_AKTIV = 'kinder_aktivesKind';     // geräte-lokal
+  function laden(k, f) { try { const r = localStorage.getItem(k); return r === null ? f : JSON.parse(r); } catch (e) { return f; } }
+  function speichern(k, v, handle) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} if (handle) handle.melde(); }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+  function neueId(p) { return (p || 'id') + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+  const heuteISO = () => new Date().toISOString().slice(0, 10);
+
+  function personen() {
+    if (window.PLANER_PERSONEN && window.PLANER_PERSONEN.length) return window.PLANER_PERSONEN;
+    return laden('planer_personenListe', []);
+  }
+  function person(id) { return personen().find(p => p.id === id) || { id, label: id, farbe: '#7d6339' }; }
+  function einstellungen() {
+    const e = laden(KEY_EINST, {});
+    return { kinder: Array.isArray(e.kinder) ? e.kinder : [], belohnungen: Array.isArray(e.belohnungen) ? e.belohnungen : [
+      { id: 'b1', text: 'Eis essen 🍦', sterne: 10 }, { id: 'b2', text: '30 Min. länger aufbleiben 🌙', sterne: 15 }, { id: 'b3', text: 'Ausflug aussuchen 🧭', sterne: 30 }] };
+  }
+
+  // ---------- Haushalt-Aufgaben (gleiche Fälligkeitslogik wie im Haushalt-Modul) ----------
+  function letzte(a) { return a.erledigt && a.erledigt.length ? a.erledigt[a.erledigt.length - 1] : null; }
+  function heuteFaellig(a) {
+    if (a.pausiert) return false;
+    const l = letzte(a), heute = heuteISO();
+    if (a.turnus === 'taeglich') return !l || (l.datum || '').slice(0, 10) !== heute;
+    if (a.turnus === 'woechentlich') return (a.wochentage || []).includes(new Date().getDay()) && (!l || (l.datum || '').slice(0, 10) !== heute);
+    if (a.turnus === 'monatlich') return !l || (l.datum || '').slice(0, 7) !== heute.slice(0, 7);
+    if (a.turnus === 'einmalig') return !l;
+    return false;
+  }
+  function heuteErledigt(a) { const l = letzte(a); return !!l && (l.datum || '').slice(0, 10) === heuteISO(); }
+  function zustaendig(a) {
+    if (a.zuweisung === 'fest') return a.person || null;
+    if (a.zuweisung === 'rotation' && (a.rotationPersonen || []).length) return a.rotationPersonen[(a.rotationIndex || 0) % a.rotationPersonen.length];
+    return null;
+  }
+
+  // ---------- Sterne: 1 ⭐ pro erledigter Aufgabe + Bonus − eingelöst ----------
+  function sterneVon(kindId) {
+    const aufgaben = laden('haushalt_aufgaben', []);
+    const verdient = aufgaben.reduce((s, a) => s + (a.erledigt || []).filter(e => e.von === kindId).length, 0);
+    const buchungen = laden(KEY_STERNE, []).filter(b => b.personId === kindId);
+    return verdient + buchungen.reduce((s, b) => s + (Number(b.anzahl) || 0), 0);
+  }
+
+  // ---------- Tiere (gleiche IDs wie „Tiere im Garten“) ----------
+  const TIERE = [['holzbiene','🐝','Holzbiene'],['mauerbiene','🐝','Mauerbiene'],['hummel','🐝','Hummel'],['sandbiene','🐝','Sandbiene'],['marienkaefer','🐞','Marienkäfer'],
+    ['florfliege','💚','Florfliege'],['ohrwurm','✂️','Ohrwurm'],['gluehwuermchen','✨','Glühwürmchen'],['hirschkaefer','🪲','Hirschkäfer'],['tagpfauenauge','🦋','Tagpfauenauge'],
+    ['zitronenfalter','🦋','Zitronenfalter'],['schwalbenschwanz','🦋','Schwalbenschwanz'],['taubenschwaenzchen','🦋','Taubenschwänzchen'],['meisen','🐦','Meisen'],['rotkehlchen','🐦','Rotkehlchen'],
+    ['amsel','🐦','Amsel'],['hausrotschwanz','🐦','Hausrotschwanz'],['spatz','🐦','Spatz'],['stieglitz','🐦','Stieglitz'],['mauersegler','🐦','Mauersegler'],['igel','🦔','Igel'],
+    ['fledermaus','🦇','Fledermaus'],['eichhoernchen','🐿️','Eichhörnchen'],['amphibien','🐸','Frosch & Co.'],['eidechse','🦎','Eidechse'],['blindschleiche','🐍','Blindschleiche']];
+  function tierSichtungen() {
+    const g = laden('gartenplaner_v3', null);
+    const garten = g && g.gardens && g.gardens[g.currentGardenId];
+    return (garten && garten.tierSichtungen) || {};
+  }
+
+  // ---------- Geburtstag aus den Terminen ----------
+  function tageBisGeburtstag(kind) {
+    const events = laden('termine_events_v1', []);
+    const name = (kind.label || '').toLowerCase();
+    if (!name) return null;
+    const ev = events.find(e => { const t = String(e.title || e.titel || '').toLowerCase(); return t.includes(name) && /geburtstag|🎂/.test(t); });
+    if (!ev || !ev.date) return null;
+    const heute = new Date(); heute.setHours(0, 0, 0, 0);
+    const [, m, d] = ev.date.split('-').map(Number);
+    let naechster = new Date(heute.getFullYear(), m - 1, d);
+    if (naechster < heute) naechster = new Date(heute.getFullYear() + 1, m - 1, d);
+    return Math.round((naechster - heute) / 864e5);
+  }
+
+  // ---------- Taschengeld aus Finanzen ----------
+  function taschengeld(kindId) {
+    const konto = laden('finanzen_taschengeld_konten', []).find(k => k.personId === kindId);
+    if (!konto) return null;
+    const buchungen = laden('finanzen_taschengeld_buchungen', []).filter(b => b.kontoId === konto.id);
+    const stand = buchungen.reduce((s, b) => s + (b.typ === 'ausgabe' ? -b.betrag : b.betrag), 0);
+    return { konto, stand, letzte: buchungen.slice().sort((a, b) => (b.datum || '').localeCompare(a.datum || '')).slice(0, 3) };
+  }
+  const euro = (n) => (Number(n) || 0).toLocaleString('de-DE', { style: 'currency', currency: 'EUR' });
+
+  // ---------- Sync ----------
+  let sync = null, haushaltSync = null;
+  if (window.PlanerSync) {
+    sync = window.PlanerSync.starteSync({ modul: 'kinder', keys: [KEY_EINST, KEY_STERNE], onRemoteChange: () => renderAlles() });
+    haushaltSync = window.PlanerSync.starteSync({ modul: 'haushalt', keys: ['haushalt_aufgaben'], onRemoteChange: () => renderAlles() });
+    // nur lesen, damit Taschengeld & Co. aktuell sind
+    window.PlanerSync.starteSync({ modul: 'finanzen', keys: ['finanzen_taschengeld_konten', 'finanzen_taschengeld_buchungen'], onRemoteChange: () => renderAlles() });
+    window.PlanerSync.starteSync({ modul: 'termine', keys: ['termine_events_v1'], onRemoteChange: () => renderAlles() });
+  }
+
+  let aktivesKind = null;
+  try { aktivesKind = localStorage.getItem(KEY_AKTIV); } catch (e) {}
+
+  function konfetti() {
+    const zeichen = ['⭐', '🎉', '✨', '🌟'];
+    for (let i = 0; i < 18; i++) {
+      const el = document.createElement('div');
+      el.className = 'konfetti';
+      el.textContent = zeichen[i % zeichen.length];
+      el.style.left = Math.random() * 100 + 'vw';
+      el.style.animationDelay = (Math.random() * 0.4) + 's';
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 2400);
+    }
+  }
+
+  function renderAlles() {
+    const e = einstellungen();
+    const kinder = e.kinder.map(person);
+    const reihe = document.getElementById('kindReihe');
+    const box = document.getElementById('inhalt');
+    if (!kinder.length) {
+      reihe.innerHTML = '';
+      box.innerHTML = '<div class="karte leer"><span class="em">🧒</span><b>Willkommen in der Kinderecke!</b><br>Hier sehen die Kinder ihre Aufgaben, Sterne, ihr Taschengeld und ihre Tier-Entdeckungen.<br><br>' +
+        '<button class="knopf-gross" id="btnLos">⚙️ Kinder auswählen</button></div>';
+      document.getElementById('btnLos').addEventListener('click', einstOeffnen);
+      return;
+    }
+    if (!kinder.some(k => k.id === aktivesKind)) aktivesKind = kinder[0].id;
+    reihe.innerHTML = kinder.map(k => '<button class="kind-btn' + (k.id === aktivesKind ? ' aktiv' : '') + '" data-kind="' + esc(k.id) + '" style="--kf:' + esc(k.farbe || '#4f6f45') + '"><span class="avatar" style="background:' + esc(k.farbe || '#4f6f45') + '">' + esc((k.label || '?').slice(0, 1).toUpperCase()) + '</span>' + esc(k.label) + '</button>').join('');
+    reihe.querySelectorAll('[data-kind]').forEach(b => b.addEventListener('click', () => { aktivesKind = b.dataset.kind; try { localStorage.setItem(KEY_AKTIV, aktivesKind); } catch (err) {} renderAlles(); }));
+
+    const kind = person(aktivesKind);
+    const farbe = kind.farbe || '#4f6f45';
+    box.style.setProperty('--kf', farbe);
+    const sterne = sterneVon(kind.id);
+    const belohnungen = e.belohnungen.slice().sort((a, b) => a.sterne - b.sterne);
+    const ziel = belohnungen.find(b => b.sterne > sterne) || null;
+    const aufgaben = laden('haushalt_aufgaben', []).filter(a => !a.pausiert && zustaendig(a) === kind.id);
+    const offen = aufgaben.filter(a => heuteFaellig(a) && !heuteErledigt(a));
+    const fertig = aufgaben.filter(heuteErledigt);
+    const tg = taschengeld(kind.id);
+    const sicht = tierSichtungen();
+    const geb = tageBisGeburtstag(kind);
+    const stunde = new Date().getHours();
+    const gruss = stunde < 11 ? 'Guten Morgen' : stunde < 18 ? 'Hallo' : 'Guten Abend';
+
+    let html = '<div class="karte"><div class="gruss">' + gruss + ', ' + esc(kind.label) + '! 👋</div><div class="gruss-sub">' +
+      (offen.length ? 'Heute ' + (offen.length === 1 ? 'wartet 1 Aufgabe' : 'warten ' + offen.length + ' Aufgaben') + ' auf dich.' : (fertig.length ? 'Alles erledigt – super gemacht! 🎉' : 'Heute hast du frei. 😊')) +
+      (geb !== null ? (geb === 0 ? ' 🎂 Heute ist dein Geburtstag – alles Gute!' : ' 🎂 Noch ' + geb + (geb === 1 ? ' Tag' : ' Tage') + ' bis zu deinem Geburtstag.') : '') + '</div></div>';
+
+    // Aufgaben
+    html += '<div class="karte"><h2>✅ Meine Aufgaben heute</h2>';
+    if (!offen.length && !fertig.length) html += '<p class="klein">Keine Aufgaben für heute. Eltern können im 🧹 Haushalt Aufgaben für dich anlegen.</p>';
+    offen.forEach(a => { html += '<div class="aufgabe"><span class="a-titel">' + esc(a.titel) + '</span><button class="knopf-gross gold" data-erledigt="' + esc(a.id) + '">Erledigt! ⭐</button></div>'; });
+    fertig.forEach(a => { html += '<div class="aufgabe fertig"><span class="a-titel">' + esc(a.titel) + '</span><span>✅</span></div>'; });
+    html += '</div>';
+
+    // Sterne
+    html += '<div class="karte"><h2>⭐ Meine Sterne <button class="knopf-klein" id="btnBonus" title="Für Eltern: einen Bonus-Stern vergeben">+⭐ Bonus</button></h2>' +
+      '<div class="sterne-zeile"><span class="sterne-zahl">' + sterne + '</span><span>' + (ziel ? 'Noch <b>' + (ziel.sterne - sterne) + ' ⭐</b> bis:<br><b>' + esc(ziel.text) + '</b>' : (belohnungen.length ? 'Du kannst dir eine Belohnung aussuchen! 🎁' : '')) + '</span></div>';
+    if (ziel) html += '<div class="balken"><span style="width:' + Math.min(100, Math.round(sterne / ziel.sterne * 100)) + '%"></span></div>';
+    const erreichbar = belohnungen.filter(b => b.sterne <= sterne);
+    if (erreichbar.length) {
+      html += '<p class="klein" style="margin:10px 0 6px;">🎁 Das kannst du dir schon holen:</p>' + erreichbar.map(b =>
+        '<div class="belohnung"><span class="b-text">' + esc(b.text) + '</span><span class="klein">' + b.sterne + ' ⭐</span><button class="knopf-gross" data-einloesen="' + esc(b.id) + '" style="padding:7px 12px;">Einlösen</button></div>').join('');
+    }
+    html += '</div>';
+
+    // Taschengeld
+    html += '<div class="karte"><h2>💰 Mein Taschengeld</h2>';
+    if (tg) {
+      html += '<div class="geld">' + euro(tg.stand) + '</div>';
+      if (tg.konto.naechsteFaelligkeit) html += '<p class="klein" style="margin:4px 0 8px;">Nächstes Taschengeld: <b>' + euro(tg.konto.betrag) + '</b> am ' + new Date(tg.konto.naechsteFaelligkeit + 'T00:00').toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' }) + '</p>';
+      tg.letzte.forEach(b => { html += '<div class="buchung"><span>' + esc(b.beschreibung || (b.typ === 'ausgabe' ? 'Ausgabe' : 'Gutschrift')) + '</span><span class="' + (b.typ === 'ausgabe' ? 'minus">−' : 'plus">+') + euro(b.betrag) + '</span></div>'; });
+    } else html += '<p class="klein">Noch kein Taschengeld-Konto. Eltern können es unter 💶 Finanzen → Taschengeld anlegen.</p>';
+    html += '</div>';
+
+    // Tiere
+    const entdeckt = TIERE.filter(t => sicht[t[0]]);
+    html += '<div class="karte"><h2>🦔 Tier-Entdeckungen <span class="klein">' + entdeckt.length + ' von ' + TIERE.length + '</span></h2>' +
+      '<div class="tiere">' + TIERE.map(t => '<div class="tier' + (sicht[t[0]] ? '' : ' unbekannt') + '"><span class="t-icon">' + t[1] + '</span>' + (sicht[t[0]] ? esc(t[2]) : '???') + '</div>').join('') + '</div>' +
+      '<button class="knopf-gross" id="btnTiere">🔍 Tiere entdecken</button></div>';
+
+    box.innerHTML = html;
+    box.querySelectorAll('[data-erledigt]').forEach(b => b.addEventListener('click', () => aufgabeErledigt(b.dataset.erledigt, kind.id)));
+    box.querySelectorAll('[data-einloesen]').forEach(b => b.addEventListener('click', () => einloesen(b.dataset.einloesen, kind)));
+    document.getElementById('btnBonus').addEventListener('click', () => {
+      const grund = prompt('Bonus-Stern für ' + kind.label + ' – wofür? (optional)', '');
+      if (grund === null) return;
+      const liste = laden(KEY_STERNE, []);
+      liste.push({ id: neueId('st'), personId: kind.id, datum: new Date().toISOString(), anzahl: 1, grund: grund || 'Bonus' });
+      speichern(KEY_STERNE, liste, sync);
+      konfetti(); renderAlles();
+    });
+    document.getElementById('btnTiere').addEventListener('click', () => {
+      try { localStorage.setItem('garten_aktiveAnsicht', 'tiere'); } catch (err) {}
+      try { window.parent.postMessage({ type: 'navigiere', modul: 'garten' }, window.location.origin); } catch (err) {}
+    });
+  }
+
+  function aufgabeErledigt(aufgabeId, kindId) {
+    const aufgaben = laden('haushalt_aufgaben', []);
+    const a = aufgaben.find(x => x.id === aufgabeId);
+    if (!a) return;
+    if (!a.erledigt) a.erledigt = [];
+    a.erledigt.push({ datum: new Date().toISOString(), von: kindId });
+    if (a.zuweisung === 'rotation' && (a.rotationPersonen || []).length) a.rotationIndex = ((a.rotationIndex || 0) + 1) % a.rotationPersonen.length;
+    speichern('haushalt_aufgaben', aufgaben, haushaltSync);
+    konfetti();
+    renderAlles();
+  }
+  function einloesen(belohnungId, kind) {
+    const b = einstellungen().belohnungen.find(x => x.id === belohnungId);
+    if (!b || !confirm('„' + b.text + '“ für ' + b.sterne + ' ⭐ einlösen?\n(Am besten zusammen mit Mama oder Papa.)')) return;
+    const liste = laden(KEY_STERNE, []);
+    liste.push({ id: neueId('st'), personId: kind.id, datum: new Date().toISOString(), anzahl: -b.sterne, grund: b.text });
+    speichern(KEY_STERNE, liste, sync);
+    konfetti(); renderAlles();
+  }
+
+  // ---------- Einstellungen (Eltern) ----------
+  function einstSpeichern(e) { speichern(KEY_EINST, e, sync); }
+  function einstRendern() {
+    const e = einstellungen();
+    document.getElementById('einstKinder').innerHTML = personen().map(p =>
+      '<label class="check"><input type="checkbox" value="' + esc(p.id) + '"' + (e.kinder.includes(p.id) ? ' checked' : '') + '> <span style="width:14px;height:14px;border-radius:50%;background:' + esc(p.farbe || '#7d6339') + ';display:inline-block"></span> ' + esc(p.label) + '</label>').join('') ||
+      '<p class="klein">Noch keine Personen – bitte zuerst unter 👪 Personen anlegen.</p>';
+    document.querySelectorAll('#einstKinder input').forEach(cb => cb.addEventListener('change', () => {
+      const e2 = einstellungen();
+      e2.kinder = Array.from(document.querySelectorAll('#einstKinder input')).filter(i => i.checked).map(i => i.value);
+      einstSpeichern(e2); renderAlles();
+    }));
+    document.getElementById('einstBelohnungen').innerHTML = e.belohnungen.map(b =>
+      '<div class="belohnung"><span class="b-text">' + esc(b.text) + '</span><span class="klein">' + b.sterne + ' ⭐</span><button class="knopf-klein" data-weg="' + esc(b.id) + '">🗑</button></div>').join('');
+    document.querySelectorAll('[data-weg]').forEach(btn => btn.addEventListener('click', () => {
+      const e2 = einstellungen(); e2.belohnungen = e2.belohnungen.filter(b => b.id !== btn.dataset.weg); einstSpeichern(e2); einstRendern(); renderAlles();
+    }));
+  }
+  function einstOeffnen() { einstRendern(); document.getElementById('modalEinst').classList.add('zeigen'); }
+  document.getElementById('btnEinstellungen').addEventListener('click', einstOeffnen);
+  document.getElementById('btnEinstZu').addEventListener('click', () => document.getElementById('modalEinst').classList.remove('zeigen'));
+  document.getElementById('modalEinst').addEventListener('click', (ev) => { if (ev.target.id === 'modalEinst') ev.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnBelohnungNeu').addEventListener('click', () => {
+    const text = document.getElementById('neuBelohnungText').value.trim();
+    const sterne = parseInt(document.getElementById('neuBelohnungSterne').value, 10);
+    if (!text || !(sterne > 0)) return;
+    const e = einstellungen(); e.belohnungen.push({ id: neueId('b'), text, sterne }); einstSpeichern(e);
+    document.getElementById('neuBelohnungText').value = '';
+    einstRendern(); renderAlles();
+  });
+
+  renderAlles();
+})();
+</script>
+</body>
+</html>
