@@ -215,6 +215,65 @@
   .beispiel-pflanzen span { background: var(--cream); border: 1px solid var(--parchment); border-radius: 999px; padding: 2px 8px; font-size: 0.72rem; }
   .beispiel-text { font-size: 0.74rem; color: var(--soil); line-height: 1.4; }
   .beispiel-tipp { font-size: 0.7rem; color: var(--moss); margin-top: 4px; font-weight: 600; }
+  html[data-dark="1"] .beispiel-tipp { color: var(--sage); }
+  /* ---------- Tiere im Garten ---------- */
+  .tier-fortschritt { background: var(--white); border: 1px solid var(--parchment); border-radius: var(--radius-md); padding: 10px 14px; margin-bottom: 12px; }
+  .tier-fortschritt-text { font-size: 0.8rem; margin-bottom: 6px; }
+  .tier-balken { height: 8px; border-radius: 999px; background: var(--parchment); overflow: hidden; }
+  .tier-balken span { display: block; height: 100%; background: linear-gradient(90deg, var(--moss), var(--sage)); border-radius: 999px; transition: width 0.4s; }
+  .tier-reiter, .tier-filter { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; margin-bottom: 12px; }
+  .tier-reiter::-webkit-scrollbar, .tier-filter::-webkit-scrollbar { display: none; }
+  .tier-reiter .saat-chip, .tier-filter .saat-chip { flex-shrink: 0; white-space: nowrap; }
+  .tier-suche { width: 100%; padding: 10px 14px; border: 1px solid var(--parchment); border-radius: var(--radius-pill); background: var(--white); color: var(--soil); font-family: inherit; font-size: 0.85rem; margin-bottom: 10px; }
+  .tier-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+  .tier-karte { display: flex; gap: 12px; align-items: flex-start; text-align: left; background: var(--white); border: 1px solid var(--parchment); border-radius: var(--radius-md); padding: 12px; cursor: pointer; font-family: inherit; color: var(--soil); box-shadow: var(--shadow-soft); touch-action: manipulation; }
+  .tier-karte.entdeckt { border-color: var(--sage); }
+  .tier-icon { font-size: 2rem; line-height: 1; flex-shrink: 0; width: 48px; height: 48px; border-radius: 50%; background: rgba(127,164,118,0.15); display: flex; align-items: center; justify-content: center; }
+  .tier-karte-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .tier-name { font-weight: 700; font-size: 0.9rem; }
+  .tier-kurz { font-size: 0.76rem; line-height: 1.35; }
+  .tier-meta { font-size: 0.68rem; color: var(--bark); }
+  .tier-einleitung { font-size: 0.78rem; color: var(--bark); margin-bottom: 12px; line-height: 1.45; }
+  .tier-projekt { background: var(--white); border: 1px solid var(--parchment); border-radius: var(--radius-md); margin-bottom: 8px; overflow: hidden; }
+  .tier-projekt summary { list-style: none; display: flex; align-items: center; gap: 10px; padding: 12px; cursor: pointer; }
+  .tier-projekt summary::-webkit-details-marker { display: none; }
+  .tier-projekt[open] summary .vlist-pfeil { transform: rotate(90deg); }
+  .tier-projekt summary .vlist-pfeil { margin-left: auto; transition: transform 0.15s; }
+  .tier-projekt-icon { font-size: 1.6rem; flex-shrink: 0; }
+  .tier-projekt-kopf { display: flex; flex-direction: column; gap: 2px; font-size: 0.86rem; }
+  .tier-projekt-inhalt { padding: 0 14px 14px; font-size: 0.8rem; line-height: 1.45; }
+  .tier-projekt-inhalt ol { margin: 8px 0 8px 20px; }
+  .tier-projekt-inhalt li { margin-bottom: 4px; }
+  .tier-tipp { background: rgba(201,154,58,0.13); border-radius: var(--radius-sm); padding: 8px 10px; font-size: 0.76rem; margin-top: 6px; }
+  .tier-abschnitt-titel { font-weight: 700; font-size: 0.8rem; margin: 14px 0 6px; color: var(--moss); }
+  html[data-dark="1"] .tier-abschnitt-titel { color: var(--sage); }
+  .tier-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+  .tier-chip { background: var(--cream); border: 1px solid var(--parchment); border-radius: 999px; padding: 3px 9px; font-size: 0.74rem; color: var(--soil); }
+  .tier-chip.da { background: rgba(122,158,114,0.2); border-color: var(--sage); font-weight: 600; }
+  .tier-chip-btn { cursor: pointer; font-family: inherit; touch-action: manipulation; }
+  .tier-saison { background: var(--white); border: 1px solid var(--parchment); border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 10px; }
+  .tier-saison-kopf { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 0.9rem; }
+  .tier-saison > p { font-size: 0.76rem; color: var(--bark); margin: 4px 0 8px; }
+  .tier-pflanze-zeile { display: flex; gap: 10px; padding: 6px 0; border-top: 1px solid var(--parchment); font-size: 0.78rem; }
+  .tier-pflanze-zeile .tpz-name { flex: 0 0 42%; font-weight: 600; }
+  .tier-pflanze-zeile .tpz-wer { color: var(--bark); }
+  .tier-pflanze-zeile.da .tpz-name { color: var(--moss); }
+  html[data-dark="1"] .tier-pflanze-zeile.da .tpz-name { color: var(--sage); }
+  .tier-regel { display: flex; gap: 12px; background: var(--white); border: 1px solid var(--parchment); border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 8px; }
+  .tier-regel-nr { font-size: 1.5rem; flex-shrink: 0; }
+  .tier-regel p { font-size: 0.78rem; margin-top: 3px; line-height: 1.4; }
+  .tier-regel b { font-size: 0.86rem; }
+  .tier-detail-kopf { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; }
+  .tier-detail-icon { font-size: 2.6rem; width: 64px; height: 64px; flex-shrink: 0; border-radius: 50%; background: rgba(127,164,118,0.15); display: flex; align-items: center; justify-content: center; }
+  .tier-wusstest { background: rgba(201,154,58,0.13); border-left: 4px solid var(--gold); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 0.82rem; line-height: 1.45; }
+  .tier-monate { display: grid; grid-template-columns: repeat(12, 1fr); gap: 3px; }
+  .tier-monate span { text-align: center; font-size: 0.66rem; padding: 4px 0; border-radius: 4px; background: var(--parchment); color: var(--bark); }
+  .tier-monate span.an { background: var(--sage); color: #1e2a1a; font-weight: 700; }
+  .tier-monate span.jetzt { outline: 2px solid var(--terracotta); outline-offset: -2px; }
+  .tier-p { font-size: 0.8rem; line-height: 1.45; }
+  .tier-liste { margin-left: 18px; font-size: 0.8rem; line-height: 1.45; }
+  .tier-liste li { margin-bottom: 4px; }
+  .tier-gesehen-box { margin-top: 16px; padding: 12px; border-radius: var(--radius-md); background: rgba(127,164,118,0.12); font-size: 0.8rem; }
   .beet-hinweise { margin: 0 12px 8px; border-radius: var(--radius-sm); border: 1px solid var(--parchment); overflow: hidden; background: rgba(127,164,118,0.06); }
   .beet-hinweise-kopf { width: 100%; display: flex; align-items: center; gap: 6px; padding: 8px 10px; background: none; border: none; font-family: inherit; font-size: 0.76rem; font-weight: 700; color: var(--soil); cursor: pointer; text-align: left; touch-action: manipulation; }
   .beet-hinweise-kopf .vlist-pfeil { margin-left: auto; }
@@ -604,6 +663,7 @@
   <button class="nav-btn" data-view="garden" role="tab" aria-selected="false" onclick="showView('garden')">🌱 Gartenplaner</button>
   <button class="nav-btn" data-view="shops" role="tab" aria-selected="false" onclick="showView('shops')">🏬 Shops &amp; Dienstleister</button>
   <button class="nav-btn" data-view="tips" role="tab" aria-selected="false" onclick="showView('tips')">📖 Tipps &amp; Tricks</button>
+  <button class="nav-btn" data-view="tiere" role="tab" aria-selected="false" onclick="showView('tiere')">🦔 Tiere im Garten</button>
   <button class="nav-btn" data-view="preserve" role="tab" aria-selected="false" onclick="showView('preserve')">🥫 Verwertung</button>
   <button class="nav-btn" data-view="album" role="tab" aria-selected="false" onclick="showView('album')">📸 Fotoalbum</button>
 </nav>
@@ -631,6 +691,11 @@
         <div class="hc-icon">📖</div>
         <h3>Tipps &amp; Tricks</h3>
         <p>Grundlagenwissen für Naturgarten, Gemüsegarten und Selbstversorgung.</p>
+      </div>
+      <div class="home-card" onclick="showView('tiere')" tabindex="0" role="button" onkeydown="if(event.key==='Enter'){this.click()}">
+        <div class="hc-icon">🦔</div>
+        <h3>Tiere im Garten</h3>
+        <p>Igel, Wildbienen, Vögel &amp; Co.: was sie fressen, wo sie wohnen und wie du sie in den Garten lockst.</p>
       </div>
       <div class="home-card" onclick="showView('preserve')" tabindex="0" role="button" onkeydown="if(event.key==='Enter'){this.click()}">
         <div class="hc-icon">🥫</div>
@@ -1091,6 +1156,21 @@
 <!-- VIEW: TIPPS & TRICKS -->
 <div class="view" id="view-tips">
   <div class="tips-wrap" id="tipsWrap"></div>
+</div>
+
+<!-- VIEW: TIERE IM GARTEN -->
+<div class="view" id="view-tiere">
+  <div class="tips-wrap" id="tiereWrap"></div>
+</div>
+
+<!-- MODAL: Tier-Steckbrief -->
+<div class="modal-bg" id="tierDetailModal" style="display:none" onclick="if(event.target===this)tierDetailSchliessen()">
+  <div class="modal" style="width:min(520px,94vw);max-height:88vh;overflow-y:auto">
+    <div id="tierDetailInhalt"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="tierDetailSchliessen()">Schließen</button>
+    </div>
+  </div>
 </div>
 
 <!-- VIEW: VERWERTUNG & HALTBARMACHEN -->
@@ -9991,6 +10071,7 @@ function showView(name) {
   if (name === 'shops') { renderShops(); }
   if (name === 'tips' && !document.getElementById('tipsWrap').dataset.built) { renderTips(); }
   if (name === 'preserve') { renderPreserveView(); }
+  if (name === 'tiere') { renderTiere(); }
   if (name === 'album') { renderAlbum(); }
   if (name === 'home') { renderHomeOverview(); }
   // Merken, damit ein Neuladen (z.B. durch Pull-to-refresh) in derselben Ansicht landet
@@ -10261,6 +10342,560 @@ const TIPS_TOPICS = [
     ]
   },
 ];
+// ==================== TIERE IM GARTEN (Nachschlagewerk für heimische Tiere) ====================
+// Statischer Inhalt (nicht synchronisiert). Nur die „Gesehen!“-Einträge werden gespeichert –
+// pro Garten in gardens[id].tierSichtungen = { tierId: { anzahl, erst, zuletzt } } und damit
+// automatisch mit der Familie synchronisiert.
+const TIER_KATEGORIEN = {
+  bienen: '🐝 Bienen & Hummeln',
+  insekten: '🐞 Käfer & Nützlinge',
+  falter: '🦋 Schmetterlinge',
+  voegel: '🐦 Vögel',
+  saeuger: '🦔 Säugetiere',
+  amphibien: '🐸 Amphibien & Reptilien',
+};
+const TIER_AUFWAND = { 1: '🟢 leicht', 2: '🟡 mittel', 3: '🟠 aufwendig' };
+const TIER_GANZJAEHRIG = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+const TIERE = [
+  // ---------- Bienen & Hummeln ----------
+  { id: 'holzbiene', icon: '🐝', name: 'Blauschwarze Holzbiene', latein: 'Xylocopa violacea', kat: 'bienen', aufwand: 2, monate: [3, 4, 5, 6, 7, 8, 9],
+    kurz: 'Größte Wildbiene Deutschlands – schwarz mit blau schimmernden Flügeln.',
+    wusstest: 'Sie ist fast 3 cm groß und brummt laut wie ein kleiner Hubschrauber – ist aber ganz friedlich. Mit ihren kräftigen Kiefern nagt sie sich ihre Wohnröhren selbst ins Holz.',
+    nahrung: 'Pollen und Nektar vieler Blüten, besonders gern Schmetterlingsblütler (Platterbse, Wicke, Blauregen) und Lippenblütler wie Salbei. An tiefen Blüten beißt sie manchmal seitlich ein Loch, um an den Nektar zu kommen („Nektarraub“).',
+    wohnung: 'Nagt ihre Brutgänge in morsches, trockenes Totholz – abgestorbene Obstbaumstämme, alte Pfosten oder Balken – an warmen, sonnigen Stellen. Die fertigen Bienen überwintern, oft im eigenen Nistgang.',
+    pflanzen: ['Muskatellersalbei', 'Salbei', 'Blauregen', 'Platterbse', 'Natternkopf', 'Lavendel'],
+    tun: ['Einen dicken, morschen Laubholzstamm senkrecht an einen vollsonnigen Platz stellen oder eingraben', 'Abgestorbene Obstbäume oder dicke Äste stehen lassen statt sie zu entsorgen', 'Muskatellersalbei, Salbei und Blauregen pflanzen – das sind Lieblingsblüten', 'Geduld: Neues Totholz wird oft erst nach ein bis zwei Jahren entdeckt'],
+    meiden: ['Totholz im Schatten oder liegend im feuchten Gras – es muss trocken und warm sein', 'Holz streichen, lackieren oder mit Holzschutzmittel behandeln'],
+    projekte: ['totholz', 'bluehwiese'] },
+  { id: 'mauerbiene', icon: '🐝', name: 'Rote Mauerbiene', latein: 'Osmia bicornis', kat: 'bienen', aufwand: 1, monate: [3, 4, 5, 6],
+    kurz: 'Häufigster Gast im Insektenhotel und fleißige Obstbestäuberin.',
+    wusstest: 'Die Weibchen haben zwei kleine Hörnchen am Kopf. Damit formen sie feuchten Lehm zu Wänden und mauern ihre Brutkammern zu – daher der Name.',
+    nahrung: 'Sehr vielseitig: Obstbaumblüten, Weiden, Ahorn, Hahnenfuß, Taubnessel und viele mehr.',
+    wohnung: 'Nistet in vorhandenen Hohlräumen von etwa 6–8 mm: Bohrlöcher in Holz, Schilf- und Bambusröhrchen, Mauerritzen. Für die Zwischenwände braucht sie feuchten Lehm in der Nähe.',
+    pflanzen: ['Apfelbaum', 'Kirschbaum', 'Weide', 'Johannisbeere', 'Taubnessel', 'Erdbeere'],
+    tun: ['Insektenhotel mit Bohrungen von 6–8 mm oder Schilfröhrchen sonnig und regengeschützt aufhängen (Süd bis Südost)', 'Eine feuchte Lehmstelle oder Pfütze in der Nähe anlegen', 'Obstbäume und Beerensträucher sind ihr Frühlingsbuffet', 'Für Kinder spannend: In einem Beobachtungs-Nistkasten mit Glasseite kann man beim Bauen zusehen'],
+    meiden: ['Tannenzapfen, Stroh und Holzwolle im Insektenhotel – dort nistet kaum eine Biene', 'Bohrungen ins Stirnholz (Schnittfläche) – das reißt, die Brut verpilzt', 'Ausgefranste Bohrlöcher – sie verletzen die Flügel'],
+    projekte: ['insektenhotel', 'traenke'] },
+  { id: 'hummel', icon: '🐝', name: 'Hummeln', latein: 'Bombus spp.', kat: 'bienen', aufwand: 1, monate: [3, 4, 5, 6, 7, 8, 9, 10],
+    kurz: 'Pelzige Bestäuber, die schon bei kühlem Wetter unterwegs sind.',
+    wusstest: 'Hummeln können ihre Flugmuskeln „zittern“ lassen und sich so aufheizen – deshalb fliegen sie schon bei wenigen Grad über null, wenn Honigbienen noch zu Hause bleiben. Nur die junge Königin überlebt den Winter.',
+    nahrung: 'Nektar und Pollen. Besonders wichtig sind frühe Blüten im März/April für die Königinnen (Weide, Krokus, Lungenkraut), später Klee, Taubnessel, Phacelia, Borretsch, Lavendel und Glockenblumen.',
+    wohnung: 'Viele Arten nisten unter der Erde in verlassenen Mäusenestern, andere (z. B. die Ackerhummel) oberirdisch in Moos und Grasbüscheln. Die junge Königin überwintert allein im lockeren Boden.',
+    pflanzen: ['Krokus', 'Lungenkraut', 'Weide', 'Taubnessel', 'Phacelia', 'Borretsch', 'Lavendel', 'Klee', 'Glockenblume'],
+    tun: ['Für Blüten von März bis Oktober sorgen – Lücken im Frühjahr sind am gefährlichsten', 'Ungefüllte Blüten wählen', 'Grasbüschel, ungemähte Ecken und Laub liegen lassen', 'Erschöpfte Hummel gefunden? Ein Tropfen Zuckerwasser (1:1) auf einem Löffel hilft – bitte keinen Honig'],
+    meiden: ['Mähroboter und häufiges Mähen von Klee- und Wiesenflächen', 'Gefüllte Zierblüten – an den Nektar kommen Hummeln dort nicht heran'],
+    projekte: ['bluehwiese', 'wildeEcke', 'laubhaufen'] },
+  { id: 'sandbiene', icon: '🐝', name: 'Sandbienen & bodennistende Wildbienen', latein: 'z. B. Andrena', kat: 'bienen', aufwand: 2, monate: [3, 4, 5, 6, 7, 8],
+    kurz: 'Etwa drei von vier Wildbienenarten nisten im Boden – nicht im Insektenhotel.',
+    wusstest: 'Kleine Sandhäufchen mit einem Loch in der Mitte auf Wegen oder in Rasenlücken? Das sind oft Eingänge zu Wildbienennestern, die tief in die Erde führen. Jede Kammer bekommt einen Pollenvorrat für eine Larve.',
+    nahrung: 'Je nach Art sehr unterschiedlich – viele sind auf bestimmte Pflanzen spezialisiert, z. B. auf Weiden, Glockenblumen oder Korbblütler. Vielfalt an heimischen Blüten ist der Schlüssel.',
+    wohnung: 'Graben ihre Nester in offene, sonnige, kaum bewachsene Bodenstellen – sandig oder lehmig, an Wegrändern, Böschungen oder in Rasenlücken.',
+    pflanzen: ['Weide', 'Glockenblume', 'Natternkopf', 'Wilde Möhre', 'Margerite', 'Thymian'],
+    tun: ['Ein Sandarium anlegen: sonnig, ungewaschener Sand, mindestens 30–50 cm tief', 'Offene Stellen auf Wegen und im Rasen nicht zupflastern oder einsäen', 'Kleine Steilkanten aus Lehm oder sandiger Erde stehen lassen'],
+    meiden: ['Mulch, Vlies oder Rindenmulch auf allen offenen Bodenflächen', 'Unkrautvernichter auf Wegen und Fugen'],
+    projekte: ['sandarium', 'bluehwiese'] },
+
+  // ---------- Käfer & Nützlinge ----------
+  { id: 'marienkaefer', icon: '🐞', name: 'Marienkäfer', latein: 'Coccinella septempunctata', kat: 'insekten', aufwand: 1, monate: [3, 4, 5, 6, 7, 8, 9, 10],
+    kurz: 'Glücksbringer und Blattlaus-Vertilger.',
+    wusstest: 'Eine Marienkäferlarve sieht aus wie ein kleines schwarzes Krokodil – und frisst in ihrem Leben mehrere hundert Blattläuse. Die Punkte verraten übrigens nicht das Alter, sondern die Art!',
+    nahrung: 'Käfer und Larven fressen vor allem Blattläuse, dazu etwas Pollen.',
+    wohnung: 'Überwintert als Käfer, oft in Gruppen – unter Laub, in Rindenritzen, Mauerspalten oder Grasbüscheln.',
+    pflanzen: ['Fenchel', 'Dill', 'Schafgarbe', 'Ringelblume', 'Brennnessel', 'Wilde Möhre'],
+    tun: ['Bei Blattläusen erst ein paar Tage abwarten – oft kommen die Marienkäfer von allein', 'Eine Brennnessel-Ecke hält Blattläuse als „Startfutter“ bereit', 'Laub und Pflanzenstängel über den Winter liegen bzw. stehen lassen', 'Doldenblütler wie Dill und Fenchel blühen lassen'],
+    meiden: ['Insektizide – auch „biologische“ treffen die Larven', 'Larven mit Schädlingen verwechseln: schwarz-orange und länglich ist gut!'],
+    projekte: ['wildeEcke', 'laubhaufen'] },
+  { id: 'florfliege', icon: '💚', name: 'Florfliege', latein: 'Chrysoperla carnea', kat: 'insekten', aufwand: 1, monate: [3, 4, 5, 6, 7, 8, 9, 10],
+    kurz: 'Zartes grünes Insekt mit goldenen Augen – ihre Larven heißen „Blattlauslöwen“.',
+    wusstest: 'Die Eier hängen an langen, haardünnen Stielen – wie winzige Lollis. So kommen die frisch geschlüpften Larven nicht an ihre Geschwister heran, um sie zu fressen.',
+    nahrung: 'Larven: Blattläuse, Spinnmilben, Thripse. Erwachsene Florfliegen: Pollen, Nektar und Honigtau.',
+    wohnung: 'Erwachsene überwintern an geschützten, kühlen Orten – Dachböden, Schuppen, Garagen, dichte Hecken. Im Winter färben sie sich gelblich-braun.',
+    pflanzen: ['Dill', 'Fenchel', 'Kornblume', 'Ringelblume', 'Phacelia', 'Schafgarbe'],
+    tun: ['Florfliegen, die im Herbst ins Haus kommen, in einen kühlen Raum (Schuppen, Garage) bringen', 'Einen Florfliegenkasten aufhängen – meist rot gestrichen mit Lamellen und Stroh', 'Blühende Doldenblütler und Kornblumen anbieten'],
+    meiden: ['Insektizide', 'Florfliegen im Winter in der warmen Wohnung lassen – dort verhungern sie'],
+    projekte: ['bluehwiese', 'wildeEcke'] },
+  { id: 'ohrwurm', icon: '✂️', name: 'Ohrwurm', latein: 'Forficula auricularia', kat: 'insekten', aufwand: 1, monate: [4, 5, 6, 7, 8, 9, 10],
+    kurz: 'Nächtlicher Blattlausjäger mit harmlosen Zangen.',
+    wusstest: 'Ohrwürmer kriechen nicht in Ohren – das ist ein alter Mythos! Die Mutter bewacht und putzt ihre Eier wochenlang, das ist bei Insekten ziemlich selten.',
+    nahrung: 'Blattläuse, Insekteneier, Milben – aber auch Pflanzenteile und weiches, reifes Obst.',
+    wohnung: 'Tagsüber in dunklen, engen Verstecken: Rindenritzen, hohle Stängel, unter Steinen und Brettern.',
+    pflanzen: ['Apfelbaum', 'Kirschbaum', 'Pflaumenbaum', 'Zwetschge'],
+    tun: ['Einen Tontopf mit Holzwolle oder Stroh füllen und umgedreht in einen Obstbaum hängen – er muss einen Ast berühren, damit die Ohrwürmer hinaufkrabbeln', 'Hohle Stängel im Beet stehen lassen'],
+    meiden: ['Ohrwurmtöpfe direkt an reifenden Trauben oder Pfirsichen – dort naschen sie auch mal an den Früchten'],
+    projekte: ['ohrwurmtopf'] },
+  { id: 'gluehwuermchen', icon: '✨', name: 'Glühwürmchen (Leuchtkäfer)', latein: 'Lampyris noctiluca u. a.', kat: 'insekten', aufwand: 2, monate: [6, 7],
+    kurz: 'Leuchtende Käfer in warmen Sommernächten – ihre Larven fressen Schnecken!',
+    wusstest: 'Das Licht entsteht durch eine chemische Reaktion und wird dabei kaum warm („kaltes Licht“). Die Weibchen des Großen Leuchtkäfers können nicht fliegen – sie leuchten im Gras, um die Männchen anzulocken.',
+    nahrung: 'Die Larven leben bis zu drei Jahre und fressen vor allem Schnecken – auch solche, die viel größer sind als sie selbst. Die erwachsenen Käfer fressen meist gar nichts mehr.',
+    wohnung: 'Feuchte, naturnahe Gartenbereiche mit Laub, hohem Gras, Hecken und Totholz – besonders in der Nähe von Waldrändern und Wiesen.',
+    pflanzen: [],
+    tun: ['Nachts die Gartenbeleuchtung ausschalten – Licht stört die Partnersuche', 'Einen Wiesenstreifen ungemäht lassen', 'Laub, Totholz und feuchte Ecken als Lebensraum für die Larven erhalten', 'Im Juni/Juli an warmen Abenden nach 22 Uhr gemeinsam auf Glühwürmchen-Suche gehen'],
+    meiden: ['Schneckenkorn – es vergiftet die Larven gleich mit', 'Solarlampen und Dauerbeleuchtung im Garten'],
+    projekte: ['laubhaufen', 'wildeEcke', 'totholz'] },
+  { id: 'hirschkaefer', icon: '🪲', name: 'Hirschkäfer', latein: 'Lucanus cervus', kat: 'insekten', aufwand: 3, monate: [6, 7],
+    kurz: 'Größter Käfer Europas – streng geschützt.',
+    wusstest: 'Das „Geweih“ der Männchen sind riesige Oberkiefer, mit denen sie Ringkämpfe austragen. Als Larve lebt der Käfer drei bis acht Jahre im morschen Holz – als fertiger Käfer nur wenige Wochen.',
+    nahrung: 'Larven: morsches, verpilztes Holz unter der Erde (Baumstümpfe, Wurzeln, besonders von Eichen). Käfer: Baumsäfte an verletzten Eichen und Obstbäumen, reifes Obst.',
+    wohnung: 'Alte Baumstümpfe und Wurzelstöcke von Laubbäumen – am liebsten Eiche, auch Obstbäume –, die langsam im Boden vermodern.',
+    pflanzen: ['Eiche', 'Kirschbaum', 'Apfelbaum'],
+    tun: ['Baumstümpfe von Laubbäumen nicht ausfräsen, sondern im Boden vermodern lassen', 'Einen „Hirschkäfermeiler“ bauen: dicke Laubholzstämme (am besten Eiche) senkrecht dicht nebeneinander etwa einen halben Meter tief eingraben, Zwischenräume mit Holzhäckseln füllen', 'An Juniabenden nach großen, brummend fliegenden Käfern Ausschau halten'],
+    meiden: ['Käfer oder Larven mitnehmen – sie sind streng geschützt', 'Totholz mit Holzschutzmitteln behandeln'],
+    projekte: ['totholz'] },
+
+  // ---------- Schmetterlinge ----------
+  { id: 'tagpfauenauge', icon: '🦋', name: 'Tagpfauenauge', latein: 'Aglais io', kat: 'falter', aufwand: 1, monate: [3, 4, 5, 6, 7, 8, 9, 10],
+    kurz: 'Bunter Falter mit vier großen „Augen“ auf den Flügeln.',
+    wusstest: 'Die Augenflecken erschrecken Vögel. Bei Gefahr kann der Falter sogar zischende Geräusche machen, indem er die Flügel aneinander reibt. Er überwintert als fertiger Schmetterling!',
+    nahrung: 'Raupen: fast nur Brennnesseln. Falter: Nektar von Wasserdost, Dost, Disteln, Flockenblumen und Lavendel, im Herbst auch Fallobst.',
+    wohnung: 'Die schwarzen Raupen leben in Gruppen in sonnigen Brennnesselbeständen. Die Falter überwintern in kühlen, frostfreien Verstecken: Schuppen, Keller, Dachböden, Baumhöhlen.',
+    pflanzen: ['Brennnessel', 'Wasserdost', 'Oregano', 'Distel', 'Flockenblume', 'Lavendel', 'Fetthenne'],
+    tun: ['Eine sonnige Brennnessel-Ecke stehen lassen – ohne Brennnesseln keine Tagpfauenaugen', 'Fallobst im Herbst teilweise liegen lassen', 'Schuppen oder Gartenhaus im Herbst einen Spalt offen lassen als Winterquartier', 'Überwinternde Falter im Haus vorsichtig in einen kühlen Raum bringen'],
+    meiden: ['Brennnesseln im Sommer komplett abmähen – die Raupen sterben mit'],
+    projekte: ['wildeEcke', 'bluehwiese'] },
+  { id: 'zitronenfalter', icon: '🦋', name: 'Zitronenfalter', latein: 'Gonepteryx rhamni', kat: 'falter', aufwand: 2, monate: [2, 3, 4, 5, 6, 7, 8, 9, 10],
+    kurz: 'Der erste Schmetterling des Jahres – leuchtend gelb.',
+    wusstest: 'Zitronenfalter überwintern ganz ohne Versteck frei an Zweigen oder im Efeu. Ein körpereigenes „Frostschutzmittel“ lässt sie Minusgrade überstehen. Mit fast einem Jahr Lebenszeit werden sie älter als alle anderen Falter bei uns.',
+    nahrung: 'Raupen: nur Blätter von Faulbaum und Kreuzdorn. Falter: Nektar von Weiden, Lungenkraut, Disteln, Blutweiderich und Flockenblumen.',
+    wohnung: 'Überwintert frei in dichter Vegetation, z. B. in Efeu, Brombeeren oder immergrünen Sträuchern.',
+    pflanzen: ['Faulbaum', 'Kreuzdorn', 'Weide', 'Lungenkraut', 'Blutweiderich', 'Efeu'],
+    tun: ['Einen Faulbaum in die Hecke pflanzen – die Raupenfutterpflanze, die am besten in Gärten passt (Achtung: Beeren giftig, nicht naschen!)', 'Efeu und dichte Sträucher als Winterquartier erhalten', 'Frühblüher wie Lungenkraut und Weiden für die ersten Flüge im Februar/März'],
+    meiden: ['Efeu und Brombeeren im Winter radikal zurückschneiden – dort schlafen die Falter'],
+    projekte: ['hecke'] },
+  { id: 'schwalbenschwanz', icon: '🦋', name: 'Schwalbenschwanz', latein: 'Papilio machaon', kat: 'falter', aufwand: 1, monate: [4, 5, 6, 7, 8, 9],
+    kurz: 'Einer der schönsten Falter – seine Raupen fressen Möhrenkraut!',
+    wusstest: 'Die grün-schwarz-orange Raupe hat eine geheime Waffe: Bei Gefahr stülpt sie eine orange „Stinkgabel“ aus dem Kopf. Nicht anfassen – einfach bestaunen!',
+    nahrung: 'Raupen: Doldenblütler wie Möhre, Dill, Fenchel, Petersilie und Wilde Möhre. Falter: Nektar z. B. von Klee, Disteln, Flockenblumen und Lavendel.',
+    wohnung: 'Die Puppe überwintert gut getarnt an Pflanzenstängeln oder Zweigen.',
+    pflanzen: ['Karotte', 'Dill', 'Fenchel', 'Petersilie', 'Wilde Möhre', 'Lavendel', 'Klee'],
+    tun: ['Ein paar Möhren, Dill oder Fenchel extra für die Raupen säen – Raupen dorthin umsetzen statt sie zu entfernen', 'Pflanzenstängel über den Winter stehen lassen (Puppen!)'],
+    meiden: ['Raupen absammeln und töten – der Schwalbenschwanz ist besonders geschützt'],
+    projekte: ['bluehwiese', 'wildeEcke'] },
+  { id: 'taubenschwaenzchen', icon: '🦋', name: 'Taubenschwänzchen', latein: 'Macroglossum stellatarum', kat: 'falter', aufwand: 1, monate: [5, 6, 7, 8, 9, 10],
+    kurz: 'Schwirrt wie ein Kolibri vor den Blüten.',
+    wusstest: 'Viele halten es für einen Kolibri – dabei ist es ein Nachtfalter, der tagsüber fliegt! Es schlägt rund 70-mal pro Sekunde mit den Flügeln und wandert jedes Jahr aus Südeuropa über die Alpen zu uns.',
+    nahrung: 'Raupen: Labkraut. Falter: Nektar aus langröhrigen Blüten – Phlox, Lavendel, Seifenkraut, Natternkopf, Geranien, Petunien.',
+    wohnung: 'Wanderfalter; in milden Wintern überwintern inzwischen einzelne Falter auch bei uns.',
+    pflanzen: ['Lavendel', 'Phlox', 'Seifenkraut', 'Natternkopf', 'Geranie', 'Petunie', 'Labkraut'],
+    tun: ['Duftende Röhrenblüten auf Terrasse und Balkon anbieten – auch Kübel helfen', 'Labkraut in einer Wiesenecke wachsen lassen'],
+    meiden: [],
+    projekte: ['bluehwiese'] },
+
+  // ---------- Vögel ----------
+  { id: 'meisen', icon: '🐦', name: 'Blau- & Kohlmeise', latein: 'Cyanistes caeruleus, Parus major', kat: 'voegel', aufwand: 1, monate: TIER_GANZJAEHRIG,
+    kurz: 'Fröhliche Dauergäste am Futterhaus und fleißige Raupenjäger.',
+    wusstest: 'Ein Meisenpaar verfüttert zur Brutzeit mehrere tausend Raupen und Insekten an seine Jungen – eine echte Gartenpolizei! Blaumeisen passen durch ein 26-mm-Loch, Kohlmeisen brauchen 32 mm.',
+    nahrung: 'Sommer: Raupen, Blattläuse, Spinnen. Winter: Sämereien, Sonnenblumenkerne, Nüsse, Fettfutter.',
+    wohnung: 'Höhlenbrüter: Baumhöhlen und Nistkästen. Flugloch Blaumeise 26–28 mm, Kohlmeise 32 mm.',
+    pflanzen: ['Sonnenblume', 'Apfelbaum', 'Haselnuss', 'Weißdorn'],
+    tun: ['Nistkasten bis Ende Februar aufhängen: 2–3 m hoch, Flugloch nach Osten oder Südosten, nicht in die pralle Sonne, katzensicher', 'Nistkasten im Herbst ausfegen – ohne Putzmittel', 'Im Winter Sonnenblumenkerne und Meisenknödel ohne Plastiknetz anbieten', 'Obstbäume nicht spritzen – die Raupen darauf sind Babynahrung'],
+    meiden: ['Meisenknödel in Plastiknetzen – Vögel verheddern sich', 'Brot und gesalzene oder gewürzte Speisereste'],
+    projekte: ['nistkasten', 'hecke', 'traenke'] },
+  { id: 'rotkehlchen', icon: '🐦', name: 'Rotkehlchen', latein: 'Erithacus rubecula', kat: 'voegel', aufwand: 1, monate: TIER_GANZJAEHRIG,
+    kurz: 'Neugieriger Gartenbegleiter mit orangeroter Brust.',
+    wusstest: 'Rotkehlchen singen auch im Winter – und dann verteidigen Männchen und Weibchen jeweils ihr eigenes Revier. Beim Umgraben kommen sie oft ganz nah, weil sie auf Würmer und Larven hoffen.',
+    nahrung: 'Insekten, Spinnen, Würmer, im Herbst und Winter auch Beeren. Futter wird gern am Boden gesucht.',
+    wohnung: 'Brütet bodennah gut versteckt: in dichtem Gestrüpp, Efeu, Wurzeltellern, Laubhaufen oder Halbhöhlen.',
+    pflanzen: ['Efeu', 'Holunder', 'Brombeere', 'Felsenbirne', 'Weißdorn'],
+    tun: ['Dichte Hecken, Efeu an Mauern und Reisighaufen als Brutplatz anbieten', 'Einen Halbhöhlen-Nistkasten gut versteckt in Efeu oder Kletterpflanzen hängen', 'Im Winter Weichfutter (Haferflocken in Pflanzenöl, Rosinen) bodennah, aber katzensicher anbieten'],
+    meiden: ['Hecken zwischen 1. März und 30. September radikal schneiden – das ist auch gesetzlich verboten'],
+    projekte: ['hecke', 'laubhaufen', 'nistkasten'] },
+  { id: 'amsel', icon: '🐦', name: 'Amsel', latein: 'Turdus merula', kat: 'voegel', aufwand: 1, monate: TIER_GANZJAEHRIG,
+    kurz: 'Schwarzer Sänger mit gelbem Schnabel – das Weibchen ist braun.',
+    wusstest: 'Wenn eine Amsel auf dem Rasen den Kopf schräg hält, lauscht und schaut sie nach Regenwürmern. Ihr Lied gehört zu den ersten im Morgengrauen.',
+    nahrung: 'Regenwürmer, Insekten, Schnecken; im Sommer und Herbst viele Beeren und Obst.',
+    wohnung: 'Napfnest in Hecken, dichten Sträuchern und Kletterpflanzen, manchmal auf Balkonen oder Mauervorsprüngen.',
+    pflanzen: ['Holunder', 'Eberesche', 'Felsenbirne', 'Weißdorn', 'Johannisbeere', 'Efeu'],
+    tun: ['Beerensträucher pflanzen und einen Teil der Ernte den Vögeln lassen', 'Fallobst im Winter liegen lassen oder als Futter auslegen', 'Eine flache Vogeltränke aufstellen – Amseln baden gern'],
+    meiden: ['Lose oder engmaschige Netze über Beerensträuchern – Vögel verfangen sich', 'Schneckenkorn'],
+    projekte: ['hecke', 'traenke'] },
+  { id: 'hausrotschwanz', icon: '🐦', name: 'Hausrotschwanz', latein: 'Phoenicurus ochruros', kat: 'voegel', aufwand: 1, monate: [3, 4, 5, 6, 7, 8, 9, 10],
+    kurz: 'Zittert ständig mit seinem rostroten Schwanz.',
+    wusstest: 'Ursprünglich lebte er an Felsen im Gebirge – heute sind Hauswände und Dächer seine „Felsen“. Sein Gesang klingt in der Mitte, als würde jemand Papier zerknüllen.',
+    nahrung: 'Fast nur Insekten und Spinnen, die er im kurzen Flug oder am Boden fängt.',
+    wohnung: 'Halbhöhlen und Nischen an Gebäuden: unter Dachvorsprüngen, auf Balken, in Mauerlöchern, im Carport.',
+    pflanzen: [],
+    tun: ['Einen Halbhöhlen-Nistkasten unter dem Dachvorsprung oder an der Hauswand aufhängen (2–4 m hoch)', 'Balken in Schuppen oder Carport als Brutplatz dulden', 'Ein insektenreicher Garten ist sein Futter: Blühflächen, kein Gift'],
+    meiden: ['Nischen beim Renovieren ohne Ersatz verschließen'],
+    projekte: ['nistkasten', 'bluehwiese'] },
+  { id: 'spatz', icon: '🐦', name: 'Haussperling (Spatz)', latein: 'Passer domesticus', kat: 'voegel', aufwand: 2, monate: TIER_GANZJAEHRIG,
+    kurz: 'Geselliger Krachmacher, der leider immer seltener wird.',
+    wusstest: 'Spatzen leben in Gruppen und nehmen gern ein Staubbad – sie wälzen sich in trockener Erde, um lästige Parasiten loszuwerden. Ihre Jungen brauchen in den ersten Tagen fast nur Insekten.',
+    nahrung: 'Erwachsene: Samen, Getreide, Knospen. Jungvögel: Insekten.',
+    wohnung: 'Brütet in Kolonien in Nischen und Höhlen an Gebäuden, unter Dachziegeln oder in dichten Kletterpflanzen.',
+    pflanzen: ['Sonnenblume', 'Weißdorn', 'Liguster'],
+    tun: ['Ein Sperlings-Koloniehaus (mehrere Bruthöhlen nebeneinander) an die Hauswand hängen', 'Eine sonnige Stelle mit trockener, feiner Erde oder Sand für das Staubbad', 'Dichte Hecken als Treffpunkt und Schutz', 'Wildkräuter und Sonnenblumen aussamen lassen'],
+    meiden: ['Dachnischen ohne Ersatz verschließen'],
+    projekte: ['nistkasten', 'hecke', 'sandarium'] },
+  { id: 'stieglitz', icon: '🐦', name: 'Stieglitz (Distelfink)', latein: 'Carduelis carduelis', kat: 'voegel', aufwand: 1, monate: TIER_GANZJAEHRIG,
+    kurz: 'Bunter Fink mit rotem Gesicht und gelben Flügelstreifen.',
+    wusstest: 'Mit seinem spitzen Schnabel pult er die Samen aus Disteln und Karden – deshalb heißt er auch Distelfink. Er ist einer der buntesten Vögel in Deutschland.',
+    nahrung: 'Fast nur Samen: Disteln, Karden, Kletten, Sonnenblumen, Kornblumen, Löwenzahn.',
+    wohnung: 'Napfnest hoch in Baumkronen und großen Sträuchern, gern in Obstbäumen.',
+    pflanzen: ['Distel', 'Karde', 'Sonnenblume', 'Kornblume', 'Löwenzahn', 'Wegwarte'],
+    tun: ['Samenstände von Sonnenblumen, Disteln und Karden über den Winter stehen lassen', 'Eine Wildkräuter-Ecke mit Löwenzahn und Disteln', 'Wilde Karde säen – im Winter ein Stieglitz-Magnet'],
+    meiden: ['Im Herbst alles „ordentlich“ abschneiden'],
+    projekte: ['wildeEcke', 'bluehwiese'] },
+  { id: 'mauersegler', icon: '🐦', name: 'Mauersegler', latein: 'Apus apus', kat: 'voegel', aufwand: 2, monate: [5, 6, 7, 8],
+    kurz: 'Sichelförmiger Flugkünstler, der fast sein ganzes Leben in der Luft verbringt.',
+    wusstest: 'Mauersegler fressen, trinken und schlafen im Flug – junge Vögel bleiben nach dem Ausfliegen oft viele Monate ohne Landung in der Luft. Bei uns sind sie nur von Mai bis Anfang August, den Rest des Jahres in Afrika.',
+    nahrung: 'Fluginsekten, die er hoch in der Luft fängt.',
+    wohnung: 'Brütet in Hohlräumen hoch an Gebäuden – unter Dachziegeln, in Mauerspalten – und kehrt jedes Jahr an denselben Platz zurück.',
+    pflanzen: [],
+    tun: ['Spezielle Mauersegler-Nistkästen hoch (ab etwa 6 m) unter dem Dach anbringen, mit freiem Anflug', 'Bei Dach- oder Fassadensanierung Brutplätze erhalten oder ersetzen', 'Mauersegler am Boden gefunden? Nicht hochwerfen, sondern eine Wildvogelhilfe anrufen'],
+    meiden: ['Gerüste oder Abdeckungen über besetzten Brutplätzen während der Brutzeit'],
+    projekte: ['nistkasten'] },
+
+  // ---------- Säugetiere ----------
+  { id: 'igel', icon: '🦔', name: 'Igel', latein: 'Erinaceus europaeus', kat: 'saeuger', aufwand: 1, monate: [3, 4, 5, 6, 7, 8, 9, 10, 11],
+    kurz: 'Stacheliger Nachtwanderer – braucht Durchgänge und Verstecke.',
+    wusstest: 'Ein Igel hat etwa 6.000 bis 8.000 Stacheln und läuft pro Nacht oft ein bis drei Kilometer auf Futtersuche. Weil es immer weniger Igel gibt, gilt er inzwischen als potenziell gefährdet.',
+    nahrung: 'Käfer, Raupen, Regenwürmer, Ohrwürmer, auch Schnecken. Kein Obst und keine Milch – die verträgt er nicht!',
+    wohnung: 'Tagsüber und im Winterschlaf (etwa November bis März) in Laub- und Reisighaufen, unter Hecken, in Holzstapeln oder Igelhäusern.',
+    pflanzen: ['Weißdorn', 'Holunder', 'Haselnuss', 'Liguster'],
+    tun: ['Ein Igel-Loch im Zaun schaffen (ca. 13 × 13 cm), damit er von Garten zu Garten wandern kann', 'Laub- und Reisighaufen in einer ruhigen Ecke liegen lassen oder ein Igelhaus aufstellen', 'Eine flache Wasserschale anbieten; im Herbst hilft ungewürztes Katzenfutter oder Igel-Trockenfutter', 'Lichtschächte abdecken, Teiche mit flachem Ufer oder Ausstiegsbrett versehen'],
+    meiden: ['Mähroboter nachts oder in der Dämmerung laufen lassen – eine häufige Todesursache!', 'Schneckenkorn und Gift', 'Laubsauger und Laubbläser', 'Milch füttern'],
+    projekte: ['igeltuer', 'laubhaufen', 'hecke', 'traenke'] },
+  { id: 'fledermaus', icon: '🦇', name: 'Fledermäuse (z. B. Zwergfledermaus)', latein: 'Pipistrellus pipistrellus', kat: 'saeuger', aufwand: 2, monate: [4, 5, 6, 7, 8, 9, 10],
+    kurz: 'Lautlose Mückenjäger der Dämmerung.',
+    wusstest: 'Fledermäuse „sehen“ mit den Ohren: Sie stoßen Ultraschall-Rufe aus und hören am Echo, wo eine Mücke fliegt. Eine Zwergfledermaus wiegt nur etwa 5 Gramm – so viel wie ein Teelöffel Zucker!',
+    nahrung: 'Nachtaktive Insekten: Mücken, Nachtfalter, Käfer. Eine Zwergfledermaus frisst in einer Nacht hunderte kleiner Insekten.',
+    wohnung: 'Spalten an Gebäuden (hinter Verkleidungen, Fensterläden), Baumhöhlen und Fledermauskästen. Winterschlaf in frostfreien Quartieren.',
+    pflanzen: ['Nachtkerze', 'Geißblatt', 'Seifenkraut', 'Nachtviole', 'Phlox'],
+    tun: ['Einen Fledermauskasten in 3–5 m Höhe an Hauswand oder Baum hängen, Anflug frei, nicht über Fenster oder Terrasse', 'Nachtblühende, duftende Pflanzen locken Nachtfalter als Futter an', 'Ein Gartenteich zieht Mücken und damit Fledermäuse an', 'In der Dämmerung mit den Kindern auf Fledermaus-Beobachtung gehen'],
+    meiden: ['Dauerbeleuchtung im Garten', 'Holzschutzmittel an Quartieren'],
+    projekte: ['fledermauskasten', 'teich'] },
+  { id: 'eichhoernchen', icon: '🐿️', name: 'Eichhörnchen', latein: 'Sciurus vulgaris', kat: 'saeuger', aufwand: 1, monate: TIER_GANZJAEHRIG,
+    kurz: 'Flinker Kletterkünstler mit buschigem Schwanz.',
+    wusstest: 'Eichhörnchen vergraben im Herbst tausende Nüsse – und finden längst nicht alle wieder. So pflanzen sie ganz nebenbei neue Bäume! Sie halten keinen Winterschlaf, sondern nur Winterruhe.',
+    nahrung: 'Nüsse, Samen, Bucheckern, Zapfen, Knospen, Pilze, gelegentlich Vogeleier.',
+    wohnung: 'Kugelige Nester („Kobel“) aus Zweigen und Moos hoch in Bäumen, auch Baumhöhlen und Kobel-Kästen.',
+    pflanzen: ['Haselnuss', 'Walnuss', 'Sonnenblume'],
+    tun: ['Haselnusssträucher oder einen Walnussbaum pflanzen', 'In heißen Sommern eine Wasserschale erhöht aufstellen', 'Im Winter ungesalzene Haselnüsse und Walnüsse in einem Futterkasten anbieten', 'Bäume als Kletterwege erhalten'],
+    meiden: ['Gesalzene oder gewürzte Nüsse', 'Offene Regentonnen – Ertrinkungsgefahr! Deckel oder Ausstiegsbrett'],
+    projekte: ['traenke', 'hecke'] },
+
+  // ---------- Amphibien & Reptilien ----------
+  { id: 'amphibien', icon: '🐸', name: 'Frösche, Kröten & Molche', latein: 'z. B. Erdkröte, Grasfrosch, Bergmolch', kat: 'amphibien', aufwand: 2, monate: [3, 4, 5, 6, 7, 8, 9, 10],
+    kurz: 'Wo fischfreies Wasser ist, kommen sie oft ganz von allein.',
+    wusstest: 'Erdkröten wandern jedes Frühjahr zu dem Gewässer zurück, in dem sie selbst geschlüpft sind – manchmal über einen Kilometer weit. Eine Kröte frisst Schnecken, Asseln und Käfer.',
+    nahrung: 'Schnecken, Würmer, Insekten, Spinnen, Asseln. Kaulquappen fressen Algen.',
+    wohnung: 'Zum Laichen ein fischfreier Teich mit flachen Ufern und Wasserpflanzen. An Land feuchte Verstecke: Laub, Steine, Totholz, Komposthaufen. Überwintern frostfrei in der Erde oder im Teichschlamm.',
+    pflanzen: ['Sumpfdotterblume', 'Blutweiderich', 'Wasserminze'],
+    tun: ['Einen Gartenteich ohne Fische anlegen – Fische fressen Laich und Kaulquappen', 'Mindestens ein Ufer ganz flach auslaufen lassen', 'Rund um den Teich Laub, Steine und Totholz als Verstecke', 'Keinen Laich aus der Natur holen – das ist verboten und unnötig, die Tiere finden den Teich selbst'],
+    meiden: ['Fische im Teich', 'Steile, glatte Ränder an Teichen, Pools und Regentonnen', 'Mähroboter in Teichnähe'],
+    projekte: ['teich', 'steinhaufen', 'laubhaufen'] },
+  { id: 'eidechse', icon: '🦎', name: 'Zauneidechse', latein: 'Lacerta agilis', kat: 'amphibien', aufwand: 2, monate: [4, 5, 6, 7, 8, 9],
+    kurz: 'Sonnenanbeterin auf warmen Steinen.',
+    wusstest: 'Bei Gefahr kann die Eidechse ihren Schwanz abwerfen – er zappelt weiter und lenkt den Angreifer ab. Er wächst wieder nach, bleibt aber kürzer. Die Männchen sind im Frühling leuchtend grün.',
+    nahrung: 'Insekten, Spinnen, Heuschrecken, Würmer.',
+    wohnung: 'Sonnige, abwechslungsreiche Plätze: Steinhaufen, Trockenmauern, Totholz, dazu offene sandige Stellen zur Eiablage und dichte Pflanzen zum Verstecken.',
+    pflanzen: ['Thymian', 'Fetthenne', 'Natternkopf'],
+    tun: ['Einen sonnigen Steinhaufen oder eine Trockenmauer ohne Mörtel bauen – ein Teil sollte etwa 80 cm tief in den Boden reichen (frostfreies Winterquartier)', 'Daneben eine Sandstelle für die Eier', 'Höhere Kräuter und Sträucher in der Nähe als Versteck'],
+    meiden: ['Freilaufende Katzen sind die größte Gefahr – Verstecke in Sprungnähe schaffen', 'Eidechsen fangen – sie sind geschützt, lieber beobachten'],
+    projekte: ['steinhaufen', 'sandarium'] },
+  { id: 'blindschleiche', icon: '🐍', name: 'Blindschleiche', latein: 'Anguis fragilis', kat: 'amphibien', aufwand: 1, monate: [3, 4, 5, 6, 7, 8, 9, 10],
+    kurz: 'Keine Schlange, sondern eine Echse ohne Beine – und ein Schneckenvertilger.',
+    wusstest: 'Blindschleichen können blinzeln – Schlangen nicht! Blind sind sie übrigens auch nicht. Sie bewegen sich langsam und können sehr alt werden.',
+    nahrung: 'Nacktschnecken, Regenwürmer, Raupen, Asseln.',
+    wohnung: 'Feuchte, versteckreiche Stellen: Komposthaufen, unter Brettern, Steinplatten, Laub und Totholz. Überwintert frostfrei in der Erde.',
+    pflanzen: [],
+    tun: ['Ein altes Brett oder eine Steinplatte in eine ruhige, halbschattige Ecke legen – darunter wärmen sie sich gern', 'Kompost- und Laubhaufen nicht vor April umsetzen (Winterruhe)', 'Ungemähte Säume am Rand stehen lassen'],
+    meiden: ['Rasentrimmer und Mähroboter an Rändern', 'Schneckenkorn – es vergiftet ihr Futter'],
+    projekte: ['laubhaufen', 'steinhaufen'] },
+];
+
+// Lebensräume zum Selberbauen; „hilft“ wird aus TIERE[].projekte errechnet
+const TIER_PROJEKTE = [
+  { id: 'totholz', icon: '🪵', titel: 'Totholz-Stamm & Totholzhaufen', aufwand: 1, zeit: 'ganzjährig',
+    kurz: 'Für Holzbienen, Käfer, Igel und Blindschleichen – eines der wertvollsten Elemente im Naturgarten.',
+    schritte: ['Dicke Stämme und Äste von Laubbäumen (Obst, Eiche, Buche) sammeln – kein behandeltes Holz', 'Einen dicken Stamm senkrecht in voller Sonne eingraben oder aufstellen: Wohnung für Holzbienen und Käfer', 'Dünnere Äste und Wurzelstöcke halbschattig zu einem lockeren Haufen schichten: Versteck für Igel, Blindschleichen, Käfer', 'Einfach liegen lassen – je morscher, desto wertvoller'],
+    tipp: 'Fragt beim Baumfällen in der Nachbarschaft – dicke Stämme gibt es oft geschenkt.' },
+  { id: 'insektenhotel', icon: '🏨', titel: 'Insektenhotel (richtig gebaut)', aufwand: 1, zeit: 'Winter, bis März aufhängen',
+    kurz: 'Viele gekaufte Insektenhotels sind Fehlkonstruktionen – so wird es wirklich bewohnt.',
+    schritte: ['Gut abgelagertes Hartholz verwenden (Esche, Buche, Eiche, Obstholz)', 'Löcher von 3–9 mm, 5–10 cm tief ins Seitenholz bohren – nicht ins Stirnholz – und sauber entgraten', 'Hohle Stängel (Schilf, Bambus): innen glatt, hinten geschlossen, vorne sauber abgeschnitten', 'Sonnig (Süd bis Südost), regengeschützt und fest montiert – es darf nicht schaukeln', 'Gegen Vögel ein Drahtgitter mit etwas Abstand davor'],
+    tipp: 'Tannenzapfen, Holzwolle und Stroh sehen hübsch aus, werden aber kaum besiedelt.' },
+  { id: 'sandarium', icon: '🏖️', titel: 'Sandarium (Sandbeet für Wildbienen)', aufwand: 2, zeit: 'Frühjahr',
+    kurz: 'Die meisten Wildbienen nisten im Boden – ein Sandarium ist ihr „Insektenhotel“.',
+    schritte: ['Vollsonnige Stelle wählen, Boden etwa 30–50 cm tief ausheben', 'Mit ungewaschenem Sand füllen (Grubensand, gern leicht lehmig) – er muss beim Zusammendrücken etwas zusammenhalten', 'Etwas über Bodenniveau anhäufen, leicht verdichten; kleine Steilkanten sind willkommen', 'Nicht bepflanzen, aufkommendes Grün ab und zu jäten'],
+    tipp: 'Spielsand ist gewaschen und rieselt zu stark – darin können die Bienen keine stabilen Gänge bauen.' },
+  { id: 'laubhaufen', icon: '🍂', titel: 'Laub- & Reisighaufen', aufwand: 1, zeit: 'Herbst',
+    kurz: 'Das einfachste Winterquartier für Igel, Kröten, Käfer und viele Insekten.',
+    schritte: ['Im Herbst Laub und Zweige in einer ruhigen, halbschattigen Ecke sammeln', 'Unten grobe Äste, darüber Reisig und Laub – so entstehen Hohlräume', 'Bis zum Frühjahr (April) in Ruhe lassen'],
+    tipp: 'Eine Benjeshecke – ein locker aufgeschichteter Wall aus Ästen – ist ein Dauerquartier und wächst mit der Zeit von selbst zu.' },
+  { id: 'steinhaufen', icon: '🪨', titel: 'Steinhaufen & Trockenmauer', aufwand: 2, zeit: 'Frühjahr oder Herbst',
+    kurz: 'Sonnenplatz und Winterquartier für Eidechsen, Kröten, Blindschleichen und Wildbienen.',
+    schritte: ['Sonnige Stelle wählen', 'Eine Grube von etwa 80 cm Tiefe ausheben und mit Steinen füllen – das wird zum frostfreien Winterquartier', 'Darauf Natursteine unterschiedlicher Größe locker aufschichten, viele Lücken lassen, kein Mörtel', 'Daneben Sand für die Eiablage, an einer Seite höhere Pflanzen als Deckung'],
+    tipp: 'Thymian, Fetthenne und Natternkopf wachsen gern zwischen den Steinen.' },
+  { id: 'teich', icon: '💧', titel: 'Gartenteich & Miniteich', aufwand: 3, zeit: 'Frühjahr',
+    kurz: 'Wasser zieht in kurzer Zeit Libellen, Molche, Frösche und Vögel an.',
+    schritte: ['Halbschattig bis sonnig, nicht direkt unter Bäumen (Laub)', 'Mindestens ein Ufer flach auslaufen lassen, Ausstiegshilfen anbieten', 'Heimische Wasser- und Sumpfpflanzen setzen, keine Fische', 'Für kleine Gärten: Miniteich im Kübel oder in einer Mörtelwanne mit Steinen als Ausstieg', 'Mit Regenwasser auffüllen – Leitungswasser fördert Algen'],
+    tipp: 'Mit kleinen Kindern: den Teich mit einem stabilen Gitter knapp unter der Wasseroberfläche sichern oder mit einem Miniteich beginnen.' },
+  { id: 'traenke', icon: '🥣', titel: 'Vogel- & Insektentränke, Lehmpfütze', aufwand: 1, zeit: 'ganzjährig, besonders im Sommer',
+    kurz: 'In heißen Sommern oft wichtiger als Futter.',
+    schritte: ['Flache Schale (höchstens 5–10 cm tief) mit Steinen oder Ästen als Landeplatz für Insekten', 'Erhöht und mit Rundumsicht aufstellen, damit sich keine Katze anschleichen kann', 'Täglich frisches Wasser, regelmäßig heiß ausbürsten (Krankheiten)', 'Für Mauerbienen und Schwalben: eine dauerhaft feuchte Lehmstelle'],
+    tipp: 'Kinder können die Tränke-Pflege gut als eigene Aufgabe übernehmen.' },
+  { id: 'wildeEcke', icon: '🌾', titel: 'Wilde Ecke mit Brennnesseln & Wildkräutern', aufwand: 1, zeit: 'ganzjährig',
+    kurz: 'Die einfachste Maßnahme überhaupt: weniger tun.',
+    schritte: ['Eine sonnige Ecke nicht mehr umgraben und nur ein- bis zweimal im Jahr mähen', 'Brennnesseln, Disteln, Wilde Möhre und Löwenzahn wachsen lassen', 'Stängel und Samenstände über den Winter stehen lassen – darin überwintern Insekten, die Samen füttern Vögel', 'Erst im Frühjahr (ab April) zurückschneiden'],
+    tipp: 'Ein kleines Schild „Hier wohnen Tiere“ hilft, wenn Nachbarn oder Besuch sich über die Unordnung wundern.' },
+  { id: 'nistkasten', icon: '🏠', titel: 'Nistkästen für Vögel', aufwand: 1, zeit: 'Herbst bis Ende Februar',
+    kurz: 'Die Größe des Fluglochs entscheidet, wer einzieht.',
+    schritte: ['Blaumeise: Flugloch 26–28 mm', 'Kohlmeise, Kleiber, Feldsperling: 32 mm', 'Haussperling: 32–35 mm, gern als Koloniehaus mit mehreren Kammern', 'Star: 45 mm', 'Rotkehlchen, Hausrotschwanz, Bachstelze: Halbhöhle (vorne halb offen)', 'Mauersegler: spezieller Kasten hoch unter dem Dach', 'Aufhängen bis Ende Februar, Flugloch nach Ost/Südost, katzen- und mardersicher, im Herbst reinigen'],
+    tipp: 'Ein Nistkasten-Bausatz ist ein schönes Winterprojekt mit Kindern.' },
+  { id: 'hecke', icon: '🌳', titel: 'Heimische Wildhecke', aufwand: 2, zeit: 'Pflanzzeit Oktober bis März',
+    kurz: 'Brutplatz, Versteck und Futter in einem – für Vögel, Igel und Schmetterlinge.',
+    schritte: ['Heimische Sträucher mischen: Weißdorn, Schlehe, Hundsrose, Holunder, Hasel, Kornelkirsche, Felsenbirne, Liguster, Eberesche, Faulbaum', 'Mehrreihig und unterschiedlich hoch pflanzen', 'Nur abschnittsweise und zwischen Oktober und Februar zurückschneiden', 'Den Saum davor als Wildkräuterstreifen stehen lassen'],
+    tipp: 'Thuja und Kirschlorbeer bieten heimischen Tieren fast nichts.' },
+  { id: 'bluehwiese', icon: '🌼', titel: 'Blühfläche & Wildblumenwiese', aufwand: 2, zeit: 'Aussaat Frühjahr oder Herbst',
+    kurz: 'Nahrung für Bienen, Hummeln und Schmetterlinge von Frühjahr bis Herbst.',
+    schritte: ['Gebietsheimisches Saatgut („Regio-Saatgut“) für die eigene Region wählen', 'Auf magerem Boden säen – zu nährstoffreicher Boden lässt die Gräser gewinnen', 'Nur ein- bis zweimal im Jahr mähen (z. B. Juni und September), Schnittgut einige Tage liegen lassen, dann abräumen', 'Im Beet: ungefüllte Blüten, sodass von Frühjahr bis Herbst immer etwas blüht'],
+    tipp: 'Schon ein schmaler Streifen am Rasenrand hilft.' },
+  { id: 'igeltuer', icon: '🚪', titel: 'Igel-Durchgang & Igelhaus', aufwand: 1, zeit: 'Spätsommer/Herbst',
+    kurz: 'Igel brauchen viele Gärten – und Wege dazwischen.',
+    schritte: ['Ein Loch von etwa 13 × 13 cm in Zaun oder Mauer – am besten mit den Nachbarn absprechen', 'Igelhaus aus unbehandeltem Holz, Eingang mit Knick (gegen Katzen und Marder), mit trockenem Laub füllen, an einem ruhigen Platz mit Laub und Reisig abdecken', 'Kellerschächte abdecken, Teiche mit Ausstiegshilfe versehen'],
+    tipp: 'Mit einer Wildkamera oder Mehl vor dem Eingang lässt sich nachts herausfinden, ob ein Igel zu Besuch war.' },
+  { id: 'fledermauskasten', icon: '🦇', titel: 'Fledermauskasten', aufwand: 1, zeit: 'Frühjahr',
+    kurz: 'Ersatzquartier für Fledermäuse, die an modernen Häusern kaum noch Spalten finden.',
+    schritte: ['Flachkasten aus Holzbeton oder rauem, unbehandeltem Holz – Fledermäuse müssen sich festkrallen können', 'In 3–5 m Höhe an Hauswand oder Baum, Anflug von unten frei', 'Südost- bis Südwestseite; mehrere Kästen in verschiedene Richtungen sind ideal', 'Geduld: Die Besiedlung kann einige Jahre dauern'],
+    tipp: 'Kleine dunkle Kotkrümel unter dem Kasten, die zwischen den Fingern zu Pulver zerbröseln, verraten: Hier wohnt jemand!' },
+  { id: 'ohrwurmtopf', icon: '🏺', titel: 'Ohrwurm-Topf', aufwand: 1, zeit: 'ab Juni',
+    kurz: 'Ein 5-Minuten-Projekt gegen Blattläuse an Obstbäumen.',
+    schritte: ['Tontopf mit Holzwolle oder Stroh füllen und mit Draht oder Netz sichern', 'Umgedreht so an einen Obstbaum hängen, dass er einen Ast berührt', 'Ab Juni aufhängen, im Winter abnehmen und trocken lagern'],
+    tipp: 'Morgens nachschauen – tagsüber sitzen die Ohrwürmer im Topf.' },
+];
+
+// Futterpflanzen nach Jahreszeit
+const TIER_PFLANZEN_SAISON = [
+  { titel: '🌷 Frühling', zeit: 'Februar – Mai', text: 'Jetzt sind Hummelköniginnen und die ersten Wildbienen hungrig – Blütenlücken im Frühjahr sind besonders gefährlich.',
+    pflanzen: [['Salweide', 'erste große Pollenquelle für Hummeln und Wildbienen'], ['Krokus', 'Nektar ab Februar'], ['Lungenkraut', 'Hummeln, Pelzbienen, Zitronenfalter'], ['Kornelkirsche', 'blüht schon im Februar'], ['Schlehe', 'Bienen; später Futter für Vögel'], ['Taubnessel', 'Hummeln'], ['Löwenzahn', 'über 100 Insektenarten nutzen ihn'], ['Apfelbaum', 'Mauerbienen, Hummeln'], ['Kirschbaum', 'Mauerbienen, Hummeln'], ['Weißdorn', 'Bienen, später Beeren für Vögel']] },
+  { titel: '☀️ Sommer', zeit: 'Juni – August', text: 'Die Hauptsaison – jetzt sind die meisten Insekten unterwegs.',
+    pflanzen: [['Natternkopf', 'Wildbienen-Magnet, auch Holzbiene'], ['Wiesensalbei', 'Hummeln, Holzbiene'], ['Lavendel', 'Hummeln, Taubenschwänzchen'], ['Borretsch', 'Hummeln, Honigbienen'], ['Phacelia', '„Bienenfreund“'], ['Thymian', 'Wildbienen, Schmetterlinge'], ['Oregano', 'Schmetterlinge, Schwebfliegen'], ['Kornblume', 'Wildbienen; Samen für Stieglitze'], ['Ringelblume', 'Schwebfliegen, Florfliegen'], ['Glockenblume', 'spezialisierte Glockenblumen-Bienen'], ['Wilde Möhre', 'Schwalbenschwanz, Käfer'], ['Brennnessel', 'Raupen von Tagpfauenauge & Co.'], ['Sonnenblume', 'Hummeln; später Samen für Vögel'], ['Klee', 'Hummeln']] },
+  { titel: '🍂 Herbst', zeit: 'September – November', text: 'Späte Blüten helfen Hummeln und Faltern, sich für den Winter zu stärken.',
+    pflanzen: [['Efeu', 'blüht bis November – eine der letzten großen Nektarquellen'], ['Fetthenne', 'Schmetterlinge, Hummeln'], ['Wasserdost', 'Tagpfauenauge & andere Falter'], ['Astern (ungefüllt)', 'Bienen und Falter bis in den Oktober'], ['Besenheide', 'Bienen'], ['Fallobst', 'Schmetterlinge, Amseln, Igel (Insekten darin)']] },
+  { titel: '❄️ Winter', zeit: 'Dezember – Februar', text: 'Jetzt zählen Samenstände und Beeren, die stehen geblieben sind.',
+    pflanzen: [['Hagebutten (Hundsrose)', 'Amseln, Drosseln'], ['Efeu', 'Beeren reifen im Spätwinter – Futter für Amseln'], ['Weißdorn', 'Beeren für Vögel'], ['Eberesche', 'Beeren für Drosseln und Amseln'], ['Sonnenblume', 'Kerne für Meisen und Finken'], ['Karde', 'Samen für Stieglitze'], ['Distel', 'Samen für Stieglitze']] },
+];
+
+const TIER_REGELN = [
+  ['🚫', 'Kein Gift', 'Kein Schneckenkorn, keine Insektizide, keine Unkrautvernichter – sie treffen immer auch Igel, Vögel und Nützlinge.'],
+  ['🍂', 'Etwas Unordnung erlauben', 'Laub, Stängel und Samenstände über den Winter liegen bzw. stehen lassen – dort überwintern unzählige Tiere.'],
+  ['🌼', 'Heimisch & ungefüllt pflanzen', 'Ungefüllte Blüten von Frühjahr bis Herbst. Gefüllte Zierblüten sehen schön aus, bieten aber kaum Nahrung.'],
+  ['💧', 'Wasser anbieten', 'Eine flache Tränke hilft besonders in heißen Sommern.'],
+  ['🌙', 'Nachts Licht aus', 'Gartenbeleuchtung lockt Insekten in den Tod und stört Glühwürmchen und Fledermäuse.'],
+  ['🤖', 'Mähroboter nur tagsüber', 'Nachts und in der Dämmerung sind Igel unterwegs. Seltener mähen lässt Klee und Wildblumen blühen.'],
+  ['🚪', 'Durchgänge schaffen', 'Kleine Lücken in Zäunen und Mauern verbinden Gärten für Igel, Kröten und Co.'],
+];
+
+let tierAnsicht = 'tiere';
+let tierKategorie = 'alle';
+let tierSuche = '';
+let tierDetailId = null;
+
+function tierSichtungen() {
+  const g = gardens[currentGardenId];
+  if (!g) return {};
+  if (!g.tierSichtungen || typeof g.tierSichtungen !== 'object') g.tierSichtungen = {};
+  return g.tierSichtungen;
+}
+// Welche Pflanzen wachsen schon im aktuellen Garten (Beete + freistehende Pflanzen)?
+function tierGartenPflanzenSet() {
+  const set = new Set();
+  const norm = n => String(n || '').trim().toLowerCase();
+  getCurrentBeds().forEach(b => (b.plants || []).forEach(p => set.add(norm(p.name))));
+  getCurrentFreiPflanzen().forEach(p => set.add(norm(p.name)));
+  return set;
+}
+function tierPflanzeImGarten(name, set) {
+  const n = name.trim().toLowerCase();
+  if (set.has(n)) return true;
+  const alias = (typeof PFLANZEN_BEDINGUNGEN_ALIAS !== 'undefined') && PFLANZEN_BEDINGUNGEN_ALIAS[n];
+  if (alias && set.has(alias.toLowerCase())) return true;
+  // „Hagebutten (Hundsrose)“ → „Hundsrose“, „Astern (ungefüllt)“ → „Astern“
+  const klammer = name.match(/\(([^)]+)\)/);
+  if (klammer && set.has(klammer[1].trim().toLowerCase())) return true;
+  const ohne = name.replace(/\s*\([^)]*\)/, '').trim().toLowerCase();
+  return ohne !== n && set.has(ohne);
+}
+function tierPflanzenChips(liste, set) {
+  return liste.map(n => {
+    const da = tierPflanzeImGarten(n, set);
+    const p = PLANTS.find(x => x.name === n);
+    return `<span class="tier-chip${da ? ' da' : ''}" title="${da ? 'Wächst schon in deinem Garten' : ''}">${p ? p.sym + ' ' : ''}${escapeHtml(n)}${da ? ' ✓' : ''}</span>`;
+  }).join('');
+}
+function tierMonateHtml(monate) {
+  const kuerzel = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
+  const jetzt = new Date().getMonth() + 1;
+  return `<div class="tier-monate">${kuerzel.map((k, i) => `<span class="${monate.includes(i + 1) ? 'an' : ''}${i + 1 === jetzt ? ' jetzt' : ''}">${k}</span>`).join('')}</div>`;
+}
+
+function renderTiere() {
+  const box = document.getElementById('tiereWrap');
+  if (!box) return;
+  const sicht = tierSichtungen();
+  const entdeckt = TIERE.filter(t => sicht[t.id]).length;
+  const prozent = Math.round(entdeckt / TIERE.length * 100);
+  const gartenName = (gardens[currentGardenId] && gardens[currentGardenId].name) || 'deinem Garten';
+  const reiter = [['tiere', '🔍 Tiere'], ['bauen', '🔨 Lebensräume bauen'], ['pflanzen', '🌼 Futterpflanzen'], ['regeln', '✅ Grundregeln']];
+  let html = `<div class="home-intro" style="margin-bottom:14px"><h2>🦔 Tiere im Garten</h2>
+      <p>Welche Tiere leben bei uns – und was brauchen sie, damit sie in den Garten kommen?</p></div>
+    <div class="tier-fortschritt">
+      <div class="tier-fortschritt-text">👀 Entdeckt in „${escapeHtml(gartenName)}“: <b>${entdeckt} von ${TIERE.length}</b></div>
+      <div class="tier-balken"><span style="width:${prozent}%"></span></div>
+    </div>
+    <div class="tier-reiter">${reiter.map(([k, t]) => `<button type="button" class="saat-chip${tierAnsicht === k ? ' an' : ''}" onclick="tierAnsichtSetzen('${k}')">${t}</button>`).join('')}</div>`;
+  if (tierAnsicht === 'tiere') html += renderTiereListeHtml(sicht);
+  else if (tierAnsicht === 'bauen') html += renderTierProjekteHtml();
+  else if (tierAnsicht === 'pflanzen') html += renderTierPflanzenHtml();
+  else html += renderTierRegelnHtml();
+  box.innerHTML = html;
+}
+function tierAnsichtSetzen(k) { tierAnsicht = k; renderTiere(); document.getElementById('tiereWrap').scrollTop = 0; }
+function tierKategorieSetzen(k) { tierKategorie = k; renderTiere(); }
+// Bei der Suche nur die Liste neu zeichnen – sonst schließt sich am Handy die Tastatur
+function tierSucheSetzen(v) {
+  tierSuche = v;
+  const el = document.getElementById('tierListe');
+  if (el) el.innerHTML = tierListeInhaltHtml(tierSichtungen());
+}
+
+function renderTiereListeHtml(sicht) {
+  const kats = [['alle', 'Alle']].concat(Object.entries(TIER_KATEGORIEN), [['entdeckt', '👀 Entdeckt']]);
+  return `<input type="search" id="tierSucheInput" class="tier-suche" placeholder="🔍 Tier oder Pflanze suchen …" value="${escapeHtml(tierSuche)}" oninput="tierSucheSetzen(this.value)">
+    <div class="tier-filter">${kats.map(([k, t]) => `<button type="button" class="saat-chip${tierKategorie === k ? ' an' : ''}" onclick="tierKategorieSetzen('${k}')">${t}</button>`).join('')}</div>
+    <div id="tierListe">${tierListeInhaltHtml(sicht)}</div>`;
+}
+function tierListeInhaltHtml(sicht) {
+  const q = tierSuche.trim().toLowerCase();
+  const liste = TIERE.filter(t => {
+    if (tierKategorie === 'entdeckt' && !sicht[t.id]) return false;
+    if (tierKategorie !== 'alle' && tierKategorie !== 'entdeckt' && t.kat !== tierKategorie) return false;
+    if (!q) return true;
+    return [t.name, t.latein, t.kurz, t.nahrung, t.wohnung, t.pflanzen.join(' ')].join(' ').toLowerCase().includes(q);
+  });
+  if (!liste.length) return `<div class="empty-state">${tierKategorie === 'entdeckt' ? 'Noch keine Tiere entdeckt – öffne ein Tier und tippe auf „👀 Gesehen!“, wenn ihr es im Garten beobachtet habt.' : 'Nichts gefunden.'}</div>`;
+  return `<div class="tier-grid">${liste.map(t => {
+    const s = sicht[t.id];
+    return `<button type="button" class="tier-karte${s ? ' entdeckt' : ''}" onclick="tierDetailOeffnen('${t.id}')">
+      <span class="tier-icon">${t.icon}</span>
+      <span class="tier-karte-text">
+        <span class="tier-name">${escapeHtml(t.name)}${s ? ' <span class="tier-gesehen-mark" title="Schon entdeckt">👀</span>' : ''}</span>
+        <span class="tier-kurz">${escapeHtml(t.kurz)}</span>
+        <span class="tier-meta">${TIER_KATEGORIEN[t.kat].split(' ')[0]} · ${TIER_AUFWAND[t.aufwand]}</span>
+      </span>
+    </button>`;
+  }).join('')}</div>`;
+}
+
+function renderTierProjekteHtml() {
+  return `<p class="tier-einleitung">Kleine und große Projekte – viele davon kann man gut zusammen mit Kindern bauen. Unter jedem Projekt steht, welche Tiere davon profitieren.</p>` +
+    TIER_PROJEKTE.map(p => {
+      const tiere = TIERE.filter(t => t.projekte.includes(p.id));
+      return `<details class="tier-projekt" id="tierProjekt-${p.id}">
+        <summary><span class="tier-projekt-icon">${p.icon}</span><span class="tier-projekt-kopf"><b>${escapeHtml(p.titel)}</b><span class="tier-meta">${TIER_AUFWAND[p.aufwand]} · 📅 ${escapeHtml(p.zeit)}</span></span><span class="vlist-pfeil">▸</span></summary>
+        <div class="tier-projekt-inhalt">
+          <p>${escapeHtml(p.kurz)}</p>
+          <ol>${p.schritte.map(s => `<li>${escapeHtml(s)}</li>`).join('')}</ol>
+          ${p.tipp ? `<div class="tier-tipp">💡 ${escapeHtml(p.tipp)}</div>` : ''}
+          ${tiere.length ? `<div class="tier-abschnitt-titel">Hilft diesen Tieren</div><div class="tier-chips">${tiere.map(t => `<button type="button" class="tier-chip tier-chip-btn" onclick="tierDetailOeffnen('${t.id}')">${t.icon} ${escapeHtml(t.name)}</button>`).join('')}</div>` : ''}
+        </div>
+      </details>`;
+    }).join('');
+}
+
+function renderTierPflanzenHtml() {
+  const set = tierGartenPflanzenSet();
+  return `<p class="tier-einleitung">Damit das ganze Jahr über etwas zu holen ist. Pflanzen mit <span class="tier-chip da" style="display:inline-block">✓</span> wachsen schon in deinem Garten.</p>` +
+    TIER_PFLANZEN_SAISON.map(s => `<div class="tier-saison">
+      <div class="tier-saison-kopf"><b>${s.titel}</b><span class="tier-meta">${escapeHtml(s.zeit)}</span></div>
+      <p>${escapeHtml(s.text)}</p>
+      ${s.pflanzen.map(([n, wer]) => {
+        const da = tierPflanzeImGarten(n, set);
+        const p = PLANTS.find(x => x.name === n);
+        return `<div class="tier-pflanze-zeile${da ? ' da' : ''}"><span class="tpz-name">${p ? p.sym + ' ' : ''}${escapeHtml(n)}${da ? ' ✓' : ''}</span><span class="tpz-wer">${escapeHtml(wer)}</span></div>`;
+      }).join('')}
+    </div>`).join('');
+}
+
+function renderTierRegelnHtml() {
+  return `<p class="tier-einleitung">Sieben einfache Regeln, mit denen jeder Garten tierfreundlicher wird – ganz ohne großen Aufwand.</p>` +
+    TIER_REGELN.map(([icon, t, txt], i) => `<div class="tier-regel"><span class="tier-regel-nr">${icon}</span><div><b>${i + 1}. ${escapeHtml(t)}</b><p>${escapeHtml(txt)}</p></div></div>`).join('');
+}
+
+// ---------- Detail-Fenster ----------
+function tierDetailOeffnen(id) {
+  tierDetailId = id;
+  tierDetailRendern();
+  const m = document.getElementById('tierDetailModal');
+  m.style.display = 'flex';
+  const inhalt = m.querySelector('.modal');
+  if (inhalt) inhalt.scrollTop = 0;
+}
+function tierDetailSchliessen() {
+  document.getElementById('tierDetailModal').style.display = 'none';
+  tierDetailId = null;
+}
+function tierDetailRendern() {
+  const t = TIERE.find(x => x.id === tierDetailId);
+  if (!t) return;
+  const set = tierGartenPflanzenSet();
+  const s = tierSichtungen()[t.id];
+  const projekte = t.projekte.map(pid => TIER_PROJEKTE.find(p => p.id === pid)).filter(Boolean);
+  const liste = (arr) => `<ul class="tier-liste">${arr.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul>`;
+  const datum = d => new Date(d + 'T00:00').toLocaleDateString('de-DE');
+  document.getElementById('tierDetailInhalt').innerHTML = `
+    <div class="tier-detail-kopf">
+      <span class="tier-detail-icon">${t.icon}</span>
+      <div><h2 style="margin:0">${escapeHtml(t.name)}</h2>
+        <div class="tier-meta"><i>${escapeHtml(t.latein)}</i></div>
+        <div class="tier-meta">${TIER_KATEGORIEN[t.kat]} · Ansiedeln: ${TIER_AUFWAND[t.aufwand]}</div></div>
+    </div>
+    <div class="tier-wusstest"><b>🧒 Wusstest du?</b><br>${escapeHtml(t.wusstest)}</div>
+    <div class="tier-abschnitt-titel">📅 Wann zu sehen</div>${tierMonateHtml(t.monate)}
+    <div class="tier-abschnitt-titel">🍽️ Was frisst es?</div><p class="tier-p">${escapeHtml(t.nahrung)}</p>
+    <div class="tier-abschnitt-titel">🏠 Wo wohnt es?</div><p class="tier-p">${escapeHtml(t.wohnung)}</p>
+    ${t.pflanzen.length ? `<div class="tier-abschnitt-titel">🌼 Diese Pflanzen helfen</div><div class="tier-chips">${tierPflanzenChips(t.pflanzen, set)}</div>` : ''}
+    <div class="tier-abschnitt-titel">✅ So lockst du es an</div>${liste(t.tun)}
+    ${t.meiden.length ? `<div class="tier-abschnitt-titel">⛔ Lieber vermeiden</div>${liste(t.meiden)}` : ''}
+    ${projekte.length ? `<div class="tier-abschnitt-titel">🔨 Passende Projekte</div><div class="tier-chips">${projekte.map(p => `<button type="button" class="tier-chip tier-chip-btn" onclick="tierProjektZeigen('${p.id}')">${p.icon} ${escapeHtml(p.titel)}</button>`).join('')}</div>` : ''}
+    <div class="tier-gesehen-box">
+      ${s ? `<div>👀 Schon <b>${s.anzahl}×</b> gesehen · zuerst am ${datum(s.erst)}${s.zuletzt !== s.erst ? `, zuletzt am ${datum(s.zuletzt)}` : ''}</div>` : '<div>Habt ihr es im Garten beobachtet?</div>'}
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <button type="button" class="btn-primary" style="flex:1" onclick="tierGesehen('${t.id}')">👀 Gesehen!</button>
+        ${s ? `<button type="button" class="btn-secondary" style="width:auto;margin:0" onclick="tierGesehenZurueck('${t.id}')" title="Letzte Sichtung zurücknehmen">↩</button>` : ''}
+      </div>
+    </div>`;
+}
+function tierProjektZeigen(pid) {
+  tierDetailSchliessen();
+  tierAnsicht = 'bauen';
+  renderTiere();
+  const el = document.getElementById('tierProjekt-' + pid);
+  if (el) { el.open = true; el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+}
+function tierGesehen(id) {
+  const sicht = tierSichtungen();
+  const heute = new Date().toISOString().slice(0, 10);
+  const neu = !sicht[id];
+  if (neu) sicht[id] = { anzahl: 0, erst: heute, zuletzt: heute };
+  sicht[id].anzahl++;
+  sicht[id].zuletzt = heute;
+  saveData();
+  tierDetailRendern();
+  renderTiere();
+  const t = TIERE.find(x => x.id === id);
+  showTempStatus(neu ? `🎉 Neu entdeckt: ${t ? t.name : ''}!` : '👀 Sichtung eingetragen', 3);
+}
+function tierGesehenZurueck(id) {
+  const sicht = tierSichtungen();
+  if (!sicht[id]) return;
+  sicht[id].anzahl--;
+  if (sicht[id].anzahl <= 0) delete sicht[id];
+  saveData();
+  tierDetailRendern();
+  renderTiere();
+}
+
 function renderTips() {
   const box = document.getElementById('tipsWrap');
   let html = `<div class="home-intro" style="margin-bottom:22px"><h2>📖 Tipps &amp; Tricks</h2><p>Grundlagenwissen für den Einstieg – zum Nachschlagen, nicht zum Auswendiglernen.</p></div>`;
