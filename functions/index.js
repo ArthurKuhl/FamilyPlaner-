@@ -4,13 +4,22 @@
 // Erinnerungen (Termine, Medikamente, Wasser) und schickt sie über Firebase
 // Cloud Messaging. Jede Erinnerung geht pro Gerät nur einmal raus.
 //
+// Außerdem (weiter unten):
+//   sonntagsbrief  – sonntags 18 Uhr ein Wochenüberblick aufs Handy
+//   kalender       – Termine als Kalender-Abo (ICS) für Google/Apple/Outlook
+//   rezeptImport   – liest ein Rezept von einer Webseite (schema.org/Recipe)
+//
 // Datenquellen (wie von der App synchronisiert):
 //   planerFamilien/{familie}/daten/termine     → werte.termine_events_v1
 //   planerFamilien/{familie}/daten/gesundheit  → werte.gesundheit_medikamente, werte.gesundheit_medErledigt
 //   planerFamilien/{familie}/geraete/{gerät}   → Token + Einstellungen des Geräts (von der App angelegt)
 // ============================================================
 const { onSchedule } = require('firebase-functions/v2/scheduler');
+const { onRequest } = require('firebase-functions/v2/https');
 const { initializeApp } = require('firebase-admin/app');
+const { getAuth } = require('firebase-admin/auth');
+const dns = require('node:dns').promises;
+const net = require('node:net');
 const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 const { getMessaging } = require('firebase-admin/messaging');
 
@@ -250,3 +259,274 @@ exports.erinnerungen = onSchedule(
   }
 );
 
+// ============================================================
+// 📬 SONNTAGSBRIEF – sonntags um 18 Uhr ein kurzer Überblick über die kommende Woche
+// (Termine, Geburtstage, Kochplan, ablaufende Vorräte). Abschaltbar pro Gerät in den
+// Push-Einstellungen der App (Feld „sonntagsbrief“ im Geräte-Dokument).
+// ============================================================
+const WOCHENTAG_KURZ = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+function wochentagVon(iso) { const [y, m, d] = iso.split('-').map(Number); return WOCHENTAG_KURZ[new Date(Date.UTC(y, m - 1, d)).getUTCDay()]; }
+function istGeburtstag(ev) { return /🎂|geburtstag/i.test(ev.title || ''); }
+
+function sonntagsbriefText(geraet, daten) {
+  const { datum } = lokaleZeit(geraet.zeitzone);
+  const tage = Array.from({ length: 7 }, (_, i) => isoPlusTage(datum, i + 1)); // Mo … So
+  const fuerMich = (wer) => geraet.termine !== 'meine' || !geraet.person || !wer || wer === geraet.person || wer === 'familie';
+  const termine = [], geburtstage = [];
+  tage.forEach(tag => (daten.termine || []).forEach(ev => {
+    if (!ev || !terminAmTag(ev, tag)) return;
+    if (istGeburtstag(ev)) { geburtstage.push(wochentagVon(tag) + ' ' + (ev.title || '').replace(/🎂\s*/g, '').trim()); return; }
+    if (!fuerMich(ev.wer)) return;
+    // Tägliche Serien (z.B. Vitamine) würden die Liste fluten – die gehören nicht in den Wochenüberblick
+    if (ev.recurrence && ev.recurrence.freq === 'taeglich') return;
+    termine.push({ id: ev.id, text: wochentagVon(tag) + (ev.startTime ? ' ' + ev.startTime : '') + ' ' + (ev.title || 'Termin') });
+  }));
+  const zeilen = [];
+  if (termine.length) zeilen.push('🗓️ ' + termine.length + (termine.length === 1 ? ' Termin: ' : ' Termine: ') + termine.slice(0, 3).map(t => t.text).join(', ') + (termine.length > 3 ? ' …' : ''));
+  if (geburtstage.length) zeilen.push('🎂 ' + geburtstage.join(', '));
+  const rezeptName = (id) => ((daten.rezepte || []).find(r => r && r.id === id) || {}).titel;
+  const gerichte = tage.map(t => daten.wochenplan && daten.wochenplan[t] ? wochentagVon(t) + ' ' + (rezeptName(daten.wochenplan[t]) || '?') : null).filter(Boolean);
+  if (gerichte.length) zeilen.push('🍳 ' + gerichte.slice(0, 3).join(', ') + (gerichte.length > 3 ? ' …' : ''));
+  const bald = (daten.vorrat || []).filter(it => {
+    const bis = it && (it.verfallsdatum || it.aufbrauchenBis);
+    if (!bis || it.bestand === 'leer') return false;
+    const t = tageZwischen(datum, bis); return t >= 0 && t <= 7;
+  });
+  if (bald.length) zeilen.push('🥫 Bald aufbrauchen: ' + bald.slice(0, 3).map(it => it.name).join(', ') + (bald.length > 3 ? ' …' : ''));
+  if (!zeilen.length) zeilen.push('Keine Termine eingetragen – eine ruhige Woche! 🌿');
+  const [, m, d] = tage[0].split('-');
+  return { titel: '📬 Eure Woche ab Mo ' + Number(d) + '.' + Number(m) + '.', text: zeilen.join('\n').slice(0, 400), datum };
+}
+
+exports.sonntagsbrief = onSchedule(
+  { schedule: '0 18 * * 0', timeZone: 'Europe/Berlin', region: 'europe-west3', memory: '256MiB', timeoutSeconds: 180 },
+  async () => {
+    const db = getFirestore();
+    const messaging = getMessaging();
+    const geraeteSnap = await db.collectionGroup('geraete').get();
+    const proFamilie = new Map();
+    geraeteSnap.forEach(doc => {
+      const familie = doc.ref.parent.parent;
+      if (!familie || familie.parent.id !== 'planerFamilien') return;
+      const g = doc.data();
+      if (!g || !g.token || !g.aktiv || g.sonntagsbrief === false) return;
+      if (!proFamilie.has(familie.id)) proFamilie.set(familie.id, { ref: familie, geraete: [] });
+      proFamilie.get(familie.id).geraete.push({ ref: doc.ref, id: doc.id, daten: g });
+    });
+    for (const { ref: familieRef, geraete } of proFamilie.values()) {
+      const [terminDoc, kochenDoc, vorratDoc] = await Promise.all(['termine', 'kochen', 'vorratskammer'].map(d => familieRef.collection('daten').doc(d).get()));
+      const werteVon = (doc) => (doc.exists && doc.data().werte) || {};
+      const daten = {
+        termine: werteVon(terminDoc).termine_events_v1 || [],
+        rezepte: werteVon(kochenDoc).kochen_rezepte || [],
+        wochenplan: werteVon(kochenDoc).kochen_wochenplan || {},
+        vorrat: werteVon(vorratDoc).vorratskammer_items || [],
+      };
+      for (const geraet of geraete) {
+        const brief = sonntagsbriefText(geraet.daten, daten);
+        const merker = familieRef.collection('pushVersand').doc(`${brief.datum}_${geraet.id}_sonntagsbrief`.replace(/[^\w.-]/g, '_'));
+        try { await merker.create({ am: FieldValue.serverTimestamp(), datum: brief.datum }); } catch (err) { continue; }
+        const basis = geraet.daten.appUrl || '';
+        try {
+          await messaging.send({
+            token: geraet.daten.token,
+            webpush: { headers: { Urgency: 'normal', TTL: '21600' }, data: { titel: brief.titel, text: brief.text, tag: 'sonntagsbrief', link: basis ? basis + '#home' : '' } },
+          });
+        } catch (err) {
+          const code = err && err.code;
+          if (code === 'messaging/registration-token-not-registered' || code === 'messaging/invalid-registration-token') await geraet.ref.delete().catch(() => {});
+          else console.warn('Sonntagsbrief fehlgeschlagen', geraet.id, code || err);
+        }
+      }
+    }
+  }
+);
+
+// ============================================================
+// 📲 KALENDER-ABO – liefert die Termine als .ics, damit Google Kalender, das iPhone
+// oder Outlook sie abonnieren können (aktualisiert sich dort selbst, meist alle paar Stunden).
+// Aufruf: …/kalender?f=FAMILIENCODE&t=GEHEIMER_SCHLÜSSEL[&p=PERSON]
+// Der Schlüssel wird in der App erzeugt (Termine → 📲 Kalender-App) und liegt in
+// planerFamilien/{familie}/daten/kalenderabo. „Neuer Link“ in der App macht alte Links ungültig.
+// ============================================================
+function icsText(t) { return String(t || '').replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n'); }
+function icsFalten(zeile) { // Zeilen > 75 Bytes umbrechen (RFC 5545)
+  const teile = []; let rest = zeile;
+  while (Buffer.byteLength(rest, 'utf8') > 75) {
+    let n = 75; while (Buffer.byteLength(rest.slice(0, n), 'utf8') > 75) n--;
+    teile.push(rest.slice(0, n)); rest = ' ' + rest.slice(n);
+  }
+  teile.push(rest); return teile.join('\r\n');
+}
+const ICS_FREQ = { taeglich: 'DAILY', woechentlich: 'WEEKLY', monatlich: 'MONTHLY', jaehrlich: 'YEARLY' };
+const VTIMEZONE_BERLIN = ['BEGIN:VTIMEZONE', 'TZID:Europe/Berlin',
+  'BEGIN:DAYLIGHT', 'TZOFFSETFROM:+0100', 'TZOFFSETTO:+0200', 'TZNAME:CEST', 'DTSTART:19700329T020000', 'RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU', 'END:DAYLIGHT',
+  'BEGIN:STANDARD', 'TZOFFSETFROM:+0200', 'TZOFFSETTO:+0100', 'TZNAME:CET', 'DTSTART:19701025T030000', 'RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU', 'END:STANDARD',
+  'END:VTIMEZONE'];
+function kalenderIcs(termine, personen, person) {
+  const stempel = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
+  const z = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Familienplaner//Kalender-Abo//DE', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH',
+    'X-WR-CALNAME:' + icsText('Familienplaner' + (person ? ' – ' + ((personen.find(p => p.id === person) || {}).label || person) : '')),
+    'X-WR-TIMEZONE:Europe/Berlin', 'REFRESH-INTERVAL;VALUE=DURATION:PT1H', 'X-PUBLISHED-TTL:PT1H', ...VTIMEZONE_BERLIN];
+  const tag = (iso) => String(iso).slice(0, 10).replace(/-/g, '');
+  const zeit = (hhmm) => (/^\d{1,2}:\d{2}$/.test(hhmm || '') ? hhmm.padStart(5, '0') : '00:00').replace(':', '') + '00';
+  const grenze = isoPlusTage(new Date().toISOString().slice(0, 10), -400); // Altes (über ein Jahr) weglassen
+  termine.forEach(ev => {
+    if (!ev || !ev.id || !/^\d{4}-\d{2}-\d{2}/.test(ev.date || '')) return;
+    if (person && ev.wer && ev.wer !== person && ev.wer !== 'familie') return;
+    const serie = ev.recurrence && ICS_FREQ[ev.recurrence.freq];
+    if (!serie && ev.date < grenze) return;
+    if (serie && ev.recurrence.until && ev.recurrence.until < grenze) return;
+    z.push('BEGIN:VEVENT', 'UID:' + String(ev.id).replace(/[^\w.-]/g, '_') + '@familienplaner', 'DTSTAMP:' + stempel);
+    if (ev.allDay || !ev.startTime) {
+      z.push('DTSTART;VALUE=DATE:' + tag(ev.date), 'DTEND;VALUE=DATE:' + tag(isoPlusTage(ev.date.slice(0, 10), 1)));
+    } else {
+      const ende = ev.endTime && ev.endTime > ev.startTime ? ev.endTime : minutenZuHHMM(Math.min(hhmmZuMinuten(ev.startTime) + 60, 23 * 60 + 59));
+      z.push('DTSTART;TZID=Europe/Berlin:' + tag(ev.date) + 'T' + zeit(ev.startTime), 'DTEND;TZID=Europe/Berlin:' + tag(ev.date) + 'T' + zeit(ende));
+    }
+    if (serie) z.push('RRULE:FREQ=' + serie + (ev.recurrence.until ? ';UNTIL=' + tag(ev.recurrence.until) + 'T225959Z' : ''));
+    const wer = ev.wer && ev.wer !== 'familie' ? (personen.find(p => p.id === ev.wer) || {}).label : '';
+    z.push('SUMMARY:' + icsText((ev.title || 'Termin') + (wer && !person ? ' (' + wer + ')' : '')));
+    if (ev.location) z.push('LOCATION:' + icsText(ev.location));
+    if (ev.notes) z.push('DESCRIPTION:' + icsText(ev.notes));
+    if (Number(ev.erinnerung) > 0 && !ev.allDay) z.push('BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:' + icsText(ev.title || 'Termin'), 'TRIGGER:-PT' + Number(ev.erinnerung) + 'M', 'END:VALARM');
+    z.push('END:VEVENT');
+  });
+  z.push('END:VCALENDAR');
+  return z.map(icsFalten).join('\r\n') + '\r\n';
+}
+
+exports.kalender = onRequest({ region: 'europe-west3', memory: '256MiB', invoker: 'public', maxInstances: 5 }, async (req, res) => {
+  const familie = String(req.query.f || '').trim(), schluessel = String(req.query.t || '').trim(), person = String(req.query.p || '').trim();
+  if (!/^[\w-]{3,64}$/.test(familie) || !/^[\w-]{20,80}$/.test(schluessel)) { res.status(400).send('Ungültiger Link'); return; }
+  try {
+    const db = getFirestore();
+    const familieRef = db.collection('planerFamilien').doc(familie);
+    const abo = await familieRef.collection('daten').doc('kalenderabo').get();
+    if (!abo.exists || abo.data().token !== schluessel) { res.status(404).send('Kalender nicht gefunden – bitte in der App einen neuen Link erzeugen.'); return; }
+    const [terminDoc, personenDoc] = await Promise.all([familieRef.collection('daten').doc('termine').get(), familieRef.collection('daten').doc('personen').get()]);
+    const termine = (terminDoc.exists && terminDoc.data().werte && terminDoc.data().werte.termine_events_v1) || [];
+    const pw = (personenDoc.exists && personenDoc.data().werte) || {};
+    const personen = Array.isArray(pw.planer_personenListe) ? pw.planer_personenListe : [];
+    res.set('Content-Type', 'text/calendar; charset=utf-8');
+    res.set('Content-Disposition', 'inline; filename="familienplaner.ics"');
+    res.set('Cache-Control', 'private, max-age=900');
+    res.status(200).send(kalenderIcs(termine, personen, person));
+  } catch (err) {
+    console.error('kalender', err);
+    res.status(500).send('Fehler beim Erstellen des Kalenders');
+  }
+});
+
+// ============================================================
+// 🔗 REZEPT PER LINK – holt eine Rezeptseite (Chefkoch, Lecker, eigene Blogs …) und liest
+// das maschinenlesbare Rezept (schema.org „Recipe“ als JSON-LD) aus. Nur für angemeldete
+// App-Geräte (Firebase-Anmeldung wird geprüft) und nur öffentliche Internetadressen.
+// ============================================================
+function privateAdresse(ip) {
+  if (net.isIPv4(ip)) {
+    const [a, b] = ip.split('.').map(Number);
+    return a === 10 || a === 127 || a === 0 || (a === 169 && b === 254) || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || (a === 100 && b >= 64 && b <= 127) || a >= 224;
+  }
+  const v = ip.toLowerCase();
+  if (v.startsWith('::ffff:')) return privateAdresse(v.slice(7));
+  return v === '::1' || v === '::' || v.startsWith('fc') || v.startsWith('fd') || v.startsWith('fe80');
+}
+async function sicherHolen(adresse) {
+  let url = new URL(adresse);
+  for (let sprung = 0; sprung < 5; sprung++) {
+    if (!/^https?:$/.test(url.protocol)) throw new Error('Nur http/https-Links');
+    if (url.port && !['80', '443'].includes(url.port)) throw new Error('Ungewöhnlicher Port');
+    const ips = await dns.lookup(url.hostname, { all: true });
+    if (!ips.length || ips.some(x => privateAdresse(x.address))) throw new Error('Adresse nicht erlaubt');
+    const antwort = await fetch(url, {
+      redirect: 'manual', signal: AbortSignal.timeout(10000),
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; Familienplaner-Rezeptimport/1.0)', 'Accept': 'text/html,application/xhtml+xml', 'Accept-Language': 'de-DE,de;q=0.9' },
+    });
+    if (antwort.status >= 300 && antwort.status < 400 && antwort.headers.get('location')) { url = new URL(antwort.headers.get('location'), url); continue; }
+    if (!antwort.ok) throw new Error('Seite antwortet mit ' + antwort.status);
+    // höchstens 3 MB lesen
+    const leser = antwort.body.getReader(); const stuecke = []; let groesse = 0;
+    for (;;) { const { done, value } = await leser.read(); if (done) break; groesse += value.length; if (groesse > 3 * 1024 * 1024) { leser.cancel(); break; } stuecke.push(value); }
+    return { html: Buffer.concat(stuecke).toString('utf8'), url: url.toString() };
+  }
+  throw new Error('Zu viele Weiterleitungen');
+}
+function htmlEntitaeten(t) {
+  return String(t || '').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'")
+    .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n))).replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16)))
+    .replace(/\s+/g, ' ').trim();
+}
+function rezeptAusJsonLd(html) {
+  const bloecke = [...html.matchAll(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)].map(m => m[1]);
+  const istRezept = (o) => o && (o['@type'] === 'Recipe' || (Array.isArray(o['@type']) && o['@type'].includes('Recipe')));
+  const suche = (o) => {
+    if (!o || typeof o !== 'object') return null;
+    if (istRezept(o)) return o;
+    if (Array.isArray(o)) { for (const x of o) { const r = suche(x); if (r) return r; } return null; }
+    return suche(o['@graph']) || (o.mainEntity && suche(o.mainEntity)) || null;
+  };
+  for (const b of bloecke) { try { const r = suche(JSON.parse(b.trim())); if (r) return r; } catch (e) { /* kaputtes JSON überspringen */ } }
+  return null;
+}
+function isoDauerMinuten(d) {
+  const m = /^P(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?)?/i.exec(String(d || ''));
+  return m ? (Number(m[1] || 0) * 1440 + Number(m[2] || 0) * 60 + Number(m[3] || 0)) : 0;
+}
+const EINHEITEN = ['g', 'kg', 'mg', 'ml', 'l', 'cl', 'dl', 'el', 'tl', 'msp', 'msp.', 'prise', 'prisen', 'stk', 'stk.', 'stück', 'becher', 'dose', 'dosen', 'pck', 'pck.', 'päckchen', 'pkt', 'pkt.', 'bund', 'zehe', 'zehen', 'tasse', 'tassen', 'scheibe', 'scheiben', 'tropfen', 'handvoll', 'glas', 'gläser', 'würfel', 'blatt', 'blätter', 'zweig', 'zweige', 'stange', 'stangen', 'kopf', 'köpfe', 'knolle', 'knollen', 'cup', 'cups', 'tbsp', 'tsp', 'oz'];
+function zutatZerlegen(text) {
+  const t = htmlEntitaeten(text);
+  const m = /^((?:ca\.\s*)?[\d½¼¾⅓⅔⅛.,/\s-]*\d[\d½¼¾⅓⅔⅛]*|[½¼¾⅓⅔⅛])\s*(.*)$/.exec(t);
+  if (!m) return { menge: '', einheit: '', name: t };
+  const rest = m[2].trim();
+  const erstes = rest.split(/\s+/)[0] || '';
+  if (EINHEITEN.includes(erstes.toLowerCase())) return { menge: m[1].trim(), einheit: erstes, name: rest.slice(erstes.length).trim() || erstes };
+  return { menge: m[1].trim(), einheit: '', name: rest };
+}
+function schritteListe(anl) {
+  const aus = [];
+  const lauf = (x) => {
+    if (!x) return;
+    if (typeof x === 'string') { htmlEntitaeten(x).split(/\n{2,}/).forEach(s => s.trim() && aus.push(s.trim())); return; }
+    if (Array.isArray(x)) { x.forEach(lauf); return; }
+    if (x['@type'] === 'HowToSection') { lauf(x.itemListElement); return; }
+    lauf(x.text || x.name);
+  };
+  lauf(anl);
+  if (aus.length === 1 && aus[0].length > 400) return aus[0].split(/(?<=[.!?])\s+(?=[A-ZÄÖÜ])/).reduce((acc, satz) => { // ein großer Textblock → in Absätze
+    if (!acc.length || acc[acc.length - 1].length > 220) acc.push(satz); else acc[acc.length - 1] += ' ' + satz; return acc; }, []);
+  return aus;
+}
+
+exports.rezeptImport = onRequest({ region: 'europe-west3', memory: '256MiB', invoker: 'public', cors: true, maxInstances: 3, timeoutSeconds: 30 }, async (req, res) => {
+  try {
+    const kopf = req.get('Authorization') || '';
+    if (!kopf.startsWith('Bearer ')) { res.status(401).json({ fehler: 'Nicht angemeldet' }); return; }
+    await getAuth().verifyIdToken(kopf.slice(7));
+  } catch (err) { res.status(401).json({ fehler: 'Anmeldung ungültig' }); return; }
+  const adresse = String((req.method === 'POST' ? (req.body && req.body.url) : req.query.url) || '').trim();
+  if (!/^https?:\/\//i.test(adresse) || adresse.length > 2000) { res.status(400).json({ fehler: 'Bitte einen Link mit https:// einfügen.' }); return; }
+  try {
+    const { html, url } = await sicherHolen(adresse);
+    const r = rezeptAusJsonLd(html);
+    if (!r) { res.status(422).json({ fehler: 'Auf dieser Seite wurde kein Rezept gefunden. Viele große Rezeptseiten funktionieren, kleine Blogs manchmal nicht.' }); return; }
+    const portionen = parseInt(String(Array.isArray(r.recipeYield) ? r.recipeYield[0] : r.recipeYield || '').match(/\d+/) || '', 10) || 4;
+    const zeit = isoDauerMinuten(r.totalTime) || (isoDauerMinuten(r.prepTime) + isoDauerMinuten(r.cookTime)) || 30;
+    let bild = r.image; if (Array.isArray(bild)) bild = bild[0]; if (bild && typeof bild === 'object') bild = bild.url;
+    const tags = String(Array.isArray(r.keywords) ? r.keywords.join(',') : r.keywords || '').split(',').map(t => t.trim().toLowerCase()).filter(t => t && t.length < 25).slice(0, 5);
+    res.json({
+      titel: htmlEntitaeten(r.name).slice(0, 120),
+      portionen, zeit,
+      zutaten: (Array.isArray(r.recipeIngredient) ? r.recipeIngredient : (r.ingredients || [])).map(zutatZerlegen).filter(z => z.name).slice(0, 60),
+      schritte: schritteListe(r.recipeInstructions).slice(0, 40),
+      beschreibung: htmlEntitaeten(r.description).slice(0, 300),
+      tags, bild: typeof bild === 'string' && /^https:\/\//.test(bild) ? bild : '', quelle: url,
+    });
+  } catch (err) {
+    console.warn('rezeptImport', adresse, err && err.message);
+    res.status(502).json({ fehler: 'Die Seite konnte nicht gelesen werden (' + ((err && err.message) || 'Fehler') + ').' });
+  }
+});
+
+// Für Tests (node): reine Hilfsfunktionen
+if (process.env.FAMILIENPLANER_TEST) exports._test = { sonntagsbriefText, kalenderIcs, rezeptAusJsonLd, zutatZerlegen, schritteListe, isoDauerMinuten, privateAdresse };
