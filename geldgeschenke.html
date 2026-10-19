@@ -81,7 +81,7 @@
   .filter-reihe { display: flex; gap: 5px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px; scrollbar-width: none; }
   .filter-reihe::-webkit-scrollbar { display: none; }
   .filter-chip { flex: 0 0 auto; background: transparent; border: 1px solid #4a3a28; color: var(--sage); font-size: 0.72rem; font-weight: 600; padding: 5px 12px; border-radius: var(--radius-pill); cursor: pointer; white-space: nowrap; }
-  .filter-chip.active { background: var(--moss); color: var(--leaf); border-color: var(--moss); }
+  .filter-chip.active { background: var(--moss); color: var(--on-moss, var(--leaf)); border-color: var(--moss); }
 
   main { padding: 12px 14px; max-width: 680px; margin: 0 auto; }
   @media (min-width: 1000px) {
@@ -95,13 +95,13 @@
   .gk-body { flex: 1; min-width: 0; }
   .gk-titel { font-size: 0.9rem; font-weight: 700; line-height: 1.25; }
   .gk-meta { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 5px; }
-  .gk-betrag { font-size: 1.05rem; font-weight: 700; color: var(--moss); flex-shrink: 0; white-space: nowrap; }
+  .gk-betrag { font-size: 1.05rem; font-weight: 700; color: var(--moss-text, var(--moss)); flex-shrink: 0; white-space: nowrap; }
   .mini-chip { font-size: 0.62rem; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-pill); white-space: nowrap; background: var(--parchment); color: var(--bark); }
   .mini-chip.person { color: var(--white); }
   .person-uebersicht-karte { background: var(--white); border-radius: var(--radius-md); padding: 14px; box-shadow: var(--shadow-soft); margin-bottom: 10px; }
   .puk-kopf { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
   .puk-name { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1rem; color: var(--soil); }
-  .puk-summe { font-weight: 700; font-size: 1.1rem; color: var(--moss); }
+  .puk-summe { font-weight: 700; font-size: 1.1rem; color: var(--moss-text, var(--moss)); }
   .puk-eintrag { display: flex; justify-content: space-between; font-size: 0.78rem; padding: 4px 0; border-top: 1px solid var(--parchment); color: var(--bark); }
   .puk-eintrag .pe-betrag { font-weight: 700; color: var(--soil); }
 
@@ -119,12 +119,12 @@
   .feld input, .feld select, .feld textarea { width: 100%; padding: 9px 11px; border: 1px solid var(--parchment); border-radius: var(--radius-sm); font-size: 0.9rem; background: var(--white); color: var(--soil); }
   .opt-reihe { display: flex; gap: 6px; flex-wrap: wrap; }
   .opt { padding: 6px 12px; border-radius: var(--radius-pill); font-size: 0.75rem; font-weight: 600; border: 1px solid var(--parchment); background: var(--white); color: var(--bark); cursor: pointer; }
-  .opt.aktiv { color: var(--white); border-color: transparent; background: var(--moss); }
+  .opt.aktiv { color: var(--on-moss, var(--white)); border-color: transparent; background: var(--moss); }
   .opt.klein { padding: 5px 10px; font-size: 0.72rem; }
 
   .modal-btns { display: flex; gap: 8px; margin-top: 18px; }
   .btn { flex: 1; padding: 11px; border-radius: var(--radius-pill); border: none; font-weight: 700; font-size: 0.85rem; cursor: pointer; }
-  .btn-primary { background: var(--moss); color: var(--leaf); }
+  .btn-primary { background: var(--moss); color: var(--on-moss, var(--leaf)); }
   .btn-secondary { background: var(--white); color: var(--bark); border: 1px solid var(--parchment); }
   .btn-danger { background: transparent; color: var(--terracotta-text); border: 1px solid var(--terracotta); }
 
@@ -170,6 +170,11 @@
      leicht unterschiedlichen Header-Varianten der Module hinweg. */
   header.top .titel-zeile, header .hdr-right { gap: 4px !important; }
   header.top .titel-zeile h1, header h1 { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* Dark-Mode-Kontrast (alle Module gleich): Akzentfarbe als Text heller,
+     Text auf Akzent-Knöpfen dunkel – außer bei „Schnee“, dort ist der Knopf selbst dunkel. */
+  html[data-dark="1"] { --moss-text: var(--sage); --on-moss: #16140f; }
+  html[data-dark="1"][data-farbschema="schnee"] { --on-moss: #f4f5f6; }
 </style>
 </head>
 <body>

@@ -79,7 +79,7 @@
   .filter-reihe { display: flex; gap: 5px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 6px; scrollbar-width: none; }
   .filter-reihe::-webkit-scrollbar { display: none; }
   .filter-chip { flex: 0 0 auto; background: transparent; border: 1px solid #4a3a28; color: var(--sage); font-size: 0.72rem; font-weight: 600; padding: 5px 12px; border-radius: var(--radius-pill); cursor: pointer; white-space: nowrap; }
-  .filter-chip.active { background: var(--moss); color: var(--leaf); border-color: var(--moss); }
+  .filter-chip.active { background: var(--moss); color: var(--on-moss, var(--leaf)); border-color: var(--moss); }
 
   main { padding: 12px 14px; max-width: 680px; margin: 0 auto; }
   @media (min-width: 1000px) {
@@ -89,17 +89,17 @@
 
   .stat-reihe { display: flex; gap: 8px; margin-bottom: 12px; }
   .stat-box { flex: 1; background: var(--white); border-radius: var(--radius-md); padding: 10px; text-align: center; box-shadow: var(--shadow-soft); }
-  .stat-box .wert { font-size: 1.1rem; font-weight: 700; color: var(--moss); }
+  .stat-box .wert { font-size: 1.1rem; font-weight: 700; color: var(--moss-text, var(--moss)); }
   .stat-box .label { font-size: 0.62rem; color: var(--bark); text-transform: uppercase; letter-spacing: 0.02em; margin-top: 2px; }
 
   .view-toggle { display: flex; gap: 4px; background: #1e160f; border-radius: var(--radius-pill); padding: 3px; width: fit-content; }
   .view-toggle button { border: none; background: transparent; color: var(--sage); font-size: 0.75rem; font-weight: 600; padding: 6px 14px; border-radius: var(--radius-pill); cursor: pointer; white-space: nowrap; flex-shrink: 0; }
-  .view-toggle button.active { background: var(--moss); color: var(--leaf); }
+  .view-toggle button.active { background: var(--moss); color: var(--on-moss, var(--leaf)); }
 
   .karte { background: var(--white); border-radius: var(--radius-md); padding: 14px; margin-bottom: 12px; box-shadow: var(--shadow-soft); }
   .karte h3 { font-family: 'Playfair Display', serif; font-size: 0.95rem; margin-bottom: 10px; color: var(--soil); }
 
-  .add-sport-btn { width: 100%; background: var(--white); border: 1px dashed var(--sage); color: var(--moss); border-radius: var(--radius-md); padding: 10px; font-size: 0.85rem; font-weight: 700; cursor: pointer; margin-bottom: 12px; }
+  .add-sport-btn { width: 100%; background: var(--white); border: 1px dashed var(--sage); color: var(--moss-text, var(--moss)); border-radius: var(--radius-md); padding: 10px; font-size: 0.85rem; font-weight: 700; cursor: pointer; margin-bottom: 12px; }
 
   .chart-balken-reihe { display: flex; align-items: flex-end; gap: 4px; height: 90px; margin-bottom: 6px; }
   .chart-balken-spalte { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 3px; }
@@ -111,7 +111,7 @@
   .top-spiel-zeile:last-child { border-bottom: none; }
   .top-spiel-rang { font-weight: 700; color: var(--bark); font-size: 0.85rem; min-width: 18px; }
   .top-spiel-name { flex: 1; font-size: 0.85rem; font-weight: 600; }
-  .top-spiel-zeit { font-size: 0.75rem; color: var(--moss); font-weight: 700; }
+  .top-spiel-zeit { font-size: 0.75rem; color: var(--moss-text, var(--moss)); font-weight: 700; }
 
   .verlauf-zeile { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--parchment); font-size: 0.82rem; }
   .verlauf-zeile:last-child { border-bottom: none; }
@@ -178,7 +178,7 @@
   .bew-hinweis { font-size: 0.64rem; color: var(--bark); margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px solid var(--parchment); min-height: 1em; }
   .modal-btns { display: flex; gap: 8px; margin-top: 16px; }
   .btn { flex: 1; padding: 11px; border-radius: var(--radius-pill); border: none; font-weight: 700; font-size: 0.85rem; cursor: pointer; }
-  .btn-primary { background: var(--moss); color: var(--leaf); }
+  .btn-primary { background: var(--moss); color: var(--on-moss, var(--leaf)); }
   .btn-secondary { background: var(--white); color: var(--bark); border: 1px solid var(--parchment); }
   .btn-danger { background: transparent; color: var(--terracotta-text); border: 1px solid var(--terracotta); }
 
@@ -204,8 +204,13 @@
   .spiel-fortschritt { display: flex; align-items: center; gap: 8px; font-size: 0.7rem; color: var(--bark); font-weight: 600; }
   .fortschritt-balken { flex: 1; height: 5px; background: var(--parchment); border-radius: 3px; overflow: hidden; }
   .fortschritt-balken div { height: 100%; background: var(--moss); }
-  .plus-eins { margin-left: auto; flex-shrink: 0; background: var(--cream); border: 1px solid var(--parchment); color: var(--moss); font-weight: 700; font-size: 0.7rem; border-radius: var(--radius-pill); padding: 3px 9px; cursor: pointer; }
+  .plus-eins { margin-left: auto; flex-shrink: 0; background: var(--cream); border: 1px solid var(--parchment); color: var(--moss-text, var(--moss)); font-weight: 700; font-size: 0.7rem; border-radius: var(--radius-pill); padding: 3px 9px; cursor: pointer; }
 
+
+  /* Dark-Mode-Kontrast (alle Module gleich): Akzentfarbe als Text heller,
+     Text auf Akzent-Knöpfen dunkel – außer bei „Schnee“, dort ist der Knopf selbst dunkel. */
+  html[data-dark="1"] { --moss-text: var(--sage); --on-moss: #16140f; }
+  html[data-dark="1"][data-farbschema="schnee"] { --on-moss: #f4f5f6; }
 </style>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>

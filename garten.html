@@ -83,10 +83,15 @@
     display: flex; align-items: center; gap: 5px;
   }
   .garden-tab:hover { background: #3b2f1e; }
-  .garden-tab.active { background: var(--moss); color: var(--leaf); border-color: var(--moss); box-shadow: var(--shadow-soft); }
+  .garden-tab.active { background: var(--moss); color: var(--on-moss, var(--leaf)); border-color: var(--moss); box-shadow: var(--shadow-soft); }
   .garden-tab .del-g { font-size: 0.7rem; opacity: 0.5; margin-left: 2px; }
   .garden-tab .del-g:hover { opacity: 1; color: #f4a090; }
-  #gardenTabs { display: flex; gap: 9px; flex-shrink: 0; }
+  #gardenTabs { display: flex; flex-direction: column; gap: 5px; }
+  .garten-wahl-btn { max-width: 46vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; }
+  .garten-wahl-menu { min-width: 210px; }
+  .garten-wahl-menu .garden-tab { justify-content: flex-start; width: 100%; background: var(--navbg2); color: var(--leaf); border-color: transparent; }
+  .garten-wahl-menu .garden-tab.active { background: var(--moss); color: var(--on-moss, var(--leaf)); }
+  .garten-wahl-menu .garden-tab .del-g:first-of-type { margin-left: auto; }
   .garden-tab, .btn-add-garden { flex-shrink: 0; white-space: nowrap; }
   .btn-add-garden {
     padding: 5px 12px; border-radius: var(--radius-pill); font-size: 0.75rem; font-weight: 600;
@@ -126,7 +131,7 @@
   .dropdown-toggle .caret { font-size: 0.6rem; opacity: 0.8; }
   .tool-label { font-size: 0.62rem; color: var(--sage); font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; margin-top: 4px; }
   .tool-label:first-child { margin-top: 0; }
-  .tool-btn { background: var(--moss); color: var(--leaf); border: none; border-radius: var(--radius-sm); padding: 6px 11px; font-size: 0.75rem; font-family: 'Inter', sans-serif; cursor: pointer; transition: all 0.15s; font-weight: 500; }
+  .tool-btn { background: var(--moss); color: var(--on-moss, var(--leaf)); border: none; border-radius: var(--radius-sm); padding: 6px 11px; font-size: 0.75rem; font-family: 'Inter', sans-serif; cursor: pointer; transition: all 0.15s; font-weight: 500; }
   .tool-btn:hover { background: var(--sage); color: var(--soil); box-shadow: var(--shadow-soft); }
   .tool-btn.active { background: var(--leaf); color: var(--soil); }
   .tool-btn:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -214,7 +219,7 @@
   .beispiel-pflanzen { display: flex; flex-wrap: wrap; gap: 4px; margin: 7px 0 5px; }
   .beispiel-pflanzen span { background: var(--cream); border: 1px solid var(--parchment); border-radius: 999px; padding: 2px 8px; font-size: 0.72rem; }
   .beispiel-text { font-size: 0.74rem; color: var(--soil); line-height: 1.4; }
-  .beispiel-tipp { font-size: 0.7rem; color: var(--moss); margin-top: 4px; font-weight: 600; }
+  .beispiel-tipp { font-size: 0.7rem; color: var(--moss-text, var(--moss)); margin-top: 4px; font-weight: 600; }
   html[data-dark="1"] .beispiel-tipp { color: var(--sage); }
   /* ---------- Tiere im Garten ---------- */
   .tier-fortschritt { background: var(--white); border: 1px solid var(--parchment); border-radius: var(--radius-md); padding: 10px 14px; margin-bottom: 12px; }
@@ -245,7 +250,7 @@
   .tier-projekt-inhalt ol { margin: 8px 0 8px 20px; }
   .tier-projekt-inhalt li { margin-bottom: 4px; }
   .tier-tipp { background: rgba(201,154,58,0.13); border-radius: var(--radius-sm); padding: 8px 10px; font-size: 0.76rem; margin-top: 6px; }
-  .tier-abschnitt-titel { font-weight: 700; font-size: 0.8rem; margin: 14px 0 6px; color: var(--moss); }
+  .tier-abschnitt-titel { font-weight: 700; font-size: 0.8rem; margin: 14px 0 6px; color: var(--moss-text, var(--moss)); }
   html[data-dark="1"] .tier-abschnitt-titel { color: var(--sage); }
   .tier-chips { display: flex; flex-wrap: wrap; gap: 5px; }
   .tier-chip { background: var(--cream); border: 1px solid var(--parchment); border-radius: 999px; padding: 3px 9px; font-size: 0.74rem; color: var(--soil); }
@@ -257,7 +262,7 @@
   .tier-pflanze-zeile { display: flex; gap: 10px; padding: 6px 0; border-top: 1px solid var(--parchment); font-size: 0.78rem; }
   .tier-pflanze-zeile .tpz-name { flex: 0 0 42%; font-weight: 600; }
   .tier-pflanze-zeile .tpz-wer { color: var(--bark); }
-  .tier-pflanze-zeile.da .tpz-name { color: var(--moss); }
+  .tier-pflanze-zeile.da .tpz-name { color: var(--moss-text, var(--moss)); }
   html[data-dark="1"] .tier-pflanze-zeile.da .tpz-name { color: var(--sage); }
   .tier-regel { display: flex; gap: 12px; background: var(--white); border: 1px solid var(--parchment); border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 8px; }
   .tier-regel-nr { font-size: 1.5rem; flex-shrink: 0; }
@@ -302,16 +307,16 @@
   .sidebar::-webkit-scrollbar-thumb, .modal::-webkit-scrollbar-thumb, .plant-panel::-webkit-scrollbar-thumb { background: var(--parchment); border-radius: 10px; }
   .sidebar::-webkit-scrollbar-thumb:hover, .modal::-webkit-scrollbar-thumb:hover, .plant-panel::-webkit-scrollbar-thumb:hover { background: var(--bark); }
   .sidebar-section { border-bottom: 1px solid var(--parchment); padding: 15px 20px; }
-  .sidebar-title { font-family: 'Playfair Display', serif; font-size: 0.9rem; color: var(--moss); margin-bottom: 11px; }
+  .sidebar-title { font-family: 'Playfair Display', serif; font-size: 0.9rem; color: var(--moss-text, var(--moss)); margin-bottom: 11px; }
   .form-row { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
   .form-row label { font-size: 0.7rem; color: var(--bark); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
   .form-row input, .form-row select, .form-row textarea { border: 1px solid var(--parchment); border-radius: var(--radius-sm); padding: 7px 10px; font-size: 0.8rem; font-family: 'Inter', sans-serif; color: var(--soil); background: var(--cream); transition: all 0.15s; width: 100%; }
   .form-row input:focus, .form-row select:focus, .form-row textarea:focus { outline: none; border-color: var(--moss); box-shadow: 0 0 0 3px rgba(79,111,69,0.12); }
   .form-row textarea { resize: vertical; min-height: 52px; }
-  .btn-primary { background: var(--moss); color: var(--white); border: none; border-radius: var(--radius-pill); padding: 10px 14px; font-size: 0.8rem; font-family: 'Inter', sans-serif; font-weight: 700; cursor: pointer; width: 100%; transition: all 0.15s; }
+  .btn-primary { background: var(--moss); color: var(--on-moss, var(--white)); border: none; border-radius: var(--radius-pill); padding: 10px 14px; font-size: 0.8rem; font-family: 'Inter', sans-serif; font-weight: 700; cursor: pointer; width: 100%; transition: all 0.15s; }
   .btn-primary:hover { background: var(--sage); box-shadow: var(--shadow-soft); }
-  .btn-secondary { background: transparent; color: var(--moss); border: 1px solid var(--moss); border-radius: var(--radius-pill); padding: 8px 12px; font-size: 0.78rem; font-family: 'Inter', sans-serif; font-weight: 700; cursor: pointer; width: 100%; margin-top: 5px; transition: all 0.15s; }
-  .btn-secondary:hover { background: var(--moss); color: white; box-shadow: var(--shadow-soft); }
+  .btn-secondary { background: transparent; color: var(--moss-text, var(--moss)); border: 1px solid var(--moss); border-radius: var(--radius-pill); padding: 8px 12px; font-size: 0.78rem; font-family: 'Inter', sans-serif; font-weight: 700; cursor: pointer; width: 100%; margin-top: 5px; transition: all 0.15s; }
+  .btn-secondary:hover { background: var(--moss); color: var(--on-moss, white); box-shadow: var(--shadow-soft); }
 
   .color-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; padding: 2px 6px; }
   .sidebar-section input[type="range"] { margin: 0 10px; }
@@ -340,8 +345,8 @@
 
   .tabs { display: flex; border-bottom: 2px solid var(--parchment); background: var(--cream); }
   .tab { flex: 1; min-width: 0; padding: 6px 4px; text-align: center; font-size: 0.68rem; font-weight: 600; color: var(--bark); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s; text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .tab:hover { color: var(--moss); background: rgba(79,111,69,0.06); }
-  .tab.active { color: var(--moss); border-bottom-color: var(--moss); background: rgba(79,111,69,0.08); }
+  .tab:hover { color: var(--moss-text, var(--moss)); background: rgba(79,111,69,0.06); }
+  .tab.active { color: var(--moss-text, var(--moss)); border-bottom-color: var(--moss); background: rgba(79,111,69,0.08); }
   .tab-content { display: none; }
   .tab-content.active { display: block; }
 
@@ -400,9 +405,9 @@
   .gb-kopf .gb-knopf { font-size: 1.35rem; }
   .gb-hinweis { font-size: 0.7rem; color: var(--bark); margin-bottom: 4px; }
   .gb-unter { font-size: 0.72rem; font-weight: 700; color: var(--bark); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
-  .gb-link { background: none; border: none; color: var(--moss); font-weight: 700; font-size: 0.78rem; cursor: pointer; padding: 0 0 12px; text-decoration: underline; }
+  .gb-link { background: none; border: none; color: var(--moss-text, var(--moss)); font-weight: 700; font-size: 0.78rem; cursor: pointer; padding: 0 0 12px; text-decoration: underline; }
   .gb-daumen { flex: 1; padding: 9px; border-radius: var(--radius-pill); border: 1.5px solid var(--parchment); background: var(--white); font-weight: 700; font-size: 0.85rem; cursor: pointer; color: var(--bark); }
-  .gb-daumen.aktiv-ja { background: #e7f2e2; border-color: var(--moss); color: var(--moss); }
+  .gb-daumen.aktiv-ja { background: #e7f2e2; border-color: var(--moss); color: var(--moss-text, var(--moss)); }
   .gb-daumen.aktiv-nein { background: #fbe9e2; border-color: #c05030; color: #c05030; }
   .gb-gruppe { border: 1px solid var(--parchment); border-radius: 10px; padding: 8px 10px; margin-bottom: 8px; }
   .gb-eintrag { display: flex; justify-content: space-between; gap: 8px; font-size: 0.7rem; color: var(--bark); padding: 5px 0; border-top: 1px dashed var(--parchment); }
@@ -420,11 +425,11 @@
   .saat-reihe::-webkit-scrollbar { display: none; }
   .saat-reihe .saat-label { font-size: 0.66rem; font-weight: 700; color: var(--bark); text-transform: uppercase; letter-spacing: .04em; align-self: center; flex-shrink: 0; min-width: 58px; }
   .saat-chip { flex-shrink: 0; background: transparent; border: 1px solid var(--parchment); color: var(--bark); font-size: 0.72rem; font-weight: 600; padding: 5px 11px; border-radius: 999px; cursor: pointer; white-space: nowrap; font-family: inherit; }
-  .saat-chip.an { background: var(--moss); border-color: var(--moss); color: var(--leaf, #fff); }
+  .saat-chip.an { background: var(--moss); border-color: var(--moss); color: var(--on-moss, var(--leaf, #fff)); }
   .saat-gruppe { grid-column: 1 / -1; font-size: 0.7rem; font-weight: 700; color: var(--bark); text-transform: uppercase; letter-spacing: .04em; padding: 10px 2px 3px; border-bottom: 1px solid var(--parchment); }
   .saat-jahr { display: grid; grid-template-columns: minmax(96px, 1.4fr) repeat(12, minmax(14px, 1fr)); gap: 2px 1px; align-items: center; font-size: 0.72rem; }
   .saat-jahr .mon { text-align: center; font-size: 0.6rem; font-weight: 700; color: var(--bark); padding-bottom: 3px; }
-  .saat-jahr .mon.jetzt { color: var(--moss); }
+  .saat-jahr .mon.jetzt { color: var(--moss-text, var(--moss)); }
   .saat-jahr .name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 4px; }
   .saat-jahr .zelle { height: 20px; display: flex; flex-direction: column; gap: 1px; padding: 1px 0; border-radius: 2px; }
   .saat-jahr .zelle.jetzt { box-shadow: inset 1px 0 0 rgba(122,158,114,0.6), inset -1px 0 0 rgba(122,158,114,0.6); }
@@ -432,7 +437,7 @@
   .saat-legende { display: flex; gap: 10px; flex-wrap: wrap; font-size: 0.68rem; color: var(--bark); margin: 4px 0 8px; }
   .saat-legende span::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; background: var(--f); }
   .saat-monat-kopf { display: flex; align-items: center; justify-content: center; gap: 14px; margin: 4px 0 10px; font-weight: 700; }
-  .saat-monat-kopf button { background: none; border: 1px solid var(--parchment); border-radius: 999px; width: 32px; height: 32px; cursor: pointer; color: var(--moss); font-size: 1rem; }
+  .saat-monat-kopf button { background: none; border: 1px solid var(--parchment); border-radius: 999px; width: 32px; height: 32px; cursor: pointer; color: var(--moss-text, var(--moss)); font-size: 1rem; }
   .saat-phase { margin-bottom: 12px; }
   .saat-phase h4 { font-size: 0.82rem; margin: 0 0 6px; }
   .saat-phase .saat-pflanzen { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -465,7 +470,7 @@
   .pp-tabs::-webkit-scrollbar { display: none; }
   .pp-tab { padding: 9px 10px 10px; border-radius: 10px 10px 0 0; font-size: 0.7rem; font-weight: 700; border: none; background: transparent; color: var(--bark); cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s; opacity: 0.7; border-bottom: 2px solid transparent; margin-bottom: -2px; white-space: nowrap; flex-shrink: 0; }
   .pp-tab:hover { opacity: 1; background: rgba(74,111,90,0.08); }
-  .pp-tab.active { opacity: 1; color: var(--moss); border-bottom: 2px solid var(--moss); }
+  .pp-tab.active { opacity: 1; color: var(--moss-text, var(--moss)); border-bottom: 2px solid var(--moss); }
   .pp-tab-content { display: none; }
   .pp-tab-content.active { display: block; animation: ppFadeIn 0.2s ease; }
   @keyframes ppFadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
@@ -476,10 +481,10 @@
   .symptom-card { background: #fff8f0; border-radius: var(--radius-sm); border-left: 3px solid var(--terracotta); padding: 11px 13px; margin-bottom: 8px; font-size: 0.8rem; box-shadow: var(--shadow-soft); }
   .symptom-card .sc-title { font-weight: 600; color: var(--terracotta-text); margin-bottom: 4px; }
   .symptom-card .sc-cause { color: var(--bark); font-size: 0.74rem; margin-bottom: 4px; }
-  .symptom-card .sc-fix { color: var(--moss); font-size: 0.74rem; }
+  .symptom-card .sc-fix { color: var(--moss-text, var(--moss)); font-size: 0.74rem; }
 
   .pest-card { background: #f0f8f0; border-radius: var(--radius-sm); border-left: 3px solid var(--moss); padding: 11px 13px; margin-bottom: 8px; font-size: 0.8rem; box-shadow: var(--shadow-soft); }
-  .pest-card .pc-title { font-weight: 600; color: var(--moss); margin-bottom: 4px; }
+  .pest-card .pc-title { font-weight: 600; color: var(--moss-text, var(--moss)); margin-bottom: 4px; }
   .pest-card .pc-fix { color: var(--bark); font-size: 0.74rem; }
 
   /* MODAL */
@@ -487,7 +492,7 @@
   @keyframes modalPopIn { from { opacity: 0; transform: scale(0.94) translateY(6px); } to { opacity: 1; transform: scale(1) translateY(0); } }
   .modal-bg { position: fixed; inset: 0; background: rgba(30,23,14,0.5); z-index: 200; display: flex; align-items: center; justify-content: center; animation: modalFadeIn 0.18s ease-out; }
   .modal { background: var(--white); border-radius: var(--radius-lg); padding: 24px; width: min(340px, 94vw); box-shadow: 0 12px 40px rgba(0,0,0,0.22); animation: modalPopIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1); }
-  .modal h2 { font-family: 'Playfair Display', serif; color: var(--moss); margin-bottom: 14px; font-size: 1.05rem; }
+  .modal h2 { font-family: 'Playfair Display', serif; color: var(--moss-text, var(--moss)); margin-bottom: 14px; font-size: 1.05rem; }
   .modal-btns { display: flex; gap: 8px; margin-top: 14px; }
   .modal-btns button { flex: 1; }
   .btn-cancel { background: var(--cream); color: var(--bark); border: 1px solid var(--parchment); border-radius: var(--radius-sm); padding: 8px; font-size: 0.8rem; font-family: 'Inter', sans-serif; font-weight: 500; cursor: pointer; }
@@ -500,18 +505,19 @@
 
   /* ==== VIEWS / NAVIGATION ==== */
   .view { display: none; flex: 1; flex-direction: column; min-height: 0; }
+
   .view.active { display: flex; }
   .main-nav { display: flex; gap: 6px; padding: 5px 16px; background: var(--white); border-bottom: 1px solid var(--parchment); overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
   .main-nav::-webkit-scrollbar { display: none; }
   .main-nav .nav-btn { flex: 0 0 auto; white-space: nowrap; }
   .nav-btn { background: transparent; border: 1px solid var(--parchment); color: var(--bark); border-radius: var(--radius-pill); padding: 7px 14px; font-size: 0.78rem; font-weight: 600; font-family: 'Inter', sans-serif; cursor: pointer; transition: all 0.15s; }
   .nav-btn:hover { background: var(--sky); border-color: var(--sage); }
-  .nav-btn.active { background: var(--moss); color: var(--white); border-color: var(--moss); box-shadow: var(--shadow-soft); }
+  .nav-btn.active { background: var(--moss); color: var(--on-moss, var(--white)); border-color: var(--moss); box-shadow: var(--shadow-soft); }
 
   /* HOME */
   .home-wrap { flex: 1; overflow-y: auto; padding: 32px 20px; }
   .home-intro { text-align: center; max-width: 560px; margin: 0 auto 26px; }
-  .home-intro h2 { font-family: 'Playfair Display', serif; color: var(--moss); font-size: 1.4rem; margin-bottom: 6px; }
+  .home-intro h2 { font-family: 'Playfair Display', serif; color: var(--moss-text, var(--moss)); font-size: 1.4rem; margin-bottom: 6px; }
   .home-intro p { color: var(--bark); font-size: 0.85rem; }
   .home-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; max-width: 900px; margin: 0 auto; }
   @media (min-width: 1100px) {
@@ -521,21 +527,21 @@
   .home-card { background: var(--white); border-radius: var(--radius-lg); padding: 22px 18px; box-shadow: var(--shadow-soft); cursor: pointer; transition: all 0.18s; border: 1px solid var(--parchment); text-align: center; }
   .home-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); border-color: var(--sage); }
   .home-card .hc-icon { font-size: 2.1rem; margin-bottom: 10px; }
-  .home-card h3 { font-family: 'Playfair Display', serif; color: var(--moss); font-size: 1.02rem; margin-bottom: 6px; }
+  .home-card h3 { font-family: 'Playfair Display', serif; color: var(--moss-text, var(--moss)); font-size: 1.02rem; margin-bottom: 6px; }
   .home-card p { color: var(--bark); font-size: 0.76rem; line-height: 1.45; }
 
   /* SHOPS */
   .shops-wrap { flex: 1; overflow-y: auto; padding: 20px; max-width: 760px; margin: 0 auto; width: 100%; }
   .shop-category { margin-bottom: 22px; }
   .shop-category-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-  .shop-category-hd h3 { font-family: 'Playfair Display', serif; color: var(--moss); font-size: 0.98rem; }
+  .shop-category-hd h3 { font-family: 'Playfair Display', serif; color: var(--moss-text, var(--moss)); font-size: 0.98rem; }
   .shop-entry { background: var(--white); border-radius: var(--radius-md); padding: 11px 14px; margin-bottom: 8px; box-shadow: var(--shadow-soft); border-left: 3px solid var(--sage); }
   .shop-entry .se-name { font-weight: 600; color: var(--soil); font-size: 0.85rem; }
   .shop-entry .se-meta { color: var(--bark); font-size: 0.74rem; margin-top: 2px; }
-  .shop-entry .se-link { color: var(--moss); font-weight: 600; text-decoration: underline; word-break: break-all; }
+  .shop-entry .se-link { color: var(--moss-text, var(--moss)); font-weight: 600; text-decoration: underline; word-break: break-all; }
   .shop-entry .se-actions { margin-top: 6px; display: flex; gap: 8px; }
   .shop-entry .se-actions button { background: transparent; border: none; color: var(--bark); font-size: 0.7rem; cursor: pointer; text-decoration: underline; padding: 0; }
-  .btn-add-entry { background: transparent; border: 1px dashed var(--sage); color: var(--moss); border-radius: var(--radius-pill); padding: 5px 12px; font-size: 0.72rem; font-weight: 600; cursor: pointer; }
+  .btn-add-entry { background: transparent; border: 1px dashed var(--sage); color: var(--moss-text, var(--moss)); border-radius: var(--radius-pill); padding: 5px 12px; font-size: 0.72rem; font-weight: 600; cursor: pointer; }
   .btn-add-entry:hover { background: var(--sky); }
   .disclaimer-box { background: #f3ead2; border: 1px solid var(--parchment); border-radius: 10px; padding: 10px 12px; font-size: 0.76rem; color: var(--bark); line-height: 1.45; }
   .btn-danger { background: transparent; color: #a03e3e; border: 1px solid #c0605f; border-radius: var(--radius-pill); padding: 10px; font-weight: 700; font-size: 0.85rem; cursor: pointer; }
@@ -549,9 +555,9 @@
   .album-progress-hd .ap-count { font-size: 0.75rem; margin-top: 6px; opacity: 0.95; }
   .album-seiten-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 16px; }
   .album-seiten-tab { flex-shrink: 0; padding: 7px 14px; border-radius: var(--radius-pill); font-size: 0.78rem; font-weight: 600; background: var(--white); color: var(--bark); border: 1px solid var(--parchment); cursor: pointer; white-space: nowrap; }
-  .album-seiten-tab.active { background: var(--moss); color: var(--white); border-color: var(--moss); }
+  .album-seiten-tab.active { background: var(--moss); color: var(--on-moss, var(--white)); border-color: var(--moss); }
   .album-seiten-sub { font-size: 0.7rem; color: var(--bark); text-align: center; margin-bottom: 14px; }
-  .album-gruppe-titel { font-family: 'Playfair Display', serif; color: var(--moss); font-size: 0.92rem; margin: 16px 0 8px; }
+  .album-gruppe-titel { font-family: 'Playfair Display', serif; color: var(--moss-text, var(--moss)); font-size: 0.92rem; margin: 16px 0 8px; }
   .album-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(102px, 1fr)); gap: 10px; }
   .album-slot { aspect-ratio: 1; border-radius: var(--radius-md); border: 2px dashed var(--sage); background: var(--white); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; position: relative; overflow: hidden; text-align: center; padding: 6px; }
   .album-slot.gefuellt { border: 2px solid var(--moss); padding: 0; }
@@ -573,6 +579,9 @@
 
 
   /* TIPS / ACCORDION */
+  .wissen-nav { display: flex; gap: 6px; padding: 8px 16px; overflow-x: auto; scrollbar-width: none; flex-shrink: 0; background: var(--cream); border-bottom: 1px solid var(--parchment); }
+  .wissen-nav::-webkit-scrollbar { display: none; }
+  .wissen-nav .saat-chip { flex-shrink: 0; white-space: nowrap; }
   .tips-wrap { flex: 1; overflow-y: auto; padding: 20px; max-width: 760px; margin: 0 auto; width: 100%; }
   .tips-topic { background: var(--white); border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); margin-bottom: 20px; overflow: hidden; }
   .tips-topic-hd { background: linear-gradient(135deg, var(--moss), var(--sage)); color: var(--white); padding: 14px 18px; display: flex; align-items: center; gap: 10px; }
@@ -612,7 +621,7 @@
   .seed-entry .sd-actions { margin-top: 6px; display: flex; gap: 8px; }
   .seed-entry .sd-actions button { background: transparent; border: none; color: var(--bark); font-size: 0.7rem; cursor: pointer; text-decoration: underline; padding: 0; }
   .seed-age-badge { display: inline-block; font-size: 0.66rem; font-weight: 700; padding: 1px 7px; border-radius: var(--radius-pill); margin-left: 6px; }
-  .seed-age-badge.fresh { background: var(--sky); color: var(--moss); }
+  .seed-age-badge.fresh { background: var(--sky); color: var(--moss-text, var(--moss)); }
   .seed-age-badge.mid { background: var(--parchment); color: var(--bark); }
   .seed-age-badge.old { background: #fdf0da; color: var(--warn); }
 
@@ -627,6 +636,11 @@
   header .hdr-right { gap: 4px !important; }
   header h1 { flex: 1 1 auto; min-width: 0; }
   #statusMsg { display: none; }
+
+  /* Dark-Mode-Kontrast (alle Module gleich): Akzentfarbe als Text heller,
+     Text auf Akzent-Knöpfen dunkel – außer bei „Schnee“, dort ist der Knopf selbst dunkel. */
+  html[data-dark="1"] { --moss-text: var(--sage); --on-moss: #16140f; }
+  html[data-dark="1"][data-farbschema="schnee"] { --on-moss: #f4f5f6; }
 </style>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
@@ -662,9 +676,7 @@
   <button class="nav-btn active" data-view="home" role="tab" aria-selected="true" onclick="showView('home')">🏠 Start</button>
   <button class="nav-btn" data-view="garden" role="tab" aria-selected="false" onclick="showView('garden')">🌱 Gartenplaner</button>
   <button class="nav-btn" data-view="shops" role="tab" aria-selected="false" onclick="showView('shops')">🏬 Shops &amp; Dienstleister</button>
-  <button class="nav-btn" data-view="tips" role="tab" aria-selected="false" onclick="showView('tips')">📖 Tipps &amp; Tricks</button>
-  <button class="nav-btn" data-view="tiere" role="tab" aria-selected="false" onclick="showView('tiere')">🦔 Tiere im Garten</button>
-  <button class="nav-btn" data-view="preserve" role="tab" aria-selected="false" onclick="showView('preserve')">🥫 Verwertung</button>
+  <button class="nav-btn" data-view="wissen" role="tab" aria-selected="false" onclick="showView('wissen')">📚 Wissen</button>
   <button class="nav-btn" data-view="album" role="tab" aria-selected="false" onclick="showView('album')">📸 Fotoalbum</button>
 </nav>
 
@@ -721,14 +733,17 @@
 </div>
 
 <!-- GARDEN SWITCHER -->
-<div class="garden-bar">
-  <span class="garden-bar-label">Garten:</span>
-  <div id="gardenTabs"></div>
-  <button class="btn-add-garden" onclick="addGardenPrompt()">+ Neuer Garten</button>
-</div>
 
 <div class="app">
   <div class="toolbar">
+    <div class="tool-dropdown garten-wahl">
+      <button class="tool-btn dropdown-toggle garten-wahl-btn" onclick="toggleDropdown(this)" title="Garten wechseln, umbenennen oder neu anlegen">🌳 <span id="gartenWahlName">Garten</span> <span class="caret">▾</span></button>
+      <div class="dropdown-menu garten-wahl-menu">
+        <div id="gardenTabs"></div>
+        <button class="tool-btn" onclick="closeDropdowns();addGardenPrompt()">+ Neuer Garten</button>
+      </div>
+    </div>
+    <div class="tool-sep"></div>
     <div class="tool-segment">
       <button class="tool-btn tool-btn-icon" id="btnUndo" onclick="undo()" disabled title="Letzte Änderung rückgängig machen (Strg+Z)" aria-label="Rückgängig">↩</button>
       <button class="tool-btn tool-btn-icon" id="btnRedo" onclick="redo()" disabled title="Rückgängig gemachte Änderung wiederherstellen (Strg+Umschalt+Z)" aria-label="Wiederholen">↪</button>
@@ -1155,11 +1170,21 @@
 
 <!-- VIEW: TIPPS & TRICKS -->
 <div class="view" id="view-tips">
+  <div class="wissen-nav" role="tablist" aria-label="Wissen">
+    <button type="button" class="saat-chip" data-wissen="tips" onclick="showView('tips')">📖 Tipps &amp; Tricks</button>
+    <button type="button" class="saat-chip" data-wissen="tiere" onclick="showView('tiere')">🦔 Tiere im Garten</button>
+    <button type="button" class="saat-chip" data-wissen="preserve" onclick="showView('preserve')">🥫 Verwertung</button>
+  </div>
   <div class="tips-wrap" id="tipsWrap"></div>
 </div>
 
 <!-- VIEW: TIERE IM GARTEN -->
 <div class="view" id="view-tiere">
+  <div class="wissen-nav" role="tablist" aria-label="Wissen">
+    <button type="button" class="saat-chip" data-wissen="tips" onclick="showView('tips')">📖 Tipps &amp; Tricks</button>
+    <button type="button" class="saat-chip" data-wissen="tiere" onclick="showView('tiere')">🦔 Tiere im Garten</button>
+    <button type="button" class="saat-chip" data-wissen="preserve" onclick="showView('preserve')">🥫 Verwertung</button>
+  </div>
   <div class="tips-wrap" id="tiereWrap"></div>
 </div>
 
@@ -1175,6 +1200,11 @@
 
 <!-- VIEW: VERWERTUNG & HALTBARMACHEN -->
 <div class="view" id="view-preserve">
+  <div class="wissen-nav" role="tablist" aria-label="Wissen">
+    <button type="button" class="saat-chip" data-wissen="tips" onclick="showView('tips')">📖 Tipps &amp; Tricks</button>
+    <button type="button" class="saat-chip" data-wissen="tiere" onclick="showView('tiere')">🦔 Tiere im Garten</button>
+    <button type="button" class="saat-chip" data-wissen="preserve" onclick="showView('preserve')">🥫 Verwertung</button>
+  </div>
   <div class="preserve-wrap" id="preserveWrap"></div>
 </div>
 
@@ -6116,12 +6146,14 @@ function renderDensity(bed, areaM2) {
 function renderGardenTabs() {
   const cont = document.getElementById('gardenTabs');
   cont.innerHTML = Object.entries(gardens).map(([id, g]) => `
-    <button class="garden-tab ${id === currentGardenId ? 'active' : ''}" onclick="switchGarden('${id}')">
+    <button class="garden-tab ${id === currentGardenId ? 'active' : ''}" onclick="closeDropdowns();switchGarden('${id}')">
       🌳 ${g.name}
       <span class="del-g" onclick="renameGarten(event,'${id}')" title="Umbenennen">✏️</span>
       ${Object.keys(gardens).length > 1 ? `<span class="del-g" onclick="deleteGarden(event,'${id}')">✕</span>` : ''}
     </button>
   `).join('');
+  const nameEl = document.getElementById('gartenWahlName');
+  if (nameEl) nameEl.textContent = (gardens[currentGardenId] && gardens[currentGardenId].name) || 'Garten';
 }
 function renameGarten(e, id) {
   e.stopPropagation();
@@ -10055,12 +10087,24 @@ function deletePantryEntry(id) {
 }
 
 // ==================== VIEWS / NAVIGATION ====================
+const WISSEN_ANSICHTEN = ['tips', 'tiere', 'preserve'];
 function showView(name) {
+  // „📚 Wissen“ bündelt drei Ansichten – öffnet die zuletzt genutzte davon
+  if (name === 'wissen') {
+    let letzte = 'tips';
+    try { letzte = localStorage.getItem('garten_wissenAnsicht') || 'tips'; } catch (e) {}
+    name = WISSEN_ANSICHTEN.includes(letzte) ? letzte : 'tips';
+  }
+  if (WISSEN_ANSICHTEN.includes(name)) {
+    try { localStorage.setItem('garten_wissenAnsicht', name); } catch (e) {}
+    document.querySelectorAll('[data-wissen]').forEach(b => b.classList.toggle('an', b.dataset.wissen === name));
+  }
+  const navName = WISSEN_ANSICHTEN.includes(name) ? 'wissen' : name;
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   const el = document.getElementById('view-' + name);
   if (el) el.classList.add('active');
   document.querySelectorAll('.nav-btn').forEach(b => {
-    const active = b.dataset.view === name;
+    const active = b.dataset.view === navName;
     b.classList.toggle('active', active);
     b.setAttribute('aria-selected', active ? 'true' : 'false');
   });

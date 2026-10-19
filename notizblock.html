@@ -82,11 +82,11 @@
   .filter-reihe::-webkit-scrollbar { display: none; }
   .bereich-reihe { display: flex; gap: 6px; margin-bottom: 10px; }
   .bereich-btn { flex: 1; padding: 9px 10px; border-radius: var(--radius-pill); border: 1.5px solid var(--parchment); background: var(--white); color: var(--bark); font: 700 0.85rem 'Inter', sans-serif; cursor: pointer; }
-  .bereich-btn.aktiv { background: var(--moss); border-color: var(--moss); color: var(--leaf); }
+  .bereich-btn.aktiv { background: var(--moss); border-color: var(--moss); color: var(--on-moss, var(--leaf)); }
   .privat-hinweis { background: var(--white); border: 1px dashed var(--sage); border-radius: var(--radius-md); padding: 14px; font-size: 0.85rem; color: var(--bark); line-height: 1.5; margin-bottom: 12px; }
   .privat-hinweis select { margin-top: 8px; padding: 8px; border-radius: 8px; border: 1px solid var(--parchment); font-family: 'Inter', sans-serif; }
   .filter-chip { flex: 0 0 auto; background: transparent; border: 1px solid #4a3a28; color: var(--sage); font-size: 0.72rem; font-weight: 600; padding: 5px 12px; border-radius: var(--radius-pill); cursor: pointer; white-space: nowrap; }
-  .filter-chip.active { background: var(--moss); color: var(--leaf); border-color: var(--moss); }
+  .filter-chip.active { background: var(--moss); color: var(--on-moss, var(--leaf)); border-color: var(--moss); }
 
   main { padding: 12px 14px; max-width: 680px; margin: 0 auto; }
   @media (min-width: 1000px) {
@@ -125,7 +125,7 @@
   .notiz-check-zeile input[type="checkbox"] { flex-shrink: 0; width: 16px; height: 16px; }
   .notiz-typ-tabs { display: flex; gap: 6px; margin-bottom: 8px; }
   .notiz-typ-tab { flex: 1; background: var(--white); border: 1px solid var(--parchment); color: var(--bark); font-size: 0.8rem; font-weight: 700; padding: 8px; border-radius: var(--radius-pill); cursor: pointer; }
-  .notiz-typ-tab.active { background: var(--moss); color: var(--white); border-color: var(--moss); }
+  .notiz-typ-tab.active { background: var(--moss); color: var(--on-moss, var(--white)); border-color: var(--moss); }
   .checkliste-edit-zeile { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
   .checkliste-edit-zeile input[type="text"] { flex: 1; padding: 7px 10px; border: 1px solid var(--parchment); border-radius: var(--radius-sm); font-size: 0.85rem; }
   .checkliste-edit-zeile button { background: none; border: none; color: var(--terracotta-text); font-size: 1rem; cursor: pointer; padding: 2px 6px; }
@@ -149,12 +149,12 @@
   .feld .checkliste-edit-zeile button { flex: 0 0 auto; }
   .opt-reihe { display: flex; gap: 6px; flex-wrap: wrap; }
   .opt { padding: 6px 12px; border-radius: var(--radius-pill); font-size: 0.75rem; font-weight: 600; border: 1px solid var(--parchment); background: var(--white); color: var(--bark); cursor: pointer; }
-  .opt.aktiv { color: var(--white); border-color: transparent; background: var(--moss); }
+  .opt.aktiv { color: var(--on-moss, var(--white)); border-color: transparent; background: var(--moss); }
   .opt.klein { padding: 5px 10px; font-size: 0.72rem; }
 
   .modal-btns { display: flex; gap: 8px; margin-top: 18px; }
   .btn { flex: 1; padding: 11px; border-radius: var(--radius-pill); border: none; font-weight: 700; font-size: 0.85rem; cursor: pointer; }
-  .btn-primary { background: var(--moss); color: var(--leaf); }
+  .btn-primary { background: var(--moss); color: var(--on-moss, var(--leaf)); }
   .btn-secondary { background: var(--white); color: var(--bark); border: 1px solid var(--parchment); }
   .btn-danger { background: transparent; color: var(--terracotta-text); border: 1px solid var(--terracotta); }
 
@@ -192,6 +192,11 @@
      leicht unterschiedlichen Header-Varianten der Module hinweg. */
   header.top .titel-zeile, header .hdr-right { gap: 4px !important; }
   header.top .titel-zeile h1, header h1 { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* Dark-Mode-Kontrast (alle Module gleich): Akzentfarbe als Text heller,
+     Text auf Akzent-Knöpfen dunkel – außer bei „Schnee“, dort ist der Knopf selbst dunkel. */
+  html[data-dark="1"] { --moss-text: var(--sage); --on-moss: #16140f; }
+  html[data-dark="1"][data-farbschema="schnee"] { --on-moss: #f4f5f6; }
 </style>
 </head>
 <body>
@@ -863,7 +868,10 @@
   // Reagiert auf App-Shortcuts (Homescreen-Icon lange gedrückt halten → "Neue Notiz")
   window.addEventListener('message', (e) => {
     if (e.origin !== window.location.origin) return;
-    if (e.data && e.data.type === 'shortcutAktion' && e.data.aktion === 'neu') editOeffnen(null);
+    if (e.data && e.data.type === 'shortcutAktion' && e.data.aktion === 'neu') {
+      editOeffnen(null);
+      if (e.data.text) document.getElementById('fText').value = e.data.text; // aus „＋ Schnell festhalten“
+    }
   });
 
   if (window.PlanerSync) {

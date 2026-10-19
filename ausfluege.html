@@ -81,7 +81,7 @@
   .filter-reihe { display: flex; gap: 5px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px; scrollbar-width: none; }
   .filter-reihe::-webkit-scrollbar { display: none; }
   .filter-chip { flex: 0 0 auto; background: transparent; border: 1px solid #4a3a28; color: var(--sage); font-size: 0.72rem; font-weight: 600; padding: 5px 12px; border-radius: var(--radius-pill); cursor: pointer; white-space: nowrap; }
-  .filter-chip.active { background: var(--moss); color: var(--leaf); border-color: var(--moss); }
+  .filter-chip.active { background: var(--moss); color: var(--on-moss, var(--leaf)); border-color: var(--moss); }
 
   main { padding: 12px 14px; max-width: 680px; margin: 0 auto; }
   @media (min-width: 1000px) {
@@ -107,13 +107,13 @@
   .ek-titel { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1rem; color: var(--soil); }
   .ek-datum { font-size: 0.7rem; color: var(--bark); opacity: 0.75; margin-top: 2px; }
   .ek-text { font-size: 0.82rem; color: var(--soil); margin-top: 6px; line-height: 1.4; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
-  .ek-verknuepft { font-size: 0.68rem; color: var(--moss); margin-top: 6px; }
+  .ek-verknuepft { font-size: 0.68rem; color: var(--moss-text, var(--moss)); margin-top: 6px; }
 
   .foto-galerie-edit { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
   .fge-item { position: relative; width: 76px; height: 76px; border-radius: 8px; overflow: hidden; }
   .fge-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .fge-item button { position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.6); color: white; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 0.7rem; cursor: pointer; line-height: 1; }
-  .fge-add { width: 76px; height: 76px; border-radius: 8px; border: 2px dashed var(--sage); background: var(--cream); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; color: var(--moss); cursor: pointer; }
+  .fge-add { width: 76px; height: 76px; border-radius: 8px; border: 2px dashed var(--sage); background: var(--cream); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; color: var(--moss-text, var(--moss)); cursor: pointer; }
 
   .packliste-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--parchment); }
   .packliste-item input[type="checkbox"] { width: 18px; height: 18px; flex-shrink: 0; }
@@ -135,12 +135,12 @@
   .feld input, .feld select, .feld textarea { width: 100%; padding: 9px 11px; border: 1px solid var(--parchment); border-radius: var(--radius-sm); font-size: 0.9rem; background: var(--white); color: var(--soil); }
   .opt-reihe { display: flex; gap: 6px; flex-wrap: wrap; }
   .opt { padding: 6px 12px; border-radius: var(--radius-pill); font-size: 0.75rem; font-weight: 600; border: 1px solid var(--parchment); background: var(--white); color: var(--bark); cursor: pointer; }
-  .opt.aktiv { color: var(--white); border-color: transparent; background: var(--moss); }
+  .opt.aktiv { color: var(--on-moss, var(--white)); border-color: transparent; background: var(--moss); }
   .opt.klein { padding: 5px 10px; font-size: 0.72rem; }
 
   .modal-btns { display: flex; gap: 8px; margin-top: 18px; }
   .btn { flex: 1; padding: 11px; border-radius: var(--radius-pill); border: none; font-weight: 700; font-size: 0.85rem; cursor: pointer; }
-  .btn-primary { background: var(--moss); color: var(--leaf); }
+  .btn-primary { background: var(--moss); color: var(--on-moss, var(--leaf)); }
   .btn-secondary { background: var(--white); color: var(--bark); border: 1px solid var(--parchment); }
   .btn-danger { background: transparent; color: var(--terracotta-text); border: 1px solid var(--terracotta); }
 
@@ -186,6 +186,11 @@
      leicht unterschiedlichen Header-Varianten der Module hinweg. */
   header.top .titel-zeile, header .hdr-right { gap: 4px !important; }
   header.top .titel-zeile h1, header h1 { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* Dark-Mode-Kontrast (alle Module gleich): Akzentfarbe als Text heller,
+     Text auf Akzent-Knöpfen dunkel – außer bei „Schnee“, dort ist der Knopf selbst dunkel. */
+  html[data-dark="1"] { --moss-text: var(--sage); --on-moss: #16140f; }
+  html[data-dark="1"][data-farbschema="schnee"] { --on-moss: #f4f5f6; }
 </style>
 </head>
 <body>

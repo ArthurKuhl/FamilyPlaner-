@@ -77,14 +77,14 @@
     background: transparent; border: 1px solid #4a3a28; color: var(--sage); font-size: 0.76rem; font-weight: 600;
     padding: 6px 13px; border-radius: var(--radius-pill); cursor: pointer;
   }
-  .person-chip.active { background: var(--moss); color: var(--leaf); border-color: var(--moss); }
+  .person-chip.active { background: var(--moss); color: var(--on-moss, var(--leaf)); border-color: var(--moss); }
   .view-toggle { background: #1e160f; border-radius: var(--radius-pill); padding: 3px; display: flex; gap: 2px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; max-width: 100%; }
   .view-toggle::-webkit-scrollbar { display: none; }
   .view-toggle button {
     border: none; background: transparent; color: var(--sage); font-size: 0.75rem; font-weight: 600;
     padding: 6px 14px; border-radius: var(--radius-pill); cursor: pointer; white-space: nowrap; flex-shrink: 0;
   }
-  .view-toggle button.active { background: var(--moss); color: var(--leaf); }
+  .view-toggle button.active { background: var(--moss); color: var(--on-moss, var(--leaf)); }
 
   main { padding: 12px 14px; max-width: 640px; margin: 0 auto; }
   @media (min-width: 1000px) {
@@ -104,8 +104,8 @@
   .tl-chart-legende i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
   .tl-metrik-toggle { display: flex; gap: 4px; padding: 0 4px 8px; }
   .tl-metrik-btn { padding: 3px 10px; border-radius: var(--radius-pill); font-size: 0.68rem; font-weight: 600; border: 1px solid var(--parchment); background: var(--cream); color: var(--bark); cursor: pointer; }
-  .tl-metrik-btn.active { background: var(--moss); color: var(--leaf); border-color: var(--moss); }
-  .kraft-chip.active { background: var(--moss); color: var(--leaf); border-color: var(--moss); }
+  .tl-metrik-btn.active { background: var(--moss); color: var(--on-moss, var(--leaf)); border-color: var(--moss); }
+  .kraft-chip.active { background: var(--moss); color: var(--on-moss, var(--leaf)); border-color: var(--moss); }
   .datum-label { font-size: 0.72rem; color: var(--bark); font-weight: 600; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.02em; }
 
   .metrik-zeile { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--parchment); gap: 10px; }
@@ -145,7 +145,7 @@
   .gps-panel .gps-wert-block .gps-wert { font-size: 1.25rem; font-weight: 700; }
   .gps-panel .gps-wert-block .gps-label { font-size: 0.65rem; color: var(--bark); text-transform: uppercase; letter-spacing: 0.03em; }
   .gps-panel .gps-status { font-size: 0.72rem; color: var(--bark); margin-bottom: 8px; }
-  .btn-gps-start { background: var(--moss); color: var(--white); border: none; border-radius: var(--radius-pill); padding: 8px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; }
+  .btn-gps-start { background: var(--moss); color: var(--on-moss, var(--white)); border: none; border-radius: var(--radius-pill); padding: 8px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; }
   .btn-gps-stop { background: var(--terracotta); color: var(--white); border: none; border-radius: var(--radius-pill); padding: 8px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; }
 
   .temp-status { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); background: var(--bark); color: var(--white); padding: 10px 18px; border-radius: var(--radius-pill); font-size: 0.85rem; font-weight: 600; box-shadow: 0 4px 14px rgba(0,0,0,0.25); opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 500; max-width: 88vw; text-align: center; }
@@ -169,14 +169,14 @@
   .tm-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; padding-left: 40px; pointer-events: none; }
   .tm-knopf { position: absolute; top: 4px; left: 4px; width: 50px; height: 50px; border-radius: 50%; background: #3a3a3a; color: #ddd; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; cursor: grab; touch-action: none; }
   .tm-knopf.tm-stopp { background: #6b3420; }
-  .uhr-import-btn { display: block; margin: 10px auto 0; background: none; border: none; color: var(--moss); font-weight: 700; font-size: 0.8rem; cursor: pointer; text-decoration: underline; }
+  .uhr-import-btn { display: block; margin: 10px auto 0; background: none; border: none; color: var(--moss-text, var(--moss)); font-weight: 700; font-size: 0.8rem; cursor: pointer; text-decoration: underline; }
   .import-hinweis { font-size: 0.78rem; color: var(--bark); line-height: 1.45; margin-bottom: 8px; }
   .import-zeile { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--parchment); font-size: 0.82rem; }
   .import-zeile select { width: auto; padding: 4px 6px; border: 1px solid var(--parchment); border-radius: var(--radius-sm); background: var(--white); color: var(--soil); font-size: 0.8rem; }
   .import-haken { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--soil); margin-top: 10px; }
   .import-haken input { width: auto; }
   .sport-karte .add-sport-btn { margin-bottom: 8px; font-size: 1.05rem; padding: 16px; }
-  .sport-nachtragen { width: 100%; background: var(--white); border: 1px dashed var(--sage); color: var(--moss); border-radius: var(--radius-md); padding: 10px; font-size: 0.85rem; font-weight: 700; cursor: pointer; }
+  .sport-nachtragen { width: 100%; background: var(--white); border: 1px dashed var(--sage); color: var(--moss-text, var(--moss)); border-radius: var(--radius-md); padding: 10px; font-size: 0.85rem; font-weight: 700; cursor: pointer; }
   .sport-karte .sport-liste { margin-top: 10px; }
   .sport-karte .sport-liste:empty { margin-top: 0; }
   .sport-leer { font-size: 0.8rem; color: var(--bark); opacity: 0.75; margin-top: 8px; }
@@ -186,7 +186,7 @@
 
   .stat-reihe { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
   .stat-box { flex: 1 1 calc(50% - 8px); min-width: 78px; background: var(--white); border-radius: var(--radius-md); padding: 10px; text-align: center; box-shadow: var(--shadow-soft); }
-  .stat-box .wert { font-size: 1.15rem; font-weight: 700; color: var(--moss); }
+  .stat-box .wert { font-size: 1.15rem; font-weight: 700; color: var(--moss-text, var(--moss)); }
   .stat-box .label { font-size: 0.65rem; color: var(--bark); text-transform: uppercase; letter-spacing: 0.02em; margin-top: 2px; }
 
   .chart-leer { font-size: 0.78rem; color: var(--bark); opacity: 0.7; padding: 10px 0; }
@@ -228,7 +228,7 @@
   .zeit-chip button { background: none; border: none; color: var(--bark); font-size: 0.85rem; cursor: pointer; padding: 0; }
   .zeiten-hinzufuegen { display: flex; gap: 8px; }
   .zeiten-hinzufuegen input { flex: 1; padding: 8px 10px; border: 1px solid var(--parchment); border-radius: var(--radius-sm); font-size: 0.85rem; }
-  .zeiten-hinzufuegen button { background: var(--moss); color: var(--leaf); border: none; border-radius: var(--radius-sm); padding: 0 14px; font-size: 0.78rem; font-weight: 700; cursor: pointer; }
+  .zeiten-hinzufuegen button { background: var(--moss); color: var(--on-moss, var(--leaf)); border: none; border-radius: var(--radius-sm); padding: 0 14px; font-size: 0.78rem; font-weight: 700; cursor: pointer; }
   .hinweis-klein { font-size: 0.72rem; color: var(--bark); opacity: 0.8; margin-top: 10px; line-height: 1.4; }
 
   /* RECHNER */
@@ -238,11 +238,11 @@
   .rechner-feld input, .rechner-feld select { width: 100%; padding: 9px 10px; border: 1px solid var(--parchment); border-radius: var(--radius-sm); font-size: 0.9rem; background: var(--cream); color: var(--soil); }
   .geschlecht-reihe { display: flex; gap: 6px; }
   .geschlecht-opt { flex: 1; padding: 9px; border-radius: var(--radius-sm); border: 1px solid var(--parchment); background: var(--cream); color: var(--bark); font-size: 0.85rem; font-weight: 600; cursor: pointer; text-align: center; }
-  .geschlecht-opt.aktiv { background: var(--moss); color: var(--leaf); border-color: var(--moss); }
+  .geschlecht-opt.aktiv { background: var(--moss); color: var(--on-moss, var(--leaf)); border-color: var(--moss); }
   .ergebnis-zeile { display: flex; justify-content: space-between; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--parchment); }
   .ergebnis-zeile:last-child { border-bottom: none; }
   .ergebnis-zeile .e-label { font-size: 0.85rem; font-weight: 600; }
-  .ergebnis-zeile .e-wert { font-size: 0.95rem; font-weight: 700; color: var(--moss); }
+  .ergebnis-zeile .e-wert { font-size: 0.95rem; font-weight: 700; color: var(--moss-text, var(--moss)); }
   .makro-balken { display: flex; height: 10px; border-radius: 6px; overflow: hidden; margin: 8px 0 4px; }
   .makro-legende { display: flex; gap: 12px; font-size: 0.68rem; color: var(--bark); flex-wrap: wrap; }
   .makro-legende span { display: flex; align-items: center; gap: 4px; }
@@ -250,7 +250,7 @@
   .mikro-tabelle { width: 100%; font-size: 0.82rem; }
   .mikro-tabelle tr { border-bottom: 1px solid var(--parchment); }
   .mikro-tabelle td { padding: 6px 2px; }
-  .mikro-tabelle td:last-child { text-align: right; font-weight: 700; color: var(--moss); }
+  .mikro-tabelle td:last-child { text-align: right; font-weight: 700; color: var(--moss-text, var(--moss)); }
   .disclaimer-box { background: var(--parchment); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 0.75rem; color: var(--bark); margin-top: 12px; line-height: 1.4; }
 
   /* KRAFTTRAINING */
@@ -281,12 +281,12 @@
   .erinnerungs-info.erledigt .name { text-decoration: line-through; opacity: 0.6; }
   .erinnerungs-info .meta { font-size: 0.7rem; color: var(--bark); margin-top: 1px; }
   .add-eintrag-btn {
-    width: 100%; background: var(--white); border: 1px dashed var(--sage); color: var(--moss);
+    width: 100%; background: var(--white); border: 1px dashed var(--sage); color: var(--moss-text, var(--moss));
     border-radius: var(--radius-md); padding: 10px; font-size: 0.85rem; font-weight: 700; cursor: pointer; margin: 12px 0;
   }
   .modus-reihe { display: flex; gap: 6px; margin-bottom: 10px; }
   .modus-opt { flex: 1; padding: 8px; text-align: center; border-radius: var(--radius-sm); border: 1px solid var(--parchment); background: var(--white); color: var(--bark); font-size: 0.8rem; font-weight: 600; cursor: pointer; }
-  .modus-opt.aktiv { background: var(--moss); color: var(--leaf); border-color: var(--moss); }
+  .modus-opt.aktiv { background: var(--moss); color: var(--on-moss, var(--leaf)); border-color: var(--moss); }
   .zeiten-liste-eingabe { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
   .zeit-chip { background: var(--parchment); border-radius: var(--radius-pill); padding: 4px 8px 4px 12px; font-size: 0.8rem; display: flex; align-items: center; gap: 6px; }
   .zeit-chip button { background: none; border: none; color: var(--bark); cursor: pointer; font-size: 0.8rem; }
@@ -303,10 +303,10 @@
   .zeile .feld { flex: 1; }
   .typ-reihe { display: flex; gap: 6px; flex-wrap: wrap; }
   .typ-opt { padding: 6px 12px; border-radius: var(--radius-pill); font-size: 0.78rem; font-weight: 600; border: 1px solid var(--parchment); background: var(--white); color: var(--bark); cursor: pointer; }
-  .typ-opt.aktiv { background: var(--moss); color: var(--leaf); border-color: var(--moss); }
+  .typ-opt.aktiv { background: var(--moss); color: var(--on-moss, var(--leaf)); border-color: var(--moss); }
   .modal-btns { display: flex; gap: 8px; margin-top: 16px; }
   .btn { flex: 1; padding: 11px; border-radius: var(--radius-pill); border: none; font-weight: 700; font-size: 0.85rem; cursor: pointer; }
-  .btn-primary { background: var(--moss); color: var(--leaf); }
+  .btn-primary { background: var(--moss); color: var(--on-moss, var(--leaf)); }
   .btn-secondary { background: var(--white); color: var(--bark); border: 1px solid var(--parchment); }
 
   /* Sehr breite Bildschirme: Content etwas breiter + dezente Deko-Streifen im Rand */
@@ -331,7 +331,7 @@
   .info-karte { background: var(--white); border-radius: var(--radius-md); margin-bottom: 10px; box-shadow: var(--shadow-soft); overflow: hidden; }
   .info-karte summary { padding: 14px; font-weight: 700; color: var(--soil); cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; }
   .info-karte summary::-webkit-details-marker { display: none; }
-  .info-karte summary::after { content: '▾'; color: var(--moss); transition: transform 0.2s; flex-shrink: 0; margin-left: 8px; }
+  .info-karte summary::after { content: '▾'; color: var(--moss-text, var(--moss)); transition: transform 0.2s; flex-shrink: 0; margin-left: 8px; }
   .info-karte[open] summary::after { transform: rotate(180deg); }
   .info-inhalt { padding: 0 14px 16px; font-size: 0.82rem; color: var(--bark); line-height: 1.55; }
   .info-inhalt p { margin: 0 0 10px; }
@@ -344,6 +344,11 @@
      leicht unterschiedlichen Header-Varianten der Module hinweg. */
   header.top .titel-zeile, header .hdr-right { gap: 4px !important; }
   header.top .titel-zeile h1, header h1 { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* Dark-Mode-Kontrast (alle Module gleich): Akzentfarbe als Text heller,
+     Text auf Akzent-Knöpfen dunkel – außer bei „Schnee“, dort ist der Knopf selbst dunkel. */
+  html[data-dark="1"] { --moss-text: var(--sage); --on-moss: #16140f; }
+  html[data-dark="1"][data-farbschema="schnee"] { --on-moss: #f4f5f6; }
 </style>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>

@@ -65,14 +65,14 @@
   #projektTabs .eb-tab.active { background: var(--terracotta); border-color: var(--terracotta); color: #fff; }
   .ebenen-tabs::-webkit-scrollbar { display: none; }
   .eb-tab { position: relative; flex: 0 0 auto; display: flex; align-items: center; gap: 5px; background: transparent; border: 1px solid #4a3a28; color: var(--sage); font-size: 0.74rem; font-weight: 600; padding: 6px 10px; border-radius: var(--radius-pill); cursor: pointer; white-space: nowrap; }
-  .eb-tab.active { background: var(--moss); color: var(--leaf); border-color: var(--moss); }
+  .eb-tab.active { background: var(--moss); color: var(--on-moss, var(--leaf)); border-color: var(--moss); }
   .eb-tab .eb-del { opacity: 0.7; font-size: 0.7rem; }
   .eb-tab-neu { flex: 0 0 auto; background: transparent; border: 1px dashed #6b5a3e; color: var(--sage); font-size: 0.78rem; font-weight: 700; padding: 6px 12px; border-radius: var(--radius-pill); cursor: pointer; white-space: nowrap; }
 
   .toolbar { position: sticky; top: 0; z-index: 60; background: var(--navbg2); box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 5px 12px; display: flex; flex-wrap: nowrap; gap: 6px; align-items: center; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
   .toolbar::-webkit-scrollbar { display: none; }
   .tool-btn { flex: 0 0 auto; background: var(--white); border: 1px solid var(--parchment); color: var(--soil); font-size: 0.75rem; font-weight: 700; padding: 8px 12px; border-radius: var(--radius-pill); cursor: pointer; white-space: nowrap; }
-  .tool-btn.active { background: var(--moss); color: #fff; border-color: var(--moss); }
+  .tool-btn.active { background: var(--moss); color: var(--on-moss, #fff); border-color: var(--moss); }
   .tool-btn-icon { font-size: 0.95rem; padding: 8px 11px; }
   .tool-sep { width: 1px; align-self: stretch; background: rgba(255,255,255,0.15); flex-shrink: 0; margin: 0 2px; }
   .tool-dropdown { position: relative; display: inline-block; flex: 0 0 auto; }
@@ -90,7 +90,7 @@
   .hp-zoom-widget-wert { color: #fff; font-size: 0.58rem; text-align: center; padding: 2px 0; border-top: 1px solid rgba(255,255,255,0.15); border-bottom: 1px solid rgba(255,255,255,0.15); }
   .hp-wand-kette-leiste { position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%); z-index: 90; display: none; align-items: center; gap: 8px; background: rgba(42,32,22,0.94); padding: 8px 12px; border-radius: 12px; box-shadow: 0 3px 12px rgba(0,0,0,0.35); }
   .hp-wand-kette-leiste span { color: #fff; font-size: 0.68rem; white-space: nowrap; }
-  .hp-wand-kette-leiste button { background: var(--moss); color: #fff; border: none; border-radius: var(--radius-pill); padding: 5px 10px; font-size: 0.7rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
+  .hp-wand-kette-leiste button { background: var(--moss); color: var(--on-moss, #fff); border: none; border-radius: var(--radius-pill); padding: 5px 10px; font-size: 0.7rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
   .hp-wand-kette-leiste button#btnWandKetteAbbrechen { background: #c05030; }
 
   .editor-hinweis { position: fixed; bottom: 58px; left: 50%; transform: translateX(-50%); z-index: 75; display: none; background: var(--terracotta); color: #fff; border: none; border-radius: var(--radius-pill); padding: 9px 18px; font: 700 0.85rem 'Inter', sans-serif; box-shadow: 0 3px 12px rgba(0,0,0,0.25); cursor: pointer; }
@@ -100,7 +100,7 @@
   .sidebar { width: 300px; flex-shrink: 0; background: var(--cream); border-left: 1px solid var(--parchment); padding: 14px 14px 56px; overflow-y: auto; }
   @media (max-width: 720px) { .sidebar { width: 100%; border-left: none; border-top: 1px solid var(--parchment); max-height: 42vh; padding-bottom: 56px; } }
   .sidebar-section { margin-bottom: 16px; }
-  .sidebar-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 0.95rem; margin-bottom: 8px; color: var(--moss); }
+  .sidebar-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 0.95rem; margin-bottom: 8px; color: var(--moss-text, var(--moss)); }
   .form-row { margin-bottom: 10px; }
   .form-row label { display: block; font-size: 0.7rem; font-weight: 700; color: var(--bark); text-transform: uppercase; letter-spacing: 0.02em; margin-bottom: 4px; }
   .form-row input[type="text"], .form-row input[type="number"], .form-row select {
@@ -112,7 +112,7 @@
   .farbe-reihe { display: flex; gap: 6px; flex-wrap: wrap; }
   .farbe-punkt { width: 26px; height: 26px; border-radius: 50%; border: 2px solid rgba(0,0,0,0.1); cursor: pointer; }
   .farbe-punkt.aktiv { border-color: var(--moss); border-width: 3px; }
-  .btn-primary { width: 100%; background: var(--moss); color: #fff; border: none; border-radius: var(--radius-pill); padding: 10px; font-size: 0.82rem; font-weight: 700; cursor: pointer; }
+  .btn-primary { width: 100%; background: var(--moss); color: var(--on-moss, #fff); border: none; border-radius: var(--radius-pill); padding: 10px; font-size: 0.82rem; font-weight: 700; cursor: pointer; }
   .btn-danger { width: 100%; background: none; color: #c05030; border: 1.5px solid #c05030; border-radius: var(--radius-pill); padding: 9px; font-size: 0.8rem; font-weight: 700; cursor: pointer; margin-top: 8px; }
   .empty-state { font-size: 0.8rem; color: var(--bark); text-align: center; padding: 20px 10px; }
   .info-box { background: var(--white); border-radius: var(--radius-md); padding: 12px 14px; font-size: 0.78rem; color: var(--bark); line-height: 1.55; box-shadow: var(--shadow-soft); }
@@ -120,12 +120,17 @@
   .modal-bg { position: fixed; inset: 0; background: rgba(30,23,14,0.5); z-index: 200; display: none; align-items: center; justify-content: center; }
   .modal-bg.zeigen { display: flex; }
   .modal { background: var(--cream); border-radius: var(--radius-lg); padding: 20px; width: min(420px, 92vw); max-height: 88vh; overflow-y: auto; box-shadow: var(--shadow-md); }
-  .modal h2 { font-family: 'Playfair Display', serif; font-size: 1.1rem; margin-bottom: 14px; color: var(--moss); }
+  .modal h2 { font-family: 'Playfair Display', serif; font-size: 1.1rem; margin-bottom: 14px; color: var(--moss-text, var(--moss)); }
   .modal-btns { display: flex; gap: 8px; margin-top: 14px; justify-content: flex-end; }
   .btn { border: none; border-radius: var(--radius-pill); padding: 9px 16px; font-size: 0.82rem; font-weight: 700; cursor: pointer; }
   .btn-secondary { background: var(--white); color: var(--soil); border: 1px solid var(--parchment); }
 
   header.top .titel-zeile, header .hdr-right { gap: 4px !important; }
+
+  /* Dark-Mode-Kontrast (alle Module gleich): Akzentfarbe als Text heller,
+     Text auf Akzent-Knöpfen dunkel – außer bei „Schnee“, dort ist der Knopf selbst dunkel. */
+  html[data-dark="1"] { --moss-text: var(--sage); --on-moss: #16140f; }
+  html[data-dark="1"][data-farbschema="schnee"] { --on-moss: #f4f5f6; }
 </style>
 </head>
 <body>

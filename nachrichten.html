@@ -78,11 +78,11 @@
     background: transparent; color: var(--sage); font-size: 0.78rem; font-weight: 600;
     font-family: 'Inter', sans-serif; cursor: pointer; white-space: nowrap;
   }
-  .view-toggle button.active { background: var(--moss); color: var(--leaf); border-color: var(--moss); }
+  .view-toggle button.active { background: var(--moss); color: var(--on-moss, var(--leaf)); border-color: var(--moss); }
 
   main { padding: 14px; }
   .filter-chip { flex: 0 0 auto; background: transparent; border: 1px solid var(--parchment); color: var(--bark); font-size: 0.72rem; font-weight: 600; padding: 6px 13px; border-radius: var(--radius-pill); cursor: pointer; white-space: nowrap; }
-  .filter-chip.active { background: var(--moss); color: var(--leaf); border-color: var(--moss); }
+  .filter-chip.active { background: var(--moss); color: var(--on-moss, var(--leaf)); border-color: var(--moss); }
   .filter-reihe { display: flex; gap: 6px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; scrollbar-width: none; margin-bottom: 10px; }
   .filter-reihe::-webkit-scrollbar { display: none; }
 
@@ -94,7 +94,7 @@
 
   .news-eintrag { display:flex; gap:10px; align-items:flex-start; padding:9px 0; border-bottom:1px solid var(--parchment); }
   .news-eintrag img { width:56px; height:56px; object-fit:cover; border-radius:8px; flex-shrink:0; }
-  .news-eintrag a { color: var(--moss); font-weight:600; text-decoration:none; font-size:0.9rem; }
+  .news-eintrag a { color: var(--moss-text, var(--moss)); font-weight:600; text-decoration:none; font-size:0.9rem; }
   .news-eintrag.gelesen a { color: var(--bark); font-weight:500; opacity:0.75; }
   .news-eintrag .datum { font-size:0.7rem; color: var(--bark); opacity:0.85; margin-top:2px; }
   .news-eintrag .news-inhalt { flex:1; min-width:0; }
@@ -108,6 +108,11 @@
      leicht unterschiedlichen Header-Varianten der Module hinweg. */
   header.top .titel-zeile, header .hdr-right { gap: 4px !important; }
   header.top .titel-zeile h1, header h1 { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* Dark-Mode-Kontrast (alle Module gleich): Akzentfarbe als Text heller,
+     Text auf Akzent-Knöpfen dunkel – außer bei „Schnee“, dort ist der Knopf selbst dunkel. */
+  html[data-dark="1"] { --moss-text: var(--sage); --on-moss: #16140f; }
+  html[data-dark="1"][data-farbschema="schnee"] { --on-moss: #f4f5f6; }
 </style>
 </head>
 <body>

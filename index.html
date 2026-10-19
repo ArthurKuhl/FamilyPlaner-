@@ -86,6 +86,49 @@
     align-items: center; justify-content: center; z-index: 200; padding: 20px;
   }
   .modal-bg.zeigen { display: flex; }
+  /* 📱 Untere Leiste (Handy) */
+  .untere-leiste { display: none; flex-shrink: 0; align-items: center; justify-content: space-around; gap: 2px;
+    background: linear-gradient(135deg, var(--navbg2), var(--navbg)); padding: 4px 4px calc(4px + env(safe-area-inset-bottom, 0px));
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.18); }
+  .ul-btn { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 2px; background: none; border: none;
+    color: var(--sage); font-family: 'Inter', sans-serif; font-size: 0.6rem; font-weight: 600; padding: 6px 2px; border-radius: 12px; cursor: pointer; position: relative; }
+  .ul-btn .em { font-size: 1.3rem; line-height: 1; }
+  .ul-btn .ul-label { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ul-btn.active { background: var(--moss); color: var(--on-moss, var(--leaf)); }
+  .ul-btn.punkt::after, .mehr-werkzeug.punkt::after { content: ''; position: absolute; top: 4px; right: 22%; width: 8px; height: 8px; border-radius: 50%; background: var(--terracotta); border: 1.5px solid var(--navbg); }
+  .ul-plus { flex: 0 0 auto; width: 48px; height: 48px; border-radius: 50%; border: 3px solid var(--navbg); background: var(--terracotta); color: #fff;
+    font-size: 1.6rem; font-weight: 700; line-height: 1; cursor: pointer; margin: -18px 4px 0; box-shadow: 0 3px 10px rgba(0,0,0,0.3); }
+  @media (max-width: 759px) {
+    nav.modul-nav { display: none; }
+    .untere-leiste { display: flex; }
+  }
+  /* ☰ Mehr & ＋ als Blatt von unten */
+  .modal-bg.blatt { align-items: flex-end; padding: 0; }
+  .modal-bg.blatt .modal { max-width: 640px; border-radius: 20px 20px 0 0; padding: 16px 16px calc(18px + env(safe-area-inset-bottom, 0px)); max-height: 82vh; }
+  .blatt-kopf { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+  .blatt-kopf button { background: none; border: none; font-size: 1.1rem; color: var(--bark); cursor: pointer; padding: 4px 6px; }
+  .mehr-status { font-size: 0.72rem; color: var(--bark); margin-bottom: 12px; }
+  .mehr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 8px; margin-bottom: 14px; }
+  .mehr-kachel { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 4px; border-radius: 14px;
+    border: 1px solid var(--parchment, #ece0c7); background: var(--white, #fff); color: var(--soil); font-family: inherit; font-size: 0.7rem; font-weight: 600; cursor: pointer; }
+  .mehr-kachel .em { font-size: 1.5rem; line-height: 1; }
+  .mehr-kachel.active { border-color: var(--moss); box-shadow: 0 0 0 2px var(--moss) inset; }
+  .mehr-kachel.fav { background: rgba(201,154,58,0.18); border-color: var(--gold, #c99a3a); }
+  .mehr-stern { position: absolute; top: 3px; right: 6px; font-size: 0.85rem; color: var(--gold, #c99a3a); }
+  .mehr-werkzeuge { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 10px; }
+  .mehr-werkzeug { position: relative; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 9px 2px; border-radius: 12px; border: none;
+    background: var(--parchment, #ece0c7); color: var(--soil); font-family: inherit; font-size: 0.66rem; font-weight: 600; cursor: pointer; }
+  .mehr-werkzeug .em { font-size: 1.15rem; line-height: 1; }
+  .mehr-bearbeiten { display: block; width: 100%; background: none; border: 1px dashed var(--bark); color: var(--bark); border-radius: 22px; padding: 8px; font-family: inherit; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
+  .mehr-hinweis { font-size: 0.74rem; color: var(--bark); margin: -6px 0 10px; }
+  .schnell-input { width: 100%; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--parchment, #ddd); background: var(--white, #fff); color: var(--soil);
+    font-family: 'Inter', sans-serif; font-size: 1rem; margin: 6px 0 12px; }
+  .modal .schnell-ziel { margin-bottom: 8px; }
+  /* 🧩 Schlanker Start */
+  .setup-modul-liste { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; text-align: left; margin: 4px 0 14px; max-height: 46vh; overflow-y: auto; }
+  .setup-modul { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: #fff; border: 1px solid #e5dccb; border-radius: 10px; font-size: 0.82rem; color: var(--soil); cursor: pointer; }
+  .setup-box .setup-modul input { width: 18px; height: 18px; min-width: 18px; padding: 0; margin: 0; border: none; accent-color: var(--moss); flex-shrink: 0; }
+  .setup-modul span { flex: 1; min-width: 0; text-align: left; }
   /* 🔍 Suche über alle Bereiche */
   #modalSuche { align-items: flex-start; padding-top: 6vh; }
   #modalSuche .modal { max-width: 560px; max-height: 86vh; display: flex; flex-direction: column; padding: 16px; }
@@ -95,7 +138,7 @@
   #sucheErgebnisse { overflow-y: auto; min-height: 60px; }
   .suche-leer { font-size: 0.82rem; color: var(--bark); padding: 18px 6px; text-align: center; line-height: 1.5; }
   .suche-gruppe { margin-bottom: 12px; }
-  .suche-gruppe-kopf { display: flex; justify-content: space-between; width: 100%; background: none; border: none; font-family: inherit; font-size: 0.8rem; font-weight: 700; color: var(--moss); padding: 4px 2px; cursor: pointer; text-align: left; }
+  .suche-gruppe-kopf { display: flex; justify-content: space-between; width: 100%; background: none; border: none; font-family: inherit; font-size: 0.8rem; font-weight: 700; color: var(--moss-text, var(--moss)); padding: 4px 2px; cursor: pointer; text-align: left; }
   html[data-dark="1"] .suche-gruppe-kopf { color: var(--sage); }
   .suche-gruppe-kopf span { font-weight: 600; color: var(--bark); }
   .suche-treffer { display: flex; flex-direction: column; gap: 2px; width: 100%; text-align: left; background: var(--white, #fff); border: 1px solid var(--parchment, #ece0c7); border-radius: 10px; padding: 8px 11px; margin-bottom: 5px; cursor: pointer; font-family: inherit; color: var(--soil); }
@@ -119,7 +162,7 @@
     display: block; width: 100%; padding: 12px; border-radius: 22px; border: none; font-weight: 700;
     font-size: 0.88rem; cursor: pointer; margin-bottom: 10px; text-align: center;
   }
-  .modal .btn-primary { background: var(--moss); color: var(--leaf); }
+  .modal .btn-primary { background: var(--moss); color: var(--on-moss, var(--leaf)); }
   .modal .btn-secondary { background: #fff; color: var(--bark); border: 1px solid #ddd; }
   .modal .status-text { font-size: 0.8rem; margin-top: 4px; min-height: 18px; }
   .modal input[type="file"] { display: none; }
@@ -132,7 +175,7 @@
   }
   .modul-btn .em { font-size: 1.25rem; line-height: 1; }
   .modul-btn:hover { background: #3b2f1e; }
-  .modul-btn.active { background: var(--moss); color: var(--leaf); }
+  .modul-btn.active { background: var(--moss); color: var(--on-moss, var(--leaf)); }
 
   .modul-frame-wrap { flex: 1; position: relative; min-height: 0; }
   iframe.modul-frame {
@@ -153,13 +196,13 @@
     display: flex; align-items: center; justify-content: center; padding: 20px;
   }
   .setup-box { width: 100%; max-width: 420px; text-align: center; }
-  .setup-box h1 { font-size: 1.3rem; color: var(--moss); margin-bottom: 8px; }
+  .setup-box h1 { font-size: 1.3rem; color: var(--moss-text, var(--moss)); margin-bottom: 8px; }
   .setup-box p { font-size: 0.85rem; color: var(--bark); line-height: 1.5; margin-bottom: 18px; }
   .setup-box .btn {
     display: block; width: 100%; padding: 13px; border-radius: 22px; border: none; font-weight: 700;
     font-size: 0.9rem; cursor: pointer; margin-bottom: 10px; text-align: center;
   }
-  .setup-box .btn-primary { background: var(--moss); color: var(--leaf); }
+  .setup-box .btn-primary { background: var(--moss); color: var(--on-moss, var(--leaf)); }
   .setup-box .btn-secondary { background: #fff; color: var(--bark); border: 1px solid #ddd; }
   .setup-box input {
     width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #ddd; font-size: 1.1rem;
@@ -167,19 +210,25 @@
     font-family: 'Inter', sans-serif; font-weight: 700; color: var(--soil);
   }
   .setup-code-anzeige {
-    font-size: 2rem; font-weight: 700; letter-spacing: 0.15em; color: var(--moss);
+    font-size: 2rem; font-weight: 700; letter-spacing: 0.15em; color: var(--moss-text, var(--moss));
     background: #fff; border-radius: 14px; padding: 16px; margin-bottom: 14px;
     border: 2px dashed var(--sage);
   }
   .setup-schritt { display: none; }
   .setup-schritt.zeigen { display: block; }
   .setup-zurueck { background: none; border: none; color: var(--bark); font-size: 0.78rem; cursor: pointer; margin-top: 6px; text-decoration: underline; }
+
+  /* Dark-Mode-Kontrast (alle Module gleich): Akzentfarbe als Text heller,
+     Text auf Akzent-Knöpfen dunkel – außer bei „Schnee“, dort ist der Knopf selbst dunkel. */
+  html[data-dark="1"] { --moss-text: var(--sage); --on-moss: #16140f; }
+  html[data-dark="1"][data-farbschema="schnee"] { --on-moss: #f4f5f6; }
 </style>
 </head>
 <body>
   <div class="shell">
     <nav class="modul-nav" id="modulNav" aria-label="Bereiche">
       <!-- Buttons werden per JS erzeugt -->
+      <button class="backup-btn" id="btnSchnellOben" title="Schnell festhalten (Einkauf, Termin, Notiz)">＋</button>
       <button class="backup-btn" id="btnSuche" title="In allen Bereichen suchen">🔍</button>
       <button class="backup-btn" id="btnBackup" title="Sichern & Wiederherstellen">💾</button>
       <button class="backup-btn" id="btnPersonen" title="Personen verwalten">👪</button>
@@ -190,6 +239,7 @@
     <div class="modul-frame-wrap">
       <iframe class="modul-frame" id="modulFrame" title="Aktueller Bereich" allow="geolocation; notifications"></iframe>
     </div>
+    <nav class="untere-leiste" id="untereLeiste" aria-label="Schnellzugriff"></nav>
   </div>
   <div class="offline-hinweis" id="offlineHinweis">Offline – letzte gespeicherte Version wird angezeigt</div>
 
@@ -205,7 +255,14 @@
         <h1>✅ Euer Familien-Code</h1>
         <p>Notiert euch diesen Code – ihr gebt ihn auf jedem weiteren Gerät eurer Familie ein (z.B. beim Partner-Handy), damit alle dieselben Daten sehen.</p>
         <div class="setup-code-anzeige" id="setupNeuCode">------</div>
-        <button class="btn btn-primary" id="btnSetupNeuWeiter">Los geht's</button>
+        <button class="btn btn-primary" id="btnSetupNeuWeiter">Weiter</button>
+      </div>
+      <div class="setup-schritt" id="setupSchrittModule">
+        <h1>🧩 Was wollt ihr nutzen?</h1>
+        <p>Wähle die Bereiche, die auf diesem Gerät erscheinen sollen. Alles andere bleibt ausgeblendet und lässt sich jederzeit unter ⚙️ Einstellungen wieder einblenden.</p>
+        <div class="setup-modul-liste" id="setupModulListe"></div>
+        <button class="btn btn-primary" id="btnSetupModuleFertig">Los geht's</button>
+        <button class="setup-zurueck" id="btnSetupModuleAlle">Alle auswählen</button>
       </div>
       <div class="setup-schritt" id="setupSchrittBeitreten">
         <h1>🔑 Code eingeben</h1>
@@ -215,6 +272,30 @@
         <button class="btn btn-primary" id="btnSetupBeitretenBestaetigen">Beitreten</button>
         <button class="setup-zurueck" id="btnSetupZurueck1">Zurück</button>
       </div>
+    </div>
+  </div>
+
+  <div class="modal-bg blatt" id="modalMehr">
+    <div class="modal" role="dialog" aria-label="Alle Bereiche">
+      <div class="blatt-kopf"><h2 style="margin:0">Alle Bereiche</h2><button type="button" id="btnMehrSchliessen" aria-label="Schließen">✕</button></div>
+      <div class="mehr-status" id="mehrStatus"></div>
+      <div class="mehr-hinweis" id="mehrBearbeitenHinweis" style="display:none">Tippe Bereiche an, um sie in die untere Leiste zu legen (★, höchstens 4).</div>
+      <div class="mehr-grid" id="mehrGrid"></div>
+      <div class="mehr-werkzeuge">
+        <button type="button" class="mehr-werkzeug" id="btnMehrSuche"><span class="em">🔍</span>Suchen</button>
+        <button type="button" class="mehr-werkzeug" id="btnMehrBackup"><span class="em">💾</span>Sichern</button>
+        <button type="button" class="mehr-werkzeug" id="btnMehrPersonen"><span class="em">👪</span>Personen</button>
+        <button type="button" class="mehr-werkzeug" id="btnMehrEinstellungen"><span class="em">⚙️</span>Einstellungen</button>
+      </div>
+      <button type="button" class="mehr-bearbeiten" id="btnMehrBearbeiten">✏️ Leiste anpassen</button>
+    </div>
+  </div>
+
+  <div class="modal-bg blatt" id="modalSchnell">
+    <div class="modal" role="dialog" aria-label="Schnell festhalten">
+      <div class="blatt-kopf"><h2 style="margin:0">＋ Schnell festhalten</h2><button type="button" id="btnSchnellSchliessen" aria-label="Schließen">✕</button></div>
+      <input type="text" class="schnell-input" id="schnellText" placeholder="z.B. Milch, Zahnarzt Do 10 Uhr, Idee …" autocomplete="off">
+      <div id="schnellZiele"></div>
     </div>
   </div>
 
@@ -1032,6 +1113,160 @@
       backupErinnerungAktualisieren();
     });
 
+    // ============================================================
+    // 📱 UNTERE LEISTE (nur schmale Bildschirme): 4 Lieblingsbereiche + ＋ + ☰ Mehr
+    // Die obere Modulleiste bleibt auf Tablet/PC erhalten. Favoriten sind geräte-lokal.
+    // ============================================================
+    const LEISTE_FAV_KEY = 'planer_leisteFavoriten';
+    const LEISTE_MAX = 4;
+    const untereLeiste = document.getElementById('untereLeiste');
+    let mehrBearbeiten = false;
+    function sichtbareModuleListe() {
+      const versteckt = versteckteModule();
+      return moduleInGespeicherterReihenfolge().filter(m => !versteckt.includes(m.id));
+    }
+    function leisteFavoriten() {
+      const sichtbar = sichtbareModuleListe().map(m => m.id);
+      let fav = null;
+      try { fav = JSON.parse(localStorage.getItem(LEISTE_FAV_KEY) || 'null'); } catch (e) {}
+      if (Array.isArray(fav)) fav = fav.filter(id => sichtbar.includes(id)).slice(0, LEISTE_MAX);
+      if (!Array.isArray(fav) || !fav.length) fav = sichtbar.slice(0, LEISTE_MAX);
+      return fav;
+    }
+    function leisteFavoritenSpeichern(fav) {
+      try { localStorage.setItem(LEISTE_FAV_KEY, JSON.stringify(fav.slice(0, LEISTE_MAX))); } catch (e) {}
+    }
+    function leisteHinweisPunkt() {
+      const backup = document.getElementById('btnBackup');
+      const sync = document.getElementById('syncStatus');
+      return (backup && backup.classList.contains('faellig')) || (sync && sync.textContent === '⚠️');
+    }
+    function renderUntereLeiste() {
+      if (!untereLeiste) return;
+      const fav = leisteFavoriten();
+      const aktiv = aktuellerBereichId();
+      const knopf = (mod) => `<button type="button" class="ul-btn${mod.id === aktiv ? ' active' : ''}" data-ul-modul="${mod.id}" aria-label="${escZ(mod.label)}"><span class="em" aria-hidden="true">${mod.emoji}</span><span class="ul-label">${escZ(mod.label)}</span></button>`;
+      const mods = fav.map(id => MODULE.find(m => m.id === id)).filter(Boolean);
+      const teile = mods.map(knopf);
+      const plus = '<button type="button" class="ul-plus" id="ulPlus" aria-label="Schnell festhalten" title="Schnell festhalten">＋</button>';
+      teile.splice(Math.min(2, teile.length), 0, plus);
+      // „Mehr“ zeigt den aktuellen Bereich, wenn er nicht in der Leiste liegt
+      const aktivMod = MODULE.find(m => m.id === aktiv);
+      const aktivAusserhalb = aktivMod && !fav.includes(aktiv);
+      teile.push(`<button type="button" class="ul-btn${aktivAusserhalb ? ' active' : ''}${leisteHinweisPunkt() ? ' punkt' : ''}" id="ulMehr" aria-label="Alle Bereiche und Einstellungen">` +
+        `<span class="em" aria-hidden="true">${aktivAusserhalb ? aktivMod.emoji : '☰'}</span><span class="ul-label">${aktivAusserhalb ? escZ(aktivMod.label) : 'Mehr'}</span></button>`);
+      const html = teile.join('');
+      if (untereLeiste._html === html) return; // unverändert – nicht neu aufbauen
+      untereLeiste._html = html;
+      untereLeiste.innerHTML = html;
+      untereLeiste.querySelectorAll('[data-ul-modul]').forEach(b => b.addEventListener('click', () => bereichLaden(b.dataset.ulModul)));
+      document.getElementById('ulMehr').addEventListener('click', mehrOeffnen);
+      document.getElementById('ulPlus').addEventListener('click', schnellOeffnen);
+    }
+    // Rückmeldungen (Backup fällig, Sync-Fehler) auch an der unteren Leiste anzeigen
+    try {
+      const beobachter = new MutationObserver(() => renderUntereLeiste());
+      beobachter.observe(document.getElementById('btnBackup'), { attributes: true, attributeFilter: ['class'] });
+      beobachter.observe(document.getElementById('syncStatus'), { childList: true, characterData: true, subtree: true });
+    } catch (e) {}
+
+    // ---------- ☰ Mehr: alle Bereiche + Werkzeuge ----------
+    function renderMehr() {
+      const fav = leisteFavoriten();
+      const aktiv = aktuellerBereichId();
+      const sync = document.getElementById('syncStatus');
+      document.getElementById('mehrStatus').textContent = (sync ? sync.textContent + ' ' + (sync.title || '') : '') +
+        (document.getElementById('versionBadge').textContent ? ' · ' + document.getElementById('versionBadge').textContent : '');
+      document.getElementById('mehrBearbeitenHinweis').style.display = mehrBearbeiten ? '' : 'none';
+      document.getElementById('btnMehrBearbeiten').textContent = mehrBearbeiten ? '✓ Fertig' : '✏️ Leiste anpassen';
+      document.getElementById('mehrGrid').innerHTML = sichtbareModuleListe().map(m => {
+        const istFav = fav.includes(m.id);
+        return `<button type="button" class="mehr-kachel${m.id === aktiv ? ' active' : ''}${mehrBearbeiten && istFav ? ' fav' : ''}" data-mehr-modul="${m.id}">` +
+          `<span class="em" aria-hidden="true">${m.emoji}</span><span>${escZ(m.label)}</span>` +
+          (mehrBearbeiten ? `<span class="mehr-stern">${istFav ? '★' : '☆'}</span>` : '') + `</button>`;
+      }).join('');
+      document.querySelectorAll('[data-mehr-modul]').forEach(b => b.addEventListener('click', () => {
+        const id = b.dataset.mehrModul;
+        if (!mehrBearbeiten) { mehrSchliessen(); bereichLaden(id); return; }
+        let f = leisteFavoriten();
+        if (f.includes(id)) f = f.filter(x => x !== id);
+        else if (f.length >= LEISTE_MAX) { document.getElementById('mehrBearbeitenHinweis').textContent = 'Höchstens ' + LEISTE_MAX + ' Bereiche – erst einen anderen abwählen.'; return; }
+        else f.push(id);
+        leisteFavoritenSpeichern(f);
+        document.getElementById('mehrBearbeitenHinweis').textContent = 'Tippe Bereiche an, um sie in die untere Leiste zu legen (★, höchstens ' + LEISTE_MAX + ').';
+        renderMehr();
+        renderUntereLeiste();
+      }));
+      const backup = document.getElementById('btnBackup');
+      document.getElementById('btnMehrBackup').classList.toggle('punkt', !!(backup && backup.classList.contains('faellig')));
+    }
+    function mehrOeffnen() { mehrBearbeiten = false; renderMehr(); document.getElementById('modalMehr').classList.add('zeigen'); }
+    function mehrSchliessen() { document.getElementById('modalMehr').classList.remove('zeigen'); }
+    document.getElementById('modalMehr').addEventListener('click', (e) => { if (e.target.id === 'modalMehr') mehrSchliessen(); });
+    document.getElementById('btnMehrSchliessen').addEventListener('click', mehrSchliessen);
+    document.getElementById('btnMehrBearbeiten').addEventListener('click', () => { mehrBearbeiten = !mehrBearbeiten; renderMehr(); });
+    [['btnMehrSuche', 'btnSuche'], ['btnMehrBackup', 'btnBackup'], ['btnMehrPersonen', 'btnPersonen'], ['btnMehrEinstellungen', 'btnEinstellungen']].forEach(([von, ziel]) => {
+      document.getElementById(von).addEventListener('click', () => { mehrSchliessen(); document.getElementById(ziel).click(); });
+    });
+
+    // ============================================================
+    // ＋ SCHNELL FESTHALTEN: Text eintippen, dann Einkauf / Termin / Notiz wählen
+    // ============================================================
+    const SCHNELL_ZIELE = [
+      { modul: 'einkauf', text: '🛒 Auf die Einkaufsliste' },
+      { modul: 'termine', text: '🗓️ Als Termin' },
+      { modul: 'notizblock', text: '📝 Als Notiz' },
+    ];
+    function schnellOeffnen() {
+      const versteckt = versteckteModule();
+      const ziele = SCHNELL_ZIELE.filter(z => !versteckt.includes(z.modul));
+      const box = document.getElementById('schnellZiele');
+      box.innerHTML = ziele.length
+        ? ziele.map(z => `<button type="button" class="btn btn-primary schnell-ziel" data-schnell="${z.modul}">${z.text}</button>`).join('')
+        : '<p>Einkauf, Termine und Notizblock sind ausgeblendet – unter ⚙️ wieder einblenden.</p>';
+      box.querySelectorAll('[data-schnell]').forEach(b => b.addEventListener('click', () => schnellAbschicken(b.dataset.schnell)));
+      const inp = document.getElementById('schnellText');
+      inp.value = '';
+      document.getElementById('modalSchnell').classList.add('zeigen');
+      setTimeout(() => inp.focus(), 60);
+    }
+    function schnellSchliessen() { document.getElementById('modalSchnell').classList.remove('zeigen'); }
+    function schnellAbschicken(modul) {
+      const text = document.getElementById('schnellText').value.trim();
+      schnellSchliessen();
+      bereichLaden(modul, { aktion: 'neu', text: text });
+    }
+    document.getElementById('modalSchnell').addEventListener('click', (e) => { if (e.target.id === 'modalSchnell') schnellSchliessen(); });
+    document.getElementById('btnSchnellSchliessen').addEventListener('click', schnellSchliessen);
+    document.getElementById('btnSchnellOben').addEventListener('click', schnellOeffnen);
+    document.getElementById('schnellText').addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      const erstes = document.querySelector('#schnellZiele [data-schnell]');
+      if (erstes) erstes.click();
+    });
+
+    // ============================================================
+    // 🧩 SCHLANKER START: neue Geräte wählen beim Einrichten, welche Bereiche sie nutzen
+    // ============================================================
+    const START_VORAUSWAHL = ['termine', 'einkauf', 'kochen', 'notizblock'];
+    function setupModuleZeigen() {
+      const box = document.getElementById('setupModulListe');
+      box.innerHTML = MODULE.filter(m => m.id !== 'home').map(m =>
+        `<label class="setup-modul"><input type="checkbox" value="${m.id}"${START_VORAUSWAHL.includes(m.id) ? ' checked' : ''}><span>${m.emoji} ${escZ(m.label)}</span></label>`
+      ).join('');
+      setupSchrittZeigen('setupSchrittModule');
+    }
+    function setupModuleUebernehmen() {
+      const versteckt = Array.from(document.querySelectorAll('#setupModulListe input')).filter(i => !i.checked).map(i => i.value);
+      try { localStorage.setItem(VERSTECKT_KEY, JSON.stringify(versteckt)); localStorage.setItem('planer_einrichtung_module', '1'); } catch (e) {}
+      initApp();
+    }
+    document.getElementById('btnSetupModuleFertig').addEventListener('click', setupModuleUebernehmen);
+    document.getElementById('btnSetupModuleAlle').addEventListener('click', () => {
+      document.querySelectorAll('#setupModulListe input').forEach(i => { i.checked = true; });
+    });
+
     if (!familienId()) {
       document.getElementById('setupOverlay').style.display = 'flex';
       document.getElementById('btnSetupNeu').addEventListener('click', () => {
@@ -1047,26 +1282,27 @@
       document.getElementById('btnSetupZurueck1').addEventListener('click', () => {
         setupSchrittZeigen('setupSchrittStart');
       });
-      document.getElementById('btnSetupNeuWeiter').addEventListener('click', initApp);
+      document.getElementById('btnSetupNeuWeiter').addEventListener('click', setupModuleZeigen);
       document.getElementById('btnSetupBeitretenBestaetigen').addEventListener('click', () => {
         const val = document.getElementById('setupCodeInput').value.trim();
         const status = document.getElementById('setupBeitretenStatus');
         if (val.length < 4) { status.textContent = 'Bitte den vollständigen Code eingeben.'; return; }
         status.textContent = '';
         setzeFamilienId(val);
-        initApp();
+        setupModuleZeigen();
       });
     } else {
       initApp();
     }
 
-    function bereichLaden(id, { schreiben = true, aktion = '' } = {}) {
+    function bereichLaden(id, { schreiben = true, aktion = '', text = '', ziel = '' } = {}) {
       const mod = MODULE.find(m => m.id === id) || MODULE[0];
       frame.src = mod.src;
       nav.querySelectorAll('.modul-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.id === mod.id);
         btn.setAttribute('aria-current', btn.dataset.id === mod.id ? 'page' : 'false');
       });
+      renderUntereLeiste();
       if (schreiben) {
         try { localStorage.setItem(STORAGE_KEY, mod.id); } catch (e) {}
       }
@@ -1076,7 +1312,7 @@
         const zielFrame = frame;
         const handler = () => {
           zielFrame.removeEventListener('load', handler);
-          try { zielFrame.contentWindow.postMessage({ type: 'shortcutAktion', aktion: aktion }, window.location.origin); } catch (e) {}
+          try { zielFrame.contentWindow.postMessage({ type: 'shortcutAktion', aktion: aktion, text: text, ziel: ziel }, window.location.origin); } catch (e) {}
         };
         zielFrame.addEventListener('load', handler);
       }
@@ -1381,7 +1617,7 @@
         const zeigen = g.liste.slice(0, 8);
         return '<div class="suche-gruppe">' +
           '<button type="button" class="suche-gruppe-kopf" data-modul="' + g.mod.id + '">' + g.mod.emoji + ' ' + sucheEsc(g.mod.label) + ' <span>' + g.liste.length + ' ›</span></button>' +
-          zeigen.map(t => '<button type="button" class="suche-treffer" data-modul="' + g.mod.id + '">' +
+          zeigen.map(t => '<button type="button" class="suche-treffer" data-modul="' + g.mod.id + '" data-ziel="' + sucheEsc(t.titel) + '">' +
             '<span class="st-titel">' + sucheMarkieren(sucheAusschnitt(t.titel, begriff), begriff) + '</span>' +
             (t.ausschnitt ? '<span class="st-text">' + sucheMarkieren(sucheAusschnitt(t.ausschnitt, begriff), begriff) + '</span>' : '') +
             (t.kontext ? '<span class="st-kontext">in ' + sucheEsc(t.kontext) + '</span>' : '') +
@@ -1391,7 +1627,8 @@
       }).join('');
       box.querySelectorAll('[data-modul]').forEach(b => b.addEventListener('click', () => {
         sucheSchliessen();
-        bereichLaden(b.dataset.modul);
+        // Suchbegriff mitgeben: das Modul filtert seine Liste bzw. springt zum Eintrag (siehe sync.js)
+        bereichLaden(b.dataset.modul, { aktion: 'suche', text: begriff.trim(), ziel: b.dataset.ziel || '' });
       }));
     }
     function sucheOeffnen() {

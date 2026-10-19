@@ -54,6 +54,83 @@
   });
 })();
 
+// ============================================================================
+// SUCHE AUS DER SHELL: Ein Treffer aus „🔍 In allen Bereichen suchen“ öffnet das Modul und
+// übergibt den Suchbegriff. Hat das Modul ein eigenes Suchfeld, wird es damit gefüllt (Liste
+// gefiltert), sonst springt die Seite zur ersten Fundstelle des Eintrags und markiert sie.
+// ============================================================================
+(function () {
+  const SUCHFELDER = ['#fSuche', '#notizSuche'];
+  function sichtbar(el) { return !!(el && (el.offsetWidth || el.offsetHeight || el.getClientRects().length)); }
+  function imModulSuchen(begriff, ziel) {
+    const feld = SUCHFELDER.map(s => document.querySelector(s)).find(sichtbar);
+    if (feld && begriff) {
+      feld.value = begriff;
+      feld.dispatchEvent(new Event('input', { bubbles: true }));
+      feld.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
+      return;
+    }
+    if (!(ziel && springeZu(ziel)) && begriff) springeZu(begriff);
+  }
+  // Sucht die erste sichtbare Stelle mit dem Text, scrollt dorthin und lässt sie kurz aufleuchten
+  function springeZu(text) {
+    const q = String(text).toLowerCase().trim();
+    if (!q || !document.body) return false;
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+      acceptNode: (n) => (n.nodeValue && n.nodeValue.toLowerCase().indexOf(q) !== -1) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP,
+    });
+    let n;
+    while ((n = walker.nextNode())) {
+      const el = n.parentElement;
+      if (!el || el.closest('script, style, option, datalist, select, textarea, .modal-bg, #__planerFehlerBanner') || !sichtbar(el)) continue;
+      const ziel = el.closest('button, li, tr, a, [class*="karte"], [class*="eintrag"], [class*="item"], [class*="zeile"]') || el;
+      try { ziel.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) { ziel.scrollIntoView(); }
+      try {
+        ziel.animate([
+          { boxShadow: '0 0 0 3px rgba(220,177,88,0.95)', backgroundColor: 'rgba(220,177,88,0.35)' },
+          { boxShadow: '0 0 0 3px rgba(220,177,88,0)', backgroundColor: 'rgba(220,177,88,0)' },
+        ], { duration: 2600, easing: 'ease-out' });
+      } catch (e) {}
+      return true;
+    }
+    return false;
+  }
+  window.addEventListener('message', (e) => {
+    if (e.origin !== window.location.origin || !e.data || e.data.type !== 'shortcutAktion' || e.data.aktion !== 'suche') return;
+    // kurz warten, bis das Modul seine Listen fertig aufgebaut hat
+    setTimeout(() => imModulSuchen(String(e.data.text || ''), String(e.data.ziel || '')), 600);
+  });
+})();
+
+// ============================================================================
+// EINHEITLICHE KOPFZEILE: Die Standard-Symbole stehen in jedem Modul in derselben
+// Reihenfolge rechts nebeneinander – ℹ️ Infos (bzw. ? Hilfe) · 🌐 News · 🎨 Design.
+// Modul-eigene Knöpfe (📋, ⚙️, …) bleiben davor, „＋ Neu“/Export ganz rechts.
+// ============================================================================
+(function () {
+  function kopfzeileOrdnen() {
+    const theme = document.getElementById('btnThemeAuswahl');
+    if (!theme || theme.closest('.kopf-symbole')) return;
+    const kopf = theme.closest('header');
+    const zeile = theme.parentElement;
+    if (!kopf || !zeile) return;
+    const imKopf = (el) => el && el.closest('header') === kopf ? el : null;
+    const symbole = [
+      imKopf(document.getElementById('btnInfosModal')) || imKopf(kopf.querySelector('.btn-help')),
+      imKopf(document.getElementById('btnNews')) || imKopf(document.getElementById('btnDeals')),
+      theme,
+    ].filter(Boolean);
+    const gruppe = document.createElement('span');
+    gruppe.className = 'kopf-symbole';
+    gruppe.style.cssText = 'display:inline-flex;align-items:center;gap:2px;flex-shrink:0;';
+    const primaer = Array.from(zeile.children).find(el => el.matches('#btnNeu, .add-btn, .ics-btn'));
+    zeile.insertBefore(gruppe, primaer || null);
+    symbole.forEach(b => gruppe.appendChild(b));
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', kopfzeileOrdnen);
+  else kopfzeileOrdnen();
+})();
+
 window.PlanerSync = (function () {
   'use strict';
 

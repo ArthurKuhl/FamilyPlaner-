@@ -80,7 +80,7 @@
     background: transparent; border: 1px solid #4a3a28; color: var(--sage); font-size: 0.7rem; font-weight: 600;
     padding: 4px 11px; border-radius: var(--radius-pill); cursor: pointer;
   }
-  .ich-bin-chip.active { background: var(--moss); color: var(--leaf); border-color: var(--moss); }
+  .ich-bin-chip.active { background: var(--moss); color: var(--on-moss, var(--leaf)); border-color: var(--moss); }
   .filter-chip {
     padding: 6px 13px; border-radius: var(--radius-pill); font-size: 0.72rem; font-weight: 600;
     border: 1px solid var(--parchment); background: var(--white); color: var(--bark); cursor: pointer;
@@ -95,13 +95,13 @@
   .vorlage-name { font-size: 0.9rem; font-weight: 700; }
   .vorlage-anzahl { font-size: 0.72rem; color: var(--bark); margin-top: 1px; }
   .vorlage-anwenden-btn {
-    background: var(--moss); color: var(--leaf); border: none; border-radius: var(--radius-pill);
+    background: var(--moss); color: var(--on-moss, var(--leaf)); border: none; border-radius: var(--radius-pill);
     font-size: 0.72rem; font-weight: 700; padding: 6px 12px; cursor: pointer; flex-shrink: 0;
   }
   .vorlage-loeschen { background: none; border: none; color: var(--parchment); font-size: 1rem; cursor: pointer; padding: 4px 4px; flex-shrink: 0; }
   .vorlage-loeschen:hover { color: var(--terracotta-text); }
   .zeile-hinzufuegen {
-    display: block; width: 100%; background: var(--white); border: 1px dashed var(--sage); color: var(--moss);
+    display: block; width: 100%; background: var(--white); border: 1px dashed var(--sage); color: var(--moss-text, var(--moss));
     border-radius: var(--radius-sm); padding: 9px 10px; font-size: 0.8rem; font-weight: 600; cursor: pointer;
   }
   .listen-tab {
@@ -109,7 +109,7 @@
     font-size: 0.78rem; font-weight: 600; padding: 6px 14px; border-radius: var(--radius-pill); cursor: pointer;
     display: flex; align-items: center; gap: 6px; white-space: nowrap;
   }
-  .listen-tab.active { background: var(--moss); color: var(--leaf); border-color: var(--moss); }
+  .listen-tab.active { background: var(--moss); color: var(--on-moss, var(--leaf)); border-color: var(--moss); }
   .listen-tab .anzahl { font-size: 0.65rem; opacity: 0.85; }
   .listen-tab-neu { flex: 0 0 auto; background: transparent; border: 1px dashed #4a3a28; color: var(--sage); border-radius: var(--radius-pill); padding: 6px 12px; cursor: pointer; font-size: 0.9rem; }
 
@@ -127,7 +127,7 @@
   }
   .vorlagen-erinnerung-btns { display: flex; gap: 6px; flex-wrap: wrap; margin-left: auto; }
   .vorlagen-erinnerung-btns button {
-    background: var(--moss); color: var(--leaf); border: none; border-radius: var(--radius-pill);
+    background: var(--moss); color: var(--on-moss, var(--leaf)); border: none; border-radius: var(--radius-pill);
     font-size: 0.72rem; font-weight: 700; padding: 6px 12px; cursor: pointer;
   }
   .vorlagen-erinnerung-schliessen { background: none; border: none; color: var(--bark); font-size: 0.9rem; cursor: pointer; padding: 2px 4px; }
@@ -186,7 +186,7 @@
   .preis-sektion { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--parchment); }
   .preis-trend { font-size: 0.82rem; font-weight: 700; margin-bottom: 6px; }
   .preis-trend.hoch { color: #a03e3e; }
-  .preis-trend.runter { color: var(--moss); }
+  .preis-trend.runter { color: var(--moss-text, var(--moss)); }
   .preis-verlauf-liste { list-style: none; margin-bottom: 8px; }
   .preis-verlauf-liste li { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid var(--parchment); font-size: 0.78rem; }
   .preis-verlauf-liste li span:last-child { font-weight: 700; }
@@ -211,7 +211,7 @@
   .kategorie-opt.aktiv { color: var(--white); border-color: transparent; }
   .modal-btns { display: flex; gap: 8px; margin-top: 16px; }
   .btn { flex: 1; padding: 11px; border-radius: var(--radius-pill); border: none; font-weight: 700; font-size: 0.85rem; cursor: pointer; }
-  .btn-primary { background: var(--moss); color: var(--leaf); }
+  .btn-primary { background: var(--moss); color: var(--on-moss, var(--leaf)); }
   .btn-secondary { background: var(--white); color: var(--bark); border: 1px solid var(--parchment); }
   .btn-danger { background: transparent; color: var(--terracotta-text); border: 1px solid var(--terracotta); }
 
@@ -229,6 +229,11 @@
      leicht unterschiedlichen Header-Varianten der Module hinweg. */
   header.top .titel-zeile, header .hdr-right { gap: 4px !important; }
   header.top .titel-zeile h1, header h1 { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* Dark-Mode-Kontrast (alle Module gleich): Akzentfarbe als Text heller,
+     Text auf Akzent-Knöpfen dunkel – außer bei „Schnee“, dort ist der Knopf selbst dunkel. */
+  html[data-dark="1"] { --moss-text: var(--sage); --on-moss: #16140f; }
+  html[data-dark="1"][data-farbschema="schnee"] { --on-moss: #f4f5f6; }
 </style>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
@@ -1105,6 +1110,13 @@
   }
   document.getElementById('btnHinzufuegen').addEventListener('click', itemHinzufuegen);
   document.getElementById('fSchnellEingabe').addEventListener('keydown', (e) => { if (e.key === 'Enter') itemHinzufuegen(); });
+  // „＋ Schnell festhalten“ aus der Shell: Text direkt auf die aktive Liste setzen, sonst Eingabefeld fokussieren
+  window.addEventListener('message', (e) => {
+    if (e.origin !== window.location.origin || !e.data || e.data.type !== 'shortcutAktion' || e.data.aktion !== 'neu') return;
+    const feld = document.getElementById('fSchnellEingabe');
+    if (e.data.text) { feld.value = e.data.text; itemHinzufuegen(); }
+    else feld.focus();
+  });
   document.getElementById('fSchnellMenge').addEventListener('keydown', (e) => { if (e.key === 'Enter') itemHinzufuegen(); });
 
   // --- Item-Zeilen rendern ---

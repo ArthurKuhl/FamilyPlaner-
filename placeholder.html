@@ -17,8 +17,13 @@
   }
   .wrap { text-align: center; padding: 32px; max-width: 360px; }
   .icon { font-size: 3rem; margin-bottom: 12px; display: block; }
-  h1 { font-size: 1.3rem; margin-bottom: 8px; color: var(--moss); }
+  h1 { font-size: 1.3rem; margin-bottom: 8px; color: var(--moss-text, var(--moss)); }
   p { font-size: 0.95rem; color: var(--bark); line-height: 1.5; }
+
+  /* Dark-Mode-Kontrast (alle Module gleich): Akzentfarbe als Text heller,
+     Text auf Akzent-Knöpfen dunkel – außer bei „Schnee“, dort ist der Knopf selbst dunkel. */
+  html[data-dark="1"] { --moss-text: var(--sage); --on-moss: #16140f; }
+  html[data-dark="1"][data-farbschema="schnee"] { --on-moss: #f4f5f6; }
 </style>
 </head>
 <body>

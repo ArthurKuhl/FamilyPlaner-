@@ -93,10 +93,10 @@
     border: none; background: transparent; color: var(--sage); font-size: 0.75rem; font-weight: 600;
     padding: 6px 13px; border-radius: var(--radius-pill); cursor: pointer; font-family: 'Inter', sans-serif; white-space: nowrap; flex-shrink: 0;
   }
-  .view-toggle button.active { background: var(--moss); color: var(--leaf); }
+  .view-toggle button.active { background: var(--moss); color: var(--on-moss, var(--leaf)); }
 
   .wochen-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-  .wochen-nav button { background: var(--white); border: 1px solid var(--parchment); border-radius: var(--radius-md); width: 36px; height: 36px; font-size: 1rem; color: var(--moss); cursor: pointer; }
+  .wochen-nav button { background: var(--white); border: 1px solid var(--parchment); border-radius: var(--radius-md); width: 36px; height: 36px; font-size: 1rem; color: var(--moss-text, var(--moss)); cursor: pointer; }
   .wochen-label { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1rem; }
 
   .wochentag-karte { background: var(--white); border-radius: var(--radius-md); padding: 10px 12px; margin-bottom: 8px; box-shadow: var(--shadow-soft); display: flex; align-items: center; gap: 10px; cursor: pointer; }
@@ -120,7 +120,7 @@
     flex: 0 0 auto; background: transparent; border: 1px solid #4a3a28; color: var(--sage); font-size: 0.72rem;
     font-weight: 600; padding: 5px 12px; border-radius: var(--radius-pill); cursor: pointer; white-space: nowrap;
   }
-  .filter-chip.active { background: var(--moss); color: var(--leaf); border-color: var(--moss); }
+  .filter-chip.active { background: var(--moss); color: var(--on-moss, var(--leaf)); border-color: var(--moss); }
 
   .filter-dropdown-row { display: flex; gap: 6px; }
   .filter-dropdown { position: relative; flex: 1; min-width: 0; }
@@ -129,7 +129,7 @@
     font-weight: 600; padding: 6px 8px; border-radius: var(--radius-pill); cursor: pointer;
     display: flex; align-items: center; justify-content: center; gap: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  .filter-dropdown-btn.active { background: var(--moss); color: var(--leaf); border-color: var(--moss); }
+  .filter-dropdown-btn.active { background: var(--moss); color: var(--on-moss, var(--leaf)); border-color: var(--moss); }
   .filter-dropdown-btn .fd-caret { font-size: 0.6rem; flex-shrink: 0; transition: transform 0.15s; }
   .filter-dropdown.offen .filter-dropdown-btn .fd-caret { transform: rotate(180deg); }
   .filter-dropdown-panel {
@@ -162,7 +162,7 @@
   .rezept-titel { font-size: 0.88rem; font-weight: 700; line-height: 1.25; padding-right: 18px; }
   .rezept-meta { font-size: 0.68rem; color: var(--bark); display: flex; gap: 8px; }
   .rezept-tags { font-size: 0.65rem; color: var(--sage); margin-top: 2px; }
-  .rezept-zutat-treffer { font-size: 0.65rem; color: var(--moss); margin-top: 4px; font-weight: 600; }
+  .rezept-zutat-treffer { font-size: 0.65rem; color: var(--moss-text, var(--moss)); margin-top: 4px; font-weight: 600; }
 
   .leer-hinweis { text-align: center; color: var(--soil); font-size: 0.85rem; padding: 46px 16px; opacity: 1; font-weight: 500; }
   .leer-hinweis .em { font-size: 2.2rem; display: block; margin-bottom: 8px; }
@@ -198,11 +198,11 @@
   .schritt-zeile .schritt-nr { font-size: 0.78rem; font-weight: 700; color: var(--bark); flex: 0 0 20px; padding-top: 8px; }
   .zeile-entfernen { background: none; border: none; color: var(--parchment); font-size: 1.05rem; padding: 4px 6px; cursor: pointer; flex: 0 0 auto; }
   .zeile-entfernen:hover { color: var(--terracotta-text); }
-  .zeile-hinzufuegen { background: var(--white); border: 1px dashed var(--sage); color: var(--moss); border-radius: var(--radius-sm); padding: 7px 10px; font-size: 0.78rem; font-weight: 600; cursor: pointer; width: 100%; margin-top: 2px; }
+  .zeile-hinzufuegen { background: var(--white); border: 1px dashed var(--sage); color: var(--moss-text, var(--moss)); border-radius: var(--radius-sm); padding: 7px 10px; font-size: 0.78rem; font-weight: 600; cursor: pointer; width: 100%; margin-top: 2px; }
 
   .modal-btns { display: flex; gap: 8px; margin-top: 18px; }
   .btn { flex: 1; padding: 11px; border-radius: var(--radius-pill); border: none; font-weight: 700; font-size: 0.85rem; cursor: pointer; }
-  .btn-primary { background: var(--moss); color: var(--leaf); }
+  .btn-primary { background: var(--moss); color: var(--on-moss, var(--leaf)); }
   .btn-secondary { background: var(--white); color: var(--bark); border: 1px solid var(--parchment); }
   .btn-danger { background: transparent; color: var(--terracotta-text); border: 1px solid var(--terracotta); }
 
@@ -231,7 +231,7 @@
   .balken { height: 100%; background: var(--moss); border-radius: 5px; transition: width 0.2s; }
   .stat-meistgekocht-zeile { display: flex; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--parchment); font-size: 0.85rem; }
   .stat-meistgekocht-zeile:last-child { border-bottom: none; }
-  .stat-meistgekocht-rang { font-weight: 700; color: var(--moss); width: 20px; flex-shrink: 0; }
+  .stat-meistgekocht-rang { font-weight: 700; color: var(--moss-text, var(--moss)); width: 20px; flex-shrink: 0; }
   .stat-meistgekocht-name { flex: 1; }
   .stat-meistgekocht-zahl { font-weight: 700; color: var(--bark); flex-shrink: 0; }
   .stat-kategorie-zeile { margin-bottom: 10px; }
@@ -247,7 +247,7 @@
   .portionen-steuerung .wert { font-size: 0.85rem; font-weight: 700; min-width: 90px; text-align: center; }
   .zutaten-liste-anzeige { list-style: none; margin-bottom: 16px; }
   .zutaten-liste-anzeige li { display: flex; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--parchment); font-size: 0.88rem; }
-  .zutaten-liste-anzeige .z-menge { display: inline-block; font-weight: 700; color: var(--moss); min-width: 64px; }
+  .zutaten-liste-anzeige .z-menge { display: inline-block; font-weight: 700; color: var(--moss-text, var(--moss)); min-width: 64px; }
 
   /* ---- Rezeptkarten-Optik für die Detailansicht ---- */
   #modalDetail .modal {
@@ -304,7 +304,7 @@
   .kochmodus-nav { display: flex; gap: 10px; margin-top: 12px; }
   .kochmodus-nav button { flex: 1; padding: 14px; border-radius: var(--radius-pill); font-weight: 700; font-size: 0.95rem; border: none; cursor: pointer; }
   .kochmodus-nav .btn-zurueck { background: var(--white); color: var(--bark); border: 1px solid var(--parchment); }
-  .kochmodus-nav .btn-weiter { background: var(--moss); color: var(--white); }
+  .kochmodus-nav .btn-weiter { background: var(--moss); color: var(--on-moss, var(--white)); }
   .kochmodus-nav button:disabled { opacity: 0.4; cursor: default; }
   #btnKochmodusZutaten { margin-top: 14px; width: 100%; background: var(--white); border: 1px solid var(--parchment); border-radius: var(--radius-pill); padding: 9px; font-size: 0.8rem; font-weight: 700; color: var(--bark); cursor: pointer; }
   #kochmodusZutatenListe { margin-top: 8px; max-height: 30vh; overflow-y: auto; }
@@ -317,7 +317,7 @@
   .kochmodus-timer-manuell { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
   .kochmodus-timer-manuell button.chip { background: var(--white); border: 1px solid var(--parchment); color: var(--soil); border-radius: var(--radius-pill); padding: 6px 12px; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
   .kochmodus-timer-aktiv { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: 8px; background: var(--white); border-radius: var(--radius-md); padding: 14px; box-shadow: var(--shadow-soft); }
-  .kochmodus-timer-anzeige { font-size: 2.1rem; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--moss); }
+  .kochmodus-timer-anzeige { font-size: 2.1rem; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--moss-text, var(--moss)); }
   .kochmodus-timer-anzeige.fertig { color: var(--terracotta); animation: timerPulse 1s infinite; }
   @keyframes timerPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
   .kochmodus-timer-label { font-size: 0.72rem; color: var(--bark); text-align: center; }
@@ -335,13 +335,13 @@
   .stoppuhr-hinweis { font-size: 0.66rem; color: var(--bark); text-align: right; margin: -2px 0 4px; min-height: 0.8em; }
   .kochzeit-abschluss { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .kochzeit-abschluss input { width: 80px; padding: 8px; border-radius: var(--radius-sm); border: 1px solid var(--parchment); font-size: 0.95rem; font-weight: 700; background: var(--white); color: var(--soil); }
-  .kochzeit-gemessen { font-size: 0.72rem; color: var(--moss); font-weight: 600; }
+  .kochzeit-gemessen { font-size: 0.72rem; color: var(--moss-text, var(--moss)); font-weight: 600; }
   .stat-zeit-zeile { display: flex; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--parchment); font-size: 0.85rem; }
   .stat-zeit-zeile:last-child { border-bottom: none; }
   .stat-zeit-name { flex: 1; min-width: 0; }
   .stat-zeit-werte { flex-shrink: 0; text-align: right; font-size: 0.78rem; color: var(--bark); }
   .stat-zeit-werte b { color: var(--soil); }
-  .trend-schneller { color: var(--moss); font-weight: 700; }
+  .trend-schneller { color: var(--moss-text, var(--moss)); font-weight: 700; }
   .trend-langsamer { color: var(--terracotta-text); font-weight: 700; }
 
   /* Sehr breite Bildschirme: Content etwas breiter + dezente Deko-Streifen im Rand */
@@ -355,7 +355,7 @@
   .info-karte { background: var(--white); border-radius: var(--radius-md); margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); overflow: hidden; }
   .info-karte summary { padding: 14px; font-weight: 700; color: var(--soil); cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; }
   .info-karte summary::-webkit-details-marker { display: none; }
-  .info-karte summary::after { content: '▾'; color: var(--moss); transition: transform 0.2s; flex-shrink: 0; margin-left: 8px; }
+  .info-karte summary::after { content: '▾'; color: var(--moss-text, var(--moss)); transition: transform 0.2s; flex-shrink: 0; margin-left: 8px; }
   .info-karte[open] summary::after { transform: rotate(180deg); }
   .info-inhalt { padding: 0 14px 16px; font-size: 0.82rem; color: var(--bark); line-height: 1.55; }
   .info-inhalt p { margin: 0 0 10px; }
@@ -369,6 +369,11 @@
      leicht unterschiedlichen Header-Varianten der Module hinweg. */
   header.top .titel-zeile, header .hdr-right { gap: 4px !important; }
   header.top .titel-zeile h1, header h1 { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* Dark-Mode-Kontrast (alle Module gleich): Akzentfarbe als Text heller,
+     Text auf Akzent-Knöpfen dunkel – außer bei „Schnee“, dort ist der Knopf selbst dunkel. */
+  html[data-dark="1"] { --moss-text: var(--sage); --on-moss: #16140f; }
+  html[data-dark="1"][data-farbschema="schnee"] { --on-moss: #f4f5f6; }
 </style>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>

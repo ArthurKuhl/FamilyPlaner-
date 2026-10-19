@@ -78,7 +78,7 @@
     background: transparent; color: var(--sage); font-size: 0.75rem; font-weight: 600;
     font-family: 'Inter', sans-serif; cursor: pointer; transition: all .15s; white-space: nowrap;
   }
-  .view-toggle button.active { background: var(--moss); color: var(--leaf); border-color: var(--moss); }
+  .view-toggle button.active { background: var(--moss); color: var(--on-moss, var(--leaf)); border-color: var(--moss); }
 
   .filter-row { display: flex; gap: 6px; padding: 10px 14px 0; flex-wrap: wrap; }
   .filter-chip {
@@ -96,8 +96,8 @@
 
   /* Kalender */
   .cal-nav { display: flex; align-items: center; justify-content: space-between; padding: 10px 2px; }
-  .cal-nav button { background: none; border: 1px solid var(--parchment); border-radius: var(--radius-pill); width: 34px; height: 34px; font-size: 1rem; color: var(--moss); cursor: pointer; }
-  .cal-nav .monat-label { font-family: 'Playfair Display', serif; font-size: 1.05rem; color: var(--moss); font-weight: 600; }
+  .cal-nav button { background: none; border: 1px solid var(--parchment); border-radius: var(--radius-pill); width: 34px; height: 34px; font-size: 1rem; color: var(--moss-text, var(--moss)); cursor: pointer; }
+  .cal-nav .monat-label { font-family: 'Playfair Display', serif; font-size: 1.05rem; color: var(--moss-text, var(--moss)); font-weight: 600; }
   .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
   .cal-wd { text-align: center; font-size: 0.62rem; font-weight: 700; color: var(--bark); text-transform: uppercase; padding-bottom: 4px; }
   .cal-day {
@@ -165,7 +165,7 @@
   .modal-bg { position: fixed; inset: 0; background: rgba(30,23,14,0.5); z-index: 200; display: none; align-items: center; justify-content: center; padding: 16px; }
   .modal-bg.zeigen { display: flex; }
   .modal { background: var(--white); border-radius: var(--radius-lg); padding: 22px; width: min(400px, 100%); max-height: 88vh; overflow-y: auto; box-shadow: 0 12px 40px rgba(0,0,0,0.22); }
-  .modal h2 { font-family: 'Playfair Display', serif; color: var(--moss); margin-bottom: 14px; font-size: 1.05rem; }
+  .modal h2 { font-family: 'Playfair Display', serif; color: var(--moss-text, var(--moss)); margin-bottom: 14px; font-size: 1.05rem; }
   .form-row { margin-bottom: 12px; }
   .form-row label { display: block; font-size: 0.72rem; font-weight: 600; color: var(--bark); margin-bottom: 4px; }
   .form-row input, .form-row select, .form-row textarea {
@@ -182,8 +182,8 @@
   .chip-select .opt.active { color: var(--white); border-color: transparent; }
   .check-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
   .check-row input { width: auto; }
-  .btn-primary { background: var(--moss); color: var(--white); border: none; border-radius: var(--radius-pill); padding: 10px; font-size: 0.85rem; font-weight: 700; cursor: pointer; width: 100%; font-family: 'Inter', sans-serif; }
-  .btn-secondary { background: transparent; color: var(--moss); border: 1px solid var(--moss); border-radius: var(--radius-pill); padding: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer; width: 100%; margin-top: 8px; font-family: 'Inter', sans-serif; }
+  .btn-primary { background: var(--moss); color: var(--on-moss, var(--white)); border: none; border-radius: var(--radius-pill); padding: 10px; font-size: 0.85rem; font-weight: 700; cursor: pointer; width: 100%; font-family: 'Inter', sans-serif; }
+  .btn-secondary { background: transparent; color: var(--moss-text, var(--moss)); border: 1px solid var(--moss); border-radius: var(--radius-pill); padding: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer; width: 100%; margin-top: 8px; font-family: 'Inter', sans-serif; }
   .btn-delete { background: transparent; color: var(--terracotta); border: 1px solid var(--terracotta); border-radius: var(--radius-pill); padding: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer; width: 100%; margin-top: 8px; font-family: 'Inter', sans-serif; }
   .modal-actions { display: flex; gap: 8px; margin-top: 4px; }
 
@@ -201,7 +201,7 @@
     cursor: pointer; list-style: none; padding: 6px 0; display: flex; align-items: center; gap: 8px;
   }
   .wunsch-gruppe summary::-webkit-details-marker { display: none; }
-  .wunsch-gruppe summary::before { content: '▸'; color: var(--moss); transition: transform 0.15s; display: inline-block; }
+  .wunsch-gruppe summary::before { content: '▸'; color: var(--moss-text, var(--moss)); transition: transform 0.15s; display: inline-block; }
   .wunsch-gruppe[open] summary::before { transform: rotate(90deg); }
   .wunsch-gruppe-anzahl { font-family: 'Inter', sans-serif; font-weight: 400; font-size: 0.75rem; color: var(--bark); opacity: 0.7; }
 
@@ -210,6 +210,11 @@
      leicht unterschiedlichen Header-Varianten der Module hinweg. */
   header.top .titel-zeile, header .hdr-right { gap: 4px !important; }
   header.top .titel-zeile h1, header h1 { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* Dark-Mode-Kontrast (alle Module gleich): Akzentfarbe als Text heller,
+     Text auf Akzent-Knöpfen dunkel – außer bei „Schnee“, dort ist der Knopf selbst dunkel. */
+  html[data-dark="1"] { --moss-text: var(--sage); --on-moss: #16140f; }
+  html[data-dark="1"][data-farbschema="schnee"] { --on-moss: #f4f5f6; }
 </style>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
@@ -1438,7 +1443,10 @@
     // Reagiert auf App-Shortcuts (Homescreen-Icon lange gedrückt halten → "Neuer Termin")
     window.addEventListener('message', (e) => {
       if (e.origin !== window.location.origin) return;
-      if (e.data && e.data.type === 'shortcutAktion' && e.data.aktion === 'neu') terminModalOeffnen(null);
+      if (e.data && e.data.type === 'shortcutAktion' && e.data.aktion === 'neu') {
+        terminModalOeffnen(null);
+        if (e.data.text) document.getElementById('fTitel').value = e.data.text; // aus „＋ Schnell festhalten“
+      }
     });
 
     // ============================================================

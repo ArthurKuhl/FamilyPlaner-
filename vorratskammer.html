@@ -88,9 +88,9 @@
   .eingang-datum { font-size: 0.68rem; color: var(--bark); }
   .eingang-knoepfe { display: flex; gap: 4px; flex-shrink: 0; }
   .eingang-btn { border: 1px solid var(--parchment); background: var(--cream); color: var(--bark); border-radius: var(--radius-pill); padding: 5px 9px; font: 700 0.72rem 'Inter', sans-serif; cursor: pointer; white-space: nowrap; }
-  .eingang-btn.haupt { background: var(--moss); border-color: var(--moss); color: var(--leaf); }
+  .eingang-btn.haupt { background: var(--moss); border-color: var(--moss); color: var(--on-moss, var(--leaf)); }
   .kat-tab { position: relative; flex: 0 0 auto; background: transparent; border: 1px solid #4a3a28; color: var(--sage); font-size: 0.75rem; font-weight: 600; padding: 6px 14px; border-radius: var(--radius-pill); cursor: pointer; white-space: nowrap; }
-  .kat-tab.active { background: var(--moss); color: var(--leaf); border-color: var(--moss); }
+  .kat-tab.active { background: var(--moss); color: var(--on-moss, var(--leaf)); border-color: var(--moss); }
   .kat-tab .kt-del { margin-left: 6px; opacity: 0.7; }
   .kat-tab-neu { flex: 0 0 auto; background: transparent; border: 1px dashed #6b5a3e; color: var(--sage); font-size: 0.75rem; font-weight: 600; padding: 6px 14px; border-radius: var(--radius-pill); cursor: pointer; white-space: nowrap; }
 
@@ -116,7 +116,7 @@
   .vk-cart { background: none; border: none; font-size: 1.1rem; cursor: pointer; opacity: 0.7; flex-shrink: 0; padding: 2px; }
   .vk-meta-reihe { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; align-items: center; }
   .vk-chip { font-size: 0.65rem; font-weight: 600; padding: 2px 9px; border-radius: var(--radius-pill); background: var(--parchment); color: var(--bark); }
-  .vk-chip.verfall-ok { background: #e4efe0; color: var(--moss); }
+  .vk-chip.verfall-ok { background: #e4efe0; color: var(--moss-text, var(--moss)); }
   .vk-chip.verfall-bald { background: #fbe8d3; color: var(--terracotta-text); }
   .vk-chip.verfall-um { background: #f6d9d9; color: #a03e3e; }
   .vk-notiz { font-size: 0.76rem; color: var(--bark); opacity: 0.8; margin-top: 5px; font-style: italic; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -145,11 +145,11 @@
   .zeile .feld { flex: 1; }
   .kategorie-reihe { display: flex; gap: 6px; flex-wrap: wrap; }
   .kategorie-opt { padding: 6px 12px; border-radius: var(--radius-pill); font-size: 0.72rem; font-weight: 600; border: 1px solid var(--parchment); background: var(--white); color: var(--bark); cursor: pointer; }
-  .kategorie-opt.aktiv { background: var(--moss); color: var(--white); border-color: var(--moss); }
+  .kategorie-opt.aktiv { background: var(--moss); color: var(--on-moss, var(--white)); border-color: var(--moss); }
 
   .modal-btns { display: flex; gap: 8px; margin-top: 18px; }
   .btn { flex: 1; padding: 11px; border-radius: var(--radius-pill); border: none; font-weight: 700; font-size: 0.85rem; cursor: pointer; }
-  .btn-primary { background: var(--moss); color: var(--leaf); }
+  .btn-primary { background: var(--moss); color: var(--on-moss, var(--leaf)); }
   .btn-secondary { background: var(--white); color: var(--bark); border: 1px solid var(--parchment); }
   .btn-danger { background: transparent; color: var(--terracotta-text); border: 1px solid var(--terracotta); }
 
@@ -188,6 +188,11 @@
      leicht unterschiedlichen Header-Varianten der Module hinweg. */
   header.top .titel-zeile, header .hdr-right { gap: 4px !important; }
   header.top .titel-zeile h1, header h1 { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* Dark-Mode-Kontrast (alle Module gleich): Akzentfarbe als Text heller,
+     Text auf Akzent-Knöpfen dunkel – außer bei „Schnee“, dort ist der Knopf selbst dunkel. */
+  html[data-dark="1"] { --moss-text: var(--sage); --on-moss: #16140f; }
+  html[data-dark="1"][data-farbschema="schnee"] { --on-moss: #f4f5f6; }
 </style>
 </head>
 <body>

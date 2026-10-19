@@ -2,6 +2,15 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
+## 2026-10-19 | 📱 Neue Navigation & ＋ Schnell festhalten
+Am Handy sitzen die wichtigsten Bereiche jetzt unten in Daumennähe – welche vier, legst du unter ☰ Mehr → „✏️ Leiste anpassen“ fest. Über das orange ＋ kommt etwas sofort auf die Einkaufsliste, in die Termine oder den Notizblock, egal wo du gerade bist.
+
+## 2026-10-19 | 🔍 Suche in allen Bereichen
+Oben auf der Übersicht (oder unter ☰ Mehr) durchsuchst du Garten, Rezepte, Einkauf, Termine, Notizen und mehr auf einmal. Ein Tipp auf den Treffer springt direkt zum Eintrag.
+
+## 2026-10-19 | 🎨 Besser lesbar im Dunkelmodus
+Texte und ausgewählte Knöpfe sind im Dunkelmodus jetzt in allen Bereichen und Farbschemata deutlich kontrastreicher. Im Garten sitzt die Gartenauswahl jetzt platzsparend in der Werkzeugleiste, Tipps, Tiere und Verwertung sind unter „📚 Wissen“ gebündelt.
+
 ## 2026-10-19 | 🦔 Tiere im Garten
 Neuer Bereich im Garten: 26 heimische Tiere von der Holzbiene bis zum Igel – was sie fressen, wo sie wohnen und wie man sie in den Garten lockt. Dazu Bauanleitungen (Insektenhotel, Sandarium, Igelhaus …), Futterpflanzen nach Jahreszeit und für Kinder „👀 Gesehen!“ zum Sammeln eurer Entdeckungen.
 
