@@ -23,6 +23,9 @@ Oben auf der Übersicht (oder unter ☰ Mehr) durchsuchst du Garten, Rezepte, Ei
 ## 2026-10-19 | 🎨 Besser lesbar im Dunkelmodus
 Texte und ausgewählte Knöpfe sind im Dunkelmodus jetzt in allen Bereichen und Farbschemata deutlich kontrastreicher. Im Garten sitzt die Gartenauswahl jetzt platzsparend in der Werkzeugleiste, Tipps, Tiere und Verwertung sind unter „📚 Wissen“ gebündelt.
 
+## 2026-10-19 | 🛠️ Kleine Reparaturen
+Die Kachel „Termine heute“ auf der Übersicht zeigt die Termine des Tages jetzt wieder richtig an. Im Garten erscheinen Hinweise wie „Ernte eingetragen“ oder Warnungen wieder sichtbar unten am Bildschirm, und Knöpfe bleiben nach dem Antippen gut lesbar.
+
 ## 2026-10-19 | 🦔 Tiere im Garten
 Neuer Bereich im Garten: 26 heimische Tiere von der Holzbiene bis zum Igel – was sie fressen, wo sie wohnen und wie man sie in den Garten lockt. Dazu Bauanleitungen (Insektenhotel, Sandarium, Igelhaus …), Futterpflanzen nach Jahreszeit und für Kinder „👀 Gesehen!“ zum Sammeln eurer Entdeckungen.
 
