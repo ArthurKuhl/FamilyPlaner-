@@ -20,6 +20,7 @@
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-storage-compat.js"></script>
 <script src="sync.js"></script>
 <script src="fotosicherung.js"></script>
+<script src="lebensmittel.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
   :root {
@@ -466,7 +467,8 @@
         syncTransform: (werte) => window.PlanerSync ? window.PlanerSync.entferneFotosTief(werte) : werte },
       { id: 'termine',     label: 'Termine',   emoji: '🗓️', src: 'termine.html', syncKeys: ['termine_events_v1','termine_wunschliste'] },
       { id: 'gesundheit',  label: 'Gesundheit',emoji: '🏃', src: 'gesundheit.html', syncKeys: ['gesundheit_tageswerte','gesundheit_sport','gesundheit_rechner','gesundheit_medikamente','gesundheit_medErledigt','gesundheit_ziele','gesundheit_trainingslog','gesundheit_eigeneUebungen','gesundheit_zyklus','gesundheit_trainingsplan'] },
-      { id: 'einkauf',     label: 'Einkauf',   emoji: '🛒', src: 'einkauf.html', syncKeys: ['einkauf_listen','einkauf_favoriten','einkauf_vorlagen','einkauf_preise'] },
+      { id: 'einkauf',     label: 'Einkauf',   emoji: '🛒', src: 'einkauf.html', syncKeys: ['einkauf_listen','einkauf_favoriten','einkauf_vorlagen','einkauf_preise'],
+        zusatzSync: [{ modul: 'einkauf_produkte', keys: ['planer_produkte'] }] }, // gescannte Produkte (Strichcode → Name, Allergene, Nährwerte)
       { id: 'kochen',      label: 'Kochen',    emoji: '🍳', src: 'kochen.html', syncKeys: ['kochen_rezepte','kochen_wochenplan'],
         syncTransform: (werte) => window.PlanerSync ? window.PlanerSync.entferneFotosTief(werte) : werte },
       { id: 'vorratskammer', label: 'Vorratskammer', emoji: '🥫', src: 'vorratskammer.html', syncKeys: ['vorratskammer_items','vorratskammer_kategorien','vorratskammer_eingang'] },
@@ -637,7 +639,25 @@
           <input type="text" value="${p.label.replace(/"/g, '&quot;')}" data-i="${i}" class="personen-label-input" style="flex:1;padding:7px;border-radius:8px;border:1px solid #ddd;font-family:'Inter',sans-serif;font-size:0.85rem;">
           <input type="color" value="${p.farbe || '#4f6f45'}" data-i="${i}" class="personen-farbe-input" style="width:36px;height:34px;border-radius:6px;border:1px solid #ddd;padding:2px;">
           <button data-i="${i}" class="personen-loeschen-btn" style="background:none;border:none;color:#a03e3e;font-size:1.1rem;cursor:pointer;padding:4px 6px;" title="Löschen">✕</button>
-        </div>`).join('');
+        </div>
+        ${window.Lebensmittel ? `<details class="personen-allergien" style="padding:2px 0 8px 24px;border-bottom:1px solid #f0ead9;">
+          <summary style="cursor:pointer;font-size:0.76rem;color:var(--bark);">⚠️ Allergien &amp; Unverträglichkeiten${(p.allergien || []).length ? ': <b>' + window.Lebensmittel.allergenText(p.allergien).replace(/</g, '&lt;') + '</b>' : ''}</summary>
+          <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;">${window.Lebensmittel.ALLERGENE.map(a => `<label style="display:inline-flex;align-items:center;gap:4px;font-size:0.74rem;padding:4px 8px;border-radius:999px;border:1px solid #ddd;cursor:pointer;${(p.allergien || []).includes(a.id) ? 'background:#f6d9d9;border-color:#c0392b;color:#7a2418;font-weight:700;' : ''}"><input type="checkbox" class="personen-allergie" data-i="${i}" value="${a.id}" ${(p.allergien || []).includes(a.id) ? 'checked' : ''} style="width:auto;margin:0;">${a.icon} ${a.label}</label>`).join('')}</div>
+          <div style="font-size:0.68rem;color:var(--bark);margin-top:5px;">Einkauf, Vorratskammer und Kochen warnen dann bei passenden Produkten und Rezepten.</div>
+        </details>` : ''}`).join('');
+      box.querySelectorAll('.personen-allergie').forEach(cb => {
+        cb.addEventListener('change', () => {
+          const liste2 = holePersonen();
+          const i = parseInt(cb.dataset.i, 10);
+          if (!liste2[i]) return;
+          const set = new Set(liste2[i].allergien || []);
+          if (cb.checked) set.add(cb.value); else set.delete(cb.value);
+          liste2[i].allergien = Array.from(set);
+          const offen = Array.from(box.querySelectorAll('.personen-allergien')).map(d => d.open);
+          speicherePersonen(liste2);
+          box.querySelectorAll('.personen-allergien').forEach((d, j) => { d.open = !!offen[j]; });
+        });
+      });
       box.querySelectorAll('.personen-label-input').forEach(inp => {
         inp.addEventListener('change', () => {
           const liste2 = holePersonen();

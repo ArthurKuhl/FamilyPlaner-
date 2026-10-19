@@ -241,6 +241,7 @@
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
 <script src="personen.js"></script>
 <script src="sync.js"></script>
+<script src="lebensmittel.js"></script>
 <script src="scanner.js"></script>
 </head>
 <body>
@@ -292,7 +293,8 @@
     <button class="vorlagen-erinnerung-schliessen" id="btnVorlagenErinnerungSchliessen" aria-label="Schließen">✕</button>
   </div>
   <div class="quick-add">
-    <input type="text" id="fSchnellEingabe" placeholder="Produkt, z.B. Mehl, Äpfel ..." autocomplete="off">
+    <input type="text" id="fSchnellEingabe" placeholder="Produkt, z.B. Mehl, Äpfel ..." autocomplete="off" list="produktVorschlaege">
+    <datalist id="produktVorschlaege"></datalist>
     <input type="text" id="fSchnellMenge" class="menge-feld" placeholder="Menge" autocomplete="off" aria-label="Menge, z.B. 2 oder 500 g">
     <button type="button" id="btnScannen" title="Strichcode scannen" aria-label="Strichcode scannen">📷</button>
     <button id="btnHinzufuegen">＋</button>
@@ -323,6 +325,7 @@
 <div class="modal-bg" id="modalItem">
   <div class="modal">
     <h2>Produkt bearbeiten</h2>
+    <div id="itemProduktKarte" style="display:none;margin-bottom:12px;padding:12px;border-radius:14px;border:1px solid var(--parchment);background:var(--white);"></div>
     <div class="feld">
       <label for="fItemName">Name</label>
       <input type="text" id="fItemName">
@@ -650,6 +653,7 @@
     { id: 'fleisch_fisch', label: 'Fleisch & Fisch',        icon: '🥩', farbe: '#c46b41' },
     { id: 'tiefkuehl',     label: 'Tiefkühl',               icon: '❄️', farbe: '#5b8bb5' },
     { id: 'trockenwaren',  label: 'Trockenwaren & Konserven', icon: '🥫', farbe: '#7d6339' },
+    { id: 'suesses',       label: 'Süßes & Snacks',         icon: '🍫', farbe: '#a0522d' },
     { id: 'getraenke',     label: 'Getränke',               icon: '🥤', farbe: '#7fa476' },
     { id: 'drogerie',      label: 'Drogerie & Haushalt',    icon: '🧴', farbe: '#a8532e' },
     { id: 'sonstiges',     label: 'Sonstiges',              icon: '📦', farbe: '#7d6339' },
@@ -664,6 +668,7 @@
     { kategorie: 'fleisch_fisch', begriffe: ['fleisch','hähnchen','huhn','pute','rind','schwein','hack','wurst','schinken','speck','salami','lachs','fisch','thunfisch','garnele','forelle','filet','steak','bacon','frikadelle','wiener'] },
     { kategorie: 'tiefkuehl', begriffe: ['tiefkühl','tiefkuehl','tk-','eis','pizza tiefkühl','fischstäbchen','pommes','erbsen tiefkühl'] },
     { kategorie: 'trockenwaren', begriffe: ['nudel','spaghetti','reis','mehl','zucker','salz','müsli','haferflocken','konserve','dose ','linse','kichererbse','öl','essig','honig','marmelade','nutella','ketchup','senf','mayonnaise','gewürz','brühe','suppe','tütensuppe','tomatensauce','tomatenmark','cornflakes','kaffee','tee'] },
+    { kategorie: 'suesses', begriffe: ['schoko','chips','kaugummi','gummibär','fruchtgummi','bonbon','lakritz','praline','riegel','salzstangen','popcorn','flips','kekse','keks','cracker','nachos','süßigkeit','marshmallow'] },
     { kategorie: 'getraenke', begriffe: ['wasser','saft','limonade','cola','bier','wein','sekt','smoothie','energydrink','apfelschorle','mineralwasser'] },
     { kategorie: 'drogerie', begriffe: ['shampoo','duschgel','seife','zahnpasta','zahnbürste','klopapier','toilettenpapier','küchenrolle','waschmittel','spülmittel','windel','deo','rasier','creme','binden','tampon','putzmittel','müllbeutel','batterie'] },
   ];
@@ -733,7 +738,7 @@
       if (eingang.some(e => e.einkaufItemId === item.id)) return;
       const menge = [item.menge, item.einheit].filter(Boolean).join(' ').trim();
       eingang.push({ id: 'e_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name: item.name, menge,
-        einkaufKategorie: item.kategorie || 'sonstiges', datum: new Date().toISOString().slice(0, 10), einkaufItemId: item.id });
+        einkaufKategorie: item.kategorie || 'sonstiges', datum: new Date().toISOString().slice(0, 10), einkaufItemId: item.id, code: item.code || undefined });
       localStorage.setItem(KEY_VORRAT_EINGANG, JSON.stringify(eingang));
       if (vorratSyncHandle) vorratSyncHandle.melde();
     } catch (e) {}
@@ -1082,6 +1087,20 @@
     if (m) return { menge: m[1].replace(',', '.'), einheit: m[2].trim() };
     return { menge: '', einheit: t };
   }
+  // Gescanntes Produkt (Produktgedächtnis) zu einem Namen – liefert Kategorie, Strichcode, Allergene …
+  function bekanntesProdukt(name) { return window.Lebensmittel ? window.Lebensmittel.produktZuName(name) : null; }
+  // Vorschläge beim Tippen: bisherige Produkte + alle gescannten (mit Größe)
+  function produktVorschlaegeRendern() {
+    const dl = document.getElementById('produktVorschlaege');
+    if (!dl) return;
+    const namen = new Map();
+    Object.values(favoriten).forEach(f => { if (f && f.name) namen.set(f.name.toLowerCase(), { name: f.name, info: '' }); });
+    if (window.Lebensmittel) Object.values(window.Lebensmittel.produkte()).forEach(p => {
+      if (p && p.name) namen.set(p.name.toLowerCase(), { name: p.name, info: [p.menge, p.nutriscore ? 'Nutri-Score ' + p.nutriscore.toUpperCase() : ''].filter(Boolean).join(' · ') });
+    });
+    dl.innerHTML = Array.from(namen.values()).sort((a, b) => a.name.localeCompare(b.name, 'de'))
+      .map(v => '<option value="' + escapeHtml(v.name) + '"' + (v.info ? ' label="' + escapeHtml(v.info) + '"' : '') + '>').join('');
+  }
   function itemHinzufuegen() {
     const eingabe = document.getElementById('fSchnellEingabe');
     const mengenFeld = document.getElementById('fSchnellMenge');
@@ -1099,11 +1118,15 @@
     if (kandidat && versucheMengeZusammenfuehren(kandidat, menge, einheit)) {
       kandidat.hinzugefuegtVon = aktuellePerson;
     } else {
-      const kategorie = schaetzeKategorie(name);
-      liste.items.push({ id: neueId('i'), name, menge, einheit, kategorie, erledigt: false, hinzugefuegtVon: aktuellePerson });
+      const prod = bekanntesProdukt(name);
+      const kategorie = (prod && prod.kategorie && !favoriten[name.toLowerCase()]) ? prod.kategorie : schaetzeKategorie(name);
+      const neuItem = { id: neueId('i'), name, menge, einheit, kategorie, erledigt: false, hinzugefuegtVon: aktuellePerson };
+      if (prod && prod.code) neuItem.code = prod.code;
+      liste.items.push(neuItem);
     }
     const key = name.toLowerCase();
-    const kategorieFuerFavorit = kandidat ? kandidat.kategorie : schaetzeKategorie(name);
+    const prodFav = bekanntesProdukt(name);
+    const kategorieFuerFavorit = kandidat ? kandidat.kategorie : ((prodFav && prodFav.kategorie && !favoriten[key]) ? prodFav.kategorie : schaetzeKategorie(name));
     favoriten[key] = { name, kategorie: kategorieFuerFavorit, anzahl: (favoriten[key]?.anzahl || 0) + 1 };
     speichernListen();
     speichernFavoriten();
@@ -1133,7 +1156,13 @@
     const person = personInfo(item.hinzugefuegtVon);
     const badge = person ? '<span class="hinzu-badge" style="background:' + person.farbe + '22; color:' + person.farbe + ';">' + escapeHtml(person.label) + '</span>' : '';
     const sterne = bewertungHolen(item.name);
-    const sterneHtml = sterne ? bewertungSterneHtml(sterne, '0.62rem') : '';
+    let sterneHtml = sterne ? bewertungSterneHtml(sterne, '0.62rem') : '';
+    const prod = window.Lebensmittel ? (item.code ? window.Lebensmittel.produkt(item.code) : null) || bekanntesProdukt(item.name) : null;
+    if (prod) {
+      const betr = window.Lebensmittel.betroffene(prod.allergene, prod.spuren).filter(b => b.enthalten.length);
+      sterneHtml += (prod.nutriscore ? ' ' + window.Lebensmittel.nutriScoreHtml(prod.nutriscore, true) : '') +
+        (betr.length ? ' <span class="hinzu-badge" style="background:rgba(192,57,43,0.14);color:#b03a2e;" title="' + escapeHtml(betr.map(b => b.person.label + ': ' + window.Lebensmittel.allergenText(b.enthalten)).join(' · ')) + '">⚠ ' + escapeHtml(betr.map(b => b.person.label).join(', ')) + '</span>' : '');
+    }
     zeile.innerHTML =
       '<span class="item-checkbox">' + (item.erledigt ? '✓' : '') + '</span>' +
       '<div class="item-info">' + (mengeText ? '<span class="item-menge">' + escapeHtml(mengeText) + '</span>' : '') + '<span class="item-name">' + escapeHtml(item.name) + '</span>' +
@@ -1398,6 +1427,10 @@
     listeSelect.value = bearbeitetesItemListeId;
     document.getElementById('fPreisNeu').value = '';
     preisVerlaufRendern(item.name);
+    const karte = document.getElementById('itemProduktKarte');
+    const prod = window.Lebensmittel ? (item.code ? window.Lebensmittel.produkt(item.code) : null) || bekanntesProdukt(item.name) : null;
+    karte.style.display = prod ? '' : 'none';
+    karte.innerHTML = prod ? window.Lebensmittel.produktKarteHtml(prod) : '';
     document.getElementById('modalItem').classList.add('zeigen');
   }
   document.getElementById('btnItemAbbrechen').addEventListener('click', () => document.getElementById('modalItem').classList.remove('zeigen'));
@@ -1507,6 +1540,7 @@
   });
 
   function renderAlles() {
+    produktVorschlaegeRendern();
     renderTabs();
     renderWocheneinkaufMarktAuswahl();
     renderAlleVorschlaege();
@@ -1588,8 +1622,16 @@
     const p = await window.PlanerScanner.scannen();
     if (!p) return;
     const feld = document.getElementById('fSchnellEingabe');
-    if (p.gefunden) { feld.value = p.name; showTempStatus('📷 ' + p.name + (p.menge ? ' (' + p.menge + ')' : '') + ' – mit ＋ hinzufügen', 4); }
-    else showTempStatus(p.fehler === 'offline' ? '⚠ Keine Verbindung – Produkt bitte eintippen' : 'Produkt ' + p.code + ' ist noch nicht in der Datenbank – bitte eintippen', 5);
+    if (p.gefunden) {
+      const ok = window.Lebensmittel ? await window.Lebensmittel.produktDialog(p, { knopf: '＋ Auf die Liste' }) : true;
+      feld.value = p.name;
+      if (!ok) { feld.focus(); return; }
+      itemHinzufuegen(); // Kategorie und Strichcode kommen über das Produktgedächtnis mit
+      const kat = kategorieInfo(schaetzeKategorie(p.name));
+      showTempStatus('✓ ' + p.name + ' → ' + kat.icon + ' ' + kat.label, 3);
+      return;
+    }
+    showTempStatus(p.fehler === 'offline' ? '⚠ Keine Verbindung – Produkt bitte eintippen' : 'Produkt ' + p.code + ' ist noch nicht in der Datenbank – bitte eintippen', 5);
     feld.focus();
   });
 
@@ -1887,6 +1929,7 @@
     });
     starteFinanzenSync();
     starteVorratSync();
+    if (window.Lebensmittel) window.Lebensmittel.syncStarten();
   }
 })();
 </script>

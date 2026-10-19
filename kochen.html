@@ -191,6 +191,15 @@
   .sterne-eingabe button { background: none; border: none; font-size: 1.6rem; color: var(--parchment); cursor: pointer; padding: 0 2px; }
   .sterne-eingabe button.aktiv { color: var(--gold); }
 
+  .naehr-box { margin: 12px 0 4px; border: 1px solid var(--parchment); border-radius: var(--radius-md); background: var(--white); padding: 10px 12px; font-size: 0.82rem; }
+  .naehr-box summary { cursor: pointer; font-weight: 700; color: var(--soil); }
+  .naehr-zahlen { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 10px; text-align: center; }
+  .naehr-zahlen div { background: var(--cream, rgba(127,127,127,0.08)); border-radius: 10px; padding: 7px 2px; }
+  .naehr-zahlen b { display: block; font-size: 1rem; color: var(--moss-text, var(--moss)); }
+  .naehr-zahlen span { font-size: 0.66rem; color: var(--bark); }
+  .naehr-hinweis { font-size: 0.7rem; color: var(--bark); margin-top: 6px; line-height: 1.4; }
+  .allergen-chip { display: inline-block; font-size: 0.72rem; padding: 2px 8px; border-radius: 999px; margin: 6px 4px 0 0; background: rgba(214,168,74,0.18); }
+  .rezept-allergie { font-size: 0.66rem; font-weight: 700; color: #b03a2e; margin-top: 3px; }
   .link-import { border: 1px dashed var(--sage); border-radius: var(--radius-sm); padding: 10px; margin-bottom: 14px; background: var(--white); }
   .link-import-titel { font-size: 0.8rem; font-weight: 700; color: var(--moss-text, var(--moss)); margin-bottom: 6px; }
   .link-import-zeile { display: flex; gap: 6px; }
@@ -389,6 +398,7 @@
 <script src="sync.js"></script>
 <script src="fotospeicher.js"></script>
 <script src="malfilter.js"></script>
+<script src="lebensmittel.js"></script>
 </head>
 <body>
 <div class="deko-rand links" aria-hidden="true"></div>
@@ -428,6 +438,7 @@
       <button type="button" class="filter-dropdown-btn" id="btnFdAufwand">⚙️ Aufwand <span class="fd-caret">▾</span></button>
       <div class="filter-dropdown-panel" id="aufwandFilterReihe"></div>
     </div>
+    <div class="filter-schalter" id="fdVertraeglich" style="display:none"><button type="button" class="filter-dropdown-btn" id="btnVertraeglichFilter" title="Nur Rezepte ohne die eingetragenen Allergien der Familie">🛡️ Verträglich</button></div>
     <div class="filter-schalter" id="fdGarten" style="display:none"><button type="button" class="filter-dropdown-btn" id="btnGartenFilter" title="Rezepte mit Zutaten, die gerade im eigenen Garten reif sind">🌱 Garten</button></div>
   </div>
   <div class="theme-popup" id="themePopup">
@@ -606,6 +617,10 @@
       </div>
       <ul class="zutaten-liste-anzeige" id="detailZutaten"></ul>
     </div>
+    <details class="naehr-box" id="detailNaehrBox" open>
+      <summary>🍽️ Nährwerte &amp; Allergene</summary>
+      <div id="detailNaehrInhalt"></div>
+    </details>
     <div class="rezept-trenner">◆ ◆ ◆</div>
     <div class="unterliste-titel">Zubereitung</div>
     <ol class="schritte-liste-anzeige" id="detailSchritte"></ol>
@@ -893,6 +908,15 @@
   let aktiverAufwandFilter = 'alle';
   let nurFavoriten = false;
   let nurGarten = false;
+  let nurVertraeglich = false;
+  function renderVertraeglichFilter() {
+    const zeigen = jemandHatAllergien();
+    document.getElementById('fdVertraeglich').style.display = zeigen ? '' : 'none';
+    if (!zeigen) nurVertraeglich = false;
+    const btn = document.getElementById('btnVertraeglichFilter');
+    btn.classList.toggle('active', nurVertraeglich);
+    if (zeigen) btn.textContent = '🛡️ Verträglich (' + rezepte.filter(r => !rezeptBetroffene(r).length).length + ')';
+  }
   // ---- 🌱 AUS DEM GARTEN: Zutaten, die gerade im eigenen Garten reif sind oder frisch geerntet wurden ----
   const GARTEN_ERNTEZEIT = {
     'Tomate':[7,10],'Paprika':[7,10],'Chili':[7,10],'Aubergine':[7,10],'Gurke':[6,9],'Zucchini':[6,10],'Kürbis':[9,10],
@@ -1198,6 +1222,7 @@
     renderTagFilter();
     renderAufwandFilter();
     renderGartenFilter();
+    renderVertraeglichFilter();
   }
 
   function renderAufwandFilter() {
@@ -1261,6 +1286,7 @@
   }
   document.getElementById('fSuche').addEventListener('input', (e) => { suchtext = e.target.value.trim().toLowerCase(); renderGrid(); });
   document.getElementById('btnGartenFilter').addEventListener('click', () => { nurGarten = !nurGarten; renderGartenFilter(); renderGrid(); });
+  document.getElementById('btnVertraeglichFilter').addEventListener('click', () => { nurVertraeglich = !nurVertraeglich; renderVertraeglichFilter(); renderGrid(); });
 
   // --- GRID ---
   const KEY_SORT_RICHTUNG = 'kochen_sortRichtung';
@@ -1297,6 +1323,7 @@
       if (aktiverTagFilter !== 'alle' && !(r.tags || []).includes(aktiverTagFilter)) return false;
       if (nurFavoriten && !r.favorit) return false;
       if (nurGarten && !gartenTreffer(r, gartenListe()).length) return false;
+      if (nurVertraeglich && rezeptBetroffene(r).length) return false;
       if (aktiverAufwandFilter === 'schnell') {
         const z = effektiveKochzeit(r);
         if (!z || z > SCHNELL_GRENZE_MIN) return false;
@@ -1361,6 +1388,7 @@
         ? '<span title="Gestoppt: Ø aus ' + info.anzahl + '× Kochen">⏱ ~' + info.schnitt + ' Min.</span>'
         : '<span>⏱ ' + r.zeit + ' Min.</span>'; })() + '<span>🍽 ' + r.portionenBasis + '</span>' + (r.aufwand ? '<span>' + AUFWAND_STUFEN[r.aufwand].icon + '</span>' : '') + '</div>' +
       sterneAnzeige(r.bewertung) +
+      (function () { const b = rezeptBetroffene(r); return b.length ? '<div class="rezept-allergie" title="' + escapeHtml(b.map(x => x.person.label + ': ' + window.Lebensmittel.allergenText(x.enthalten)).join(' · ')) + '">⚠ ' + escapeHtml(b.map(x => x.person.label).join(', ')) + '</div>' : ''; })() +
       zutatTrefferHtml +
       tagsHtml;
     karte.querySelector('.herz').addEventListener('click', (e) => {
@@ -1495,6 +1523,43 @@
   });
 
   // --- DETAILANSICHT ---
+  // ==================== 🍽️ NÄHRWERTE & ALLERGENE (lebensmittel.js) ====================
+  const analyseCache = new Map();
+  function rezeptAnalyse(r) {
+    if (!window.Lebensmittel || !r) return null;
+    const schluessel = r.id + '|' + JSON.stringify(r.zutaten) + '|' + r.portionenBasis;
+    if (!analyseCache.has(schluessel)) analyseCache.set(schluessel, window.Lebensmittel.rezeptAnalyse(r));
+    return analyseCache.get(schluessel);
+  }
+  function rezeptBetroffene(r) { const a = rezeptAnalyse(r); return a ? window.Lebensmittel.betroffene(a.allergene, []) : []; }
+  function jemandHatAllergien() { return !!(window.Lebensmittel && window.Lebensmittel.personen().some(p => (p.allergien || []).length)); }
+  function renderNaehrBox(r) {
+    const box = document.getElementById('detailNaehrBox');
+    const a = rezeptAnalyse(r);
+    if (!a || !a.gesamt) { box.style.display = 'none'; return; }
+    box.style.display = '';
+    const L = window.Lebensmittel, pp = a.proPortion;
+    const zuverlaessig = a.erkannt / a.gesamt;
+    let html = '';
+    if (a.erkannt && zuverlaessig >= 0.5) {
+      html += '<div class="naehr-zahlen">' +
+        '<div><b>' + Math.round(pp.kcal) + '</b><span>kcal</span></div>' +
+        '<div><b>' + Math.round(pp.e) + ' g</b><span>Eiweiß</span></div>' +
+        '<div><b>' + Math.round(pp.kh) + ' g</b><span>Kohlenh.</span></div>' +
+        '<div><b>' + Math.round(pp.f) + ' g</b><span>Fett</span></div></div>' +
+        '<div class="naehr-hinweis">≈ pro Portion (bei ' + r.portionenBasis + ' Portionen), grob geschätzt aus ' + a.erkannt + ' von ' + a.gesamt + ' Zutaten' +
+        (a.offen.length ? ' – ohne: ' + escapeHtml(a.offen.join(', ')) : '') + '.</div>';
+    } else {
+      html += '<div class="naehr-hinweis">Für eine Nährwert-Schätzung fehlen Mengenangaben' + (a.offen.length ? ' (z.B. bei ' + escapeHtml(a.offen.slice(0, 3).join(', ')) + ')' : '') + '.</div>';
+    }
+    if (a.allergene.length) {
+      html += '<div style="margin-top:8px;">' + a.allergene.map(id => '<span class="allergen-chip">' + L.ALLERGEN_INFO[id].icon + ' ' + escapeHtml(L.ALLERGEN_INFO[id].label) + '</span>').join('') + '</div>' +
+        L.warnungenHtml(a.allergene, [], true) +
+        '<div class="naehr-hinweis">Allergene vermutet anhand der Zutatennamen – bei Fertigprodukten (z.B. Brühe, Soßen) bitte die Packung prüfen.</div>';
+    } else html += '<div class="naehr-hinweis" style="margin-top:8px;">Keine der 14 Hauptallergene in den Zutatennamen erkannt.</div>';
+    document.getElementById('detailNaehrInhalt').innerHTML = html;
+  }
+
   function detailOeffnen(id) {
     const r = rezepte.find(x => x.id === id);
     if (!r) return;
@@ -1523,6 +1588,7 @@
     document.getElementById('detailNotizBox').style.display = r.notiz ? '' : 'none';
     document.getElementById('detailNotizBox').textContent = r.notiz || '';
     renderDetailPortionenAbhaengig(r);
+    renderNaehrBox(r);
     document.getElementById('terminPlanenBox').style.display = 'none';
     detailPositionAnzeigeRendern();
     document.getElementById('modalDetail').classList.add('zeigen');
@@ -2484,7 +2550,8 @@
           (rezept
             ? '<span class="icon">' + kat.icon + '</span><span class="titel">' + escapeHtml(rezept.titel) + '</span>' +
               (rezept.aufwand ? '<span style="font-size:0.75rem;flex-shrink:0;" title="' + AUFWAND_STUFEN[rezept.aufwand].label + '">' + AUFWAND_STUFEN[rezept.aufwand].icon + '</span>' : '') +
-              (rezept.zuletztGekocht ? '<span style="font-size:0.65rem;color:var(--bark);opacity:0.75;flex-shrink:0;white-space:nowrap;">🕒 ' + relativZeitraumKurz(rezept.zuletztGekocht) + '</span>' : '')
+              (rezept.zuletztGekocht ? '<span style="font-size:0.65rem;color:var(--bark);opacity:0.75;flex-shrink:0;white-space:nowrap;">🕒 ' + relativZeitraumKurz(rezept.zuletztGekocht) + '</span>' : '') +
+              (function () { const b = rezeptBetroffene(rezept); return b.length ? '<span style="font-size:0.66rem;font-weight:700;color:#b03a2e;flex-shrink:0;white-space:nowrap;" title="' + escapeHtml(b.map(x => x.person.label + ': ' + window.Lebensmittel.allergenText(x.enthalten)).join(' · ')) + '">⚠ ' + escapeHtml(b.map(x => x.person.label).join(', ')) + '</span>' : ''; })()
             : '<span class="wochentag-leer">Kein Rezept geplant – antippen zum Auswählen</span>') +
         '</div>' +
         (rezept ? '<button class="wochentag-entfernen" aria-label="Entfernen">✕</button>' : '');
@@ -2674,6 +2741,7 @@
   })();
 
   if (window.PlanerSync) {
+    if (window.Lebensmittel) window.Lebensmittel.syncStarten();
     window._sync = window.PlanerSync.starteSync({
       modul: 'kochen',
       keys: [KEY_REZEPTE, KEY_WOCHENPLAN],

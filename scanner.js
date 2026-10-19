@@ -12,18 +12,59 @@ window.PlanerScanner = (function () {
 
   function kannErkennen() { return 'BarcodeDetector' in window && !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia); }
 
-  async function produktNachschlagen(code) {
-    const url = 'https://world.openfoodfacts.org/api/v2/product/' + encodeURIComponent(code) +
-      '.json?fields=product_name,product_name_de,generic_name_de,brands,quantity,image_front_small_url';
-    const res = await fetch(url);
-    if (!res.ok && res.status !== 404) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    if (!data || data.status !== 1 || !data.product) return { code, name: '', menge: '', marke: '', bild: '', gefunden: false };
-    const p = data.product;
+  // Open Food Facts (Lebensmittel), dann Open Beauty Facts (Drogerie) und Open Products Facts (Sonstiges)
+  const QUELLEN = [['food', 'https://world.openfoodfacts.org'], ['beauty', 'https://world.openbeautyfacts.org'], ['products', 'https://world.openproductsfacts.org']];
+  const FELDER = 'product_name,product_name_de,generic_name_de,brands,quantity,product_quantity,product_quantity_unit,image_front_small_url,' +
+    'categories_tags,allergens_tags,traces_tags,nutriscore_grade,nova_group,ecoscore_grade,ingredients_text_de,ingredients_text,labels_tags,ingredients_analysis_tags,nutriments';
+  const LABELS = [['Bio', ['en:organic', 'en:eu-organic', 'de:bio']], ['Vegan', ['en:vegan']], ['Vegetarisch', ['en:vegetarian']], ['Glutenfrei', ['en:no-gluten', 'en:gluten-free']],
+    ['Laktosefrei', ['en:no-lactose', 'en:lactose-free']], ['Ohne Palmöl', ['en:palm-oil-free', 'en:no-palm-oil']], ['Fairtrade', ['en:fair-trade', 'en:fairtrade-international']]];
+  function produktAusOff(code, p, quelle) {
     const marke = (p.brands || '').split(',')[0].trim();
     let name = (p.product_name_de || p.product_name || p.generic_name_de || '').trim();
     if (marke && name && name.toLowerCase().indexOf(marke.toLowerCase()) === -1) name = marke + ' ' + name;
-    return { code, name: name || marke, menge: (p.quantity || '').trim(), marke, bild: p.image_front_small_url || '', gefunden: !!(name || marke) };
+    const L = window.Lebensmittel;
+    const tags = (p.labels_tags || []).concat((p.ingredients_analysis_tags || []).filter(t => !/-unknown|maybe-|non-/.test(t)));
+    const labels = LABELS.filter(([, t]) => t.some(x => tags.includes(x))).map(([l]) => l);
+    if (labels.includes('Vegan')) { const i = labels.indexOf('Vegetarisch'); if (i >= 0) labels.splice(i, 1); }
+    const n = p.nutriments || {};
+    const zahl = (v) => (v === undefined || v === null || v === '' || isNaN(Number(v))) ? undefined : Number(v);
+    const naehr = { kcal: zahl(n['energy-kcal_100g']), fett: zahl(n.fat_100g), gfett: zahl(n['saturated-fat_100g']), kh: zahl(n.carbohydrates_100g),
+      zucker: zahl(n.sugars_100g), eiweiss: zahl(n.proteins_100g), salz: zahl(n.salt_100g), ballast: zahl(n.fiber_100g) };
+    if (naehr.kcal === undefined && zahl(n.energy_100g) !== undefined) naehr.kcal = Math.round(zahl(n.energy_100g) / 4.184);
+    const einheit = String(p.product_quantity_unit || '').toLowerCase();
+    const mengeG = zahl(p.product_quantity) && (einheit === 'g' || einheit === 'ml' || !einheit) ? zahl(p.product_quantity) : undefined;
+    let zutaten = String(p.ingredients_text_de || p.ingredients_text || '').replace(/_/g, '').trim();
+    if (zutaten.length > 600) zutaten = zutaten.slice(0, 597) + '…';
+    return {
+      code, quelle, name: name || marke, menge: (p.quantity || '').trim(), marke, bild: p.image_front_small_url || '', gefunden: !!(name || marke),
+      kategorie: L ? L.kategorieAusOff(p.categories_tags, quelle) : '',
+      allergene: L ? L.allergeneAusOffTags(p.allergens_tags) : [], spuren: L ? L.allergeneAusOffTags(p.traces_tags) : [],
+      nutriscore: /^[a-e]$/.test(p.nutriscore_grade || '') ? p.nutriscore_grade : '', nova: Number(p.nova_group) || 0,
+      eco: /^[a-e]$/.test(p.ecoscore_grade || '') ? p.ecoscore_grade : '', labels, zutaten,
+      naehr: Object.values(naehr).some(v => v !== undefined) ? naehr : null, mengeG,
+      fluessig: einheit === 'ml' || (p.categories_tags || []).includes('en:beverages'),
+    };
+  }
+  async function produktNachschlagen(code) {
+    const L = window.Lebensmittel;
+    const gemerkt = L && L.produkt(code);
+    // Schon einmal gescannt (auf irgendeinem Familien-Gerät)? → sofort, auch offline
+    if (gemerkt && gemerkt.name) return Object.assign({}, gemerkt, { gefunden: true, ausGedaechtnis: true });
+    let netzFehler = false;
+    for (const [quelle, basis] of QUELLEN) {
+      try {
+        const res = await fetch(basis + '/api/v2/product/' + encodeURIComponent(code) + '.json?fields=' + FELDER);
+        if (!res.ok && res.status !== 404) { if (quelle === 'food') netzFehler = true; continue; }
+        const data = await res.json();
+        if (data && data.status === 1 && data.product) {
+          const p = produktAusOff(code, data.product, quelle);
+          if (p.gefunden) { if (L) L.produktMerken(p); return p; }
+        }
+      } catch (e) { if (quelle === 'food') { netzFehler = true; break; } } // offline: die anderen Quellen gar nicht erst versuchen
+    }
+    const leer = { code, name: '', menge: '', marke: '', bild: '', gefunden: false };
+    if (netzFehler) throw new Error('offline');
+    return leer;
   }
 
   function stil() {

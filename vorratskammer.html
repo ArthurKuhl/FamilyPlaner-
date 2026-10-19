@@ -330,6 +330,7 @@
 <div class="modal-bg" id="modalItem">
   <div class="modal">
     <h2 id="itemModalTitel">Neuer Vorrat</h2>
+    <div id="vorratProduktKarte" style="display:none;margin-bottom:12px;padding:12px;border-radius:14px;border:1px solid var(--parchment);background:var(--white);"></div>
     <div class="feld">
       <label for="fName">Name</label>
       <div style="display:flex;gap:6px;">
@@ -425,6 +426,7 @@
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
 <script src="sync.js"></script>
+<script src="lebensmittel.js"></script>
 <script src="scanner.js"></script>
 <script src="gemeinsam.js"></script>
 <script>
@@ -460,6 +462,31 @@
   let editSterne = 0;
   let editKategorie = 'lebensmittel';
   let editLagerort = '';
+  let editCode = ''; // Strichcode des Produkts (→ Produktkarte aus planer_produkte)
+  function produktZuItem(item) {
+    if (!window.Lebensmittel || !item) return null;
+    return (item.code ? window.Lebensmittel.produkt(item.code) : null) || window.Lebensmittel.produktZuName(item.name);
+  }
+  function produktKarteZeigen(prod) {
+    const box = document.getElementById('vorratProduktKarte');
+    box.style.display = prod ? '' : 'none';
+    box.innerHTML = prod ? window.Lebensmittel.produktKarteHtml(prod) : '';
+  }
+  // Übernimmt ein (gescanntes) Produkt ins Formular – nur leere Felder werden gefüllt
+  window.vorratProduktUebernehmen = function (p) {
+    if (!p) return;
+    editCode = p.code || '';
+    const name = document.getElementById('fName'), menge = document.getElementById('fMenge'), gruppe = document.getElementById('fGruppierung');
+    if (p.name) name.value = p.name;
+    if (menge && !menge.value && p.menge) menge.value = p.menge;
+    const L = window.Lebensmittel;
+    if (L && p.kategorie) {
+      if (!editLagerort && L.KATEGORIE_LAGERORT[p.kategorie]) { editLagerort = L.KATEGORIE_LAGERORT[p.kategorie]; renderFormLagerortReihe(); }
+      if (gruppe && !gruppe.value && L.KATEGORIE_NAME[p.kategorie]) gruppe.value = L.KATEGORIE_NAME[p.kategorie];
+      if (p.kategorie === 'drogerie') { const passend = alleKategorien().find(k => /drogerie|haushalt|bad/i.test(k.label)); if (passend) { editKategorie = passend.id; renderFormKategorieReihe(); } }
+    }
+    produktKarteZeigen(p);
+  };
   const KEY_ENTWURF = 'vorratskammer_entwurf';
   let entwurfIntervall = null;
   function entwurfSammeln() {
@@ -640,6 +667,13 @@
     return BESTAND_STUFEN[(idx + 1) % BESTAND_STUFEN.length].id;
   }
 
+  function produktHinweisHtml(item) {
+    const prod = produktZuItem(item);
+    if (!prod) return '';
+    const betr = window.Lebensmittel.betroffene(prod.allergene, prod.spuren).filter(b => b.enthalten.length);
+    return '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:3px;">' + (prod.nutriscore ? window.Lebensmittel.nutriScoreHtml(prod.nutriscore, true) : '') +
+      (betr.length ? '<span class="vk-chip" style="background:rgba(192,57,43,0.14);color:#b03a2e;" title="' + escapeHtml(betr.map(b => b.person.label + ': ' + window.Lebensmittel.allergenText(b.enthalten)).join(' · ')) + '">⚠ ' + escapeHtml(betr.map(b => b.person.label).join(', ')) + '</span>' : '') + '</div>';
+  }
   function renderListe() {
     const box = document.getElementById('vorratListe');
     let eigene = sortiereItems(items.filter(i => i.kategorie === aktiveKategorie));
@@ -659,7 +693,7 @@
           '<div class="vk-titel-block">' +
             '<span class="vk-name">' + escapeHtml(item.name) + '</span> ' +
             (item.menge ? '<span class="vk-menge">· ' + escapeHtml(item.menge) + '</span>' : '') +
-            sterneHtml +
+            sterneHtml + produktHinweisHtml(item) +
           '</div>' +
           '<button class="vk-cart" data-id="' + item.id + '" title="Zur Einkaufsliste hinzufügen">🛒</button>' +
         '</div>' +
@@ -799,6 +833,8 @@
     editSterne = item ? (item.sterne || 0) : 0;
     editKategorie = item ? item.kategorie : aktiveKategorie;
     editLagerort = item ? (item.lagerort || '') : '';
+    editCode = item ? (item.code || '') : '';
+    produktKarteZeigen(produktZuItem(item));
     aktualisiereGruppierungListe();
     renderFormLagerortReihe();
     renderFormKategorieReihe();
@@ -825,7 +861,7 @@
   let eingang = laden(KEY_EINGANG, []);
   let eingangInBearbeitung = null; // Eintrag, der gerade über das Formular einsortiert wird
   // Lagerort-Vorschlag aus der Einkaufs-Kategorie
-  const EINGANG_LAGERORT = { tiefkuehl: 'gefrierfach', milchprodukte: 'kuehlschrank', fleisch_fisch: 'kuehlschrank', obst_gemuese: 'kuehlschrank', trockenwaren: 'vorratsschrank', getraenke: 'keller', brot: 'vorratsschrank' };
+  const EINGANG_LAGERORT = { tiefkuehl: 'gefrierfach', milchprodukte: 'kuehlschrank', fleisch_fisch: 'kuehlschrank', obst_gemuese: 'kuehlschrank', trockenwaren: 'vorratsschrank', suesses: 'vorratsschrank', getraenke: 'keller', brot: 'vorratsschrank' };
   function eingangSpeichern() { speichern(KEY_EINGANG, eingang); }
   function eingangAufraeumen() {
     const grenze = new Date(Date.now() - EINGANG_MAX_TAGE * 86400000).toISOString().slice(0, 10);
@@ -904,6 +940,7 @@
       document.getElementById('fMenge').value = e.menge || '';
       document.getElementById('fBestand').value = 'viel';
       document.getElementById('fGekauft').value = e.datum || '';
+      if (e.code && window.Lebensmittel) { const prod = window.Lebensmittel.produkt(e.code); if (prod) window.vorratProduktUebernehmen(Object.assign({}, prod, { name: e.name, menge: e.menge || prod.menge })); }
       const lagerVorschlag = EINGANG_LAGERORT[e.einkaufKategorie];
       if (lagerVorschlag && !editLagerort) { editLagerort = lagerVorschlag; renderFormLagerortReihe(); }
       if (e.einkaufKategorie === 'drogerie') {
@@ -971,6 +1008,7 @@
       aufbrauchenBis: document.getElementById('fAufbrauchen').value,
       notiz: document.getElementById('fNotiz').value.trim(),
       sterne: editSterne,
+      code: editCode || undefined,
     };
     if (bearbeitenId) {
       const item = items.find(i => i.id === bearbeitenId);
@@ -1006,6 +1044,7 @@
 
   if (window.PlanerSync) {
     window._termineSync = window.PlanerSync.starteSync({ modul: 'termine', keys: [KEY_TERMINE_EVENTS] });
+    if (window.Lebensmittel) window.Lebensmittel.syncStarten();
     // Der Vorrat war bis v370 nicht synchronisiert – jedes Gerät hat womöglich eigene Einträge.
     // Beim ersten Abgleich je Gerät werden deshalb lokale und Cloud-Einträge VEREINT (nach id),
     // statt dass die Cloud-Version die lokalen Einträge überschreibt. Danach normaler Abgleich.
@@ -1138,8 +1177,11 @@
     if (!window.PlanerScanner) return;
     const p = await window.PlanerScanner.scannen();
     if (!p) return;
-    const name = document.getElementById('fName'), menge = document.getElementById('fMenge');
-    if (p.gefunden) { name.value = p.name; if (menge && !menge.value && p.menge) menge.value = p.menge; }
+    const name = document.getElementById('fName');
+    if (p.gefunden) {
+      const ok = window.Lebensmittel ? await window.Lebensmittel.produktDialog(p, { knopf: '✓ Übernehmen' }) : true;
+      if (ok) window.vorratProduktUebernehmen(p);
+    }
     else alert(p.fehler === 'offline' ? 'Keine Verbindung – Produkt bitte eintippen.' : 'Produkt ' + p.code + ' ist noch nicht in der Datenbank – bitte eintippen.');
     name.focus();
   });
