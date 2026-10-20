@@ -2,6 +2,9 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
+## 2026-10-20 | 🖼️ Community mit Bildern
+Auf der Übersicht zeigt die Community-Kachel Fotos jetzt als wischbare Bildkarten mit Name und Text – neue Beiträge sind mit „NEU“ markiert. Ein Tipp auf ein Bild springt direkt zum Beitrag.
+
 ## 2026-10-19 | 📷 Mehr aus dem Strichcode
 Nach dem Scannen zeigt eine Produktkarte Nutri-Score, Verarbeitungsgrad, Bio/vegan, Allergene, Zutaten und Nährwerte. Das Produkt landet gleich in der passenden Abteilung (neu: 🍫 Süßes & Snacks), in der Vorratskammer mit passendem Lagerort. Einmal gescannte Produkte kennt danach die ganze Familie – auch ohne Netz und als Vorschlag beim Tippen. Auch Drogerieartikel werden jetzt gefunden.
 

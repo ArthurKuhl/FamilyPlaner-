@@ -128,6 +128,17 @@
   .neu-kopf { display: flex; justify-content: space-between; gap: 8px; font-size: 0.88rem; color: var(--soil); }
   .neu-kopf span { font-size: 0.7rem; color: var(--bark); flex-shrink: 0; }
   .neu-text { font-size: 0.8rem; color: var(--bark); white-space: pre-wrap; line-height: 1.5; margin-top: 4px; }
+  /* Bilder-Leiste in der Community-Kachel (wischbar, wie ein Karussell) */
+  .comm-karussell { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; margin: 8px -4px 4px; padding: 2px 4px 6px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .comm-karussell::-webkit-scrollbar { display: none; }
+  .comm-karte { position: relative; flex: 0 0 auto; width: 46%; max-width: 190px; aspect-ratio: 3 / 4; border-radius: 16px; overflow: hidden; scroll-snap-align: start; background: var(--parchment); box-shadow: 0 2px 8px rgba(0,0,0,0.12); cursor: pointer; }
+  .comm-karte img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .comm-karte-unten { position: absolute; left: 0; right: 0; bottom: 0; padding: 26px 10px 9px; background: linear-gradient(transparent, rgba(0,0,0,0.75)); color: #fff; }
+  .comm-karte-name { font-weight: 700; font-size: 0.82rem; }
+  .comm-karte-text { font-size: 0.72rem; opacity: 0.92; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .comm-karte-neu { position: absolute; top: 8px; left: 8px; background: var(--terracotta); color: #fff; font-size: 0.6rem; font-weight: 800; padding: 2px 7px; border-radius: 999px; }
+  .comm-beitrag.hervorheben { animation: commBlink 1.6s ease; border-radius: 10px; }
+  @keyframes commBlink { 0%, 60% { background: rgba(214,168,74,0.25); } 100% { background: transparent; } }
   .comm-vorschau { font-size: 0.8rem; color: var(--bark); margin-top: 3px; overflow: hidden; text-overflow: ellipsis; }
   .comm-vorschau b { color: var(--soil); }
   .comm-schreiben { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
@@ -1236,15 +1247,26 @@
     const neu = communityNeueAnzahl();
     badge.textContent = neu; badge.style.display = neu ? '' : 'none';
     if (!communityBeitraege.length) { box.textContent = 'Noch keine Beiträge – schreib den ersten!'; return; }
-    box.innerHTML = communityBeitraege.slice(0, 2).map(b =>
-      '<div class="comm-vorschau"><b>' + escapeHtml(b.name) + ':</b> ' + (b.bild ? '📷 ' : '') + escapeHtml((b.text || '').length > 90 ? b.text.slice(0, 90) + '…' : (b.text || (b.bild ? 'Bild' : ''))) + '</div>').join('');
+    let gesehen = 0;
+    try { gesehen = Number(localStorage.getItem(KEY_COMMUNITY_GESEHEN) || 0); } catch (e) {}
+    const istNeu = (b) => b.uid !== communityUid && b.erstellt && b.erstellt.toMillis && b.erstellt.toMillis() > gesehen;
+    const mitBild = communityBeitraege.filter(b => typeof b.bild === 'string' && b.bild.indexOf('data:image/jpeg;base64,') === 0).slice(0, 10);
+    const ohneBild = communityBeitraege.filter(b => !mitBild.includes(b)).slice(0, mitBild.length ? 1 : 2);
+    box.innerHTML =
+      (mitBild.length ? '<div class="comm-karussell">' + mitBild.map(b =>
+        '<div class="comm-karte" data-id="' + escapeHtml(b.id) + '"><img src="' + b.bild + '" alt="" loading="lazy">' +
+          (istNeu(b) ? '<span class="comm-karte-neu">NEU</span>' : '') +
+          '<div class="comm-karte-unten"><div class="comm-karte-name">' + escapeHtml(b.name) + '</div>' +
+          (b.text ? '<div class="comm-karte-text">' + escapeHtml(b.text) + '</div>' : '') + '</div></div>').join('') + '</div>' : '') +
+      ohneBild.map(b =>
+        '<div class="comm-vorschau" data-id="' + escapeHtml(b.id) + '"><b>' + escapeHtml(b.name) + ':</b> ' + escapeHtml((b.text || '').length > 90 ? b.text.slice(0, 90) + '…' : (b.text || '')) + '</div>').join('');
   }
   function renderCommunityListe() {
     const liste = document.getElementById('communityListe');
     if (!liste) return;
     liste.innerHTML = communityBeitraege.length ? communityBeitraege.map(b => {
       const darfLoeschen = b.uid === communityUid || communityAdmin;
-      return '<div class="comm-beitrag' + (b.uid === communityUid ? ' eigener' : '') + '">' +
+      return '<div class="comm-beitrag' + (b.uid === communityUid ? ' eigener' : '') + '" data-id="' + escapeHtml(b.id) + '">' +
         '<div class="comm-kopf"><b>' + escapeHtml(b.name) + '</b><span>' + zeitText(b.erstellt) + '</span>' +
         (darfLoeschen ? '<button type="button" class="comm-loeschen" data-id="' + b.id + '" title="Löschen">🗑</button>' : '') + '</div>' +
         (b.text ? '<div class="comm-text">' + escapeHtml(b.text) + '</div>' : '') +
@@ -1272,7 +1294,14 @@
       }, err => { document.getElementById('communityKurz').textContent = '⚠ Community nicht erreichbar (' + (err.code || 'Fehler') + ').'; });
     });
   }
-  document.getElementById('kachelCommunity').addEventListener('click', () => {
+  document.getElementById('kachelCommunity').addEventListener('click', (e) => {
+    // Tipp auf eine Bild-Karte oder Vorschau: im Fenster direkt zu diesem Beitrag springen
+    const ziel = e.target.closest('[data-id]');
+    const zielId = ziel ? ziel.dataset.id : '';
+    if (zielId) setTimeout(() => {
+      const el = Array.from(document.querySelectorAll('#communityListe .comm-beitrag')).find(x => x.dataset.id === zielId);
+      if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.add('hervorheben'); setTimeout(() => el.classList.remove('hervorheben'), 1800); }
+    }, 120);
     document.getElementById('communityName').value = communityName();
     document.getElementById('communityAdminInfo').textContent = communityUid ? 'Geräte-Kennung: ' + communityUid + (communityAdmin ? ' · 🛡 Admin' : '') : '';
     renderCommunityListe();
