@@ -2,6 +2,12 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
+## 2026-10-21 | 🎁 Wunschliste als eigener Bereich
+Die Wunschliste hat jetzt einen eigenen Platz (unten in der Leiste oder unter ☰ Mehr) statt eines Reiters in den Terminen. Alle bisherigen Wünsche sind automatisch mit dabei. Über das orange ＋ kommt ein Wunsch auch direkt auf die Liste.
+
+## 2026-10-21 | 🛠️ Neue Termine sofort sichtbar
+Neu eingetragene Termine erscheinen jetzt sofort im Kalender – vorher musste man manchmal erst aktualisieren.
+
 ## 2026-10-20 | 🖼️ Community mit Bildern
 Auf der Übersicht zeigt die Community-Kachel Fotos jetzt als wischbare Bildkarten mit Name und Text – neue Beiträge sind mit „NEU“ markiert. Ein Tipp auf ein Bild springt direkt zum Beitrag.
 

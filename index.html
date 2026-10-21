@@ -465,7 +465,9 @@
       { id: 'garten',      label: 'Garten',    emoji: '🌱', src: 'garten.html',
         syncKeys: ['gartenplaner_v3','gartenplaner_varieties','gartenplaner_bedTemplates','gartenplaner_recentPlants','gartenplaner_seedInventory','gartenplaner_costs','gartenplaner_pantry','gartenplaner_shops','gartenplaner_careDone','gartenplaner_customPlants','gartenplaner_pilzlog','gartenplaner_wishlist'],
         syncTransform: (werte) => window.PlanerSync ? window.PlanerSync.entferneFotosTief(werte) : werte },
-      { id: 'termine',     label: 'Termine',   emoji: '🗓️', src: 'termine.html', syncKeys: ['termine_events_v1','termine_wunschliste'] },
+      { id: 'termine',     label: 'Termine',   emoji: '🗓️', src: 'termine.html', syncKeys: ['termine_events_v1'] },
+      // syncModul: Cloud-Dokument, falls es anders heißt als das Modul – die Wunschliste war bis v413 Teil von „Termine“
+      { id: 'wunschliste', label: 'Wunschliste', emoji: '🎁', src: 'wunschliste.html', syncModul: 'termine', syncKeys: ['termine_wunschliste'] },
       { id: 'gesundheit',  label: 'Gesundheit',emoji: '🏃', src: 'gesundheit.html', syncKeys: ['gesundheit_tageswerte','gesundheit_sport','gesundheit_rechner','gesundheit_medikamente','gesundheit_medErledigt','gesundheit_ziele','gesundheit_trainingslog','gesundheit_eigeneUebungen','gesundheit_zyklus','gesundheit_trainingsplan'] },
       { id: 'einkauf',     label: 'Einkauf',   emoji: '🛒', src: 'einkauf.html', syncKeys: ['einkauf_listen','einkauf_favoriten','einkauf_vorlagen','einkauf_preise'],
         zusatzSync: [{ modul: 'einkauf_produkte', keys: ['planer_produkte'] }] }, // gescannte Produkte (Strichcode → Name, Allergene, Nährwerte)
@@ -1024,7 +1026,7 @@
       const pushes = [];
       if (window.PlanerSync) {
         MODULE.forEach(m => {
-          if ((m.syncKeys || []).some(k => geaendert.has(k))) pushes.push(window.PlanerSync.pushWerte(m.id, m.syncKeys, m.syncTransform));
+          if ((m.syncKeys || []).some(k => geaendert.has(k))) pushes.push(window.PlanerSync.pushWerte(m.syncModul || m.id, m.syncKeys, m.syncTransform));
           (m.zusatzSync || []).forEach(z => { if (z.keys.some(k => geaendert.has(k))) pushes.push(window.PlanerSync.pushWerte(z.modul, z.keys)); });
         });
       }
@@ -1339,6 +1341,7 @@
       { modul: 'einkauf', text: '🛒 Auf die Einkaufsliste' },
       { modul: 'termine', text: '🗓️ Als Termin' },
       { modul: 'notizblock', text: '📝 Als Notiz' },
+      { modul: 'wunschliste', text: '🎁 Auf die Wunschliste' },
     ];
     function schnellOeffnen() {
       const versteckt = versteckteModule();
@@ -1643,7 +1646,7 @@
         // bis jeder Bereich einzeln geöffnet wird (sonst könnte der alte Cloud-Stand
         // die gerade wiederhergestellten Daten wieder überschreiben).
         if (window.PlanerSync) {
-          const pushes = MODULE.filter(m => m.syncKeys).map(m => window.PlanerSync.pushWerte(m.id, m.syncKeys, m.syncTransform));
+          const pushes = MODULE.filter(m => m.syncKeys).map(m => window.PlanerSync.pushWerte(m.syncModul || m.id, m.syncKeys, m.syncTransform));
           MODULE.forEach(m => (m.zusatzSync || []).forEach(z => pushes.push(window.PlanerSync.pushWerte(z.modul, z.keys))));
           Promise.all(pushes).then(() => {
             status.textContent = '✅ Wiederhergestellt und mit der Cloud synchronisiert.';
