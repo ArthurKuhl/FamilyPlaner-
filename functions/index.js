@@ -8,6 +8,7 @@
 //   sonntagsbrief  – sonntags 18 Uhr ein Wochenüberblick aufs Handy
 //   kalender       – Termine als Kalender-Abo (ICS) für Google/Apple/Outlook
 //   rezeptImport   – liest ein Rezept von einer Webseite (schema.org/Recipe)
+//   chatPush       – Benachrichtigung bei neuen Nachrichten im Familien-Chat
 //
 // Datenquellen (wie von der App synchronisiert):
 //   planerFamilien/{familie}/daten/termine     → werte.termine_events_v1
@@ -528,5 +529,65 @@ exports.rezeptImport = onRequest({ region: 'europe-west3', memory: '256MiB', inv
   }
 });
 
+// ============================================================
+// 💬 FAMILIEN-CHAT: Benachrichtigung an die anderen Geräte der Familie
+// Die App ruft das nach dem Senden auf (POST { f: Familie, id: Nachricht }). Die Funktion liest die
+// Nachricht selbst aus der Cloud – so kann niemand beliebige Texte verschicken lassen – und
+// benachrichtigt jedes Gerät mit Push außer dem Absender (und anderen Geräten derselben Person).
+// Ist der Chat verschlüsselt, kennt der Server den Text nicht: dann nur „🔒 Neue Nachricht“.
+// ============================================================
+function chatVorschau(m) {
+  const typ = m.typ || 'text';
+  if (typ === 'bild') return '📷 Foto';
+  if (typ === 'sprache') return '🎤 Sprachnachricht' + (m.dauer ? ' (' + Math.floor(m.dauer / 60) + ':' + String(m.dauer % 60).padStart(2, '0') + ')' : '');
+  if (m.v) return typ === 'karte' ? '📎 Neue Nachricht' : '🔒 Neue Nachricht';
+  if (typ === 'karte' && m.karte) return ({ termin: '🗓️ ', rezept: '🍳 ', wunsch: '🎁 ', einkauf: '🛒 ' }[m.karte.art] || '📎 ') + (m.karte.titel || '') + (m.text ? ' – ' + m.text : '');
+  return String(m.text || '').slice(0, 180);
+}
+exports.chatPush = onRequest({ region: 'europe-west3', memory: '256MiB', invoker: 'public', cors: true, maxInstances: 5, timeoutSeconds: 30 }, async (req, res) => {
+  try {
+    const kopf = req.get('Authorization') || '';
+    if (!kopf.startsWith('Bearer ')) { res.status(401).json({ fehler: 'Nicht angemeldet' }); return; }
+    await getAuth().verifyIdToken(kopf.slice(7));
+  } catch (err) { res.status(401).json({ fehler: 'Anmeldung ungültig' }); return; }
+  const familie = String((req.body && req.body.f) || '').trim(), id = String((req.body && req.body.id) || '').trim();
+  if (!/^[\w-]{3,64}$/.test(familie) || !/^[\w-]{5,64}$/.test(id)) { res.status(400).json({ fehler: 'Ungültig' }); return; }
+  try {
+    const db = getFirestore();
+    const familieRef = db.collection('planerFamilien').doc(familie);
+    const snap = await familieRef.collection('chat').doc(id).get();
+    if (!snap.exists) { res.status(404).json({ fehler: 'Nachricht nicht gefunden' }); return; }
+    const m = snap.data();
+    // nur frische Nachrichten (verhindert späteres „Nachklingeln“ alter Beiträge)
+    const alter = Date.now() - ((m.erstellt && m.erstellt.toMillis) ? m.erstellt.toMillis() : 0);
+    if (alter > 6 * 3600 * 1000) { res.json({ ok: true, alt: true }); return; }
+    const heute = new Date().toISOString().slice(0, 10);
+    try { await familieRef.collection('pushVersand').doc('chat_' + id).create({ am: FieldValue.serverTimestamp(), datum: heute }); }
+    catch (err) { res.json({ ok: true, doppelt: true }); return; }
+    const geraete = await familieRef.collection('geraete').get();
+    const messaging = getMessaging();
+    let gesendet = 0;
+    for (const doc of geraete.docs) {
+      const g = doc.data();
+      if (!g || !g.token || !g.aktiv || g.chat === false) continue;
+      if (doc.id === m.geraet || (m.von && g.person && g.person === m.von)) continue;
+      const basis = g.appUrl || '';
+      try {
+        await messaging.send({ token: g.token, webpush: { headers: { Urgency: 'high', TTL: '86400' },
+          data: { titel: '💬 ' + (m.name || 'Familien-Chat'), text: chatVorschau(m), tag: 'chat', link: basis ? basis.replace(/[?#].*$/, '') + '?bereich=chat' : '' } } });
+        gesendet++;
+      } catch (err) {
+        const code = err && err.code;
+        if (code === 'messaging/registration-token-not-registered' || code === 'messaging/invalid-registration-token') await doc.ref.delete().catch(() => {});
+        else console.warn('Chat-Push fehlgeschlagen', doc.id, code || err);
+      }
+    }
+    res.json({ ok: true, gesendet });
+  } catch (err) {
+    console.error('chatPush', err);
+    res.status(500).json({ fehler: 'Fehler' });
+  }
+});
+
 // Für Tests (node): reine Hilfsfunktionen
-if (process.env.FAMILIENPLANER_TEST) exports._test = { sonntagsbriefText, kalenderIcs, rezeptAusJsonLd, zutatZerlegen, schritteListe, isoDauerMinuten, privateAdresse };
+if (process.env.FAMILIENPLANER_TEST) exports._test = { chatVorschau, sonntagsbriefText, kalenderIcs, rezeptAusJsonLd, zutatZerlegen, schritteListe, isoDauerMinuten, privateAdresse };
