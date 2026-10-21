@@ -164,6 +164,7 @@
     <button class="rund" id="btnAufnahmeSenden" style="background:var(--moss);color:#fff;" aria-label="Sprachnachricht senden">➤</button>
   </div>
   <input type="file" id="bildInput" accept="image/*" style="display:none;">
+  <input type="file" id="kameraInput" accept="image/*" capture="environment" style="display:none;">
 
   <div class="blatt-bg" id="blattBg"><div class="blatt" id="blatt"></div></div>
   <div id="bildGross"><img alt=""></div>
@@ -502,7 +503,9 @@
   $('eingabe').addEventListener('blur', () => { try { parent.postMessage({ type: 'tastatur', offen: false }, location.origin); } catch (e) {} });
 
   // ---------------------------------------------------------------- Foto
-  $('bildInput').addEventListener('change', (e) => {
+  $('kameraInput').addEventListener('change', (e) => bildGewaehlt(e));
+  $('bildInput').addEventListener('change', (e) => bildGewaehlt(e));
+  function bildGewaehlt(e) {
     const datei = e.target.files && e.target.files[0]; e.target.value = '';
     if (!datei) return;
     const img = new Image();
@@ -521,7 +524,7 @@
     };
     img.onerror = () => alert('Die Datei ist kein lesbares Bild.');
     img.src = URL.createObjectURL(datei);
-  });
+  }
 
   // ---------------------------------------------------------------- Sprachnachricht
   let rekorder = null, stueckchen = [], aufnahmeStart = 0, aufnahmeTimer = null, aufnahmeSenden = false;
@@ -580,7 +583,8 @@
   $('blattBg').addEventListener('click', e => { if (e.target.id === 'blattBg') blattZu(); });
   $('btnPlus').addEventListener('click', () => {
     blatt('<h3>Teilen</h3><div class="blatt-raster">' +
-      '<button type="button" data-t="foto"><span class="em">📷</span>Foto</button>' +
+      '<button type="button" data-t="kamera"><span class="em">📸</span>Kamera</button>' +
+      '<button type="button" data-t="foto"><span class="em">🖼️</span>Galerie</button>' +
       '<button type="button" data-t="termin"><span class="em">🗓️</span>Termin</button>' +
       '<button type="button" data-t="rezept"><span class="em">🍳</span>Rezept</button>' +
       '<button type="button" data-t="wunsch"><span class="em">🎁</span>Wunsch</button>' +
@@ -597,6 +601,7 @@
   function karteSenden(karte, text) { senden({ typ: 'karte', karte, text: text || '' }).catch(e => alert('Senden fehlgeschlagen: ' + fehlerText(e))); }
   function teilen(was) {
     if (was === 'foto') { blattZu(); $('bildInput').click(); return; }
+    if (was === 'kamera') { blattZu(); $('kameraInput').click(); return; } // öffnet direkt die Kamera (Handy)
     if (was === 'termin') {
       const h = heuteISO();
       const liste = lies('termine_events_v1', []).filter(e => e && e.date && (e.date >= h || (e.recurrence && e.recurrence.freq && e.recurrence.freq !== 'keine')))
