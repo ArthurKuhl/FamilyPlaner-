@@ -756,6 +756,7 @@
     // ＋ Schnell festhalten / Homescreen-Kurzbefehl: neuen Wunsch anlegen (Text vorausgefüllt)
     window.addEventListener('message', (e) => {
       if (e.origin !== window.location.origin || !e.data || e.data.type !== 'shortcutAktion') return;
+      if (e.data.aktion === 'zeige' && e.data.ziel && wunschliste.some(w => w.id === e.data.ziel)) { wunschFormOeffnen(e.data.ziel); return; }
       if (e.data.aktion === 'neu') { wunschFormOeffnen(null); if (e.data.text) document.getElementById('wunschName').value = e.data.text; }
     });
 

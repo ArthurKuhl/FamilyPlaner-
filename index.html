@@ -3,7 +3,7 @@
 <head>
 <script>(function(){try{var m=localStorage.getItem('planer_darkMode');if(m==='dunkel'||(m==='auto'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.setAttribute('data-dark','1');}var s=localStorage.getItem('planer_schriftgroesse');if(s==='gross'){document.documentElement.style.fontSize='19px';}var f=localStorage.getItem('planer_farbschema');if(f&&f!=='wald'){document.documentElement.setAttribute('data-farbschema',f);}}catch(e){}})();</script>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
 <title>Familienplaner</title>
 <!-- PWA -->
 <link rel="manifest" href="manifest.webmanifest">
@@ -98,6 +98,8 @@
   .ul-btn .em { font-size: 1.3rem; line-height: 1; }
   .ul-btn .ul-label { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .ul-btn.active { background: var(--moss); color: var(--on-moss, var(--leaf)); }
+  .untere-leiste.tastatur-offen { display: none !important; }
+  .mehr-kachel.punkt::after { content: ''; position: absolute; top: 6px; right: 18%; width: 9px; height: 9px; border-radius: 50%; background: var(--terracotta); }
   .ul-btn.punkt::after, .mehr-werkzeug.punkt::after { content: ''; position: absolute; top: 4px; right: 22%; width: 8px; height: 8px; border-radius: 50%; background: var(--terracotta); border: 1.5px solid var(--navbg); }
   .ul-plus { flex: 0 0 auto; width: 44px; height: 44px; border-radius: 50%; border: none; background: var(--terracotta); color: #fff;
     font-size: 1.5rem; font-weight: 700; line-height: 1; cursor: pointer; margin: 0 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.25); }
@@ -467,6 +469,7 @@
         syncTransform: (werte) => window.PlanerSync ? window.PlanerSync.entferneFotosTief(werte) : werte },
       { id: 'termine',     label: 'Termine',   emoji: '🗓️', src: 'termine.html', syncKeys: ['termine_events_v1'] },
       // syncModul: Cloud-Dokument, falls es anders heißt als das Modul – die Wunschliste war bis v413 Teil von „Termine“
+      { id: 'chat',        label: 'Chat',      emoji: '💬', src: 'chat.html' }, // Familien-Chat: eigene Cloud-Sammlung, kein syncKeys-Dokument
       { id: 'wunschliste', label: 'Wunschliste', emoji: '🎁', src: 'wunschliste.html', syncModul: 'termine', syncKeys: ['termine_wunschliste'] },
       { id: 'gesundheit',  label: 'Gesundheit',emoji: '🏃', src: 'gesundheit.html', syncKeys: ['gesundheit_tageswerte','gesundheit_sport','gesundheit_rechner','gesundheit_medikamente','gesundheit_medErledigt','gesundheit_ziele','gesundheit_trainingslog','gesundheit_eigeneUebungen','gesundheit_zyklus','gesundheit_trainingsplan'] },
       { id: 'einkauf',     label: 'Einkauf',   emoji: '🛒', src: 'einkauf.html', syncKeys: ['einkauf_listen','einkauf_favoriten','einkauf_vorlagen','einkauf_preise'],
@@ -544,6 +547,7 @@
       codeAnzeigenAktualisieren();
       starteBereiche();
       starteePersonenSync();
+      starteChatBeobachter();
       starteFarbschemaSync();
     }
 
@@ -597,6 +601,28 @@
       if (personenSyncHandle) personenSyncHandle.melde();
       renderPersonenListe();
     }
+    // ---------- 💬 Ungelesene Chat-Nachrichten: Punkt an „Chat“ in der Leiste bzw. bei ☰ Mehr ----------
+    var chatUngelesen = false, chatLetzte = null; // var: wird schon beim Aufbau der Leiste gelesen
+    function chatPunktPruefen() {
+      let gesehen = 0, ichBin = '';
+      try { gesehen = Number(localStorage.getItem('chat_gesehenBis') || 0); ichBin = localStorage.getItem('planer_geraetIdentitaet') || ''; } catch (e) {}
+      const neu = !!(chatLetzte && chatLetzte.ms > gesehen && chatLetzte.von !== ichBin && aktuellerBereichId() !== 'chat' && !versteckteModule().includes('chat'));
+      if (neu !== chatUngelesen) { chatUngelesen = neu; untereLeiste && (untereLeiste._html = ''); renderUntereLeiste(); }
+    }
+    function starteChatBeobachter() {
+      if (!window.PlanerSync || !familienId() || typeof firebase === 'undefined') return;
+      window.PlanerSync.authBereit().then(() => {
+        firebase.firestore().collection('planerFamilien').doc(familienId()).collection('chat').orderBy('erstellt', 'desc').limit(1)
+          .onSnapshot(snap => {
+            const d = snap.docs[0];
+            if (!d) { chatLetzte = null; chatPunktPruefen(); return; }
+            const m = d.data({ serverTimestamps: 'estimate' });
+            chatLetzte = { ms: m.erstellt && m.erstellt.toMillis ? m.erstellt.toMillis() : (m.zeit || 0), von: m.von };
+            chatPunktPruefen();
+          }, () => {});
+      }).catch(() => {});
+    }
+    window.addEventListener('storage', (e) => { if (e.key === 'chat_gesehenBis') chatPunktPruefen(); });
     function starteePersonenSync() {
       if (typeof PlanerSync === 'undefined' || !familienId()) return;
       personenSyncHandle = PlanerSync.starteSync({
@@ -701,7 +727,7 @@
     const KEY_PUSH = 'planer_push'; // { aktiv, person, termine: 'aus'|'meine'|'alle', medikamente }
     let pushLetzterStand = null;    // zuletzt hochgeladene Einstellungen (verhindert unnötige Schreibvorgänge)
     function pushEinstellungen() {
-      const standard = { aktiv: false, person: '', termine: 'meine', medikamente: true, ganztaegig: 'tag', vorrat: true, wartung: true, tagesZeit: '08:00', sonntagsbrief: true };
+      const standard = { aktiv: false, person: '', termine: 'meine', medikamente: true, ganztaegig: 'tag', vorrat: true, wartung: true, tagesZeit: '08:00', sonntagsbrief: true, chat: true };
       try { return Object.assign(standard, JSON.parse(localStorage.getItem(KEY_PUSH) || '{}')); }
       catch (e) { return standard; }
     }
@@ -748,7 +774,7 @@
       try { wasser = Object.assign(wasser, JSON.parse(localStorage.getItem('gesundheit_wasserErinnerung') || '{}')); } catch (err) {}
       const daten = {
         aktiv: true, token, person: e.person || '', termine: e.termine, medikamente: !!e.medikamente,
-        ganztaegig: e.ganztaegig, vorrat: !!e.vorrat, wartung: !!e.wartung, tagesZeit: e.tagesZeit || '08:00', sonntagsbrief: e.sonntagsbrief !== false,
+        ganztaegig: e.ganztaegig, vorrat: !!e.vorrat, wartung: !!e.wartung, tagesZeit: e.tagesZeit || '08:00', sonntagsbrief: e.sonntagsbrief !== false, chat: e.chat !== false,
         wasser: { aktiv: !!wasser.aktiv, zeiten: Array.isArray(wasser.zeiten) ? wasser.zeiten : [] },
         zeitzone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Berlin',
         appUrl: location.origin + location.pathname.replace(/[^/]*$/, '') + 'index.html',
@@ -888,6 +914,7 @@
           [['tag', 'Am Tag selbst'], ['vortag', 'Am Vorabend (18 Uhr) und am Tag'], ['aus', 'Keine']].map(([v, l]) => '<option value="' + v + '"' + (v === e.ganztaegig ? ' selected' : '') + '>' + l + '</option>').join('') + '</select>' +
         '<label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:0.82rem;color:var(--soil);"><input type="checkbox" id="pushVorrat"' + (e.vorrat ? ' checked' : '') + ' style="width:auto;"> 🥫 Vorrat läuft ab (3 Tage, 1 Tag vorher, am Tag)</label>' +
         '<label style="display:flex;align-items:center;gap:8px;margin-top:8px;font-size:0.82rem;color:var(--soil);"><input type="checkbox" id="pushWartung"' + (e.wartung ? ' checked' : '') + ' style="width:auto;"> 🔁 Fällige Wartungen (meine und offene)</label>' +
+        '<label style="display:flex;align-items:center;gap:8px;margin-top:8px;font-size:0.82rem;color:var(--soil);"><input type="checkbox" id="pushChat"' + (e.chat !== false ? ' checked' : '') + ' style="width:auto;"> 💬 Familien-Chat (neue Nachrichten)</label>' +
         '<label style="display:flex;align-items:center;gap:8px;margin-top:8px;font-size:0.82rem;color:var(--soil);"><input type="checkbox" id="pushSonntagsbrief"' + (e.sonntagsbrief !== false ? ' checked' : '') + ' style="width:auto;"> 📬 Sonntagsbrief (So 18 Uhr: eure Woche im Überblick)</label>' +
         '<div style="font-size:0.74rem;color:var(--bark);margin-top:8px;">💧 Wasser: ' + (wasser.aktiv ? 'an (' + (wasser.zeiten || []).slice().sort().join(', ') + ' Uhr)' : 'aus') + ' – Zeiten im Gesundheitsmodul einstellen.</div>' +
         '<button class="btn btn-secondary" id="btnPushAus" style="margin-top:10px;">Push auf diesem Gerät ausschalten</button>' +
@@ -902,11 +929,12 @@
         neu.vorrat = document.getElementById('pushVorrat').checked;
         neu.wartung = document.getElementById('pushWartung').checked;
         neu.sonntagsbrief = document.getElementById('pushSonntagsbrief').checked;
+        neu.chat = document.getElementById('pushChat').checked;
         pushEinstellungenSpeichern(neu);
         pushGeraetAktualisieren().then(() => { document.getElementById('pushStatus').textContent = '✓ Gespeichert'; })
           .catch(err => { document.getElementById('pushStatus').textContent = '⚠ ' + (err.message || 'Speichern fehlgeschlagen'); });
       };
-      ['pushPerson', 'pushTermine', 'pushMedikamente', 'pushTagesZeit', 'pushGanztaegig', 'pushVorrat', 'pushWartung', 'pushSonntagsbrief'].forEach(id => document.getElementById(id).addEventListener('change', aendern));
+      ['pushPerson', 'pushTermine', 'pushMedikamente', 'pushTagesZeit', 'pushGanztaegig', 'pushVorrat', 'pushWartung', 'pushSonntagsbrief', 'pushChat'].forEach(id => document.getElementById(id).addEventListener('change', aendern));
       document.getElementById('btnPushAus').addEventListener('click', pushDeaktivieren);
     }
     // Beim Start und beim Zurückkehren: Token/Einstellungen auffrischen (z.B. geänderte Wasser-Zeiten)
@@ -1263,13 +1291,13 @@
     function leisteHinweisPunkt() {
       const backup = document.getElementById('btnBackup');
       const sync = document.getElementById('syncStatus');
-      return (backup && backup.classList.contains('faellig')) || (sync && sync.textContent === '⚠️');
+      return (backup && backup.classList.contains('faellig')) || (sync && sync.textContent === '⚠️') || (chatUngelesen && !leisteFavoriten().includes('chat'));
     }
     function renderUntereLeiste() {
       if (!untereLeiste) return;
       const fav = leisteFavoriten();
       const aktiv = aktuellerBereichId();
-      const knopf = (mod) => `<button type="button" class="ul-btn${mod.id === aktiv ? ' active' : ''}" data-ul-modul="${mod.id}" aria-label="${escZ(mod.label)}"><span class="em" aria-hidden="true">${mod.emoji}</span><span class="ul-label">${escZ(mod.label)}</span></button>`;
+      const knopf = (mod) => `<button type="button" class="ul-btn${mod.id === aktiv ? ' active' : ''}${mod.id === 'chat' && chatUngelesen ? ' punkt' : ''}" data-ul-modul="${mod.id}" aria-label="${escZ(mod.label)}"><span class="em" aria-hidden="true">${mod.emoji}</span><span class="ul-label">${escZ(mod.label)}</span></button>`;
       const mods = fav.map(id => MODULE.find(m => m.id === id)).filter(Boolean);
       const teile = mods.map(knopf);
       const plus = '<button type="button" class="ul-plus" id="ulPlus" aria-label="Schnell festhalten" title="Schnell festhalten">＋</button>';
@@ -1305,7 +1333,7 @@
       document.getElementById('btnMehrBearbeiten').textContent = mehrBearbeiten ? '✓ Fertig' : '✏️ Leiste anpassen';
       document.getElementById('mehrGrid').innerHTML = sichtbareModuleListe().map(m => {
         const istFav = fav.includes(m.id);
-        return `<button type="button" class="mehr-kachel${m.id === aktiv ? ' active' : ''}${mehrBearbeiten && istFav ? ' fav' : ''}" data-mehr-modul="${m.id}">` +
+        return `<button type="button" class="mehr-kachel${m.id === aktiv ? ' active' : ''}${mehrBearbeiten && istFav ? ' fav' : ''}${m.id === 'chat' && chatUngelesen ? ' punkt' : ''}" data-mehr-modul="${m.id}">` +
           `<span class="em" aria-hidden="true">${m.emoji}</span><span>${escZ(m.label)}</span>` +
           (mehrBearbeiten ? `<span class="mehr-stern">${istFav ? '★' : '☆'}</span>` : '') + `</button>`;
       }).join('');
@@ -1342,6 +1370,7 @@
       { modul: 'termine', text: '🗓️ Als Termin' },
       { modul: 'notizblock', text: '📝 Als Notiz' },
       { modul: 'wunschliste', text: '🎁 Auf die Wunschliste' },
+      { modul: 'chat', text: '💬 In den Familien-Chat' },
     ];
     function schnellOeffnen() {
       const versteckt = versteckteModule();
@@ -1471,6 +1500,7 @@
         btn.setAttribute('aria-current', btn.dataset.id === mod.id ? 'page' : 'false');
       });
       renderUntereLeiste();
+      chatPunktPruefen();
       if (schreiben) {
         try { localStorage.setItem(STORAGE_KEY, mod.id); } catch (e) {}
       }
@@ -1526,7 +1556,9 @@
     // Erlaubt Modulen (z.B. der Startseite), per Kachel-Klick zu einem anderen Bereich zu wechseln
     window.addEventListener('message', (e) => {
       if (e.origin !== window.location.origin) return;
-      if (e.data && e.data.type === 'navigiere' && e.data.modul) bereichLaden(e.data.modul);
+      if (e.data && e.data.type === 'navigiere' && e.data.modul) bereichLaden(e.data.modul, { aktion: e.data.aktion || '', ziel: e.data.ziel || '', text: e.data.text || '' });
+      // Chat: bei offener Tastatur die untere Leiste ausblenden (mehr Platz zum Schreiben)
+      if (e.data && e.data.type === 'tastatur' && untereLeiste) untereLeiste.classList.toggle('tastatur-offen', !!e.data.offen);
       // Taschenmodus beim Joggen: Modul-Leiste oben schwarz abdecken, damit nichts versehentlich angetippt wird
       if (e.data && e.data.type === 'bildschirmSperre') {
         let decke = document.getElementById('shellSperre');

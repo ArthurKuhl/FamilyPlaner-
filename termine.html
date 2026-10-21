@@ -1121,6 +1121,14 @@
     // Reagiert auf App-Shortcuts (Homescreen-Icon lange gedrückt halten → "Neuer Termin")
     window.addEventListener('message', (e) => {
       if (e.origin !== window.location.origin) return;
+      // Aus dem Chat: „Im Kalender öffnen“ → Monat dieses Termins zeigen und den Tag öffnen
+      if (e.data && e.data.type === 'shortcutAktion' && e.data.aktion === 'zeige' && /^\d{4}-\d{2}-\d{2}$/.test(e.data.ziel || '')) {
+        const [j, m] = e.data.ziel.split('-').map(Number);
+        kalenderJahr = j; kalenderMonat = m - 1;
+        renderAktuelleAnsicht();
+        tagDetailOeffnen(e.data.ziel);
+        return;
+      }
       if (e.data && e.data.type === 'shortcutAktion' && e.data.aktion === 'neu') {
         terminModalOeffnen(null);
         if (e.data.text) document.getElementById('fTitel').value = e.data.text; // aus „＋ Schnell festhalten“

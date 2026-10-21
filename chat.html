@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<script>(function(){try{var m=localStorage.getItem('planer_darkMode');if(m==='dunkel'||(m==='auto'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.setAttribute('data-dark','1');}var s=localStorage.getItem('planer_schriftgroesse');if(s==='gross'){document.documentElement.style.fontSize='19px';}var f=localStorage.getItem('planer_farbschema');if(f&&f!=='wald'){document.documentElement.setAttribute('data-farbschema',f);}}catch(e){}})();</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Familien-Chat</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Inter:wght@300;400;500;600&display=swap');
+  :root {
+    --soil: #3a2e1f; --moss: #4f6f45; --sage: #7fa476; --leaf: #bcd196;
+    --cream: #faf6ec; --parchment: #ece0c7; --bark: #7d6339;
+    --terracotta: #c46b41; --terracotta-text: #a8532e; --sky: #5b8bb5; --gold: #c99a3a; --white: #fffdf8; --navbg: #2a2016; --navbg2: #3a2e1f;
+    --shadow-soft: 0 2px 10px rgba(59,47,30,0.08); --shadow-md: 0 6px 20px rgba(59,47,30,0.14);
+    --radius-sm: 8px; --radius-md: 12px; --radius-lg: 18px; --radius-pill: 22px;
+  }
+  html[data-dark="1"] {
+    --soil: #f0e8d8; --moss: #6fae5e; --sage: #9bc98a; --leaf: #cfe3b8;
+    --cream: #1e1b16; --parchment: #2b261e; --bark: #c2b393;
+    --terracotta: #d9855a; --terracotta-text: #e8a37e; --sky: #7fa8cc; --gold: #dcb158;
+    --white: #2f2a22; --navbg: #14100c; --navbg2: #221a12;
+  }
+
+  /* ---- Farbschemata (global, familienweit synchronisiert) ---- */
+  html[data-farbschema="ozean"] {
+    --navbg: #1c1f24; --navbg2: #2b2f36; --sage: #8fd4c9; --leaf: #8fd4c9; --moss: #4fa89c;
+  }
+  html[data-farbschema="schnee"] {
+    --navbg: #1c1f24; --navbg2: #2b2f36; --sage: #c9cdd3; --leaf: #f0f0f2; --moss: #5b5f66;
+  }
+  html[data-farbschema="fjord"] {
+    --navbg: #1c1f24; --navbg2: #2b2f36; --sage: #9cc0ec; --leaf: #9cc0ec; --moss: #5b8bc9;
+  }
+  html[data-farbschema="bernstein"] {
+    --navbg: #1c1f24; --navbg2: #2b2f36; --sage: #e6c878; --leaf: #e6c878; --moss: #c9a24d;
+  }
+  /* Im Dunkelmodus soll der Hauptbereich bei allen Nicht-Wald-Farbthemen ebenfalls
+     neutral-anthrazit statt warm-braun sein, damit Header und Inhalt zusammenpassen. */
+  html[data-dark="1"][data-farbschema] {
+    --cream: #191b1f; --parchment: #24262c; --white: #2a2d33;
+    --soil: #eceef0; --bark: #a7acb5;
+  }
+  html[data-dark="1"] { --moss-text: var(--sage); --on-moss: #16140f; }
+  html[data-dark="1"][data-farbschema="schnee"] { --on-moss: #f4f5f6; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body { font-family: 'Inter', sans-serif; background: var(--cream); color: var(--soil); display: flex; flex-direction: column; overflow: hidden; }
+  header.top { position: relative; flex-shrink: 0; background: linear-gradient(135deg, var(--navbg2), var(--navbg)); color: var(--leaf); padding: 8px 16px; }
+  header.top::after { content: ''; position: absolute; left: 0; right: 0; bottom: -3px; height: 3px; background: linear-gradient(90deg, var(--moss), var(--sage) 35%, var(--leaf) 65%, var(--moss)); opacity: 0.85; z-index: 1; }
+  .top-titel-zeile { display: flex; align-items: center; gap: 8px; }
+  header.top h1 { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 700; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .kopf-info { font-size: 0.68rem; color: var(--sage); font-weight: 500; }
+  .kopf-btn { background: none; border: none; color: var(--leaf); font-size: 1.05rem; cursor: pointer; padding: 4px; }
+
+  /* Nachrichtenverlauf */
+  #verlauf { flex: 1; overflow-y: auto; padding: 14px 10px 8px; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+  .tag-trenner { text-align: center; margin: 12px 0 8px; }
+  .tag-trenner span { display: inline-block; background: var(--parchment); color: var(--bark); font-size: 0.68rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; }
+  .zeile { display: flex; margin: 3px 0; }
+  .zeile.eigen { justify-content: flex-end; }
+  .blase { position: relative; max-width: 80%; padding: 7px 10px 5px; border-radius: 16px; background: var(--white); box-shadow: 0 1px 2px rgba(0,0,0,0.08); font-size: 0.92rem; line-height: 1.38; word-wrap: break-word; overflow-wrap: anywhere; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+  .zeile:not(.eigen) .blase { border-top-left-radius: 5px; }
+  .zeile.eigen .blase { background: var(--moss); color: var(--on-moss, #fff); border-top-right-radius: 5px; }
+  html:not([data-dark="1"]) .zeile.eigen .blase { color: #fff; }
+  .zeile.folge .blase { border-radius: 16px; }
+  .absender { font-size: 0.72rem; font-weight: 800; margin-bottom: 2px; }
+  .text { white-space: pre-wrap; }
+  .text a { color: inherit; text-decoration: underline; }
+  .fuss { display: flex; justify-content: flex-end; align-items: center; gap: 4px; font-size: 0.62rem; opacity: 0.7; margin-top: 2px; }
+  .haken.gelesen { color: #4fc3f7; opacity: 1; font-weight: 800; }
+  html:not([data-dark="1"]) .zeile.eigen .haken.gelesen { color: #b9f0ff; }
+  .blase img.bild { display: block; max-width: 100%; width: 260px; max-height: 320px; object-fit: cover; border-radius: 12px; margin: 2px 0 2px; cursor: zoom-in; background: rgba(127,127,127,0.15); }
+  .platzhalter { width: 220px; height: 150px; border-radius: 12px; background: rgba(127,127,127,0.15); display: flex; align-items: center; justify-content: center; font-size: 0.8rem; opacity: 0.8; }
+  .sprache { display: flex; align-items: center; gap: 8px; min-width: 190px; padding: 2px 0; }
+  .sprache button { width: 36px; height: 36px; border-radius: 50%; border: none; background: rgba(127,127,127,0.2); color: inherit; font-size: 1rem; cursor: pointer; flex-shrink: 0; }
+  .zeile.eigen .sprache button { background: rgba(255,255,255,0.25); }
+  .sprache .balken { flex: 1; height: 4px; border-radius: 2px; background: rgba(127,127,127,0.3); overflow: hidden; }
+  .sprache .balken span { display: block; height: 100%; width: 0; background: currentColor; }
+  .sprache .dauer { font-size: 0.7rem; opacity: 0.8; min-width: 30px; text-align: right; }
+  .karte { border-radius: 12px; background: rgba(127,127,127,0.12); padding: 8px 10px; margin: 2px 0; min-width: 200px; }
+  .zeile.eigen .karte { background: rgba(255,255,255,0.16); }
+  .karte-titel { font-weight: 700; font-size: 0.9rem; }
+  .karte-info { font-size: 0.74rem; opacity: 0.85; margin-top: 2px; }
+  .karte button { margin-top: 7px; width: 100%; border: none; border-radius: 10px; padding: 7px; font: 700 0.78rem 'Inter', sans-serif; cursor: pointer; background: var(--terracotta); color: #fff; }
+  .geloescht { font-style: italic; opacity: 0.6; }
+  .aeltere { display: block; margin: 4px auto 10px; border: 1px solid var(--parchment); background: var(--white); color: var(--bark); border-radius: 999px; padding: 6px 14px; font: 600 0.75rem 'Inter', sans-serif; cursor: pointer; }
+  .leer { text-align: center; color: var(--bark); font-size: 0.85rem; margin: 40px 20px; line-height: 1.6; }
+  .hinweis-box { margin: 12px; padding: 12px 14px; border-radius: 14px; background: rgba(196,107,65,0.12); font-size: 0.82rem; line-height: 1.5; }
+  .hinweis-box code { font-size: 0.7rem; display: block; white-space: pre-wrap; background: rgba(0,0,0,0.06); padding: 6px; border-radius: 6px; margin-top: 6px; }
+  .blase.markiert { outline: 2px solid var(--terracotta); }
+
+  /* Eingabe unten */
+  #eingabeLeiste { flex-shrink: 0; display: flex; align-items: flex-end; gap: 6px; padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px)); background: var(--cream); border-top: 1px solid var(--parchment); }
+  #eingabeLeiste textarea { flex: 1; min-width: 0; resize: none; max-height: 120px; padding: 10px 14px; border-radius: 22px; border: 1px solid var(--parchment); background: var(--white); color: var(--soil); font: 0.95rem/1.35 'Inter', sans-serif; }
+  .rund { width: 44px; height: 44px; flex-shrink: 0; border-radius: 50%; border: none; cursor: pointer; font-size: 1.15rem; display: flex; align-items: center; justify-content: center; }
+  #btnPlus { background: var(--parchment); color: var(--soil); }
+  #btnSenden { background: var(--moss); color: var(--on-moss, #fff); }
+  html:not([data-dark="1"]) #btnSenden { color: #fff; }
+  #btnMikro { background: var(--terracotta); color: #fff; }
+  #aufnahmeLeiste { display: none; flex-shrink: 0; align-items: center; gap: 10px; padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px)); background: var(--cream); border-top: 1px solid var(--parchment); }
+  #aufnahmeLeiste.an { display: flex; }
+  .rec-punkt { width: 12px; height: 12px; border-radius: 50%; background: #e53935; animation: blinken 1s infinite; }
+  @keyframes blinken { 50% { opacity: 0.2; } }
+  #aufnahmeZeit { flex: 1; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+  /* Blätter (Teilen, Aktionen, Auswahl) */
+  .blatt-bg { position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.45); display: none; align-items: flex-end; justify-content: center; }
+  .blatt-bg.zeigen { display: flex; }
+  .blatt { width: min(560px, 100%); max-height: 80vh; overflow-y: auto; background: var(--cream); border-radius: 20px 20px 0 0; padding: 14px 14px calc(16px + env(safe-area-inset-bottom, 0px)); }
+  .blatt h3 { font-family: 'Playfair Display', serif; font-size: 1.05rem; margin-bottom: 10px; }
+  .blatt-raster { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .blatt-raster button, .blatt-liste button { border: none; border-radius: 14px; background: var(--white); color: var(--soil); font: 600 0.78rem 'Inter', sans-serif; padding: 12px 6px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+  .blatt-raster button .em { font-size: 1.5rem; }
+  .blatt-liste { display: flex; flex-direction: column; gap: 6px; }
+  .blatt-liste button { flex-direction: row; justify-content: flex-start; text-align: left; padding: 11px 12px; font-size: 0.86rem; gap: 10px; }
+  .blatt-liste button small { display: block; font-weight: 400; font-size: 0.72rem; opacity: 0.75; }
+  .blatt-zu { margin-top: 10px; width: 100%; border: 1px solid var(--parchment); background: transparent; color: var(--soil); border-radius: 12px; padding: 10px; font: 600 0.85rem 'Inter', sans-serif; cursor: pointer; }
+  #bildGross { position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,0.92); display: none; align-items: center; justify-content: center; }
+  #bildGross.zeigen { display: flex; }
+  #bildGross img { max-width: 100%; max-height: 100%; }
+
+  /* Einrichtung (Person / Passwort) */
+  #einrichtung { flex: 1; overflow-y: auto; padding: 20px 16px; display: none; }
+  #einrichtung.zeigen { display: block; }
+  .einr-karte { background: var(--white); border-radius: 18px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+  .einr-karte h2 { font-family: 'Playfair Display', serif; font-size: 1.1rem; margin-bottom: 6px; }
+  .einr-karte p { font-size: 0.82rem; line-height: 1.5; color: var(--bark); margin-bottom: 10px; }
+  .einr-karte input { width: 100%; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--parchment); background: var(--cream); color: var(--soil); font: 0.9rem 'Inter', sans-serif; margin-bottom: 8px; }
+  .einr-knopf { width: 100%; border: none; border-radius: 12px; padding: 11px; font: 700 0.88rem 'Inter', sans-serif; cursor: pointer; background: var(--moss); color: var(--on-moss, #fff); margin-top: 4px; }
+  html:not([data-dark="1"]) .einr-knopf { color: #fff; }
+  .einr-knopf.zweit, html:not([data-dark="1"]) .einr-knopf.zweit { background: transparent; color: var(--soil); border: 1px solid var(--parchment); }
+  .personen-wahl { display: flex; flex-wrap: wrap; gap: 8px; }
+  .personen-wahl button { border: 2px solid transparent; border-radius: 999px; padding: 8px 14px; font: 700 0.85rem 'Inter', sans-serif; cursor: pointer; color: #fff; }
+  .einr-status { font-size: 0.78rem; margin-top: 6px; min-height: 1em; }
+</style>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
+<script src="personen.js"></script>
+<script src="sync.js"></script>
+</head>
+<body>
+  <header class="top">
+    <div class="top-titel-zeile">
+      <h1>💬 Familien-Chat</h1>
+      <span class="kopf-info" id="kopfInfo"></span>
+      <button class="kopf-btn" id="btnChatInfo" title="Über den Chat" aria-label="Über den Chat">ℹ️</button>
+    </div>
+  </header>
+
+  <div id="einrichtung"></div>
+  <div id="verlauf" aria-live="polite"></div>
+
+  <div id="eingabeLeiste">
+    <button class="rund" id="btnPlus" aria-label="Teilen: Foto, Termin, Rezept …" title="Foto, Termin, Rezept, Wunsch teilen">＋</button>
+    <textarea id="eingabe" rows="1" placeholder="Nachricht …" aria-label="Nachricht"></textarea>
+    <button class="rund" id="btnMikro" aria-label="Sprachnachricht aufnehmen" title="Sprachnachricht">🎤</button>
+    <button class="rund" id="btnSenden" aria-label="Senden" style="display:none;">➤</button>
+  </div>
+  <div id="aufnahmeLeiste">
+    <span class="rec-punkt"></span>
+    <span id="aufnahmeZeit">0:00</span>
+    <button class="rund" id="btnAufnahmeWeg" style="background:var(--parchment);color:var(--soil);" aria-label="Aufnahme verwerfen">🗑</button>
+    <button class="rund" id="btnAufnahmeSenden" style="background:var(--moss);color:#fff;" aria-label="Sprachnachricht senden">➤</button>
+  </div>
+  <input type="file" id="bildInput" accept="image/*" style="display:none;">
+
+  <div class="blatt-bg" id="blattBg"><div class="blatt" id="blatt"></div></div>
+  <div id="bildGross"><img alt=""></div>
+
+<script>
+(function () {
+  'use strict';
+  // ==========================================================================
+  // 💬 FAMILIEN-CHAT
+  // Nachrichten: planerFamilien/{Familie}/chat/{id}        (Text, Karten, Infos zu Medien)
+  // Medien:      planerFamilien/{Familie}/chatMedien/{id}  (Foto/Sprachnachricht, wird erst beim Anzeigen geladen)
+  // Status:      planerFamilien/{Familie}/daten/chat       ({ verschluesselung, gelesen: { person: ms } })
+  // Optional Ende-zu-Ende-verschlüsselt mit einem Familien-Passwort (AES-GCM, Schlüssel per PBKDF2) –
+  // dann sieht die Cloud nur Zeichensalat. Push an die anderen über die Server-Funktion „chatPush“.
+  // ==========================================================================
+  const PUSH_URL = 'https://europe-west3-familyplaner-733de.cloudfunctions.net/chatPush';
+  const SEITE = 80;              // so viele Nachrichten werden auf einmal geladen
+  const MAX_SPRACHE_SEK = 120;
+  const KEY_IDENTITAET = 'planer_geraetIdentitaet';
+  const KEY_GESEHEN = 'chat_gesehenBis';
+
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  function lies(k, f) { try { const r = localStorage.getItem(k); return r === null ? f : JSON.parse(r); } catch (e) { return f; } }
+  function personen() {
+    const l = (window.PLANER_PERSONEN && window.PLANER_PERSONEN.length) ? window.PLANER_PERSONEN : lies('planer_personenListe', []);
+    return (Array.isArray(l) ? l : []).filter(p => p && p.id && p.id !== 'familie');
+  }
+  const person = (id) => personen().find(p => p.id === id) || null;
+  function ich() { try { return localStorage.getItem(KEY_IDENTITAET) || ''; } catch (e) { return ''; } }
+  const fid = () => window.PlanerSync && window.PlanerSync.familienId && window.PlanerSync.familienId();
+  const geraet = () => (window.PlanerSync && window.PlanerSync.geraeteId) || 'geraet';
+
+  let db = null, nachrichten = [], limit = SEITE, abbestellen = null, statusAbbestellen = null;
+  let status = { gelesen: {}, verschluesselung: null }, schluessel = null, statusGeladen = false;
+  const medienCache = new Map(); // id → { bild | audio } (entschlüsselt)
+
+  // ---------------------------------------------------------------- Verschlüsselung
+  const enc = new TextEncoder(), dec = new TextDecoder();
+  const b64 = (buf) => { let s = ''; const u = new Uint8Array(buf); for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); return btoa(s); };
+  const unb64 = (s) => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+  async function schluesselAus(passwort, salz) {
+    const basis = await crypto.subtle.importKey('raw', enc.encode(passwort), 'PBKDF2', false, ['deriveKey']);
+    return crypto.subtle.deriveKey({ name: 'PBKDF2', salt: unb64(salz), iterations: 250000, hash: 'SHA-256' }, basis, { name: 'AES-GCM', length: 256 }, true, ['encrypt', 'decrypt']);
+  }
+  async function verschl(key, text) {
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    return { iv: b64(iv), daten: b64(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, enc.encode(text))) };
+  }
+  async function entschl(key, iv, daten) { return dec.decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(iv) }, key, unb64(daten))); }
+  const schluesselKey = () => 'chat_schluessel_' + fid();
+  async function gespeicherterSchluessel() {
+    try { const roh = localStorage.getItem(schluesselKey()); if (roh) return crypto.subtle.importKey('raw', unb64(roh), { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']); } catch (e) {}
+    return null;
+  }
+
+  // ---------------------------------------------------------------- Referenzen
+  const familie = () => db.collection('planerFamilien').doc(fid());
+  const chatCol = () => familie().collection('chat');
+  const medienCol = () => familie().collection('chatMedien');
+  const statusDoc = () => familie().collection('daten').doc('chat');
+
+  // ---------------------------------------------------------------- Start
+  async function start() {
+    if (!window.PlanerSync || typeof firebase === 'undefined' || !fid()) {
+      $('verlauf').innerHTML = '<div class="hinweis-box">Der Familien-Chat braucht die Cloud-Synchronisierung (Familien-Code in den Einstellungen).</div>';
+      leisteZeigen(false); return;
+    }
+    try { await window.PlanerSync.authBereit(); } catch (e) { $('verlauf').innerHTML = '<div class="hinweis-box">Keine Verbindung zur Cloud.</div>'; return; }
+    db = firebase.firestore();
+    statusAbbestellen = statusDoc().onSnapshot(snap => {
+      const d = (snap.exists && snap.data()) || {};
+      status = { gelesen: d.gelesen || {}, verschluesselung: d.verschluesselung || null };
+      statusGeladen = true;
+      einrichtungPruefen();
+      render();
+    }, err => fehlerZeigen(err));
+  }
+  async function einrichtungPruefen() {
+    const box = $('einrichtung');
+    if (!ich() || !person(ich())) return einrichtungZeigen('person');
+    const v = status.verschluesselung;
+    if (!v) return einrichtungZeigen('neu');
+    if (v.aktiv) {
+      if (!schluessel) schluessel = await gespeicherterSchluessel();
+      if (!schluessel || !(await pruefen(schluessel, v))) { schluessel = null; return einrichtungZeigen('passwort'); }
+    }
+    box.classList.remove('zeigen'); $('verlauf').style.display = ''; leisteZeigen(true);
+    if (!abbestellen) abonnieren();
+  }
+  async function pruefen(key, v) { try { return (await entschl(key, v.pruefIv, v.pruef)) === 'familienplaner-chat'; } catch (e) { return false; } }
+  function leisteZeigen(an) { $('eingabeLeiste').style.display = an ? '' : 'none'; }
+
+  function einrichtungZeigen(art) {
+    const box = $('einrichtung');
+    box.classList.add('zeigen'); $('verlauf').style.display = 'none'; leisteZeigen(false);
+    if (art === 'person') {
+      const ps = personen();
+      box.innerHTML = '<div class="einr-karte"><h2>👋 Wer bist du?</h2><p>Damit die anderen sehen, von wem eine Nachricht kommt. Das gilt für dieses Gerät (wie unter ⚙️ → „Wer nutzt dieses Gerät“).</p>' +
+        '<div class="personen-wahl">' + (ps.length ? ps.map(p => '<button type="button" data-p="' + esc(p.id) + '" style="background:' + esc(p.farbe || '#4f6f45') + '">' + esc(p.label) + '</button>').join('') : '<p>Bitte zuerst unter 👪 Personen die Familienmitglieder anlegen.</p>') + '</div></div>';
+      box.querySelectorAll('[data-p]').forEach(b => b.addEventListener('click', () => { try { localStorage.setItem(KEY_IDENTITAET, b.dataset.p); } catch (e) {} einrichtungPruefen(); }));
+      return;
+    }
+    if (art === 'neu') {
+      box.innerHTML = '<div class="einr-karte"><h2>💬 Euer Familien-Chat</h2><p>Nur für eure Familie – mit Fotos, Sprachnachrichten und Verknüpfungen zu Terminen, Rezepten, Wünschen und der Einkaufsliste.</p>' +
+        '<h2 style="font-size:0.95rem;margin-top:6px;">🔒 Familien-Passwort (empfohlen)</h2><p>Damit wird jede Nachricht auf dem Handy verschlüsselt – in der Cloud liegt nur Zeichensalat. Jedes Familienmitglied gibt das Passwort einmal auf seinem Gerät ein. Die Benachrichtigungen zeigen dann nur „🔒 Neue Nachricht“, nicht den Text.</p>' +
+        '<input type="password" id="pw1" placeholder="Passwort (mind. 8 Zeichen)" autocomplete="new-password"><input type="password" id="pw2" placeholder="Passwort wiederholen" autocomplete="new-password">' +
+        '<button class="einr-knopf" id="btnMitPw">🔒 Mit Passwort starten</button><button class="einr-knopf zweit" id="btnOhnePw">Ohne Passwort starten</button><div class="einr-status" id="einrStatus"></div></div>';
+      $('btnMitPw').addEventListener('click', async () => {
+        const a = $('pw1').value, b = $('pw2').value, st = $('einrStatus');
+        if (a.length < 8) { st.textContent = '⚠ Bitte mindestens 8 Zeichen.'; return; }
+        if (a !== b) { st.textContent = '⚠ Die Passwörter sind verschieden.'; return; }
+        st.textContent = '⏳ Wird eingerichtet …';
+        try {
+          const salz = b64(crypto.getRandomValues(new Uint8Array(16)));
+          const key = await schluesselAus(a, salz);
+          const p = await verschl(key, 'familienplaner-chat');
+          // Schlüssel zuerst merken – die Cloud meldet die neue Einstellung sofort zurück
+          localStorage.setItem(schluesselKey(), b64(await crypto.subtle.exportKey('raw', key)));
+          schluessel = key;
+          await statusDoc().set({ verschluesselung: { aktiv: true, salz, pruef: p.daten, pruefIv: p.iv, seit: Date.now() } }, { merge: true });
+          einrichtungPruefen();
+        } catch (e) { st.textContent = '⚠ ' + fehlerText(e); }
+      });
+      $('btnOhnePw').addEventListener('click', async () => {
+        try { await statusDoc().set({ verschluesselung: { aktiv: false, seit: Date.now() } }, { merge: true }); } catch (e) { $('einrStatus').textContent = '⚠ ' + fehlerText(e); }
+      });
+      return;
+    }
+    if (art === 'passwort') {
+      box.innerHTML = '<div class="einr-karte"><h2>🔒 Familien-Passwort</h2><p>Euer Chat ist verschlüsselt. Gib einmal das Familien-Passwort ein – danach merkt sich dieses Gerät den Schlüssel.</p>' +
+        '<input type="password" id="pw1" placeholder="Familien-Passwort" autocomplete="current-password"><button class="einr-knopf" id="btnPwOk">Entsperren</button><div class="einr-status" id="einrStatus"></div></div>';
+      const los = async () => {
+        const st = $('einrStatus'); st.textContent = '⏳ Prüfe …';
+        try {
+          const key = await schluesselAus($('pw1').value, status.verschluesselung.salz);
+          if (!(await pruefen(key, status.verschluesselung))) { st.textContent = '⚠ Das Passwort stimmt nicht.'; return; }
+          localStorage.setItem(schluesselKey(), b64(await crypto.subtle.exportKey('raw', key)));
+          schluessel = key; einrichtungPruefen();
+        } catch (e) { st.textContent = '⚠ ' + fehlerText(e); }
+      };
+      $('btnPwOk').addEventListener('click', los);
+      $('pw1').addEventListener('keydown', e => { if (e.key === 'Enter') los(); });
+    }
+  }
+
+  // ---------------------------------------------------------------- Empfangen
+  function abonnieren() {
+    if (abbestellen) abbestellen();
+    abbestellen = chatCol().orderBy('erstellt', 'desc').limit(limit).onSnapshot({ includeMetadataChanges: true }, async (snap) => {
+      const liste = [];
+      for (const d of snap.docs) {
+        const m = Object.assign({ id: d.id, _ausstehend: d.metadata.hasPendingWrites }, d.data({ serverTimestamps: 'estimate' }));
+        m._ms = m.erstellt && m.erstellt.toMillis ? m.erstellt.toMillis() : (m.zeit || Date.now());
+        if (m.v && m.iv && m.daten) {
+          if (!schluessel) { m._kaputt = true; }
+          else { try { Object.assign(m, JSON.parse(await entschl(schluessel, m.iv, m.daten))); } catch (e) { m._kaputt = true; } }
+        }
+        liste.push(m);
+      }
+      nachrichten = liste.reverse();
+      nachrichten._mehr = snap.size >= limit;
+      render();
+      gelesenMelden();
+    }, err => fehlerZeigen(err));
+  }
+  function fehlerText(e) {
+    const c = String((e && (e.code || e.message)) || e);
+    if (/permission/i.test(c)) return 'Die Cloud lässt den Chat noch nicht zu – die Firestore-Regeln müssen einmal ergänzt werden (siehe ℹ️).';
+    if (/OperationError/.test(c)) return 'Falsches Passwort.';
+    return c;
+  }
+  function fehlerZeigen(e) {
+    console.warn('Chat', e);
+    $('verlauf').style.display = '';
+    $('verlauf').innerHTML = '<div class="hinweis-box">⚠ ' + esc(fehlerText(e)) + '</div>';
+  }
+
+  // ---------------------------------------------------------------- Anzeigen
+  const zeitText = (ms) => new Date(ms).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+  function tagText(ms) {
+    const d = new Date(ms), h = new Date(); h.setHours(0, 0, 0, 0);
+    const t = new Date(d); t.setHours(0, 0, 0, 0);
+    const diff = Math.round((h - t) / 86400000);
+    if (diff === 0) return 'Heute';
+    if (diff === 1) return 'Gestern';
+    return d.toLocaleDateString('de-DE', { weekday: diff < 7 ? 'long' : undefined, day: 'numeric', month: 'long', year: d.getFullYear() !== h.getFullYear() ? 'numeric' : undefined });
+  }
+  function linkify(t) { return esc(t).replace(/(https?:\/\/[^\s<]+[^\s<.,;:!?)\]])/g, '<a href="$1" target="_blank" rel="noopener">$1</a>'); }
+  function gelesenVon(m) { return Object.keys(status.gelesen || {}).filter(p => p !== m.von && status.gelesen[p] >= m._ms).map(p => (person(p) || { label: p }).label); }
+  function inhaltHtml(m) {
+    if (m._kaputt) return '<div class="geloescht">🔒 Verschlüsselte Nachricht – Passwort fehlt oder ist falsch</div>';
+    let h = '';
+    if (m.typ === 'bild') h += medienCache.has(m.id) ? '<img class="bild" src="' + medienCache.get(m.id).bild + '" alt="Foto">' : '<div class="platzhalter" data-medien="' + esc(m.id) + '">📷 Foto wird geladen …</div>';
+    if (m.typ === 'sprache') h += '<div class="sprache" data-sprache="' + esc(m.id) + '"><button type="button" aria-label="Abspielen">▶</button><div class="balken"><span></span></div><span class="dauer">' + dauerText(m.dauer || 0) + '</span></div>';
+    if (m.typ === 'karte' && m.karte) h += karteHtml(m.karte);
+    if (m.text) h += '<div class="text">' + linkify(m.text) + '</div>';
+    return h;
+  }
+  const dauerText = (s) => Math.floor(s / 60) + ':' + String(Math.round(s % 60)).padStart(2, '0');
+  const KARTE_ICON = { termin: '🗓️', rezept: '🍳', wunsch: '🎁', einkauf: '🛒' };
+  const KARTE_KNOPF = { termin: 'Im Kalender öffnen', rezept: 'Rezept öffnen', wunsch: 'In der Wunschliste öffnen', einkauf: 'Einkaufsliste öffnen' };
+  function karteHtml(k) {
+    return '<div class="karte"><div class="karte-titel">' + (KARTE_ICON[k.art] || '📎') + ' ' + esc(k.titel || '') + '</div>' +
+      (k.info ? '<div class="karte-info">' + esc(k.info) + '</div>' : '') +
+      '<button type="button" data-karte=\'' + esc(JSON.stringify({ art: k.art, id: k.id, datum: k.datum })) + '\'>' + (KARTE_KNOPF[k.art] || 'Öffnen') + '</button></div>';
+  }
+  function render() {
+    if (!db || $('einrichtung').classList.contains('zeigen')) return;
+    const box = $('verlauf');
+    const amEnde = box.scrollHeight - box.scrollTop - box.clientHeight < 80;
+    const vorherHoehe = box.scrollHeight, vorherOben = box.scrollTop;
+    const v = status.verschluesselung;
+    $('kopfInfo').textContent = v && v.aktiv ? '🔒 verschlüsselt' : '';
+    if (!nachrichten.length) {
+      box.innerHTML = '<div class="leer">Noch keine Nachrichten.<br>Schreib etwas – oder teile über ＋ einen Termin, ein Rezept oder ein Foto. 👋</div>';
+      return;
+    }
+    let html = nachrichten._mehr ? '<button type="button" class="aeltere" id="btnAeltere">Ältere Nachrichten laden</button>' : '';
+    let letzterTag = '', letzterVon = '', letzteZeit = 0;
+    nachrichten.forEach(m => {
+      const tag = tagText(m._ms);
+      if (tag !== letzterTag) { html += '<div class="tag-trenner"><span>' + esc(tag) + '</span></div>'; letzterTag = tag; letzterVon = ''; }
+      const eigen = m.von === ich();
+      const folge = m.von === letzterVon && m._ms - letzteZeit < 5 * 60000;
+      const p = person(m.von);
+      let haken = '';
+      if (eigen) {
+        const gel = gelesenVon(m);
+        haken = m._ausstehend ? '<span class="haken" title="Wird gesendet">🕓</span>' : '<span class="haken' + (gel.length ? ' gelesen' : '') + '" title="' + (gel.length ? 'Gelesen von ' + esc(gel.join(', ')) : 'Gesendet') + '">' + (gel.length ? '✓✓' : '✓') + '</span>';
+      }
+      html += '<div class="zeile' + (eigen ? ' eigen' : '') + (folge ? ' folge' : '') + '"><div class="blase" data-id="' + esc(m.id) + '">' +
+        (!eigen && !folge ? '<div class="absender" style="color:' + esc((p && p.farbe) || 'var(--terracotta)') + '">' + esc((p && p.label) || m.name || '?') + '</div>' : '') +
+        inhaltHtml(m) + '<div class="fuss">' + zeitText(m._ms) + ' ' + haken + '</div></div></div>';
+      letzterVon = m.von; letzteZeit = m._ms;
+    });
+    box.innerHTML = html;
+    if (render._erstes === undefined || amEnde || render._zumEnde) { box.scrollTop = box.scrollHeight; render._erstes = false; render._zumEnde = false; }
+    else if (render._aeltere) { box.scrollTop = box.scrollHeight - vorherHoehe + vorherOben; render._aeltere = false; }
+    else box.scrollTop = vorherOben;
+    const aelt = $('btnAeltere');
+    if (aelt) aelt.addEventListener('click', () => { limit += SEITE; render._aeltere = true; abonnieren(); });
+    medienBeobachten();
+  }
+
+  // Fotos/Sprachnachrichten erst laden, wenn sie in Sicht kommen
+  let beobachter = null;
+  function medienBeobachten() {
+    if (!('IntersectionObserver' in window)) { document.querySelectorAll('[data-medien]').forEach(el => medienLaden(el.dataset.medien)); return; }
+    if (!beobachter) beobachter = new IntersectionObserver(eintraege => eintraege.forEach(e => { if (e.isIntersecting) { beobachter.unobserve(e.target); medienLaden(e.target.dataset.medien); } }), { root: $('verlauf'), rootMargin: '300px' });
+    document.querySelectorAll('[data-medien]').forEach(el => beobachter.observe(el));
+  }
+  const ladeVorgaenge = new Map();
+  function medienLaden(id) {
+    if (medienCache.has(id)) return Promise.resolve(medienCache.get(id));
+    if (ladeVorgaenge.has(id)) return ladeVorgaenge.get(id);
+    const p = medienCol().doc(id).get().then(async snap => {
+      if (!snap.exists) throw new Error('fehlt');
+      let d = snap.data();
+      if (d.v && d.iv && d.daten) d = JSON.parse(await entschl(schluessel, d.iv, d.daten));
+      medienCache.set(id, d);
+      const el = document.querySelector('[data-medien="' + CSS.escape(id) + '"]');
+      if (el && d.bild) { const img = document.createElement('img'); img.className = 'bild'; img.alt = 'Foto'; img.src = d.bild; img.onload = () => { const box = $('verlauf'); if (box.scrollHeight - box.scrollTop - box.clientHeight < 400) box.scrollTop = box.scrollHeight; }; el.replaceWith(img); }
+      return d;
+    }).catch(e => {
+      const el = document.querySelector('[data-medien="' + CSS.escape(id) + '"]');
+      if (el) el.textContent = '⚠ Foto nicht verfügbar';
+      ladeVorgaenge.delete(id);
+      throw e;
+    });
+    ladeVorgaenge.set(id, p);
+    return p;
+  }
+
+  // ---------------------------------------------------------------- Gelesen
+  let gelesenTimer = null;
+  function gelesenMelden() {
+    if (document.hidden || !nachrichten.length || !db) return;
+    const letzte = nachrichten[nachrichten.length - 1]._ms;
+    try { if (Number(localStorage.getItem(KEY_GESEHEN) || 0) < letzte) localStorage.setItem(KEY_GESEHEN, String(letzte)); } catch (e) {}
+    const p = ich(); if (!p) return;
+    if ((status.gelesen[p] || 0) >= letzte) return;
+    clearTimeout(gelesenTimer);
+    gelesenTimer = setTimeout(() => { statusDoc().set({ gelesen: { [p]: Date.now() } }, { merge: true }).catch(() => {}); }, 1500);
+  }
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) gelesenMelden(); });
+
+  // ---------------------------------------------------------------- Senden
+  async function senden(inhalt, medien) {
+    const v = status.verschluesselung;
+    const verschluesselt = !!(v && v.aktiv);
+    const p = person(ich()) || {};
+    const ref = chatCol().doc();
+    const doc = { von: ich(), name: p.label || '', geraet: geraet(), zeit: Date.now(), erstellt: firebase.firestore.FieldValue.serverTimestamp(), typ: inhalt.typ, dauer: inhalt.dauer || null };
+    const geheim = { text: inhalt.text || '', karte: inhalt.karte || null };
+    if (verschluesselt) Object.assign(doc, { v: 1 }, await verschl(schluessel, JSON.stringify(geheim)));
+    else Object.assign(doc, geheim);
+    if (!doc.karte) delete doc.karte;
+    if (medien) {
+      medienCache.set(ref.id, medien);
+      const mdoc = verschluesselt ? Object.assign({ v: 1 }, await verschl(schluessel, JSON.stringify(medien))) : medien;
+      await medienCol().doc(ref.id).set(mdoc);
+    }
+    render._zumEnde = true;
+    const fertig = ref.set(doc);
+    pushAusloesen(ref.id, fertig);
+    return fertig;
+  }
+  // Benachrichtigung an die anderen – erst, wenn die Nachricht wirklich in der Cloud ist (auch nach Offline-Phase)
+  function pushAusloesen(id, fertig) {
+    fertig.then(async () => {
+      try {
+        const token = await firebase.auth().currentUser.getIdToken();
+        await fetch(PUSH_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token }, body: JSON.stringify({ f: fid(), id }) });
+      } catch (e) { /* ohne Push ist die Nachricht trotzdem da */ }
+    }).catch(e => fehlerZeigen(e));
+  }
+  function textSenden() {
+    const t = $('eingabe').value.trim();
+    if (!t) return;
+    $('eingabe').value = ''; eingabeAnpassen();
+    senden({ typ: 'text', text: t }).catch(e => alert('Senden fehlgeschlagen: ' + fehlerText(e)));
+  }
+  function eingabeAnpassen() {
+    const e = $('eingabe');
+    e.style.height = 'auto'; e.style.height = Math.min(120, e.scrollHeight) + 'px';
+    const voll = !!e.value.trim();
+    $('btnSenden').style.display = voll ? '' : 'none';
+    $('btnMikro').style.display = voll ? 'none' : '';
+  }
+  $('eingabe').addEventListener('input', eingabeAnpassen);
+  $('eingabe').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey && window.matchMedia('(hover:hover)').matches) { e.preventDefault(); textSenden(); } });
+  $('btnSenden').addEventListener('click', textSenden);
+  // Tastatur offen: der Shell Bescheid geben, damit sie die untere Leiste ausblendet (mehr Platz)
+  $('eingabe').addEventListener('focus', () => { try { parent.postMessage({ type: 'tastatur', offen: true }, location.origin); } catch (e) {} setTimeout(() => { $('verlauf').scrollTop = $('verlauf').scrollHeight; }, 300); });
+  $('eingabe').addEventListener('blur', () => { try { parent.postMessage({ type: 'tastatur', offen: false }, location.origin); } catch (e) {} });
+
+  // ---------------------------------------------------------------- Foto
+  $('bildInput').addEventListener('change', (e) => {
+    const datei = e.target.files && e.target.files[0]; e.target.value = '';
+    if (!datei) return;
+    const img = new Image();
+    img.onload = () => {
+      let breite = 1280, qualitaet = 0.72, url = '';
+      for (let i = 0; i < 4; i++) {
+        const f = Math.min(1, breite / Math.max(img.width, img.height));
+        const c = document.createElement('canvas'); c.width = Math.round(img.width * f); c.height = Math.round(img.height * f);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        url = c.toDataURL('image/jpeg', qualitaet);
+        if (url.length < 420000) break;
+        breite = Math.round(breite * 0.8); qualitaet -= 0.07;
+      }
+      URL.revokeObjectURL(img.src);
+      senden({ typ: 'bild' }, { bild: url }).catch(err => alert('Foto konnte nicht gesendet werden: ' + fehlerText(err)));
+    };
+    img.onerror = () => alert('Die Datei ist kein lesbares Bild.');
+    img.src = URL.createObjectURL(datei);
+  });
+
+  // ---------------------------------------------------------------- Sprachnachricht
+  let rekorder = null, stueckchen = [], aufnahmeStart = 0, aufnahmeTimer = null, aufnahmeSenden = false;
+  $('btnMikro').addEventListener('click', async () => {
+    if (!navigator.mediaDevices || !window.MediaRecorder) { alert('Dieser Browser kann leider keine Sprachnachrichten aufnehmen.'); return; }
+    try {
+      const strom = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const typ = ['audio/webm;codecs=opus', 'audio/mp4', 'audio/ogg;codecs=opus'].find(t => MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) || '';
+      rekorder = new MediaRecorder(strom, Object.assign({ audioBitsPerSecond: 24000 }, typ ? { mimeType: typ } : {}));
+      stueckchen = []; aufnahmeSenden = false;
+      rekorder.ondataavailable = ev => { if (ev.data && ev.data.size) stueckchen.push(ev.data); };
+      rekorder.onstop = () => {
+        strom.getTracks().forEach(t => t.stop());
+        clearInterval(aufnahmeTimer);
+        $('aufnahmeLeiste').classList.remove('an'); leisteZeigen(true);
+        const dauer = (Date.now() - aufnahmeStart) / 1000;
+        if (!aufnahmeSenden || dauer < 0.8) return;
+        const blob = new Blob(stueckchen, { type: rekorder.mimeType || 'audio/webm' });
+        const leser = new FileReader();
+        leser.onload = () => senden({ typ: 'sprache', dauer: Math.round(dauer) }, { audio: leser.result }).catch(err => alert('Sprachnachricht konnte nicht gesendet werden: ' + fehlerText(err)));
+        leser.readAsDataURL(blob);
+      };
+      rekorder.start(1000);
+      aufnahmeStart = Date.now();
+      leisteZeigen(false); $('aufnahmeLeiste').classList.add('an');
+      $('aufnahmeZeit').textContent = '0:00';
+      aufnahmeTimer = setInterval(() => {
+        const s = (Date.now() - aufnahmeStart) / 1000;
+        $('aufnahmeZeit').textContent = dauerText(s) + (s > MAX_SPRACHE_SEK - 15 ? ' (max. 2 Min.)' : '');
+        if (s >= MAX_SPRACHE_SEK) { aufnahmeSenden = true; rekorder.stop(); }
+      }, 250);
+    } catch (e) { alert('Kein Zugriff aufs Mikrofon (' + (e.name || e) + ').'); }
+  });
+  $('btnAufnahmeWeg').addEventListener('click', () => { aufnahmeSenden = false; if (rekorder && rekorder.state !== 'inactive') rekorder.stop(); });
+  $('btnAufnahmeSenden').addEventListener('click', () => { aufnahmeSenden = true; if (rekorder && rekorder.state !== 'inactive') rekorder.stop(); });
+
+  let spieler = null, spielerId = null;
+  async function abspielen(el) {
+    const id = el.dataset.sprache, knopf = el.querySelector('button'), balken = el.querySelector('.balken span');
+    if (spieler && spielerId === id) { if (spieler.paused) { spieler.play(); knopf.textContent = '⏸'; } else { spieler.pause(); knopf.textContent = '▶'; } return; }
+    if (spieler) { spieler.pause(); document.querySelectorAll('.sprache button').forEach(b => { b.textContent = '▶'; }); }
+    knopf.textContent = '⏳';
+    try {
+      const d = await medienLaden(id);
+      spieler = new Audio(d.audio); spielerId = id;
+      spieler.ontimeupdate = () => { const ziel = document.querySelector('[data-sprache="' + CSS.escape(id) + '"] .balken span'); if (ziel && spieler.duration && isFinite(spieler.duration)) ziel.style.width = (spieler.currentTime / spieler.duration * 100) + '%'; };
+      spieler.onended = () => { const k = document.querySelector('[data-sprache="' + CSS.escape(id) + '"] button'); if (k) k.textContent = '▶'; spieler = null; spielerId = null; };
+      await spieler.play(); knopf.textContent = '⏸';
+    } catch (e) { knopf.textContent = '▶'; alert('Abspielen nicht möglich.'); }
+    if (balken) balken.style.width = '0';
+  }
+
+  // ---------------------------------------------------------------- Teilen (＋)
+  function blatt(html) { $('blatt').innerHTML = html + '<button type="button" class="blatt-zu" id="btnBlattZu">Schließen</button>'; $('blattBg').classList.add('zeigen'); $('btnBlattZu').addEventListener('click', blattZu); }
+  function blattZu() { $('blattBg').classList.remove('zeigen'); }
+  $('blattBg').addEventListener('click', e => { if (e.target.id === 'blattBg') blattZu(); });
+  $('btnPlus').addEventListener('click', () => {
+    blatt('<h3>Teilen</h3><div class="blatt-raster">' +
+      '<button type="button" data-t="foto"><span class="em">📷</span>Foto</button>' +
+      '<button type="button" data-t="termin"><span class="em">🗓️</span>Termin</button>' +
+      '<button type="button" data-t="rezept"><span class="em">🍳</span>Rezept</button>' +
+      '<button type="button" data-t="wunsch"><span class="em">🎁</span>Wunsch</button>' +
+      '<button type="button" data-t="einkauf"><span class="em">🛒</span>Ich fahre einkaufen</button>' +
+      '<button type="button" data-t="unterwegs"><span class="em">🚗</span>Bin unterwegs</button></div>');
+    $('blatt').querySelectorAll('[data-t]').forEach(b => b.addEventListener('click', () => teilen(b.dataset.t)));
+  });
+  const heuteISO = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+  function datumText(iso) { const [y, m, d] = String(iso).split('-').map(Number); return new Date(y, m - 1, d).toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'numeric' }); }
+  function auswahl(titel, eintraege, leerText, waehlen) {
+    blatt('<h3>' + titel + '</h3>' + (eintraege.length ? '<div class="blatt-liste">' + eintraege.map((e, i) => '<button type="button" data-i="' + i + '"><span style="font-size:1.2rem">' + e.icon + '</span><span>' + esc(e.titel) + (e.info ? '<small>' + esc(e.info) + '</small>' : '') + '</span></button>').join('') + '</div>' : '<p style="font-size:0.85rem;color:var(--bark)">' + leerText + '</p>'));
+    $('blatt').querySelectorAll('[data-i]').forEach(b => b.addEventListener('click', () => { blattZu(); waehlen(eintraege[Number(b.dataset.i)]); }));
+  }
+  function karteSenden(karte, text) { senden({ typ: 'karte', karte, text: text || '' }).catch(e => alert('Senden fehlgeschlagen: ' + fehlerText(e))); }
+  function teilen(was) {
+    if (was === 'foto') { blattZu(); $('bildInput').click(); return; }
+    if (was === 'termin') {
+      const h = heuteISO();
+      const liste = lies('termine_events_v1', []).filter(e => e && e.date && (e.date >= h || (e.recurrence && e.recurrence.freq && e.recurrence.freq !== 'keine')))
+        .sort((a, b) => (a.date + (a.startTime || '')).localeCompare(b.date + (b.startTime || ''))).slice(0, 40)
+        .map(e => ({ icon: '🗓️', titel: e.title || 'Termin', info: datumText(e.date) + (e.startTime ? ' · ' + e.startTime : ' · ganztags') + (e.location ? ' · ' + e.location : ''), e }));
+      auswahl('🗓️ Termin teilen', liste, 'Keine kommenden Termine gefunden.', x => karteSenden({ art: 'termin', id: x.e.id, titel: x.e.title || 'Termin', datum: x.e.date, info: x.info }));
+      return;
+    }
+    if (was === 'rezept') {
+      const liste = lies('kochen_rezepte', []).filter(r => r && r.titel).sort((a, b) => a.titel.localeCompare(b.titel, 'de'))
+        .map(r => ({ icon: '🍳', titel: r.titel, info: '⏱ ' + (r.zeit || '?') + ' Min. · ' + (r.portionenBasis || '?') + ' Portionen', r }));
+      auswahl('🍳 Rezept teilen', liste, 'Noch keine Rezepte vorhanden (oder Kochen auf diesem Gerät noch nicht geöffnet).', x => karteSenden({ art: 'rezept', id: x.r.id, titel: x.r.titel, info: x.info }, 'Wie wär’s damit? 😋'));
+      return;
+    }
+    if (was === 'wunsch') {
+      // Wünsche, die vor jemandem versteckt sind, gehören nicht in den Familien-Chat
+      const liste = lies('termine_wunschliste', []).filter(w => w && w.name && !(w.versteckenVor && w.versteckenVor.length))
+        .map(w => ({ icon: '🎁', titel: w.name, info: 'für ' + ((person(w.person) || { label: w.person || 'Familie' }).label) + (w.preis ? ' · ca. ' + w.preis : ''), w }));
+      auswahl('🎁 Wunsch teilen', liste, 'Keine Wünsche zum Teilen (versteckte Überraschungen werden hier bewusst nicht angezeigt).', x => karteSenden({ art: 'wunsch', id: x.w.id, titel: x.w.name, info: x.info }));
+      return;
+    }
+    if (was === 'einkauf') {
+      blattZu();
+      const offen = lies('einkauf_listen', []).reduce((s, l) => s + (l.items || []).filter(i => !i.erledigt).length, 0);
+      karteSenden({ art: 'einkauf', titel: 'Ich fahre jetzt einkaufen', info: 'Braucht noch jemand was? Einfach auf die Liste setzen.' + (offen ? ' (' + offen + ' Artikel stehen schon drauf)' : '') });
+      return;
+    }
+    if (was === 'unterwegs') { blattZu(); senden({ typ: 'text', text: '🚗 Bin unterwegs – bis gleich!' }).catch(e => alert(fehlerText(e))); }
+  }
+
+  // ---------------------------------------------------------------- Klicks im Verlauf
+  $('verlauf').addEventListener('click', (e) => {
+    const kb = e.target.closest('[data-karte]');
+    if (kb) { karteOeffnen(JSON.parse(kb.getAttribute('data-karte'))); return; }
+    const sp = e.target.closest('.sprache button');
+    if (sp) { abspielen(sp.closest('.sprache')); return; }
+    const img = e.target.closest('img.bild');
+    if (img) { $('bildGross').querySelector('img').src = img.src; $('bildGross').classList.add('zeigen'); }
+  });
+  $('bildGross').addEventListener('click', () => $('bildGross').classList.remove('zeigen'));
+  function navigiere(modul, aktion, ziel) { try { parent.postMessage({ type: 'navigiere', modul, aktion: aktion || '', ziel: ziel || '' }, location.origin); } catch (e) {} }
+  function karteOeffnen(k) {
+    if (k.art === 'rezept') { try { localStorage.setItem('kochen_oeffneRezeptId', k.id); } catch (e) {} navigiere('kochen'); return; }
+    if (k.art === 'termin') { navigiere('termine', 'zeige', k.datum || ''); return; }
+    if (k.art === 'wunsch') { navigiere('wunschliste', 'zeige', k.id); return; }
+    if (k.art === 'einkauf') { navigiere('einkauf'); }
+  }
+
+  // Lange drücken (oder Rechtsklick) auf eine Nachricht: Aktionen
+  let druckTimer = null, druckStart = null;
+  $('verlauf').addEventListener('touchstart', (e) => {
+    const b = e.target.closest('.blase'); if (!b) return;
+    druckStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    druckTimer = setTimeout(() => { druckTimer = null; try { navigator.vibrate && navigator.vibrate(30); } catch (x) {} aktionen(b.dataset.id); }, 520);
+  }, { passive: true });
+  $('verlauf').addEventListener('touchmove', (e) => { if (druckTimer && druckStart && (Math.abs(e.touches[0].clientX - druckStart.x) > 10 || Math.abs(e.touches[0].clientY - druckStart.y) > 10)) { clearTimeout(druckTimer); druckTimer = null; } }, { passive: true });
+  $('verlauf').addEventListener('touchend', () => { clearTimeout(druckTimer); druckTimer = null; });
+  $('verlauf').addEventListener('contextmenu', (e) => { const b = e.target.closest('.blase'); if (!b) return; e.preventDefault(); aktionen(b.dataset.id); });
+
+  function aktionen(id) {
+    const m = nachrichten.find(x => x.id === id); if (!m || m._kaputt) return;
+    const b = document.querySelector('.blase[data-id="' + CSS.escape(id) + '"]'); if (b) b.classList.add('markiert');
+    const text = (m.text || (m.karte && m.karte.titel) || '').trim();
+    const gel = m.von === ich() ? gelesenVon(m) : [];
+    const knoepfe = [];
+    if (text) {
+      knoepfe.push(['kopieren', '📋', 'Text kopieren']);
+      knoepfe.push(['einkauf', '🛒', 'Auf die Einkaufsliste', 'Jede Zeile wird ein Eintrag']);
+      knoepfe.push(['termin', '🗓️', 'Als Termin eintragen']);
+      knoepfe.push(['notiz', '📝', 'Als Notiz speichern']);
+    }
+    if (m.typ === 'bild' && medienCache.has(m.id)) knoepfe.push(['speichern', '💾', 'Foto speichern']);
+    if (m.von === ich()) knoepfe.push(['info', 'ℹ️', 'Gelesen von', gel.length ? gel.join(', ') : 'noch niemandem']);
+    if (m.von === ich()) knoepfe.push(['loeschen', '🗑', 'Für alle löschen']);
+    blatt('<h3>Nachricht</h3><div class="blatt-liste">' + knoepfe.map(k => '<button type="button" data-a="' + k[0] + '"><span style="font-size:1.2rem">' + k[1] + '</span><span>' + k[2] + (k[3] ? '<small>' + esc(k[3]) + '</small>' : '') + '</span></button>').join('') + '</div>');
+    const aufraeumen = () => { if (b) b.classList.remove('markiert'); };
+    $('btnBlattZu').addEventListener('click', aufraeumen);
+    $('blatt').querySelectorAll('[data-a]').forEach(k => k.addEventListener('click', async () => {
+      const a = k.dataset.a;
+      if (a === 'info') return;
+      blattZu(); aufraeumen();
+      if (a === 'kopieren') { try { await navigator.clipboard.writeText(text); } catch (e) {} }
+      if (a === 'einkauf') zurEinkaufsliste(text);
+      if (a === 'termin') navigiereText('termine', text.split('\n')[0].slice(0, 80));
+      if (a === 'notiz') navigiereText('notizblock', text);
+      if (a === 'speichern') { const l = document.createElement('a'); l.href = medienCache.get(m.id).bild; l.download = 'familienchat-' + new Date(m._ms).toISOString().slice(0, 10) + '.jpg'; document.body.appendChild(l); l.click(); l.remove(); }
+      if (a === 'loeschen' && confirm('Diese Nachricht für alle löschen?')) {
+        try { await chatCol().doc(m.id).delete(); if (m.typ === 'bild' || m.typ === 'sprache') medienCol().doc(m.id).delete().catch(() => {}); } catch (e) { alert(fehlerText(e)); }
+      }
+    }));
+  }
+  function navigiereText(modul, text) { try { parent.postMessage({ type: 'navigiere', modul, aktion: 'neu', text }, location.origin); } catch (e) {} }
+  // „Auf die Einkaufsliste“: direkt in die aktive Liste schreiben (eigener Sync-Kanal fürs Einkaufs-Dokument)
+  let einkaufSync = null;
+  function zurEinkaufsliste(text) {
+    const namen = text.split(/\n|,|;| und /).map(s => s.replace(/^[-•*\d.)\s]+/, '').trim()).filter(s => s && s.length < 60);
+    if (!namen.length) return;
+    let listen = lies('einkauf_listen', []);
+    if (!Array.isArray(listen) || !listen.length) listen = [{ id: 'l' + Date.now(), name: 'Wocheneinkauf', items: [] }];
+    let aktivId = ''; try { aktivId = localStorage.getItem('einkauf_aktiveListe') || ''; } catch (e) {}
+    const liste = listen.find(l => l.id === aktivId) || listen[0];
+    let neu = 0;
+    namen.forEach(n => {
+      if (liste.items.some(i => !i.erledigt && String(i.name).trim().toLowerCase() === n.toLowerCase())) return;
+      liste.items.push({ id: 'i' + Date.now() + Math.random().toString(36).slice(2, 7), name: n, menge: '', einheit: '', kategorie: 'sonstiges', erledigt: false, hinzugefuegtVon: ich() || 'familie' });
+      neu++;
+    });
+    try { localStorage.setItem('einkauf_listen', JSON.stringify(listen)); } catch (e) {}
+    if (einkaufSync) einkaufSync.melde();
+    toast('🛒 ' + neu + (neu === 1 ? ' Eintrag' : ' Einträge') + ' auf „' + liste.name + '“');
+  }
+  function toast(t) {
+    let el = $('chatToast');
+    if (!el) { el = document.createElement('div'); el.id = 'chatToast'; el.style.cssText = 'position:fixed;left:50%;bottom:80px;transform:translateX(-50%);background:#2a2016;color:#bcd196;padding:9px 16px;border-radius:20px;font-size:0.82rem;font-weight:600;z-index:300;transition:opacity .3s;max-width:88vw;text-align:center;'; document.body.appendChild(el); }
+    el.textContent = t; el.style.opacity = '1'; clearTimeout(el._t); el._t = setTimeout(() => { el.style.opacity = '0'; }, 2600);
+  }
+
+  // ---------------------------------------------------------------- Info
+  $('btnChatInfo').addEventListener('click', () => {
+    const v = status.verschluesselung;
+    blatt('<h3>ℹ️ Familien-Chat</h3><div style="font-size:0.82rem;line-height:1.55;">' +
+      '<p>' + (v && v.aktiv ? '🔒 <b>Verschlüsselt</b> mit eurem Familien-Passwort. In der Cloud liegt nur Zeichensalat; Benachrichtigungen zeigen keinen Text.' : '🔓 <b>Ohne Passwort.</b> Die Nachrichten liegen lesbar in eurer Familien-Cloud (geschützt wie der Rest der App durch den Familien-Code).') + '</p>' +
+      '<p style="margin-top:8px;">✓ = angekommen · <b style="color:#4fc3f7">✓✓</b> = gelesen. Lange auf eine Nachricht drücken für mehr (Einkaufsliste, Termin, Notiz, Löschen).</p>' +
+      '<p style="margin-top:8px;">Du schreibst als <b>' + esc((person(ich()) || { label: '?' }).label) + '</b>. <a href="#" id="lnkWerBinIch">Ändern</a></p>' +
+      '<p style="margin-top:8px;">Benachrichtigungen kommen, wenn unter ⚙️ → „Erinnerungen aufs Handy“ aktiviert ist (Häkchen „💬 Familien-Chat“).</p></div>');
+    $('lnkWerBinIch').addEventListener('click', (e) => { e.preventDefault(); blattZu(); try { localStorage.removeItem(KEY_IDENTITAET); } catch (x) {} einrichtungPruefen(); });
+  });
+
+  // Aufruf aus der Shell (＋ Schnell festhalten → Chat): Text vorausfüllen
+  window.addEventListener('message', (e) => {
+    if (e.origin !== location.origin || !e.data || e.data.type !== 'shortcutAktion') return;
+    if (e.data.aktion === 'neu' && e.data.text) { $('eingabe').value = e.data.text; eingabeAnpassen(); $('eingabe').focus(); }
+  });
+
+  if (window.PlanerSync) {
+    // Für „Termin/Wunsch teilen“ und „Auf die Einkaufsliste“ die Daten aktuell halten
+    try { window.PlanerSync.starteSync({ modul: 'termine', keys: ['termine_events_v1', 'termine_wunschliste'] }); } catch (e) {}
+    try { einkaufSync = window.PlanerSync.starteSync({ modul: 'einkauf', keys: ['einkauf_listen'] }); } catch (e) {}
+  }
+  eingabeAnpassen();
+  start();
+})();
+</script>
+</body>
+</html>

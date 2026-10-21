@@ -1,7 +1,7 @@
 // Gartenplaner Service Worker
 // WICHTIG: CACHE_VERSION bei jedem Update der App-Datei erhöhen (z.B. 'v1' -> 'v2'),
 // sonst bekommen Nutzer weiterhin die alte, zwischengespeicherte Version ausgeliefert.
-const CACHE_VERSION = 'v414';
+const CACHE_VERSION = 'v415';
 const CACHE_NAME = 'planer-cache-' + CACHE_VERSION;
 const FOTO_CACHE = 'planer-fotos'; // Familienfotos, versionsunabhängig
 
@@ -11,6 +11,7 @@ const APP_SHELL = [
   './garten.html',
   './termine.html',
   './wunschliste.html',
+  './chat.html',
   './einkauf.html',
   './kochen.html',
   './vorratskammer.html',
@@ -124,13 +125,23 @@ self.addEventListener('push', (event) => {
   try { inhalt = event.data ? event.data.json() : {}; } catch (e) {}
   const d = inhalt.data || inhalt.notification || inhalt;
   const titel = d.titel || d.title || 'Familienplaner';
-  event.waitUntil(self.registration.showNotification(titel, {
-    body: d.text || d.body || '',
-    tag: d.tag || undefined,
-    icon: 'icon-192.png',
-    badge: 'icon-192.png',
-    data: { link: d.link || './index.html' },
-  }));
+  event.waitUntil((async () => {
+    // Chat-Nachricht, während die App gerade offen und sichtbar ist: keine extra Benachrichtigung
+    if (d.tag === 'chat') {
+      try {
+        const fenster = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+        if (fenster.some(f => f.visibilityState === 'visible' && f.focused)) return;
+      } catch (e) {}
+    }
+    await self.registration.showNotification(titel, {
+      body: d.text || d.body || '',
+      tag: d.tag || undefined,
+      renotify: d.tag === 'chat',
+      icon: 'icon-192.png',
+      badge: 'icon-192.png',
+      data: { link: d.link || './index.html' },
+    });
+  })());
 });
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();

@@ -2,6 +2,9 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
+## 2026-10-21 | 💬 Familien-Chat
+Der neue Bereich „Chat“ ist nur für eure Familie: Nachrichten, Fotos und Sprachnachrichten, mit ✓✓ wenn gelesen. Über ＋ lassen sich Termine, Rezepte und Wünsche als Karte teilen – ein Tipp darauf öffnet sie direkt. „🛒 Ich fahre einkaufen“ fragt in die Runde, und lange Drücken auf eine Nachricht setzt sie auf die Einkaufsliste oder macht einen Termin daraus. Auf Wunsch mit Familien-Passwort Ende-zu-Ende-verschlüsselt. Neue Nachrichten kommen als Benachrichtigung aufs Handy.
+
 ## 2026-10-21 | 🎁 Wunschliste als eigener Bereich
 Die Wunschliste hat jetzt einen eigenen Platz (unten in der Leiste oder unter ☰ Mehr) statt eines Reiters in den Terminen. Alle bisherigen Wünsche sind automatisch mit dabei. Über das orange ＋ kommt ein Wunsch auch direkt auf die Liste.
 
