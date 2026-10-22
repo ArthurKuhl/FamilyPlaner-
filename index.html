@@ -2073,7 +2073,7 @@
           letzte.ausgeloest.push(zeit);
           geaendert = true;
           const anzeigen = (reg) => reg.showNotification('💧 Zeit zu trinken!', {
-            body: 'Denk an ein Glas Wasser.', icon: 'icon-192.png', badge: 'icon-192.png', tag: 'wasser-erinnerung-' + zeit,
+            body: 'Denk an ein Glas Wasser.', icon: 'icon-192.png', badge: 'badge-96.png', tag: 'wasser-erinnerung-' + zeit,
           });
           if (navigator.serviceWorker && navigator.serviceWorker.ready) {
             navigator.serviceWorker.ready.then(anzeigen).catch(() => {
@@ -2149,7 +2149,7 @@
             geaendert = true;
             const titel = '🗓️ ' + ev.title;
             const body = ev.allDay ? 'Heute' : ('Beginnt um ' + startZeit + ' Uhr') + (ev.location ? ' · ' + ev.location : '');
-            const anzeigen = (reg) => reg.showNotification(titel, { body: body, icon: 'icon-192.png', badge: 'icon-192.png', tag: 'termin-' + marker });
+            const anzeigen = (reg) => reg.showNotification(titel, { body: body, icon: 'icon-192.png', badge: 'badge-96.png', tag: 'termin-' + marker });
             if (navigator.serviceWorker && navigator.serviceWorker.ready) {
               navigator.serviceWorker.ready.then(anzeigen).catch(() => {
                 try { new Notification(titel, { body: body, icon: 'icon-192.png' }); } catch (e2) {}

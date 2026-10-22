@@ -1,7 +1,7 @@
 // Gartenplaner Service Worker
 // WICHTIG: CACHE_VERSION bei jedem Update der App-Datei erhöhen (z.B. 'v1' -> 'v2'),
 // sonst bekommen Nutzer weiterhin die alte, zwischengespeicherte Version ausgeliefert.
-const CACHE_VERSION = 'v416';
+const CACHE_VERSION = 'v417';
 const CACHE_NAME = 'planer-cache-' + CACHE_VERSION;
 const FOTO_CACHE = 'planer-fotos'; // Familienfotos, versionsunabhängig
 
@@ -12,6 +12,7 @@ const APP_SHELL = [
   './termine.html',
   './wunschliste.html',
   './chat.html',
+  './badge-96.png',
   './einkauf.html',
   './kochen.html',
   './vorratskammer.html',
@@ -138,7 +139,7 @@ self.addEventListener('push', (event) => {
       tag: d.tag || undefined,
       renotify: d.tag === 'chat',
       icon: 'icon-192.png',
-      badge: 'icon-192.png',
+      badge: 'badge-96.png', // einfarbiges Haus (Android zeigt hier nur die Umrisse)
       data: { link: d.link || './index.html' },
     });
   })());
