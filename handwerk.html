@@ -84,8 +84,9 @@
   .filter-reihe { display: flex; gap: 5px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px; scrollbar-width: none; }
   .filter-reihe::-webkit-scrollbar { display: none; }
   .filter-chip { flex: 0 0 auto; background: transparent; border: 1px solid #4a3a28; color: var(--sage); font-size: 0.72rem; font-weight: 600; padding: 5px 12px; border-radius: var(--radius-pill); cursor: pointer; white-space: nowrap; }
-  .ansicht-tabs { display: flex; gap: 6px; margin-bottom: 8px; }
-  .ansicht-tab { flex: 1; background: transparent; border: 1px solid #4a3a28; color: var(--sage); font-size: 0.78rem; font-weight: 700; padding: 7px 10px; border-radius: var(--radius-pill); cursor: pointer; }
+  .ansicht-tabs { display: flex; gap: 6px; margin-bottom: 8px; overflow-x: auto; scrollbar-width: none; }
+  .ansicht-tabs::-webkit-scrollbar { display: none; }
+  .ansicht-tab { flex: 1 0 auto; white-space: nowrap; background: transparent; border: 1px solid #4a3a28; color: var(--sage); font-size: 0.78rem; font-weight: 700; padding: 7px 10px; border-radius: var(--radius-pill); cursor: pointer; }
   .ansicht-tab.active { background: var(--terracotta); color: var(--white); border-color: var(--terracotta); }
 
   /* ---- 🪵 Paletten-Ideen ---- */
@@ -119,8 +120,8 @@
   .wk-titel { font-size: 0.9rem; font-weight: 700; line-height: 1.25; }
   .wk-meta { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 5px; }
   .wk-check { flex-shrink: 0; width: 42px; height: 42px; border-radius: 50%; border: 2px solid var(--parchment); background: var(--white); font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-  .wk-check.erledigt { background: var(--moss); border-color: var(--moss); color: var(--on-moss, var(--white)); }
-  .filter-chip.active { background: var(--moss); color: var(--on-moss, var(--leaf)); border-color: var(--moss); }
+  .wk-check.erledigt { background: var(--moss); border-color: var(--moss); color: var(--white); }
+  .filter-chip.active { background: var(--moss); color: var(--leaf); border-color: var(--moss); }
 
   main { padding: 12px 14px; max-width: 680px; margin: 0 auto; }
   @media (min-width: 1000px) {
@@ -163,11 +164,11 @@
   .material-zeile input.preis { width: 64px; flex: 0 0 64px; }
   .zeile-entfernen { background: none; border: none; color: var(--parchment); font-size: 1.05rem; padding: 4px 6px; cursor: pointer; flex: 0 0 auto; }
   .zeile-entfernen:hover { color: var(--terracotta-text); }
-  .zeile-hinzufuegen { background: var(--white); border: 1px dashed var(--sage); color: var(--moss-text, var(--moss)); border-radius: var(--radius-sm); padding: 7px 10px; font-size: 0.78rem; font-weight: 600; cursor: pointer; width: 100%; margin-top: 2px; }
+  .zeile-hinzufuegen { background: var(--white); border: 1px dashed var(--sage); color: var(--moss); border-radius: var(--radius-sm); padding: 7px 10px; font-size: 0.78rem; font-weight: 600; cursor: pointer; width: 100%; margin-top: 2px; }
 
   .modal-btns { display: flex; gap: 8px; margin-top: 18px; }
   .btn { flex: 1; padding: 11px; border-radius: var(--radius-pill); border: none; font-weight: 700; font-size: 0.85rem; cursor: pointer; }
-  .btn-primary { background: var(--moss); color: var(--on-moss, var(--leaf)); }
+  .btn-primary { background: var(--moss); color: var(--leaf); }
   .btn-secondary { background: var(--white); color: var(--bark); border: 1px solid var(--parchment); }
   .btn-danger { background: transparent; color: var(--terracotta-text); border: 1px solid var(--terracotta); }
 
@@ -175,7 +176,7 @@
   .detail-status-chip { font-size: 0.7rem; font-weight: 700; padding: 3px 10px; border-radius: var(--radius-pill); }
   .detail-material-liste { list-style: none; margin: 8px 0 4px; }
   .detail-material-liste li { display: flex; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--parchment); font-size: 0.88rem; }
-  .detail-material-liste .m-menge { font-weight: 700; color: var(--moss-text, var(--moss)); min-width: 64px; }
+  .detail-material-liste .m-menge { font-weight: 700; color: var(--moss); min-width: 64px; }
   .detail-material-liste .m-preis { margin-left: auto; color: var(--bark); font-weight: 600; }
   .balken-wrap { height: 8px; background: var(--parchment); border-radius: 5px; overflow: hidden; }
   .balken { height: 100%; background: var(--moss); border-radius: 5px; transition: width 0.2s; }
@@ -192,7 +193,7 @@
   .foto-kachel img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .foto-hinzufuegen { position: relative; display: block; text-align: center; }
   .foto-hinzufuegen input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
-  .fertig-hinweis { font-size: 0.8rem; color: var(--moss-text, var(--moss)); font-weight: 600; margin-top: 2px; }
+  .fertig-hinweis { font-size: 0.8rem; color: var(--moss); font-weight: 600; margin-top: 2px; }
   #modalFoto { z-index: 120; align-items: center; background: rgba(20,15,10,0.88); padding: 12px; }
   #modalFoto .foto-gross { max-width: 100%; max-height: 78vh; border-radius: 10px; display: block; margin: 0 auto; }
   #modalFoto .foto-leiste { display: flex; gap: 8px; margin-top: 12px; }
@@ -223,11 +224,6 @@
      leicht unterschiedlichen Header-Varianten der Module hinweg. */
   header.top .titel-zeile, header .hdr-right { gap: 4px !important; }
   header.top .titel-zeile h1, header h1 { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-  /* Dark-Mode-Kontrast (alle Module gleich): Akzentfarbe als Text heller,
-     Text auf Akzent-Knöpfen dunkel – außer bei „Schnee“, dort ist der Knopf selbst dunkel. */
-  html[data-dark="1"] { --moss-text: var(--sage); --on-moss: #16140f; }
-  html[data-dark="1"][data-farbschema="schnee"] { --on-moss: #f4f5f6; }
 </style>
 </head>
 <body>
@@ -247,6 +243,7 @@
     <button class="ansicht-tab active" id="tabProjekte">📋 Projekte</button>
     <button class="ansicht-tab" id="tabWartung">🔁 Wartung</button>
     <button class="ansicht-tab" id="tabPaletten">🪵 Paletten</button>
+    <button class="ansicht-tab" id="tabNistkaesten">🐦 Nistkästen</button>
   </div>
   <div class="suchzeile" id="ansichtProjekteKopf" style="display:flex; align-items:center; gap:6px;">
     <input type="text" id="fSuche" placeholder="Projekt suchen ..." style="flex:1;">
@@ -292,6 +289,7 @@
   </div>
 
   <div id="ansichtPaletten" style="display:none;"></div>
+  <div id="ansichtNistkaesten" style="display:none;"></div>
 
   <div class="modal-bg" id="palettenModal">
     <div class="modal" style="width:min(640px,96vw);max-height:90vh;overflow-y:auto">
@@ -1627,8 +1625,13 @@
     document.getElementById('ansichtPaletten').style.display = (aktiveAnsicht === 'paletten') ? '' : 'none';
     if (aktiveAnsicht === 'wartung') { renderWartungFilter(); renderWartungListe(); }
     if (aktiveAnsicht === 'paletten' && window.palettenIdeenRendern) window.palettenIdeenRendern();
+    document.getElementById('tabNistkaesten').classList.toggle('active', aktiveAnsicht === 'nistkaesten');
+    document.getElementById('ansichtNistkaesten').style.display = (aktiveAnsicht === 'nistkaesten') ? '' : 'none';
+    if (aktiveAnsicht === 'nistkaesten' && window.nistkastenRendern) window.nistkastenRendern();
   }
+  window.handwerkAnsichtZeigen = function (a) { aktiveAnsicht = a; ansichtAnwenden(); };
   document.getElementById('tabPaletten').addEventListener('click', () => { aktiveAnsicht = 'paletten'; ansichtAnwenden(); });
+  document.getElementById('tabNistkaesten').addEventListener('click', () => { aktiveAnsicht = 'nistkaesten'; ansichtAnwenden(); });
   // Für die Paletten-Ideen: Beispielprojekt als eigenes Projekt (Status "Idee") anlegen
   window.handwerkProjektAnlegen = function (vorlage) {
     const neu = Object.assign({ id: neueId('p'), status: 'idee', person: null, budgetGeplant: null, fertigAm: null, erstelltAm: new Date().toISOString() }, vorlage);
@@ -2358,15 +2361,254 @@
   function detailHtml(p) {
     return '<div class="pal-detail-kopf"><span class="pal-icon gross">' + p.icon + '</span><h2>' + p.titel + '</h2></div>' +
       '<p class="pal-beschreibung">' + p.beschreibung + '</p>' +
+      (p.voegel ? '<div class="pal-fakten" style="margin-bottom:8px">🐦 <b>Für:</b> ' + p.voegel + '</div>' : '') +
       '<div class="pal-zeichnung">' + ZEICHNUNG[p.id]() + '<div class="pal-hinweis">Maße in mm · Zeichnung vereinfacht, nicht maßstabsgetreu im Detail</div></div>' +
       '<div class="pal-fakten"><div>📐 <b>Maße:</b> ' + p.masse + '</div><div>⏱ <b>Zeit:</b> ' + p.zeit + '</div><div>🧰 <b>Werkzeug:</b> ' + p.werkzeug + '</div></div>' +
       '<h3>🧾 Material</h3><ul class="pal-material">' + p.material.map(m => '<li><b>' + m[0] + ' ' + m[1] + '</b> ' + m[2] + '</li>').join('') + '</ul>' +
       '<h3>🔨 Schritte</h3><ol class="pal-schritte">' + p.schritte.map(s => '<li>' + s + '</li>').join('') + '</ol>';
   }
 
+
+  // ==================== 🐦 NISTKÄSTEN (Baupläne) ====================
+  // Alle Maße in mm, Brettstärke 20 mm. Zeichnungen: Vorderansicht + Seitenansicht + Zuschnittplan.
+  const NT = 20; // Brettstärke
+  const LOCH = '#3a2e1f';
+  function svgN(breite, hoehe, inhalt, titel, pad) {
+    pad = pad || 50;
+    return '<svg class="pal-svg" viewBox="' + (-pad) + ' ' + (-pad) + ' ' + (breite + 2 * pad) + ' ' + (hoehe + 2 * pad) + '" role="img" aria-label="' + titel + '">' +
+      '<rect x="' + (-pad) + '" y="' + (-pad) + '" width="' + (breite + 2 * pad) + '" height="' + (hoehe + 2 * pad) + '" fill="#fffdf8"/>' + inhalt + '</svg>';
+  }
+  function poly(pkt, fill, extra) {
+    return '<polygon points="' + pkt.map(p => p.join(',')).join(' ') + '" fill="' + (fill || HOLZ) + '" stroke="' + KANTE + '" stroke-width="3"' + (extra || '') + '/>';
+  }
+  function linieGestr(x1, y1, x2, y2) {
+    return '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '" stroke="' + KANTE + '" stroke-width="2.5" stroke-dasharray="10 7"/>';
+  }
+  // Einkammer-Kasten (Meise, Star, Halbhöhle). k = Maße, siehe NIST_KASTEN
+  function kastenAnsichten(k) {
+    FS = k.fs || 22;
+    const B = k.B, S = k.S, hv = k.hv, hh = k.hh, Yb = hh + 120;            // Yb = Unterkante Kasten
+    const rueckUnten = Yb + k.rueckUeber, rueckOben = rueckUnten - k.rueck;
+    let s = '';
+    // ---- Vorderansicht ----
+    s += txt(B / 2, rueckOben - 40, 'Vorderansicht', { fett: true });
+    s += r(0, rueckOben, B, k.rueck, DUNKEL);                                   // Rückwand (oben/unten sichtbar)
+    s += '<circle cx="' + (B / 2) + '" cy="' + (rueckOben + 22) + '" r="7" fill="' + LOCH + '"/>';
+    if (k.halb) {
+      s += r(0, Yb - k.halb, B, k.halb);                                         // halbe Vorderwand
+      s += r(0, Yb - hv, B, hv - k.halb, '#4a3a28');                             // offene Front (dunkel = Öffnung)
+      s += r(0, Yb - hv, NT, hv - k.halb) + r(B - NT, Yb - hv, NT, hv - k.halb); // Seitenwände sichtbar
+      s += txt(B / 2, Yb - (hv + k.halb) / 2 + 8, 'offen', { farbe: '#fffdf8', gr: FS * 0.9 });
+    } else {
+      s += r(0, Yb - hv, B, hv);
+      s += '<circle cx="' + (B / 2) + '" cy="' + (Yb - k.lochY) + '" r="' + (k.loch / 2) + '" fill="' + LOCH + '"/>';
+      s += txt(B / 2, Yb - k.lochY - k.loch / 2 - 10, 'Ø ' + k.lochText, { fett: true, gr: FS * 0.95 });
+      s += massV(B + 34, Yb - k.lochY, Yb, String(k.lochY));
+    }
+    s += r(-4, Yb - hv - NT - 6, B + 8, NT + 6, KANTE);                          // Dach (von vorn)
+    s += massH(0, B, Yb + k.rueckUeber + 50, String(B));
+    s += massV(-34, Yb - hv, Yb, String(hv), true);
+    // ---- Seitenansicht (rechts daneben) ----
+    const ox = B + 170;
+    const y = x => Yb - hh + (x - NT) * (hh - hv) / S;                           // Dachschräge
+    let t = '';
+    t += txt(ox + (NT + S + NT) / 2 + 20, rueckOben - 40, 'Seitenansicht', { fett: true });
+    t += r(ox, rueckOben, NT, k.rueck, DUNKEL);                                  // Rückwand
+    t += poly([[ox + NT, Yb], [ox + NT, Yb - hh], [ox + NT + S, Yb - hv], [ox + NT + S, Yb]]); // Seitenwand
+    t += linieGestr(ox + NT, Yb - NT, ox + NT + S, Yb - NT);                     // Boden (verdeckt)
+    if (k.halb) t += r(ox + NT + S, Yb - k.halb, NT, k.halb);
+    else t += r(ox + NT + S, Yb - hv, NT, hv);                                   // Vorderwand
+    const xr = ox + NT + k.dach;                                                 // Dachende vorn
+    const yv = (xx) => y(xx - ox);
+    t += poly([[ox + NT, yv(ox + NT) - 4], [xr, yv(xr) - 4], [xr, yv(xr) - NT - 4], [ox + NT, yv(ox + NT) - NT - 4]], KANTE);
+    t += massH(ox + NT, ox + NT + S, Yb + k.rueckUeber + 50, String(S));
+    t += massV(ox + NT + S + NT + 30, Yb - hv, Yb, String(k.halb ? hv : hv));
+    t += massV(ox - 30, Yb - hh, Yb, String(hh), true);
+    t += massH(ox + NT, xr, yv(xr) - NT - 40, 'Dach ' + k.dach);
+    s += t;
+    const breite = ox + NT + Math.max(S + NT + 90, k.dach + 20);
+    return svgN(breite, Yb + k.rueckUeber + 60 - (rueckOben - 80), '<g transform="translate(0 ' + (-(rueckOben - 80)) + ')">' + s + '</g>', k.titel + ' Ansichten', 90);
+  }
+  // Zuschnittplan: Teile [name, länge, breite, extra] auf einem Brett der Breite W, bei Bedarf in Zeilen umbrochen
+  function zuschnitt(W, teile, maxZeile) {
+    FS = 26;
+    maxZeile = maxZeile || 900;
+    const SAEGE = 6, ZEILE = W + 120;
+    const zeilen = [[]]; let lauf = 0;
+    teile.forEach(t => {
+      if (lauf + t[1] > maxZeile && zeilen[zeilen.length - 1].length) { zeilen.push([]); lauf = 0; }
+      zeilen[zeilen.length - 1].push(t); lauf += t[1] + SAEGE;
+    });
+    const gesamt = teile.reduce((a, t) => a + t[1], 0) + SAEGE * (teile.length - 1);
+    let s = '', maxB = 0;
+    zeilen.forEach((z, zi) => {
+      const y0 = zi * ZEILE;
+      const lz = z.reduce((a, t) => a + t[1], 0) + SAEGE * (z.length - 1);
+      maxB = Math.max(maxB, lz);
+      s += '<rect x="0" y="' + y0 + '" width="' + lz + '" height="' + W + '" fill="#f1e2c6" stroke="#c9b48e" stroke-width="2" stroke-dasharray="8 6"/>';
+      let x = 0;
+      z.forEach(t => {
+        const [name, l, b, extra] = t;
+        s += r(x, y0, l, b);
+        if (b < W) s += '<rect x="' + x + '" y="' + (y0 + b) + '" width="' + l + '" height="' + (W - b) + '" fill="url(#nistRest)" stroke="#c9b48e" stroke-width="1.5"/>';
+        if (extra && extra.schraeg) s += '<line x1="' + (x + l - extra.schraeg) + '" y1="' + y0 + '" x2="' + (x + l) + '" y2="' + (y0 + b) + '" stroke="#c0392b" stroke-width="3" stroke-dasharray="10 6"/>';
+        if (extra && extra.loch) s += '<circle cx="' + (x + l - extra.lochY) + '" cy="' + (y0 + b * 0.62) + '" r="' + extra.loch / 2 + '" fill="none" stroke="' + LOCH + '" stroke-width="3" stroke-dasharray="6 5"/>';
+        const gr = Math.min(FS, l / (name.length * 0.62));
+        // Bei Teilen mit Flugloch steht der Name oben, das Loch sitzt darunter
+        s += txt(x + l / 2, extra && extra.loch ? y0 + gr + 8 : y0 + b / 2 + gr * 0.35, name, { fett: true, gr });
+        s += txt(x + l / 2, y0 + W + 34, String(l), { gr: 22 });
+        if (b < W) s += txt(x + 8, y0 + b - 8, 'b ' + b, { gr: 18, anker: 'start', farbe: '#7d6339' });
+        x += l + SAEGE;
+      });
+    });
+    const defs = '<defs><pattern id="nistRest" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="14" height="14" fill="#f1e2c6"/><line x1="0" y1="0" x2="0" y2="14" stroke="#d8c39c" stroke-width="5"/></pattern></defs>';
+    const kopf = txt(0, -24, 'Zuschnitt aus einem Brett ' + W + ' × ' + NT + ' mm · Länge gesamt ca. ' + (Math.ceil((gesamt + 50) / 100) / 10).toString().replace('.', ',') + ' m', { anker: 'start', fett: true, gr: 24 });
+    return svgN(maxB, zeilen.length * ZEILE - 70, defs + kopf + s, 'Zuschnittplan', 50);
+  }
+  function legende(extra) {
+    return '<div class="pal-hinweis" style="text-align:left">Schraffiert = Verschnitt · <span style="color:#c0392b">rot gestrichelt</span> = Schrägschnitt' + (extra || '') + '</div>';
+  }
+
+  const NIST_KASTEN = {
+    nist_meise: { titel: 'Meisenkasten', B: 150, S: 120, hv: 250, hh: 275, rueck: 380, rueckUeber: 40, dach: 200, loch: 28, lochText: '28 / 32', lochY: 195 },
+    nist_star: { titel: 'Starenkasten', B: 200, S: 160, hv: 330, hh: 365, rueck: 480, rueckUeber: 40, dach: 250, loch: 45, lochText: '45', lochY: 265, fs: 26 },
+    nist_halbhoehle: { titel: 'Halbhöhle', B: 150, S: 120, hv: 200, hh: 220, rueck: 330, rueckUeber: 40, dach: 190, halb: 110 },
+  };
+  ZEICHNUNG.nist_meise = () => kastenAnsichten(NIST_KASTEN.nist_meise) +
+    zuschnitt(150, [['Rückwand', 380, 150], ['Vorderwand', 250, 150, { loch: 28, lochY: 195 }], ['Seite', 275, 120, { schraeg: 25 }], ['Seite', 275, 120, { schraeg: 25 }], ['Boden', 120, 110], ['Dach', 200, 150]]) +
+    legende(' · Seitenwände: vorne 250, hinten 275 – schräg von 275 auf 250 schneiden');
+  ZEICHNUNG.nist_star = () => kastenAnsichten(NIST_KASTEN.nist_star) +
+    zuschnitt(200, [['Rückwand', 480, 200], ['Vorderwand', 330, 200, { loch: 45, lochY: 265 }], ['Seite', 365, 160, { schraeg: 35 }], ['Seite', 365, 160, { schraeg: 35 }], ['Boden', 160, 160], ['Dach', 250, 200]], 1000) +
+    legende(' · Seitenwände: vorne 330, hinten 365 – schräg schneiden');
+  ZEICHNUNG.nist_halbhoehle = () => kastenAnsichten(NIST_KASTEN.nist_halbhoehle) +
+    zuschnitt(150, [['Rückwand', 330, 150], ['Vorderwand', 110, 150], ['Seite', 220, 120, { schraeg: 20 }], ['Seite', 220, 120, { schraeg: 20 }], ['Boden', 120, 110], ['Dach', 190, 150]], 700) +
+    legende(' · Seitenwände: vorne 200, hinten 220 – schräg schneiden');
+  ZEICHNUNG.nist_sperling = () => {
+    FS = 24;
+    const W = 440, H = 220, Yb = 300;
+    let s = txt(W / 2, Yb - H - 100, 'Vorderansicht', { fett: true });
+    s += r(-30, Yb - H - 80, W + 60, 60, DUNKEL) + txt(W / 2, Yb - H - 44, 'Aufhängeleiste (hinten)', { gr: 18, farbe: '#fffdf8' });
+    s += r(0, Yb - H, W, H);
+    [80, 220, 360].forEach((cx, i) => {
+      s += '<circle cx="' + cx + '" cy="' + (Yb - 160) + '" r="17" fill="' + LOCH + '"/>';
+    });
+    [140, 280].forEach(x => { s += linieGestr(x + 10, Yb - H + 8, x + 10, Yb - 8); });
+    s += txt(W / 2, Yb - 40, 'Trennwände (verdeckt)', { gr: 18, farbe: '#7d6339' });
+    s += r(-20, Yb - H - NT - 4, W + 40, NT + 4, KANTE);
+    s += massH(0, W, Yb + 50, '440') + massV(-36, Yb - H, Yb, '220', true) + massV(W + 36, Yb - 160, Yb, '160');
+    s += txt(220, Yb - 110, '3 × Ø 32–35', { fett: true });
+    // Draufsicht (Grundriss) darunter
+    const oy = Yb + 140;
+    let g = txt(W / 2, oy - 20, 'Grundriss (ohne Dach)', { fett: true });
+    g += r(0, oy, W, NT) + r(0, oy + NT + 120, W, NT);                       // Rück- und Vorderwand
+    g += r(0, oy + NT, NT, 120) + r(W - NT, oy + NT, NT, 120);                // Seiten
+    g += r(140, oy + NT, NT, 120) + r(280, oy + NT, NT, 120);                 // Trennwände
+    [[NT, 120], [160, 120], [300, 120]].forEach(([x, w], i) => { g += '<rect x="' + x + '" y="' + (oy + NT) + '" width="' + w + '" height="120" fill="#f1e2c6"/>' + txt(x + w / 2, oy + NT + 68, 'Kammer ' + (i + 1), { gr: 18 }); });
+    g += massH(NT, 140, oy + 200, '120') + massV(W + 36, oy + NT, oy + NT + 120, '120');
+    return svgN(W, oy + 220, '<g transform="translate(0 0)">' + s + g + '</g>', 'Sperlings-Koloniehaus', 90) +
+      zuschnitt(220, [['Vorderwand', 440, 220, { loch: 34, lochY: 80 }], ['Rückwand', 440, 220], ['Dach', 480, 180], ['Boden', 400, 120], ['Seite', 120, 220], ['Seite', 120, 220], ['Trennw.', 120, 200], ['Trennw.', 120, 200], ['Aufhängeleiste', 500, 60]], 1000) +
+      legende(' · Löcher: Mitte jeweils 80 / 220 / 360 mm von links, 160 mm von unten');
+  };
+  ZEICHNUNG.nist_mauersegler = () => {
+    FS = 24;
+    const W = 400, H = 140, Yb = 260;
+    let s = txt(W / 2, -10, 'Vorderansicht (unter dem Dachüberstand)', { fett: true });
+    s += '<path d="M -40 ' + (Yb - H - 70) + ' L ' + (W + 40) + ' ' + (Yb - H - 70) + '" stroke="#9a8b74" stroke-width="10"/>' + txt(W / 2, Yb - H - 84, 'Dachüberstand / Traufe', { gr: 18, farbe: '#7d6339' });
+    s += r(0, Yb - H - NT, W, NT, KANTE) + r(0, Yb - H, W, H);
+    s += '<ellipse cx="70" cy="' + (Yb - NT - 5 - 16) + '" rx="32.5" ry="16" fill="' + LOCH + '"/>';
+    s += txt(70, Yb - NT - 50, '65 × 32', { fett: true, gr: 22 });
+    s += massH(0, W, Yb + 50, '400') + massV(-36, Yb - H, Yb, '140', true);
+    // Seitenansicht
+    const ox = W + 180;
+    let t = txt(ox + 95, -10, 'Seite', { fett: true });
+    t += r(ox, Yb - H - NT, 190, NT, KANTE) + r(ox, Yb - H, NT, H, DUNKEL) + r(ox + NT, Yb - H, 150, H) + r(ox + NT + 150, Yb - H, NT, H, DUNKEL);
+    t += linieGestr(ox + NT, Yb - NT, ox + NT + 150, Yb - NT);
+    t += massH(ox, ox + 190, Yb + 50, '190');
+    return svgN(ox + 190, Yb + 110, '<g transform="translate(0 40)">' + s + t + '</g>', 'Mauerseglerkasten', 90) +
+      zuschnitt(200, [['Vorderwand', 400, 140], ['Rückwand', 400, 140], ['Seite', 150, 140], ['Seite', 150, 140], ['Boden', 360, 150], ['Deckel', 400, 190]], 1000) +
+      legende(' · Einflugloch queroval 65 × 32 mm, Unterkante direkt über dem Boden');
+  };
+
+  const NIST_PROJEKTE = [
+    { id: 'nist_meise', icon: '🐦', titel: 'Meisenkasten (Blau- & Kohlmeise)', schwierigkeit: 'einfach', zeit: '2–3 Stunden',
+      voegel: 'Blaumeise (Ø 26–28 mm) · Kohlmeise, Kleiber, Feldsperling (Ø 32 mm)',
+      masse: 'außen 150 × 160 mm, Höhe 250–275 mm, innen 110 × 120 mm · Flugloch-Mitte 195 mm über Unterkante',
+      beschreibung: 'Der Klassiker und ideal als erstes Projekt mit Kindern. Ein Brett reicht für den ganzen Kasten. Die Größe des Fluglochs entscheidet, wer einzieht: 28 mm hält die größere Kohlmeise draußen und reserviert den Kasten für Blaumeisen.',
+      material: [['1', 'Stück', 'Brett 150 × 20 mm, ca. 1,6 m (Fichte/Lärche, ungehobelt, unbehandelt)'], ['20', 'Stück', 'Edelstahlschrauben 4 × 40 mm'], ['2', 'Stück', 'Nägel 3 × 50 mm (Drehpunkt Vorderwand)'], ['1', 'Stück', 'Vorreiber oder Haken (Vorderwand sichern)'], ['1', 'Stück', 'Dachpappe ca. 220 × 170 mm (optional)'], ['1', 'Stück', 'Aufhängung: Alu-Nagel oder Drahtbügel mit Schlauch']],
+      werkzeug: 'Säge, Akkuschrauber, Forstnerbohrer 28 oder 32 mm, Holzbohrer 3 mm zum Vorbohren, Zollstock, Winkel, Schleifpapier',
+      schritte: ['Teile laut Zuschnittplan absägen. Die beiden Seitenwände schräg schneiden (hinten 275, vorne 250 mm).', 'Flugloch in die Vorderwand bohren: Mitte 195 mm von unten, mittig. Kanten des Lochs glätten, Innenseite rau lassen – daran klettern die Jungen später hinaus.', 'Am Boden die vier Ecken etwa 1 cm schräg abschneiden: So kann Wasser ablaufen und Luft zirkulieren.', 'Seitenwände an die Rückwand schrauben (Rückwand unten 40 mm überstehen lassen), dann den Boden zwischen die Seitenwände setzen und verschrauben.', 'Vorderwand einsetzen und nur oben links und rechts mit je einem Nagel durch die Seitenwände befestigen – das ist der Drehpunkt zum Aufklappen. Unten mit Vorreiber oder Haken sichern.', 'Dach auflegen, an Seiten und Rückwand festschrauben, optional mit Dachpappe bekleben.', 'Bis Ende Februar aufhängen: 2–3 m hoch, Flugloch nach Osten/Südosten, leicht nach vorn geneigt, nicht in die pralle Sonne.'] },
+    { id: 'nist_star', icon: '🐦‍⬛', titel: 'Starenkasten', schwierigkeit: 'einfach', zeit: '2–3 Stunden',
+      voegel: 'Star (Ø 45 mm) – wird auch von Buntspecht oder Wendehals genutzt',
+      masse: 'außen 200 × 200 mm, Höhe 330–365 mm, innen 160 × 160 mm · Flugloch-Mitte 265 mm über Unterkante',
+      beschreibung: 'Größerer Bruder des Meisenkastens. Stare brüten gern gesellig – mehrere Kästen in einigem Abstand an Hauswand, Scheune oder hohem Baum sind kein Problem.',
+      material: [['1', 'Stück', 'Brett 200 × 20 mm, ca. 2,1 m (ungehobelt, unbehandelt)'], ['24', 'Stück', 'Edelstahlschrauben 4 × 40 mm'], ['2', 'Stück', 'Nägel 3 × 50 mm (Drehpunkt Vorderwand)'], ['1', 'Stück', 'Vorreiber oder Haken'], ['1', 'Stück', 'Dachpappe ca. 270 × 220 mm (optional)']],
+      werkzeug: 'Säge, Akkuschrauber, Forstnerbohrer 45 mm (oder Lochsäge), Holzbohrer 3 mm, Zollstock, Winkel',
+      schritte: ['Teile laut Zuschnittplan absägen, Seitenwände schräg schneiden (hinten 365, vorne 330 mm).', 'Flugloch Ø 45 mm bohren: Mitte 265 mm von unten.', 'Bodenecken abschrägen (Wasserablauf).', 'Seitenwände an die Rückwand, Boden dazwischen schrauben.', 'Vorderwand oben mit zwei Nägeln drehbar lagern, unten sichern.', 'Dach aufschrauben, ggf. Dachpappe.', 'In 3–6 m Höhe aufhängen, Flugloch Ost/Südost, freier Anflug.'] },
+    { id: 'nist_halbhoehle', icon: '🐦', titel: 'Halbhöhle (Rotkehlchen, Hausrotschwanz)', schwierigkeit: 'einfach', zeit: '1–2 Stunden',
+      voegel: 'Hausrotschwanz, Rotkehlchen, Bachstelze, Grauschnäpper',
+      masse: 'außen 150 × 160 mm, Höhe 200–220 mm · Vorderwand nur 110 mm hoch, oben offen',
+      beschreibung: 'Statt eines Fluglochs ist die Front zur Hälfte offen. Wichtig ist hier der Standort: Hausrotschwanz mag es hoch unter dem Dachvorsprung oder am Schuppen, das Rotkehlchen dagegen niedrig (bis ca. 1,5 m) und gut versteckt in Efeu, Hecke oder Kletterpflanzen.',
+      material: [['1', 'Stück', 'Brett 150 × 20 mm, ca. 1,3 m (ungehobelt, unbehandelt)'], ['16', 'Stück', 'Edelstahlschrauben 4 × 40 mm'], ['1', 'Stück', 'Dachpappe (optional)'], ['1', 'Stück', 'Aufhängung']],
+      werkzeug: 'Säge, Akkuschrauber, Holzbohrer 3 mm, Zollstock, Winkel',
+      schritte: ['Teile laut Zuschnittplan absägen, Seitenwände schräg schneiden (hinten 220, vorne 200 mm).', 'Bodenecken abschrägen.', 'Seitenwände an die Rückwand, Boden dazwischen schrauben.', 'Die niedrige Vorderwand (110 mm) unten zwischen bzw. vor die Seitenwände schrauben – oben bleibt die Öffnung.', 'Dach aufschrauben – es sollte vorn gut überstehen, damit es nicht hineinregnet.', 'Katzensicher aufhängen: Hausrotschwanz 2–4 m hoch an Hauswand/Schuppen, Rotkehlchen niedrig und versteckt in dichtem Grün.'] },
+    { id: 'nist_sperling', icon: '🏘️', titel: 'Sperlings-Koloniehaus (3 Kammern)', schwierigkeit: 'mittel', zeit: '½ Tag',
+      voegel: 'Haussperling/Spatz (Ø 32–35 mm), auch Feldsperling',
+      masse: 'außen 440 × 160 mm, Höhe 220 mm · 3 Kammern à 120 × 120 mm · Flugloch-Mitte 160 mm über Unterkante',
+      beschreibung: 'Spatzen sind gesellig und brüten am liebsten in der Gruppe. Drei Kammern unter einem Dach – an der Hauswand unter dem Dachüberstand ziehen sie oft schon im ersten Jahr ein.',
+      material: [['1', 'Stück', 'Brett 220 × 20 mm, ca. 2,8 m (ungehobelt, unbehandelt)'], ['40', 'Stück', 'Edelstahlschrauben 4 × 40 mm'], ['2', 'Stück', 'Scharniere (Dach zum Reinigen aufklappbar)'], ['1', 'Stück', 'Dachpappe ca. 500 × 200 mm'], ['2', 'Stück', 'Schrauben + Dübel für die Wandmontage']],
+      werkzeug: 'Säge, Akkuschrauber, Forstnerbohrer 32–35 mm, Holzbohrer 3 mm, Zollstock, Winkel',
+      schritte: ['Teile laut Zuschnittplan absägen.', 'Drei Fluglöcher in die Vorderwand bohren: Mitte jeweils 80, 220 und 360 mm von links, 160 mm von unten.', 'Boden zwischen die beiden Seitenwände schrauben, Rückwand dahinter.', 'Die zwei Trennwände bei 140 und 280 mm (von außen gemessen) auf den Boden stellen und von Rück- und Vorderwand aus verschrauben – jede Kammer muss dicht abgetrennt sein.', 'Vorderwand aufschrauben, Bodenecken bzw. kleine Löcher im Boden für den Wasserablauf.', 'Dach mit zwei Scharnieren an der Aufhängeleiste befestigen (aufklappbar), Dachpappe aufkleben.', 'Unter dem Dachüberstand in 3–5 m Höhe an die Hauswand schrauben, Fluglöcher Ost/Südost.'] },
+    { id: 'nist_mauersegler', icon: '🪶', titel: 'Mauerseglerkasten', schwierigkeit: 'mittel', zeit: '2–3 Stunden',
+      voegel: 'Mauersegler – brütet nur hoch an Gebäuden',
+      masse: 'außen 400 × 190 mm, Höhe 160 mm (mit Deckel) · Einflug queroval 65 × 32 mm direkt über dem Boden',
+      beschreibung: 'Mauersegler finden an sanierten Häusern kaum noch Nischen. Sie landen nie am Boden und brauchen einen freien Anflug von unten – deshalb hoch unter die Traufe, wo nichts im Weg ist. Ein liegender, flacher Kasten mit querovalem Einflug ist ideal.',
+      material: [['1', 'Stück', 'Brett 200 × 20 mm, ca. 1,9 m (ungehobelt, unbehandelt)'], ['24', 'Stück', 'Edelstahlschrauben 4 × 40 mm'], ['2', 'Stück', 'Winkel + Schrauben/Dübel für die Montage'], ['1', 'Stück', 'Dachpappe (optional)']],
+      werkzeug: 'Säge, Stichsäge (ovaler Einflug), Bohrer 10 mm zum Vorbohren des Ovals, Akkuschrauber, Zollstock',
+      schritte: ['Teile laut Zuschnittplan absägen.', 'Einflug in die Vorderwand sägen: queroval 65 × 32 mm, ca. 70 mm vom linken Rand, Unterkante direkt auf Höhe der Boden-Oberkante.', 'Seiten zwischen Vorder- und Rückwand schrauben, Boden einsetzen.', 'Deckel aufschrauben (zur Kontrolle abnehmbar).', 'Ab 5 m Höhe direkt unter den Dachüberstand montieren – darunter muss der Anflug frei sein (keine Bäume, Leitungen, Balkone).', 'Geduld: Mauersegler kommen Ende April/Anfang Mai zurück, Neubesiedlung kann ein paar Jahre dauern.'] },
+  ];
+
+  const NIST_GRUNDWISSEN = '<details class="pal-wissen" open><summary>🐦 Welcher Kasten für welchen Vogel?</summary><ul>' +
+    '<li><b>Ø 26–28 mm:</b> Blaumeise, Tannenmeise, Sumpfmeise</li><li><b>Ø 32 mm:</b> Kohlmeise, Kleiber, Feldsperling</li><li><b>Ø 32–35 mm:</b> Haussperling (gern als Koloniehaus)</li>' +
+    '<li><b>Ø 45 mm:</b> Star</li><li><b>Halbhöhle:</b> Hausrotschwanz, Rotkehlchen, Bachstelze, Grauschnäpper</li><li><b>Queroval 65 × 32 mm:</b> Mauersegler (hoch am Haus)</li></ul></details>' +
+    '<details class="pal-wissen"><summary>🪵 Holz &amp; Bau</summary><ul>' +
+    '<li><b>Holz:</b> 20 mm Fichte, Kiefer oder Lärche, <b>unbehandelt</b>. Innen rau lassen (Kletterhilfe), außen höchstens Leinöl oder eine Lasur mit Blauem Engel – <b>kein</b> Holzschutzmittel.</li>' +
+    '<li><b>Keine Sitzstange</b> vor dem Flugloch – sie hilft nur Katzen, Mardern und Elstern.</li>' +
+    '<li><b>Edelstahlschrauben</b> statt Nägel: rosten nicht, und man kann den Kasten später reparieren.</li>' +
+    '<li><b>Wasserablauf:</b> Bodenecken abschrägen oder kleine Löcher bohren.</li>' +
+    '<li><b>Mit Kindern:</b> Teile vorher zusägen und Löcher vorbohren – Zusammenschrauben und Anmalen der Außenseite (ungiftige Farbe) schaffen sie dann selbst.</li></ul></details>' +
+    '<details class="pal-wissen"><summary>📍 Aufhängen, Reinigen, Schutz</summary><ul>' +
+    '<li><b>Wann:</b> Herbst bis spätestens Ende Februar – Meisen schauen sich schon im Winter nach Quartieren um und übernachten darin.</li>' +
+    '<li><b>Richtung:</b> Flugloch nach Osten oder Südosten, weg von Wetterseite (West) und praller Mittagssonne. Leicht nach vorn geneigt hängen, dann regnet es nicht hinein.</li>' +
+    '<li><b>Höhe:</b> Meisen 2–3 m, Star 3–6 m, Sperlinge 3–5 m, Mauersegler ab 5 m, Rotkehlchen niedrig und versteckt.</li>' +
+    '<li><b>Abstand:</b> Kästen für dieselbe Art (außer Spatz und Star) mind. ca. 10 m auseinander – Meisen verteidigen ein Revier.</li>' +
+    '<li><b>Baumschonend:</b> Aludrahtbügel mit Gartenschlauch-Stück oder Alu-Nagel, keinen Draht um den Stamm wickeln.</li>' +
+    '<li><b>Katze &amp; Marder:</b> nicht von Ästen oder Mauern erreichbar; ein 4–5 cm tiefer Flugloch-Vorbau oder eine Manschette am Stamm hilft.</li>' +
+    '<li><b>Reinigen:</b> einmal im Jahr zwischen Oktober und Februar altes Nest herausnehmen (Handschuhe!), nur ausbürsten, keine Chemie.</li></ul></details>';
+
+  window.nistkastenRendern = function () {
+    const box = document.getElementById('ansichtNistkaesten');
+    if (!box || box.dataset.gerendert) return;
+    box.dataset.gerendert = '1';
+    box.innerHTML = NIST_GRUNDWISSEN + '<h3 class="pal-ueberschrift">📐 Baupläne</h3><div class="pal-liste">' + NIST_PROJEKTE.map(karteHtml).join('') + '</div>';
+    box.querySelectorAll('.pal-karte').forEach(b => b.addEventListener('click', () => oeffnen(b.dataset.id)));
+  };
+  // Sprung aus dem Gartenmodul: dort wird der gewünschte Bauplan im localStorage hinterlegt
+  const BAUPLAN_KEY = 'handwerk_bauplanOeffnen';
+  function bauplanSprungPruefen() {
+    let id = null;
+    try { id = localStorage.getItem(BAUPLAN_KEY); if (id) localStorage.removeItem(BAUPLAN_KEY); } catch (e) {}
+    if (!id || !NIST_PROJEKTE.some(p => p.id === id)) return;
+    if (window.handwerkAnsichtZeigen) window.handwerkAnsichtZeigen('nistkaesten');
+    oeffnen(id);
+  }
+  window.addEventListener('storage', (e) => { if (e.key === BAUPLAN_KEY && e.newValue) bauplanSprungPruefen(); });
+  window.addEventListener('pageshow', bauplanSprungPruefen);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) bauplanSprungPruefen(); });
+  setTimeout(bauplanSprungPruefen, 0);
+
   let aktuelles = null;
   function oeffnen(id) {
-    aktuelles = PROJEKTE.find(p => p.id === id);
+    aktuelles = PROJEKTE.find(p => p.id === id) || NIST_PROJEKTE.find(p => p.id === id);
     if (!aktuelles) return;
     document.getElementById('palDetailInhalt').innerHTML = detailHtml(aktuelles);
     const m = document.getElementById('palettenModal');
@@ -2390,7 +2632,7 @@
       titel: aktuelles.icon + ' ' + aktuelles.titel,
       material: aktuelles.material.map(m => ({ menge: m[0], einheit: m[1], name: m[2], preis: '' })),
       schritte: aktuelles.schritte.map(s => ({ text: s, erledigt: false })),
-      notiz: 'Paletten-Idee · Maße: ' + aktuelles.masse + '\nWerkzeug: ' + aktuelles.werkzeug,
+      notiz: (aktuelles.id.indexOf('nist_') === 0 ? 'Nistkasten-Bauplan (Zeichnung: Handwerk › 🐦 Nistkästen) · Maße: ' : 'Paletten-Idee · Maße: ') + aktuelles.masse + '\nWerkzeug: ' + aktuelles.werkzeug,
     });
     schliessen();
   });

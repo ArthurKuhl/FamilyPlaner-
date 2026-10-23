@@ -279,6 +279,12 @@
   .tier-projekt-inhalt { padding: 0 14px 14px; font-size: 0.8rem; line-height: 1.45; }
   .tier-projekt-inhalt ol { margin: 8px 0 8px 20px; }
   .tier-projekt-inhalt li { margin-bottom: 4px; }
+  .nist-bp-raster { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin-top: 4px; }
+  .nist-bp-karte { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 6px 10px; background: rgba(217,179,130,0.12); border: 1px solid var(--parchment); border-radius: var(--radius-md); cursor: pointer; font-family: inherit; color: inherit; text-align: center; touch-action: manipulation; }
+  .nist-skizze { width: 74px; height: 74px; }
+  .nist-bp-name { font-weight: 700; font-size: 0.8rem; }
+  .nist-bp-fuer { font-size: 0.68rem; color: var(--bark); line-height: 1.3; }
+  .nist-bp-link { display: block; width: 100%; margin-top: 8px; padding: 10px 12px; border-radius: var(--radius-md); border: none; background: var(--moss); color: #fff; font-weight: 700; font-size: 0.8rem; font-family: inherit; cursor: pointer; text-align: center; }
   .tier-tipp { background: rgba(201,154,58,0.13); border-radius: var(--radius-sm); padding: 8px 10px; font-size: 0.76rem; margin-top: 6px; }
   .tier-abschnitt-titel { font-weight: 700; font-size: 0.8rem; margin: 14px 0 6px; color: var(--moss-text, var(--moss)); }
   html[data-dark="1"] .tier-abschnitt-titel { color: var(--sage); }
@@ -10954,7 +10960,8 @@ const TIER_PROJEKTE = [
   { id: 'nistkasten', icon: '🏠', titel: 'Nistkästen für Vögel', aufwand: 1, zeit: 'Herbst bis Ende Februar',
     kurz: 'Die Größe des Fluglochs entscheidet, wer einzieht.',
     schritte: ['Blaumeise: Flugloch 26–28 mm', 'Kohlmeise, Kleiber, Feldsperling: 32 mm', 'Haussperling: 32–35 mm, gern als Koloniehaus mit mehreren Kammern', 'Star: 45 mm', 'Rotkehlchen, Hausrotschwanz, Bachstelze: Halbhöhle (vorne halb offen)', 'Mauersegler: spezieller Kasten hoch unter dem Dach', 'Aufhängen bis Ende Februar, Flugloch nach Ost/Südost, katzen- und mardersicher, im Herbst reinigen'],
-    tipp: 'Ein Nistkasten-Bausatz ist ein schönes Winterprojekt mit Kindern.' },
+    tipp: 'Ein Nistkasten-Bausatz ist ein schönes Winterprojekt mit Kindern.',
+    bauplaene: ['nist_meise', 'nist_star', 'nist_halbhoehle', 'nist_sperling', 'nist_mauersegler'] },
   { id: 'hecke', icon: '🌳', titel: 'Heimische Wildhecke', aufwand: 2, zeit: 'Pflanzzeit Oktober bis März',
     kurz: 'Brutplatz, Versteck und Futter in einem – für Vögel, Igel und Schmetterlinge.',
     schritte: ['Heimische Sträucher mischen: Weißdorn, Schlehe, Hundsrose, Holunder, Hasel, Kornelkirsche, Felsenbirne, Liguster, Eberesche, Faulbaum', 'Mehrreihig und unterschiedlich hoch pflanzen', 'Nur abschnittsweise und zwischen Oktober und Februar zurückschneiden', 'Den Saum davor als Wildkräuterstreifen stehen lassen'],
@@ -11100,6 +11107,41 @@ function tierListeInhaltHtml(sicht) {
   }).join('')}</div>`;
 }
 
+
+// ==================== NISTKASTEN-SKIZZEN (Sprung zu den Bauplänen im Handwerk-Modul) ====================
+const NIST_BAUPLAENE = {
+  nist_meise: { name: 'Meisenkasten', fuer: 'Blau- & Kohlmeise · Ø 28 / 32 mm' },
+  nist_star: { name: 'Starenkasten', fuer: 'Star · Ø 45 mm' },
+  nist_halbhoehle: { name: 'Halbhöhle', fuer: 'Rotkehlchen, Hausrotschwanz' },
+  nist_sperling: { name: 'Sperlingshaus', fuer: 'Spatz · 3 Kammern, Ø 32–35 mm' },
+  nist_mauersegler: { name: 'Mauerseglerkasten', fuer: 'Mauersegler · hoch am Haus' },
+};
+function nistSkizzeSvg(id) {
+  const H = '#d9b382', K = '#8a6237', L = '#3a2e1f', R = 'stroke="' + K + '" stroke-width="2"';
+  const rect = (x, y, w, h, f) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${f || H}" ${R} rx="1.5"/>`;
+  let i = '';
+  if (id === 'nist_meise') i = rect(37, 8, 26, 86, '#b88a55') + rect(31, 30, 38, 56) + rect(27, 23, 46, 8, K) + `<circle cx="50" cy="48" r="5" fill="${L}"/>`;
+  else if (id === 'nist_star') i = rect(36, 4, 28, 92, '#b88a55') + rect(25, 22, 50, 66) + rect(21, 15, 58, 8, K) + `<circle cx="50" cy="40" r="8.5" fill="${L}"/>`;
+  else if (id === 'nist_halbhoehle') i = rect(38, 14, 24, 80, '#b88a55') + rect(29, 36, 42, 48) + `<rect x="33" y="40" width="34" height="20" fill="${L}"/>` + rect(29, 60, 42, 24) + rect(25, 29, 50, 8, K);
+  else if (id === 'nist_sperling') i = rect(6, 30, 88, 10, '#b88a55') + rect(8, 40, 84, 40) + rect(4, 34, 92, 8, K) + [24, 50, 76].map(x => `<circle cx="${x}" cy="58" r="5.5" fill="${L}"/>`).join('');
+  else if (id === 'nist_mauersegler') i = `<path d="M2 26 L98 26" stroke="#9a8b74" stroke-width="5"/>` + rect(10, 40, 80, 30) + rect(10, 33, 80, 8, K) + `<ellipse cx="24" cy="64" rx="8" ry="4" fill="${L}"/>`;
+  return `<svg viewBox="0 0 100 100" class="nist-skizze" aria-hidden="true">${i}</svg>`;
+}
+function nistBauplanOeffnen(id) {
+  try { localStorage.setItem('handwerk_bauplanOeffnen', id || 'nist_meise'); } catch (e) {}
+  if (window.parent && window.parent !== window) {
+    try { window.parent.postMessage({ type: 'navigiere', modul: 'handwerk' }, window.location.origin); } catch (e) {}
+  } else {
+    window.location.href = 'handwerk.html';
+  }
+}
+function renderBauplaeneHtml(ids) {
+  return `<div class="tier-abschnitt-titel">📐 Baupläne zum Nachbauen</div>
+    <div class="nist-bp-raster">${ids.map(id => { const b = NIST_BAUPLAENE[id]; return b ? `<button type="button" class="nist-bp-karte" onclick="nistBauplanOeffnen('${id}')">
+      ${nistSkizzeSvg(id)}<span class="nist-bp-name">${escapeHtml(b.name)}</span><span class="nist-bp-fuer">${escapeHtml(b.fuer)}</span></button>` : ''; }).join('')}</div>
+    <button type="button" class="nist-bp-link" onclick="nistBauplanOeffnen('${ids[0]}')">🔨 Baupläne mit Maßen &amp; Zuschnitt im Handwerk-Modul öffnen ›</button>`;
+}
+
 function renderTierProjekteHtml() {
   return `<p class="tier-einleitung">Kleine und große Projekte – viele davon kann man gut zusammen mit Kindern bauen. Unter jedem Projekt steht, welche Tiere davon profitieren.</p>` +
     TIER_PROJEKTE.map(p => {
@@ -11110,6 +11152,7 @@ function renderTierProjekteHtml() {
           <p>${escapeHtml(p.kurz)}</p>
           <ol>${p.schritte.map(s => `<li>${escapeHtml(s)}</li>`).join('')}</ol>
           ${p.tipp ? `<div class="tier-tipp">💡 ${escapeHtml(p.tipp)}</div>` : ''}
+          ${p.bauplaene ? renderBauplaeneHtml(p.bauplaene) : ''}
           ${tiere.length ? `<div class="tier-abschnitt-titel">Hilft diesen Tieren</div><div class="tier-chips">${tiere.map(t => `<button type="button" class="tier-chip tier-chip-btn" onclick="tierDetailOeffnen('${t.id}')">${t.icon} ${escapeHtml(t.name)}</button>`).join('')}</div>` : ''}
         </div>
       </details>`;
