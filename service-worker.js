@@ -1,7 +1,7 @@
 // Gartenplaner Service Worker
 // WICHTIG: CACHE_VERSION bei jedem Update der App-Datei erhöhen (z.B. 'v1' -> 'v2'),
 // sonst bekommen Nutzer weiterhin die alte, zwischengespeicherte Version ausgeliefert.
-const CACHE_VERSION = 'v422';
+const CACHE_VERSION = 'v423';
 const CACHE_NAME = 'planer-cache-' + CACHE_VERSION;
 const FOTO_CACHE = 'planer-fotos'; // Familienfotos, versionsunabhängig
 
@@ -34,6 +34,7 @@ const APP_SHELL = [
   './personen.js',
   './gemeinsam.js',
   './malfilter.js',
+  './pflanzendaten.js',
   './fotospeicher.js',
   './scanner.js',
   './lebensmittel.js',

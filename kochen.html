@@ -2902,6 +2902,18 @@
   });
   document.getElementById('btnNewsSchliessen').addEventListener('click', () => document.getElementById('newsModal').classList.remove('zeigen'));
   document.getElementById('newsModal').addEventListener('click', (e) => { if (e.target.id === 'newsModal') e.currentTarget.classList.remove('zeigen'); });
+
+  // Sprung aus dem Gartenmodul („🍳 Aus deiner Ernte kochen“): die Rezept-ID liegt kurz im localStorage
+  const REZEPT_SPRUNG_KEY = 'kochen_rezeptOeffnen';
+  function rezeptSprungPruefen() {
+    let id = null;
+    try { id = localStorage.getItem(REZEPT_SPRUNG_KEY); if (id) localStorage.removeItem(REZEPT_SPRUNG_KEY); } catch (e) {}
+    if (id && rezepte.some(r => r.id === id)) detailOeffnen(id);
+  }
+  window.addEventListener('storage', (e) => { if (e.key === REZEPT_SPRUNG_KEY && e.newValue) rezeptSprungPruefen(); });
+  window.addEventListener('pageshow', rezeptSprungPruefen);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) rezeptSprungPruefen(); });
+  setTimeout(rezeptSprungPruefen, 300);
 })();
 </script>
 </body>
