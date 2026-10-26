@@ -91,7 +91,23 @@
   .hp-wand-kette-leiste { position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%); z-index: 90; display: none; align-items: center; gap: 8px; background: rgba(42,32,22,0.94); padding: 8px 12px; border-radius: 12px; box-shadow: 0 3px 12px rgba(0,0,0,0.35); }
   .hp-wand-kette-leiste span { color: #fff; font-size: 0.68rem; white-space: nowrap; }
   .hp-wand-kette-leiste button { background: var(--moss); color: var(--on-moss, #fff); border: none; border-radius: var(--radius-pill); padding: 5px 10px; font-size: 0.7rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
-  .hp-wand-kette-leiste button#btnWandKetteAbbrechen { background: #c05030; }
+  .hp-wand-kette-leiste button#btnWandKetteAbbrechen, .hp-wand-kette-leiste button#btnMessenVerwerfen { background: #c05030; }
+  .hp-zoom-widget button#btnEinpassen { font-size: 0.95rem; border-top: 1px solid rgba(255,255,255,0.15); }
+  .raum-werte { background: var(--white); border-radius: var(--radius-sm); padding: 8px 10px; font-size: 0.78rem; color: var(--bark); line-height: 1.5; margin-bottom: 10px; border: 1px solid var(--parchment); }
+  .raum-werte b { color: var(--soil); }
+  .form-row textarea { width: 100%; padding: 8px 10px; border: 1px solid var(--parchment); border-radius: var(--radius-sm); font-size: 0.85rem; background: var(--white); color: var(--soil); font-family: inherit; resize: vertical; min-height: 44px; }
+  .raum-foto-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 6px; }
+  .raum-foto-grid img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px; cursor: pointer; display: block; border: 1px solid var(--parchment); }
+  .rl-tabelle { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+  .rl-tabelle th { text-align: left; font-size: 0.65rem; text-transform: uppercase; color: var(--bark); padding: 6px 4px; border-bottom: 1px solid var(--parchment); }
+  .rl-tabelle td { padding: 7px 4px; border-bottom: 1px solid var(--parchment); }
+  .rl-tabelle td.zahl, .rl-tabelle th.zahl { text-align: right; white-space: nowrap; }
+  .rl-tabelle tr[data-raumid] { cursor: pointer; }
+  .rl-ebene td { font-weight: 700; background: var(--parchment); font-size: 0.75rem; }
+  .rl-summe { display: flex; justify-content: space-between; padding: 10px 4px 0; font-weight: 700; font-size: 0.88rem; }
+  .rl-hinweis { font-size: 0.7rem; color: var(--bark); padding: 6px 4px 0; line-height: 1.4; }
+  #modalFotoGross { z-index: 130; background: rgba(20,15,10,0.9); align-items: center; }
+  #modalFotoGross img { max-width: 100%; max-height: 78vh; border-radius: 10px; display: block; margin: 0 auto; }
 
   .editor-hinweis { position: fixed; bottom: 58px; left: 50%; transform: translateX(-50%); z-index: 75; display: none; background: var(--terracotta); color: #fff; border: none; border-radius: var(--radius-pill); padding: 9px 18px; font: 700 0.85rem 'Inter', sans-serif; box-shadow: 0 3px 12px rgba(0,0,0,0.25); cursor: pointer; }
   .editor-hinweis.zeigen { display: block; }
@@ -176,6 +192,7 @@
   <button class="tool-btn" data-mode="raumfrei" title="Freiform-Raum: Punkt für Punkt antippen, am Startpunkt schließen">⬟ Freiform</button>
   <button class="tool-btn" data-mode="tuer" title="Auf eine Wand tippen, um eine Tür zu setzen">🚪 Tür</button>
   <button class="tool-btn" data-mode="fenster" title="Auf eine Wand tippen, um ein Fenster zu setzen">🪟 Fenster</button>
+  <button class="tool-btn" data-mode="messen" title="Maßband: zwei Punkte antippen">📏 Messen</button>
   <button class="tool-btn" data-mode="notiz" title="Antippen, um eine Text-Notiz zu platzieren">📝 Notiz</button>
   <button class="tool-btn" data-mode="grundstueck" title="Grundstücksgrenze: Punkt für Punkt antippen, am Start schließen">🗺️ Grundstück</button>
   <div class="tool-dropdown">
@@ -203,6 +220,12 @@
       <button type="button" id="btnZoomPlus">＋</button>
       <div class="hp-zoom-widget-wert" id="hpZoomWert">100%</div>
       <button type="button" id="btnZoomMinus">－</button>
+      <button type="button" id="btnEinpassen" title="Ganzen Plan zeigen">⤢</button>
+    </div>
+    <div class="hp-wand-kette-leiste" id="messLeiste" style="display:none;">
+      <span id="messText">📏 Ersten Punkt antippen</span>
+      <button type="button" id="btnMessenBehalten" style="display:none;">📌 Behalten</button>
+      <button type="button" id="btnMessenVerwerfen">✕</button>
     </div>
     <div class="hp-wand-kette-leiste" id="wandKetteLeiste" style="display:none;">
       <span id="wandKetteText">🧱 Wand-Zug: nächsten Punkt antippen</span>
@@ -219,7 +242,9 @@
         🧱 <strong>Wand</strong> – antippen, ziehen, loslassen für eine gerade Wand.<br>
         ⬛ <strong>Raum</strong> – Rechteck ziehen, danach Name/Farbe hier rechts anpassen.<br>
         🚪/🪟 <strong>Tür/Fenster</strong> – auf eine vorhandene Wand tippen.<br>
-        ↖ <strong>Auswählen</strong> – Element antippen zum Bearbeiten/Verschieben, erneut antippen zum Abwählen.<br><br>
+        ↖ <strong>Auswählen</strong> – Element antippen zum Bearbeiten/Verschieben, erneut antippen zum Abwählen.<br>
+        📏 <strong>Messen</strong> – zwei Punkte antippen; mit 📌 bleibt die Maßlinie im Plan.<br>
+        🤏 <strong>Zoomen</strong> – mit zwei Fingern (am PC: Strg + Mausrad), ⤢ zeigt den ganzen Plan.<br><br>
         1 Kästchen im Raster = 1 Meter. Der Zoom oben links ändert nur die Ansicht, nicht die echten Maße.
       </div>
     </div>
@@ -257,10 +282,44 @@
         <label>Farbe</label>
         <div class="farbe-reihe" id="raumFarbReihe"></div>
       </div>
+      <div class="zeile-2">
+        <div class="form-row">
+          <label>Raumhöhe (m)</label>
+          <input type="number" id="raumHoehe" min="1" max="8" step="0.05" placeholder="2,50">
+        </div>
+        <div class="form-row">
+          <label>Wohnfläche zählt</label>
+          <select id="raumAnrechnung">
+            <option value="100">100 %</option>
+            <option value="50">50 % (Schräge 1–2 m)</option>
+            <option value="25">25 % (Balkon/Terrasse)</option>
+            <option value="0">gar nicht (Keller, Garage)</option>
+          </select>
+        </div>
+      </div>
+      <div class="zeile-2">
+        <div class="form-row">
+          <label>Bodenbelag</label>
+          <select id="raumBoden">
+            <option value="">–</option><option>Laminat</option><option>Parkett</option><option>Vinyl</option><option>Fliesen</option><option>Teppich</option><option>Estrich</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>Wandfarbe</label>
+          <input type="text" id="raumWandfarbe" placeholder="z.B. Alpinaweiß">
+        </div>
+      </div>
+      <div class="raum-werte" id="raumWerte"></div>
       <div class="form-row">
-        <label>Referenzfoto (optional)</label>
-        <input type="file" id="raumFotoInput" accept="image/*" style="display:none;">
-        <button type="button" class="tool-btn" id="btnRaumFotoWaehlen" style="width:100%;background:var(--white);color:var(--soil);border:1px solid var(--parchment);">📷 Foto hinzufügen/ändern</button>
+        <label>Notiz</label>
+        <textarea id="raumNotiz" rows="2" placeholder="z.B. 4 Steckdosen, Heizkörper 120 cm, Fenster 100×125"></textarea>
+      </div>
+      <button type="button" class="tool-btn" id="btnRaumRenovieren" style="width:100%;background:var(--white);color:var(--soil);border:1px solid var(--parchment);margin-bottom:10px;">🔨 Renovieren → Handwerk-Projekt</button>
+      <div class="form-row">
+        <label>Fotos</label>
+        <input type="file" id="raumFotoInput" accept="image/*" multiple style="display:none;">
+        <button type="button" class="tool-btn" id="btnRaumFotoWaehlen" style="width:100%;background:var(--white);color:var(--soil);border:1px solid var(--parchment);">📷 Foto hinzufügen</button>
+        <div class="raum-foto-grid" id="raumFotoGrid"></div>
         <div id="raumFotoVorschauBox" style="display:none;margin-top:8px;position:relative;">
           <img id="raumFotoVorschau" style="width:100%;border-radius:var(--radius-sm);display:block;">
           <button type="button" id="btnRaumFotoEntfernen" style="position:absolute;top:6px;right:6px;background:rgba(20,18,14,0.72);color:#fff;border:none;width:28px;height:28px;border-radius:50%;cursor:pointer;">🗑</button>
@@ -298,6 +357,13 @@
         <input type="range" id="oeffnungBreite" min="40" max="240" step="5">
       </div>
       <button class="btn-danger" id="btnOeffnungLoeschen">🗑 Entfernen</button>
+    </div>
+
+    <div class="sidebar-section" id="editorMass" style="display:none;">
+      <div class="sidebar-title">📏 Maßlinie</div>
+      <div class="raum-werte" id="massWert"></div>
+      <p style="font-size:0.75rem;color:var(--bark);margin-bottom:8px;">Zum Verschieben im Auswählen-Modus ziehen.</p>
+      <button class="btn-danger" id="btnMassLoeschen">🗑 Maßlinie löschen</button>
     </div>
 
     <div class="sidebar-section" id="editorNotiz" style="display:none;">
@@ -385,6 +451,7 @@
     <h2>📋 Raumliste – <span id="raumlisteEbeneName"></span></h2>
     <div id="raumlisteInhalt" style="max-height:60vh;overflow-y:auto;"></div>
     <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnRaumlisteCsv">⬇️ CSV</button>
       <button class="btn btn-secondary" id="btnRaumlisteSchliessen">Schließen</button>
     </div>
   </div>
@@ -408,11 +475,23 @@
   </div>
 </div>
 
+<div class="modal-bg" id="modalFotoGross">
+  <div style="width:100%;max-width:720px;padding:12px;">
+    <img id="fotoGrossBild" alt="Raumfoto">
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnFotoGrossLoeschen" style="color:#c05030;">🗑 Foto löschen</button>
+      <button class="btn btn-secondary" id="btnFotoGrossSchliessen">Schließen</button>
+    </div>
+  </div>
+</div>
+
 <!-- Cloud-Sync: fehlte bisher, dadurch blieb der Hausplan nur auf dem jeweiligen Gerät -->
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-storage-compat.js"></script>
 <script src="sync.js"></script>
+<script src="fotospeicher.js"></script>
 <script src="gemeinsam.js"></script>
 <script>
 (function(){
@@ -441,7 +520,7 @@
   }
   // Ältere gespeicherte Pläne (vor Notizen/Möbel/Nordpfeil) auf das aktuelle Format bringen
   daten.projekte.forEach(p => {
-    p.ebenen.forEach(eb => { if (!eb.notizen) eb.notizen = []; if (!eb.moebel) eb.moebel = []; });
+    p.ebenen.forEach(eb => { if (!eb.notizen) eb.notizen = []; if (!eb.moebel) eb.moebel = []; if (!eb.masse) eb.masse = []; });
     if (!p.kompass) p.kompass = { x: 60, y: 60, rotation: 0, sichtbar: false };
     if (!p.grundstueck) p.grundstueck = { punkte: [], sichtbar: false };
   });
@@ -583,8 +662,18 @@
     eb.waende.forEach(w => drawWand(w, w.id === selektion.id && selektion.typ === 'wand'));
     // Notizen
     (eb.notizen || []).forEach(n => drawNotiz(n, n.id === selektion.id && selektion.typ === 'notiz'));
-    // Möbel-Platzhalter
-    (eb.moebel || []).forEach(m => drawMoebel(m, m.id === selektion.id && selektion.typ === 'moebel'));
+    // Möbel-Platzhalter (überschneidende rot)
+    const kollisionen = moebelKollisionen();
+    (eb.moebel || []).forEach(m => drawMoebel(m, m.id === selektion.id && selektion.typ === 'moebel', kollisionen.has(m.id)));
+    // Abstand des gewählten Möbels zur nächsten Wand
+    if (selektion.typ === 'moebel') { const m = (eb.moebel || []).find(x => x.id === selektion.id); if (m) drawWandAbstand(m); }
+    // Maßlinien (gespeichert) + laufende Messung
+    (eb.masse || []).forEach(ms => drawMass(ms, ms.id === selektion.id && selektion.typ === 'mass'));
+    if (messStart) {
+      ctx.save(); ctx.fillStyle = '#c0633a'; ctx.beginPath(); ctx.arc(messStart.x, messStart.y, 5, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke(); ctx.restore();
+    }
+    if (messung) drawMass(messung, true);
     // Nordpfeil
     if (aktivesProjekt().kompass && aktivesProjekt().kompass.sichtbar) drawKompass();
     // Live-Vorschau beim Zeichnen
@@ -646,6 +735,41 @@
     }
     return Math.abs(sum) / 2;
   }
+  // Eckpunkte eines Raums (Rechteck inkl. Drehung oder Freiform)
+  function raumEcken(r) {
+    if (r.typ === 'poly') return r.points;
+    const cx = r.x + r.w / 2, cy = r.y + r.h / 2, a = (r.rotation || 0) * Math.PI / 180;
+    return [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([sx, sy]) => {
+      const lx = sx * r.w / 2, ly = sy * r.h / 2;
+      return { x: cx + lx * Math.cos(a) - ly * Math.sin(a), y: cy + lx * Math.sin(a) + ly * Math.cos(a) };
+    });
+  }
+  function raumFlaecheM2(r) { return r.typ === 'poly' ? polygonFlaechePx(r.points) / (PX_PRO_M * PX_PRO_M) : (r.w / PX_PRO_M) * (r.h / PX_PRO_M); }
+  function raumUmfangM(r) { const e = raumEcken(r); let u = 0; for (let i = 0; i < e.length; i++) { const a = e[i], b = e[(i + 1) % e.length]; u += Math.hypot(b.x - a.x, b.y - a.y); } return u / PX_PRO_M; }
+  function raumAnrechnung(r) { const a = parseInt(r.anrechnung, 10); return isNaN(a) ? 100 : a; }
+  function raumHoeheM(r) { return r.hoehe > 0 ? r.hoehe : 2.5; }
+  function abstandPunktStrecke(px, py, ax, ay, bx, by) {
+    const dx = bx - ax, dy = by - ay, l2 = dx * dx + dy * dy;
+    let t = l2 ? ((px - ax) * dx + (py - ay) * dy) / l2 : 0; t = Math.max(0, Math.min(1, t));
+    const qx = ax + dx * t, qy = ay + dy * t;
+    return { d: Math.hypot(px - qx, py - qy), x: qx, y: qy };
+  }
+  // Türen/Fenster, die auf dem Rand des Raums liegen (für die Wandfläche)
+  function raumOeffnungen(r) {
+    const ecken = raumEcken(r), liste = [];
+    aktiveEbene().waende.forEach(w => (w.oeffnungen || []).forEach(o => {
+      const p = wandPunktBeiT(w, o.pos);
+      for (let i = 0; i < ecken.length; i++) {
+        const a = ecken[i], b = ecken[(i + 1) % ecken.length];
+        if (abstandPunktStrecke(p.x, p.y, a.x, a.y, b.x, b.y).d < 0.3 * PX_PRO_M) { liste.push(o); break; }
+      }
+    }));
+    return liste;
+  }
+  function raumWandflaecheM2(r) {
+    const abzug = raumOeffnungen(r).reduce((s, o) => s + (o.breite || 80) / 100 * (o.typ === 'fenster' ? 1.25 : 2.0), 0);
+    return { brutto: raumUmfangM(r) * raumHoeheM(r), abzug, netto: Math.max(0, raumUmfangM(r) * raumHoeheM(r) - abzug), anzahl: raumOeffnungen(r).length };
+  }
   function polygonSchwerpunkt(points) {
     let x = 0, y = 0;
     points.forEach(p => { x += p.x; y += p.y; });
@@ -687,7 +811,8 @@
     ctx.fillStyle = '#3b2f1e'; ctx.font = '600 12px Inter,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText(r.name || 'Raum', mitteX, mitteY - 8);
     ctx.font = '10px Inter,sans-serif';
-    ctx.fillText(flaeche.toFixed(1) + ' m²', mitteX, mitteY + 8);
+    ctx.fillText(flaeche.toFixed(1).replace('.', ',') + ' m²' + (raumAnrechnung(r) < 100 ? ' (' + raumAnrechnung(r) + ' %)' : ''), mitteX, mitteY + 8);
+    if ((r.fotos || []).length) { ctx.font = '12px Inter,sans-serif'; ctx.fillText('📷' + (r.fotos.length > 1 ? r.fotos.length : ''), mitteX, mitteY + 24); }
     ctx.restore();
   }
   function wandWinkel(w) { return Math.atan2(w.y2 - w.y1, w.x2 - w.x1); }
@@ -772,19 +897,126 @@
     }
     return null;
   }
-  function drawMoebel(m, selected) {
+  function drawMoebel(m, selected, kollision) {
     const t = moebelTypInfo(m.typ);
     ctx.save();
     ctx.translate(m.x, m.y);
     ctx.rotate((m.rotation || 0) * Math.PI / 180);
-    ctx.fillStyle = selected ? 'rgba(192,99,58,0.25)' : 'rgba(74,111,90,0.16)';
-    ctx.strokeStyle = selected ? '#c0633a' : '#4a6f5c';
-    ctx.lineWidth = selected ? 2 : 1.3;
+    ctx.fillStyle = kollision ? 'rgba(200,60,40,0.28)' : (selected ? 'rgba(192,99,58,0.25)' : 'rgba(74,111,90,0.16)');
+    ctx.strokeStyle = kollision ? '#c83c28' : (selected ? '#c0633a' : '#4a6f5c');
+    ctx.lineWidth = selected || kollision ? 2 : 1.3;
+    if (kollision) ctx.setLineDash([5, 3]);
     ctx.fillRect(-m.w / 2, -m.h / 2, m.w, m.h);
     ctx.strokeRect(-m.w / 2, -m.h / 2, m.w, m.h);
-    ctx.fillStyle = '#3b2f1e'; ctx.font = '13px Inter,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText(t.icon, 0, 0);
+    ctx.setLineDash([]);
+    // Beschriftung: Symbol, Name und Maße (passt sich der Größe an; bei schmalen Möbeln quer)
+    const quer = m.h > m.w * 1.4;
+    if (quer) ctx.rotate(-Math.PI / 2);
+    const bw = quer ? m.h : m.w, bh = quer ? m.w : m.h;
+    ctx.fillStyle = '#3b2f1e'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    const name = m.name || t.label.replace(/\s*\(.*\)$/, '');
+    const masse = Math.round(m.w / PX_PRO_M * 100) + '×' + Math.round(m.h / PX_PRO_M * 100);
+    if (bw >= 46 && bh >= 30) {
+      const fs = Math.max(7, Math.min(10, bw / 9));
+      ctx.font = '13px Inter,sans-serif'; ctx.fillText(t.icon, 0, -fs * 0.9);
+      ctx.font = '600 ' + fs + 'px Inter,sans-serif';
+      let n = name; while (n.length > 3 && ctx.measureText(n).width > bw - 6) n = n.slice(0, -2) + '…';
+      ctx.fillText(n, 0, fs * 0.45);
+      ctx.font = fs * 0.9 + 'px Inter,sans-serif'; ctx.fillStyle = 'rgba(59,47,30,0.75)';
+      ctx.fillText(masse, 0, fs * 1.55);
+    } else {
+      ctx.font = '13px Inter,sans-serif';
+      ctx.fillText(t.icon, 0, 0);
+    }
     ctx.restore();
+  }
+  // Eckpunkte eines (gedrehten) Möbels
+  function moebelEcken(m) {
+    const a = (m.rotation || 0) * Math.PI / 180;
+    return [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([sx, sy]) => {
+      const lx = sx * m.w / 2, ly = sy * m.h / 2;
+      return { x: m.x + lx * Math.cos(a) - ly * Math.sin(a), y: m.y + lx * Math.sin(a) + ly * Math.cos(a) };
+    });
+  }
+  // Überschneidung zweier konvexer Vielecke (Trennachsen-Test), 1 cm Toleranz
+  function vieleckeUeberschneiden(p, q) {
+    const toleranz = 0.01 * PX_PRO_M;
+    for (const poly of [p, q]) {
+      for (let i = 0; i < poly.length; i++) {
+        const a = poly[i], b = poly[(i + 1) % poly.length];
+        const nx = -(b.y - a.y), ny = b.x - a.x, l = Math.hypot(nx, ny) || 1;
+        let minP = Infinity, maxP = -Infinity, minQ = Infinity, maxQ = -Infinity;
+        p.forEach(v => { const d = (v.x * nx + v.y * ny) / l; minP = Math.min(minP, d); maxP = Math.max(maxP, d); });
+        q.forEach(v => { const d = (v.x * nx + v.y * ny) / l; minQ = Math.min(minQ, d); maxQ = Math.max(maxQ, d); });
+        if (maxP - toleranz <= minQ || maxQ - toleranz <= minP) return false;
+      }
+    }
+    return true;
+  }
+  function moebelKollisionen() {
+    const liste = aktiveEbene().moebel || [], ids = new Set();
+    for (let i = 0; i < liste.length; i++) for (let j = i + 1; j < liste.length; j++) {
+      if (liste[i].typ === 'teppich' || liste[j].typ === 'teppich') continue; // Teppiche liegen unter Möbeln
+      if (vieleckeUeberschneiden(moebelEcken(liste[i]), moebelEcken(liste[j]))) { ids.add(liste[i].id); ids.add(liste[j].id); }
+    }
+    return ids;
+  }
+  function kollisionsPartner(m) {
+    return (aktiveEbene().moebel || []).filter(o => o.id !== m.id && o.typ !== 'teppich' && m.typ !== 'teppich' && vieleckeUeberschneiden(moebelEcken(m), moebelEcken(o)));
+  }
+  // Kleinster Abstand Möbel ↔ Wand (Wandoberfläche, nicht Mittellinie)
+  function wandAbstand(m) {
+    const ecken = moebelEcken(m);
+    let best = null;
+    aktiveEbene().waende.forEach(w => {
+      const halbe = Math.max(3, (w.dicke || 20) / 100 * PX_PRO_M) / 2;
+      const kandidaten = [];
+      ecken.forEach(e => { const r = abstandPunktStrecke(e.x, e.y, w.x1, w.y1, w.x2, w.y2); kandidaten.push({ d: r.d, von: e, zu: { x: r.x, y: r.y } }); });
+      for (let i = 0; i < 4; i++) {
+        const a = ecken[i], b = ecken[(i + 1) % 4];
+        [[w.x1, w.y1], [w.x2, w.y2]].forEach(([px, py]) => { const r = abstandPunktStrecke(px, py, a.x, a.y, b.x, b.y); kandidaten.push({ d: r.d, von: { x: r.x, y: r.y }, zu: { x: px, y: py } }); });
+      }
+      kandidaten.forEach(k => { const d = k.d - halbe; if (!best || d < best.d) best = { d, von: k.von, zu: k.zu }; });
+    });
+    return best;
+  }
+  function drawWandAbstand(m) {
+    const b = wandAbstand(m);
+    if (!b || b.d > 3 * PX_PRO_M) return;
+    const cm = Math.max(0, Math.round(b.d / PX_PRO_M * 100));
+    ctx.save();
+    ctx.strokeStyle = cm === 0 ? '#c83c28' : '#5b8bb5'; ctx.lineWidth = 1.2; ctx.setLineDash([3, 3]);
+    ctx.beginPath(); ctx.moveTo(b.von.x, b.von.y); ctx.lineTo(b.zu.x, b.zu.y); ctx.stroke(); ctx.setLineDash([]);
+    const tx = (b.von.x + b.zu.x) / 2, ty = (b.von.y + b.zu.y) / 2;
+    const text = cm === 0 ? 'an der Wand' : '↔ ' + cm + ' cm';
+    ctx.font = '600 10px Inter,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    const bw = ctx.measureText(text).width;
+    ctx.fillStyle = 'rgba(255,253,248,0.92)'; ctx.fillRect(tx - bw / 2 - 4, ty - 8, bw + 8, 16);
+    ctx.fillStyle = cm === 0 ? '#c83c28' : '#3d6d96'; ctx.fillText(text, tx, ty);
+    ctx.restore();
+  }
+  // Maßlinie mit Endstrichen und Beschriftung
+  function drawMass(ms, hervor) {
+    const l = Math.hypot(ms.x2 - ms.x1, ms.y2 - ms.y1);
+    if (l < 2) return;
+    const a = Math.atan2(ms.y2 - ms.y1, ms.x2 - ms.x1), nx = -Math.sin(a), ny = Math.cos(a);
+    ctx.save();
+    ctx.strokeStyle = hervor ? '#c0633a' : '#5b6f8a'; ctx.lineWidth = hervor ? 1.8 : 1.3;
+    ctx.beginPath(); ctx.moveTo(ms.x1, ms.y1); ctx.lineTo(ms.x2, ms.y2);
+    [[ms.x1, ms.y1], [ms.x2, ms.y2]].forEach(([x, y]) => { ctx.moveTo(x + nx * 6, y + ny * 6); ctx.lineTo(x - nx * 6, y - ny * 6); });
+    ctx.stroke();
+    const text = (l / PX_PRO_M).toFixed(2).replace('.', ',') + ' m';
+    const mx = (ms.x1 + ms.x2) / 2 + nx * 11, my = (ms.y1 + ms.y2) / 2 + ny * 11;
+    ctx.font = '700 11px Inter,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    const bw = ctx.measureText(text).width;
+    ctx.fillStyle = 'rgba(255,253,248,0.92)'; ctx.fillRect(mx - bw / 2 - 4, my - 8, bw + 8, 16);
+    ctx.fillStyle = hervor ? '#c0633a' : '#3d4f68'; ctx.fillText(text, mx, my);
+    ctx.restore();
+  }
+  function hitTestMass(x, y) {
+    const liste = aktiveEbene().masse || [];
+    for (let i = liste.length - 1; i >= 0; i--) { const ms = liste[i]; if (abstandPunktStrecke(x, y, ms.x1, ms.y1, ms.x2, ms.y2).d < 9) return ms; }
+    return null;
   }
   function hitTestMoebel(x, y) {
     const eb = aktiveEbene();
@@ -867,6 +1099,17 @@
     { id: 'dusche', label: 'Dusche', icon: '🚿', w: 90, h: 90 },
     { id: 'badewanne', label: 'Badewanne', icon: '🛁', w: 170, h: 75 },
     { id: 'treppe', label: 'Treppe', icon: '🪜', w: 100, h: 250 },
+    { id: 'schreibtisch', label: 'Schreibtisch', icon: '💻', w: 140, h: 70 },
+    { id: 'kleiderschrank', label: 'Kleiderschrank', icon: '👔', w: 200, h: 60 },
+    { id: 'kommode', label: 'Kommode', icon: '🗃️', w: 100, h: 45 },
+    { id: 'regal', label: 'Regal', icon: '📚', w: 80, h: 35 },
+    { id: 'tvboard', label: 'TV-Board', icon: '📺', w: 180, h: 40 },
+    { id: 'esstischrund', label: 'Esstisch rund', icon: '🍽️', w: 110, h: 110 },
+    { id: 'kuechenzeile', label: 'Küchenzeile', icon: '🍳', w: 270, h: 60 },
+    { id: 'waschmaschine', label: 'Waschmaschine', icon: '🫧', w: 60, h: 60 },
+    { id: 'trockner', label: 'Trockner', icon: '🌀', w: 60, h: 60 },
+    { id: 'kinderbett', label: 'Kinderbett', icon: '🧸', w: 70, h: 140 },
+    { id: 'teppich', label: 'Teppich', icon: '🟫', w: 200, h: 140 },
   ];
   let eigeneMoebelTypen = laden(KEY_MOEBEL_EIGENE, []);
   function moebelTypInfo(id) { return MOEBEL_TYPEN.find(t => t.id === id) || eigeneMoebelTypen.find(t => t.id === id) || MOEBEL_TYPEN[0]; }
@@ -903,16 +1146,18 @@
     if (mode === 'wand' && m !== 'wand') wandKetteBeenden(true);
     if (mode === 'raumfrei' && m !== 'raumfrei') raumFreiBeenden(true);
     if (mode === 'grundstueck' && m !== 'grundstueck') grundstueckBeenden(true);
+    if (mode === 'messen' && m !== 'messen') messenZuruecksetzen();
     mode = m;
+    if (m === 'messen') { document.getElementById('messLeiste').style.display = 'flex'; document.getElementById('messText').textContent = '📏 Ersten Punkt antippen'; }
     document.querySelectorAll('.tool-btn[data-mode]').forEach(b => b.classList.toggle('active', b.dataset.mode === m));
     schliesseEditor();
     updateStatus();
   }
   document.querySelectorAll('.tool-btn[data-mode]').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
   function updateStatus() {
-    const labels = { select: 'Auswählen/Verschieben', wand: 'Wand zeichnen – Punkt für Punkt antippen', raum: 'Raum zeichnen', raumfrei: 'Freiform-Raum – Ecken antippen, am Start schließen', tuer: 'Tür setzen – auf eine Wand tippen', fenster: 'Fenster setzen – auf eine Wand tippen', notiz: 'Notiz setzen – antippen, wo sie stehen soll', grundstueck: 'Grundstücksgrenze – Ecken antippen, am Start schließen', moebel: (aktiverMoebelTyp ? moebelTypInfo(aktiverMoebelTyp).label + ' – antippen zum Platzieren' : 'Möbel platzieren') };
+    const labels = { messen: 'Messen – zwei Punkte antippen', select: 'Auswählen/Verschieben', wand: 'Wand zeichnen – Punkt für Punkt antippen', raum: 'Raum zeichnen', raumfrei: 'Freiform-Raum – Ecken antippen, am Start schließen', tuer: 'Tür setzen – auf eine Wand tippen', fenster: 'Fenster setzen – auf eine Wand tippen', notiz: 'Notiz setzen – antippen, wo sie stehen soll', grundstueck: 'Grundstücksgrenze – Ecken antippen, am Start schließen', moebel: (aktiverMoebelTyp ? moebelTypInfo(aktiverMoebelTyp).label + ' – antippen zum Platzieren' : 'Möbel platzieren') };
     const eb = aktiveEbene();
-    const gesamtFlaeche = eb.raeume.reduce((s, r) => s + (r.w / PX_PRO_M) * (r.h / PX_PRO_M), 0);
+    const gesamtFlaeche = eb.raeume.reduce((s, r) => s + raumFlaecheM2(r), 0);
     document.getElementById('hpStatus').innerHTML =
       '<span>Modus: ' + (labels[mode] || mode) + '</span><span>Ebene: ' + escapeHtml(eb.name) + '</span>' +
       '<span>Wände: ' + eb.waende.length + '</span><span>Räume: ' + eb.raeume.length + '</span>' +
@@ -1013,8 +1258,47 @@
     else if (aktiverKettenTyp === 'grundstueck') grundstueckBeenden(true);
   });
 
+  // ---------- 📏 MESSEN ----------
+  let messStart = null, messung = null;
+  function messenZuruecksetzen() {
+    messStart = null; messung = null;
+    document.getElementById('messLeiste').style.display = 'none';
+    document.getElementById('btnMessenBehalten').style.display = 'none';
+  }
+  document.getElementById('btnMessenBehalten').addEventListener('click', () => {
+    if (!messung) return;
+    pushUndo();
+    const eb = aktiveEbene();
+    if (!eb.masse) eb.masse = [];
+    eb.masse.push({ id: neueId('mass'), x1: messung.x1, y1: messung.y1, x2: messung.x2, y2: messung.y2 });
+    speichernDaten();
+    messenZuruecksetzen();
+    document.getElementById('messLeiste').style.display = 'flex';
+    document.getElementById('messText').textContent = '📌 Gespeichert – nächste Messung: Punkt antippen';
+    draw();
+  });
+  document.getElementById('btnMessenVerwerfen').addEventListener('click', () => { messenZuruecksetzen(); setMode('select'); draw(); });
+
   function onDown(e) {
     const { x, y } = getPos(e);
+    if (mode === 'messen') {
+      const p = snapPunkt(x, y);
+      const leiste = document.getElementById('messLeiste');
+      leiste.style.display = 'flex';
+      if (!messStart || messung) {
+        messStart = p; messung = null;
+        document.getElementById('btnMessenBehalten').style.display = 'none';
+        document.getElementById('messText').textContent = '📏 Zweiten Punkt antippen';
+      } else {
+        messung = { x1: messStart.x, y1: messStart.y, x2: p.x, y2: p.y };
+        const l = Math.hypot(p.x - messStart.x, p.y - messStart.y) / PX_PRO_M;
+        document.getElementById('messText').textContent = '📏 ' + l.toFixed(2).replace('.', ',') + ' m';
+        document.getElementById('btnMessenBehalten').style.display = '';
+        messStart = null;
+      }
+      draw();
+      return;
+    }
     if (mode === 'wand') {
       const p = snapPunkt(x, y);
       if (!wandKettePunkte.length) {
@@ -1106,7 +1390,8 @@
       speichernDaten(); draw(); updateStatus();
       setMode('select');
       moebelAuswaehlen(neu);
-      showTempStatus(t.icon + ' ' + t.label + ' platziert', 3);
+      const partnerNeu = kollisionsPartner(neu);
+      showTempStatus(partnerNeu.length ? '⚠️ ' + t.label + ' überschneidet sich mit ' + partnerNeu.map(o => moebelTypInfo(o.typ).label).join(', ') : t.icon + ' ' + t.label + ' platziert', partnerNeu.length ? 4 : 3);
       return;
     }
     if (mode === 'tuer' || mode === 'fenster') {
@@ -1127,6 +1412,13 @@
     if (aktivesProjekt().kompass && aktivesProjekt().kompass.sichtbar && Math.hypot(x - aktivesProjekt().kompass.x, y - aktivesProjekt().kompass.y) < 24) {
       kompassAuswaehlen();
       dragStart = { x, y }; dragObjStart = { x: aktivesProjekt().kompass.x, y: aktivesProjekt().kompass.y };
+      return;
+    }
+    const massHit = hitTestMass(x, y);
+    if (massHit) {
+      if (selektion.typ === 'mass' && selektion.id === massHit.id) { selektion = { typ: null, id: null }; schliesseEditor(); draw(); return; }
+      massAuswaehlen(massHit);
+      dragStart = { x, y }; dragObjStart = { x1: massHit.x1, y1: massHit.y1, x2: massHit.x2, y2: massHit.y2 };
       return;
     }
     const notizHit = hitTestNotiz(x, y);
@@ -1211,6 +1503,15 @@
       }
       return;
     }
+    if (mode === 'select' && selektion.typ === 'mass' && dragObjStart) {
+      const ms = (aktiveEbene().masse || []).find(mm => mm.id === selektion.id);
+      if (ms) {
+        const dx = snap(x - dragStart.x), dy = snap(y - dragStart.y);
+        ms.x1 = dragObjStart.x1 + dx; ms.y1 = dragObjStart.y1 + dy; ms.x2 = dragObjStart.x2 + dx; ms.y2 = dragObjStart.y2 + dy;
+        draw();
+      }
+      return;
+    }
     if (mode === 'select' && selektion.typ === 'wand' && dragObjStart) {
       const eb = aktiveEbene();
       const w = eb.waende.find(ww => ww.id === selektion.id);
@@ -1242,8 +1543,14 @@
       vorschau = null; dragStart = null; draw(); updateStatus();
       return;
     }
-    if (dragStart && (selektion.typ === 'raum' || selektion.typ === 'wand' || selektion.typ === 'notiz' || selektion.typ === 'kompass' || selektion.typ === 'moebel')) {
+    if (dragStart && (selektion.typ === 'raum' || selektion.typ === 'wand' || selektion.typ === 'notiz' || selektion.typ === 'kompass' || selektion.typ === 'moebel' || selektion.typ === 'mass')) {
       speichernDaten();
+      if (selektion.typ === 'moebel') {
+        const m = aktuellesMoebel();
+        const bewegt = m && dragObjStart && (m.x !== dragObjStart.x || m.y !== dragObjStart.y);
+        const partner = bewegt ? kollisionsPartner(m) : [];
+        if (partner.length) showTempStatus('⚠️ Überschneidet sich mit ' + partner.map(o => moebelTypInfo(o.typ).label).join(', '), 3);
+      }
     }
     dragStart = null; dragObjStart = null;
   }
@@ -1253,24 +1560,99 @@
   let touchAktionAktiv = false;
   function ermittleZiel(x, y) {
     if (mode !== 'select') return true;
-    return !!(hitTestRaum(x, y) || findeNaechsteWand(x, y, 14));
+    return !!(hitTestRaum(x, y) || findeNaechsteWand(x, y, 14) || hitTestMoebel(x, y) || hitTestNotiz(x, y) || hitTestMass(x, y));
+  }
+  // 🤏 Zwei-Finger-Zoom: Punkt unter den Fingern bleibt stehen, Verschieben mit zwei Fingern
+  let pinch = null;
+  function zoomUm(neu, clientX, clientY) {
+    const rect = canvas.getBoundingClientRect(), wr = wrap.getBoundingClientRect();
+    const px = (clientX - rect.left) / zoom, py = (clientY - rect.top) / zoom; // Punkt in Canvas-Einheiten
+    const offL = rect.left - wr.left + wrap.scrollLeft - 0, offT = rect.top - wr.top + wrap.scrollTop;
+    const altZoom = zoom;
+    zoomSetzen(neu);
+    if (zoom === altZoom) return;
+    wrap.scrollLeft = offL + px * zoom - (clientX - wr.left);
+    wrap.scrollTop = offT + py * zoom - (clientY - wr.top);
+  }
+  function pinchDaten(e) {
+    const a = e.touches[0], b = e.touches[1];
+    return { d: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) || 1, x: (a.clientX + b.clientX) / 2, y: (a.clientY + b.clientY) / 2 };
   }
   canvas.addEventListener('touchstart', e => {
+    if (e.touches.length >= 2) {
+      e.preventDefault();
+      // laufende Ein-Finger-Aktion abbrechen (verschobenes Element zurücksetzen)
+      if (dragStart && dragObjStart && touchAktionAktiv) {
+        const eb = aktiveEbene();
+        const obj = selektion.typ === 'moebel' ? (eb.moebel || []).find(m => m.id === selektion.id) : selektion.typ === 'notiz' ? (eb.notizen || []).find(n => n.id === selektion.id) : selektion.typ === 'raum' ? eb.raeume.find(r => r.id === selektion.id) : selektion.typ === 'wand' ? eb.waende.find(w => w.id === selektion.id) : selektion.typ === 'mass' ? (eb.masse || []).find(m => m.id === selektion.id) : null;
+        if (obj) Object.keys(dragObjStart).forEach(k => { obj[k] = Array.isArray(dragObjStart[k]) ? dragObjStart[k].map(p => ({ ...p })) : dragObjStart[k]; });
+      }
+      dragStart = null; dragObjStart = null; vorschau = null;
+      const p = pinchDaten(e);
+      pinch = { d: p.d, x: p.x, y: p.y, zoom };
+      touchAktionAktiv = false;
+      draw();
+      return;
+    }
+    if (pinch) return;
     const p = getPos(e);
     touchAktionAktiv = ermittleZiel(p.x, p.y);
     if (touchAktionAktiv) e.preventDefault();
     onDown(e);
   }, { passive: false });
   canvas.addEventListener('touchmove', e => {
+    if (pinch && e.touches.length >= 2) {
+      e.preventDefault();
+      const p = pinchDaten(e);
+      zoomUm(pinch.zoom * p.d / pinch.d, p.x, p.y);
+      wrap.scrollLeft -= p.x - pinch.x; wrap.scrollTop -= p.y - pinch.y; // mit zwei Fingern verschieben
+      pinch.x = p.x; pinch.y = p.y; pinch.zoom = zoom; pinch.d = p.d;
+      return;
+    }
     if (!touchAktionAktiv) return;
     e.preventDefault();
     onMove(e);
   }, { passive: false });
   canvas.addEventListener('touchend', e => {
+    if (pinch) { if (e.touches.length === 0) pinch = null; e.preventDefault(); return; }
     if (touchAktionAktiv) e.preventDefault();
     onUp();
     touchAktionAktiv = false;
   }, { passive: false });
+  canvas.addEventListener('touchcancel', () => { pinch = null; touchAktionAktiv = false; onUp(); });
+  // iOS-Safari: eigene Seiten-Zoom-Geste auf der Zeichenfläche unterdrücken
+  canvas.addEventListener('gesturestart', e => e.preventDefault());
+  // Am PC: Strg + Mausrad (bzw. Zwei-Finger-Zoom am Touchpad) zoomt um den Mauszeiger
+  wrap.addEventListener('wheel', e => {
+    if (!e.ctrlKey) return;
+    e.preventDefault();
+    zoomUm(zoom * Math.exp(-e.deltaY * 0.0025), e.clientX, e.clientY);
+  }, { passive: false });
+  // ⤢ Einpassen: ganzen Plan der aktiven Ebene ins Bild holen
+  function planGrenzen() {
+    const eb = aktiveEbene(), pkte = [];
+    eb.waende.forEach(w => { pkte.push({ x: w.x1, y: w.y1 }, { x: w.x2, y: w.y2 }); });
+    eb.raeume.forEach(r => raumEcken(r).forEach(p => pkte.push(p)));
+    (eb.moebel || []).forEach(m => moebelEcken(m).forEach(p => pkte.push(p)));
+    (eb.notizen || []).forEach(n => pkte.push({ x: n.x, y: n.y }, { x: n.x + 80, y: n.y }));
+    (eb.masse || []).forEach(m => pkte.push({ x: m.x1, y: m.y1 }, { x: m.x2, y: m.y2 }));
+    const gs = aktivesProjekt().grundstueck;
+    if (gs && gs.sichtbar) (gs.punkte || []).forEach(p => pkte.push(p));
+    if (!pkte.length) return null;
+    return { x1: Math.min(...pkte.map(p => p.x)), y1: Math.min(...pkte.map(p => p.y)), x2: Math.max(...pkte.map(p => p.x)), y2: Math.max(...pkte.map(p => p.y)) };
+  }
+  function einpassen() {
+    const g = planGrenzen();
+    if (!g) { showTempStatus('Noch nichts gezeichnet.', 2); return; }
+    const rand = 30;
+    const bw = g.x2 - g.x1 + rand * 2, bh = g.y2 - g.y1 + rand * 2;
+    zoomSetzen(Math.min(wrap.clientWidth / bw, wrap.clientHeight / bh));
+    const rect = canvas.getBoundingClientRect(), wr = wrap.getBoundingClientRect();
+    const offL = rect.left - wr.left + wrap.scrollLeft, offT = rect.top - wr.top + wrap.scrollTop;
+    wrap.scrollLeft = offL + ((g.x1 + g.x2) / 2) * zoom - wrap.clientWidth / 2;
+    wrap.scrollTop = offT + ((g.y1 + g.y2) / 2) * zoom - wrap.clientHeight / 2;
+  }
+  document.getElementById('btnEinpassen').addEventListener('click', einpassen);
 
   // ---------- EDITOR (Sidebar) ----------
   const RAUM_FARBEN = ['#e8d9c4', '#d9e8dc', '#dce0e8', '#f0dce0', '#e8e0d9', '#d9e4e8'];
@@ -1285,7 +1667,23 @@
     document.getElementById('editorNotiz').style.display = 'none';
     document.getElementById('editorKompass').style.display = 'none';
     document.getElementById('editorMoebel').style.display = 'none';
+    document.getElementById('editorMass').style.display = 'none';
   }
+  function massAuswaehlen(ms) {
+    schliesseEditor();
+    selektion = { typ: 'mass', id: ms.id };
+    document.getElementById('editorLeer').style.display = 'none';
+    document.getElementById('editorMass').style.display = 'block';
+    document.getElementById('massWert').innerHTML = 'Länge: <b>' + (Math.hypot(ms.x2 - ms.x1, ms.y2 - ms.y1) / PX_PRO_M).toFixed(2).replace('.', ',') + ' m</b>';
+    scrolleZumEditor();
+    draw();
+  }
+  document.getElementById('btnMassLoeschen').addEventListener('click', () => {
+    pushUndo();
+    const eb = aktiveEbene();
+    eb.masse = (eb.masse || []).filter(m => m.id !== selektion.id);
+    speichernDaten(); schliesseEditor(); draw();
+  });
   // Scrollt den Bearbeiten-Bereich sichtbar ins Bild – auf dem Handy steht er unterhalb
   // der (oft hohen) Zeichenfläche und würde sonst leicht übersehen werden.
   // Früher wurde hier automatisch zum Editor gescrollt – dadurch sprang die Zeichenfläche beim
@@ -1324,41 +1722,177 @@
       p.addEventListener('click', () => { pushUndo(); r.farbe = f; speichernDaten(); raumAuswaehlen(r); draw(); });
       reihe.appendChild(p);
     });
-    if (r.foto) {
-      document.getElementById('raumFotoVorschau').src = r.foto;
-      document.getElementById('raumFotoVorschauBox').style.display = 'block';
-    } else {
-      document.getElementById('raumFotoVorschauBox').style.display = 'none';
-    }
+    document.getElementById('raumFotoVorschauBox').style.display = 'none';
+    document.getElementById('raumHoehe').value = r.hoehe > 0 ? r.hoehe : '';
+    document.getElementById('raumAnrechnung').value = String(raumAnrechnung(r));
+    document.getElementById('raumBoden').value = r.boden || '';
+    document.getElementById('raumWandfarbe').value = r.wandfarbe || '';
+    document.getElementById('raumNotiz').value = r.notiz || '';
+    raumWerteRendern(r);
+    raumFotosRendern(r);
     draw();
+  }
+  function zahlDe(n, st) { return n.toLocaleString('de-DE', { minimumFractionDigits: st, maximumFractionDigits: st }); }
+  function raumWerteRendern(r) {
+    const f = raumFlaecheM2(r), wf = raumWandflaecheM2(r), h = raumHoeheM(r);
+    document.getElementById('raumWerte').innerHTML =
+      'Umfang <b>' + zahlDe(raumUmfangM(r), 2) + ' m</b> · Volumen <b>' + zahlDe(f * h, 1) + ' m³</b><br>' +
+      'Wandfläche <b>' + zahlDe(wf.netto, 1) + ' m²</b>' + (wf.anzahl ? ' <span style="opacity:.8">(' + wf.anzahl + ' Tür/Fenster abgezogen)</span>' : '') +
+      (r.hoehe > 0 ? '' : '<br><span style="opacity:.8">Höhe nicht eingetragen – gerechnet mit 2,50 m</span>') +
+      (raumAnrechnung(r) < 100 ? '<br>Wohnfläche: <b>' + zahlDe(f * raumAnrechnung(r) / 100, 2) + ' m²</b> (' + raumAnrechnung(r) + ' %)' : '');
+  }
+  function aktuellerRaum() { return aktiveEbene().raeume.find(x => x.id === selektion.id); }
+  [['raumHoehe', 'input', (r, v) => { const n = parseFloat(String(v).replace(',', '.')); if (n > 0) r.hoehe = Math.round(n * 100) / 100; else delete r.hoehe; }],
+   ['raumAnrechnung', 'change', (r, v) => { if (v === '100') delete r.anrechnung; else r.anrechnung = parseInt(v, 10); }],
+   ['raumBoden', 'change', (r, v) => { if (v) r.boden = v; else delete r.boden; }],
+   ['raumWandfarbe', 'input', (r, v) => { if (v.trim()) r.wandfarbe = v.trim(); else delete r.wandfarbe; }],
+   ['raumNotiz', 'input', (r, v) => { if (v.trim()) r.notiz = v; else delete r.notiz; }],
+  ].forEach(([id, ev, setzen]) => document.getElementById(id).addEventListener(ev, (e) => {
+    const r = aktuellerRaum(); if (!r) return;
+    setzen(r, e.target.value); speichernDaten(); raumWerteRendern(r); draw(); updateStatus();
+  }));
+
+  // ---------- 🔨 Renovieren → Handwerk-Projekt ----------
+  let handwerkSync = null;
+  if (window.PlanerSync) { try { handwerkSync = window.PlanerSync.starteSync({ modul: 'handwerk', keys: ['handwerk_projekte'] }); } catch (e) {} }
+  document.getElementById('btnRaumRenovieren').addEventListener('click', () => {
+    const r = aktuellerRaum(); if (!r) return;
+    const f = raumFlaecheM2(r), wf = raumWandflaecheM2(r), u = raumUmfangM(r);
+    const material = [];
+    const liter = wf.netto * 2 / 7;
+    if (liter > 0) material.push({ menge: String(Math.max(1, Math.ceil(liter / 10))), einheit: 'Eimer', name: 'Wandfarbe 10 l' + (r.wandfarbe ? ' „' + r.wandfarbe + '“' : '') + ' (' + zahlDe(Math.ceil(liter * 2) / 2, 1) + ' l für ' + Math.round(wf.netto) + ' m², 2 Anstriche)', preis: '' });
+    material.push({ menge: String(Math.max(1, Math.ceil(u / 50))), einheit: 'Rolle', name: 'Malerkrepp', preis: '' });
+    material.push({ menge: '1', einheit: 'Stk', name: 'Abdeckfolie', preis: '' });
+    if (['Laminat', 'Parkett', 'Vinyl', 'Fliesen'].includes(r.boden)) {
+      const mitV = f * 1.1;
+      if (r.boden === 'Fliesen') {
+        material.push({ menge: String(Math.ceil(mitV * 10) / 10).replace('.', ','), einheit: 'm²', name: 'Fliesen (inkl. 10 % Verschnitt)', preis: '' });
+        material.push({ menge: String(Math.ceil(f * 3.5 / 25)), einheit: 'Sack', name: 'Fliesenkleber 25 kg', preis: '' });
+        material.push({ menge: String(Math.ceil(f * 0.5 / 5)), einheit: 'Sack', name: 'Fugenmörtel 5 kg', preis: '' });
+      } else {
+        material.push({ menge: String(Math.ceil(mitV / 2.2)), einheit: 'Paket', name: r.boden + ' (' + zahlDe(mitV, 1) + ' m² inkl. 10 % Verschnitt, ~2,2 m²/Paket)', preis: '' });
+        material.push({ menge: String(Math.ceil(f * 1.05)), einheit: 'm²', name: 'Trittschalldämmung', preis: '' });
+      }
+      material.push({ menge: String(Math.ceil(u * 1.1 / 2.4)), einheit: 'Stk', name: 'Sockelleiste 2,4 m', preis: '' });
+    }
+    const titel = 'Renovieren: ' + (r.name || 'Raum');
+    const projekte = laden('handwerk_projekte', []);
+    if (projekte.some(p => p.titel === titel && p.status !== 'fertig') && !confirm('„' + titel + '“ gibt es im Handwerk schon. Trotzdem ein neues Projekt anlegen?')) return;
+    const notiz = [aktivesProjekt().name + ' · ' + aktiveEbene().name, 'Fläche ' + zahlDe(f, 2) + ' m², Wandfläche ' + zahlDe(wf.netto, 1) + ' m², Höhe ' + zahlDe(raumHoeheM(r), 2) + ' m', r.notiz || ''].filter(Boolean).join('\n');
+    projekte.push({ id: 'p' + Date.now() + Math.random().toString(36).slice(2, 7), titel, status: 'idee', person: null, budgetGeplant: null, fertigAm: null, erstelltAm: new Date().toISOString(), notiz, material,
+      schritte: [{ text: 'Möbel rücken & abdecken', erledigt: false }, { text: 'Wände vorbereiten (spachteln, grundieren)', erledigt: false }, { text: 'Streichen', erledigt: false }].concat(material.some(m => /Paket|Fliesen/.test(m.name)) ? [{ text: 'Boden verlegen', erledigt: false }, { text: 'Sockelleisten montieren', erledigt: false }] : []) });
+    try { localStorage.setItem('handwerk_projekte', JSON.stringify(projekte)); } catch (e) { showTempStatus('⚠ Speichern fehlgeschlagen', 4); return; }
+    if (handwerkSync) handwerkSync.melde();
+    showTempStatus('🔨 „' + titel + '“ im Handwerk angelegt (' + material.length + ' Material-Posten)', 5);
+  });
+
+  // ---------- 📷 Raumfotos (Familien-Fotospeicher) ----------
+  function cloudBereit() { return !!(window.FotoSpeicher && window.FotoSpeicher.verfuegbar && window.FotoSpeicher.verfuegbar()); }
+  function fotoSrc(f) { return (f && (f.url || f.bild)) || ''; }
+  let grossFoto = null;
+  function raumFotosRendern(r) {
+    const grid = document.getElementById('raumFotoGrid');
+    grid.innerHTML = '';
+    (r.fotos || []).forEach(f => {
+      const img = document.createElement('img');
+      img.src = fotoSrc(f); img.alt = 'Raumfoto'; img.loading = 'lazy';
+      img.addEventListener('click', () => { grossFoto = { raumId: r.id, fotoId: f.id }; document.getElementById('fotoGrossBild').src = fotoSrc(f); document.getElementById('modalFotoGross').classList.add('zeigen'); });
+      grid.appendChild(img);
+    });
+  }
+  document.getElementById('btnFotoGrossSchliessen').addEventListener('click', () => document.getElementById('modalFotoGross').classList.remove('zeigen'));
+  document.getElementById('modalFotoGross').addEventListener('click', (e) => { if (e.target.id === 'modalFotoGross') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnFotoGrossLoeschen').addEventListener('click', () => {
+    if (!grossFoto) return;
+    let raum = null;
+    aktivesProjekt().ebenen.forEach(eb => eb.raeume.forEach(r => { if (r.id === grossFoto.raumId) raum = r; }));
+    if (!raum) return;
+    const idx = (raum.fotos || []).findIndex(f => f.id === grossFoto.fotoId);
+    if (idx === -1) return;
+    pushUndo();
+    const entfernt = raum.fotos.splice(idx, 1)[0];
+    speichernDaten();
+    document.getElementById('modalFotoGross').classList.remove('zeigen');
+    if (selektion.id === raum.id) raumFotosRendern(raum);
+    draw();
+    showTempStatus('Foto gelöscht', 6, { rueckgaengig: () => { raum.fotos.splice(idx, 0, entfernt); speichernDaten(); if (selektion.id === raum.id) raumFotosRendern(raum); draw(); } });
+    if (entfernt.pfad && cloudBereit()) setTimeout(() => {
+      const nochDa = daten.projekte.some(p => p.ebenen.some(eb => eb.raeume.some(r => (r.fotos || []).some(f => f.pfad === entfernt.pfad))));
+      if (!nochDa) { try { window.FotoSpeicher.loeschen(entfernt.pfad); } catch (e) {} }
+    }, 9000);
+  });
+  function bildHash(t) { let h1 = 0x811c9dc5, h2 = 5381; for (let i = 0; i < t.length; i++) { const c = t.charCodeAt(i); h1 = Math.imul(h1 ^ c, 16777619); h2 = (Math.imul(h2, 33) + c) | 0; } return (h1 >>> 0).toString(36) + (h2 >>> 0).toString(36); }
+  async function vorhandeneCloudDatei(id) {
+    try {
+      await window.PlanerSync.authBereit();
+      const pfad = 'planerFamilien/' + window.PlanerSync.familienId() + '/fotos/' + id + '.jpg';
+      return { url: await firebase.storage().ref(pfad).getDownloadURL(), pfad };
+    } catch (e) { return null; }
+  }
+  // Altes einzelnes Referenzfoto (r.foto) in die Fotoliste übernehmen
+  function fotosMigrieren() {
+    let geaendert = false;
+    daten.projekte.forEach(p => p.ebenen.forEach(eb => eb.raeume.forEach(r => {
+      if (r.foto) { r.fotos = (r.fotos || []).concat([{ id: neueId('rf'), bild: r.foto }]); delete r.foto; geaendert = true; }
+    })));
+    return geaendert;
+  }
+  let fotoUploadLaeuft = false;
+  async function fotosHochladen() {
+    if (fotoUploadLaeuft || !cloudBereit() || !navigator.onLine) return;
+    fotoUploadLaeuft = true;
+    let geaendert = false;
+    try {
+      const offen = [];
+      daten.projekte.forEach(p => p.ebenen.forEach(eb => eb.raeume.forEach(r => (r.fotos || []).forEach(f => { if (!f.url && typeof f.bild === 'string' && f.bild.indexOf('data:image') === 0) offen.push([r.id, f.id, f.bild]); }))));
+      for (const [rid, fid, bild] of offen) {
+        const cloudId = 'hp' + bildHash(bild);
+        let erg = null;
+        try { erg = await vorhandeneCloudDatei(cloudId) || await window.FotoSpeicher.hochladen(cloudId, bild); }
+        catch (err) { console.warn('Hausplan: Foto-Upload fehlgeschlagen', err); break; }
+        let f = null;
+        daten.projekte.forEach(p => p.ebenen.forEach(eb => eb.raeume.forEach(r => { if (r.id === rid) f = (r.fotos || []).find(x => x.id === fid) || f; })));
+        if (!f || f.bild !== bild || !erg) continue;
+        f.url = erg.url; f.pfad = erg.pfad; delete f.bild;
+        geaendert = true;
+      }
+    } finally {
+      fotoUploadLaeuft = false;
+      if (geaendert) { speichernDaten(); const r = selektion.typ === 'raum' && aktuellerRaum(); if (r) raumFotosRendern(r); }
+    }
   }
   document.getElementById('btnRaumFotoWaehlen').addEventListener('click', () => document.getElementById('raumFotoInput').click());
   document.getElementById('raumFotoInput').addEventListener('change', (e) => {
-    const file = e.target.files && e.target.files[0];
+    const dateien = Array.from(e.target.files || []);
     const eb = aktiveEbene();
     const r = eb.raeume.find(x => x.id === selektion.id);
-    if (!file || !r) return;
+    e.target.value = '';
+    if (!dateien.length || !r) return;
+    dateien.forEach(file => {
     const reader = new FileReader();
     reader.onerror = () => showTempStatus('⚠ Foto konnte nicht gelesen werden.', 5);
     reader.onload = (ev) => {
       const img = new Image();
       img.onerror = () => showTempStatus('⚠ Datei ist kein gültiges Bild.', 5);
       img.onload = () => {
-        const maxW = 480;
-        const scale = Math.min(1, maxW / img.width);
+        const maxKante = cloudBereit() ? 1280 : 480;
+        const scale = Math.min(1, maxKante / Math.max(img.width, img.height));
         const c = document.createElement('canvas');
-        c.width = img.width * scale; c.height = img.height * scale;
+        c.width = Math.round(img.width * scale); c.height = Math.round(img.height * scale);
         c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
         pushUndo();
-        r.foto = c.toDataURL('image/jpeg', 0.72);
+        if (!r.fotos) r.fotos = [];
+        r.fotos.push({ id: neueId('rf'), bild: c.toDataURL('image/jpeg', cloudBereit() ? 0.8 : 0.72) });
         speichernDaten();
-        raumAuswaehlen(r);
-        showTempStatus('📷 Referenzfoto gespeichert', 3);
+        if (selektion.id === r.id) raumFotosRendern(r);
+        draw();
+        showTempStatus('📷 Foto gespeichert', 3);
+        setTimeout(fotosHochladen, 300);
       };
       img.src = ev.target.result;
     };
     reader.readAsDataURL(file);
-    e.target.value = '';
+    });
   });
   document.getElementById('btnRaumFotoEntfernen').addEventListener('click', () => {
     const eb = aktiveEbene();
@@ -1840,36 +2374,52 @@
   document.addEventListener('click', (e) => { if (!e.target.closest('.tool-dropdown')) closeDropdowns(); });
   document.getElementById('btnEbeneLeeren').addEventListener('click', () => {
     closeDropdowns();
-    if (!confirm('Alle Wände und Räume dieser Ebene wirklich löschen?')) return;
+    if (!confirm('Alle Wände, Räume, Möbel, Notizen und Maße dieser Ebene löschen? (↩ macht es rückgängig)')) return;
     pushUndo();
     const eb = aktiveEbene();
-    eb.waende = []; eb.raeume = [];
+    eb.waende = []; eb.raeume = []; eb.moebel = []; eb.notizen = []; eb.masse = [];
     speichernDaten(); schliesseEditor(); draw(); updateStatus();
   });
+  function raumlisteDaten() {
+    const proj = aktivesProjekt();
+    return proj.ebenen.map(eb => ({ ebene: eb, raeume: eb.raeume.slice().sort((a, b) => (a.name || '').localeCompare(b.name || '', 'de')).map(r => {
+      const f = raumFlaecheM2(r);
+      return { r, flaeche: f, wohn: f * raumAnrechnung(r) / 100 };
+    }) }));
+  }
   document.getElementById('btnRaumliste').addEventListener('click', () => {
     closeDropdowns();
-    const eb = aktiveEbene();
-    document.getElementById('raumlisteEbeneName').textContent = eb.name;
+    const proj = aktivesProjekt();
+    document.getElementById('raumlisteEbeneName').textContent = proj.name;
     const box = document.getElementById('raumlisteInhalt');
-    if (!eb.raeume.length) {
-      box.innerHTML = '<div class="empty-state">Noch keine Räume auf dieser Ebene.</div>';
+    const liste = raumlisteDaten();
+    const alle = [].concat(...liste.map(l => l.raeume));
+    if (!alle.length) {
+      box.innerHTML = '<div class="empty-state">Noch keine Räume in diesem Projekt.</div>';
     } else {
-      const sortiert = eb.raeume.slice().sort((a, b) => (a.name || '').localeCompare(b.name || '', 'de'));
-      box.innerHTML = sortiert.map(r => {
-        const flaeche = r.typ === 'poly' ? polygonFlaechePx(r.points) / (PX_PRO_M * PX_PRO_M) : (r.w / PX_PRO_M) * (r.h / PX_PRO_M);
-        return `<div class="stat-aufgabe-zeile" data-raumid="${r.id}" style="display:flex;justify-content:space-between;align-items:center;padding:9px 4px;border-bottom:1px solid var(--parchment);cursor:pointer;">
-          <span>${escapeHtml(r.name || 'Raum')}</span>
-          <span style="font-weight:700;color:var(--moss);">${flaeche.toFixed(2)} m²</span>
-        </div>`;
-      }).join('');
-      const gesamt = eb.raeume.reduce((s, r) => s + (r.typ === 'poly' ? polygonFlaechePx(r.points) / (PX_PRO_M * PX_PRO_M) : (r.w / PX_PRO_M) * (r.h / PX_PRO_M)), 0);
-      box.innerHTML += `<div style="display:flex;justify-content:space-between;padding:9px 4px;font-weight:700;">
-        <span>Gesamt (${eb.raeume.length} Räume)</span><span>${gesamt.toFixed(2)} m²</span></div>`;
+      const z = n => zahlDe(n, 2);
+      let html = '<table class="rl-tabelle"><tr><th>Raum</th><th>Boden</th><th class="zahl">Fläche</th><th class="zahl">Wohnfl.</th></tr>';
+      liste.forEach(l => {
+        if (!l.raeume.length) return;
+        if (liste.filter(x => x.raeume.length).length > 1) html += '<tr class="rl-ebene"><td colspan="3">' + escapeHtml(l.ebene.name) + '</td><td class="zahl">' + z(l.raeume.reduce((s, x) => s + x.wohn, 0)) + ' m²</td></tr>';
+        l.raeume.forEach(x => {
+          html += '<tr data-raumid="' + x.r.id + '" data-ebeneid="' + l.ebene.id + '"><td>' + escapeHtml(x.r.name || 'Raum') + ((x.r.fotos || []).length ? ' 📷' : '') + '</td><td>' + escapeHtml(x.r.boden || '–') + '</td><td class="zahl">' + z(x.flaeche) + ' m²</td><td class="zahl">' +
+            (raumAnrechnung(x.r) < 100 ? z(x.wohn) + ' m² <span style="opacity:.7">(' + raumAnrechnung(x.r) + ' %)</span>' : z(x.wohn) + ' m²') + '</td></tr>';
+        });
+      });
+      html += '</table>';
+      const sumF = alle.reduce((s, x) => s + x.flaeche, 0), sumW = alle.reduce((s, x) => s + x.wohn, 0);
+      html += '<div class="rl-summe"><span>Grundfläche (' + alle.length + ' Räume)</span><span>' + z(sumF) + ' m²</span></div>';
+      html += '<div class="rl-summe" style="color:var(--moss)"><span>🏠 Wohnfläche</span><span>' + z(sumW) + ' m²</span></div>';
+      html += '<div class="rl-hinweis">Wohnfläche angelehnt an die Wohnflächenverordnung: unter 1 m Raumhöhe 0 %, 1–2 m 50 %, Balkone/Terrassen meist 25 %. Den Anteil stellst du pro Raum ein. Keine verbindliche Berechnung.</div>';
+      box.innerHTML = html;
       box.querySelectorAll('[data-raumid]').forEach(zeile => {
         zeile.addEventListener('click', () => {
-          const r = eb.raeume.find(x => x.id === zeile.dataset.raumid);
+          const eb = proj.ebenen.find(e => e.id === zeile.dataset.ebeneid);
+          const r = eb && eb.raeume.find(x => x.id === zeile.dataset.raumid);
           if (!r) return;
           document.getElementById('modalRaumliste').classList.remove('zeigen');
+          if (proj.aktiveEbeneId !== eb.id) { proj.aktiveEbeneId = eb.id; speichernDaten(); renderEbenenTabs(); }
           setMode('select');
           raumAuswaehlen(r);
           const cx = r.typ === 'poly' ? polygonSchwerpunkt(r.points).x : r.x + r.w / 2;
@@ -1879,6 +2429,28 @@
       });
     }
     document.getElementById('modalRaumliste').classList.add('zeigen');
+  });
+  document.getElementById('btnRaumlisteCsv').addEventListener('click', () => {
+    const proj = aktivesProjekt();
+    const zahl = n => n.toFixed(2).replace('.', ',');
+    const q = t => '"' + String(t == null ? '' : t).replace(/"/g, '""') + '"';
+    const zeilen = [['Ebene', 'Raum', 'Fläche m²', 'Anrechnung %', 'Wohnfläche m²', 'Höhe m', 'Umfang m', 'Wandfläche m²', 'Boden', 'Wandfarbe', 'Notiz'].map(q).join(';')];
+    const vorher = proj.aktiveEbeneId;
+    proj.ebenen.forEach(eb => {
+      proj.aktiveEbeneId = eb.id; // für raumWandflaecheM2 (nutzt die Wände der aktiven Ebene)
+      eb.raeume.forEach(r => {
+        const f = raumFlaecheM2(r);
+        zeilen.push([q(eb.name), q(r.name || 'Raum'), zahl(f), raumAnrechnung(r), zahl(f * raumAnrechnung(r) / 100), r.hoehe > 0 ? zahl(r.hoehe) : '', zahl(raumUmfangM(r)), zahl(raumWandflaecheM2(r).netto), q(r.boden || ''), q(r.wandfarbe || ''), q((r.notiz || '').replace(/\n/g, ' '))].join(';'));
+      });
+    });
+    proj.aktiveEbeneId = vorher;
+    const blob = new Blob(['﻿' + zeilen.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'raumliste-' + proj.name.toLowerCase().replace(/[^a-z0-9äöüß]+/gi, '-') + '.csv';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    showTempStatus('⬇️ Raumliste als CSV gespeichert', 3);
   });
   document.getElementById('btnRaumlisteSchliessen').addEventListener('click', () => document.getElementById('modalRaumliste').classList.remove('zeigen'));
   document.getElementById('modalRaumliste').addEventListener('click', (e) => { if (e.target.id === 'modalRaumliste') e.currentTarget.classList.remove('zeigen'); });
@@ -1904,8 +2476,9 @@
     const heute = new Date().toLocaleDateString('de-DE');
     const raeumeHtml = eb.raeume.length ? `<table style="width:100%;border-collapse:collapse;margin-top:10px;font-size:12px;">
       <tr><th style="text-align:left;border-bottom:1px solid #ccc;padding:4px;">Raum</th><th style="text-align:right;border-bottom:1px solid #ccc;padding:4px;">Fläche</th></tr>
-      ${eb.raeume.map(r => `<tr><td style="padding:4px;border-bottom:1px solid #eee;">${escapeHtml(r.name || 'Raum')}</td><td style="padding:4px;text-align:right;border-bottom:1px solid #eee;">${((r.w/PX_PRO_M)*(r.h/PX_PRO_M)).toFixed(2)} m²</td></tr>`).join('')}
-      <tr><td style="padding:4px;font-weight:700;">Gesamt</td><td style="padding:4px;text-align:right;font-weight:700;">${eb.raeume.reduce((s,r)=>s+(r.w/PX_PRO_M)*(r.h/PX_PRO_M),0).toFixed(2)} m²</td></tr>
+      ${eb.raeume.map(r => `<tr><td style="padding:4px;border-bottom:1px solid #eee;">${escapeHtml(r.name || 'Raum')}</td><td style="padding:4px;text-align:right;border-bottom:1px solid #eee;">${(raumFlaecheM2(r)).toFixed(2)} m²</td></tr>`).join('')}
+      <tr><td style="padding:4px;font-weight:700;">Gesamt</td><td style="padding:4px;text-align:right;font-weight:700;">${eb.raeume.reduce((s,r)=>s+raumFlaecheM2(r),0).toFixed(2)} m²</td></tr>
+      ${eb.raeume.some(r => raumAnrechnung(r) < 100) ? `<tr><td style="padding:4px;">davon Wohnfläche</td><td style="padding:4px;text-align:right;">${eb.raeume.reduce((s,r)=>s+raumFlaecheM2(r)*raumAnrechnung(r)/100,0).toFixed(2)} m²</td></tr>` : ''}
       </table>` : '';
     const win = window.open('', '_blank');
     if (!win) { showTempStatus('⚠ Pop-up blockiert – bitte Pop-ups für diese Seite erlauben.', 5); return; }
@@ -1994,6 +2567,9 @@
   updateUndoButtons();
   updateStatus();
   setTimeout(positioniereZoomWidget, 30);
+  if (fotosMigrieren()) speichernDaten();
+  setTimeout(fotosHochladen, 2500);
+  window.addEventListener('online', () => setTimeout(fotosHochladen, 1500));
 
   if (window.PlanerSync) {
     // Wie bei der Vorratskammer: Beim ersten Abgleich je Gerät Projekte vereinen (nach id),
@@ -2017,7 +2593,10 @@
           setTimeout(() => { if (window._sync) window._sync.melde(); }, 500);
         }
         daten = laden(KEY_HAUSPLAN, daten);
+        daten.projekte.forEach(p => p.ebenen.forEach(eb => { if (!eb.masse) eb.masse = []; }));
+        if (fotosMigrieren()) setTimeout(speichernDaten, 800);
         schliesseEditor(); renderEbenenTabs(); draw(); updateStatus();
+        setTimeout(fotosHochladen, 1500);
       },
     });
   }

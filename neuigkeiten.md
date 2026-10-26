@@ -2,6 +2,12 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
+## 2026-10-26 | 📐 Hausplan: Zoomen, Messen & schlauere Möbel
+Auf dem Handy lässt sich der Plan jetzt mit zwei Fingern zoomen und verschieben (am PC mit Strg + Mausrad). ⤢ holt den ganzen Plan ins Bild. Neu ist das 📏 Maßband: zwei Punkte antippen, und die Länge steht da. Mit „📌 Behalten“ bleibt sie als Maßlinie im Plan und im PDF. Möbel zeigen Name und Maße („Sofa 200×90“), Überschneidungen werden rot markiert, und beim Verschieben steht der Abstand zur nächsten Wand dabei („↔ 35 cm“). Dazu kommen 11 neue Möbel, u. a. Schreibtisch, Kleiderschrank, Küchenzeile, Waschmaschine, Kinderbett und Teppich.
+
+## 2026-10-26 | 🧱 Raum-Steckbrief, Renovieren & Wohnfläche
+Jeder Raum hat jetzt Raumhöhe, Bodenbelag, Wandfarbe und eine Notiz. Die App rechnet daraus Umfang, Volumen und Wandfläche (Türen und Fenster abgezogen). „🔨 Renovieren“ legt ein Handwerk-Projekt mit Wandfarbe, Bodenbelag inklusive Verschnitt, Trittschalldämmung, Sockelleisten und Arbeitsschritten an. Pro Raum gehen jetzt mehrere Fotos, gespeichert im Familien-Fotospeicher. Die 📋 Raumliste zeigt alle Etagen und die Wohnfläche (z. B. Dachschräge 50 %, Balkon 25 %) und exportiert als CSV. Behoben: Freiform-Räume fehlten in der Gesamtfläche und im PDF.
+
 ## 2026-10-26 | 🧹 Haushalt: flexible Turnusse, Räume & Starter-Pakete
 Aufgaben können jetzt auch „alle X Tage“ oder „alle X Wochen“ fällig sein, gezählt ab dem letzten Mal (z. B. Bettwäsche alle 2 Wochen). Was an seinem Tag liegen bleibt, verschwindet nicht mehr, sondern steht als „⚠️ überfällig seit Sa“ oben. „⏭ Diesmal überspringen“ lässt einen Termin aus, ohne dass er als erledigt zählt. Jede Aufgabe kann einen Raum bekommen (Küche, Bad, Wohnen …), mit Raum-Filter und Gruppierung. Fünf 📦 Starter-Pakete (Küche, Bad, Wohnen & Schlafen, Wäsche, Kinder-Ämtli) legen passende Aufgaben mit wenigen Häkchen an. Behoben: Kurz nach Mitternacht zählte noch der Vortag.
 
