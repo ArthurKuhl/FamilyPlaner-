@@ -251,6 +251,42 @@
   .mikro-tabelle tr { border-bottom: 1px solid var(--parchment); }
   .mikro-tabelle td { padding: 6px 2px; }
   .mikro-tabelle td:last-child { text-align: right; font-weight: 700; color: var(--moss-text, var(--moss)); }
+  /* ---- 🩺 Vorsorge & Notfall ---- */
+  .vs-kopf { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+  .vs-kopf h3 { margin: 0; }
+  .vs-knopf { background: var(--parchment); color: var(--soil); border: none; border-radius: 999px; padding: 6px 12px; font-size: 0.76rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
+  .vs-zeile { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid var(--parchment); font-size: 0.85rem; }
+  .vs-zeile:first-of-type { border-top: none; }
+  .vs-zeile .vs-icon { font-size: 1.1rem; width: 24px; text-align: center; flex-shrink: 0; }
+  .vs-zeile .vs-text { flex: 1; min-width: 0; }
+  .vs-zeile .vs-text small { display: block; font-size: 0.72rem; color: var(--bark); }
+  .vs-zeile.faellig { background: rgba(196,107,65,0.12); border-radius: 8px; padding-left: 6px; padding-right: 6px; }
+  .vs-zeile.bald { background: rgba(201,154,58,0.16); border-radius: 8px; padding-left: 6px; padding-right: 6px; }
+  .vs-zeile.vorbei { opacity: 0.6; }
+  .vs-zeile button { flex-shrink: 0; }
+  .notfall-karte { border: 3px solid #c0392b; border-radius: var(--radius-md); padding: 14px; background: var(--white); }
+  .notfall-karte .nf-name { font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 700; }
+  .notfall-karte .nf-zeile { display: flex; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--parchment); font-size: 0.95rem; }
+  .notfall-karte .nf-zeile:last-child { border-bottom: none; }
+  .notfall-karte .nf-zeile span:first-child { flex: 0 0 120px; color: var(--bark); font-size: 0.78rem; font-weight: 700; padding-top: 2px; }
+  .notfall-karte .nf-zeile b { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+  .nf-warn { color: #c0392b; }
+  .anruf-reihe { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .anruf-reihe a { flex: 1 1 140px; text-decoration: none; text-align: center; border-radius: 12px; padding: 10px; font-weight: 700; font-size: 0.85rem; background: var(--parchment); color: var(--soil); }
+  .anruf-reihe a.rot { background: #c0392b; color: #fff; }
+  html .anruf-reihe a:not(.rot), html[data-dark="1"] .anruf-reihe a:not(.rot) { color: var(--soil); }
+  .anruf-reihe a small { display: block; font-weight: 500; font-size: 0.7rem; opacity: 0.85; }
+  .arzt-zeile { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 6px; margin-bottom: 6px; }
+  .arzt-zeile input { min-width: 0; padding: 8px; border: 1px solid var(--parchment); border-radius: 8px; background: var(--white); color: var(--soil); font-size: 0.82rem; }
+  .arzt-zeile button { background: none; border: none; color: var(--terracotta-text); cursor: pointer; font-size: 1rem; }
+  .vs-diagramm { width: 100%; height: auto; display: block; margin-top: 6px; }
+  .abstand-box { background: rgba(91,139,181,0.12); border-radius: 10px; padding: 8px 10px; margin: 10px 0 4px; font-size: 0.8rem; line-height: 1.45; }
+  .abstand-box .ab-zeile { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 3px 0; }
+  .abstand-box .ab-zeile span { flex: 1; min-width: 160px; }
+  .abstand-box b.ok { color: var(--moss-text, var(--moss)); }
+  .abstand-box b.warten { color: var(--terracotta-text); }
+  .med-vorrat { font-size: 0.72rem; font-weight: 700; }
+  .med-vorrat.knapp { color: var(--terracotta-text); }
   .disclaimer-box { background: var(--parchment); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 0.75rem; color: var(--bark); margin-top: 12px; line-height: 1.4; }
 
   /* KRAFTTRAINING */
@@ -396,6 +432,7 @@
     <button id="btnViewKoerperlexikon" role="tab" aria-selected="false">🦴 Körperlexikon</button>
     <button id="btnViewErnaehrung" role="tab" aria-selected="false">🍽️ Ernährung</button>
     <button id="btnViewKrankheiten" role="tab" aria-selected="false">🤒 Krankheiten</button>
+    <button id="btnViewVorsorge" role="tab" aria-selected="false">🩺 Vorsorge &amp; Notfall</button>
   </div>
 </header>
   <div class="theme-popup" id="themePopup">
@@ -656,6 +693,13 @@
     <div class="leer-hinweis" id="krankheitenLeer" style="display:none;padding:14px 0;">Noch keine Krankheit erfasst. Praktisch v.a. bei den Kindern, um Verlauf, Temperatur und gegebene Medikamente im Blick zu behalten.</div>
     <div class="disclaimer-box">
       ℹ️ Rein zur eigenen Dokumentation – kein Ersatz für ärztlichen Rat. Bei hohem Fieber, Verschlechterung oder Unsicherheit bitte ärztlich abklären lassen.
+    </div>
+  </section>
+
+  <section id="ansichtVorsorge" style="display:none;">
+    <div id="vorsorgeInhalt"></div>
+    <div class="disclaimer-box">
+      ℹ️ Termine und Auffrischungen sind allgemeine Richtwerte (U-Heft, STIKO, Krankenkassen-Vorsorge) – maßgeblich sind Impfpass, Kinder- bzw. Hausarzt. Kein Ersatz für ärztlichen Rat.
     </div>
   </section>
 
@@ -1895,6 +1939,40 @@
   </div>
 </div>
 
+<div class="modal-bg" id="modalNotfall">
+  <div class="modal">
+    <h2>🆘 Notfall-Infos</h2>
+    <div style="display:flex;gap:8px;">
+      <div class="feld" style="flex:1;"><label for="fNfGeburt">Geburtsdatum</label><input type="date" id="fNfGeburt"></div>
+      <div class="feld" style="flex:0 0 110px;"><label for="fNfBlut">Blutgruppe</label><select id="fNfBlut"><option value="">–</option><option>0 Rh+</option><option>0 Rh−</option><option>A Rh+</option><option>A Rh−</option><option>B Rh+</option><option>B Rh−</option><option>AB Rh+</option><option>AB Rh−</option></select></div>
+    </div>
+    <div class="feld"><label for="fNfAllergien">Weitere Allergien / Unverträglichkeiten</label><input type="text" id="fNfAllergien" placeholder="z.B. Penicillin, Wespenstich"><div class="hinweis-klein" id="nfAllergienInfo" style="margin-top:4px;"></div></div>
+    <div class="feld"><label for="fNfVorerkrankungen">Vorerkrankungen / Wichtiges</label><textarea id="fNfVorerkrankungen" rows="2" placeholder="z.B. Asthma, Herzschrittmacher"></textarea></div>
+    <div class="feld"><label for="fNfKasse">Krankenkasse (+ Versichertennummer)</label><input type="text" id="fNfKasse" placeholder="z.B. AOK BW"></div>
+    <div class="feld"><label>Ärzte</label><div id="nfAerzte"></div><button type="button" class="vs-knopf" id="btnNfArztPlus">＋ Arzt</button></div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnNfAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnNfSpeichern">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalImpfung">
+  <div class="modal">
+    <h2>💉 Impfung eintragen</h2>
+    <div class="feld"><label for="fImpfName">Impfung</label><input type="text" id="fImpfName" list="impfVorschlaege" placeholder="z.B. Tetanus/Diphtherie/Keuchhusten"><datalist id="impfVorschlaege"></datalist></div>
+    <div style="display:flex;gap:8px;">
+      <div class="feld" style="flex:1;"><label for="fImpfDatum">Datum</label><input type="date" id="fImpfDatum"></div>
+      <div class="feld" style="flex:1;"><label for="fImpfCharge">Impfstoff / Charge (optional)</label><input type="text" id="fImpfCharge"></div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnImpfLoeschen" style="display:none;">🗑</button>
+      <button class="btn btn-secondary" id="btnImpfAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnImpfSpeichern">Speichern</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="modalMed">
   <div class="modal">
     <h2>Medikament/Vitamin</h2>
@@ -1909,6 +1987,10 @@
     <div class="feld">
       <label for="fMedZeit">Erinnerungszeit (optional)</label>
       <input type="time" id="fMedZeit">
+    </div>
+    <div style="display:flex;gap:8px;">
+      <div class="feld" style="flex:1;"><label for="fMedVorrat">📦 Vorrat (Stück, optional)</label><input type="number" min="0" id="fMedVorrat" placeholder="z.B. 100"></div>
+      <div class="feld" style="flex:1;"><label for="fMedProTag">pro Tag</label><input type="number" min="0" step="0.5" id="fMedProTag" placeholder="z.B. 1"></div>
     </div>
     <div class="modal-btns">
       <button class="btn btn-secondary" id="btnMedAbbrechen">Abbrechen</button>
@@ -2278,11 +2360,15 @@
       zeile.innerHTML =
         '<span class="med-checkbox">' + (erledigt ? '✓' : '') + '</span>' +
         '<div class="med-info"><div class="med-name">' + escapeHtml(m.name) + '</div>' +
-        (m.hinweis || erinnerungsHinweis ? '<div class="med-hinweis">' + [m.hinweis, erinnerungsHinweis].filter(Boolean).map(escapeHtml).join(' · ') + '</div>' : '') + '</div>' +
+        (m.hinweis || erinnerungsHinweis ? '<div class="med-hinweis">' + [m.hinweis, erinnerungsHinweis].filter(Boolean).map(escapeHtml).join(' · ') + '</div>' : '') + medVorratHtml(m) + '</div>' +
+        '<button class="med-vorrat-btn" title="Vorrat / neue Packung" style="background:none;border:none;cursor:pointer;font-size:0.95rem;padding:2px 4px;">📦</button>' +
         (m.zeit ? '<button class="med-termin-btn" title="' + (m.terminErinnerungId ? 'Zurück zu lokaler Erinnerung' : 'Als tägliche Erinnerung in Termine eintragen') + '" style="background:none;border:none;cursor:pointer;font-size:0.9rem;opacity:0.7;flex-shrink:0;">' + (m.terminErinnerungId ? '↩️' : '📌') + '</button>' : '') +
         '<button class="med-loeschen" aria-label="Löschen">✕</button>';
       zeile.querySelector('.med-info').addEventListener('click', () => medToggle(m.id));
       zeile.querySelector('.med-checkbox').addEventListener('click', () => medToggle(m.id));
+      zeile.querySelector('.med-vorrat-btn').addEventListener('click', (e) => { e.stopPropagation(); medVorratSetzen(m.id); });
+      const einkaufBtn = zeile.querySelector('.med-einkauf-btn');
+      if (einkaufBtn) einkaufBtn.addEventListener('click', (e) => { e.stopPropagation(); medAufEinkaufsliste(m); });
       const terminBtn = zeile.querySelector('.med-termin-btn');
       if (terminBtn) terminBtn.addEventListener('click', (e) => { e.stopPropagation(); medTerminVerknuepfungUmschalten(m.id); });
       zeile.querySelector('.med-loeschen').addEventListener('click', (e) => {
@@ -2304,6 +2390,50 @@
       });
       box.appendChild(zeile);
     });
+  }
+  // 📦 Medikamenten-Vorrat: reicht noch … Tage
+  function medVorratTage(m) {
+    if (!(m.vorrat > 0) || !(m.proTag > 0)) return null;
+    const vergangen = Math.max(0, Math.round((ausISO(heuteISO()) - ausISO(m.vorratAb || heuteISO())) / 864e5));
+    const rest = m.vorrat - vergangen * m.proTag;
+    return Math.floor(rest / m.proTag);
+  }
+  function medVorratHtml(m) {
+    const t = medVorratTage(m);
+    if (t === null) return '';
+    const knapp = t <= 7;
+    return '<div class="med-vorrat' + (knapp ? ' knapp' : '') + '">📦 ' + (t <= 0 ? 'Packung leer – neue besorgen' : 'reicht noch ' + t + (t === 1 ? ' Tag' : ' Tage') + (knapp ? ' · Rezept/Nachschub besorgen' : '')) + '</div>' +
+      (knapp ? '<button class="med-einkauf-btn vs-knopf" style="margin-top:4px;">＋ Einkaufsliste</button>' : '');
+  }
+  function medVorratSetzen(medId) {
+    const m = medikamente.find(x => x.id === medId); if (!m) return;
+    const v = prompt('📦 Wie viele Stück sind jetzt da (z.B. neue Packung)? Leer lassen = Vorrat nicht verfolgen.', m.vorrat ? String(Math.max(0, (medVorratTage(m) || 0) * (m.proTag || 1))) : '');
+    if (v === null) return;
+    const vorrat = parseFloat(String(v).replace(',', '.'));
+    if (!(vorrat > 0)) { delete m.vorrat; delete m.proTag; delete m.vorratAb; }
+    else {
+      const p = prompt('Wie viele Stück pro Tag?', m.proTag ? String(m.proTag).replace('.', ',') : '1');
+      if (p === null) return;
+      const proTag = parseFloat(String(p).replace(',', '.'));
+      if (!(proTag > 0)) return;
+      Object.assign(m, { vorrat, proTag, vorratAb: heuteISO() });
+    }
+    speichern(KEY_MEDIKAMENTE, medikamente);
+    renderMedListeHeute();
+  }
+  let einkaufSync = null;
+  if (window.PlanerSync) einkaufSync = window.PlanerSync.starteSync({ modul: 'einkauf', keys: ['einkauf_listen'] });
+  function medAufEinkaufsliste(m) {
+    let listen = laden('einkauf_listen', []);
+    if (!Array.isArray(listen) || !listen.length) listen = [{ id: 'l' + Date.now(), name: 'Wocheneinkauf', items: [] }];
+    let aktivId = ''; try { aktivId = localStorage.getItem('einkauf_aktiveListe') || ''; } catch (e) {}
+    const liste = listen.find(l => l.id === aktivId) || listen[0];
+    const name = '💊 ' + m.name + ' (Apotheke)';
+    if (liste.items.some(i => !i.erledigt && i.name === name)) { showTempStatus('Steht schon auf der Einkaufsliste', 3); return; }
+    liste.items.push({ id: 'i' + Date.now() + Math.random().toString(36).slice(2, 6), name, menge: '', einheit: '', kategorie: 'drogerie', erledigt: false, hinzugefuegtVon: aktivePerson });
+    try { localStorage.setItem('einkauf_listen', JSON.stringify(listen)); } catch (e) {}
+    if (einkaufSync) einkaufSync.melde();
+    showTempStatus('🛒 „' + m.name + '“ steht auf „' + liste.name + '“', 3);
   }
   function medToggle(medId) {
     const key = medSchluessel(medId);
@@ -2361,6 +2491,8 @@
     document.getElementById('fMedName').value = '';
     document.getElementById('fMedHinweis').value = '';
     document.getElementById('fMedZeit').value = '';
+    document.getElementById('fMedVorrat').value = '';
+    document.getElementById('fMedProTag').value = '';
     document.getElementById('modalMed').classList.add('zeigen');
     document.getElementById('fMedName').focus();
   });
@@ -2371,7 +2503,10 @@
     if (!name) { alert('Bitte einen Namen eingeben.'); return; }
     const zeit = document.getElementById('fMedZeit').value;
     if (zeit && 'Notification' in window && Notification.permission === 'default') Notification.requestPermission();
-    medikamente.push({ id: neueId('med'), person: aktivePerson, name: name, hinweis: document.getElementById('fMedHinweis').value.trim(), zeit: zeit || '', terminErinnerungId: null });
+    const vorrat = parseFloat(document.getElementById('fMedVorrat').value), proTag = parseFloat(String(document.getElementById('fMedProTag').value).replace(',', '.'));
+    const neuMed = { id: neueId('med'), person: aktivePerson, name: name, hinweis: document.getElementById('fMedHinweis').value.trim(), zeit: zeit || '', terminErinnerungId: null };
+    if (vorrat > 0 && proTag > 0) Object.assign(neuMed, { vorrat, proTag, vorratAb: heuteISO() });
+    medikamente.push(neuMed);
     speichern(KEY_MEDIKAMENTE, medikamente);
     document.getElementById('modalMed').classList.remove('zeigen');
     renderMedListeHeute();
@@ -3448,7 +3583,8 @@
   const btnTrainingsplan = document.getElementById('btnViewTrainingsplan');
   const btnKoerperlexikon = document.getElementById('btnViewKoerperlexikon');
   const btnErnaehrung = document.getElementById('btnViewErnaehrung');
-  const alleTabs = { heute: btnHeute, verlauf: btnVerlauf, rechner: btnRechner, kraft: btnKraft, dehnen: btnDehnen, balance: btnBalance, zyklus: btnZyklus, trainingsplan: btnTrainingsplan, koerperlexikon: btnKoerperlexikon, ernaehrung: btnErnaehrung, krankheiten: btnKrankheiten };
+  const btnVorsorge = document.getElementById('btnViewVorsorge');
+  const alleTabs = { heute: btnHeute, verlauf: btnVerlauf, rechner: btnRechner, kraft: btnKraft, dehnen: btnDehnen, balance: btnBalance, zyklus: btnZyklus, trainingsplan: btnTrainingsplan, koerperlexikon: btnKoerperlexikon, ernaehrung: btnErnaehrung, krankheiten: btnKrankheiten, vorsorge: btnVorsorge };
   function zeigeAnsicht(name) {
     aktiveAnsicht = name;
     document.getElementById('ansichtHeute').style.display = name === 'heute' ? '' : 'none';
@@ -3462,6 +3598,7 @@
     document.getElementById('ansichtKoerperlexikon').style.display = name === 'koerperlexikon' ? '' : 'none';
     document.getElementById('ansichtErnaehrung').style.display = name === 'ernaehrung' ? '' : 'none';
     document.getElementById('ansichtKrankheiten').style.display = name === 'krankheiten' ? '' : 'none';
+    document.getElementById('ansichtVorsorge').style.display = name === 'vorsorge' ? '' : 'none';
     Object.keys(alleTabs).forEach((k) => {
       alleTabs[k].classList.toggle('active', k === name);
       alleTabs[k].setAttribute('aria-selected', k === name);
@@ -3475,6 +3612,7 @@
     if (name === 'koerperlexikon') renderKoerperlexikon('muskeln');
     if (name === 'ernaehrung') renderErnaehrung();
     if (name === 'krankheiten') renderKrankheiten();
+    if (name === 'vorsorge') renderVorsorge();
   }
   btnHeute.addEventListener('click', () => zeigeAnsicht('heute'));
   btnVerlauf.addEventListener('click', () => zeigeAnsicht('verlauf'));
@@ -3487,6 +3625,7 @@
   btnKoerperlexikon.addEventListener('click', () => zeigeAnsicht('koerperlexikon'));
   btnErnaehrung.addEventListener('click', () => zeigeAnsicht('ernaehrung'));
   btnKrankheiten.addEventListener('click', () => zeigeAnsicht('krankheiten'));
+  btnVorsorge.addEventListener('click', () => zeigeAnsicht('vorsorge'));
   document.getElementById('btnInfosModal').addEventListener('click', () => {
     document.getElementById('infosModal').classList.add('zeigen');
   });
@@ -4614,6 +4753,15 @@
         addBtn.textContent = '＋ Verlaufseintrag';
         addBtn.addEventListener('click', () => keModalOeffnen(k.id, null));
         body.appendChild(addBtn);
+        const ab = abstandHtml(k);
+        if (ab) {
+          const box = document.createElement('div');
+          box.className = 'abstand-box';
+          box.innerHTML = ab;
+          box.querySelectorAll('[data-abstand]').forEach(b => b.addEventListener('click', () => abstandSetzen(b.dataset.abstand)));
+          box.querySelectorAll('[data-gabe]').forEach(b => b.addEventListener('click', () => gabeJetzt(k.id, b.dataset.gabe)));
+          body.appendChild(box);
+        }
         const eintraege = (k.verlauf || []).slice().sort((a, b) => (b.datum + (b.uhrzeit || '')).localeCompare(a.datum + (a.uhrzeit || '')));
         if (!eintraege.length) {
           const hinweis = document.createElement('div');
@@ -4650,6 +4798,320 @@
       box.appendChild(wrap);
     });
   }
+
+  // 🤒 Mindestabstand zwischen zwei Gaben – den Abstand legt ihr selbst fest (Beipackzettel/Arzt)
+  const medKurz = (t) => String(t || '').trim().split(/\s+\d|\s*\(|,/)[0].trim();
+  function abstandHtml(k) {
+    const gaben = {};
+    (k.verlauf || []).forEach(e => {
+      if (!e.medikament || !e.uhrzeit) return;
+      const name = medKurz(e.medikament); if (!name) return;
+      const zeit = new Date(e.datum + 'T' + e.uhrzeit + ':00');
+      if (!gaben[name] || zeit > gaben[name].zeit) gaben[name] = { zeit, text: e.medikament };
+    });
+    const namen = Object.keys(gaben);
+    if (!namen.length || k.ende) return '';
+    const abst = (vorsorge._abstaende || {});
+    return '<b>💊 Letzte Gaben</b>' + namen.map(n => {
+      const g = gaben[n], h = abst[n.toLowerCase()];
+      const zuletzt = g.zeit.toLocaleDateString('de-DE', { weekday: 'short' }) + ' ' + g.zeit.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+      let info = '';
+      if (h) {
+        const naechste = new Date(g.zeit.getTime() + h * 3600e3);
+        const ok = naechste <= new Date();
+        info = ' · Abstand ' + String(h).replace('.', ',') + ' Std. → ' + (ok ? '<b class="ok">wieder möglich</b>' : '<b class="warten">frühestens ' + naechste.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) + (naechste.toDateString() !== new Date().toDateString() ? ' (' + naechste.toLocaleDateString('de-DE', { weekday: 'short' }) + ')' : '') + '</b>');
+      }
+      return '<div class="ab-zeile"><span>' + escapeHtml(n) + ' zuletzt ' + zuletzt + info + '</span>' +
+        '<button class="vs-knopf" data-abstand="' + escapeHtml(n) + '">⏱ ' + (h ? 'Abstand' : 'Abstand festlegen') + '</button>' +
+        '<button class="vs-knopf" data-gabe="' + escapeHtml(g.text) + '">＋ Gabe jetzt</button></div>';
+    }).join('');
+  }
+  function abstandSetzen(name) {
+    const abst = vorsorge._abstaende || {};
+    const v = prompt('Mindestabstand zwischen zwei Gaben von „' + name + '“ in Stunden (laut Beipackzettel oder Arzt). Leer = keinen Hinweis zeigen:', abst[name.toLowerCase()] ? String(abst[name.toLowerCase()]).replace('.', ',') : '');
+    if (v === null) return;
+    const h = parseFloat(String(v).replace(',', '.'));
+    if (h > 0 && h <= 72) abst[name.toLowerCase()] = h; else delete abst[name.toLowerCase()];
+    vorsorge._abstaende = abst;
+    speichern(KEY_VORSORGE, vorsorge);
+    renderKrankheiten();
+  }
+  function gabeJetzt(krankheitId, medikament) {
+    const k = krankheiten.find(x => x.id === krankheitId); if (!k) return;
+    const name = medKurz(medikament), h = (vorsorge._abstaende || {})[name.toLowerCase()];
+    if (h) {
+      const letzte = (k.verlauf || []).filter(e => e.medikament && e.uhrzeit && medKurz(e.medikament) === name).map(e => new Date(e.datum + 'T' + e.uhrzeit + ':00')).sort((a, b) => b - a)[0];
+      if (letzte && letzte.getTime() + h * 3600e3 > Date.now() && !confirm('Der festgelegte Abstand von ' + String(h).replace('.', ',') + ' Std. ist noch nicht vorbei. Trotzdem eintragen?')) return;
+    }
+    const jetzt = new Date();
+    if (!k.verlauf) k.verlauf = [];
+    k.verlauf.push({ id: neueId('ke'), datum: heuteISO(), uhrzeit: String(jetzt.getHours()).padStart(2, '0') + ':' + String(jetzt.getMinutes()).padStart(2, '0'), temperatur: null, symptome: '', medikament, notiz: '' });
+    speichereKrankheiten();
+    renderKrankheiten();
+    showTempStatus('💊 ' + name + ' um ' + jetzt.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) + ' eingetragen', 3);
+  }
+
+  // ============================================================
+  // 🩺 VORSORGE & NOTFALL
+  // gesundheit_vorsorge: { [person]: { profil, impfungen: [], erledigt: { vorsorgeId: datum }, messungen: [] }, _abstaende: { medikament: Std. } }
+  // ============================================================
+  const KEY_VORSORGE = 'gesundheit_vorsorge';
+  let vorsorge = laden(KEY_VORSORGE, {}) || {};
+  function vsDaten(person) {
+    if (!vorsorge[person] || typeof vorsorge[person] !== 'object') vorsorge[person] = {};
+    const d = vorsorge[person];
+    d.profil = d.profil || {}; d.impfungen = d.impfungen || []; d.erledigt = d.erledigt || {}; d.messungen = d.messungen || [];
+    return d;
+  }
+  function vsSpeichern() { speichern(KEY_VORSORGE, vorsorge); }
+  const plusMonate = (iso, m) => { const d = ausISO(iso); d.setMonth(d.getMonth() + m); return d; };
+  const plusTage = (iso, t) => { const d = ausISO(iso); d.setDate(d.getDate() + t); return d; };
+  const isoVon = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  const datumKurz = (d) => (typeof d === 'string' ? ausISO(d) : d).toLocaleDateString('de-DE', { day: 'numeric', month: 'numeric', year: 'numeric' });
+  function alterJahre(geburt) { if (!geburt) return null; const g = ausISO(geburt), h = ausISO(heuteISO()); let a = h.getFullYear() - g.getFullYear(); if (h < new Date(h.getFullYear(), g.getMonth(), g.getDate())) a--; return a; }
+  const U_UNTERSUCHUNGEN = [
+    { id: 'U2', von: [0, 3], bis: [0, 10], text: '3.–10. Lebenstag' },
+    { id: 'U3', von: [0, 28], bis: [0, 35], text: '4.–5. Lebenswoche' },
+    { id: 'U4', vonM: 3, bisM: 4.5, text: '3.–4. Lebensmonat' },
+    { id: 'U5', vonM: 6, bisM: 7, text: '6.–7. Lebensmonat' },
+    { id: 'U6', vonM: 10, bisM: 12, text: '10.–12. Lebensmonat' },
+    { id: 'U7', vonM: 21, bisM: 24, text: '21.–24. Lebensmonat' },
+    { id: 'U7a', vonM: 34, bisM: 36, text: '34.–36. Lebensmonat' },
+    { id: 'U8', vonM: 46, bisM: 48, text: '46.–48. Lebensmonat' },
+    { id: 'U9', vonM: 60, bisM: 64, text: '60.–64. Lebensmonat' },
+    { id: 'J1', vonM: 144, bisM: 168, text: '12–14 Jahre' },
+  ];
+  const IMPF_VORSCHLAEGE = ['Tetanus/Diphtherie/Keuchhusten', 'Tetanus/Diphtherie', 'FSME (Zecken)', 'Grippe', 'COVID-19', 'Masern/Mumps/Röteln', 'Windpocken', 'Pneumokokken', 'Gürtelrose', 'Hepatitis A', 'Hepatitis B', 'HPV', 'Meningokokken', 'Rotaviren', 'Sechsfach (DTaP-IPV-Hib-HepB)', 'Polio'];
+  // Vorsorge-Liste für eine Person: { id, icon, name, faellig: Date|null, von, bis, status, info }
+  function vorsorgeListe(person) {
+    const d = vsDaten(person), geb = d.profil.geburt, alter = alterJahre(geb), heute = ausISO(heuteISO());
+    const out = [];
+    const status = (von, bis) => heute > bis ? 'vorbei' : heute >= von ? 'faellig' : (von - heute) / 864e5 <= 60 ? 'bald' : 'spaeter';
+    if (geb && alter < 15) {
+      U_UNTERSUCHUNGEN.forEach(u => {
+        if (d.erledigt[u.id]) return;
+        const von = u.von ? plusTage(geb, u.von[1]) : plusMonate(geb, u.vonM);
+        const bis = u.bis ? plusTage(geb, u.bis[1]) : plusMonate(geb, Math.ceil(u.bisM));
+        const st = status(von, bis);
+        if (st === 'spaeter' && out.some(x => x.u && x.status !== 'vorbei')) return; // nur die nächste kommende zeigen
+        if (st === 'vorbei' && (heute - bis) / 864e5 > 180) return;
+        out.push({ id: u.id, u: true, icon: '👶', name: u.id + '-Untersuchung', info: u.text + ' · ' + datumKurz(von) + ' – ' + datumKurz(bis), status: st, faellig: von });
+      });
+    }
+    // Zahnarzt alle 6 Monate (Kinder ab 6 Monaten)
+    if (!geb || alter >= 0.5) {
+      const z = d.erledigt.zahnarzt;
+      const f = z ? plusMonate(z, 6) : null;
+      out.push({ id: 'zahnarzt', icon: '🦷', name: 'Zahnarzt-Kontrolle', info: z ? 'zuletzt ' + datumKurz(z) + ' · alle 6 Monate (Bonusheft!)' : 'alle 6 Monate – wann war der letzte Termin?', status: f ? (heute >= f ? 'faellig' : (f - heute) / 864e5 <= 30 ? 'bald' : 'spaeter') : 'offen', faellig: f });
+    }
+    if (geb && alter >= 18) {
+      const c = d.erledigt.checkup, ab35 = alter >= 35;
+      const fc = c ? plusMonate(c, ab35 ? 36 : 999) : null;
+      out.push({ id: 'checkup', icon: '🩺', name: 'Gesundheits-Check-up', info: (c ? 'zuletzt ' + datumKurz(c) + ' · ' : '') + (ab35 ? 'ab 35 alle 3 Jahre' : '18–34 einmalig'), status: c ? (fc && heute >= fc ? 'faellig' : 'spaeter') : 'offen', faellig: fc });
+      if (ab35) {
+        const hk = d.erledigt.hautkrebs, fh = hk ? plusMonate(hk, 24) : null;
+        out.push({ id: 'hautkrebs', icon: '🔎', name: 'Hautkrebs-Screening', info: (hk ? 'zuletzt ' + datumKurz(hk) + ' · ' : '') + 'ab 35 alle 2 Jahre', status: hk ? (heute >= fh ? 'faellig' : (fh - heute) / 864e5 <= 30 ? 'bald' : 'spaeter') : 'offen', faellig: fh });
+      }
+    }
+    return out;
+  }
+  // 💉 Auffrischungen (vereinfachte STIKO-Richtwerte)
+  function auffrischungen(person) {
+    const d = vsDaten(person), alter = alterJahre(d.profil.geburt), heute = ausISO(heuteISO());
+    const gruppen = [
+      { id: 'td', name: 'Tetanus/Diphtherie', muster: /tetanus|diphtherie|\btdap?\b|boostrix|keuchhusten|pertussis|sechsfach|fünffach|dtap/i, monate: () => 120 },
+      { id: 'fsme', name: 'FSME (Zecken)', muster: /fsme|zecke|encepur|fsme-immun/i, monate: (n) => n < 3 ? 12 : n === 3 ? 36 : (alter !== null && alter >= 60 ? 36 : 60) },
+      { id: 'grippe', name: 'Grippe', muster: /grippe|influenza/i, monate: () => 12 },
+    ];
+    const out = [];
+    gruppen.forEach(g => {
+      const liste = d.impfungen.filter(i => g.muster.test(i.name) && i.datum).sort((a, b) => a.datum.localeCompare(b.datum));
+      if (!liste.length) return;
+      const letzte = liste[liste.length - 1];
+      let faellig = plusMonate(letzte.datum, g.monate(liste.length));
+      if (g.id === 'grippe') { const j = ausISO(letzte.datum).getFullYear() + 1; faellig = new Date(j, 9, 1); } // nächster Herbst
+      const tage = (faellig - heute) / 864e5;
+      out.push({ name: g.name, letzte: letzte.datum, faellig, status: tage <= 0 ? 'faellig' : tage <= 90 ? 'bald' : 'spaeter' });
+    });
+    return out;
+  }
+  const ALLERGEN_NAMEN = { gluten: 'Gluten', krebstiere: 'Krebstiere', eier: 'Ei', fisch: 'Fisch', erdnuesse: 'Erdnüsse', soja: 'Soja', milch: 'Milch/Laktose', schalenfruechte: 'Nüsse', sellerie: 'Sellerie', senf: 'Senf', sesam: 'Sesam', lupinen: 'Lupinen', weichtiere: 'Weichtiere', sulfite: 'Sulfite' };
+  function personAllergien(person) {
+    let liste = [];
+    try { const p = (JSON.parse(localStorage.getItem('planer_personenListe') || '[]') || []).find(x => x.id === person); liste = (p && p.allergien) || []; } catch (e) {}
+    return liste.map(a => ALLERGEN_NAMEN[a] || a);
+  }
+  const telLink = (t) => 'tel:' + String(t || '').replace(/[^\d+]/g, '');
+  function renderVorsorge() {
+    const box = document.getElementById('vorsorgeInhalt');
+    const p = PERSONEN.find(x => x.id === aktivePerson);
+    if (!p || aktivePerson === 'familie') { box.innerHTML = '<div class="karte"><div class="chart-leer">Bitte oben eine Person wählen – Vorsorge, Impfungen und Notfall-Infos gelten pro Person.</div></div>'; return; }
+    const d = vsDaten(aktivePerson), pr = d.profil;
+    const alter = alterJahre(pr.geburt);
+    const allergien = personAllergien(aktivePerson).concat(pr.allergien ? [pr.allergien] : []);
+    const dauerMed = medikamente.filter(m => m.person === aktivePerson).map(m => m.name + (m.hinweis ? ' (' + m.hinweis + ')' : ''));
+    let html = '';
+    // 🆘 Notfall-Karte
+    const zeilen = [['Geburtsdatum', pr.geburt ? datumKurz(pr.geburt) + (alter !== null ? ' (' + alter + ' J.)' : '') : ''], ['Blutgruppe', pr.blutgruppe], ['Allergien', allergien.join(', ')],
+      ['Vorerkrankungen', pr.vorerkrankungen], ['Medikamente', dauerMed.join(', ')], ['Krankenkasse', pr.kasse]].filter(z => z[1]);
+    html += '<div class="karte"><div class="vs-kopf"><h3>🆘 Notfall-Karte</h3><button class="vs-knopf" id="btnNotfallBearbeiten">✏️ Bearbeiten</button></div>' +
+      '<div class="notfall-karte"><div class="nf-name">' + escapeHtml(p.label) + '</div>' +
+      (zeilen.length ? zeilen.map(z => '<div class="nf-zeile"><span>' + z[0] + '</span><b' + (z[0] === 'Allergien' ? ' class="nf-warn"' : '') + '>' + escapeHtml(z[1]) + '</b></div>').join('') : '<div class="chart-leer">Noch keine Angaben – „✏️ Bearbeiten“.</div>') + '</div>' +
+      '<div class="anruf-reihe"><a class="rot" href="tel:112">📞 112<small>Notruf</small></a><a href="tel:116117">📞 116 117<small>Ärztl. Bereitschaft</small></a>' +
+      (pr.aerzte || []).filter(a => a.tel).map(a => '<a href="' + telLink(a.tel) + '">📞 ' + escapeHtml(a.rolle || 'Arzt') + '<small>' + escapeHtml(a.name || a.tel) + '</small></a>').join('') + '</div></div>';
+    // 🩺 Vorsorge
+    const vl = vorsorgeListe(aktivePerson);
+    const statusText = { faellig: '⏰ jetzt dran', bald: '🔜 bald', vorbei: 'Zeitraum vorbei', offen: '', spaeter: '' };
+    html += '<div class="karte"><div class="vs-kopf"><h3>🩺 Vorsorge</h3></div>' +
+      (!pr.geburt ? '<div class="chart-leer" style="padding-top:0">Mit Geburtsdatum (Notfall-Karte) zeigt die App auch U-Untersuchungen bzw. Check-up und Hautkrebs-Screening.</div>' : '') +
+      vl.map(v => '<div class="vs-zeile ' + v.status + '"><span class="vs-icon">' + v.icon + '</span><span class="vs-text">' + escapeHtml(v.name) + (statusText[v.status] ? ' · <b>' + statusText[v.status] + '</b>' : '') + '<small>' + escapeHtml(v.info) + (v.faellig && !v.u && v.status !== 'offen' ? ' · nächste ab ' + datumKurz(v.faellig) : '') + '</small></span>' +
+        (v.faellig && v.status !== 'vorbei' ? '<button class="vs-knopf" data-vs-termin="' + v.id + '" title="Als Termin eintragen">📅</button>' : '') +
+        '<button class="vs-knopf" data-vs-erledigt="' + v.id + '">✓ Erledigt</button></div>').join('') + '</div>';
+    // 💉 Impfungen
+    const af = auffrischungen(aktivePerson);
+    const impf = d.impfungen.slice().sort((a, b) => (b.datum || '').localeCompare(a.datum || ''));
+    html += '<div class="karte"><div class="vs-kopf"><h3>💉 Impfungen</h3><button class="vs-knopf" id="btnImpfNeu">＋ Impfung</button></div>' +
+      af.filter(a => a.status !== 'spaeter').map(a => '<div class="vs-zeile ' + a.status + '"><span class="vs-icon">⏰</span><span class="vs-text">' + escapeHtml(a.name) + ' – Auffrischung ' + (a.status === 'faellig' ? '<b>fällig</b>' : 'bald') + '<small>zuletzt ' + datumKurz(a.letzte) + ' · fällig ab ' + datumKurz(a.faellig) + '</small></span><button class="vs-knopf" data-impf-termin="' + escapeHtml(a.name) + '|' + isoVon(a.faellig) + '">📅</button></div>').join('') +
+      (impf.length ? impf.map(i => '<div class="vs-zeile" data-impf="' + i.id + '" style="cursor:pointer"><span class="vs-icon">💉</span><span class="vs-text">' + escapeHtml(i.name) + '<small>' + (i.datum ? datumKurz(i.datum) : '') + (i.charge ? ' · ' + escapeHtml(i.charge) : '') + '</small></span></div>').join('')
+        : '<div class="chart-leer">Noch keine Impfungen eingetragen – am einfachsten den gelben Impfpass zur Hand nehmen.</div>') +
+      (af.some(a => a.status === 'spaeter') ? '<div class="hinweis-klein">Nächste Auffrischungen: ' + af.filter(a => a.status === 'spaeter').map(a => escapeHtml(a.name) + ' ab ' + datumKurz(a.faellig)).join(' · ') + '</div>' : '') + '</div>';
+    // 📏 Größe & Gewicht
+    const mess = d.messungen.slice().sort((a, b) => a.datum.localeCompare(b.datum));
+    html += '<div class="karte"><div class="vs-kopf"><h3>📏 Größe & Gewicht</h3><button class="vs-knopf" id="btnMessungNeu">＋ Messung</button></div>' + messungenHtml(mess) + '</div>';
+    box.innerHTML = html;
+    document.getElementById('btnNotfallBearbeiten').addEventListener('click', notfallOeffnen);
+    document.getElementById('btnImpfNeu').addEventListener('click', () => impfOeffnen(null));
+    document.getElementById('btnMessungNeu').addEventListener('click', messungNeu);
+    box.querySelectorAll('[data-impf]').forEach(z => z.addEventListener('click', () => impfOeffnen(z.dataset.impf)));
+    box.querySelectorAll('[data-vs-erledigt]').forEach(b => b.addEventListener('click', () => {
+      const v = prompt('Wann war der Termin? (TT.MM.JJJJ)', new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }));
+      if (v === null) return;
+      const m = v.trim().match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+      if (!m) { alert('Bitte im Format TT.MM.JJJJ eingeben.'); return; }
+      vsDaten(aktivePerson).erledigt[b.dataset.vsErledigt] = m[3] + '-' + m[2].padStart(2, '0') + '-' + m[1].padStart(2, '0');
+      vsSpeichern(); renderVorsorge();
+    }));
+    box.querySelectorAll('[data-vs-termin]').forEach(b => b.addEventListener('click', () => {
+      const v = vorsorgeListe(aktivePerson).find(x => x.id === b.dataset.vsTermin); if (!v || !v.faellig) return;
+      const tag = v.faellig < ausISO(heuteISO()) ? plusTage(heuteISO(), 1) : v.faellig;
+      vsTerminEintragen(v.icon + ' ' + v.name + ' – ' + p.label + ' (Termin vereinbaren)', isoVon(tag));
+    }));
+    box.querySelectorAll('[data-impf-termin]').forEach(b => b.addEventListener('click', () => {
+      const [name, iso] = b.dataset.impfTermin.split('|');
+      const tag = iso < heuteISO() ? isoVon(plusTage(heuteISO(), 1)) : iso;
+      vsTerminEintragen('💉 ' + name + ' auffrischen – ' + p.label, tag);
+    }));
+  }
+  function vsTerminEintragen(titel, datum) {
+    const events = medTerminListeLaden();
+    if (events.some(e => e.title === titel && e.date === datum)) { showTempStatus('Steht schon in den Terminen', 3); return; }
+    events.push({ id: 't_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7), title: titel, date: datum, allDay: false, startTime: '09:00', endTime: '', wer: aktivePerson, location: '', notes: 'Aus 🩺 Gesundheit – Vorsorge', erinnerung: 1440, recurrence: { freq: 'keine', until: null } });
+    medTerminListeSpeichern(events);
+    showTempStatus('📅 Erinnerung am ' + datumKurz(datum) + ' eingetragen', 3);
+  }
+  // 📏 Messungen mit kleiner Verlaufskurve
+  function messungenHtml(mess) {
+    if (!mess.length) return '<div class="chart-leer">Noch keine Messungen – z.B. beim Kinderarzt oder am Türrahmen.</div>';
+    const letzte = mess[mess.length - 1];
+    const vorJahr = mess.filter(m => m.groesse && (ausISO(letzte.datum) - ausISO(m.datum)) / 864e5 >= 300).pop();
+    let html = '<div style="font-size:0.9rem;"><b>' + (letzte.groesse ? String(letzte.groesse).replace('.', ',') + ' cm' : '') + (letzte.groesse && letzte.gewicht ? ' · ' : '') + (letzte.gewicht ? String(letzte.gewicht).replace('.', ',') + ' kg' : '') + '</b> <span class="hinweis-klein">am ' + datumKurz(letzte.datum) + '</span></div>';
+    if (vorJahr && letzte.groesse) html += '<div class="hinweis-klein" style="margin-top:2px">📈 +' + String(Math.round((letzte.groesse - vorJahr.groesse) * 10) / 10).replace('.', ',') + ' cm seit ' + datumKurz(vorJahr.datum) + '</div>';
+    const kurve = (feld, farbe, einheit) => {
+      const p = mess.filter(m => m[feld] > 0);
+      if (p.length < 2) return '';
+      const t0 = ausISO(p[0].datum).getTime(), t1 = ausISO(p[p.length - 1].datum).getTime() || t0 + 1;
+      const min = Math.min(...p.map(m => m[feld])), max = Math.max(...p.map(m => m[feld]));
+      const W = 300, H = 90, x = (m) => 8 + (ausISO(m.datum).getTime() - t0) / Math.max(1, t1 - t0) * (W - 16), y = (m) => H - 14 - (m[feld] - min) / Math.max(0.1, max - min) * (H - 30);
+      return '<svg class="vs-diagramm" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + (feld === 'groesse' ? 'Größe' : 'Gewicht') + ' im Verlauf">' +
+        '<polyline fill="none" stroke="' + farbe + '" stroke-width="2.5" points="' + p.map(m => x(m).toFixed(1) + ',' + y(m).toFixed(1)).join(' ') + '"/>' +
+        p.map(m => '<circle cx="' + x(m).toFixed(1) + '" cy="' + y(m).toFixed(1) + '" r="3" fill="' + farbe + '"><title>' + datumKurz(m.datum) + ': ' + m[feld] + ' ' + einheit + '</title></circle>').join('') +
+        '<text x="4" y="' + (H - 2) + '" font-size="9" fill="var(--bark)">' + datumKurz(p[0].datum) + '</text><text x="' + (W - 4) + '" y="' + (H - 2) + '" font-size="9" fill="var(--bark)" text-anchor="end">' + datumKurz(p[p.length - 1].datum) + '</text>' +
+        '<text x="4" y="10" font-size="9" fill="var(--bark)">' + (feld === 'groesse' ? '📏 ' : '⚖️ ') + String(max).replace('.', ',') + ' ' + einheit + '</text></svg>';
+    };
+    html += kurve('groesse', 'var(--moss)', 'cm') + kurve('gewicht', 'var(--terracotta)', 'kg');
+    html += '<div class="hinweis-klein">' + mess.slice(-4).reverse().map(m => datumKurz(m.datum) + ': ' + [m.groesse ? String(m.groesse).replace('.', ',') + ' cm' : '', m.gewicht ? String(m.gewicht).replace('.', ',') + ' kg' : ''].filter(Boolean).join(' / ')).join(' · ') + '</div>';
+    return html;
+  }
+  function messungNeu() {
+    const g = prompt('📏 Größe in cm (leer lassen, wenn nicht gemessen):', '');
+    if (g === null) return;
+    const w = prompt('⚖️ Gewicht in kg (leer lassen, wenn nicht gewogen):', '');
+    if (w === null) return;
+    const groesse = parseFloat(String(g).replace(',', '.')), gewicht = parseFloat(String(w).replace(',', '.'));
+    if (!(groesse > 0) && !(gewicht > 0)) return;
+    vsDaten(aktivePerson).messungen.push(Object.assign({ id: neueId('ms'), datum: heuteISO() }, groesse > 0 ? { groesse } : {}, gewicht > 0 ? { gewicht } : {}));
+    vsSpeichern(); renderVorsorge();
+  }
+  // Notfall-Formular
+  let nfAerzte = [];
+  function nfAerzteRendern() {
+    const box = document.getElementById('nfAerzte');
+    box.innerHTML = nfAerzte.map((a, i) => '<div class="arzt-zeile"><input data-a="' + i + '" data-f="rolle" placeholder="z.B. Kinderarzt" value="' + escapeHtml(a.rolle || '') + '"><input data-a="' + i + '" data-f="name" placeholder="Name" value="' + escapeHtml(a.name || '') + '"><input type="tel" data-a="' + i + '" data-f="tel" placeholder="Telefon" value="' + escapeHtml(a.tel || '') + '"><button type="button" data-weg="' + i + '" aria-label="Entfernen">✕</button></div>').join('');
+    box.querySelectorAll('[data-a]').forEach(inp => inp.addEventListener('input', () => { nfAerzte[Number(inp.dataset.a)][inp.dataset.f] = inp.value; }));
+    box.querySelectorAll('[data-weg]').forEach(b => b.addEventListener('click', () => { nfAerzte.splice(Number(b.dataset.weg), 1); nfAerzteRendern(); }));
+  }
+  function notfallOeffnen() {
+    const pr = vsDaten(aktivePerson).profil;
+    document.getElementById('fNfGeburt').value = pr.geburt || '';
+    document.getElementById('fNfBlut').value = pr.blutgruppe || '';
+    document.getElementById('fNfAllergien').value = pr.allergien || '';
+    document.getElementById('fNfVorerkrankungen').value = pr.vorerkrankungen || '';
+    document.getElementById('fNfKasse').value = pr.kasse || '';
+    const aus = personAllergien(aktivePerson);
+    document.getElementById('nfAllergienInfo').textContent = aus.length ? 'Aus den Personen-Einstellungen: ' + aus.join(', ') : 'Lebensmittel-Allergien werden unter ⚙️ → Personen gepflegt und hier automatisch übernommen.';
+    nfAerzte = (pr.aerzte || []).map(a => Object.assign({}, a));
+    if (!nfAerzte.length) nfAerzte = [{ rolle: alterJahre(pr.geburt) !== null && alterJahre(pr.geburt) < 18 ? 'Kinderarzt' : 'Hausarzt', name: '', tel: '' }];
+    nfAerzteRendern();
+    document.getElementById('modalNotfall').classList.add('zeigen');
+  }
+  document.getElementById('btnNfArztPlus').addEventListener('click', () => { nfAerzte.push({ rolle: nfAerzte.some(a => /zahn/i.test(a.rolle)) ? '' : 'Zahnarzt', name: '', tel: '' }); nfAerzteRendern(); });
+  document.getElementById('btnNfAbbrechen').addEventListener('click', () => document.getElementById('modalNotfall').classList.remove('zeigen'));
+  document.getElementById('modalNotfall').addEventListener('click', (e) => { if (e.target.id === 'modalNotfall') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnNfSpeichern').addEventListener('click', () => {
+    const d = vsDaten(aktivePerson);
+    d.profil = Object.assign({}, d.profil, {
+      geburt: document.getElementById('fNfGeburt').value, blutgruppe: document.getElementById('fNfBlut').value,
+      allergien: document.getElementById('fNfAllergien').value.trim(), vorerkrankungen: document.getElementById('fNfVorerkrankungen').value.trim(),
+      kasse: document.getElementById('fNfKasse').value.trim(), aerzte: nfAerzte.filter(a => (a.name || '').trim() || (a.tel || '').trim()),
+    });
+    vsSpeichern();
+    document.getElementById('modalNotfall').classList.remove('zeigen');
+    renderVorsorge();
+  });
+  // Impfung-Formular
+  let impfBearbeiteId = null;
+  function impfOeffnen(id) {
+    impfBearbeiteId = id;
+    const i = id ? vsDaten(aktivePerson).impfungen.find(x => x.id === id) : null;
+    document.getElementById('fImpfName').value = i ? i.name : '';
+    document.getElementById('fImpfDatum').value = i ? (i.datum || '') : heuteISO();
+    document.getElementById('fImpfCharge').value = i ? (i.charge || '') : '';
+    document.getElementById('impfVorschlaege').innerHTML = IMPF_VORSCHLAEGE.map(v => '<option value="' + escapeHtml(v) + '"></option>').join('');
+    document.getElementById('btnImpfLoeschen').style.display = i ? '' : 'none';
+    document.getElementById('modalImpfung').classList.add('zeigen');
+  }
+  document.getElementById('btnImpfAbbrechen').addEventListener('click', () => document.getElementById('modalImpfung').classList.remove('zeigen'));
+  document.getElementById('modalImpfung').addEventListener('click', (e) => { if (e.target.id === 'modalImpfung') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnImpfSpeichern').addEventListener('click', () => {
+    const name = document.getElementById('fImpfName').value.trim();
+    if (!name) { document.getElementById('fImpfName').focus(); return; }
+    const d = vsDaten(aktivePerson);
+    const daten = { name, datum: document.getElementById('fImpfDatum').value, charge: document.getElementById('fImpfCharge').value.trim() };
+    const i = impfBearbeiteId && d.impfungen.find(x => x.id === impfBearbeiteId);
+    if (i) Object.assign(i, daten); else d.impfungen.push(Object.assign({ id: neueId('imp') }, daten));
+    vsSpeichern();
+    document.getElementById('modalImpfung').classList.remove('zeigen');
+    renderVorsorge();
+  });
+  document.getElementById('btnImpfLoeschen').addEventListener('click', () => {
+    const d = vsDaten(aktivePerson);
+    const index = d.impfungen.findIndex(x => x.id === impfBearbeiteId); if (index < 0) return;
+    const entfernt = d.impfungen.splice(index, 1)[0];
+    vsSpeichern();
+    document.getElementById('modalImpfung').classList.remove('zeigen');
+    renderVorsorge();
+    showTempStatus('🗑 Impfung gelöscht', 6, { rueckgaengig: () => { vsDaten(entfernt && aktivePerson).impfungen.splice(index, 0, entfernt); vsSpeichern(); renderVorsorge(); } });
+  });
 
   let krankheitBearbeiteId = null;
   const KEY_ENTWURF_KRANKHEIT = 'gesundheit_entwurf_krankheit';
@@ -5529,6 +5991,8 @@
     if (aktiveAnsicht === 'verlauf') renderVerlauf();
     if (aktiveAnsicht === 'rechner') rechnerFelderLaden();
     if (aktiveAnsicht === 'ernaehrung') renderErnaehrung();
+    if (aktiveAnsicht === 'vorsorge') renderVorsorge();
+    if (aktiveAnsicht === 'krankheiten') renderKrankheiten();
   }
 
   // --- SCHRIFTGRÖSSE (globale Einstellung, gilt für die ganze App über ⚙️ Einstellungen) ---
@@ -5552,7 +6016,7 @@
   if (window.PlanerSync) {
     window._sync = window.PlanerSync.starteSync({
       modul: 'gesundheit',
-      keys: [KEY_TAGESWERTE, KEY_SPORT, KEY_RECHNER, KEY_MEDIKAMENTE, KEY_MED_ERLEDIGT, KEY_ZIELE, KEY_TRAININGSLOG, KEY_EIGENE_UEBUNGEN, KEY_ZYKLUS, KEY_TRAININGSPLAN, KEY_ERNAEHRUNG, KEY_KRANKHEITEN],
+      keys: [KEY_TAGESWERTE, KEY_SPORT, KEY_RECHNER, KEY_MEDIKAMENTE, KEY_MED_ERLEDIGT, KEY_ZIELE, KEY_TRAININGSLOG, KEY_EIGENE_UEBUNGEN, KEY_ZYKLUS, KEY_TRAININGSPLAN, KEY_ERNAEHRUNG, KEY_KRANKHEITEN, KEY_VORSORGE],
       onRemoteChange: function () {
         tageswerte = laden(KEY_TAGESWERTE, tageswerte);
         sportEinheiten = laden(KEY_SPORT, sportEinheiten);
@@ -5568,6 +6032,7 @@
         trainingsplan = laden(KEY_TRAININGSPLAN, trainingsplan);
         ernaehrungEintraege = laden(KEY_ERNAEHRUNG, ernaehrungEintraege);
         krankheiten = laden(KEY_KRANKHEITEN, krankheiten);
+        vorsorge = laden(KEY_VORSORGE, vorsorge) || {};
         renderAlles();
         if (aktiveAnsicht === 'rechner') rechnerFelderLaden();
         if (aktiveAnsicht === 'verlauf') renderStats();

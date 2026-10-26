@@ -2,6 +2,12 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
+## 2026-10-26 | 🩺 Gesundheit: Vorsorge & Notfall
+Neuer Reiter „🩺 Vorsorge & Notfall“ pro Person: eine 🆘 Notfall-Karte (Geburtsdatum, Blutgruppe, Allergien, Vorerkrankungen, Medikamente, Krankenkasse) mit 112, 116 117 und euren Ärzten zum Antippen; der 💉 Impfpass mit Hinweis, wenn Tetanus, FSME oder Grippe aufgefrischt werden sollten; der 🩺 Vorsorge-Kalender mit U-Untersuchungen, Zahnarzt alle 6 Monate, Check-up und Hautkrebs-Screening – jeweils mit „📅 Als Termin“; und 📏 Größe & Gewicht als Verlaufskurve („+21 cm seit letztem Jahr“).
+
+## 2026-10-26 | 💊 Medikamenten-Vorrat & Abstand
+Bei Medikamenten lässt sich der Vorrat eintragen („📦 reicht noch 5 Tage“) – kurz vor Schluss kommt es mit einem Tipp auf die Einkaufsliste. Bei Krankheiten zeigt „💊 Letzte Gaben“, wann ein Medikament zuletzt gegeben wurde; mit einem selbst festgelegten Mindestabstand (laut Beipackzettel/Arzt) steht dort „frühestens 16:15“, und „＋ Gabe jetzt“ trägt die nächste Gabe mit Uhrzeit ein.
+
 ## 2026-10-26 | 💶 Geldgeschenke: bekommen & verschenkt
 Jeder Eintrag ist jetzt „🎁 bekommen“ oder „💸 verschenkt“ – die Übersicht zeigt pro Person beides. Beim Eintragen erscheint, was zwischen euch zuletzt geschenkt wurde („Tante Sabine hat Lev zum Geburtstag 30 € geschenkt · ihr zuletzt 25 €“). Oben erinnert „🎂 Bald steht etwas an“ an Geburtstage aus den Terminen. Für erhaltenes Geld gibt es „💌 Danke gesagt“ mit einer Liste offener Dankeschöns und „Was passiert mit dem Geld?“ – „💰 Ins Taschengeld“ bucht es direkt auf das Taschengeld-Konto des Kindes. Dazu Suche, Notiz auf der Karte und ein Jahresvergleich pro Familienmitglied.
 
