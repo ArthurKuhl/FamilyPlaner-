@@ -55,6 +55,26 @@
 })();
 
 // ============================================================================
+// LESBARKEIT (alle Module): Grundregeln mit Spezifität 0 (:where), damit jedes Modul sie
+// mit eigenem CSS überschreiben kann. Betrifft v.a. Fehlermeldungen der News-Feeds
+// („Direkt zur Seite →“, „🔄 erneut versuchen“), die im Dunkelmodus blau/schwarz waren,
+// sowie blasse Ansicht-Reiter auf hellem Grund.
+// ============================================================================
+(function () {
+  try {
+    const st = document.createElement('style');
+    st.id = 'planerLesbarkeit';
+    st.textContent =
+      'html[data-dark="1"] :where(a:not([class])){color:#9cc9e8}' +
+      'html[data-dark="1"] :where(a:not([class]):visited){color:#c9b3e8}' +
+      // nur in den News-/Feed-Bereichen: dort stehen ungestylte „🔄 erneut versuchen“-Knöpfe
+      'html[data-dark="1"] :where([id*="Feed"],[id*="feed"],[id*="News"],[id*="news"],[id*="Deals"],[id*="deals"]) :where(button:not([class])){color:var(--soil,#f0e8d8);background:var(--cream,#1e1b16);border:1px solid var(--parchment,#3a3328);border-radius:999px;padding:2px 10px;font:inherit}' +
+      'html:not([data-dark="1"]) :where(.ansicht-tab:not(.active):not(header .ansicht-tab)){color:var(--moss,#4f6f45);border-color:var(--parchment,#ece0c7)}';
+    (document.head || document.documentElement).appendChild(st);
+  } catch (e) {}
+})();
+
+// ============================================================================
 // SUCHE AUS DER SHELL: Ein Treffer aus „🔍 In allen Bereichen suchen“ öffnet das Modul und
 // übergibt den Suchbegriff. Hat das Modul ein eigenes Suchfeld, wird es damit gefüllt (Liste
 // gefiltert), sonst springt die Seite zur ersten Fundstelle des Eintrags und markiert sie.

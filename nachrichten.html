@@ -113,6 +113,10 @@
      Text auf Akzent-Knöpfen dunkel – außer bei „Schnee“, dort ist der Knopf selbst dunkel. */
   html[data-dark="1"] { --moss-text: var(--sage); --on-moss: #16140f; }
   html[data-dark="1"][data-farbschema="schnee"] { --on-moss: #f4f5f6; }
+
+  /* Lesbarkeit im Dunkelmodus: Links/Knöpfe in Fehlermeldungen der Feeds */
+  html[data-dark="1"] :where(a:not([class])) { color: #9cc9e8; }
+  html[data-dark="1"] :where([id$="Inhalt"]) :where(button:not([class])) { color: var(--soil); background: var(--cream); border: 1px solid var(--parchment); border-radius: 999px; padding: 2px 10px; font: inherit; }
 </style>
 </head>
 <body>

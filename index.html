@@ -175,7 +175,7 @@
     font-size: 0.88rem; cursor: pointer; margin-bottom: 10px; text-align: center;
   }
   .modal .btn-primary { background: var(--moss); color: var(--on-moss, var(--leaf)); }
-  .modal .btn-secondary { background: #fff; color: var(--bark); border: 1px solid #ddd; }
+  .modal .btn-secondary { background: var(--white); color: var(--bark); border: 1px solid var(--parchment); }
   .modal .status-text { font-size: 0.8rem; margin-top: 4px; min-height: 18px; }
   .modal input[type="file"] { display: none; }
   .modul-btn {
@@ -201,6 +201,7 @@
     z-index: 50; pointer-events: none;
   }
   .offline-hinweis.zeigen { transform: translateX(-50%) translateY(0); }
+  html[data-dark="1"] .offline-hinweis { background: #2b261e; color: var(--leaf); border: 1px solid var(--parchment); }
 
   /* Familien-Setup: blockierendes Overlay beim allerersten Start (kein Familien-Code vorhanden) */
   .setup-overlay {
@@ -215,7 +216,7 @@
     font-size: 0.9rem; cursor: pointer; margin-bottom: 10px; text-align: center;
   }
   .setup-box .btn-primary { background: var(--moss); color: var(--on-moss, var(--leaf)); }
-  .setup-box .btn-secondary { background: #fff; color: var(--bark); border: 1px solid #ddd; }
+  .setup-box .btn-secondary { background: var(--white); color: var(--bark); border: 1px solid var(--parchment); }
   .setup-box input {
     width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #ddd; font-size: 1.1rem;
     text-align: center; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 10px;

@@ -903,7 +903,7 @@
         <div class="tab active" role="tab" tabindex="0" aria-selected="true" onclick="switchTab('beds')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" title="Alle Beete des Gartens">🌱 Beete</div>
         <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab('new')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" title="Neues Beet anlegen">➕ Neu</div>
         <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab('plants')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" title="Pflanzenkatalog">🌻 Pflanzen</div>
-        <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab('settings')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" title="Einstellungen">⚙️ Mehr</div>
+        <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab('settings')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" title="Wetter, Klima, Maßstab und weitere Einstellungen">⚙️ Optionen</div>
       </div>
 
       <!-- TAB: Liste -->
@@ -5462,7 +5462,7 @@ function restoreRollingBackup() {
     return;
   }
   const when = meta ? new Date(meta.timestamp).toLocaleString('de-DE') : 'unbekanntem Zeitpunkt';
-  if (!confirm(`Auf das automatische Backup vom ${when} zurücksetzen?\n\nDein AKTUELLER Stand wird dabei überschrieben. Änderungen seit ${when} gehen verloren – vorher lieber über 📁 Datei → ⬇ Export sichern, falls du dir nicht sicher bist.`)) return;
+  if (!confirm(`Auf das automatische Backup vom ${when} zurücksetzen?\n\nDein AKTUELLER Stand wird dabei überschrieben. Änderungen seit ${when} gehen verloren – vorher lieber über ⚙️ Mehr → ⬇ Sicherung exportieren sichern, falls du dir nicht sicher bist.`)) return;
   try {
     const parsed = JSON.parse(backupRaw);
     gardens = parsed.gardens || {};
@@ -5488,7 +5488,7 @@ function saveData() {
     localStorage.setItem('gartenplaner_v3', JSON.stringify({ gardens, currentGardenId }));
     if (window._sync) window._sync.melde();
   } catch(e) {
-    showTempStatus('⚠ Speichern fehlgeschlagen – Speicherplatz im Browser ist evtl. voll. Bitte exportieren (📁 Datei → ⬇ Export) und ggf. große Fotos entfernen.', 10);
+    showTempStatus('⚠ Speichern fehlgeschlagen – Speicherplatz im Browser ist evtl. voll. Bitte exportieren (⚙️ Mehr → ⬇ Sicherung exportieren) und ggf. große Fotos entfernen.', 10);
   }
   renderBedList();
   updateStatus();
@@ -10078,7 +10078,7 @@ async function renderHomeOverview() {
     if (koch) { box.innerHTML = koch; return; }
     box.innerHTML = d.weather
       ? `<div class="empty-state" style="max-width:480px;margin:0 auto">✓ Heute nichts Dringendes – schau später wieder vorbei.</div>`
-      : `<div class="empty-state" style="max-width:480px;margin:0 auto">💡 Hinterlege deinen Standort (Gartenplaner → ⚙️ Mehr → 🌤 Wetter), damit hier auch Gieß- und Frostwarnungen erscheinen.</div>`;
+      : `<div class="empty-state" style="max-width:480px;margin:0 auto">💡 Hinterlege deinen Standort (🗺️ Mein Garten → Seitenleiste ⚙️ Optionen → 🌤 Wetter), damit hier auch Gieß- und Frostwarnungen erscheinen.</div>`;
     return;
   }
   const pillsHtml = stats.length ? `<div class="overview-grid">${stats.map(s => `<div class="overview-pill ov-${s.tone}"${s.onclick ? ` onclick="${s.onclick}"` : ''}>${s.icon} <span>${escapeHtml(s.label)}</span></div>`).join('')}</div>` : '';
@@ -10884,9 +10884,9 @@ function urlaubOeffnen() {
       <h2 style="margin-bottom:4px">🧳 Urlaubsvertretung</h2>
       <p style="font-size:0.78rem;color:var(--bark);margin-bottom:10px">Erstellt eine Gieß-Anleitung für die Zeit, in der ihr weg seid – zum Teilen per WhatsApp oder zum Ausdrucken.</p>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <label style="flex:1;min-width:130px;font-size:0.75rem">Von<input type="date" id="urlaubVon" style="width:100%"></label>
-        <label style="flex:1;min-width:130px;font-size:0.75rem">Bis<input type="date" id="urlaubBis" style="width:100%"></label>
-        <label style="flex:1 1 100%;font-size:0.75rem">Wer gießt? (optional)<input type="text" id="urlaubHelfer" placeholder="z.B. Familie Müller, Oma" style="width:100%"></label>
+        <label class="form-row" style="margin-bottom:0;flex:1;min-width:130px;font-size:0.75rem">Von<input type="date" id="urlaubVon" style="width:100%"></label>
+        <label class="form-row" style="margin-bottom:0;flex:1;min-width:130px;font-size:0.75rem">Bis<input type="date" id="urlaubBis" style="width:100%"></label>
+        <label class="form-row" style="margin-bottom:0;flex:1 1 100%;font-size:0.75rem">Wer gießt? (optional)<input type="text" id="urlaubHelfer" placeholder="z.B. Familie Müller, Oma" style="width:100%"></label>
       </div>
       <div id="urlaubVorschau" style="margin-top:12px"></div>
       <div class="modal-btns" style="margin-top:12px;flex-wrap:wrap;gap:6px">
@@ -11007,6 +11007,24 @@ function urlaubDrucken() {
   if (!w) { showTempStatus('⚠ Bitte Pop-ups erlauben, um zu drucken.', 5); return; }
   w.document.write(html); w.document.close();
 }
+
+// Treffer aus der appweiten Suche („🔍 In allen Bereichen suchen“): statt nur irgendwo im Garten
+// zu scrollen, öffnet sich die Garten-Suche mit dem Begriff – bei einer Pflanze direkt ihre Lexikon-Seite.
+window.addEventListener('message', (e) => {
+  if (e.origin !== window.location.origin || !e.data || e.data.type !== 'shortcutAktion' || e.data.aktion !== 'suche') return;
+  const begriff = String(e.data.text || '').trim();
+  if (!begriff) return;
+  setTimeout(() => {
+    try {
+      const n = lexKatalogName(begriff);
+      if (PLANTS.some(p => p.name === n) && lexNorm(n).includes(lexNorm(begriff).slice(0, 4))) { lexikonOeffnen(n); return; }
+      lexikonOeffnen();
+      const f = document.getElementById('lexSuche');
+      f.value = begriff;
+      lexSucheEingabe();
+    } catch (err) { console.warn('Suche aus der Übersicht', err); }
+  }, 650);
+});
 
 // ==================== BEREICHS-SEITEN: Planen & Ernten · Lexikon · Mehr ====================
 function hubKachel(icon, name, text, onclick, badge, extraKlasse) {

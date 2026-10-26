@@ -2,6 +2,9 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
+## 2026-10-26 | 🛠️ App-Check: besser lesbar
+Alle Bereiche wurden automatisch durchgeklickt – ohne Programmfehler. Verbessert wurde die Lesbarkeit: Fehlermeldungen der News-Feeds sind im Dunkelmodus nicht mehr blau/schwarz, im Handwerk ist der gewählte Knopf „Niemand“ wieder sichtbar und die Material-Felder passen aufs Handy, blasse Reiter (z.B. in Vorratskammer, Haushalt, Ausflüge) sind kräftiger. Ein Garten-Treffer in der großen Suche öffnet jetzt direkt das Pflanzenlexikon.
+
 ## 2026-10-26 | 🧭 Garten neu sortiert
 Der Garten hat oben jetzt fünf klare Bereiche: 🏠 Heute · 🗺️ Mein Garten · 📅 Planen & Ernten · 📖 Lexikon · ⚙️ Mehr. Statt verschachtelter Menüs gibt es übersichtliche Kacheln – Aussaatkalender, Pflegeplan, Erntebuch & Co. unter „Planen & Ernten“, Sichern, PDF und Pflanzschilder unter „Mehr“.
 
