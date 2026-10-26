@@ -486,6 +486,41 @@
   .bed-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
   .bed-chip { background: var(--parchment); border-radius: 999px; padding: 4px 10px; font-size: 0.75rem; font-weight: 600; }
   .bed-zeile { line-height: 1.45; margin-top: 4px; }
+  .modal.lex-modal { width: min(560px, 96vw); height: min(88vh, 860px); padding: 0; display: flex; flex-direction: column; overflow: hidden; }
+  .lex-leiste { display: flex; gap: 6px; align-items: center; padding: 12px 12px 10px; border-bottom: 1px solid var(--parchment); }
+  .lex-leiste input { flex: 1; min-width: 0; padding: 10px 12px; border-radius: 999px; border: 1px solid var(--parchment); background: var(--cream); color: var(--soil); font-size: 0.9rem; font-family: inherit; }
+  .lex-btn { flex-shrink: 0; width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--parchment); background: var(--cream); color: var(--soil); font-size: 1.1rem; cursor: pointer; }
+  .lex-scroll { flex: 1; overflow-y: auto; padding: 10px 14px 18px; -webkit-overflow-scrolling: touch; }
+  .lex-chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 4px; scrollbar-width: none; }
+  .lex-liste { display: flex; flex-direction: column; }
+  .lex-buchstabe { font-size: 0.72rem; font-weight: 700; color: var(--bark); margin: 10px 4px 2px; }
+  .lex-zeile { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 8px; border: none; border-bottom: 1px solid var(--parchment); background: none; color: var(--soil); font-family: inherit; font-size: 0.88rem; text-align: left; cursor: pointer; touch-action: manipulation; }
+  .lex-sym { width: 32px; height: 32px; flex-shrink: 0; border-radius: 50%; background: rgba(127,164,118,0.15); display: inline-flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+  .lex-sym.gross { width: 56px; height: 56px; font-size: 1.9rem; }
+  .lex-zeile-name { flex: 1; min-width: 0; font-weight: 600; }
+  .lex-sub { display: block; font-weight: 400; font-size: 0.72rem; color: var(--bark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .lex-pfeil { color: var(--bark); }
+  .lex-abschnitt { font-size: 0.8rem; font-weight: 700; color: var(--moss); margin: 14px 2px 6px; }
+  .lex-kopf-pflanze { display: flex; align-items: center; gap: 12px; margin: 4px 0 10px; }
+  .lex-kopf-pflanze h2 { margin: 0 0 6px; font-size: 1.25rem; }
+  .lex-kopf-pflanze .bed-chips { margin-bottom: 0; }
+  .lex-karte { background: var(--cream); border: 1px solid var(--parchment); border-radius: 10px; padding: 10px 12px; font-size: 0.82rem; color: var(--soil); }
+  .lex-garten { border-left: 4px solid var(--moss); }
+  .lex-pchips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 5px; }
+  .lex-pchip { border: 1px solid var(--parchment); background: var(--white); color: var(--soil); border-radius: 999px; padding: 4px 10px; font-size: 0.75rem; font-family: inherit; cursor: pointer; }
+  .lex-link { margin-top: 8px; background: none; border: 1px solid var(--moss); color: var(--moss); border-radius: 999px; padding: 5px 12px; font-size: 0.75rem; font-weight: 700; font-family: inherit; cursor: pointer; }
+  .lex-knoepfe { display: flex; gap: 6px; flex-wrap: wrap; }
+  .lex-hinweis { font-size: 0.68rem; color: var(--bark); margin-top: 6px; }
+  .lex-ul { margin: 6px 0 0 18px; line-height: 1.5; }
+  .lex-jb { display: flex; flex-direction: column; gap: 3px; }
+  .lex-jb-zeile { display: grid; grid-template-columns: 96px repeat(12, 1fr); gap: 2px; align-items: center; }
+  .lex-jb-m { font-size: 0.62rem; text-align: center; color: var(--bark); font-weight: 600; }
+  .lex-jb-m.jetzt { color: var(--moss); font-weight: 800; }
+  .lex-jb-label { font-size: 0.7rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .lex-jb-zelle { height: 14px; border-radius: 3px; background: rgba(127,127,127,0.10); display: flex; }
+  .lex-jb-zelle.jetzt { outline: 1.5px solid rgba(122,158,114,0.7); }
+  .lex-jb-zelle i { flex: 1; border-radius: 3px; }
+  .lex-panel-link { display: block; width: 100%; margin-top: 8px; padding: 9px 12px; border-radius: 9px; border: 1px solid var(--moss); background: transparent; color: var(--moss); font-weight: 700; font-size: 0.8rem; font-family: inherit; cursor: pointer; text-align: center; }
   .bed-vorbeugen { background: rgba(79,111,69,0.10); border-radius: 6px; padding: 6px 8px; margin-top: 8px; }
   .pp-foto-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .pp-foto-thumb .pp-foto-datum { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.6); color: #fff; font-size: 0.42rem; text-align: center; padding: 1px 0; }
@@ -693,6 +728,7 @@
 <header>
   <h1 style="cursor:pointer" onclick="showView('home')" title="Zur Startseite">🌿 Gartenplaner <span class="hdr-sub">Dein Garten, geplant</span></h1>
   <div class="hdr-right">
+    <button class="theme-btn" id="btnLexikon" title="Suchen: Pflanzen, Tipps, Funktionen" aria-label="Suchen und Pflanzenlexikon" onclick="lexikonOeffnen()">🔍</button>
     <button class="theme-btn" id="btnNews" title="Aktuelle Garten-News">🌐</button>
     <button class="theme-btn" id="btnThemeAuswahl" title="Hintergrundmuster wählen">🎨</button>
     <span id="statusMsg" role="status" aria-live="polite">Wähle ein Werkzeug</span>
@@ -823,6 +859,7 @@
       <button class="tool-btn dropdown-toggle" onclick="toggleDropdown(this)" title="Erntebuch, Sorten, Statistik">🧺 Wissen &amp; Historie <span class="caret">▾</span></button>
       <div class="dropdown-menu">
         <button class="tool-btn" onclick="openHarvestJournal();closeDropdowns()" title="Alle Ernten chronologisch, nach Jahr">🧺 Erntebuch</button>
+        <button class="tool-btn" onclick="lexikonOeffnen();closeDropdowns()" title="Alles über jede Pflanze an einem Ort">📖 Pflanzenlexikon</button>
         <button class="tool-btn" onclick="openVarietyDB();closeDropdowns()" title="Eigene Sortenerfahrungen">🌾 Sorten</button>
         <button class="tool-btn" onclick="openStats();closeDropdowns()" title="Überblick über Beete & Pflanzen">📊 Statistik</button>
         <button class="tool-btn" onclick="pflanzeBestimmenOeffnen(null);closeDropdowns()" title="Unbekannte Pflanze per Foto bestimmen (Pl@ntNet)">🔍 Pflanze bestimmen</button>
@@ -1209,6 +1246,7 @@
 <!-- VIEW: TIPPS & TRICKS -->
 <div class="view" id="view-tips">
   <div class="wissen-nav" role="tablist" aria-label="Wissen">
+    <button type="button" class="saat-chip" onclick="lexikonOeffnen()">🔍 Pflanzenlexikon</button>
     <button type="button" class="saat-chip" data-wissen="tips" onclick="showView('tips')">📖 Tipps &amp; Tricks</button>
     <button type="button" class="saat-chip" data-wissen="tiere" onclick="showView('tiere')">🦔 Tiere im Garten</button>
     <button type="button" class="saat-chip" data-wissen="preserve" onclick="showView('preserve')">🥫 Verwertung</button>
@@ -1219,6 +1257,7 @@
 <!-- VIEW: TIERE IM GARTEN -->
 <div class="view" id="view-tiere">
   <div class="wissen-nav" role="tablist" aria-label="Wissen">
+    <button type="button" class="saat-chip" onclick="lexikonOeffnen()">🔍 Pflanzenlexikon</button>
     <button type="button" class="saat-chip" data-wissen="tips" onclick="showView('tips')">📖 Tipps &amp; Tricks</button>
     <button type="button" class="saat-chip" data-wissen="tiere" onclick="showView('tiere')">🦔 Tiere im Garten</button>
     <button type="button" class="saat-chip" data-wissen="preserve" onclick="showView('preserve')">🥫 Verwertung</button>
@@ -1226,6 +1265,17 @@
   <div class="tips-wrap" id="tiereWrap"></div>
 </div>
 
+<!-- MODAL: Pflanzenlexikon & Suche -->
+<div class="modal-bg" id="lexikonModal" style="display:none;z-index:300" onclick="if(event.target===this)lexikonSchliessen()">
+  <div class="modal lex-modal">
+    <div class="lex-leiste">
+      <button type="button" class="lex-btn" id="lexZurueckBtn" onclick="lexZurueck()" aria-label="Zurück">‹</button>
+      <input type="search" id="lexSuche" placeholder="🔍 Pflanze, Thema, Funktion …" autocomplete="off" oninput="lexSucheEingabe()" aria-label="Suchen">
+      <button type="button" class="lex-btn" onclick="lexikonSchliessen()" aria-label="Schließen">✕</button>
+    </div>
+    <div class="lex-scroll"><div id="lexInhalt"></div></div>
+  </div>
+</div>
 <!-- MODAL: Tier-Steckbrief -->
 <div class="modal-bg" id="tierDetailModal" style="display:none" onclick="if(event.target===this)tierDetailSchliessen()">
   <div class="modal" style="width:min(520px,94vw);max-height:88vh;overflow-y:auto">
@@ -1239,6 +1289,7 @@
 <!-- VIEW: VERWERTUNG & HALTBARMACHEN -->
 <div class="view" id="view-preserve">
   <div class="wissen-nav" role="tablist" aria-label="Wissen">
+    <button type="button" class="saat-chip" onclick="lexikonOeffnen()">🔍 Pflanzenlexikon</button>
     <button type="button" class="saat-chip" data-wissen="tips" onclick="showView('tips')">📖 Tipps &amp; Tricks</button>
     <button type="button" class="saat-chip" data-wissen="tiere" onclick="showView('tiere')">🦔 Tiere im Garten</button>
     <button type="button" class="saat-chip" data-wissen="preserve" onclick="showView('preserve')">🥫 Verwertung</button>
@@ -2881,6 +2932,10 @@ const HARVEST_WINDOW = {
   'Chili': [7,10], 'Tomatillo': [8,10], 'Physalis (Andenbeere)': [8,10], 'Spitzkohl': [6,9], 'Palmkohl': [10,2],
   'Meerkohl': [4,5], 'Artischocke': [7,9], 'Topinambur': [10,3], 'Felsenbirne': [6,7], 'Granatapfel': [10,11],
   'Feige': [8,10], 'Kamtschatka-Beere': [5,6], 'Japanische Weinbeere': [7,8],
+  // Beerensträucher & Obstbäume (für Lexikon-Jahreslauf und Erntezeit-Hinweise)
+  'Heidelbeere': [7,8], 'Himbeere': [6,9], 'Johannisbeere': [6,7], 'Brombeere': [8,9], 'Stachelbeere': [6,7], 'Traube': [9,10],
+  'Apfelbaum': [8,10], 'Birnbaum': [8,10], 'Kirschbaum': [6,7], 'Pflaumenbaum': [8,9], 'Zwetschge': [8,9], 'Mirabelle': [7,8],
+  'Japanische Quitte': [9,10], 'Schlehe': [10,11], 'Weißdorn': [9,10],
 };
 function isInHarvestWindow(r, month) {
   if (!r) return false;
@@ -3396,7 +3451,8 @@ function renderBedingungenHint(plantName, targetId) {
   const box = document.getElementById(targetId);
   if (!box) return;
   const b = pflanzenBedingungenFinden(plantName);
-  if (!b) { box.style.display = 'none'; box.innerHTML = ''; return; }
+  const lexLink = (plantName || '').trim() ? '<button type="button" class="lex-panel-link" onclick="lexikonOeffnen(' + jsAttrStr(plantName.trim()).replace(/"/g, '&quot;') + ')">📖 Alles über ' + escapeHtml(plantName.trim()) + ' ›</button>' : '';
+  if (!b) { box.innerHTML = lexLink; box.style.display = lexLink ? 'block' : 'none'; return; }
   const [licht, wasser, naehr, boden, klima, vorbeugen] = b;
   const chip = (arr) => arr ? '<span class="bed-chip">' + arr[0] + ' ' + arr[1] + '</span>' : '';
   const plantDef = (typeof PLANTS !== 'undefined') ? PLANTS.find(p => p.name === plantName) : null;
@@ -3407,7 +3463,7 @@ function renderBedingungenHint(plantName, targetId) {
     '<div class="bed-zeile"><b>🪨 Boden:</b> ' + escapeHtml(boden) + '</div>' +
     '<div class="bed-zeile"><b>🌬️ Klima &amp; Lage:</b> ' + escapeHtml(klima) + '</div>' +
     '<div class="bed-zeile bed-vorbeugen"><b>🛡️ Gesund halten:</b> ' + escapeHtml(vorbeugen) + '</div>' +
-  '</div>';
+  '</div>' + lexLink;
   box.style.display = 'block';
 }
 
@@ -11283,6 +11339,311 @@ function tierGesehenZurueck(id) {
   saveData();
   tierDetailRendern();
   renderTiere();
+}
+
+
+// ==================== 📖 PFLANZENLEXIKON & SUCHE ====================
+// Eine Seite pro Pflanze, die alles zusammenführt, was die App über sie weiß
+// (Steckbrief, Bedingungen, Kalender, Mischkultur, Pflege, Verwertung, Tiere, eigene Sorten, Saatgut, Ernten),
+// plus eine Suche über Pflanzen, Funktionen, Tipps, Tiere, Projekte und Probleme.
+let lexVerlauf = [];          // Stapel der bisherigen Seiten (für ‹ Zurück)
+let lexSeite = { typ: 'liste' };
+let lexKat = 'alle';
+const LEX_KATS = [['alle', 'Alle'], ['garten', '📍 In meinem Garten'], ['Gemüse', '🥕 Gemüse'], ['Kräuter', '🌿 Kräuter'], ['Beeren', '🫐 Beeren'], ['Obst', '🍎 Obst'], ['Blumen', '🌸 Blumen']];
+const LEX_FUNKTIONEN = [
+  ['🗓', 'Aussaatkalender', 'aussaat säen vorziehen kalender', () => openSowingCalendar()],
+  ['📅', 'Pflegeplan', 'gießen düngen pflege aufgaben', () => openCarePlan()],
+  ['🌾', 'Jetzt pflanzen & ernten', 'monat übersicht jetzt', () => openNowOverview()],
+  ['🔄', 'Fruchtfolge', 'fruchtfolge historie anbau beet jahre', () => openRotationTimeline()],
+  ['🧺', 'Erntebuch', 'ernte erntebuch journal', () => openHarvestJournal()],
+  ['🌾', 'Sortendatenbank', 'sorten erfahrungen bewertung', () => openVarietyDB()],
+  ['📊', 'Statistik', 'statistik auswertung zahlen', () => openStats()],
+  ['🔍', 'Pflanze per Foto bestimmen', 'bestimmen foto plantnet unbekannt', () => pflanzeBestimmenOeffnen(null)],
+  ['🌰', 'Saatgutinventar', 'saatgut samen inventar', () => openSeedInventory()],
+  ['🥫', 'Vorratskammer', 'vorrat eingekocht eingefroren vorratskammer', () => zurVorratskammer()],
+  ['🧩', 'Beet-Vorlagen', 'vorlage vorlagen', () => openTemplateModal()],
+  ['🥫', 'Verwertung & Haltbarmachen', 'einkochen einfrieren fermentieren trocknen verwertung', () => showView('preserve')],
+  ['🦔', 'Tiere im Garten', 'tiere igel vögel bienen insekten naturgarten', () => showView('tiere')],
+  ['📖', 'Tipps & Tricks', 'tipps tricks wissen', () => showView('tips')],
+  ['📸', 'Fotoalbum', 'foto album bilder', () => showView('album')],
+  ['🏬', 'Shops & Dienstleister', 'shop gärtnerei hofladen', () => showView('shops')],
+  ['📄', 'Gartenplan als PDF', 'pdf drucken export', () => exportPDF()],
+  ['🏷', 'Pflanzschilder drucken', 'schilder etiketten drucken', () => exportLabels()],
+  ['⬇', 'Daten exportieren (Sicherung)', 'export sicherung backup json', () => exportData()],
+];
+function lexNorm(s) { return String(s || '').toLowerCase().replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss'); }
+// Alle Vorkommen einer Pflanze in allen Gärten
+function lexVorkommen(name) {
+  const n = (name || '').trim().toLowerCase(), out = [];
+  Object.keys(gardens || {}).forEach(gid => {
+    const g = gardens[gid];
+    (g.beds || []).filter(b => b.kind !== 'struktur').forEach(bed => (bed.plants || []).forEach(p => {
+      if ((p.name || '').trim().toLowerCase() === n) out.push({ p, garten: g.name, ort: bed.name || 'Beet', gid });
+    }));
+    (g.freiPflanzen || []).forEach(fp => { if ((fp.name || '').trim().toLowerCase() === n) out.push({ p: fp, garten: g.name, ort: 'freistehend', gid }); });
+  });
+  return out;
+}
+function lexImGarten() {
+  const set = new Set();
+  Object.keys(gardens || {}).forEach(gid => {
+    const g = gardens[gid];
+    (g.beds || []).forEach(bed => (bed.plants || []).forEach(p => p.name && set.add(p.name.trim())));
+    (g.freiPflanzen || []).forEach(fp => fp.name && set.add(fp.name.trim()));
+  });
+  return set;
+}
+// Alle bekannten Pflanzen: Katalog + eigene + was im Garten steht
+function lexAllePflanzen() {
+  const map = new Map();
+  PLANTS.forEach(p => { if (!/\(allgemein\)$/.test(p.name) && !['Kräuter', 'Blume'].includes(p.name)) map.set(p.name, { name: p.name, sym: p.sym, cat: p.cat }); });
+  (typeof customPlants !== 'undefined' ? customPlants : []).forEach(p => { if (!map.has(p.name)) map.set(p.name, { name: p.name, sym: p.sym, cat: 'Eigene' }); });
+  lexImGarten().forEach(n => {
+    if (map.has(n)) return;
+    const k = pflanzenSchluesselFinden(n, Object.fromEntries([...map.keys()].map(x => [x, 1])));
+    if (k) return; // z.B. "Birnenbaum" -> schon als "Birnbaum" vorhanden
+    const vk = lexVorkommen(n)[0];
+    map.set(n, { name: n, sym: (vk && vk.p.sym) || '🌱', cat: 'Eigene' });
+  });
+  return [...map.values()].sort((a, b) => a.name.localeCompare(b.name, 'de'));
+}
+// Findet den Katalognamen zu einer Eingabe ("Birnenbaum" -> "Birnbaum")
+function lexKatalogName(name) {
+  if (PLANTS.some(p => p.name === name)) return name;
+  const k = pflanzenSchluesselFinden(name, Object.fromEntries(PLANTS.map(p => [p.name, 1])));
+  return k || name;
+}
+function lexTabelle(name, tabelle) {
+  if (!tabelle) return null;
+  if (tabelle[name]) return tabelle[name];
+  const k = pflanzenSchluesselFinden(name, tabelle);
+  return k ? tabelle[k] : null;
+}
+
+// ---------- Öffnen / Navigation ----------
+function lexikonOeffnen(pflanze) {
+  lexVerlauf = [];
+  lexSeite = pflanze ? { typ: 'pflanze', name: lexKatalogName(pflanze) } : { typ: 'liste' };
+  const suche = document.getElementById('lexSuche');
+  suche.value = '';
+  document.getElementById('lexikonModal').style.display = 'flex';
+  lexRendern();
+  if (!pflanze) setTimeout(() => suche.focus(), 60);
+}
+function lexikonSchliessen() { document.getElementById('lexikonModal').style.display = 'none'; }
+function lexGehe(seite) {
+  lexVerlauf.push(lexSeite);
+  lexSeite = seite;
+  lexRendern();
+  const box = document.querySelector('#lexikonModal .lex-scroll');
+  if (box) box.scrollTop = 0;
+}
+function lexZurueck() {
+  if (!lexVerlauf.length) { if (lexSeite.typ !== 'liste') { lexSeite = { typ: 'liste' }; lexRendern(); } else lexikonSchliessen(); return; }
+  lexSeite = lexVerlauf.pop();
+  lexRendern();
+}
+function lexPflanzeOeffnen(name) { lexGehe({ typ: 'pflanze', name: lexKatalogName(name) }); }
+function lexSucheEingabe() {
+  const q = document.getElementById('lexSuche').value.trim();
+  if (q && lexSeite.typ !== 'suche') { lexVerlauf.push(lexSeite); }
+  lexSeite = q ? { typ: 'suche', q } : (lexVerlauf.pop() || { typ: 'liste' });
+  lexRendern();
+}
+// Aktion außerhalb des Lexikons: Lexikon schließen, dann ausführen
+function lexAusfuehren(fn) { lexikonSchliessen(); if (document.getElementById('plantPanel').classList.contains('open')) { try { closePlantPanel(); } catch (e) {} } if (typeof fpSchliessen === 'function' && document.getElementById('freiPflanzePanel').classList.contains('open')) { try { fpSchliessen(); } catch (e) {} } setTimeout(fn, 30); }
+function lexFunktion(i) { lexAusfuehren(LEX_FUNKTIONEN[i][3]); }
+function lexTippOeffnen(ti, si) {
+  lexAusfuehren(() => {
+    showView('tips');
+    setTimeout(() => {
+      const el = document.getElementById('acc-' + ti + '-' + si);
+      if (el) { el.classList.add('open'); el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+    }, 80);
+  });
+}
+
+function lexRendern() {
+  const box = document.getElementById('lexInhalt');
+  document.getElementById('lexZurueckBtn').style.visibility = (lexSeite.typ === 'liste' && !lexVerlauf.length) ? 'hidden' : 'visible';
+  let html = '';
+  if (lexSeite.typ === 'pflanze') html = lexPflanzeHtml(lexSeite.name);
+  else if (lexSeite.typ === 'suche') html = lexSucheHtml(lexSeite.q);
+  else if (lexSeite.typ === 'info') html = lexSeite.html;
+  else html = lexListeHtml();
+  box.innerHTML = html;
+}
+
+// ---------- Liste A–Z ----------
+function lexKatSetzen(k) { lexKat = k; lexRendern(); }
+function lexListeHtml() {
+  const imGarten = lexImGarten();
+  const imGartenKat = new Set([...imGarten].map(n => lexKatalogName(n)));
+  let liste = lexAllePflanzen();
+  if (lexKat === 'garten') liste = liste.filter(p => imGartenKat.has(p.name) || imGarten.has(p.name));
+  else if (lexKat !== 'alle') liste = liste.filter(p => p.cat === lexKat);
+  let html = `<div class="lex-chips">${LEX_KATS.map(([k, l]) => `<button type="button" class="saat-chip${lexKat === k ? ' an' : ''}" onclick="lexKatSetzen('${k}')">${l}</button>`).join('')}</div>`;
+  if (!liste.length) return html + '<div class="empty-state">Keine Pflanzen in dieser Auswahl.</div>';
+  let buchstabe = '';
+  html += '<div class="lex-liste">' + liste.map(p => {
+    const b = p.name.charAt(0).toUpperCase();
+    const kopf = b !== buchstabe ? `<div class="lex-buchstabe">${b}</div>` : '';
+    buchstabe = b;
+    const da = imGartenKat.has(p.name) || imGarten.has(p.name);
+    return kopf + `<button type="button" class="lex-zeile" onclick="lexPflanzeOeffnen(${jsAttrStr(p.name)})">
+      <span class="lex-sym">${p.sym}</span><span class="lex-zeile-name">${escapeHtml(p.name)}</span>
+      ${da ? '<span class="lex-da" title="Steht in deinem Garten">📍</span>' : ''}<span class="lex-pfeil">›</span></button>`;
+  }).join('') + '</div>';
+  return html;
+}
+
+// ---------- Suche ----------
+function lexTreffer(text, qn) { return lexNorm(text).includes(qn); }
+function lexSucheHtml(q) {
+  const qn = lexNorm(q);
+  const abschnitt = (titel, zeilen) => zeilen.length ? `<div class="lex-abschnitt">${titel}</div><div class="lex-liste">${zeilen.join('')}</div>` : '';
+  const zeile = (sym, titel, sub, onclick) => `<button type="button" class="lex-zeile" onclick="${onclick}"><span class="lex-sym">${sym}</span><span class="lex-zeile-name">${titel}${sub ? `<span class="lex-sub">${sub}</span>` : ''}</span><span class="lex-pfeil">›</span></button>`;
+  // Pflanzen: Name, andere Namen, eigene Sorten
+  const alle = lexAllePflanzen();
+  const gefunden = new Map();
+  alle.forEach(p => { if (lexTreffer(p.name, qn)) gefunden.set(p.name, ''); });
+  Object.entries(PFLANZEN_BEDINGUNGEN_ALIAS).forEach(([alias, ziel]) => {
+    if (lexTreffer(alias, qn)) { const n = lexKatalogName(ziel); if (alle.some(p => p.name === n) && !gefunden.has(n)) gefunden.set(n, 'auch: ' + alias.charAt(0).toUpperCase() + alias.slice(1)); }
+  });
+  Object.entries(varietyDB || {}).forEach(([pfl, sorten]) => (sorten || []).forEach(s => {
+    if (s && lexTreffer(s.name, qn)) { const n = lexKatalogName(pfl); if (!gefunden.has(n)) gefunden.set(n, 'Sorte: ' + s.name); }
+  }));
+  const pflZeilen = [...gefunden.entries()].map(([n, sub]) => { const p = alle.find(x => x.name === n) || { sym: '🌱' }; return zeile(p.sym, escapeHtml(n), escapeHtml(sub), `lexPflanzeOeffnen(${jsAttrStr(n)})`); });
+  // Erwähnt in Pflanzentexten (z.B. "Moorbeet" -> Heidelbeere)
+  const erwaehnt = [];
+  if (qn.length >= 4) alle.forEach(p => {
+    if (gefunden.has(p.name)) return;
+    const sb = lexTabelle(p.name, PLANT_STECKBRIEFE), bd = pflanzenBedingungenFinden(p.name);
+    const text = (sb ? Object.values(sb).join(' ') : '') + ' ' + (bd ? bd.slice(3).join(' ') : '');
+    if (lexTreffer(text, qn)) erwaehnt.push(zeile(p.sym, escapeHtml(p.name), 'im Steckbrief erwähnt', `lexPflanzeOeffnen(${jsAttrStr(p.name)})`));
+  });
+  const fnZeilen = LEX_FUNKTIONEN.map((f, i) => (lexTreffer(f[1] + ' ' + f[2], qn) ? zeile(f[0], escapeHtml(f[1]), 'Funktion öffnen', `lexFunktion(${i})`) : '')).filter(Boolean);
+  const tippZeilen = [];
+  TIPS_TOPICS.forEach((t, ti) => t.subs.forEach((s, si) => { if (lexTreffer(s.t + ' ' + s.c, qn)) tippZeilen.push(zeile(t.icon, escapeHtml(s.t), escapeHtml(t.title), `lexTippOeffnen(${ti},${si})`)); }));
+  const tierZeilen = TIERE.filter(t => lexTreffer([t.name, t.latein, t.kurz, (t.pflanzen || []).join(' ')].join(' '), qn))
+    .map(t => zeile(t.icon, escapeHtml(t.name), escapeHtml(t.kurz), `lexAusfuehren(()=>tierDetailOeffnen('${t.id}'))`));
+  const projZeilen = TIER_PROJEKTE.filter(p => lexTreffer(p.titel + ' ' + p.kurz + ' ' + p.schritte.join(' '), qn))
+    .map(p => zeile(p.icon, escapeHtml(p.titel), escapeHtml(p.kurz), `lexAusfuehren(()=>{showView('tiere');tierProjektZeigen('${p.id}')})`));
+  const probleme = [];
+  SYMPTOMS.forEach((s, i) => { if (lexTreffer(s.label + ' ' + s.cause + ' ' + s.fix, qn)) probleme.push(zeile('🩺', escapeHtml(s.label), 'Symptom', `lexInfo('symptom',${i})`)); });
+  PESTS.forEach((s, i) => { if (lexTreffer(s.label + ' ' + s.fix.join(' '), qn)) probleme.push(zeile('🐛', escapeHtml(s.label), 'Schädling', `lexInfo('pest',${i})`)); });
+  BLATTPROBLEME.forEach((s, i) => { if (lexTreffer(s.titel + ' ' + s.ursache + ' ' + s.fix, qn)) probleme.push(zeile(s.icon, escapeHtml(s.titel), 'Blattproblem', `lexInfo('blatt',${i})`)); });
+  MULCH_ARTEN.forEach((s, i) => { if (lexTreffer(s.name + ' ' + s.geeignet + ' ' + s.hinweis, qn)) probleme.push(zeile('🍂', escapeHtml(s.name), 'Mulch', `lexInfo('mulch',${i})`)); });
+  const kraeuter = (typeof HEILKRAEUTER !== 'undefined' ? HEILKRAEUTER : []).map((k, i) => (lexTreffer(k.name, qn) ? zeile(k.icon || '🌿', escapeHtml(k.name), 'Heil- & Wildkraut', `lexInfo('kraut',${i})`) : '')).filter(Boolean);
+  const html = abschnitt('🌱 Pflanzen', pflZeilen) + abschnitt('⚙️ Funktionen', fnZeilen) + abschnitt('🩺 Probleme, Schädlinge & Mulch', probleme) +
+    abschnitt('💡 Tipps & Tricks', tippZeilen) + abschnitt('🦔 Tiere im Garten', tierZeilen) + abschnitt('🛠️ Naturgarten-Projekte', projZeilen) +
+    abschnitt('🌿 Heil- & Wildkräuter', kraeuter) + abschnitt('🔎 Erwähnt bei', erwaehnt);
+  return html || `<div class="empty-state">Nichts gefunden zu „${escapeHtml(q)}“.</div>`;
+}
+function lexInfo(art, i) {
+  let html = '';
+  const karte = (icon, titel, zeilen) => `<div class="lex-kopf-pflanze"><span class="lex-sym gross">${icon}</span><h2>${escapeHtml(titel)}</h2></div><div class="lex-karte">${zeilen}</div>`;
+  if (art === 'symptom') { const s = SYMPTOMS[i]; html = karte('🩺', s.label, `<div class="bed-zeile"><b>Mögliche Ursache:</b> ${escapeHtml(s.cause)}</div><div class="bed-zeile"><b>Was tun:</b> ${escapeHtml(s.fix)}</div>`); }
+  if (art === 'pest') { const s = PESTS[i]; html = karte('🐛', s.label, `<b>Was hilft:</b><ul class="lex-ul">${s.fix.map(f => `<li>${escapeHtml(f)}</li>`).join('')}</ul>`); }
+  if (art === 'blatt') { const s = BLATTPROBLEME[i]; html = karte(s.icon, s.titel, `<div class="bed-zeile"><b>Ursache:</b> ${escapeHtml(s.ursache)}</div><div class="bed-zeile"><b>Was tun:</b> ${escapeHtml(s.fix)}</div>`); }
+  if (art === 'mulch') { const s = MULCH_ARTEN[i]; html = karte('🍂', s.name, `<div class="bed-zeile"><b>Geeignet für:</b> ${escapeHtml(s.geeignet)}</div><div class="bed-zeile"><b>Hinweis:</b> ${escapeHtml(s.hinweis)}</div>`); }
+  if (art === 'kraut') { const k = HEILKRAEUTER[i]; html = karte(k.icon || '🌿', k.name, Object.entries(k).filter(([key, v]) => !['name', 'icon'].includes(key) && typeof v === 'string').map(([key, v]) => `<div class="bed-zeile"><b>${escapeHtml(key.charAt(0).toUpperCase() + key.slice(1))}:</b> ${escapeHtml(v)}</div>`).join('')); }
+  lexGehe({ typ: 'info', html });
+}
+
+// ---------- Pflanzenseite ----------
+function lexJahresbalken(name) {
+  const s = lexTabelle(name, SOWING) || {};
+  const zeilen = [['🏠 Vorziehen', s.vorziehen, '#7aa6c9'], ['🌍 Direktsaat', s.direktsaat, '#c99a3a'], ['🌱 Auspflanzen', s.auspflanzen, '#6f9e4f'],
+    ['🧺 Ernte', lexTabelle(name, HARVEST_WINDOW), '#c0633a'], ['✂️ Rückschnitt', (lexTabelle(name, RUECKSCHNITT) || {}).monate, '#8b6f47']].filter(z => z[1]);
+  if (!zeilen.length) return '';
+  const jetzt = new Date().getMonth() + 1;
+  const kopf = '<div class="lex-jb-zeile"><span></span>' + 'JFMAMJJASOND'.split('').map((m, i) => `<span class="lex-jb-m${i + 1 === jetzt ? ' jetzt' : ''}">${m}</span>`).join('') + '</div>';
+  return `<div class="lex-abschnitt">📅 Im Jahreslauf</div><div class="lex-karte"><div class="lex-jb">${kopf}${zeilen.map(([l, r, f]) =>
+    `<div class="lex-jb-zeile"><span class="lex-jb-label">${l}</span>${Array.from({ length: 12 }, (_, i) => `<span class="lex-jb-zelle${i + 1 === jetzt ? ' jetzt' : ''}">${isInHarvestWindow(r, i + 1) ? `<i style="background:${f}"></i>` : ''}</span>`).join('')}</div>`).join('')}</div>
+    ${lexTabelle(name, RUECKSCHNITT) ? `<div class="bed-zeile" style="margin-top:6px"><b>✂️ Schnitt-Tipp:</b> ${escapeHtml(lexTabelle(name, RUECKSCHNITT).hinweis)}</div>` : ''}
+    <div class="lex-hinweis">Richtwerte für Mitteleuropa · aktueller Monat hervorgehoben</div></div>`;
+}
+function lexPflanzeHtml(name) {
+  const def = PLANTS.find(p => p.name === name) || lexAllePflanzen().find(p => p.name === name) || { name, sym: '🌱', cat: 'Eigene' };
+  const fam = FAMILIES[name];
+  const chip = t => `<span class="bed-chip">${t}</span>`;
+  let h = `<div class="lex-kopf-pflanze"><span class="lex-sym gross">${def.sym || '🌱'}</span><div><h2>${escapeHtml(name)}</h2>
+    <div class="bed-chips">${chip(def.cat || 'Eigene')}${def.perennial ? chip('🔄 mehrjährig') : ''}${def.frostTender ? chip('❄️ frostempfindlich') : ''}${fam && fam !== 'verschiedene' ? chip('🧬 ' + escapeHtml(fam)) : ''}</div></div></div>`;
+  // In deinem Garten
+  const vk = lexVorkommen(name).concat(name !== def.name ? [] : []);
+  const zusatz = lexImGarten();
+  [...zusatz].filter(n => n !== name && lexKatalogName(n) === name).forEach(n => vk.push(...lexVorkommen(n)));
+  if (vk.length) {
+    const gruppiert = {};
+    vk.forEach(v => { const k = (Object.keys(gardens).length > 1 ? v.garten + ' · ' : '') + v.ort; gruppiert[k] = (gruppiert[k] || 0) + 1; });
+    const ernten = vk.flatMap(v => v.p.harvests || []);
+    const summe = {};
+    ernten.forEach(e => { const u = e.unit || 'Stück'; summe[u] = (summe[u] || 0) + (parseFloat(e.amount) || 0); });
+    h += `<div class="lex-karte lex-garten">📍 <b>In deinem Garten:</b> ${Object.entries(gruppiert).map(([k, n]) => escapeHtml(k) + (n > 1 ? ' ×' + n : '')).join(' · ')}
+      ${ernten.length ? `<div class="bed-zeile">🧺 <b>Bisher geerntet:</b> ${ernten.length}× · ${Object.entries(summe).map(([u, s]) => (Math.round(s * 10) / 10).toString().replace('.', ',') + ' ' + escapeHtml(u)).join(', ')}</div>` : ''}</div>`;
+  } else {
+    h += `<div class="lex-karte lex-garten" style="opacity:0.85">📍 Steht noch nicht in deinem Garten.</div>`;
+  }
+  // Bevorzugt
+  const bed = pflanzenBedingungenFinden(name);
+  if (bed) {
+    const [licht, wasser, naehr, boden, klima, vorbeugen] = bed;
+    const c = arr => arr ? chip(arr[0] + ' ' + arr[1]) : '';
+    h += `<div class="lex-abschnitt">🌱 Bevorzugt</div><div class="lex-karte"><div class="bed-chips">${c(BED_LICHT[licht])}${c(BED_WASSER[wasser])}${c(BED_NAEHR[naehr])}</div>
+      <div class="bed-zeile"><b>🪨 Boden:</b> ${escapeHtml(boden)}</div><div class="bed-zeile"><b>🌬️ Klima &amp; Lage:</b> ${escapeHtml(klima)}</div>
+      <div class="bed-zeile bed-vorbeugen"><b>🛡️ Gesund halten:</b> ${escapeHtml(vorbeugen)}</div></div>`;
+  }
+  // Steckbrief
+  const sb = lexTabelle(name, PLANT_STECKBRIEFE);
+  if (sb) {
+    h += `<div class="lex-abschnitt">📋 Steckbrief</div><div class="lex-karte">` +
+      [['☀️ Standort', sb.standort], ['🌍 Boden', sb.boden], ['🌱 Aussaat/Pflanzzeit', sb.aussaat], ['🧺 Ernte', sb.ernte], ['🧰 Pflege', sb.pflege]]
+        .filter(([, v]) => v && v !== '–').map(([l, v]) => `<div class="bed-zeile"><b>${l}:</b> ${escapeHtml(v)}</div>`).join('') +
+      (sb.besonderheit ? `<div class="bed-zeile bed-vorbeugen"><b>💡 Besonderheit:</b> ${escapeHtml(sb.besonderheit)}</div>` : '') + '</div>';
+  }
+  h += lexJahresbalken(name);
+  // Pflege & Abstand
+  const care = CARE_INFO[name], abst = SPACING[name];
+  const pflege = [];
+  if (abst) pflege.push(`📏 Abstand ca. <b>${abst >= 100 ? (abst / 100).toString().replace('.', ',') + ' m' : abst + ' cm'}</b>`);
+  if (care && care.waterDays) pflege.push(`💧 gießen etwa alle <b>${care.waterDays} Tage</b>`);
+  if (care && care.fertilizeDays) pflege.push(`🌿 düngen etwa alle <b>${care.fertilizeDays} Tage</b>`);
+  if (care && care.harvestDays) pflege.push(`🧺 erntereif nach ca. <b>${care.harvestDays} Tagen</b>`);
+  if (pflege.length) h += `<div class="lex-abschnitt">🧰 Pflege</div><div class="lex-karte">${pflege.map(p => `<div class="bed-zeile">${p}</div>`).join('')}</div>`;
+  // Mischkultur (auch rückwärts: wer nennt diese Pflanze als Nachbarn?)
+  const gut = new Set(), schlecht = new Set();
+  const eig = COMPANIONS[name];
+  if (eig) { eig.good.forEach(x => gut.add(x)); eig.bad.forEach(x => schlecht.add(x)); }
+  Object.entries(COMPANIONS).forEach(([k, v]) => { if (v.good.includes(name)) gut.add(k); if (v.bad.includes(name)) schlecht.add(k); });
+  schlecht.forEach(x => gut.delete(x));
+  const pchip = n => { const p = PLANTS.find(x => x.name === n); return `<button type="button" class="lex-pchip" onclick="lexPflanzeOeffnen(${jsAttrStr(n)})">${p ? p.sym : '🌱'} ${escapeHtml(n)}</button>`; };
+  if (gut.size || schlecht.size) {
+    h += `<div class="lex-abschnitt">🤝 Mischkultur</div><div class="lex-karte">` +
+      (gut.size ? `<div class="bed-zeile"><b>👍 Gute Nachbarn:</b></div><div class="lex-pchips">${[...gut].sort((a, b) => a.localeCompare(b, 'de')).map(pchip).join('')}</div>` : '') +
+      (schlecht.size ? `<div class="bed-zeile" style="margin-top:6px"><b>👎 Lieber nicht daneben:</b></div><div class="lex-pchips">${[...schlecht].sort((a, b) => a.localeCompare(b, 'de')).map(pchip).join('')}</div>` : '') + '</div>';
+  }
+  // Verwertung
+  const pres = getPreservationInfo(name);
+  if (pres && (pres.methods.length || pres.note)) {
+    h += `<div class="lex-abschnitt">🥫 Verwertung</div><div class="lex-karte"><div class="bed-chips">${pres.methods.map(m => METHOD_INFO[m] ? chip(METHOD_INFO[m].icon + ' ' + METHOD_INFO[m].label) : '').join('')}</div>
+      ${pres.note ? `<div class="bed-zeile">${escapeHtml(pres.note)}</div>` : ''}
+      <button type="button" class="lex-link" onclick="lexAusfuehren(()=>openPreserveForPlant(${jsAttrStr(name).replace(/"/g, '&quot;')}))">Mehr zur Verwertung ›</button></div>`;
+  }
+  // Tiere, denen die Pflanze hilft
+  const nn = lexNorm(name);
+  const tiere = TIERE.filter(t => (t.pflanzen || []).some(p => { const pn = lexNorm(p); return pn === nn || pn.includes(nn) || nn.includes(pn) && pn.length > 3; }));
+  if (tiere.length) h += `<div class="lex-abschnitt">🦔 Hilft diesen Tieren</div><div class="lex-karte"><div class="lex-pchips">${tiere.map(t => `<button type="button" class="lex-pchip" onclick="lexAusfuehren(()=>tierDetailOeffnen('${t.id}'))">${t.icon} ${escapeHtml(t.name)}</button>`).join('')}</div></div>`;
+  // Eigene Sorten & Saatgut
+  const sorten = (varietyDB || {})[name] || [];
+  const saat = (seedInventory || []).filter(e => (e.plant || '').trim().toLowerCase() === name.toLowerCase());
+  h += `<div class="lex-abschnitt">🌾 Deine Sorten &amp; Saatgut</div><div class="lex-karte">` +
+    (sorten.length ? sorten.map(s => `<div class="bed-zeile"><b>${escapeHtml(s.name)}</b> ${s.rating ? starString(s.rating) : ''}${s.notes ? ' – ' + escapeHtml(s.notes) : ''}</div>`).join('') : '<div class="bed-zeile" style="opacity:0.8">Noch keine eigenen Sorten-Erfahrungen.</div>') +
+    (saat.length ? `<div class="bed-zeile">🌰 <b>Saatgut da:</b> ${saat.map(e => escapeHtml([e.variety, e.amount, e.year].filter(Boolean).join(' · ') || 'ja')).join(' | ')}</div>` : '') +
+    `<div class="lex-knoepfe"><button type="button" class="lex-link" onclick="lexAusfuehren(()=>openVarietyDB(${jsAttrStr(name).replace(/"/g, '&quot;')}))">＋ Sorte eintragen</button>
+      <button type="button" class="lex-link" onclick="lexAusfuehren(()=>{openSeedInventory();openSeedForm(null,${jsAttrStr(name).replace(/"/g, '&quot;')})})">＋ Saatgut</button></div></div>`;
+  if (!bed && !sb && !lexTabelle(name, SOWING) && !care) h += `<div class="lex-hinweis" style="margin-top:10px">Zu dieser Pflanze sind noch keine Detailinfos hinterlegt.</div>`;
+  return h;
 }
 
 function renderTips() {
