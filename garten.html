@@ -605,6 +605,10 @@
   .koch-bild img { width: 100%; height: 100%; object-fit: cover; }
   .koch-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; font-size: 0.84rem; }
   .koch-text span { font-size: 0.7rem; color: var(--bark); }
+  .giess-box { display: flex; align-items: center; gap: 10px; background: rgba(91,139,181,0.13); border: 1px solid rgba(91,139,181,0.35); border-radius: 10px; padding: 9px 11px; font-size: 0.8rem; color: var(--soil); }
+  .giess-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .giess-sub { font-size: 0.68rem; color: var(--bark); }
+  .giess-btn { flex-shrink: 0; border: none; background: #5b8bb5; color: #fff; border-radius: 999px; padding: 7px 12px; font-weight: 700; font-size: 0.76rem; font-family: inherit; cursor: pointer; }
   .heute-box { max-width: 480px; margin: 16px auto 0; text-align: left; }
   .heute-titel { display: flex; justify-content: space-between; align-items: baseline; font-size: 0.82rem; font-weight: 700; color: var(--soil); margin-bottom: 8px; }
   .heute-zahl { font-size: 0.7rem; font-weight: 600; color: var(--bark); }
@@ -1372,6 +1376,7 @@
     </div>
     <div id="sowingHint" style="display:none;margin-top:12px"></div>
     <div id="rueckschnittHint" style="display:none;margin-top:12px"></div>
+    <div id="ppGiessInfo" style="display:none;margin-top:12px"></div>
     <div id="bedingungenHint" style="display:none;margin-top:12px"></div>
   </div>
 
@@ -3713,6 +3718,88 @@ function toggleCareTaskDone(id) {
   const i = state.done.indexOf(id);
   if (i === -1) state.done.push(id); else state.done.splice(i, 1);
   localStorage.setItem('gartenplaner_careDone', JSON.stringify(state));
+  giessTagebuchBeimAbhaken(id, i === -1);
+}
+
+// ==================== 💧 GIESS-TAGEBUCH ====================
+// Beim Abhaken einer Gieß-Aufgabe merkt sich die Pflanze das Datum (plant.lastWatered). Der Pflegeplan
+// rechnet dann ab dem letzten Gießen – oder ab dem letzten kräftigen Regen (≥ 8 mm an einem Tag) –
+// statt stur ab dem Pflanzdatum.
+const STARKREGEN_MM = 8;
+function heuteISO() { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function letzterStarkregenTag() {
+  if (!weatherCache || !weatherCache.daily) return null;
+  for (let o = 0; o >= -WEATHER_PAST_DAYS; o--) {
+    const v = weatherCache.daily.precipitation_sum?.[getWeatherDayIndex(o)];
+    if (typeof v === 'number' && v >= STARKREGEN_MM) { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + o); return d; }
+  }
+  return null;
+}
+// liefert { datum, quelle: 'gegossen'|'regen' } oder null
+function letzteBewaesserung(plant) {
+  let best = null;
+  if (plant && plant.lastWatered) { const d = new Date(plant.lastWatered + 'T00:00:00'); if (!isNaN(d.getTime())) best = { datum: d, quelle: 'gegossen' }; }
+  const regen = letzterStarkregenTag();
+  if (regen && (!best || regen > best.datum)) best = { datum: regen, quelle: 'regen' };
+  return best;
+}
+// Gieß-Fälligkeit: { dueToday, dueIn }
+function giessFaelligkeit(plant, intervall, alter) {
+  const heute = new Date(); heute.setHours(0, 0, 0, 0);
+  const lw = letzteBewaesserung(plant);
+  if (lw) {
+    const seit = daysBetween(lw.datum, heute);
+    // heute schon gegossen → bleibt als (erledigte) Aufgabe von heute stehen
+    if (seit === 0 && lw.quelle === 'gegossen') return { dueToday: true, dueIn: 0, gegossenHeute: true };
+    return { dueToday: seit >= intervall, dueIn: Math.max(1, intervall - seit), letzte: lw, seit };
+  }
+  const r = alter % intervall;
+  return { dueToday: r === 0, dueIn: intervall - r };
+}
+// Abhaken einer Gieß-Aufgabe trägt das Datum an der Pflanze ein (Rückgängig stellt den alten Wert wieder her)
+function giessTagebuchBeimAbhaken(id, jetztErledigt) {
+  if (!/_water$/.test(id)) return;
+  const t = careIdTeile(id);
+  const bed = getCurrentBeds().find(b => b.id === t.bedId);
+  const plant = bed && bed.plants && bed.plants[t.idx];
+  if (!plant) return;
+  const state = getCareDoneState();
+  state.giessVorher = state.giessVorher || {};
+  if (jetztErledigt) {
+    if (!(id in state.giessVorher)) state.giessVorher[id] = plant.lastWatered || null;
+    plant.lastWatered = heuteISO();
+  } else {
+    if (id in state.giessVorher) { if (state.giessVorher[id]) plant.lastWatered = state.giessVorher[id]; else delete plant.lastWatered; delete state.giessVorher[id]; }
+  }
+  localStorage.setItem('gartenplaner_careDone', JSON.stringify(state));
+  saveData();
+}
+function pflanzeJetztGegossen() {
+  if (!activePlantBedId) return;
+  const bed = getCurrentBeds().find(b => b.id === activePlantBedId.bedId);
+  const plant = bed && bed.plants[activePlantBedId.idx];
+  if (!plant) return;
+  const id = bed.id + '_' + activePlantBedId.idx + '_water';
+  if (!isCareTaskDone(id)) toggleCareTaskDone(id); else { plant.lastWatered = heuteISO(); saveData(); }
+  renderGiessInfo(plant);
+  showTempStatus('💧 Gegossen – eingetragen', 3);
+}
+function renderGiessInfo(plant) {
+  const box = document.getElementById('ppGiessInfo');
+  if (!box) return;
+  const info = CARE_INFO[lexKatalogName((plant.name || '').trim())];
+  if (!info || !info.waterDays) { box.style.display = 'none'; return; }
+  const lw = letzteBewaesserung(plant);
+  const heute = new Date(); heute.setHours(0, 0, 0, 0);
+  let txt = 'Noch nicht eingetragen – der Plan rechnet ab dem Pflanzdatum.';
+  if (lw) {
+    const seit = daysBetween(lw.datum, heute);
+    const wann = seit === 0 ? 'heute' : seit === 1 ? 'gestern' : 'vor ' + seit + ' Tagen';
+    const naechst = Math.max(0, info.waterDays - seit);
+    txt = (lw.quelle === 'regen' ? '🌧 Kräftiger Regen ' : '💧 Zuletzt gegossen ') + wann + ' · ' + (naechst === 0 ? '<b>heute wieder fällig</b>' : 'wieder in ' + naechst + ' Tag' + (naechst > 1 ? 'en' : ''));
+  }
+  box.innerHTML = `<div class="giess-box"><span class="giess-text">${txt}<span class="giess-sub">Rhythmus: etwa alle ${info.waterDays} Tage</span></span><button type="button" class="giess-btn" onclick="pflanzeJetztGegossen()">💧 Gegossen</button></div>`;
+  box.style.display = 'block';
 }
 
 async function computeCarePlanData() {
@@ -3760,9 +3847,9 @@ async function computeCarePlanData() {
 
       if (info.waterDays > 0) {
         const effectiveInterval = hotDry ? Math.max(1, info.waterDays - 1) : info.waterDays;
-        const sinceWater = age % effectiveInterval;
-        const dueIn = effectiveInterval - sinceWater;
-        const dueToday = sinceWater === 0;
+        const gf = giessFaelligkeit(plant, effectiveInterval, age);
+        const dueIn = gf.dueIn;
+        const dueToday = gf.dueToday;
         let text, urgent = dueToday, skip = false;
 
         if (dueToday && heavyRainRecently) {
@@ -7453,7 +7540,7 @@ function vlistStatus(p, bed, pIdx) {
   const alter = gepflanzt ? daysBetween(gepflanzt, heute) : null;
   if (bed && info && alter !== null && alter >= 0) {
     const basis = `${bed.id}_${pIdx}`;
-    if (info.waterDays > 0 && alter % info.waterDays === 0 && !isCareTaskDone(basis + '_water'))
+    if (info.waterDays > 0 && giessFaelligkeit(p, info.waterDays, alter).dueToday && !isCareTaskDone(basis + '_water'))
       out.push({ icon: '💧', text: 'Heute gießen', prio: 1, art: 'water' });
     if (info.fertilizeDays > 0 && alter % info.fertilizeDays <= 1 && !isCareTaskDone(basis + '_fertilize'))
       out.push({ icon: '🌿', text: 'Düngen fällig', prio: 1, art: 'fertilize' });
@@ -8191,6 +8278,7 @@ function openPlantPanel(bed,idx) {
   renderSowingHint(plant.name||'');
   renderRueckschnittHint(plant.name||'', 'rueckschnittHint');
   renderBedingungenHint(plant.name||'', 'bedingungenHint');
+  renderGiessInfo(plant);
   renderVarietyDatalist(plant.name||'');
   document.getElementById('ppHarvestDate').value = new Date().toISOString().slice(0,10);
   document.getElementById('ppHarvestAmount').value = '';
@@ -8847,6 +8935,7 @@ function savePlantInfo(){
   renderSowingHint(plant.name||'');
   renderRueckschnittHint(plant.name||'', 'rueckschnittHint');
   renderBedingungenHint(plant.name||'', 'bedingungenHint');
+  renderGiessInfo(plant);
   renderVarietyDatalist(plant.name||'');
   if (document.getElementById('ppt-preserve')?.classList.contains('active')) renderPreservePlantTab(plant.name||'');
   if (selectedBed===bed) renderBedPlantList(bed, document.getElementById('bedPlantSearch')?.value||'');
@@ -9736,6 +9825,72 @@ function ernteKochenHtml() {
   return `<div class="heute-box"><div class="heute-titel">🍳 Aus deiner Ernte kochen</div>${vorschlaege.map(rezeptZeileHtml).join('')}</div>`;
 }
 
+// ==================== 🛒 SAATGUT FEHLT → EINKAUFSLISTE ====================
+// Pflanzen, die fürs kommende Jahr vorgemerkt sind oder zuletzt im Garten standen, deren Aussaat
+// (Vorziehen/Direktsaat) läuft oder in den nächsten 6 Wochen beginnt – aber ohne Saatgut im Inventar.
+const SAAT_FEHLT_TAGE = 42;
+const SAAT_HINWEIS_AUS_KEY = 'garten_saatHinweisAus'; // { Pflanze: Jahr } – „nicht mehr erinnern“ für diese Saison
+function saatgutFehltBald() {
+  const jahr = new Date().getFullYear(), monat = new Date().getMonth() + 1;
+  let aus = {}; try { aus = JSON.parse(localStorage.getItem(SAAT_HINWEIS_AUS_KEY) || '{}') || {}; } catch (e) {}
+  const vorhanden = new Set((seedInventory || []).map(e => lexKatalogName((e.plant || '').trim())));
+  let einkauf = []; try { einkauf = JSON.parse(localStorage.getItem('einkauf_listen') || '[]') || []; } catch (e) {}
+  const schonAufListe = n => einkauf.some(l => (l.items || []).some(i => !i.erledigt && (i.name || '').toLowerCase().includes(n.toLowerCase()) && /saat|samen/i.test(i.name || '')));
+  const kandidaten = {};
+  const ziel = jahresplanZieljahr();
+  Object.values(gardens || {}).forEach(g => (g.beds || []).forEach(b => {
+    if (b.jahresplan && b.jahresplan.jahr >= jahr) (b.jahresplan.pflanzen || []).forEach(n => { kandidaten[lexKatalogName(n)] = 'vorgemerkt für ' + b.jahresplan.jahr; });
+    [...(b.plants || []).map(p => ({ name: p.name, jahr })), ...(b.history || []).map(h => ({ name: h.name, jahr: getYearOf(h) }))]
+      .filter(e => e.name && e.jahr >= jahr - 1).forEach(e => { const k = lexKatalogName(e.name); if (!kandidaten[k]) kandidaten[k] = 'habt ihr ' + (e.jahr === jahr ? 'dieses' : 'letztes') + ' Jahr angebaut'; });
+  }));
+  const out = [];
+  Object.entries(kandidaten).forEach(([n, grund]) => {
+    const so = SOWING[n];
+    if (!so || isPerennial(n) || vorhanden.has(n) || aus[n] === jahr || schonAufListe(n)) return;
+    let best = null;
+    [['vorziehen', so.vorziehen], ['direktsaat', so.direktsaat]].forEach(([art, roh]) => {
+      const r = adjustRange(roh);
+      if (!r) return;
+      if (isInWindow(r, monat)) { if (!best || best.tage > 0) best = { art, tage: 0, r }; return; }
+      const d = daysUntilRangeStart(r);
+      if (d !== null && d >= 0 && d <= SAAT_FEHLT_TAGE && (!best || d < best.tage)) best = { art, tage: d, r };
+    });
+    if (best) out.push({ name: n, sym: (PLANTS.find(p => p.name === n) || {}).sym || '🌱', grund, ...best });
+  });
+  return out.sort((a, b) => a.tage - b.tage || a.name.localeCompare(b.name, 'de'));
+}
+function saatgutAufEinkaufsliste(name) {
+  try {
+    let listen = JSON.parse(localStorage.getItem('einkauf_listen') || '[]') || [];
+    if (!listen.length) listen = [{ id: 'l' + Date.now(), name: 'Wocheneinkauf', items: [] }];
+    const aktivId = localStorage.getItem('einkauf_aktiveListe');
+    const liste = listen.find(l => l.id === aktivId) || listen[0];
+    liste.items = liste.items || [];
+    liste.items.push({ id: 'i' + Date.now() + Math.random().toString(36).slice(2, 7), name: name + ' Saatgut', menge: '1', einheit: 'Tüte', kategorie: 'sonstiges', erledigt: false, hinzugefuegtVon: gartenIchBin() || null });
+    localStorage.setItem('einkauf_listen', JSON.stringify(listen));
+    if (window._einkaufSync) window._einkaufSync.melde();
+    showTempStatus('🛒 „' + name + ' Saatgut“ steht auf „' + (liste.name || 'Einkaufsliste') + '“', 5);
+  } catch (e) { showTempStatus('⚠ Konnte nicht zur Einkaufsliste hinzugefügt werden.', 5); }
+  renderHomeOverview();
+}
+function saatgutHinweisAus(name) {
+  let aus = {}; try { aus = JSON.parse(localStorage.getItem(SAAT_HINWEIS_AUS_KEY) || '{}') || {}; } catch (e) {}
+  aus[name] = new Date().getFullYear();
+  try { localStorage.setItem(SAAT_HINWEIS_AUS_KEY, JSON.stringify(aus)); } catch (e) {}
+  renderHomeOverview();
+}
+function saatgutFehltHtml() {
+  const liste = saatgutFehltBald().slice(0, 5);
+  if (!liste.length) return '';
+  const ART = { vorziehen: 'vorziehen', direktsaat: 'säen' };
+  return `<div class="heute-box"><div class="heute-titel">🛒 Saatgut fehlt bald <span class="heute-zahl">nicht im Saatgutinventar</span></div>${liste.map(x => `
+    <div class="heute-aufgabe"><span class="heute-icon">${x.sym}</span>
+      <span class="heute-text"><span><strong>${escapeHtml(x.name)}</strong> ${ART[x.art]} ${x.tage === 0 ? '<b>jetzt</b>' : 'ab ' + MONTH_NAMES[x.r[0]] + ' (in ' + x.tage + ' Tagen)'}</span><span class="heute-unter">${escapeHtml(x.grund)}</span></span>
+      <button type="button" class="heute-knopf" onclick="saatgutAufEinkaufsliste(${jsAttrStr(x.name).replace(/"/g, '&quot;')})">＋ Einkauf</button>
+      <button type="button" class="heute-mini" onclick="saatgutHinweisAus(${jsAttrStr(x.name).replace(/"/g, '&quot;')})" title="Für diese Saison nicht mehr erinnern">✕</button></div>`).join('')}
+    <div style="text-align:right;margin-top:4px"><button class="nav-btn" style="padding:4px 10px;font-size:0.7rem" onclick="openSeedInventory()">Saatgutinventar öffnen</button></div></div>`;
+}
+
 // ==================== „Heute zu erledigen“ (Startseite) ====================
 // Gießen und Düngen werden je Beet zu einer Zeile zusammengefasst (ein Haken für alle Pflanzen),
 // Ernten bleiben einzeln und haben einen Knopf, der direkt das Ernte-Formular der Pflanze öffnet.
@@ -9919,7 +10074,7 @@ async function renderHomeOverview() {
   }
 
   if (!stats.length && !todayTasks.length && !expiringPantry.length && !seedsToSow.length) {
-    const koch = ernteKochenHtml();
+    const koch = ernteKochenHtml() + saatgutFehltHtml();
     if (koch) { box.innerHTML = koch; return; }
     box.innerHTML = d.weather
       ? `<div class="empty-state" style="max-width:480px;margin:0 auto">✓ Heute nichts Dringendes – schau später wieder vorbei.</div>`
@@ -9927,7 +10082,7 @@ async function renderHomeOverview() {
     return;
   }
   const pillsHtml = stats.length ? `<div class="overview-grid">${stats.map(s => `<div class="overview-pill ov-${s.tone}"${s.onclick ? ` onclick="${s.onclick}"` : ''}>${s.icon} <span>${escapeHtml(s.label)}</span></div>`).join('')}</div>` : '';
-  box.innerHTML = pillsHtml + checklistHtml + ernteKochenHtml() + pantryHtml + seedHtml;
+  box.innerHTML = pillsHtml + checklistHtml + ernteKochenHtml() + saatgutFehltHtml() + pantryHtml + seedHtml;
 }
 
 // ==================== SHOPS & DIENSTLEISTER ====================
@@ -11665,6 +11820,7 @@ if (window.PlanerSync) {
   window._termineSync = window.PlanerSync.starteSync({ modul: 'termine', keys: ['termine_events_v1'] });
   // Eingang der Vorratskammer (Ernte → Vorratskammer)
   window._vorratSync = window.PlanerSync.starteSync({ modul: 'vorratskammer', keys: ['vorratskammer_eingang'] });
+  window._einkaufSync = window.PlanerSync.starteSync({ modul: 'einkauf', keys: ['einkauf_listen'] }); // „Saatgut fehlt → Einkauf“
 }
 
 // ==================== BARRIEREFREIHEIT: FOKUS-MANAGEMENT FÜR MODALS ====================
