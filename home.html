@@ -216,6 +216,32 @@
   .haushalt-zeile:first-child { border-top: none; }
   .haushalt-zeile .hz-icon { font-size: 1.05rem; flex-shrink: 0; }
   .haushalt-zeile .hz-titel { flex: 1; min-width: 0; }
+  .hz-check { flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--sage); background: var(--white); color: var(--moss); font-size: 0.8rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; }
+  .hz-check:active { background: var(--leaf); }
+  .hz-ueber { font-size: 0.62rem; font-weight: 800; color: var(--terracotta-text, #a8532e); margin-left: 4px; }
+  .mini-abschnitt { font-size: 0.66rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: var(--bark); margin: 8px 0 2px; }
+  .mini-abschnitt:first-child { margin-top: 0; }
+  .mini-zeile.vorbei { opacity: 0.5; }
+  .ek-eingabe { display: flex; gap: 6px; margin-top: 8px; }
+  .ek-eingabe input { flex: 1; min-width: 0; padding: 8px 10px; border: 1px solid var(--parchment); border-radius: var(--radius-pill); background: var(--cream); color: var(--soil); font-size: 0.85rem; font-family: inherit; }
+  .ek-eingabe button { flex-shrink: 0; padding: 8px 14px; border: none; border-radius: var(--radius-pill); background: var(--moss); color: var(--on-moss, var(--leaf)); font-weight: 700; cursor: pointer; }
+  .dn-tag { font-size: 0.68rem; font-weight: 700; color: var(--bark); min-width: 62px; }
+  .dn-tag.dringend { color: var(--terracotta-text, #a8532e); }
+  .fin-balken { height: 9px; background: var(--parchment); border-radius: 5px; overflow: hidden; margin: 6px 0 4px; }
+  .fin-balken > div { height: 100%; background: var(--moss); border-radius: 5px; }
+  .fin-balken > div.knapp { background: #d4a02a; }
+  .fin-balken > div.ueber { background: var(--terracotta, #c46b41); }
+  .fin-zahl { font-size: 1.15rem; font-weight: 800; color: var(--moss-text, var(--moss)); }
+  .fin-klein { font-size: 0.75rem; color: var(--bark); }
+  .kind-zeile { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-top: 1px solid var(--parchment); font-size: 0.85rem; }
+  .kind-zeile:first-child { border-top: none; }
+  .kind-punkt { width: 26px; height: 26px; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.75rem; flex-shrink: 0; }
+  .gz-balken { flex: 1; height: 8px; background: var(--parchment); border-radius: 4px; overflow: hidden; }
+  .gz-balken > div { height: 100%; background: var(--moss); }
+  .gz-balken > div.ueber { background: var(--terracotta, #c46b41); }
+  .ansicht-schalter { display: inline-flex; margin-top: 6px; background: rgba(255,255,255,0.09); border-radius: 999px; padding: 2px; }
+  .ansicht-schalter button { background: none; border: none; color: var(--leaf); font-size: 0.72rem; font-weight: 700; padding: 4px 11px; border-radius: 999px; cursor: pointer; font-family: inherit; }
+  .ansicht-schalter button.aktiv { background: var(--moss); color: var(--on-moss, var(--leaf)); }
   .haushalt-zeile .hz-wer { font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-pill); color: var(--white); flex-shrink: 0; }
 
   .garten-kachel { border-top: 3px solid var(--moss); }
@@ -265,6 +291,10 @@
     <div class="gruss" id="grussText">Hallo!</div>
     <div class="datum" id="datumText"></div>
     <div class="heute-zeile" id="heuteZeile"></div>
+    <div class="ansicht-schalter" id="ansichtSchalter" style="display:none;">
+      <button type="button" data-ansicht="familie">👪 Familie</button>
+      <button type="button" data-ansicht="ich" id="btnAnsichtIch">👤 Ich</button>
+    </div>
   </div>
   <div style="display:flex;align-items:flex-start;gap:4px;">
     <button class="kopf-zahnrad" id="btnKachelnAnordnen" title="Kacheln anordnen" aria-label="Kacheln anordnen">↕️</button>
@@ -322,12 +352,24 @@
     <div id="listeTermine"></div>
   </div>
 
+  <div class="kachel" id="kachelDemnaechst" style="display:none;">
+    <div class="kachel-kopf">
+      <div class="kachel-titel">⏰ Demnächst</div>
+      <span class="kachel-badge" id="badgeDemnaechst">0</span>
+    </div>
+    <div id="listeDemnaechst"></div>
+  </div>
+
   <div class="kachel" id="kachelEinkauf">
     <div class="kachel-kopf">
       <div class="kachel-titel">🛒 Einkauf offen</div>
       <span class="kachel-badge" id="badgeEinkauf">0</span>
     </div>
     <div id="listeEinkauf"></div>
+    <div class="ek-eingabe" id="ekEingabe">
+      <input type="text" id="ekNeu" placeholder="＋ z.B. Milch, Brot" enterkeyhint="done" aria-label="Auf die Einkaufsliste">
+      <button type="button" id="btnEkNeu" aria-label="Hinzufügen">＋</button>
+    </div>
   </div>
 
   <div class="kachel" id="kachelSport">
@@ -362,6 +404,30 @@
       <span class="kachel-badge leer" id="badgeHaushalt">0</span>
     </div>
     <div id="haushaltListe"></div>
+  </div>
+
+  <div class="kachel" id="kachelFinanzen" style="display:none;">
+    <div class="kachel-kopf">
+      <div class="kachel-titel">💶 Finanzen</div>
+      <span class="kachel-pfeil">→</span>
+    </div>
+    <div id="finanzenInfo"></div>
+  </div>
+
+  <div class="kachel" id="kachelKinder" style="display:none;">
+    <div class="kachel-kopf">
+      <div class="kachel-titel">🧒 Kinder</div>
+      <span class="kachel-pfeil">→</span>
+    </div>
+    <div id="kinderInfo"></div>
+  </div>
+
+  <div class="kachel" id="kachelGaming" style="display:none;">
+    <div class="kachel-kopf">
+      <div class="kachel-titel">🎮 Bildschirmzeit heute</div>
+      <span class="kachel-pfeil">→</span>
+    </div>
+    <div id="gamingInfo"></div>
   </div>
 
   <div class="kachel" id="kachelNeuigkeiten" style="cursor:pointer;display:none;">
@@ -639,10 +705,39 @@
   einrichtungAktualisieren();
 
   // --- Begrüßung ---
-  const stunde = new Date().getHours();
-  const gruss = stunde < 11 ? 'Guten Morgen!' : (stunde < 18 ? 'Guten Tag!' : 'Guten Abend!');
-  document.getElementById('grussText').textContent = gruss;
-  document.getElementById('datumText').textContent = new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' });
+  function ichBin() { try { return localStorage.getItem('planer_geraetIdentitaet') || ''; } catch (e) { return ''; } }
+  function ichPerson() { const id = ichBin(); return id ? (window.PLANER_PERSONEN || []).find(p => p.id === id) || null : null; }
+  function begruessungAktualisieren() {
+    const stunde = new Date().getHours();
+    const p = ichPerson();
+    const gruss = stunde < 11 ? 'Guten Morgen' : (stunde < 18 ? 'Guten Tag' : 'Guten Abend');
+    document.getElementById('grussText').textContent = gruss + (p ? ', ' + p.label : '') + '!';
+    document.getElementById('datumText').textContent = new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' });
+  }
+  begruessungAktualisieren();
+  // 👤 „Für mich“: Familie / Ich (nur wenn das Gerät einer Person zugeordnet ist)
+  const KEY_ANSICHT = 'home_ansicht';
+  function nurIch() { try { return !!ichBin() && localStorage.getItem(KEY_ANSICHT) === 'ich'; } catch (e) { return false; } }
+  function gehoertMir(wer) {
+    if (!nurIch()) return true;
+    const ich = ichBin();
+    if (!wer || wer === 'familie') return true;
+    return Array.isArray(wer) ? (wer.includes(ich) || wer.includes('familie')) : wer === ich;
+  }
+  function ansichtSchalterRendern() {
+    const box = document.getElementById('ansichtSchalter');
+    const p = ichPerson();
+    box.style.display = p ? '' : 'none';
+    if (!p) return;
+    document.getElementById('btnAnsichtIch').textContent = '👤 ' + p.label;
+    box.querySelectorAll('button').forEach(b => b.classList.toggle('aktiv', (b.dataset.ansicht === 'ich') === nurIch()));
+  }
+  document.querySelectorAll('#ansichtSchalter button').forEach(b => b.addEventListener('click', () => {
+    try { localStorage.setItem(KEY_ANSICHT, b.dataset.ansicht); } catch (e) {}
+    ansichtSchalterRendern();
+    if (window.homeAllesRendern) window.homeAllesRendern();
+  }));
+  ansichtSchalterRendern();
 
   // ============================================================
   // TERMINE HEUTE
@@ -719,27 +814,52 @@
     ).join('');
   }
 
+  function termineAm(events, iso) {
+    return events.filter(ev => gehoertMir(ev.wer) && vorkommenHeute(ev, iso))
+      .sort((a, b) => (a.allDay ? '' : (a.startTime || '')).localeCompare(b.allDay ? '' : (b.startTime || '')));
+  }
   function renderTermine() {
     const events = laden('termine_events_v1', []);
-    const heuteISO = toISODatum(heute());
-    const heutige = events.filter(ev => vorkommenHeute(ev, heuteISO))
-      .sort((a, b) => (a.allDay ? '' : (a.startTime || '')).localeCompare(b.allDay ? '' : (b.startTime || '')));
-
-    document.getElementById('badgeTermine').textContent = heutige.length;
-    document.getElementById('badgeTermine').classList.toggle('leer', heutige.length === 0);
-    const box = document.getElementById('listeTermine');
-    if (!heutige.length) { box.innerHTML = '<div class="mini-leer">Keine Termine heute 🎉</div>'; return; }
-    box.innerHTML = heutige.slice(0, 5).map(ev =>
-      '<div class="mini-zeile"><span class="mini-zeit">' + (ev.allDay ? 'Ganztags' : (ev.startTime || '')) + '</span>' +
-      '<span class="mini-farbpunkt" style="background:' + farbeFuerWer(ev.wer) + ';"></span>' +
-      '<span class="mini-name">' + escapeHtml(ev.title) + '</span></div>'
-    ).join('') + (heutige.length > 5 ? '<div class="mini-leer">+ ' + (heutige.length - 5) + ' weitere</div>' : '');
+    const h = heute();
+    const heuteISO = toISODatum(h);
+    const morgenISO = toISODatum(new Date(h.getFullYear(), h.getMonth(), h.getDate() + 1));
+    const heutige = termineAm(events, heuteISO), morgige = termineAm(events, morgenISO);
+    const jetzt = new Date(), jetztHHMM = String(jetzt.getHours()).padStart(2, '0') + ':' + String(jetzt.getMinutes()).padStart(2, '0');
+    const abends = jetzt.getHours() >= 18;
+    const vorbei = ev => !ev.allDay && ev.startTime && (ev.endTime || ev.startTime) < jetztHHMM;
+    const offenHeute = heutige.filter(ev => !vorbei(ev));
+    document.getElementById('badgeTermine').textContent = offenHeute.length;
+    document.getElementById('badgeTermine').classList.toggle('leer', offenHeute.length === 0);
+    document.querySelector('#kachelTermine .kachel-titel').textContent = abends ? '🗓️ Termine heute & morgen' : '🗓️ Termine heute';
+    const zeile = (ev, alt) => '<div class="mini-zeile' + (alt ? ' vorbei' : '') + '"><span class="mini-zeit">' + (ev.allDay ? 'Ganztags' : escapeHtml(ev.startTime || '')) + '</span>' +
+      '<span class="mini-farbpunkt" style="background:' + farbeFuerWer(Array.isArray(ev.wer) ? ev.wer[0] : ev.wer) + ';"></span>' +
+      '<span class="mini-name">' + escapeHtml(ev.title) + '</span></div>';
+    let html = '';
+    const heuteTeil = () => {
+      if (!heutige.length) return '<div class="mini-leer">Keine Termine heute 🎉</div>';
+      const zeigen = abends ? offenHeute : heutige;
+      if (!zeigen.length) return '<div class="mini-leer">Heute nichts mehr 🎉</div>';
+      return zeigen.slice(0, 5).map(ev => zeile(ev, vorbei(ev))).join('') + (zeigen.length > 5 ? '<div class="mini-leer">+ ' + (zeigen.length - 5) + ' weitere</div>' : '');
+    };
+    const morgenTeil = () => morgige.length ? morgige.slice(0, abends ? 5 : 3).map(ev => zeile(ev)).join('') + (morgige.length > (abends ? 5 : 3) ? '<div class="mini-leer">+ ' + (morgige.length - (abends ? 5 : 3)) + ' weitere</div>' : '') : '<div class="mini-leer">Morgen frei</div>';
+    if (abends) html = '<div class="mini-abschnitt">Morgen</div>' + morgenTeil() + '<div class="mini-abschnitt">Heute</div>' + heuteTeil();
+    else html = heuteTeil() + (morgige.length ? '<div class="mini-abschnitt">Morgen</div>' + morgenTeil() : '');
+    document.getElementById('listeTermine').innerHTML = html;
   }
   document.getElementById('kachelTermine').addEventListener('click', () => navigiere('termine'));
 
   // ============================================================
   // EINKAUF OFFEN
   // ============================================================
+  function aktiveEinkaufsliste(listen) {
+    let id = ''; try { id = localStorage.getItem('einkauf_aktiveListe') || ''; } catch (e) {}
+    return listen.find(l => l.id === id) || listen.find(l => (l.items || []).some(i => !i.erledigt)) || listen[0] || null;
+  }
+  function einkaufSpeichern(listen) {
+    try { localStorage.setItem('einkauf_listen', JSON.stringify(listen)); } catch (e) { return false; }
+    if (liveSync.einkauf) liveSync.einkauf.melde();
+    return true;
+  }
   function renderEinkauf() {
     const listen = laden('einkauf_listen', []);
     let gesamtOffen = 0;
@@ -753,11 +873,68 @@
     document.getElementById('badgeEinkauf').classList.toggle('leer', gesamtOffen === 0);
     const box = document.getElementById('listeEinkauf');
     if (!gesamtOffen) { box.innerHTML = '<div class="mini-leer">Alles erledigt 🎉</div>'; return; }
-    box.innerHTML = zeilen.map(z =>
-      '<div class="mini-zeile"><span class="mini-name">' + escapeHtml(z.name) + '</span>' +
-      '<span class="mini-zeit">' + z.offen + ' offen</span></div>'
-    ).join('');
+    const aktiv = aktiveEinkaufsliste(listen);
+    const offeneArtikel = aktiv ? (aktiv.items || []).filter(i => !i.erledigt) : [];
+    let html = '';
+    if (offeneArtikel.length) {
+      if (listen.length > 1) html += '<div class="mini-abschnitt">' + escapeHtml(aktiv.name) + '</div>';
+      html += offeneArtikel.slice(0, 6).map(i => '<div class="haushalt-zeile"><button type="button" class="hz-check" data-ek="' + escapeHtml(i.id) + '" aria-label="Abhaken">✓</button>' +
+        '<span class="hz-titel">' + escapeHtml([i.menge, i.einheit].filter(Boolean).join(' ') ? [i.menge, i.einheit].filter(Boolean).join(' ') + ' ' : '') + escapeHtml(i.name) + '</span></div>').join('');
+      if (offeneArtikel.length > 6) html += '<div class="mini-leer">+ ' + (offeneArtikel.length - 6) + ' weitere</div>';
+    }
+    const andere = zeilen.filter(z => !aktiv || z.name !== aktiv.name || !offeneArtikel.length);
+    if (andere.length) html += (offeneArtikel.length ? '<div class="mini-abschnitt">Weitere Listen</div>' : '') + andere.map(z =>
+      '<div class="mini-zeile"><span class="mini-name">' + escapeHtml(z.name) + '</span><span class="mini-zeit">' + z.offen + ' offen</span></div>').join('');
+    box.innerHTML = html;
+    box.querySelectorAll('[data-ek]').forEach(b => b.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const alle = laden('einkauf_listen', []);
+      const liste = aktiveEinkaufsliste(alle);
+      const item = liste && (liste.items || []).find(i => i.id === b.dataset.ek);
+      if (!item) return;
+      item.erledigt = true;
+      if (!einkaufSpeichern(alle)) return;
+      renderEinkauf(); renderHeuteZeile();
+      showTempStatus('✓ ' + item.name + ' abgehakt', 5, { rueckgaengig: () => {
+        const a2 = laden('einkauf_listen', []);
+        const l2 = a2.find(l => l.id === liste.id); const i2 = l2 && l2.items.find(i => i.id === item.id);
+        if (i2) { i2.erledigt = false; einkaufSpeichern(a2); renderEinkauf(); renderHeuteZeile(); }
+      } });
+    }));
   }
+  // ＋ direkt auf die aktive Liste (mehrere Artikel mit Komma trennen)
+  function einkaufHinzufuegen() {
+    const feld = document.getElementById('ekNeu');
+    const teile = String(feld.value).split(/\s*[;\n]\s*|,\s+|,(?!\d)/).map(t => t.trim()).filter(Boolean);
+    if (!teile.length) return;
+    let listen = laden('einkauf_listen', []);
+    if (!listen.length) listen = [{ id: neueId('l'), name: 'Wocheneinkauf', items: [] }];
+    let aktivId = ''; try { aktivId = localStorage.getItem('einkauf_aktiveListe') || ''; } catch (e) {}
+    const liste = listen.find(l => l.id === aktivId) || listen[0];
+    if (!liste.items) liste.items = [];
+    const favoriten = laden('einkauf_favoriten', {});
+    const neu = [];
+    teile.forEach(t => {
+      const m = t.match(/^(\d+(?:[.,]\d+)?)\s*(g|kg|ml|l|Stk\.?|Pck\.?|x)?\s+(.+)$/i);
+      const name = m ? m[3] : t;
+      const vorhanden = liste.items.find(i => !i.erledigt && String(i.name).trim().toLowerCase() === name.toLowerCase());
+      if (vorhanden) return;
+      const fav = favoriten[name.toLowerCase()];
+      const item = { id: neueId('i'), name, menge: m ? m[1] : '', einheit: m && m[2] ? m[2] : '', kategorie: (fav && fav.kategorie) || 'sonstiges', erledigt: false, hinzugefuegtVon: ichBin() || '' };
+      liste.items.push(item); neu.push(item);
+    });
+    feld.value = '';
+    if (!neu.length) { showTempStatus('Steht schon auf der Liste', 2); return; }
+    if (!einkaufSpeichern(listen)) return;
+    renderEinkauf(); renderHeuteZeile();
+    showTempStatus('🛒 ' + neu.map(i => i.name).join(', ') + ' → ' + liste.name, 5, { rueckgaengig: () => {
+      const a2 = laden('einkauf_listen', []); const l2 = a2.find(l => l.id === liste.id); if (!l2) return;
+      const ids = new Set(neu.map(i => i.id)); l2.items = l2.items.filter(i => !ids.has(i.id)); einkaufSpeichern(a2); renderEinkauf(); renderHeuteZeile();
+    } });
+  }
+  document.getElementById('btnEkNeu').addEventListener('click', (e) => { e.stopPropagation(); einkaufHinzufuegen(); });
+  document.getElementById('ekNeu').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); einkaufHinzufuegen(); } });
+  document.getElementById('ekEingabe').addEventListener('click', (e) => e.stopPropagation());
   document.getElementById('kachelEinkauf').addEventListener('click', () => navigiere('einkauf'));
   // ============================================================
   // HEUTE AUF EINEN BLICK – eine Zeile unter dem Datum (Wetter, Termine, Einkauf, Aufgaben,
@@ -778,7 +955,7 @@
     const heuteISO = toISODatum(heute());
     const events = lies('termine_events_v1', []);
     if (sichtbar('termine')) {
-      const anzahl = events.filter(ev => vorkommenHeute(ev, heuteISO)).length;
+      const anzahl = events.filter(ev => gehoertMir(ev.wer) && vorkommenHeute(ev, heuteISO)).length;
       if (anzahl) chips.push({ text: '🗓️ ' + anzahl + (anzahl === 1 ? ' Termin' : ' Termine'), ziel: 'termine' });
       // Geburtstage in den nächsten 7 Tagen (jährlich wiederkehrend)
       const h = heute();
@@ -798,7 +975,7 @@
     }
     if (sichtbar('haushalt')) {
       try {
-        const faellig = lies('haushalt_aufgaben', []).filter(a => haushaltIstFaelligOffen(a)).length;
+        const faellig = lies('haushalt_aufgaben', []).filter(a => haushaltIstFaelligOffen(a) && haushaltFuerMich(a)).length;
         if (faellig) chips.push({ text: '🧹 ' + faellig + (faellig === 1 ? ' Aufgabe' : ' Aufgaben'), ziel: 'haushalt' });
       } catch (e) {}
     }
@@ -984,9 +1161,38 @@
     }
     return null;
   }
+  function haushaltZustaendigId(a) {
+    if (window.HaushaltLogik) return window.HaushaltLogik.zustaendigId(a, 0);
+    const w = haushaltZustaendigText(a); return w ? w.id : null;
+  }
+  function haushaltFuerMich(a) { if (!nurIch()) return true; const z = haushaltZustaendigId(a); return !z || z === ichBin(); }
+  function haushaltAbhaken(id) {
+    const aufgaben = laden('haushalt_aufgaben', []);
+    const a = aufgaben.find(x => x.id === id);
+    if (!a) return;
+    const wer = ichBin() || haushaltZustaendigId(a) || '';
+    if (!wer) { navigiere('haushalt'); return; }
+    if (!a.erledigt) a.erledigt = [];
+    const eintrag = { datum: new Date().toISOString(), von: wer };
+    a.erledigt.push(eintrag);
+    const rot = a.zuweisung === 'rotation' && (a.rotationPersonen || []).length;
+    if (rot) a.rotationIndex = ((a.rotationIndex || 0) + 1) % a.rotationPersonen.length;
+    try { localStorage.setItem('haushalt_aufgaben', JSON.stringify(aufgaben)); } catch (e) { return; }
+    if (liveSync.haushalt) liveSync.haushalt.melde();
+    window.homeAllesRendern();
+    showTempStatus('✓ ' + a.titel + ' · ' + haushaltPersonInfo(wer).label, 6, { rueckgaengig: () => {
+      const a2 = laden('haushalt_aufgaben', []); const x = a2.find(y => y.id === id); if (!x) return;
+      const i = (x.erledigt || []).findIndex(e => e.datum === eintrag.datum && e.von === eintrag.von);
+      if (i !== -1) x.erledigt.splice(i, 1);
+      if (rot) x.rotationIndex = ((x.rotationIndex || 0) - 1 + x.rotationPersonen.length) % x.rotationPersonen.length;
+      try { localStorage.setItem('haushalt_aufgaben', JSON.stringify(a2)); } catch (e) {}
+      if (liveSync.haushalt) liveSync.haushalt.melde();
+      window.homeAllesRendern();
+    } });
+  }
   function renderHaushalt() {
     const aufgaben = laden('haushalt_aufgaben', []);
-    const faellige = aufgaben.filter(haushaltIstFaelligOffen);
+    const faellige = aufgaben.filter(a => haushaltIstFaelligOffen(a) && haushaltFuerMich(a));
     const badge = document.getElementById('badgeHaushalt');
     badge.textContent = String(faellige.length);
     badge.className = 'kachel-badge' + (faellige.length === 0 ? ' leer' : '');
@@ -995,11 +1201,15 @@
       box.innerHTML = '<div class="mini-leer">' + (aufgaben.length ? 'Heute nichts offen. 🎉' : 'Noch keine Aufgaben angelegt.') + '</div>';
       return;
     }
-    box.innerHTML = faellige.slice(0, 5).map(a => {
+    const ueber = a => window.HaushaltLogik ? window.HaushaltLogik.status(a).ueberfaelligSeit : null;
+    faellige.sort((x, y) => (ueber(x) ? 0 : 1) - (ueber(y) ? 0 : 1));
+    box.innerHTML = faellige.slice(0, 6).map(a => {
       const wer = haushaltZustaendigText(a);
       const werHtml = wer ? '<span class="hz-wer" style="background:' + escapeHtml(wer.farbe || '#7d6339') + '">' + escapeHtml(wer.label) + '</span>' : '';
-      return '<div class="haushalt-zeile"><span class="hz-icon">' + escapeHtml(a.icon || '🧹') + '</span><span class="hz-titel">' + escapeHtml(a.titel) + '</span>' + werHtml + '</div>';
-    }).join('') + (faellige.length > 5 ? '<div class="mini-leer">+ ' + (faellige.length - 5) + ' weitere ...</div>' : '');
+      return '<div class="haushalt-zeile"><button type="button" class="hz-check" data-hh="' + escapeHtml(a.id) + '" aria-label="Erledigt">✓</button><span class="hz-icon">' + escapeHtml(a.icon || '🧹') + '</span><span class="hz-titel">' + escapeHtml(a.titel) +
+        (ueber(a) ? '<span class="hz-ueber">überfällig</span>' : '') + '</span>' + werHtml + '</div>';
+    }).join('') + (faellige.length > 6 ? '<div class="mini-leer">+ ' + (faellige.length - 6) + ' weitere ...</div>' : '');
+    box.querySelectorAll('[data-hh]').forEach(b => b.addEventListener('click', (e) => { e.stopPropagation(); haushaltAbhaken(b.dataset.hh); }));
   }
 
   // ============================================================
@@ -1662,7 +1872,7 @@
   document.getElementById('btnErfolgeSchliessen').addEventListener('click', () => document.getElementById('modalErfolge').classList.remove('zeigen'));
   document.getElementById('modalErfolge').addEventListener('click', (e) => { if (e.target.id === 'modalErfolge') e.currentTarget.classList.remove('zeigen'); });
 
-  const KACHEL_MODUL_MAP = { kachelTermine: 'termine', kachelEinkauf: 'einkauf', kachelSport: 'gesundheit', kachelKochen: 'kochen', kachelGarten: 'garten', kachelHaushalt: 'haushalt' };
+  const KACHEL_MODUL_MAP = { kachelTermine: 'termine', kachelEinkauf: 'einkauf', kachelSport: 'gesundheit', kachelKochen: 'kochen', kachelGarten: 'garten', kachelHaushalt: 'haushalt', kachelFinanzen: 'finanzen', kachelKinder: 'kinder', kachelGaming: 'gaming' };
   function versteckteKachelnAnwenden() {
     let versteckt = [];
     try { versteckt = JSON.parse(localStorage.getItem('planer_versteckteModule') || '[]'); } catch (e) {}
@@ -1674,8 +1884,194 @@
     });
   }
 
+  // ============================================================
+  // ⏰ DEMNÄCHST – was in den nächsten 14 Tagen in allen Bereichen ansteht
+  // ============================================================
+  function modulSichtbar(m) { try { return !JSON.parse(localStorage.getItem('planer_versteckteModule') || '[]').includes(m); } catch (e) { return true; } }
+  function tageBis(iso) { return Math.round((ausISO(iso) - heute()) / 864e5); }
+  function plusMonate(iso, n) { const d = ausISO(iso); return toISODatum(new Date(d.getFullYear(), d.getMonth() + n, d.getDate())); }
+  function euroText(b) { return Number(b).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'; }
+  function demnaechstSammeln() {
+    const h = heute(), hIso = toISODatum(h), bis = 14;
+    const liste = [];
+    const add = (datum, icon, text, ziel, wer) => { const t = tageBis(datum); if (t <= bis && gehoertMir(wer)) liste.push({ datum, tage: t, icon, text, ziel }); };
+    // 🎂 Geburtstage (ab übermorgen, heute/morgen stehen schon oben)
+    if (modulSichtbar('termine')) laden('termine_events_v1', []).forEach(ev => {
+      if (!ev.date || !/geburtstag|🎂/i.test(ev.title || '')) return;
+      const [, m, d] = String(ev.date).split('-').map(Number);
+      let n = new Date(h.getFullYear(), m - 1, d); if (n < h) n = new Date(h.getFullYear() + 1, m - 1, d);
+      const iso = toISODatum(n);
+      if (tageBis(iso) >= 2) add(iso, '🎂', String(ev.title).replace(/🎂/g, '').trim(), 'termine');
+    });
+    // 💶 Abos: Kündigungsfristen (30 Tage) und Abbuchungen (7 Tage)
+    if (modulSichtbar('finanzen')) laden('finanzen_abos', []).forEach(a => {
+      if (a.kuendigenBis && tageBis(a.kuendigenBis) >= 0 && tageBis(a.kuendigenBis) <= 30) liste.push({ datum: a.kuendigenBis, tage: tageBis(a.kuendigenBis), icon: '✂️', text: (a.name || 'Abo') + ' kündigen bis', ziel: 'finanzen' });
+      if (a.faelligkeit && tageBis(a.faelligkeit) >= 0 && tageBis(a.faelligkeit) <= 7) add(a.faelligkeit, '💳', (a.name || 'Abo') + (a.betrag ? ' · ' + euroText(a.betrag) : ''), 'finanzen');
+    });
+    // 🚗 TÜV, Fixkosten, Wartung
+    if (modulSichtbar('fahrzeuge')) {
+      const ws = laden('fahrzeuge_werkstatt', []);
+      laden('fahrzeuge_liste', []).forEach(f => {
+        const name = f.name || 'Auto';
+        const monatsDatum = ym => ym + '-01';
+        if (f.tuev && /^\d{4}-\d{2}$/.test(f.tuev) && tageBis(monatsDatum(f.tuev)) <= 31) liste.push({ datum: monatsDatum(f.tuev), tage: tageBis(monatsDatum(f.tuev)), icon: '✅', text: 'TÜV/HU ' + name + ' (' + f.tuev.split('-').reverse().join('/') + ')', ziel: 'fahrzeuge' });
+        (f.fixkosten || []).forEach(x => { if (x.faellig && /^\d{4}-\d{2}$/.test(x.faellig) && tageBis(monatsDatum(x.faellig)) <= bis) liste.push({ datum: monatsDatum(x.faellig), tage: tageBis(monatsDatum(x.faellig)), icon: '💶', text: (x.name || 'Fixkosten').replace(/^\S+\s/, '') + ' ' + name + (x.betrag ? ' · ' + euroText(x.betrag) : ''), ziel: 'fahrzeuge' }); });
+        (f.wartung || []).forEach(w => {
+          if (!(Number(w.monate) > 0)) return;
+          let datum = w.zuletztDatum || '';
+          ws.filter(x => x.fahrzeugId === f.id && Array.isArray(x.wartungIds) && x.wartungIds.includes(w.id)).forEach(x => { if ((x.datum || '') > datum) datum = x.datum; });
+          if (!datum) return;
+          const faellig = plusMonate(datum.slice(0, 10), Number(w.monate));
+          if (tageBis(faellig) <= bis) liste.push({ datum: faellig, tage: tageBis(faellig), icon: '🔧', text: String(w.name || 'Wartung').replace(/^\S+\s/, '') + ' ' + name, ziel: 'fahrzeuge' });
+        });
+      });
+    }
+    // 🔁 Haus-Wartung (Handwerk)
+    if (modulSichtbar('handwerk')) laden('handwerk_wartung', []).forEach(w => {
+      if (!w || w.pausiert || w.turnus === 'einmalig') return;
+      const letzte = (w.erledigt || []).length ? w.erledigt[w.erledigt.length - 1] : null;
+      const lTag = letzte ? toISODatum(new Date(letzte.datum)) : '';
+      let datum = null;
+      if (w.monat && (w.turnus === 'jaehrlich' || w.turnus === 'halbjaehrlich')) {
+        const monate = w.turnus === 'halbjaehrlich' ? [w.monat, ((w.monat + 5) % 12) + 1] : [w.monat];
+        const starts = []; [-1, 0, 1].forEach(dj => monate.forEach(m => starts.push(toISODatum(new Date(h.getFullYear() + dj, m - 1, 1)))));
+        starts.sort();
+        const start = starts.filter(x => x <= hIso).pop(), naechster = starts.find(x => x > hIso);
+        const toleranz = plusMonate(start, -1);
+        if (letzte ? lTag < toleranz : tageBis(start) > -92) datum = start; else datum = naechster;
+      } else if (letzte) {
+        datum = plusMonate(lTag, { monatlich: 1, vierteljaehrlich: 3, halbjaehrlich: 6, jaehrlich: 12 }[w.turnus] || 1);
+      }
+      if (!datum) return;
+      const z = w.zuweisung === 'fest' ? w.person : (w.zuweisung === 'rotation' && (w.rotationPersonen || []).length ? w.rotationPersonen[(w.rotationIndex || 0) % w.rotationPersonen.length] : null);
+      add(datum, w.icon || '🔁', w.titel || 'Wartung', 'handwerk', z);
+    });
+    // 🥫 Vorrat läuft ab (7 Tage)
+    if (modulSichtbar('vorratskammer')) laden('vorratskammer_items', []).forEach(i => {
+      const d = i.verfallsdatum || i.aufbrauchenBis;
+      if (!d || i.bestand === 'leer') return;
+      const t = tageBis(String(d).slice(0, 10));
+      if (t <= 7 && t >= -7) liste.push({ datum: String(d).slice(0, 10), tage: t, icon: '🥫', text: (i.name || 'Artikel') + (t < 0 ? ' abgelaufen' : ' läuft ab'), ziel: 'vorratskammer' });
+    });
+    liste.sort((a, b) => a.datum.localeCompare(b.datum));
+    return liste;
+  }
+  function renderDemnaechst() {
+    const liste = demnaechstSammeln();
+    const kachel = document.getElementById('kachelDemnaechst');
+    if (!liste.length) { kachel.style.display = 'none'; return; }
+    kachel.style.display = '';
+    const badge = document.getElementById('badgeDemnaechst');
+    badge.textContent = liste.length;
+    const tagText = t => t < 0 ? 'überfällig' : t === 0 ? 'heute' : t === 1 ? 'morgen' : t < 7 ? (() => { const h0 = heute(), d = new Date(h0.getFullYear(), h0.getMonth(), h0.getDate() + t); return d.toLocaleDateString('de-DE', { weekday: 'short' }) + ' ' + d.getDate() + '.'; })() : 'in ' + t + ' Tagen';
+    const box = document.getElementById('listeDemnaechst');
+    box.innerHTML = liste.slice(0, 7).map((e, i) => '<div class="mini-zeile" data-dn="' + i + '" style="cursor:pointer"><span class="dn-tag' + (e.tage <= 1 ? ' dringend' : '') + '">' + escapeHtml(tagText(e.tage)) + '</span><span>' + e.icon + '</span><span class="mini-name">' + escapeHtml(e.text) + '</span></div>').join('') +
+      (liste.length > 7 ? '<div class="mini-leer">+ ' + (liste.length - 7) + ' weitere</div>' : '');
+    box.querySelectorAll('[data-dn]').forEach(z => z.addEventListener('click', (ev) => { ev.stopPropagation(); navigiere(liste[+z.dataset.dn].ziel); }));
+  }
+
+  // ============================================================
+  // 💶 FINANZEN, 🧒 KINDER, 🎮 BILDSCHIRMZEIT
+  // ============================================================
+  function renderFinanzen() {
+    const kachel = document.getElementById('kachelFinanzen');
+    if (!modulSichtbar('finanzen')) { kachel.style.display = 'none'; return; }
+    const ausgaben = laden('finanzen_ausgaben', []);
+    const budget = Number((laden('finanzen_einstellungen', {}) || {}).monatsbudget) || 0;
+    const h = heute(), monat = toISODatum(h).slice(0, 7);
+    const summe = ausgaben.filter(a => String(a.datum || '').slice(0, 7) === monat).reduce((s, a) => s + (Number(a.betrag) || 0), 0);
+    if (!budget && !summe) { kachel.style.display = 'none'; return; }
+    kachel.style.display = '';
+    const monatsName = h.toLocaleDateString('de-DE', { month: 'long' });
+    const box = document.getElementById('finanzenInfo');
+    if (!budget) { box.innerHTML = '<div class="fin-zahl">' + euroText(summe) + '</div><div class="fin-klein">ausgegeben im ' + monatsName + '</div>'; return; }
+    const rest = budget - summe;
+    const tageRest = new Date(h.getFullYear(), h.getMonth() + 1, 0).getDate() - h.getDate() + 1;
+    const anteil = Math.min(100, summe / budget * 100);
+    const zeitAnteil = (h.getDate() - 1) / new Date(h.getFullYear(), h.getMonth() + 1, 0).getDate() * 100;
+    box.innerHTML = '<div class="fin-zahl">' + (rest >= 0 ? 'Noch ' + euroText(rest) : euroText(-rest) + ' drüber') + '</div>' +
+      '<div class="fin-balken"><div class="' + (rest < 0 ? 'ueber' : anteil > zeitAnteil + 10 ? 'knapp' : '') + '" style="width:' + anteil + '%"></div></div>' +
+      '<div class="fin-klein">' + euroText(summe) + ' von ' + euroText(budget) + ' im ' + monatsName + (rest > 0 ? ' · ≈ ' + euroText(rest / tageRest).replace(/,\d\d €$/, ' €') + ' pro Tag' : '') + '</div>';
+  }
+  document.getElementById('kachelFinanzen').addEventListener('click', () => navigiere('finanzen'));
+
+  function renderKinder() {
+    const kachel = document.getElementById('kachelKinder');
+    const kinderIds = ((laden('kinder_einstellungen', {}) || {}).kinder || []);
+    const personen = window.PLANER_PERSONEN || [];
+    const kinder = kinderIds.map(id => personen.find(p => p.id === id)).filter(Boolean);
+    if (!modulSichtbar('kinder') || !kinder.length) { kachel.style.display = 'none'; return; }
+    kachel.style.display = '';
+    const aufgaben = laden('haushalt_aufgaben', []);
+    const buchungen = laden('kinder_sterne', []);
+    const HL = window.HaushaltLogik;
+    document.getElementById('kinderInfo').innerHTML = kinder.map(k => {
+      const sterneJe = a => { const n = parseInt(a.sterne, 10); return isNaN(n) ? 1 : Math.max(0, n); };
+      const sterne = aufgaben.reduce((s, a) => s + (a.erledigt || []).filter(e => e.von === k.id).length * sterneJe(a), 0) + buchungen.filter(b => b.personId === k.id).reduce((s, b) => s + (Number(b.anzahl) || 0), 0);
+      const offen = HL ? aufgaben.filter(a => !a.pausiert && HL.zustaendigId(a, 0) === k.id && HL.status(a).offen).length : 0;
+      return '<div class="kind-zeile"><span class="kind-punkt" style="background:' + escapeHtml(k.farbe || '#4f6f45') + '">' + escapeHtml((k.label || '?').charAt(0)) + '</span><span class="mini-name">' + escapeHtml(k.label) + '</span>' +
+        '<span class="mini-zeit" style="min-width:0">⭐ ' + sterne + '</span><span class="mini-zeit" style="min-width:0">' + (offen ? '✅ ' + offen + ' offen' : '✓ alles erledigt') + '</span></div>';
+    }).join('');
+  }
+  document.getElementById('kachelKinder').addEventListener('click', () => navigiere('kinder'));
+
+  function renderGaming() {
+    const kachel = document.getElementById('kachelGaming');
+    const limits = laden('gaming_limits', {}) || {};
+    const ids = Object.keys(limits).filter(id => limits[id] && limits[id].tag);
+    if (!modulSichtbar('gaming') || !ids.length) { kachel.style.display = 'none'; return; }
+    kachel.style.display = '';
+    const sitzungen = laden('gaming_sessions', []);
+    const hIso = toISODatum(heute());
+    const personen = window.PLANER_PERSONEN || [];
+    document.getElementById('gamingInfo').innerHTML = ids.map(id => {
+      const p = personen.find(x => x.id === id) || { label: id, farbe: '#7d6339' };
+      const min = sitzungen.filter(sz => sz.person === id && sz.datum === hIso).reduce((s, sz) => s + (Number(sz.minuten) || 0), 0);
+      const lim = Number(limits[id].tag);
+      return '<div class="kind-zeile"><span class="kind-punkt" style="background:' + escapeHtml(p.farbe || '#7d6339') + '">' + escapeHtml((p.label || '?').charAt(0)) + '</span><span style="min-width:56px">' + escapeHtml(p.label) + '</span>' +
+        '<div class="gz-balken"><div class="' + (min > lim ? 'ueber' : '') + '" style="width:' + Math.min(100, min / lim * 100) + '%"></div></div><span class="mini-zeit" style="min-width:0;text-align:right">' + min + '/' + lim + ' Min.</span></div>';
+    }).join('');
+  }
+  document.getElementById('kachelGaming').addEventListener('click', () => navigiere('gaming'));
+
+  // ============================================================
+  // 🔄 LIVE: Änderungen anderer Geräte sofort anzeigen (nur lesen; geschrieben wird
+  // nur beim Abhaken/Hinzufügen direkt auf der Startseite)
+  // ============================================================
+  window.homeAllesRendern = function () {
+    begruessungAktualisieren(); ansichtSchalterRendern();
+    renderHeuteZeile(); renderTermine(); renderDemnaechst(); renderEinkauf(); renderSport(); renderKochenHeute(); renderHaushalt();
+    renderFinanzen(); renderKinder(); renderGaming(); renderDieseWoche();
+  };
+  let liveTimer = null;
+  function liveNeuZeichnen() { clearTimeout(liveTimer); liveTimer = setTimeout(() => { try { window.homeAllesRendern(); } catch (e) { console.warn('Übersicht: Neuzeichnen', e); } }, 300); }
+  const liveSync = {};
+  if (window.PlanerSync) {
+    const LIVE = [
+      ['termine', 'termine', ['termine_events_v1']], ['einkauf', 'einkauf', ['einkauf_listen']], ['haushalt', 'haushalt', ['haushalt_aufgaben']],
+      ['kochen', 'kochen', ['kochen_wochenplan']], ['gesundheit', 'gesundheit', ['gesundheit_sport']], ['vorratskammer', 'vorratskammer', ['vorratskammer_items']],
+      ['finanzen', 'finanzen', ['finanzen_ausgaben', 'finanzen_abos', 'finanzen_einstellungen']], ['fahrzeuge', 'fahrzeuge', ['fahrzeuge_liste', 'fahrzeuge_werkstatt']],
+      ['kinder', 'kinder', ['kinder_einstellungen', 'kinder_sterne']], ['gaming', 'gaming', ['gaming_sessions', 'gaming_limits']], ['handwerk', 'handwerk', ['handwerk_wartung']],
+    ];
+    LIVE.forEach(([name, modul, keys]) => {
+      if (!modulSichtbar(name)) return;
+      try { liveSync[name] = window.PlanerSync.starteSync({ modul, keys, onRemoteChange: liveNeuZeichnen }); } catch (e) { console.warn('Übersicht: Live-Sync', name, e); }
+    });
+  }
+  // Tageswechsel: Begrüßung, „heute“ und Fälligkeiten von selbst umstellen
+  let letzterTag = toISODatum(heute()), letzteStunde = new Date().getHours();
+  setInterval(() => {
+    const t = toISODatum(heute()), st = new Date().getHours();
+    if (t !== letzterTag || st !== letzteStunde) { letzterTag = t; letzteStunde = st; liveNeuZeichnen(); }
+  }, 60000);
+  window.addEventListener('storage', (e) => { if (e.key === 'planer_geraetIdentitaet' || e.key === 'planer_personenListe') liveNeuZeichnen(); });
+
   renderErfolge();
   renderTermine();
+  renderDemnaechst();
+  renderFinanzen();
+  renderKinder();
+  renderGaming();
   renderEinkauf();
   renderHeuteZeile();
   renderSport();
@@ -1688,7 +2084,7 @@
 
   // Bei Rückkehr auf die Startseite (z.B. nach Bearbeitung in einem anderen Modul) neu laden
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) { renderHeuteZeile(); renderTermine(); renderEinkauf(); renderSport(); renderGartenWarnungen(); renderGartenPflanzErnte(); renderKochenHeute(); renderHaushalt(); renderDieseWoche(); renderErfolge(); feedbackEintraege = laden(KEY_FEEDBACK, feedbackEintraege); feedbackListeRendern(); versteckteKachelnAnwenden(); }
+    if (!document.hidden) { renderDemnaechst(); renderFinanzen(); renderKinder(); renderGaming(); begruessungAktualisieren(); ansichtSchalterRendern(); renderHeuteZeile(); renderTermine(); renderEinkauf(); renderSport(); renderGartenWarnungen(); renderGartenPflanzErnte(); renderKochenHeute(); renderHaushalt(); renderDieseWoche(); renderErfolge(); feedbackEintraege = laden(KEY_FEEDBACK, feedbackEintraege); feedbackListeRendern(); versteckteKachelnAnwenden(); }
   });
 })();
 </script>

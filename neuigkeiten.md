@@ -2,6 +2,12 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
+## 2026-10-26 | 🏠 Übersicht: live, zum Abhaken & „Demnächst“
+Die Startseite aktualisiert sich jetzt sofort, wenn jemand auf einem anderen Gerät Termine, Einkauf, Haushalt & Co. ändert. Bisher sah man das erst nach dem Öffnen des jeweiligen Bereichs. Haushaltsaufgaben und Einkaufsartikel lassen sich direkt auf der Startseite abhaken, und neue Artikel kommen über das ＋-Feld auf die Liste („Milch, Brot“). Die neue Kachel „⏰ Demnächst“ sammelt die nächsten 14 Tage: Geburtstage, Abo-Fristen und Abbuchungen, TÜV, KFZ-Fixkosten und Auto-Wartung, Haus-Wartungen und ablaufende Lebensmittel. Die Termine zeigen auch „Morgen“; ab 18 Uhr steht der nächste Tag oben.
+
+## 2026-10-26 | 💶 Neue Kacheln & „Für mich“-Ansicht
+Neue Kacheln für 💶 Finanzen („Noch 399 € im Oktober · ≈ 66 € pro Tag“), 🧒 Kinder (Sterne und offene Aufgaben) und 🎮 Bildschirmzeit heute. Alle lassen sich mit ↕️ anordnen und ausblenden. Ist das Gerät einer Person zugeordnet, begrüßt die Startseite sie mit Namen. Der Umschalter 👪 Familie / 👤 Ich zeigt dann nur die eigenen Termine, Aufgaben und Fälligkeiten.
+
 ## 2026-10-26 | 📐 Hausplan: Zoomen, Messen & schlauere Möbel
 Auf dem Handy lässt sich der Plan jetzt mit zwei Fingern zoomen und verschieben (am PC mit Strg + Mausrad). ⤢ holt den ganzen Plan ins Bild. Neu ist das 📏 Maßband: zwei Punkte antippen, und die Länge steht da. Mit „📌 Behalten“ bleibt sie als Maßlinie im Plan und im PDF. Möbel zeigen Name und Maße („Sofa 200×90“), Überschneidungen werden rot markiert, und beim Verschieben steht der Abstand zur nächsten Wand dabei („↔ 35 cm“). Dazu kommen 11 neue Möbel, u. a. Schreibtisch, Kleiderschrank, Küchenzeile, Waschmaschine, Kinderbett und Teppich.
 
