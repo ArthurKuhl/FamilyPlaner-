@@ -2,6 +2,12 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
+## 2026-10-26 | 🧹 Haushalt: flexible Turnusse, Räume & Starter-Pakete
+Aufgaben können jetzt auch „alle X Tage“ oder „alle X Wochen“ fällig sein, gezählt ab dem letzten Mal (z. B. Bettwäsche alle 2 Wochen). Was an seinem Tag liegen bleibt, verschwindet nicht mehr, sondern steht als „⚠️ überfällig seit Sa“ oben. „⏭ Diesmal überspringen“ lässt einen Termin aus, ohne dass er als erledigt zählt. Jede Aufgabe kann einen Raum bekommen (Küche, Bad, Wohnen …), mit Raum-Filter und Gruppierung. Fünf 📦 Starter-Pakete (Küche, Bad, Wohnen & Schlafen, Wäsche, Kinder-Ämtli) legen passende Aufgaben mit wenigen Häkchen an. Behoben: Kurz nach Mitternacht zählte noch der Vortag.
+
+## 2026-10-26 | 📅 Wochenplan, ⚖️ faire Verteilung & schnelles Abhaken
+Neuer Reiter „📅 Woche“: Er zeigt Montag bis Sonntag, was fällig ist und wer laut Rotation dran ist. Mit „📤 teilen“ geht der Plan z. B. in den Familien-Chat. Pro Aufgabe lässt sich ein Aufwand (⏱ Minuten) einstellen. Die Statistik zeigt Zeit pro Person im Vergleich zum Vormonat bzw. zur Vorwoche und Serien („🔥 7 Tage am Stück“). Für die Kinderecke kann jede Aufgabe mehr ⭐ Sterne wert sein. Langes Drücken auf den Haken trägt die Aufgabe sofort für „dieses Gerät“ ein. Rückgängig und Löschen gehen jetzt per „Rückgängig“ statt per Nachfrage. Foto-Beweise liegen im Familien-Fotospeicher. Handwerk-Saisonaufgaben bekommen jetzt auch eine Push-Erinnerung im passenden Monat.
+
 ## 2026-10-26 | 🔨 Handwerk: Fotos, Vorher/Nachher & Kosten
 Projektfotos liegen jetzt im Familien-Fotospeicher: schärfer und ohne 1-MB-Grenze. Vorhandene Fotos werden automatisch umgezogen, Skizzen-Vorschaubilder sind deutlich kleiner. Fotos lassen sich als „Vorher“ oder „Nachher“ markieren, und „↔️ Vorher / Nachher vergleichen“ zeigt beide Bilder mit einem Schieberegler übereinander. Beim „✅ Projekt abschließen“ fragt die App, was es gekostet hat (vorausgefüllt mit der Materialsumme), und bucht den Betrag auf Wunsch in 💰 Finanzen (Kategorie „🔨 Handwerk“). Über den Projekten steht die Jahresbilanz: „2026: 3 Projekte fertig · 840 €“. Behoben: „🛒 Material zum Einkauf“ kam bisher nur auf dem eigenen Gerät an.
 

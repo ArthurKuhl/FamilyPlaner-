@@ -256,6 +256,7 @@
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
 <script src="sync.js"></script>
+<script src="haushaltlogik.js"></script>
 </head>
 <body>
 
@@ -959,6 +960,7 @@
     return liste.find(p => p.id === id) || { id, label: id, farbe: '#7d6339' };
   }
   function haushaltIstFaelligOffen(a) {
+    if (window.HaushaltLogik) return window.HaushaltLogik.status(a).offen;
     if (a.pausiert) return false;
     const heute = new Date().toISOString().slice(0, 10);
     const letzte = (a.erledigt && a.erledigt.length) ? a.erledigt[a.erledigt.length - 1] : null;

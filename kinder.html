@@ -10,6 +10,7 @@
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
 <script src="personen.js"></script>
 <script src="sync.js"></script>
+<script src="haushaltlogik.js"></script>
 <script src="pflanzendaten.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap');
@@ -148,6 +149,7 @@
   // ---------- Haushalt-Aufgaben (gleiche Fälligkeitslogik wie im Haushalt-Modul) ----------
   function letzte(a) { return a.erledigt && a.erledigt.length ? a.erledigt[a.erledigt.length - 1] : null; }
   function heuteFaellig(a) {
+    if (window.HaushaltLogik) return window.HaushaltLogik.status(a).offen;
     if (a.pausiert) return false;
     const l = letzte(a), heute = heuteISO();
     if (a.turnus === 'taeglich') return !l || (l.datum || '').slice(0, 10) !== heute;
@@ -156,7 +158,7 @@
     if (a.turnus === 'einmalig') return !l;
     return false;
   }
-  function heuteErledigt(a) { const l = letzte(a); return !!l && (l.datum || '').slice(0, 10) === heuteISO(); }
+  function heuteErledigt(a) { if (window.HaushaltLogik) return window.HaushaltLogik.heuteErledigt(a); const l = letzte(a); return !!l && (l.datum || '').slice(0, 10) === heuteISO(); }
   function zustaendig(a) {
     if (a.zuweisung === 'fest') return a.person || null;
     if (a.zuweisung === 'rotation' && (a.rotationPersonen || []).length) return a.rotationPersonen[(a.rotationIndex || 0) % a.rotationPersonen.length];
@@ -166,7 +168,9 @@
   // ---------- Sterne: 1 ⭐ pro erledigter Aufgabe + Bonus − eingelöst ----------
   function sterneVon(kindId) {
     const aufgaben = laden('haushalt_aufgaben', []);
-    const verdient = aufgaben.reduce((s, a) => s + (a.erledigt || []).filter(e => e.von === kindId).length, 0);
+    // Sterne pro Aufgabe lassen sich im Haushalt einstellen (Standard 1)
+    const sterneJe = a => { const n = parseInt(a.sterne, 10); return isNaN(n) ? 1 : Math.max(0, n); };
+    const verdient = aufgaben.reduce((s, a) => s + (a.erledigt || []).filter(e => e.von === kindId).length * sterneJe(a), 0);
     const buchungen = laden(KEY_STERNE, []).filter(b => b.personId === kindId);
     return verdient + buchungen.reduce((s, b) => s + (Number(b.anzahl) || 0), 0);
   }
@@ -323,7 +327,7 @@
     // Aufgaben
     html += '<div class="karte"><h2>✅ Meine Aufgaben heute</h2>';
     if (!offen.length && !fertig.length) html += '<p class="klein">Keine Aufgaben für heute. Eltern können im 🧹 Haushalt Aufgaben für dich anlegen.</p>';
-    offen.forEach(a => { html += '<div class="aufgabe"><span class="a-titel">' + esc(a.titel) + '</span><button class="knopf-gross gold" data-erledigt="' + esc(a.id) + '">Erledigt! ⭐</button></div>'; });
+    offen.forEach(a => { html += '<div class="aufgabe"><span class="a-titel">' + esc(a.titel) + '</span><button class="knopf-gross gold" data-erledigt="' + esc(a.id) + '">Erledigt! ' + (() => { const n = parseInt(a.sterne, 10); const z = isNaN(n) ? 1 : Math.max(0, n); return z === 0 ? '✓' : (z > 1 ? '+' + z + ' ' : '') + '⭐'; })() + '</button></div>'; });
     fertig.forEach(a => { html += '<div class="aufgabe fertig"><span class="a-titel">' + esc(a.titel) + '</span><span>✅</span></div>'; });
     html += '</div>';
     // Garten-Beete
