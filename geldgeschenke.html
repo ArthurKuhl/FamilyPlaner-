@@ -344,14 +344,14 @@
       btn.addEventListener('click', () => {
         clearTimeout(el._timeout);
         try { optionen.rueckgaengig(); } catch (e) { console.warn('showTempStatus: Rückgängig-Aktion fehlgeschlagen', e); }
-        el.style.opacity = '0';
+        el.style.opacity = '0'; el.style.pointerEvents = 'none';
         el.style.transform = 'translate(-50%,20px)';
       });
       el.appendChild(btn);
     }
     clearTimeout(el._timeout);
     el._timeout = setTimeout(() => {
-      el.style.opacity = '0';
+      el.style.opacity = '0'; el.style.pointerEvents = 'none';
       el.style.transform = 'translate(-50%,20px)';
     }, (sekunden || 2.5) * 1000);
   }

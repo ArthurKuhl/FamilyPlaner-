@@ -473,7 +473,7 @@
       { id: 'chat',        label: 'Chat',      emoji: '💬', src: 'chat.html' }, // Familien-Chat: eigene Cloud-Sammlung, kein syncKeys-Dokument
       { id: 'wunschliste', label: 'Wunschliste', emoji: '🎁', src: 'wunschliste.html', syncModul: 'termine', syncKeys: ['termine_wunschliste'] },
       { id: 'gesundheit',  label: 'Gesundheit',emoji: '🏃', src: 'gesundheit.html', syncKeys: ['gesundheit_tageswerte','gesundheit_sport','gesundheit_rechner','gesundheit_medikamente','gesundheit_medErledigt','gesundheit_ziele','gesundheit_trainingslog','gesundheit_eigeneUebungen','gesundheit_zyklus','gesundheit_trainingsplan'] },
-      { id: 'einkauf',     label: 'Einkauf',   emoji: '🛒', src: 'einkauf.html', syncKeys: ['einkauf_listen','einkauf_favoriten','einkauf_vorlagen','einkauf_preise'],
+      { id: 'einkauf',     label: 'Einkauf',   emoji: '🛒', src: 'einkauf.html', syncKeys: ['einkauf_listen','einkauf_favoriten','einkauf_vorlagen','einkauf_preise','einkauf_kaufhaeufigkeit'],
         zusatzSync: [{ modul: 'einkauf_produkte', keys: ['planer_produkte'] }] }, // gescannte Produkte (Strichcode → Name, Allergene, Nährwerte)
       { id: 'kochen',      label: 'Kochen',    emoji: '🍳', src: 'kochen.html', syncKeys: ['kochen_rezepte','kochen_wochenplan'],
         syncTransform: (werte) => window.PlanerSync ? window.PlanerSync.entferneFotosTief(werte) : werte },

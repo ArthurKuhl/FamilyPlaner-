@@ -174,6 +174,57 @@
   .item-loeschen { background: none; border: none; color: var(--parchment); font-size: 1rem; padding: 2px 4px; cursor: pointer; }
   .item-loeschen:hover { color: var(--terracotta-text); }
 
+  /* 💶 Geschätzte Summe, 🔁 Fehlt vielleicht, 🏠 Vorrat */
+  .summe-zeile { text-align: center; font-size: 0.8rem; color: var(--bark); padding: 4px 8px 10px; }
+  .summe-zeile b { color: var(--soil); }
+  .fehlt-box { background: var(--white); border-radius: var(--radius-md); padding: 9px 10px 8px; margin-bottom: 12px; box-shadow: var(--shadow-soft); }
+  .fehlt-titel { font-size: 0.72rem; font-weight: 700; color: var(--bark); text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 6px; }
+  .fehlt-reihe { display: flex; flex-wrap: wrap; gap: 6px; }
+  .fehlt-chip { display: inline-flex; align-items: center; border: 1px solid var(--parchment); background: var(--cream); border-radius: var(--radius-pill); overflow: hidden; }
+  .fehlt-chip button { background: none; border: none; color: var(--soil); font: 600 0.76rem 'Inter', sans-serif; padding: 6px 4px 6px 11px; cursor: pointer; }
+  .fehlt-chip button small { font-weight: 400; color: var(--bark); margin-left: 3px; }
+  .fehlt-chip .fehlt-weg { color: var(--bark); padding: 6px 9px 6px 5px; font-size: 0.72rem; }
+  .vorrat-badge { background: rgba(79,111,69,0.15); color: var(--moss-text, var(--moss)); }
+
+  /* 🔀 Reihenfolge im Laden */
+  .reihenfolge-liste { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
+  .rf-zeile { display: flex; align-items: center; gap: 8px; background: var(--white); border-radius: var(--radius-sm); padding: 5px 6px 5px 10px; font-size: 0.84rem; }
+  .rf-zeile .rf-nr { width: 18px; font-weight: 700; color: var(--bark); font-size: 0.75rem; }
+  .rf-zeile .rf-name { flex: 1; min-width: 0; }
+  .rf-zeile button { background: var(--parchment); color: var(--soil); border: none; border-radius: 8px; width: 34px; height: 30px; cursor: pointer; font-size: 0.8rem; }
+  .rf-zeile button:disabled { opacity: 0.3; cursor: default; }
+
+  /* 🛍️ Einkaufsmodus */
+  #ladenModus { position: fixed; inset: 0; z-index: 90; background: var(--cream); display: none; flex-direction: column; }
+  #ladenModus.an { display: flex; }
+  .lm-kopf { flex-shrink: 0; background: linear-gradient(135deg, var(--navbg2), var(--navbg)); color: var(--leaf); padding: 10px 14px 8px; }
+  .lm-kopf-zeile { display: flex; align-items: center; gap: 10px; }
+  .lm-kopf h2 { flex: 1; min-width: 0; font-family: 'Playfair Display', serif; font-size: 1.15rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .lm-zaehler { font-weight: 700; font-size: 1rem; font-variant-numeric: tabular-nums; }
+  .lm-kopf button { background: rgba(255,255,255,0.12); color: var(--leaf); border: none; border-radius: 999px; padding: 7px 12px; font: 700 0.8rem 'Inter', sans-serif; cursor: pointer; }
+  .lm-fortschritt { height: 6px; border-radius: 3px; background: rgba(255,255,255,0.15); margin-top: 8px; overflow: hidden; }
+  .lm-fortschritt span { display: block; height: 100%; background: var(--sage); transition: width 0.25s; }
+  .lm-hinweis { font-size: 0.7rem; opacity: 0.8; margin-top: 5px; }
+  #lmListe { flex: 1; overflow-y: auto; padding: 10px 12px 20px; -webkit-overflow-scrolling: touch; }
+  .lm-gruppe { font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; margin: 12px 4px 6px; }
+  .lm-markt { font-size: 0.9rem; font-weight: 800; color: var(--leaf); background: var(--moss); border-radius: var(--radius-md); padding: 8px 12px; margin: 14px 0 4px; }
+  .lm-item { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; background: var(--white); color: var(--soil); border: none; border-radius: 14px; padding: 15px 14px; margin-bottom: 8px; box-shadow: var(--shadow-soft); font: 600 1.12rem 'Inter', sans-serif; cursor: pointer; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+  .lm-item .lm-kreis { width: 30px; height: 30px; border-radius: 50%; border: 3px solid var(--sage); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1rem; color: var(--white); }
+  .lm-item .lm-text { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+  .lm-item .lm-menge { display: inline-block; font-size: 0.9rem; font-weight: 800; color: var(--terracotta-text); margin-right: 6px; }
+  .lm-item .lm-preis { font-size: 0.75rem; font-weight: 600; color: var(--bark); white-space: nowrap; }
+  .lm-item.drin { opacity: 0.55; box-shadow: none; }
+  .lm-item.drin .lm-kreis { background: var(--sage); }
+  .lm-item.drin .lm-text { text-decoration: line-through; }
+  .lm-fuss { flex-shrink: 0; display: flex; gap: 8px; padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--parchment); background: var(--cream); }
+  .lm-fuss .btn { flex: 1; }
+  .lm-fertig-box { background: var(--white); border-radius: var(--radius-md); padding: 14px; margin: 10px 0; }
+  .lm-fertig-box h3 { font-family: 'Playfair Display', serif; font-size: 1.05rem; margin-bottom: 6px; }
+  .lm-fertig-box p { font-size: 0.8rem; color: var(--bark); line-height: 1.45; margin-bottom: 8px; }
+  .lm-fertig-box input { width: 100%; padding: 11px 12px; border-radius: 10px; border: 1px solid var(--parchment); background: var(--cream); color: var(--soil); font: 1.05rem 'Inter', sans-serif; }
+  .lm-fertig-box label.lm-check { display: flex; align-items: center; gap: 8px; font-size: 0.84rem; margin-top: 10px; }
+  .lm-fertig-box label.lm-check input { width: 20px; height: 20px; }
+
   .erledigt-section { margin-top: 18px; border-top: 1px solid var(--parchment); padding-top: 12px; }
   .erledigt-kopf { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
   .erledigt-loeschen-btn {
@@ -254,6 +305,7 @@
     <h1>🛒 Einkauf</h1>
     <button class="theme-btn" id="btnThemeAuswahl" title="Hintergrundmuster wählen">🎨</button>
     <div style="display:flex; gap:4px;">
+      <button class="listen-icon-btn" id="btnLadenModus" title="Einkaufsmodus für den Laden" aria-label="Einkaufsmodus starten">🛍️</button>
       <button class="listen-icon-btn" id="btnDeals" title="Aktuelle Schnäppchen">🌐</button>
       <button class="listen-icon-btn" id="btnTeilen" title="Liste teilen (WhatsApp, SMS, …)">📤</button>
       <button class="listen-icon-btn" id="btnVorlagen" title="Vorlagen">📋</button>
@@ -305,10 +357,12 @@
   <button type="button" id="btnAlleVorschlaegeToggle" class="filter-chip" style="margin-bottom:10px;">▸ Alle Vorschläge verwalten</button>
   <button type="button" id="btnHaeufigkeitOeffnen" class="filter-chip" style="margin-bottom:10px;">📊 Meistgekauft</button>
   <div id="alleVorschlaegeBox" style="display:none;margin-bottom:12px;background:var(--white);border-radius:var(--radius-md);padding:10px 12px;"></div>
+  <div class="fehlt-box" id="fehltBox" style="display:none;"></div>
   <div style="display:flex; justify-content:flex-end; margin-bottom:6px;">
     <button class="filter-chip" id="btnSortRichtung">🔤 A–Z</button>
   </div>
   <div id="offeneItems"></div>
+  <div class="summe-zeile" id="summeZeile"></div>
   <div id="erledigtSection" class="erledigt-section" style="display:none;">
     <div class="erledigt-kopf">
       <button class="filter-chip" id="btnErledigtToggle">▸ Erledigt (<span id="erledigtAnzahl">0</span>)</button>
@@ -428,6 +482,24 @@
 </div>
 
 <!-- Liste verwalten -->
+<!-- 🛍️ Einkaufsmodus -->
+<div id="ladenModus" role="dialog" aria-label="Einkaufsmodus">
+  <div class="lm-kopf">
+    <div class="lm-kopf-zeile">
+      <h2 id="lmTitel">🛍️ Einkaufen</h2>
+      <span class="lm-zaehler" id="lmZaehler"></span>
+      <button type="button" id="btnLmZu" aria-label="Einkaufsmodus beenden">✕</button>
+    </div>
+    <div class="lm-fortschritt"><span id="lmBalken" style="width:0%"></span></div>
+    <div class="lm-hinweis" id="lmHinweis">Antippen = in den Wagen · lange drücken = Preis notieren</div>
+  </div>
+  <div id="lmListe"></div>
+  <div class="lm-fuss">
+    <button type="button" class="btn btn-secondary" id="btnLmPause">⏸ Später weiter</button>
+    <button type="button" class="btn btn-primary" id="btnLmFertig">✅ Fertig</button>
+  </div>
+</div>
+
 <div class="modal-bg" id="modalListe">
   <div class="modal">
     <h2>Liste verwalten</h2>
@@ -443,9 +515,15 @@
       <input type="checkbox" id="fListeIstUebersicht" style="width:20px;height:20px;">
       <label for="fListeIstUebersicht" style="margin:0;">📋 Ist die Gesamtübersicht aller Märkte</label>
     </div>
+    <div class="feld">
+      <label>🔀 Reihenfolge im Laden</label>
+      <div style="font-size:0.75rem;color:var(--bark);">So wie du durch diesen Markt läufst – die Liste und der 🛍️ Einkaufsmodus sortieren danach.</div>
+      <div class="reihenfolge-liste" id="reihenfolgeListe"></div>
+      <button type="button" class="filter-chip" id="btnReihenfolgeStandard" style="margin-top:6px;">↺ Standard-Reihenfolge</button>
+    </div>
     <div class="modal-btns">
       <button class="btn btn-secondary" id="btnListeAbbrechen">Abbrechen</button>
-      <button class="btn btn-primary" id="btnListeUmbenennen">Umbenennen</button>
+      <button class="btn btn-primary" id="btnListeUmbenennen">💾 Speichern</button>
     </div>
     <div class="modal-btns">
       <button class="btn btn-danger" id="btnListeLoeschen">Diese Liste löschen</button>
@@ -580,14 +658,14 @@
       btn.addEventListener('click', () => {
         clearTimeout(el._timeout);
         try { optionen.rueckgaengig(); } catch (e) { console.warn('showTempStatus: Rückgängig-Aktion fehlgeschlagen', e); }
-        el.style.opacity = '0';
+        el.style.opacity = '0'; el.style.pointerEvents = 'none';
         el.style.transform = 'translate(-50%,20px)';
       });
       el.appendChild(btn);
     }
     clearTimeout(el._timeout);
     el._timeout = setTimeout(() => {
-      el.style.opacity = '0';
+      el.style.opacity = '0'; el.style.pointerEvents = 'none';
       el.style.transform = 'translate(-50%,20px)';
     }, (sekunden || 2.5) * 1000);
   }
@@ -730,7 +808,8 @@
   let vorratSyncHandle = null;
   function starteVorratSync() {
     if (typeof PlanerSync === 'undefined') return;
-    vorratSyncHandle = PlanerSync.starteSync({ modul: 'vorratskammer', keys: [KEY_VORRAT_EINGANG] });
+    // Bestand (vorratskammer_items) nur mitlesen – für den 🏠-Hinweis „noch genug da“
+    vorratSyncHandle = PlanerSync.starteSync({ modul: 'vorratskammer', keys: [KEY_VORRAT_EINGANG, 'vorratskammer_items'], onRemoteChange: () => renderAlles() });
   }
   function vorratEingangHinzufuegen(item) {
     try {
@@ -881,6 +960,62 @@
   }
 
   function aktiveListe() { return listen.find(l => l.id === aktiveListeId) || listen[0]; }
+  // 🔀 Kategorien in der Reihenfolge, in der man durch diesen Markt läuft
+  function kategorienFuer(liste) {
+    const r = (liste && Array.isArray(liste.kategorieReihenfolge)) ? liste.kategorieReihenfolge : [];
+    const geordnet = r.map(id => KATEGORIEN.find(k => k.id === id)).filter(Boolean);
+    return geordnet.concat(KATEGORIEN.filter(k => !geordnet.includes(k)));
+  }
+  function kategorieIndex(liste, kat) {
+    const i = kategorienFuer(liste).findIndex(k => k.id === kat);
+    return i < 0 ? 99 : i;
+  }
+  // 💶 Letzter bekannter Preis × Stückzahl (bei Gewichtsangaben über den kg-Preis)
+  function geschaetzterPreis(item) {
+    const hist = preisHistorie(item.name);
+    if (!hist.length) return null;
+    const e = hist[hist.length - 1];
+    const zahl = zahlOderNull(item.menge);
+    const einheit = String(item.einheit || '').trim().toLowerCase();
+    if (e.proKg && zahl !== null && (einheit === 'kg' || einheit === 'g')) return e.proKg * (einheit === 'g' ? zahl / 1000 : zahl);
+    const stueckEinheit = !einheit || /^(stück|stk|packung(en)?|pack|dose(n)?|flasche(n)?|bund|x|×)$/.test(einheit);
+    if (zahl !== null && stueckEinheit) {
+      if (e.proStueck && e.einheit === 'stueck') return e.proStueck * zahl;
+      return e.preis * zahl;
+    }
+    return e.preis;
+  }
+  function summeHtml(items) {
+    if (!items.length) return '';
+    let summe = 0, bekannt = 0;
+    items.forEach(i => { const p = geschaetzterPreis(i); if (p !== null && isFinite(p)) { summe += p; bekannt++; } });
+    if (!bekannt) return '';
+    return '💶 Geschätzt <b>ca. ' + preisFormatEuro(Math.round(summe * 10) / 10) + '</b>' +
+      (bekannt < items.length ? ' · ' + bekannt + ' von ' + items.length + ' Artikeln mit bekanntem Preis' : '');
+  }
+  // 🏠 Vorrat: ist das Produkt laut Vorratskammer noch gut da?
+  function vorratNorm(n) { return String(n || '').trim().toLowerCase().replace(/(en|n|e|s)$/, ''); }
+  function vorratStand(name) {
+    let items = [];
+    try { items = JSON.parse(localStorage.getItem('vorratskammer_items') || '[]') || []; } catch (e) {}
+    const k = vorratNorm(name);
+    if (!k) return null;
+    const treffer = items.find(v => v && v.name && vorratNorm(v.name) === k && (v.bestand === 'viel' || v.bestand === 'mittel'));
+    return treffer ? treffer.bestand : null;
+  }
+  // 🔁 Kaufdaten merken (für „Fehlt vielleicht?“)
+  function kaufMerken(item) {
+    const key = preisNormName(item.name);
+    const eintrag = kaufHaeufigkeit[key] || { name: item.name, anzahl: 0 };
+    eintrag.name = item.name;
+    eintrag.anzahl = (eintrag.anzahl || 0) + 1;
+    const heute = new Date().toISOString().slice(0, 10);
+    const daten = Array.isArray(eintrag.daten) ? eintrag.daten.filter(d => d !== heute) : [];
+    daten.push(heute);
+    eintrag.daten = daten.slice(-12);
+    kaufHaeufigkeit[key] = eintrag;
+    speichern(KEY_KAUFHAEUFIGKEIT, kaufHaeufigkeit);
+  }
   function speichernListen() { speichern(KEY_LISTEN, listen); }
   function speichernFavoriten() { speichern(KEY_FAVORITEN, favoriten); }
 
@@ -1101,12 +1236,38 @@
     dl.innerHTML = Array.from(namen.values()).sort((a, b) => a.name.localeCompare(b.name, 'de'))
       .map(v => '<option value="' + escapeHtml(v.name) + '"' + (v.info ? ' label="' + escapeHtml(v.info) + '"' : '') + '>').join('');
   }
+  // „Milch, 2 Brot; 500 g Mehl“ → drei Einträge („1,5 kg“ bleibt zusammen: Komma zwischen Ziffern trennt nicht)
+  function eingabeAufteilen(text) {
+    return String(text).split(/\s*[;\n]\s*|,\s+|,(?!\d)/).map(t => t.trim()).filter(Boolean);
+  }
   function itemHinzufuegen() {
     const eingabe = document.getElementById('fSchnellEingabe');
     const mengenFeld = document.getElementById('fSchnellMenge');
     const text = eingabe.value.trim();
     if (!text) { if (mengenFeld.value.trim()) eingabe.focus(); return; }
-    const feldMenge = parseMengenFeld(mengenFeld.value);
+    const teile = mengenFeld.value.trim() ? [text] : eingabeAufteilen(text);
+    if (teile.length > 1) {
+      const vorrat = [];
+      teile.forEach(t => { const n = einzelnHinzufuegen(t, null); if (n && vorratStand(n) === 'viel') vorrat.push(n); });
+      speichernListen();
+      speichernFavoriten();
+      eingabe.value = '';
+      renderAlles();
+      eingabe.focus();
+      showTempStatus('🛒 ' + teile.length + ' Artikel hinzugefügt' + (vorrat.length ? ' · 🏠 laut Vorrat noch viel da: ' + vorrat.join(', ') : ''), vorrat.length ? 6 : 3);
+      return;
+    }
+    const name = einzelnHinzufuegen(text, parseMengenFeld(mengenFeld.value));
+    speichernListen();
+    speichernFavoriten();
+    eingabe.value = '';
+    mengenFeld.value = '';
+    renderAlles();
+    eingabe.focus();
+    const stand = name && vorratStand(name);
+    if (stand) showTempStatus('🏠 Laut Vorratskammer ist von „' + name + '“ ' + (stand === 'viel' ? 'noch viel' : 'noch etwas') + ' da', 5);
+  }
+  function einzelnHinzufuegen(text, feldMenge) {
     let { menge, einheit, name } = parseSchnellEingabe(text);
     if (feldMenge) { menge = feldMenge.menge; einheit = feldMenge.einheit; name = text; }
     let liste = aktiveListe();
@@ -1128,12 +1289,7 @@
     const prodFav = bekanntesProdukt(name);
     const kategorieFuerFavorit = kandidat ? kandidat.kategorie : ((prodFav && prodFav.kategorie && !favoriten[key]) ? prodFav.kategorie : schaetzeKategorie(name));
     favoriten[key] = { name, kategorie: kategorieFuerFavorit, anzahl: (favoriten[key]?.anzahl || 0) + 1 };
-    speichernListen();
-    speichernFavoriten();
-    eingabe.value = '';
-    mengenFeld.value = '';
-    renderAlles();
-    eingabe.focus();
+    return name;
   }
   document.getElementById('btnHinzufuegen').addEventListener('click', itemHinzufuegen);
   document.getElementById('fSchnellEingabe').addEventListener('keydown', (e) => { if (e.key === 'Enter') itemHinzufuegen(); });
@@ -1157,6 +1313,8 @@
     const badge = person ? '<span class="hinzu-badge" style="background:' + person.farbe + '22; color:' + person.farbe + ';">' + escapeHtml(person.label) + '</span>' : '';
     const sterne = bewertungHolen(item.name);
     let sterneHtml = sterne ? bewertungSterneHtml(sterne, '0.62rem') : '';
+    const vorrat = !item.erledigt ? vorratStand(item.name) : null;
+    if (vorrat) sterneHtml += ' <span class="hinzu-badge vorrat-badge" title="Laut Vorratskammer">🏠 ' + (vorrat === 'viel' ? 'viel da' : 'noch etwas da') + '</span>';
     const prod = window.Lebensmittel ? (item.code ? window.Lebensmittel.produkt(item.code) : null) || bekanntesProdukt(item.name) : null;
     if (prod) {
       const betr = window.Lebensmittel.betroffene(prod.allergene, prod.spuren).filter(b => b.enthalten.length);
@@ -1182,9 +1340,20 @@
     zeile.querySelector('.item-loeschen').addEventListener('click', (e) => {
       e.stopPropagation();
       const liste = listeById(listeId);
-      liste.items = liste.items.filter(i => i.id !== item.id);
+      const index = liste.items.findIndex(i => i.id === item.id);
+      if (index < 0) return;
+      const entfernt = liste.items.splice(index, 1)[0];
       speichernListen();
       renderAlles();
+      showTempStatus('🗑 „' + entfernt.name + '“ entfernt', 6, {
+        rueckgaengig: () => {
+          const l = listeById(listeId);
+          if (!l || l.items.some(i => i.id === entfernt.id)) return;
+          l.items.splice(Math.min(index, l.items.length), 0, entfernt);
+          speichernListen();
+          renderAlles();
+        }
+      });
     });
     zeile.addEventListener('click', () => itemModalOeffnen(item, listeId));
     return zeile;
@@ -1260,12 +1429,7 @@
         }
         bewertungSpeichern(item.name, preisAbhakenBewertung);
       }
-      const key = preisNormName(item.name);
-      const eintrag = kaufHaeufigkeit[key] || { name: item.name, anzahl: 0 };
-      eintrag.name = item.name;
-      eintrag.anzahl += 1;
-      kaufHaeufigkeit[key] = eintrag;
-      speichern(KEY_KAUFHAEUFIGKEIT, kaufHaeufigkeit);
+      if (!item.erledigt) kaufMerken(item);
       item.erledigt = true;
       speichernListen();
       vorratEingangHinzufuegen(item);
@@ -1273,9 +1437,30 @@
     document.getElementById('modalPreisAbhaken').classList.remove('zeigen');
     renderAlles();
   }
-  document.getElementById('btnPreisAbhakenUeberspringen').addEventListener('click', () => preisAbhakenAbschliessen(false));
-  document.getElementById('btnPreisAbhakenSpeichern').addEventListener('click', () => preisAbhakenAbschliessen(true));
-  document.getElementById('modalPreisAbhaken').addEventListener('click', (e) => { if (e.target.id === 'modalPreisAbhaken') preisAbhakenAbschliessen(false); });
+  // Preis im Einkaufsmodus (lange drücken): nur Preis/Sterne notieren, abgehakt wird separat
+  function preisAbhakenAbschliessenLaden(mitPreis) {
+    const liste = listeById(preisAbhakenListeId);
+    const item = liste && liste.items.find(i => i.id === preisAbhakenItemId);
+    if (item && mitPreis) {
+      const wert = parseFloat(document.getElementById('fPreisAbhaken').value.replace(',', '.'));
+      if (wert > 0) {
+        const einheit = document.getElementById('fPreisEinheit').value;
+        const menge = parseFloat(document.getElementById('fPreisMenge').value.replace(',', '.'));
+        const nettogewicht = parseFloat(document.getElementById('fPreisNettogewicht').value.replace(',', '.'));
+        preisHinzufuegen(item.name, wert, einheit ? { einheit, menge, nettogewicht } : null);
+        ladenModus.einzelpreise += wert;
+      }
+      bewertungSpeichern(item.name, preisAbhakenBewertung);
+    }
+    document.getElementById('modalPreisAbhaken').classList.remove('zeigen');
+    ladenModus.preisFenster = false;
+    if (item && !item.erledigt) ladenAbhaken(liste.id, item.id); // Preis notiert = ist im Wagen
+    else renderLadenModus();
+  }
+  const preisFertig = (mitPreis) => ladenModus.preisFenster ? preisAbhakenAbschliessenLaden(mitPreis) : preisAbhakenAbschliessen(mitPreis);
+  document.getElementById('btnPreisAbhakenUeberspringen').addEventListener('click', () => preisFertig(false));
+  document.getElementById('btnPreisAbhakenSpeichern').addEventListener('click', () => preisFertig(true));
+  document.getElementById('modalPreisAbhaken').addEventListener('click', (e) => { if (e.target.id === 'modalPreisAbhaken') preisFertig(false); });
 
   function renderOffeneItems() {
     if (istUebersichtAktiv()) { renderWocheneinkaufUebersicht(); return; }
@@ -1284,8 +1469,8 @@
     const liste = aktiveListe();
     const offene = liste.items.filter(i => !i.erledigt);
     document.getElementById('leerHinweis').style.display = liste.items.length === 0 ? '' : 'none';
-    KATEGORIEN.forEach(kat => {
-      const gruppe = sortiereItems(offene.filter(i => i.kategorie === kat.id));
+    kategorienFuer(liste).forEach(kat => {
+      const gruppe = sortiereItems(offene.filter(i => (KATEGORIEN.some(k => k.id === i.kategorie) ? i.kategorie : 'sonstiges') === kat.id));
       if (!gruppe.length) return;
       const wrap = document.createElement('div');
       wrap.className = 'kategorie-gruppe';
@@ -1293,6 +1478,7 @@
       gruppe.forEach(item => wrap.appendChild(itemZeile(item)));
       box.appendChild(wrap);
     });
+    document.getElementById('summeZeile').innerHTML = summeHtml(offene);
   }
 
   // ---------- Wocheneinkauf: Gesamtübersicht aller Märkte ----------
@@ -1322,8 +1508,10 @@
     document.getElementById('leerHinweis').style.display = gesamtAnzahl === 0 ? '' : 'none';
     const eingeklappt = uebersichtEingeklappteListen();
     let offeneGesamt = 0, sichtbareMaerkte = 0;
+    const alleOffenen = [];
     relevant.forEach(liste => {
-      const offene = sortiereItems(liste.items.filter(i => !i.erledigt));
+      const offene = sortiereItems(liste.items.filter(i => !i.erledigt)).sort((a, b) => kategorieIndex(liste, a.kategorie) - kategorieIndex(liste, b.kategorie));
+      alleOffenen.push(...offene);
       if (!offene.length) return;
       offeneGesamt += offene.length;
       sichtbareMaerkte++;
@@ -1347,6 +1535,7 @@
       zusammenfassung.textContent = '🛒 ' + offeneGesamt + ' Artikel offen · ' + sichtbareMaerkte + (sichtbareMaerkte === 1 ? ' Markt' : ' Märkte');
       box.appendChild(zusammenfassung);
     }
+    document.getElementById('summeZeile').innerHTML = summeHtml(alleOffenen);
   }
 
   function renderErledigt() {
@@ -1489,8 +1678,27 @@
     document.getElementById('fListeName').value = aktiveListe().name;
     document.getElementById('fListeIstMarkt').checked = !!aktiveListe().istMarkt;
     document.getElementById('fListeIstUebersicht').checked = !!aktiveListe().istUebersicht;
+    rfEntwurf = kategorienFuer(aktiveListe()).map(k => k.id);
+    renderReihenfolge();
     document.getElementById('modalListe').classList.add('zeigen');
   });
+  let rfEntwurf = [];
+  function renderReihenfolge() {
+    const box = document.getElementById('reihenfolgeListe');
+    box.innerHTML = rfEntwurf.map((id, i) => {
+      const k = kategorieInfo(id);
+      return '<div class="rf-zeile"><span class="rf-nr">' + (i + 1) + '.</span><span class="rf-name">' + k.icon + ' ' + escapeHtml(k.label) + '</span>' +
+        '<button type="button" data-rf="' + i + '" data-d="-1" aria-label="Nach oben"' + (i === 0 ? ' disabled' : '') + '>▲</button>' +
+        '<button type="button" data-rf="' + i + '" data-d="1" aria-label="Nach unten"' + (i === rfEntwurf.length - 1 ? ' disabled' : '') + '>▼</button></div>';
+    }).join('');
+    box.querySelectorAll('[data-rf]').forEach(b => b.addEventListener('click', () => {
+      const i = Number(b.dataset.rf), j = i + Number(b.dataset.d);
+      if (j < 0 || j >= rfEntwurf.length) return;
+      [rfEntwurf[i], rfEntwurf[j]] = [rfEntwurf[j], rfEntwurf[i]];
+      renderReihenfolge();
+    }));
+  }
+  document.getElementById('btnReihenfolgeStandard').addEventListener('click', () => { rfEntwurf = KATEGORIEN.map(k => k.id); renderReihenfolge(); });
   document.getElementById('fListeIstMarkt').addEventListener('change', function () { if (this.checked) document.getElementById('fListeIstUebersicht').checked = false; });
   document.getElementById('fListeIstUebersicht').addEventListener('change', function () { if (this.checked) document.getElementById('fListeIstMarkt').checked = false; });
   document.getElementById('btnListeAbbrechen').addEventListener('click', () => document.getElementById('modalListe').classList.remove('zeigen'));
@@ -1499,6 +1707,9 @@
     const neuerName = document.getElementById('fListeName').value.trim();
     if (!neuerName) { alert('Bitte einen Namen eingeben.'); return; }
     aktiveListe().name = neuerName;
+    const standard = KATEGORIEN.map(k => k.id).join(',');
+    if (rfEntwurf.join(',') === standard) delete aktiveListe().kategorieReihenfolge;
+    else aktiveListe().kategorieReihenfolge = rfEntwurf.slice();
     aktiveListe().istMarkt = document.getElementById('fListeIstMarkt').checked;
     const neuIstUebersicht = document.getElementById('fListeIstUebersicht').checked;
     if (neuIstUebersicht) listen.forEach(l => { if (l.id !== aktiveListeId) l.istUebersicht = false; });
@@ -1546,7 +1757,230 @@
     renderAlleVorschlaege();
     renderOffeneItems();
     renderErledigt();
+    renderFehltVielleicht();
+    if (ladenModus.aktiv) renderLadenModus();
   }
+
+  // ============================================================
+  // 🔁 FEHLT VIELLEICHT? – aus dem Kaufrhythmus
+  // ============================================================
+  const KEY_FEHLT_IGNORIERT = 'einkauf_fehltIgnoriert'; // geräte-lokal: { name: bisDatum }
+  function kaufDatenVon(key) {
+    const e = kaufHaeufigkeit[key] || {};
+    const daten = new Set(Array.isArray(e.daten) ? e.daten : []);
+    (preise[key] || []).forEach(p => { if (p && p.datum) daten.add(String(p.datum).slice(0, 10)); });
+    return Array.from(daten).sort();
+  }
+  function fehltVielleicht() {
+    const heute = new Date(); heute.setHours(12, 0, 0, 0);
+    const offen = new Set();
+    listen.forEach(l => l.items.forEach(i => { if (!i.erledigt) offen.add(preisNormName(i.name)); }));
+    let ignoriert = {}; try { ignoriert = JSON.parse(localStorage.getItem(KEY_FEHLT_IGNORIERT) || '{}') || {}; } catch (e) {}
+    const heuteIso = heute.toISOString().slice(0, 10);
+    const kandidaten = [];
+    const keys = new Set(Object.keys(kaufHaeufigkeit).concat(Object.keys(preise)));
+    keys.forEach(key => {
+      if (!key || offen.has(key) || (ignoriert[key] && ignoriert[key] >= heuteIso)) return;
+      const daten = kaufDatenVon(key);
+      if (daten.length < 3) return;
+      const tage = daten.map(d => new Date(d + 'T12:00').getTime() / 864e5);
+      const abstaende = tage.slice(1).map((t, i) => t - tage[i]).filter(a => a >= 1).sort((a, b) => a - b);
+      if (abstaende.length < 2) return;
+      const rhythmus = abstaende[Math.floor(abstaende.length / 2)]; // Median
+      if (rhythmus > 60) return;
+      const seit = Math.round(heute.getTime() / 864e5 - tage[tage.length - 1]);
+      if (seit < Math.max(3, rhythmus)) return;
+      const name = (kaufHaeufigkeit[key] && kaufHaeufigkeit[key].name) || (favoriten[key] && favoriten[key].name) || key;
+      kandidaten.push({ key, name, rhythmus: Math.round(rhythmus), seit, faellig: seit / rhythmus });
+    });
+    return kandidaten.sort((a, b) => b.faellig - a.faellig).slice(0, 6);
+  }
+  function renderFehltVielleicht() {
+    const box = document.getElementById('fehltBox');
+    if (!box) return;
+    const liste = fehltVielleicht();
+    box.style.display = liste.length ? '' : 'none';
+    if (!liste.length) { box.innerHTML = ''; return; }
+    box.innerHTML = '<div class="fehlt-titel">🔁 Fehlt vielleicht?</div><div class="fehlt-reihe">' + liste.map(k =>
+      '<span class="fehlt-chip"><button type="button" data-fehlt="' + escapeHtml(k.key) + '" title="Sonst etwa alle ' + k.rhythmus + ' Tage gekauft – zuletzt vor ' + k.seit + ' Tagen">＋ ' + escapeHtml(k.name) + '<small>vor ' + k.seit + ' T.</small></button>' +
+      '<button type="button" class="fehlt-weg" data-fehlt-weg="' + escapeHtml(k.key) + '" data-rhythmus="' + k.rhythmus + '" aria-label="' + escapeHtml(k.name) + ' ausblenden">✕</button></span>').join('') + '</div>';
+    box.querySelectorAll('[data-fehlt]').forEach(b => b.addEventListener('click', () => {
+      const k = liste.find(x => x.key === b.dataset.fehlt);
+      if (!k) return;
+      const fav = favoriten[k.key] || { name: k.name, kategorie: schaetzeKategorie(k.name) };
+      itemHinzufuegenAusFavorit(fav);
+      showTempStatus('🛒 „' + fav.name + '“ steht jetzt auf der Liste', 3);
+    }));
+    box.querySelectorAll('[data-fehlt-weg]').forEach(b => b.addEventListener('click', () => {
+      let ign = {}; try { ign = JSON.parse(localStorage.getItem(KEY_FEHLT_IGNORIERT) || '{}') || {}; } catch (e) {}
+      const bis = new Date(); bis.setDate(bis.getDate() + Math.max(3, Math.round(Number(b.dataset.rhythmus) / 2)));
+      ign[b.dataset.fehltWeg] = bis.toISOString().slice(0, 10);
+      try { localStorage.setItem(KEY_FEHLT_IGNORIERT, JSON.stringify(ign)); } catch (e) {}
+      renderFehltVielleicht();
+    }));
+  }
+
+  // ============================================================
+  // 🛍️ EINKAUFSMODUS (im Laden)
+  // ============================================================
+  const ladenModus = { aktiv: false, einzelpreise: 0, abgehakt: [], wakeLock: null, preisFenster: false };
+  function ladenListen() { return istUebersichtAktiv() ? relevanteListenFuerUebersicht() : [aktiveListe()]; }
+  async function bildschirmAnLassen() {
+    try { if ('wakeLock' in navigator && !ladenModus.wakeLock) { ladenModus.wakeLock = await navigator.wakeLock.request('screen'); ladenModus.wakeLock.addEventListener('release', () => { ladenModus.wakeLock = null; }); } } catch (e) {}
+  }
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && ladenModus.aktiv) bildschirmAnLassen(); });
+  function ladenModusStarten() {
+    const offen = ladenListen().reduce((s, l) => s + l.items.filter(i => !i.erledigt).length, 0);
+    if (!offen) { showTempStatus('ℹ️ Auf dieser Liste ist gerade nichts offen', 3); return; }
+    ladenModus.aktiv = true;
+    if (!ladenModus.fortsetzen) { ladenModus.einzelpreise = 0; ladenModus.abgehakt = []; }
+    ladenModus.fortsetzen = false;
+    ladenModus.fertigAnsicht = false;
+    document.getElementById('ladenModus').classList.add('an');
+    bildschirmAnLassen();
+    renderLadenModus();
+  }
+  function ladenModusSchliessen() {
+    ladenModus.aktiv = false;
+    document.getElementById('ladenModus').classList.remove('an');
+    try { if (ladenModus.wakeLock) ladenModus.wakeLock.release(); } catch (e) {}
+    ladenModus.wakeLock = null;
+    renderAlles();
+  }
+  function renderLadenModus() {
+    const listenL = ladenListen();
+    const mehrere = istUebersichtAktiv();
+    const box = document.getElementById('lmListe');
+    const titel = mehrere ? '🛍️ Wocheneinkauf' : '🛍️ ' + (aktiveListe().name || 'Einkaufen');
+    document.getElementById('lmTitel').textContent = titel;
+    if (ladenModus.fertigAnsicht) return; // Abschluss-Ansicht nicht überschreiben
+    let gesamt = 0, drin = 0;
+    let html = '';
+    listenL.forEach(liste => {
+      // offen = noch nicht erledigt; drin = in dieser Einkaufsrunde abgehakt
+      const items = liste.items.filter(i => !i.erledigt || ladenModus.abgehakt.includes(i.id));
+      if (!items.length) return;
+      gesamt += items.length;
+      drin += items.filter(i => i.erledigt).length;
+      if (mehrere) html += '<div class="lm-markt">' + (liste.istUebersicht ? '📥 Ohne Markt' : '🏪 ' + escapeHtml(liste.name)) + '</div>';
+      kategorienFuer(liste).forEach(kat => {
+        const gruppe = items.filter(i => (KATEGORIEN.some(k => k.id === i.kategorie) ? i.kategorie : 'sonstiges') === kat.id)
+          .sort((a, b) => (a.erledigt - b.erledigt) || a.name.localeCompare(b.name, 'de'));
+        if (!gruppe.length) return;
+        html += '<div class="lm-gruppe" style="color:' + kat.farbe + '">' + kat.icon + ' ' + escapeHtml(kat.label) + '</div>';
+        gruppe.forEach(i => {
+          const mengeZahl = String(i.menge || '').replace('.', ',');
+          const mengeText = (mengeZahl && !i.einheit) ? mengeZahl + '×' : [mengeZahl, i.einheit].filter(Boolean).join(' ');
+          const p = geschaetzterPreis(i);
+          html += '<button type="button" class="lm-item' + (i.erledigt ? ' drin' : '') + '" data-lm="' + escapeHtml(liste.id) + '|' + escapeHtml(i.id) + '">' +
+            '<span class="lm-kreis">' + (i.erledigt ? '✓' : '') + '</span>' +
+            '<span class="lm-text">' + (mengeText ? '<span class="lm-menge">' + escapeHtml(mengeText) + '</span>' : '') + escapeHtml(i.name) + '</span>' +
+            (p !== null && !i.erledigt ? '<span class="lm-preis">~' + preisFormatEuro(p) + '</span>' : '') + '</button>';
+        });
+      });
+    });
+    if (!gesamt) html = '<div class="leer-hinweis"><span class="em">🎉</span>Alles erledigt!</div>';
+    const scroll = box.scrollTop;
+    box.innerHTML = html;
+    box.scrollTop = scroll;
+    document.getElementById('lmZaehler').textContent = drin + ' / ' + gesamt;
+    document.getElementById('lmBalken').style.width = (gesamt ? Math.round(drin / gesamt * 100) : 0) + '%';
+  }
+  function ladenAbhaken(listeId, itemId) {
+    const liste = listeById(listeId);
+    const item = liste && liste.items.find(i => i.id === itemId);
+    if (!item) return;
+    if (!item.erledigt) {
+      item.erledigt = true;
+      kaufMerken(item);
+      if (!ladenModus.abgehakt.includes(item.id)) ladenModus.abgehakt.push(item.id);
+      vorratEingangHinzufuegen(item);
+      try { navigator.vibrate && navigator.vibrate(15); } catch (e) {}
+    } else {
+      item.erledigt = false;
+      vorratEingangEntfernen(item.id);
+    }
+    speichernListen();
+    renderLadenModus();
+    const offen = ladenListen().reduce((s, l) => s + l.items.filter(i => !i.erledigt).length, 0);
+    if (!offen) setTimeout(() => { if (ladenModus.aktiv && !ladenModus.fertigAnsicht) ladenFertigZeigen(); }, 500);
+  }
+  // Tippen = abhaken, lange drücken = Preis notieren
+  (function () {
+    const box = document.getElementById('lmListe');
+    let timer = null, lang = false, start = null;
+    box.addEventListener('pointerdown', (e) => {
+      const b = e.target.closest('[data-lm]'); if (!b) return;
+      lang = false; start = { x: e.clientX, y: e.clientY };
+      timer = setTimeout(() => {
+        lang = true; timer = null;
+        try { navigator.vibrate && navigator.vibrate(30); } catch (x) {}
+        const [lid, iid] = b.dataset.lm.split('|');
+        const liste = listeById(lid), item = liste && liste.items.find(i => i.id === iid);
+        if (item) { ladenModus.preisFenster = true; preisAbhakenOeffnen(item, lid); }
+      }, 550);
+    });
+    const abbrechen = () => { if (timer) { clearTimeout(timer); timer = null; } };
+    box.addEventListener('pointermove', (e) => { if (timer && start && (Math.abs(e.clientX - start.x) > 10 || Math.abs(e.clientY - start.y) > 10)) abbrechen(); });
+    box.addEventListener('pointerup', abbrechen);
+    box.addEventListener('pointercancel', abbrechen);
+    box.addEventListener('contextmenu', (e) => { if (e.target.closest('[data-lm]')) e.preventDefault(); });
+    box.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-lm]'); if (!b) return;
+      if (lang) { lang = false; return; }
+      const [lid, iid] = b.dataset.lm.split('|');
+      ladenAbhaken(lid, iid);
+    });
+  })();
+  function ladenFertigZeigen() {
+    ladenModus.fertigAnsicht = true;
+    const anzahl = ladenModus.abgehakt.length;
+    const offen = ladenListen().reduce((s, l) => s + l.items.filter(i => !i.erledigt).length, 0);
+    const einzeln = Math.round(ladenModus.einzelpreise * 100) / 100;
+    const box = document.getElementById('lmListe');
+    box.innerHTML = '<div class="lm-fertig-box"><h3>✅ Einkauf fertig</h3>' +
+      '<p>' + anzahl + (anzahl === 1 ? ' Artikel' : ' Artikel') + ' im Wagen' + (offen ? ' · ' + offen + ' noch offen (bleiben auf der Liste)' : '') + '. Abgehaktes liegt im 📥 Eingang der Vorratskammer.</p>' +
+      '<label for="lmBonSumme" style="font-size:0.75rem;font-weight:700;color:var(--bark);text-transform:uppercase;">Kassenbon-Summe (optional)</label>' +
+      '<input type="text" inputmode="decimal" id="lmBonSumme" placeholder="z.B. 47,80">' +
+      '<p style="margin-top:6px;">Wird als eine Ausgabe „Einkauf“ in 💰 Finanzen eingetragen.' + (einzeln > 0 ? ' Die ' + preisFormatEuro(einzeln) + ', die du schon einzeln notiert hast, werden abgezogen.' : '') + '</p>' +
+      '<label class="lm-check"><input type="checkbox" id="lmErledigtWeg" checked> Abgehakte Artikel von der Liste entfernen</label></div>';
+    document.getElementById('lmZaehler').textContent = '';
+    document.getElementById('btnLmFertig').textContent = '💾 Abschließen';
+    document.getElementById('btnLmPause').textContent = '← Zurück';
+    setTimeout(() => { const f = document.getElementById('lmBonSumme'); if (f) f.focus(); }, 100);
+  }
+  function ladenAbschliessen() {
+    const feld = document.getElementById('lmBonSumme');
+    const summe = feld ? parseFloat(feld.value.replace(/[^\d,.-]/g, '').replace(',', '.')) : NaN;
+    let meldung = '✅ Einkauf abgeschlossen';
+    if (summe > 0) {
+      const rest = Math.round((summe - ladenModus.einzelpreise) * 100) / 100;
+      const name = istUebersichtAktiv() ? 'Wocheneinkauf' : (aktiveListe().name || 'Einkauf');
+      if (rest > 0) { finanzenAusgabeErstellen('Einkauf ' + name + ' (' + ladenModus.abgehakt.length + ' Artikel)', rest); meldung += ' · ' + preisFormatEuro(rest) + ' in Finanzen'; }
+    }
+    if (document.getElementById('lmErledigtWeg') && document.getElementById('lmErledigtWeg').checked) {
+      const ids = new Set(ladenModus.abgehakt);
+      ladenListen().forEach(l => { l.items = l.items.filter(i => !(i.erledigt && ids.has(i.id))); });
+      speichernListen();
+    }
+    ladenModus.abgehakt = []; ladenModus.einzelpreise = 0;
+    ladenFertigZuruecksetzen();
+    ladenModusSchliessen();
+    showTempStatus(meldung, 4);
+  }
+  function ladenFertigZuruecksetzen() {
+    ladenModus.fertigAnsicht = false;
+    document.getElementById('btnLmFertig').textContent = '✅ Fertig';
+    document.getElementById('btnLmPause').textContent = '⏸ Später weiter';
+  }
+  document.getElementById('btnLadenModus').addEventListener('click', ladenModusStarten);
+  document.getElementById('btnLmFertig').addEventListener('click', () => { if (ladenModus.fertigAnsicht) ladenAbschliessen(); else ladenFertigZeigen(); });
+  document.getElementById('btnLmPause').addEventListener('click', () => {
+    if (ladenModus.fertigAnsicht) { ladenFertigZuruecksetzen(); renderLadenModus(); return; }
+    ladenModus.fortsetzen = true; // Runde merken: beim nächsten Öffnen geht es mit denselben Haken weiter
+    ladenModusSchliessen();
+  });
+  document.getElementById('btnLmZu').addEventListener('click', () => { if (ladenModus.fertigAnsicht) ladenFertigZuruecksetzen(); ladenModus.fortsetzen = true; ladenModusSchliessen(); });
   function renderWocheneinkaufMarktAuswahl() {
     const select = document.getElementById('fWocheneinkaufMarkt');
     const istUebersicht = istUebersichtAktiv();
@@ -1916,8 +2350,9 @@
   if (window.PlanerSync) {
     window._sync = window.PlanerSync.starteSync({
       modul: 'einkauf',
-      keys: [KEY_LISTEN, KEY_FAVORITEN, KEY_VORLAGEN, KEY_PREISE],
+      keys: [KEY_LISTEN, KEY_FAVORITEN, KEY_VORLAGEN, KEY_PREISE, KEY_KAUFHAEUFIGKEIT],
       onRemoteChange: function () {
+        kaufHaeufigkeit = laden(KEY_KAUFHAEUFIGKEIT, kaufHaeufigkeit);
         listen = laden(KEY_LISTEN, listen);
         favoriten = laden(KEY_FAVORITEN, favoriten);
         vorlagen = laden(KEY_VORLAGEN, vorlagen);

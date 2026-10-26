@@ -250,6 +250,7 @@
     background: #2a2016; color: #f0e8d8; padding: 10px 16px; border-radius: 22px; box-shadow: 0 4px 16px rgba(0,0,0,0.3); font-size: 0.84rem; font-weight: 600;
     width: max-content; max-width: calc(100vw - 24px); transition: opacity 0.2s, transform 0.2s; pointer-events: none; }
   #gartenToast.zeigen { opacity: 1; transform: translate(-50%, 0); }
+  #gartenToast:not(.zeigen) { pointer-events: none !important; }
   #gartenToast button { background: none; border: none; color: #e8c98a; font: inherit; font-weight: 700; cursor: pointer; padding: 2px 4px; white-space: nowrap; text-decoration: underline; }
   /* ---------- Tiere im Garten ---------- */
   .tier-fortschritt { background: var(--white); border: 1px solid var(--parchment); border-radius: var(--radius-md); padding: 10px 14px; margin-bottom: 12px; }
@@ -6799,13 +6800,13 @@ function zeigeLoeschToast(text, rueckgaengigFn, sekunden) {
   btn.addEventListener('click', () => {
     clearTimeout(el._timeout);
     try { rueckgaengigFn(); } catch (e) { console.warn('zeigeLoeschToast: Rückgängig-Aktion fehlgeschlagen', e); }
-    el.style.opacity = '0';
+    el.style.opacity = '0'; el.style.pointerEvents = 'none';
     el.style.transform = 'translate(-50%,20px)';
   });
   el.appendChild(btn);
   clearTimeout(el._timeout);
   el._timeout = setTimeout(() => {
-    el.style.opacity = '0';
+    el.style.opacity = '0'; el.style.pointerEvents = 'none';
     el.style.transform = 'translate(-50%,20px)';
   }, (sekunden || 6) * 1000);
 }

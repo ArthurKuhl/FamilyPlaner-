@@ -2,6 +2,15 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
+## 2026-10-26 | 🛍️ Einkaufen im Laden
+Mit 🛍️ oben in der Einkaufsliste startet der Einkaufsmodus: große Zeilen, Fortschritt „7 / 12“, der Bildschirm bleibt an. Antippen legt den Artikel in den Wagen (ohne Preisfenster), lange drücken notiert den Preis. Bei „✅ Fertig“ lässt sich die Kassenbon-Summe eintragen – sie landet als eine Ausgabe in den Finanzen (einzeln notierte Preise werden abgezogen). Unter ⚙️ „Liste verwalten“ legst du pro Markt die 🔀 Reihenfolge fest, in der du durch den Laden läufst.
+
+## 2026-10-26 | 🛒 Einkaufsliste: schlauer eintragen
+„Milch, 2 Brot, 500 g Mehl“ ergibt jetzt drei Einträge. Unter der Liste steht eine 💶 geschätzte Summe aus den bisherigen Preisen. „🔁 Fehlt vielleicht?“ schlägt vor, was ihr sonst regelmäßig kauft und gerade überfällig ist. Ist etwas laut Vorratskammer noch reichlich da, zeigt der Eintrag „🏠 viel da“. Ein versehentlich gelöschter Artikel lässt sich mit „Rückgängig“ zurückholen.
+
+## 2026-10-26 | 🛠️ Kleiner Fehler behoben
+Nach einer „Rückgängig“-Meldung konnte die (schon unsichtbare) Meldung unten am Bildschirm Tipper abfangen – z.B. auf „Speichern“. Das ist in allen Bereichen behoben.
+
 ## 2026-10-26 | 💬 Chat: Antworten, Reaktionen & Umfragen
 Lange auf eine Nachricht drücken: „↩️ Antworten“ zitiert sie (Zitat antippen springt hin), 👍 ❤️ 😂 😮 🙏 setzen eine Reaktion. Neu unter ＋: 📊 Umfrage – z.B. „Was essen wir heute?“ mit Rezepten als Antworten; ist die Umfrage beendet, landet das Sieger-Rezept mit „🍳 Heute kochen“ im Wochenplan (bei Ausflugsideen: „🧭 Ausflug planen“). Außerdem teilbar: 🧭 Ausflüge (mit Wetter und Route), 📍 der eigene Standort und die 🗒️ Einkaufsliste als Text. Mehrere Fotos lassen sich auf einmal senden, und 🔍 oben durchsucht den Verlauf – auch im verschlüsselten Chat.
 
