@@ -165,8 +165,22 @@ function faelligeErinnerungen(geraet, daten) {
       if (!w || w.pausiert || w.turnus === 'einmalig') return;
       const erledigt = w.erledigt || [];
       const letzte = erledigt.length ? erledigt[erledigt.length - 1] : null;
-      if (!letzte || !letzte.datum) return; // ohne bisherige Erledigung gibt es kein Fälligkeitsdatum
-      const faelligAm = isoPlusMonate(letzte.datum, WARTUNG_MONATE[w.turnus] || 1);
+      let faelligAm;
+      if (w.monat && (w.turnus === 'jaehrlich' || w.turnus === 'halbjaehrlich')) {
+        // Saison-Aufgabe: fällig ab dem 1. des Monats (halbjährlich zusätzlich 6 Monate später)
+        const monate = w.turnus === 'halbjaehrlich' ? [w.monat, ((w.monat + 5) % 12) + 1] : [w.monat];
+        const jahr = Number(datum.slice(0, 4));
+        let start = null;
+        [jahr - 1, jahr].forEach(j => monate.forEach(m => { const iso = j + '-' + String(m).padStart(2, '0') + '-01'; if (iso <= datum && (!start || iso > start)) start = iso; }));
+        if (!start) return;
+        const toleranz = isoPlusMonate(start, -1);
+        if (letzte && letzte.datum && String(letzte.datum).slice(0, 10) >= toleranz) return; // schon erledigt
+        if (!letzte && tageZwischen(start, datum) > 92) return; // neu angelegt: erst ab der nächsten Saison
+        faelligAm = start;
+      } else {
+        if (!letzte || !letzte.datum) return; // ohne bisherige Erledigung gibt es kein Fälligkeitsdatum
+        faelligAm = isoPlusMonate(letzte.datum, WARTUNG_MONATE[w.turnus] || 1);
+      }
       const ueber = tageZwischen(faelligAm, datum);
       if (ueber < 0 || ueber % 7 !== 0) return;
       let zustaendig = null;
@@ -636,8 +650,9 @@ function chatVorschau(m) {
   const typ = m.typ || 'text';
   if (typ === 'bild') return '📷 Foto';
   if (typ === 'sprache') return '🎤 Sprachnachricht' + (m.dauer ? ' (' + Math.floor(m.dauer / 60) + ':' + String(m.dauer % 60).padStart(2, '0') + ')' : '');
-  if (m.v) return typ === 'karte' ? '📎 Neue Nachricht' : '🔒 Neue Nachricht';
-  if (typ === 'karte' && m.karte) return ({ termin: '🗓️ ', rezept: '🍳 ', wunsch: '🎁 ', einkauf: '🛒 ' }[m.karte.art] || '📎 ') + (m.karte.titel || '') + (m.text ? ' – ' + m.text : '');
+  if (m.v) return typ === 'karte' ? '📎 Neue Nachricht' : (typ === 'umfrage' ? '📊 Neue Umfrage' : '🔒 Neue Nachricht');
+  if (typ === 'umfrage' && m.umfrage) return '📊 Umfrage: ' + String(m.umfrage.frage || '').slice(0, 160);
+  if (typ === 'karte' && m.karte) return ({ termin: '🗓️ ', rezept: '🍳 ', wunsch: '🎁 ', einkauf: '🛒 ', ausflug: '🧭 ', standort: '📍 ' }[m.karte.art] || '📎 ') + (m.karte.titel || '') + (m.text ? ' – ' + m.text : '');
   return String(m.text || '').slice(0, 180);
 }
 exports.chatPush = onRequest({ region: 'europe-west3', memory: '256MiB', invoker: 'public', cors: true, maxInstances: 5, timeoutSeconds: 30 }, async (req, res) => {
