@@ -465,7 +465,7 @@
     const MODULE = [
       { id: 'home',        label: 'Übersicht', emoji: '🏠', src: 'home.html', syncKeys: ['app_feedback'] },
       { id: 'garten',      label: 'Garten',    emoji: '🌱', src: 'garten.html',
-        syncKeys: ['gartenplaner_v3','gartenplaner_varieties','gartenplaner_bedTemplates','gartenplaner_recentPlants','gartenplaner_seedInventory','gartenplaner_costs','gartenplaner_pantry','gartenplaner_shops','gartenplaner_careDone','gartenplaner_customPlants','gartenplaner_pilzlog','gartenplaner_wishlist'],
+        syncKeys: ['gartenplaner_v3','gartenplaner_varieties','gartenplaner_bedTemplates','gartenplaner_recentPlants','gartenplaner_seedInventory','gartenplaner_costs','gartenplaner_pantry','gartenplaner_shops','gartenplaner_careDone','gartenplaner_customPlants','gartenplaner_pilzlog','gartenplaner_wishlist','garten_pushPlan'],
         syncTransform: (werte) => window.PlanerSync ? window.PlanerSync.entferneFotosTief(werte) : werte },
       { id: 'termine',     label: 'Termine',   emoji: '🗓️', src: 'termine.html', syncKeys: ['termine_events_v1'] },
       // syncModul: Cloud-Dokument, falls es anders heißt als das Modul – die Wunschliste war bis v413 Teil von „Termine“
@@ -727,7 +727,7 @@
     const KEY_PUSH = 'planer_push'; // { aktiv, person, termine: 'aus'|'meine'|'alle', medikamente }
     let pushLetzterStand = null;    // zuletzt hochgeladene Einstellungen (verhindert unnötige Schreibvorgänge)
     function pushEinstellungen() {
-      const standard = { aktiv: false, person: '', termine: 'meine', medikamente: true, ganztaegig: 'tag', vorrat: true, wartung: true, tagesZeit: '08:00', sonntagsbrief: true, chat: true };
+      const standard = { aktiv: false, person: '', termine: 'meine', medikamente: true, ganztaegig: 'tag', vorrat: true, wartung: true, tagesZeit: '08:00', sonntagsbrief: true, chat: true, garten: true };
       try { return Object.assign(standard, JSON.parse(localStorage.getItem(KEY_PUSH) || '{}')); }
       catch (e) { return standard; }
     }
@@ -774,7 +774,7 @@
       try { wasser = Object.assign(wasser, JSON.parse(localStorage.getItem('gesundheit_wasserErinnerung') || '{}')); } catch (err) {}
       const daten = {
         aktiv: true, token, person: e.person || '', termine: e.termine, medikamente: !!e.medikamente,
-        ganztaegig: e.ganztaegig, vorrat: !!e.vorrat, wartung: !!e.wartung, tagesZeit: e.tagesZeit || '08:00', sonntagsbrief: e.sonntagsbrief !== false, chat: e.chat !== false,
+        ganztaegig: e.ganztaegig, vorrat: !!e.vorrat, wartung: !!e.wartung, tagesZeit: e.tagesZeit || '08:00', sonntagsbrief: e.sonntagsbrief !== false, chat: e.chat !== false, garten: e.garten !== false,
         wasser: { aktiv: !!wasser.aktiv, zeiten: Array.isArray(wasser.zeiten) ? wasser.zeiten : [] },
         zeitzone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Berlin',
         appUrl: location.origin + location.pathname.replace(/[^/]*$/, '') + 'index.html',
@@ -914,6 +914,7 @@
           [['tag', 'Am Tag selbst'], ['vortag', 'Am Vorabend (18 Uhr) und am Tag'], ['aus', 'Keine']].map(([v, l]) => '<option value="' + v + '"' + (v === e.ganztaegig ? ' selected' : '') + '>' + l + '</option>').join('') + '</select>' +
         '<label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:0.82rem;color:var(--soil);"><input type="checkbox" id="pushVorrat"' + (e.vorrat ? ' checked' : '') + ' style="width:auto;"> 🥫 Vorrat läuft ab (3 Tage, 1 Tag vorher, am Tag)</label>' +
         '<label style="display:flex;align-items:center;gap:8px;margin-top:8px;font-size:0.82rem;color:var(--soil);"><input type="checkbox" id="pushWartung"' + (e.wartung ? ' checked' : '') + ' style="width:auto;"> 🔁 Fällige Wartungen (meine und offene)</label>' +
+        '<label style="display:flex;align-items:center;gap:8px;margin-top:8px;font-size:0.82rem;color:var(--soil);"><input type="checkbox" id="pushGarten"' + (e.garten !== false ? ' checked' : '') + ' style="width:auto;"> 🌱 Garten: Frost (18 Uhr), Hitze und Monatsvorschau am 1.</label>' +
         '<label style="display:flex;align-items:center;gap:8px;margin-top:8px;font-size:0.82rem;color:var(--soil);"><input type="checkbox" id="pushChat"' + (e.chat !== false ? ' checked' : '') + ' style="width:auto;"> 💬 Familien-Chat (neue Nachrichten)</label>' +
         '<label style="display:flex;align-items:center;gap:8px;margin-top:8px;font-size:0.82rem;color:var(--soil);"><input type="checkbox" id="pushSonntagsbrief"' + (e.sonntagsbrief !== false ? ' checked' : '') + ' style="width:auto;"> 📬 Sonntagsbrief (So 18 Uhr: eure Woche im Überblick)</label>' +
         '<div style="font-size:0.74rem;color:var(--bark);margin-top:8px;">💧 Wasser: ' + (wasser.aktiv ? 'an (' + (wasser.zeiten || []).slice().sort().join(', ') + ' Uhr)' : 'aus') + ' – Zeiten im Gesundheitsmodul einstellen.</div>' +
@@ -930,11 +931,12 @@
         neu.wartung = document.getElementById('pushWartung').checked;
         neu.sonntagsbrief = document.getElementById('pushSonntagsbrief').checked;
         neu.chat = document.getElementById('pushChat').checked;
+        neu.garten = document.getElementById('pushGarten').checked;
         pushEinstellungenSpeichern(neu);
         pushGeraetAktualisieren().then(() => { document.getElementById('pushStatus').textContent = '✓ Gespeichert'; })
           .catch(err => { document.getElementById('pushStatus').textContent = '⚠ ' + (err.message || 'Speichern fehlgeschlagen'); });
       };
-      ['pushPerson', 'pushTermine', 'pushMedikamente', 'pushTagesZeit', 'pushGanztaegig', 'pushVorrat', 'pushWartung', 'pushSonntagsbrief', 'pushChat'].forEach(id => document.getElementById(id).addEventListener('change', aendern));
+      ['pushPerson', 'pushTermine', 'pushMedikamente', 'pushTagesZeit', 'pushGanztaegig', 'pushVorrat', 'pushWartung', 'pushSonntagsbrief', 'pushChat', 'pushGarten'].forEach(id => document.getElementById(id).addEventListener('change', aendern));
       document.getElementById('btnPushAus').addEventListener('click', pushDeaktivieren);
     }
     // Beim Start und beim Zurückkehren: Token/Einstellungen auffrischen (z.B. geänderte Wasser-Zeiten)

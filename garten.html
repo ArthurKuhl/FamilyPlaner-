@@ -12401,14 +12401,86 @@ const GARTEN_SYNC_SCHLUESSEL = [
   'gartenplaner_recentPlants', 'gartenplaner_seedInventory', 'gartenplaner_costs',
   'gartenplaner_pantry', 'gartenplaner_shops', 'gartenplaner_careDone', 'gartenplaner_customPlants',
   'gartenplaner_pilzlog', 'gartenplaner_wishlist',
+  'garten_pushPlan', // kleiner Auszug für die Push-Hinweise (Frost, Hitze, Monatsvorschau) – liest die Server-Funktion
 ];
+
+// ==================== PUSH-PLAN für die Server-Erinnerungen ====================
+// Der Server (functions/index.js) kennt keine Pflanzendaten. Darum legt die App hier einen kleinen
+// Auszug ab: je Garten Standort + frostempfindliche Pflanzen, dazu für die nächsten 12 Monate,
+// was vorzuziehen, zu säen, auszupflanzen oder zu schneiden ist (nur Pflanzen, die im Garten
+// stehen, als Saatgut da sind oder zuletzt verwendet wurden). Wird bei jeder Änderung neu berechnet.
+const GARTEN_PUSHPLAN_KEY = 'garten_pushPlan';
+function gartenPushPlanBerechnen() {
+  const imGarten = new Set();
+  Object.values(gardens || {}).forEach(g => {
+    (g.beds || []).filter(b => b.kind !== 'struktur').forEach(b => (b.plants || []).forEach(p => p.name && imGarten.add(p.name.trim())));
+    (g.freiPflanzen || []).forEach(fp => fp.name && imGarten.add(fp.name.trim()));
+  });
+  const relevant = new Set(imGarten);
+  (seedInventory || []).forEach(e => e.plant && relevant.add(e.plant.trim()));
+  (recentPlants || []).forEach(p => p.name && relevant.add(p.name.trim()));
+  const kat = n => lexKatalogName(n);
+  // Gärten mit Wetter-Standort
+  const gaerten = Object.keys(gardens || {}).map(gid => {
+    const g = gardens[gid];
+    if (!g || !g.weatherLoc || typeof g.weatherLoc.lat !== 'number') return null;
+    const frost = {};
+    let anzahl = 0;
+    const pruefe = (p) => {
+      anzahl++;
+      const n = kat((p.name || '').trim());
+      if (!n || !isFrostTender(n)) return;
+      const ab = p.date || null;
+      if (!(n in frost) || (frost[n] && (!ab || ab < frost[n]))) frost[n] = ab;
+    };
+    (g.beds || []).filter(b => b.kind !== 'struktur').forEach(b => (b.plants || []).forEach(pruefe));
+    (g.freiPflanzen || []).forEach(pruefe);
+    return { name: g.name || 'Garten', lat: Math.round(g.weatherLoc.lat * 100) / 100, lon: Math.round(g.weatherLoc.lon * 100) / 100,
+      pflanzen: anzahl, frost: Object.keys(frost).sort((a, b) => a.localeCompare(b, 'de')).map(n => ({ n, ab: frost[n] })) };
+  }).filter(Boolean);
+  // Monatsvorschau
+  const off = CLIMATE_OFFSET[getClimateZone()] || 0;
+  const start = new Date(); start.setDate(1);
+  const monate = {};
+  for (let i = 0; i < 12; i++) {
+    const d = new Date(start.getFullYear(), start.getMonth() + i, 1);
+    const m = d.getMonth() + 1;
+    const key = d.getFullYear() + '-' + String(m).padStart(2, '0');
+    const eintrag = { vorziehen: [], direktsaat: [], auspflanzen: [], schneiden: [] };
+    [...relevant].map(kat).filter((n, idx, arr) => arr.indexOf(n) === idx).sort((a, b) => a.localeCompare(b, 'de')).forEach(n => {
+      const so = SOWING[n];
+      if (so) ['vorziehen', 'direktsaat', 'auspflanzen'].forEach(ph => {
+        if (so[ph] && Math.min(12, Math.max(1, so[ph][0] + off)) === m) eintrag[ph].push(n);
+      });
+      if (imGarten.has(n) || [...imGarten].some(x => kat(x) === n)) {
+        const rk = pflanzenSchluesselFinden(n, RUECKSCHNITT);
+        if (rk && RUECKSCHNITT[rk].monate[0] === m) eintrag.schneiden.push(n);
+      }
+    });
+    if (Object.values(eintrag).some(l => l.length)) monate[key] = eintrag;
+  }
+  return { v: 1, gaerten, monate };
+}
+let gartenPushPlanTimer = null;
+function gartenPushPlanAktualisieren() {
+  clearTimeout(gartenPushPlanTimer);
+  gartenPushPlanTimer = setTimeout(() => {
+    try {
+      const neu = JSON.stringify(gartenPushPlanBerechnen());
+      if (localStorage.getItem(GARTEN_PUSHPLAN_KEY) !== neu) localStorage.setItem(GARTEN_PUSHPLAN_KEY, neu); // löst den Sync aus
+    } catch (e) { console.warn('Push-Plan', e); }
+  }, 2500);
+}
 (function () {
   const originalSetItem = localStorage.setItem.bind(localStorage);
   localStorage.setItem = function (key, value) {
     originalSetItem(key, value);
     if (GARTEN_SYNC_SCHLUESSEL.indexOf(key) !== -1 && window._sync) window._sync.melde();
+    // Garten oder Saatgut geändert → Push-Plan neu berechnen (nur geschrieben, wenn er sich wirklich ändert)
+    if (key === 'gartenplaner_v3' || key === 'gartenplaner_seedInventory' || key === 'gartenplaner_recentPlants') gartenPushPlanAktualisieren();
   };
 })();
+gartenPushPlanAktualisieren(); // einmal beim Start (z.B. Monatswechsel)
 
 // ==================== INIT ====================
 loadAllData();
