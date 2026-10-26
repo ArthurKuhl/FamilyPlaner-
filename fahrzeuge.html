@@ -38,7 +38,7 @@
   .titel-zeile h1 { font-family: 'Playfair Display', serif; font-size: 1.15rem; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .add-btn { background: var(--terracotta); color: #fff; border: none; border-radius: var(--radius-pill); padding: 7px 14px; font: 700 0.82rem 'Inter', sans-serif; cursor: pointer; white-space: nowrap; }
   .reiter { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
-  .reiter button { flex: 1 0 auto; padding: 8px 12px; border-radius: var(--radius-pill); border: 1px solid #4a3a28; background: transparent; color: var(--sage); font: 600 0.78rem 'Inter', sans-serif; cursor: pointer; white-space: nowrap; }
+  .reiter button { flex: 1 1 auto; min-width: 0; padding: 8px 8px; border-radius: var(--radius-pill); border: 1px solid #4a3a28; background: transparent; color: var(--sage); font: 600 0.78rem 'Inter', sans-serif; cursor: pointer; white-space: nowrap; }
   .reiter button.active { background: var(--moss); color: var(--on-moss, var(--leaf)); border-color: var(--moss); }
   main { padding: 14px; max-width: 700px; margin: 0 auto; }
   .filter-reihe { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin-bottom: 12px; }
@@ -85,6 +85,63 @@
   .btn-sekundaer { background: var(--white); color: var(--bark); border: 1px solid var(--parchment); }
   .btn-loeschen { background: none; color: var(--terracotta-text); border: 1px solid var(--terracotta); flex: 0 0 auto; padding: 11px 14px; }
   .hinweis { font-size: 0.74rem; color: var(--bark); margin-top: 4px; line-height: 1.4; }
+
+  /* Steckbrief, Fixkosten, Wartungsplan im Fahrzeug-Formular */
+  details.abschnitt { background: var(--white); border-radius: var(--radius-md); margin: 4px 0 10px; border: 1px solid var(--parchment); }
+  details.abschnitt > summary { padding: 10px 12px; font-weight: 700; font-size: 0.86rem; cursor: pointer; list-style: none; display: flex; justify-content: space-between; }
+  details.abschnitt > summary::-webkit-details-marker { display: none; }
+  details.abschnitt > summary::after { content: '▾'; color: var(--terracotta-text); }
+  details.abschnitt[open] > summary::after { content: '▴'; }
+  details.abschnitt > .inhalt { padding: 0 10px 10px; }
+  details.abschnitt .feld input, details.abschnitt .feld select { background: var(--cream); }
+  .zeilen-karte { background: var(--cream); border-radius: 10px; padding: 8px; margin-bottom: 8px; }
+  .zeilen-karte .zeile { gap: 6px; }
+  .zeilen-karte .feld { margin-bottom: 6px; }
+  .zeilen-karte .feld label { font-size: 0.66rem; }
+  .zeilen-karte .feld input, .zeilen-karte .feld select { background: var(--white); padding: 7px 8px; font-size: 0.84rem; }
+  .zeilen-kopf { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }
+  .zeilen-kopf input { flex: 1; min-width: 0; padding: 7px 8px; border-radius: 8px; border: 1px solid var(--parchment); background: var(--white); color: var(--soil); font: 600 0.86rem 'Inter', sans-serif; }
+  .zeilen-kopf .weg { background: none; border: none; color: var(--terracotta-text); font-size: 1rem; cursor: pointer; padding: 2px 6px; }
+
+  /* Karte: Knöpfe, Mängel, Wartung */
+  .fz-knoepfe { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .fz-knoepfe a.knopf-mini { text-decoration: none; display: inline-block; }
+  .maengel { margin-top: 10px; background: rgba(201,154,58,0.12); border-radius: 10px; padding: 8px 10px; }
+  .maengel-kopf { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; font-weight: 700; margin-bottom: 4px; }
+  .maengel-kopf span { flex: 1; }
+  .mangel { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; padding: 4px 0; border-top: 1px solid rgba(127,127,127,0.15); }
+  .mangel:first-of-type { border-top: none; }
+  .mangel .m-text { flex: 1; min-width: 0; }
+  .mangel .m-text small { display: block; color: var(--bark); font-size: 0.68rem; }
+  .wartung-zeile { font-size: 0.74rem; color: var(--bark); margin-top: 8px; cursor: pointer; }
+  .wahl-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+  .wahl-chips .chip { white-space: normal; text-align: left; }
+
+  /* Info-/Unfall-Blatt */
+  .info-liste { display: grid; gap: 6px; }
+  .info-zeile { display: flex; gap: 10px; align-items: center; background: var(--white); border-radius: 10px; padding: 9px 12px; font-size: 0.86rem; }
+  .info-zeile span:first-child { flex: 0 0 110px; color: var(--bark); font-size: 0.74rem; font-weight: 700; }
+  .info-zeile b { flex: 1; min-width: 0; overflow-wrap: anywhere; font-weight: 600; }
+  .info-zeile button { background: none; border: none; cursor: pointer; font-size: 0.95rem; }
+  .anruf { display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; border-radius: 14px; padding: 13px; font: 700 0.95rem 'Inter', sans-serif; margin-top: 8px; }
+  .anruf.notruf { background: #c0392b; color: #fff; }
+  .anruf.panne { background: var(--gold); color: #1d160c; }
+  .checkliste { list-style: none; display: grid; gap: 6px; margin-top: 10px; }
+  .checkliste li label { display: flex; gap: 10px; align-items: flex-start; background: var(--white); border-radius: 10px; padding: 9px 12px; font-size: 0.85rem; line-height: 1.4; cursor: pointer; }
+  .checkliste li input { width: 20px; height: 20px; flex-shrink: 0; margin-top: 1px; }
+  .checkliste li input:checked + span { text-decoration: line-through; opacity: 0.6; }
+
+  /* Statistik */
+  .stat-karte { background: var(--white); border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); padding: 14px 16px; margin-bottom: 12px; }
+  .stat-karte h3 { font-size: 0.95rem; margin-bottom: 10px; }
+  .jahr-zeile { margin-bottom: 12px; }
+  .jahr-kopf { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px; }
+  .stapel { display: flex; height: 12px; border-radius: 6px; overflow: hidden; background: var(--cream); }
+  .stapel span { display: block; height: 100%; }
+  .legende { display: flex; flex-wrap: wrap; gap: 10px; font-size: 0.7rem; color: var(--bark); margin-top: 4px; }
+  .legende i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
+  .stat-klein { font-size: 0.72rem; color: var(--bark); margin-top: 3px; }
+  .diagramm { width: 100%; height: auto; display: block; margin-top: 4px; }
 </style>
 </head>
 <body>
@@ -94,9 +151,10 @@
     <button class="add-btn" id="btnNeu">＋ Neu</button>
   </div>
   <div class="reiter" role="tablist">
-    <button data-ansicht="uebersicht" class="active">🚗 Übersicht</button>
+    <button data-ansicht="uebersicht" class="active">🚗 Autos</button>
     <button data-ansicht="tanken">⛽ Tanken</button>
     <button data-ansicht="werkstatt">🔧 Werkstatt</button>
+    <button data-ansicht="statistik">📊 Statistik</button>
   </div>
 </header>
 <main>
@@ -123,7 +181,31 @@
     <div class="feld"><label>Nächster Service (Datum)</label><input type="date" id="fzServiceDatum"></div>
     <div class="feld"><label>… oder bei km</label><input type="number" id="fzServiceKm" inputmode="numeric" placeholder="z.B. 60000"></div>
   </div>
-  <div class="feld"><label>Notiz (Versicherung, Reifengröße, …)</label><textarea id="fzNotiz" rows="2"></textarea></div>
+  <details class="abschnitt" id="fzSteckbrief"><summary>📋 Steckbrief & Pannenhilfe</summary><div class="inhalt">
+    <div class="zeile">
+      <div class="feld"><label>Reifengröße</label><input type="text" id="fzReifengroesse" placeholder="z.B. 205/60 R16"></div>
+      <div class="feld"><label>Ölsorte</label><input type="text" id="fzOel" placeholder="z.B. 5W-30"></div>
+    </div>
+    <div class="feld"><label>Fahrgestellnummer (FIN)</label><input type="text" id="fzFin" placeholder="17 Zeichen, steht im Fahrzeugschein (Feld E)"></div>
+    <div class="zeile">
+      <div class="feld"><label>Versicherung</label><input type="text" id="fzVers" placeholder="Gesellschaft"></div>
+      <div class="feld"><label>Vertrags-/Schein-Nr.</label><input type="text" id="fzVersNr"></div>
+    </div>
+    <div class="zeile">
+      <div class="feld"><label>Pannenhilfe</label><input type="text" id="fzPanne" placeholder="z.B. ADAC"></div>
+      <div class="feld"><label>Telefon</label><input type="tel" id="fzPanneTel" placeholder="z.B. 089 20 20 4000"></div>
+    </div>
+  </div></details>
+  <details class="abschnitt" id="fzFixBox"><summary>📆 Fixkosten (Steuer, Versicherung)</summary><div class="inhalt">
+    <div id="fzFixListe"></div>
+    <div class="opt-reihe"><button type="button" class="chip" data-fix-neu="steuer">＋ KFZ-Steuer</button><button type="button" class="chip" data-fix-neu="versicherung">＋ Versicherung</button><button type="button" class="chip" data-fix-neu="sonstiges">＋ Sonstiges</button></div>
+  </div></details>
+  <details class="abschnitt" id="fzWartBox"><summary>🔧 Wartungsplan</summary><div class="inhalt">
+    <p class="hinweis" style="margin:0 0 8px">Was in welchem Abstand gemacht werden sollte. „Zuletzt“ nur eintragen, wenn es noch keinen Werkstatt-Eintrag dazu gibt – danach rechnet die App mit den Werkstatt-Einträgen weiter.</p>
+    <div id="fzWartListe"></div>
+    <div class="opt-reihe" id="fzWartVorschlaege"></div>
+  </div></details>
+  <div class="feld"><label>Notiz</label><textarea id="fzNotiz" rows="2"></textarea></div>
   <div class="modal-knoepfe">
     <button class="btn btn-loeschen" id="fzLoeschen" style="display:none">🗑</button>
     <button class="btn btn-sekundaer" data-zu="modalFahrzeug">Abbrechen</button>
@@ -139,10 +221,13 @@
     <div class="feld"><label>Datum</label><input type="date" id="tkDatum"></div>
     <div class="feld"><label>Kilometerstand</label><input type="number" id="tkKm" inputmode="numeric"></div>
   </div>
+  <p class="hinweis" id="tkKmHinweis" style="margin:-6px 0 8px"></p>
   <div class="zeile">
     <div class="feld"><label>Liter</label><input type="number" id="tkLiter" step="0.01" inputmode="decimal"></div>
     <div class="feld"><label>Betrag (€)</label><input type="number" id="tkBetrag" step="0.01" inputmode="decimal"></div>
+    <div class="feld"><label>€ / Liter</label><input type="number" id="tkPreis" step="0.001" inputmode="decimal"></div>
   </div>
+  <p class="hinweis" style="margin:-6px 0 8px">Zwei der drei Werte reichen – der dritte wird ausgerechnet.</p>
   <label style="display:flex;gap:8px;align-items:center;font-size:0.85rem;"><input type="checkbox" id="tkVoll" checked> Vollgetankt (für die Verbrauchsberechnung)</label>
   <div class="modal-knoepfe">
     <button class="btn btn-loeschen" id="tkLoeschen" style="display:none">🗑</button>
@@ -164,6 +249,7 @@
     <div class="feld"><label>Kosten (€)</label><input type="number" id="wsKosten" step="0.01" inputmode="decimal"></div>
     <div class="feld"><label>Werkstatt</label><input type="text" id="wsWo" placeholder="optional"></div>
   </div>
+  <div class="feld" id="wsErledigtBox"></div>
   <div class="feld"><label>Notiz</label><textarea id="wsNotiz" rows="2"></textarea></div>
   <p class="hinweis" id="wsHinweis"></p>
   <div class="modal-knoepfe">
@@ -171,6 +257,12 @@
     <button class="btn btn-sekundaer" data-zu="modalWerkstatt">Abbrechen</button>
     <button class="btn btn-primaer" id="wsSpeichern">Speichern</button>
   </div>
+</div></div>
+
+<!-- Info-Blatt (Steckbrief / Unfall) -->
+<div class="modal-bg" id="modalInfo"><div class="modal">
+  <div id="infoInhalt"></div>
+  <div class="modal-knoepfe"><button class="btn btn-sekundaer" data-zu="modalInfo">Schließen</button></div>
 </div></div>
 
 <script>
@@ -199,6 +291,90 @@
     termineSync = window.PlanerSync.starteSync({ modul: 'termine', keys: ['termine_events_v1'] });
   }
   const fz = id => fahrzeuge.find(f => f.id === id);
+  const isoVon = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  const num = v => { const n = parseFloat(String(v == null ? '' : v).replace(',', '.')); return isFinite(n) ? n : 0; };
+
+  // ---------- 🔧 Wartungsplan: Vorgaben ----------
+  const WARTUNG_VORLAGEN = [
+    { name: '🛢️ Ölwechsel', km: 15000, monate: 12, art: 'oel' },
+    { name: '🛑 Bremsflüssigkeit', monate: 24 },
+    { name: '❄️ Klimaservice', monate: 24 },
+    { name: '🌬️ Innenraumfilter', monate: 12, km: 15000 },
+    { name: '⚙️ Zahnriemen', km: 120000, monate: 72 },
+    { name: '🔥 Zündkerzen', km: 60000 },
+    { name: '🔋 Batterie prüfen', monate: 24 },
+  ];
+  function standardWartung(typ) {
+    if (typ === 'fahrrad' || typ === 'anhaenger') return [];
+    const namen = typ === 'motorrad' ? ['🛢️ Ölwechsel', '🛑 Bremsflüssigkeit'] : ['🛢️ Ölwechsel', '🛑 Bremsflüssigkeit', '❄️ Klimaservice', '🌬️ Innenraumfilter'];
+    return WARTUNG_VORLAGEN.filter(v => namen.includes(v.name)).map(v => Object.assign({ id: neueId('wt') }, v));
+  }
+  // Einmalig: bestehenden Fahrzeugen den Standard-Wartungsplan geben
+  if (fahrzeuge.some(f => !Array.isArray(f.wartung))) {
+    fahrzeuge.forEach(f => { if (!Array.isArray(f.wartung)) f.wartung = standardWartung(f.typ); });
+    speichern(KEY_FZ, fahrzeuge);
+  }
+  function wartungStand(f, w) {
+    let datum = w.zuletztDatum || '', km = num(w.zuletztKm);
+    werkstatt.filter(x => x.fahrzeugId === f.id && (Array.isArray(x.wartungIds) ? x.wartungIds.includes(w.id) : (w.art && x.art === w.art)))
+      .forEach(x => { const d = x.datum || ''; if (d > datum || (d === datum && num(x.km) > km)) { datum = d; km = num(x.km) || km; } });
+    if (!datum && !km) return null;
+    const jetztKm = aktuellerKm(f);
+    const restKm = num(w.km) > 0 && km > 0 ? km + num(w.km) - jetztKm : null;
+    let restTage = null, faelligDatum = null;
+    if (num(w.monate) > 0 && datum) {
+      const d = ausISO(datum); d.setMonth(d.getMonth() + num(w.monate));
+      faelligDatum = isoVon(d);
+      restTage = Math.round((d - ausISO(heuteISO())) / 864e5);
+    }
+    const faellig = (restKm !== null && restKm <= 0) || (restTage !== null && restTage < 0);
+    const bald = (restKm !== null && restKm <= 1500) || (restTage !== null && restTage <= 30);
+    return { datum, km, restKm, restTage, faelligDatum, art: faellig ? 'faellig' : bald ? 'bald' : 'ok' };
+  }
+
+  // ---------- 💰 Finanzen: Kosten automatisch als Ausgabe „🚗 Auto“ ----------
+  const KEY_FIN_AUS = 'fahrzeuge_finanzenAus'; // geräte-lokal: '1' = nicht übertragen
+  const finanzenAktiv = () => { try { return localStorage.getItem(KEY_FIN_AUS) !== '1'; } catch (e) { return true; } };
+  let finanzenSync = null;
+  if (window.PlanerSync) {
+    finanzenSync = window.PlanerSync.starteSync({ modul: 'finanzen',
+      keys: ['finanzen_kategorien', 'finanzen_ausgaben', 'finanzen_taschengeld_konten', 'finanzen_taschengeld_buchungen', 'finanzen_abos'], ersterAbgleichVereinen: true });
+  }
+  function finanzBuchen(eintrag, beschreibung, betrag, datum) {
+    try {
+      let ausgaben = laden('finanzen_ausgaben', []);
+      if (eintrag.finanzId) {
+        const a = ausgaben.find(x => x.id === eintrag.finanzId);
+        if (a) {
+          if (betrag > 0) Object.assign(a, { betrag: Math.round(betrag * 100) / 100, beschreibung, datum });
+          else { ausgaben = ausgaben.filter(x => x !== a); delete eintrag.finanzId; }
+          speichern('finanzen_ausgaben', ausgaben, finanzenSync || { melde() {} });
+          return;
+        }
+        delete eintrag.finanzId;
+      }
+      if (!finanzenAktiv() || !(betrag > 0)) return;
+      const kategorien = laden('finanzen_kategorien', []);
+      if (!kategorien.some(k => k.id === 'kat_auto_auto')) {
+        kategorien.push({ id: 'kat_auto_auto', name: 'Auto', icon: '🚗', limit: 0 });
+        speichern('finanzen_kategorien', kategorien, finanzenSync || { melde() {} });
+      }
+      const id = 'a_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+      ausgaben.push({ id, kategorieId: 'kat_auto_auto', betrag: Math.round(betrag * 100) / 100, beschreibung, datum, quelle: 'fahrzeuge' });
+      eintrag.finanzId = id;
+      speichern('finanzen_ausgaben', ausgaben, finanzenSync || { melde() {} });
+    } catch (e) { console.warn('Fahrzeuge: Finanzen', e); }
+  }
+  function finanzLoeschen(eintrag) {
+    if (!eintrag || !eintrag.finanzId) return;
+    const ausgaben = laden('finanzen_ausgaben', []).filter(x => x.id !== eintrag.finanzId);
+    speichern('finanzen_ausgaben', ausgaben, finanzenSync || { melde() {} });
+  }
+
+  // ---------- 📆 Fixkosten ----------
+  const FIX_ARTEN = { steuer: '🏛️ KFZ-Steuer', versicherung: '🛡️ Versicherung', sonstiges: '💶 Fixkosten' };
+  const INTERVALLE = { 12: 'jährlich', 6: 'halbjährlich', 3: 'vierteljährlich', 1: 'monatlich' };
+  function monatPlus(isoMonat, n) { const [j, m] = isoMonat.split('-').map(Number); const d = new Date(j, m - 1 + n, 1); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); }
 
   // ---------- Fälligkeiten ----------
   function monateBis(isoMonat) {
@@ -237,8 +413,31 @@
       const mon = new Date().getMonth() + 1;
       if (f.reifen === 'sommer' && (mon >= 10 || mon <= 3)) liste.push({ art: mon === 10 ? 'bald' : 'faellig', icon: '❄️', text: 'Zeit für Winterreifen', klein: 'Faustregel „von O bis O“: Oktober bis Ostern', aktion: 'reifen:winter' });
       else if (f.reifen === 'winter' && mon >= 4 && mon <= 9) liste.push({ art: mon === 4 ? 'bald' : 'faellig', icon: '☀️', text: 'Sommerreifen aufziehen', klein: 'Faustregel „von O bis O“: Ostern bis Oktober', aktion: 'reifen:sommer' });
-      else if (f.reifen) liste.push({ art: 'ok', icon: f.reifen === 'winter' ? '❄️' : f.reifen === 'ganzjahr' ? '🌦️' : '☀️', text: (f.reifen === 'winter' ? 'Winter' : f.reifen === 'ganzjahr' ? 'Ganzjahres' : 'Sommer') + 'reifen drauf', klein: 'passt zur Jahreszeit' });
+      else if (f.reifen) liste.push({ art: 'ok', icon: f.reifen === 'winter' ? '❄️' : f.reifen === 'ganzjahr' ? '🌦️' : '☀️', text: (f.reifen === 'winter' ? 'Winter' : f.reifen === 'ganzjahr' ? 'Ganzjahres' : 'Sommer') + 'reifen drauf', klein: 'passt zur Jahreszeit' + (f.reifengroesse ? ' · ' + f.reifengroesse : '') });
     }
+    // 🔧 Wartungsplan: nur was fällig oder bald dran ist
+    (f.wartung || []).forEach(w => {
+      const st = wartungStand(f, w);
+      if (!st || st.art === 'ok') return;
+      const teile = ['zuletzt ' + (st.datum ? datumText(st.datum) : '') + (st.km ? (st.datum ? ' bei ' : 'bei ') + zahl(st.km) + ' km' : '')];
+      if (st.restKm !== null) teile.push(st.restKm <= 0 ? 'km überschritten' : 'noch ' + zahl(st.restKm) + ' km');
+      if (st.restTage !== null) teile.push(st.restTage < 0 ? 'fällig seit ' + datumText(st.faelligDatum) : 'bis ' + datumText(st.faelligDatum));
+      const nameOhne = w.name.replace(/^\S+\s/, '');
+      liste.push({ art: st.art, icon: (w.name.match(/^\S+/) || ['🔧'])[0], text: nameOhne + (st.art === 'faellig' ? ' fällig!' : ' bald fällig'), klein: teile.join(' · '),
+        termin: st.faelligDatum ? { titel: '🔧 ' + nameOhne + ' – ' + f.name, datum: st.faelligDatum, tageVorher: 14 } : null, wartung: w.id });
+    });
+    // 📆 Fixkosten: Fälligkeit und Versicherungswechsel
+    (f.fixkosten || []).forEach(x => {
+      if (!x.faellig) return;
+      const m = monateBis(x.faellig);
+      const [j, mo] = x.faellig.split('-');
+      const name = x.name || FIX_ARTEN[x.art] || 'Fixkosten';
+      if (m <= 1) liste.push({ art: m < 0 ? 'faellig' : 'bald', icon: '💶', text: name.replace(/^\S+\s/, '') + (x.betrag ? ' ' + euro(x.betrag) : '') + (m < 0 ? ' war fällig' : ' wird fällig'),
+        klein: mo + '/' + j + ' · ' + (INTERVALLE[x.intervall] || 'jährlich'), bezahlt: x.id });
+      const monat = new Date().getMonth() + 1;
+      if (x.art === 'versicherung' && mo === '01' && (monat === 10 || monat === 11) && m >= 1 && m <= 3)
+        liste.push({ art: 'bald', icon: '🔄', text: 'Versicherung vergleichen?', klein: 'Wechsel zum 1.1. meist nur mit Kündigung bis 30.11. möglich' + (x.betrag ? ' · bisher ' + euro(x.betrag) + '/Jahr' : '') });
+    });
     return liste;
   }
   // Verbrauch aus Volltankungen: Liter seit der letzten Volltankung ÷ gefahrene km
@@ -248,9 +447,20 @@
     t.forEach(x => {
       if (start === null) { if (x.voll) start = Number(x.km); return; }
       zwischen += Number(x.liter) || 0;
-      if (x.voll) { liter += zwischen; km += Number(x.km) - start; start = Number(x.km); zwischen = 0; }
+      // Lücken (vergessene Tankungen, > 2.500 km zwischen zwei Volltankungen) nicht mitrechnen
+      if (x.voll) { const d = Number(x.km) - start; if (d > 0 && d <= 2500) { liter += zwischen; km += d; } start = Number(x.km); zwischen = 0; }
     });
     return km > 0 ? liter / km * 100 : null;
+  }
+  function verbrauchsListe(fid) {
+    const t = tanken.filter(x => x.fahrzeugId === fid && Number(x.km) > 0).sort((a, b) => Number(a.km) - Number(b.km));
+    const out = []; let start = null, zwischen = 0;
+    t.forEach(x => {
+      if (start === null) { if (x.voll) start = Number(x.km); return; }
+      zwischen += Number(x.liter) || 0;
+      if (x.voll) { const km = Number(x.km) - start; if (km > 0 && km <= 2500) out.push({ datum: x.datum, wert: zwischen / km * 100, km }); start = Number(x.km); zwischen = 0; }
+    });
+    return out;
   }
   function kostenJahr(fid) {
     const jahr = String(new Date().getFullYear());
@@ -277,6 +487,7 @@
   function renderFilter() {
     const box = document.getElementById('fahrzeugFilter');
     if (fahrzeuge.length < 2 || ansicht === 'uebersicht') { box.innerHTML = ''; return; }
+    if (filterFz !== 'alle' && !fz(filterFz)) filterFz = 'alle';
     box.innerHTML = '<button class="chip' + (filterFz === 'alle' ? ' active' : '') + '" data-f="alle">Alle</button>' +
       fahrzeuge.map(f => '<button class="chip' + (filterFz === f.id ? ' active' : '') + '" data-f="' + esc(f.id) + '">' + (TYP_ICON[f.typ] || '🚗') + ' ' + esc(f.name) + '</button>').join('');
     box.querySelectorAll('[data-f]').forEach(b => b.addEventListener('click', () => { filterFz = b.dataset.f; render(); }));
@@ -285,6 +496,7 @@
     renderFilter();
     const box = document.getElementById('inhalt');
     document.getElementById('btnNeu').textContent = ansicht === 'tanken' ? '＋ Tanken' : ansicht === 'werkstatt' ? '＋ Eintrag' : '＋ Fahrzeug';
+    document.getElementById('btnNeu').style.display = ansicht === 'statistik' ? 'none' : '';
     if (!fahrzeuge.length) {
       box.innerHTML = '<div class="leer"><span class="em">🚗</span>Noch kein Fahrzeug eingetragen.<br>Mit „＋ Fahrzeug“ legst du euer Auto an – dann behältst du TÜV, Service, Reifenwechsel, Tanken und Werkstattkosten im Blick.</div>';
       return;
@@ -303,7 +515,9 @@
             (s.termin ? '<button class="knopf-mini" data-termin="' + esc(f.id) + ':' + si + '" title="Als Termin mit Erinnerung eintragen">📅</button>' : '') +
             (s.aktion && s.aktion.indexOf('reifen:') === 0 ? '<button class="knopf-mini" data-reifen="' + esc(f.id) + ':' + s.aktion.slice(7) + '">Erledigt</button>' : '') +
             (s.aktion === 'bearbeiten' ? '<button class="knopf-mini" data-bearbeiten="' + esc(f.id) + '">Eintragen</button>' : '') +
-            '</div>').join('') + '</div>' +
+            (s.bezahlt ? '<button class="knopf-mini" data-bezahlt="' + esc(f.id) + ':' + esc(s.bezahlt) + '">Bezahlt</button>' : '') +
+            (s.wartung ? '<button class="knopf-mini" data-wartung-erledigt="' + esc(f.id) + ':' + esc(s.wartung) + '">Erledigt</button>' : '') +
+            '</div>').join('') + '</div>' + wartungZeile(f) + maengelHtml(f) + knoepfeHtml(f) +
           '<div class="zahlen">' +
             '<div class="zahl"><b>' + (v ? zahl(v, 1) + ' l' : '–') + '</b><span>Ø Verbrauch / 100 km</span></div>' +
             '<div class="zahl"><b>' + euro(k.tk) + '</b><span>Tanken ' + new Date().getFullYear() + '</span></div>' +
@@ -314,6 +528,14 @@
       box.querySelectorAll('[data-termin]').forEach(b => b.addEventListener('click', () => {
         const [id, si] = b.dataset.termin.split(':'); const s = statusListe(fz(id))[Number(si)]; if (s && s.termin) terminAnlegen(s.termin);
       }));
+      box.querySelectorAll('[data-bezahlt]').forEach(b => b.addEventListener('click', () => { const [id, xid] = b.dataset.bezahlt.split(':'); fixBezahlt(id, xid); }));
+      box.querySelectorAll('[data-wartung-erledigt]').forEach(b => b.addEventListener('click', () => { const [id, wid] = b.dataset.wartungErledigt.split(':'); werkstattOeffnen(null, { fahrzeugId: id, wartungIds: [wid], art: wid && (fz(id).wartung || []).find(w => w.id === wid && w.art) ? 'oel' : 'sonstiges' }); }));
+      box.querySelectorAll('[data-wartplan]').forEach(b => b.addEventListener('click', () => fahrzeugOeffnen(b.dataset.wartplan, 'fzWartBox')));
+      box.querySelectorAll('[data-mangel-neu]').forEach(b => b.addEventListener('click', () => mangelNeu(b.dataset.mangelNeu)));
+      box.querySelectorAll('[data-mangel-ok]').forEach(b => b.addEventListener('click', () => { const [id, mid] = b.dataset.mangelOk.split(':'); mangelErledigt(id, mid); }));
+      box.querySelectorAll('[data-mangel-teilen]').forEach(b => b.addEventListener('click', () => maengelTeilen(b.dataset.mangelTeilen)));
+      box.querySelectorAll('[data-steckbrief]').forEach(b => b.addEventListener('click', () => steckbriefZeigen(b.dataset.steckbrief)));
+      box.querySelectorAll('[data-unfall]').forEach(b => b.addEventListener('click', () => unfallZeigen(b.dataset.unfall)));
       box.querySelectorAll('[data-reifen]').forEach(b => b.addEventListener('click', () => {
         const [id, art] = b.dataset.reifen.split(':'); const f = fz(id); if (!f) return;
         f.reifen = art; speichern(KEY_FZ, fahrzeuge);
@@ -322,6 +544,7 @@
       }));
       return;
     }
+    if (ansicht === 'statistik') { renderStatistik(box); return; }
     const liste = (ansicht === 'tanken' ? tanken : werkstatt).filter(x => filterFz === 'alle' || x.fahrzeugId === filterFz)
       .slice().sort((a, b) => String(b.datum || '').localeCompare(String(a.datum || '')) || (Number(b.km) || 0) - (Number(a.km) || 0));
     if (!liste.length) { box.innerHTML = '<div class="leer"><span class="em">' + (ansicht === 'tanken' ? '⛽' : '🔧') + '</span>Noch keine Einträge.</div>'; return; }
@@ -340,6 +563,159 @@
     box.querySelectorAll('[data-ws]').forEach(b => b.addEventListener('click', () => werkstattOeffnen(b.dataset.ws)));
   }
 
+  // ---------- Karte: Zusatzbereiche ----------
+  function wartungZeile(f) {
+    const w = f.wartung || [];
+    if (!w.length) return '';
+    let fae = 0, bald = 0, ok = 0, offen = 0;
+    w.forEach(x => { const st = wartungStand(f, x); if (!st) offen++; else if (st.art === 'faellig') fae++; else if (st.art === 'bald') bald++; else ok++; });
+    const teile = [];
+    if (fae) teile.push(fae + ' fällig'); if (bald) teile.push(bald + ' bald'); if (ok) teile.push(ok + ' ok'); if (offen) teile.push(offen + ' ohne Datum');
+    return '<div class="wartung-zeile" data-wartplan="' + esc(f.id) + '" role="button">🔧 Wartungsplan: ' + teile.join(' · ') + ' ›</div>';
+  }
+  function maengelHtml(f) {
+    const offen = (f.maengel || []).filter(m => !m.erledigt);
+    if (!offen.length) return '';
+    return '<div class="maengel"><div class="maengel-kopf"><span>⚠️ Für die nächste Werkstatt (' + offen.length + ')</span>' +
+      '<button class="knopf-mini" data-mangel-teilen="' + esc(f.id) + '" title="Liste teilen">📤</button><button class="knopf-mini" data-mangel-neu="' + esc(f.id) + '">＋</button></div>' +
+      offen.map(m => '<div class="mangel"><span class="m-text">' + esc(m.text) + '<small>seit ' + datumText(m.datum) + '</small></span>' +
+        '<button class="knopf-mini" data-mangel-ok="' + esc(f.id) + ':' + esc(m.id) + '" title="Erledigt">✓</button></div>').join('') + '</div>';
+  }
+  function knoepfeHtml(f) {
+    const offen = (f.maengel || []).some(m => !m.erledigt);
+    return '<div class="fz-knoepfe">' +
+      '<button class="knopf-mini" data-steckbrief="' + esc(f.id) + '">📋 Steckbrief</button>' +
+      (f.typ !== 'fahrrad' ? '<button class="knopf-mini" data-unfall="' + esc(f.id) + '">🚨 Unfall</button>' : '') +
+      (f.panneTel ? '<a class="knopf-mini" href="tel:' + esc(String(f.panneTel).replace(/[^\d+]/g, '')) + '">📞 ' + esc(f.panne || 'Pannenhilfe') + '</a>' : '') +
+      (!offen ? '<button class="knopf-mini" data-mangel-neu="' + esc(f.id) + '">⚠️ Mangel notieren</button>' : '') + '</div>';
+  }
+  function mangelNeu(id) {
+    const f = fz(id); if (!f) return;
+    const text = (prompt('Was ist aufgefallen? (z.B. „Quietschen beim Bremsen“, „Warnmeldung Bremssystem“)') || '').trim();
+    if (!text) return;
+    f.maengel = (f.maengel || []).concat([{ id: neueId('mg'), text, datum: heuteISO(), erledigt: false }]);
+    speichern(KEY_FZ, fahrzeuge); render();
+  }
+  function mangelErledigt(id, mid) {
+    const f = fz(id), m = f && (f.maengel || []).find(x => x.id === mid); if (!m) return;
+    m.erledigt = true; m.erledigtDatum = heuteISO();
+    speichern(KEY_FZ, fahrzeuge); render();
+  }
+  async function maengelTeilen(id) {
+    const f = fz(id); if (!f) return;
+    const offen = (f.maengel || []).filter(m => !m.erledigt);
+    const text = '🔧 ' + f.name + (f.kennzeichen ? ' (' + f.kennzeichen + ')' : '') + ' – bitte anschauen:\n' + offen.map(m => '• ' + m.text + ' (seit ' + datumText(m.datum) + ')').join('\n') +
+      (aktuellerKm(f) ? '\nKilometerstand: ' + zahl(aktuellerKm(f)) + ' km' : '') + (f.fin ? '\nFIN: ' + f.fin : '');
+    try { if (navigator.share) { await navigator.share({ text }); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
+    try { await navigator.clipboard.writeText(text); alert('📋 Liste kopiert – z.B. in eine Nachricht an die Werkstatt einfügen.'); } catch (e) { prompt('Zum Kopieren:', text); }
+  }
+  function fixBezahlt(id, xid) {
+    const f = fz(id), x = f && (f.fixkosten || []).find(y => y.id === xid); if (!x) return;
+    const betrag = num(prompt('Bezahlter Betrag (€):', x.betrag ? String(x.betrag).replace('.', ',') : '') || '');
+    if (!(betrag > 0)) return;
+    const zahlung = { id: neueId('zl'), datum: heuteISO(), betrag };
+    x.zahlungen = (x.zahlungen || []).concat([zahlung]);
+    x.betrag = betrag;
+    x.faellig = monatPlus(x.faellig, Number(x.intervall) || 12);
+    finanzBuchen(zahlung, (x.name || FIX_ARTEN[x.art] || 'Fixkosten').replace(/^\S+\s/, '') + ' – ' + f.name, betrag, zahlung.datum);
+    speichern(KEY_FZ, fahrzeuge); render();
+  }
+  function infoZeigen(html) { document.getElementById('infoInhalt').innerHTML = html; zeige('modalInfo'); }
+  function steckbriefZeigen(id) {
+    const f = fz(id); if (!f) return;
+    const zeilen = [['Kennzeichen', f.kennzeichen], ['Kilometerstand', aktuellerKm(f) ? zahl(aktuellerKm(f)) + ' km' : ''], ['Fahrgestellnr.', f.fin], ['Reifengröße', f.reifengroesse],
+      ['Ölsorte', f.oel], ['TÜV/HU', f.tuev ? f.tuev.split('-').reverse().join('/') : ''], ['Versicherung', f.vers], ['Vertrags-Nr.', f.versNr], ['Pannenhilfe', [f.panne, f.panneTel].filter(Boolean).join(' · ')]]
+      .filter(z => z[1]);
+    infoZeigen('<h2>📋 ' + esc(f.name) + '</h2>' + (zeilen.length ? '<div class="info-liste">' + zeilen.map(z => '<div class="info-zeile"><span>' + z[0] + '</span><b>' + esc(z[1]) + '</b><button type="button" data-kopie="' + esc(z[1]) + '" title="Kopieren">📋</button></div>').join('') + '</div>'
+      : '<p class="hinweis">Noch keine Angaben – unter ✏️ → „📋 Steckbrief & Pannenhilfe“ eintragen.</p>') +
+      (f.panneTel ? '<a class="anruf panne" href="tel:' + esc(String(f.panneTel).replace(/[^\d+]/g, '')) + '">📞 ' + esc(f.panne || 'Pannenhilfe') + ' anrufen</a>' : '') +
+      '<button class="knopf-mini" style="margin-top:10px" data-bearbeiten-info="' + esc(f.id) + '">✏️ Angaben ändern</button>');
+    document.querySelectorAll('#infoInhalt [data-kopie]').forEach(b => b.addEventListener('click', async () => { try { await navigator.clipboard.writeText(b.dataset.kopie); b.textContent = '✓'; } catch (e) {} }));
+    document.querySelector('#infoInhalt [data-bearbeiten-info]').addEventListener('click', () => { zu('modalInfo'); fahrzeugOeffnen(f.id, 'fzSteckbrief'); });
+  }
+  const UNFALL_SCHRITTE = [
+    'Warnblinker an, Warnweste anziehen – dann erst aussteigen',
+    'Unfallstelle mit dem Warndreieck absichern (Landstraße ca. 100 m, Autobahn ca. 200 m)',
+    'Verletzte? Erste Hilfe leisten und 112 rufen',
+    'Bei Verletzten, Streit oder Verdacht auf Alkohol: Polizei (110) rufen',
+    'Fotos: Unfallstelle, Fahrzeugpositionen, alle Schäden, Kennzeichen',
+    'Daten austauschen: Name, Anschrift, Kennzeichen, Versicherung (+ Nummer) des anderen',
+    'Zeugen ansprechen und Namen/Telefon notieren',
+    'Keine Schuld anerkennen – nur den Ablauf festhalten',
+    'Schaden innerhalb einer Woche der eigenen Versicherung melden',
+  ];
+  function unfallZeigen(id) {
+    const f = fz(id); if (!f) return;
+    infoZeigen('<h2>🚨 Unfall – was tun?</h2>' +
+      '<a class="anruf notruf" href="tel:112">📞 Notruf 112</a>' +
+      (f.panneTel ? '<a class="anruf panne" href="tel:' + esc(String(f.panneTel).replace(/[^\d+]/g, '')) + '">📞 ' + esc(f.panne || 'Pannenhilfe') + '</a>' : '') +
+      '<ul class="checkliste">' + UNFALL_SCHRITTE.map(t => '<li><label><input type="checkbox"><span>' + esc(t) + '</span></label></li>').join('') + '</ul>' +
+      '<div class="info-liste" style="margin-top:12px">' +
+        [['Euer Kennzeichen', f.kennzeichen], ['Versicherung', f.vers], ['Vertrags-Nr.', f.versNr], ['Fahrgestellnr.', f.fin]].filter(z => z[1])
+          .map(z => '<div class="info-zeile"><span>' + z[0] + '</span><b>' + esc(z[1]) + '</b></div>').join('') + '</div>' +
+      '<p class="hinweis" style="margin-top:10px">Tipp: Den Europäischen Unfallbericht gibt es bei jeder Versicherung – am besten ausgedruckt ins Handschuhfach legen.</p>');
+  }
+
+  // ---------- 📊 Statistik ----------
+  function kmProJahr(f) {
+    const punkte = tanken.filter(t => t.fahrzeugId === f.id).concat(werkstatt.filter(w => w.fahrzeugId === f.id))
+      .filter(x => x.datum && num(x.km) > 0).map(x => ({ j: x.datum.slice(0, 4), km: num(x.km) })).sort((a, b) => a.km - b.km);
+    const out = {};
+    const jahre = Array.from(new Set(punkte.map(p => p.j))).sort();
+    jahre.forEach(j => {
+      const imJahr = punkte.filter(p => p.j === j), vorher = punkte.filter(p => p.j < j);
+      const bis = Math.max(...imJahr.map(p => p.km));
+      const von = vorher.length ? Math.max(...vorher.map(p => p.km)) : Math.min(...imJahr.map(p => p.km));
+      if (bis > von) out[j] = bis - von;
+    });
+    return out;
+  }
+  function renderStatistik(box) {
+    const liste = filterFz === 'alle' ? fahrzeuge : fahrzeuge.filter(f => f.id === filterFz);
+    const ids = new Set(liste.map(f => f.id));
+    const proJahr = {};
+    const plus = (j, feld, b) => { if (!j || !(b > 0)) return; proJahr[j] = proJahr[j] || { tk: 0, ws: 0, fix: 0, km: 0 }; proJahr[j][feld] += b; };
+    tanken.filter(t => ids.has(t.fahrzeugId)).forEach(t => plus(String(t.datum || '').slice(0, 4), 'tk', num(t.betrag)));
+    werkstatt.filter(w => ids.has(w.fahrzeugId)).forEach(w => plus(String(w.datum || '').slice(0, 4), 'ws', num(w.kosten)));
+    liste.forEach(f => (f.fixkosten || []).forEach(x => (x.zahlungen || []).forEach(z => plus(String(z.datum).slice(0, 4), 'fix', num(z.betrag)))));
+    liste.forEach(f => { const k = kmProJahr(f); Object.keys(k).forEach(j => { if (proJahr[j]) proJahr[j].km += k[j]; else { proJahr[j] = { tk: 0, ws: 0, fix: 0, km: k[j] }; } }); });
+    const jahre = Object.keys(proJahr).sort((a, b) => b.localeCompare(a)).slice(0, 6);
+    const max = Math.max(1, ...jahre.map(j => proJahr[j].tk + proJahr[j].ws + proJahr[j].fix));
+    const FARBE = { tk: 'var(--terracotta)', ws: 'var(--moss)', fix: 'var(--gold)' };
+    let html = '<div class="stat-karte"><h3>💶 Kosten pro Jahr</h3>' + (jahre.length ? jahre.map(j => {
+      const d = proJahr[j], summe = d.tk + d.ws + d.fix;
+      return '<div class="jahr-zeile"><div class="jahr-kopf"><span>' + j + '</span><b>' + euro(summe) + '</b></div>' +
+        '<div class="stapel" style="width:' + Math.max(4, Math.round(summe / max * 100)) + '%">' + ['tk', 'ws', 'fix'].map(k => d[k] > 0 ? '<span style="width:' + (d[k] / summe * 100) + '%;background:' + FARBE[k] + '"></span>' : '').join('') + '</div>' +
+        '<div class="stat-klein">⛽ ' + euro(d.tk) + ' · 🔧 ' + euro(d.ws) + ' · 📆 ' + euro(d.fix) + (d.km ? ' · ' + zahl(d.km) + ' km' + (summe ? ' · ≈ ' + zahl(summe / d.km, 2) + ' €/km' : '') : '') + '</div></div>';
+    }).join('') + '<div class="legende"><span><i style="background:var(--terracotta)"></i>Tanken</span><span><i style="background:var(--moss)"></i>Werkstatt</span><span><i style="background:var(--gold)"></i>Fixkosten (bezahlt)</span></div>'
+      : '<p class="hinweis">Noch keine Kosten eingetragen.</p>') + '</div>';
+    liste.forEach(f => {
+      const v = verbrauchsListe(f.id).slice(-12);
+      if (!v.length) return;
+      const schnitt = v.reduce((s, x) => s + x.wert, 0) / v.length;
+      const vmax = Math.max(...v.map(x => x.wert)) * 1.15;
+      const B = 300, H = 110, breite = B / v.length;
+      const balken = v.map((x, i) => {
+        const h = Math.max(2, x.wert / vmax * (H - 18));
+        return '<rect x="' + (i * breite + breite * 0.15).toFixed(1) + '" y="' + (H - h - 14).toFixed(1) + '" width="' + (breite * 0.7).toFixed(1) + '" height="' + h.toFixed(1) + '" rx="2" fill="var(--sage)"><title>' + datumText(x.datum) + ': ' + zahl(x.wert, 1) + ' l/100 km</title></rect>' +
+          (v.length <= 8 ? '<text x="' + (i * breite + breite / 2).toFixed(1) + '" y="' + (H - h - 17).toFixed(1) + '" text-anchor="middle" font-size="8" fill="var(--soil)">' + zahl(x.wert, 1) + '</text>' : '') +
+          '<text x="' + (i * breite + breite / 2).toFixed(1) + '" y="' + (H - 3) + '" text-anchor="middle" font-size="7" fill="var(--bark)">' + (x.datum ? x.datum.slice(8, 10) + '.' + x.datum.slice(5, 7) + '.' : '') + '</text>';
+      }).join('');
+      const ySchnitt = (H - 14 - schnitt / vmax * (H - 18)).toFixed(1);
+      const preise = tanken.filter(t => t.fahrzeugId === f.id && num(t.liter) > 0 && num(t.betrag) > 0).sort((a, b) => String(a.datum).localeCompare(String(b.datum)));
+      const letzterPreis = preise.length ? num(preise[preise.length - 1].betrag) / num(preise[preise.length - 1].liter) : null;
+      html += '<div class="stat-karte"><h3>⛽ Verbrauch ' + esc(f.name) + '</h3>' +
+        '<svg class="diagramm" viewBox="0 0 ' + B + ' ' + H + '" role="img" aria-label="Verbrauch je Tankfüllung, Durchschnitt ' + zahl(schnitt, 1) + ' Liter pro 100 km">' + balken +
+        '<line x1="0" x2="' + B + '" y1="' + ySchnitt + '" y2="' + ySchnitt + '" stroke="var(--terracotta)" stroke-dasharray="4 3" stroke-width="1"/></svg>' +
+        '<div class="stat-klein">Ø ' + zahl(schnitt, 1) + ' l/100 km (gestrichelt) · min ' + zahl(Math.min(...v.map(x => x.wert)), 1) + ' · max ' + zahl(Math.max(...v.map(x => x.wert)), 1) +
+        (letzterPreis ? ' · zuletzt ' + zahl(letzterPreis, 3) + ' €/l' : '') + '</div></div>';
+    });
+    html += '<div class="stat-karte"><label style="display:flex;gap:10px;align-items:center;font-size:0.85rem;cursor:pointer"><input type="checkbox" id="finAn" style="width:20px;height:20px"' + (finanzenAktiv() ? ' checked' : '') + '> Kosten automatisch in 💰 Finanzen eintragen (Kategorie „🚗 Auto“)</label>' +
+      '<p class="hinweis">Gilt für neue Tank-, Werkstatt- und Fixkosten-Einträge auf diesem Gerät.</p></div>';
+    box.innerHTML = html;
+    document.getElementById('finAn').addEventListener('change', (e) => { try { if (e.target.checked) localStorage.removeItem(KEY_FIN_AUS); else localStorage.setItem(KEY_FIN_AUS, '1'); } catch (x) {} });
+  }
+
   // ---------- Formulare ----------
   const zeige = id => document.getElementById(id).classList.add('zeigen');
   const zu = id => document.getElementById(id).classList.remove('zeigen');
@@ -351,21 +727,69 @@
     document.getElementById(id).innerHTML = fahrzeuge.map(f => '<option value="' + esc(f.id) + '"' + (f.id === gewaehlt ? ' selected' : '') + '>' + (TYP_ICON[f.typ] || '🚗') + ' ' + esc(f.name) + '</option>').join('');
   }
 
-  function fahrzeugOeffnen(id) {
+  let fixEntwurf = [], wartEntwurf = [];
+  function fixListeRendern() {
+    const box = document.getElementById('fzFixListe');
+    box.innerHTML = fixEntwurf.length ? fixEntwurf.map((x, i) => '<div class="zeilen-karte"><div class="zeilen-kopf"><input data-fx="' + i + '" data-feld="name" value="' + esc(x.name || FIX_ARTEN[x.art]) + '"><button type="button" class="weg" data-fx-weg="' + i + '" aria-label="Entfernen">✕</button></div>' +
+      '<div class="zeile"><div class="feld"><label>Betrag (€)</label><input type="number" step="0.01" inputmode="decimal" data-fx="' + i + '" data-feld="betrag" value="' + esc(x.betrag || '') + '"></div>' +
+      '<div class="feld"><label>Nächste Fälligkeit</label><input type="month" data-fx="' + i + '" data-feld="faellig" value="' + esc(x.faellig || '') + '"></div>' +
+      '<div class="feld" style="flex:0 0 100px"><label>Abstand</label><select data-fx="' + i + '" data-feld="intervall">' + Object.keys(INTERVALLE).sort((a, b) => b - a).map(k => '<option value="' + k + '"' + (String(x.intervall || 12) === k ? ' selected' : '') + '>' + INTERVALLE[k] + '</option>').join('') + '</select></div></div></div>').join('')
+      : '<p class="hinweis" style="margin:0 0 8px">Noch keine Fixkosten – z.B. KFZ-Steuer (Bescheid vom Zoll) und Versicherung.</p>';
+    box.querySelectorAll('[data-fx]').forEach(el => el.addEventListener('input', () => { const x = fixEntwurf[Number(el.dataset.fx)]; x[el.dataset.feld] = el.dataset.feld === 'betrag' ? num(el.value) : el.value; }));
+    box.querySelectorAll('[data-fx-weg]').forEach(b => b.addEventListener('click', () => { fixEntwurf.splice(Number(b.dataset.fxWeg), 1); fixListeRendern(); }));
+  }
+  document.querySelectorAll('[data-fix-neu]').forEach(b => b.addEventListener('click', () => {
+    const art = b.dataset.fixNeu;
+    const naechsterJanuar = (new Date().getFullYear() + 1) + '-01';
+    fixEntwurf.push({ id: neueId('fx'), art, name: FIX_ARTEN[art], betrag: '', faellig: art === 'versicherung' ? naechsterJanuar : '', intervall: 12, zahlungen: [] });
+    fixListeRendern();
+  }));
+  function wartListeRendern() {
+    const box = document.getElementById('fzWartListe');
+    box.innerHTML = wartEntwurf.map((w, i) => '<div class="zeilen-karte"><div class="zeilen-kopf"><input data-wt="' + i + '" data-feld="name" value="' + esc(w.name) + '"><button type="button" class="weg" data-wt-weg="' + i + '" aria-label="Entfernen">✕</button></div>' +
+      '<div class="zeile"><div class="feld"><label>alle … km</label><input type="number" inputmode="numeric" data-wt="' + i + '" data-feld="km" value="' + esc(w.km || '') + '"></div>' +
+      '<div class="feld"><label>alle … Monate</label><input type="number" inputmode="numeric" data-wt="' + i + '" data-feld="monate" value="' + esc(w.monate || '') + '"></div></div>' +
+      '<div class="zeile"><div class="feld"><label>zuletzt am</label><input type="date" data-wt="' + i + '" data-feld="zuletztDatum" value="' + esc(w.zuletztDatum || '') + '"></div>' +
+      '<div class="feld"><label>bei km</label><input type="number" inputmode="numeric" data-wt="' + i + '" data-feld="zuletztKm" value="' + esc(w.zuletztKm || '') + '"></div></div></div>').join('');
+    box.querySelectorAll('[data-wt]').forEach(el => el.addEventListener('input', () => { wartEntwurf[Number(el.dataset.wt)][el.dataset.feld] = el.value; }));
+    box.querySelectorAll('[data-wt-weg]').forEach(b => b.addEventListener('click', () => { wartEntwurf.splice(Number(b.dataset.wtWeg), 1); wartListeRendern(); }));
+    const vor = WARTUNG_VORLAGEN.filter(v => !wartEntwurf.some(w => w.name === v.name));
+    document.getElementById('fzWartVorschlaege').innerHTML = vor.map(v => '<button type="button" class="chip" data-wt-neu="' + esc(v.name) + '">＋ ' + esc(v.name) + '</button>').join('') +
+      '<button type="button" class="chip" data-wt-neu="">＋ Eigener Punkt</button>';
+    document.querySelectorAll('[data-wt-neu]').forEach(b => b.addEventListener('click', () => {
+      const v = WARTUNG_VORLAGEN.find(x => x.name === b.dataset.wtNeu);
+      wartEntwurf.push(Object.assign({ id: neueId('wt') }, v || { name: '🔧 ' }));
+      wartListeRendern();
+    }));
+  }
+  function fahrzeugOeffnen(id, abschnitt) {
     bearbeiteId = id || null;
     const f = id ? fz(id) : {};
     document.getElementById('fzTitel').textContent = id ? 'Fahrzeug bearbeiten' : 'Neues Fahrzeug';
     setze('fzName', f.name); setze('fzTyp', f.typ || 'auto'); setze('fzKennzeichen', f.kennzeichen); setze('fzKm', f.km);
     setze('fzTuev', f.tuev); setze('fzReifen', f.reifen || (new Date().getMonth() >= 9 || new Date().getMonth() <= 2 ? 'winter' : 'sommer'));
     setze('fzServiceDatum', f.serviceDatum); setze('fzServiceKm', f.serviceKm); setze('fzNotiz', f.notiz);
+    setze('fzReifengroesse', f.reifengroesse); setze('fzOel', f.oel); setze('fzFin', f.fin); setze('fzVers', f.vers); setze('fzVersNr', f.versNr); setze('fzPanne', f.panne); setze('fzPanneTel', f.panneTel);
+    fixEntwurf = (f.fixkosten || []).map(x => Object.assign({}, x));
+    wartEntwurf = id ? (f.wartung || []).map(x => Object.assign({}, x)) : standardWartung('auto');
+    fixListeRendern(); wartListeRendern();
+    ['fzSteckbrief', 'fzFixBox', 'fzWartBox'].forEach(d => { document.getElementById(d).open = d === abschnitt; });
     document.getElementById('fzLoeschen').style.display = id ? '' : 'none';
     zeige('modalFahrzeug');
+    if (abschnitt) setTimeout(() => document.getElementById(abschnitt).scrollIntoView({ block: 'start', behavior: 'smooth' }), 80);
   }
+  // Neuer Wagen: Wartungsplan passend zur Art vorschlagen
+  document.getElementById('fzTyp').addEventListener('change', () => { if (!bearbeiteId) { wartEntwurf = standardWartung(wert('fzTyp')); wartListeRendern(); } });
   document.getElementById('fzSpeichern').addEventListener('click', () => {
     const name = wert('fzName').trim();
     if (!name) { document.getElementById('fzName').focus(); return; }
     const daten = { name, typ: wert('fzTyp'), kennzeichen: wert('fzKennzeichen').trim().toUpperCase(), km: wert('fzKm'), tuev: wert('fzTuev'), reifen: wert('fzReifen'),
-      serviceDatum: wert('fzServiceDatum'), serviceKm: wert('fzServiceKm'), notiz: wert('fzNotiz').trim() };
+      serviceDatum: wert('fzServiceDatum'), serviceKm: wert('fzServiceKm'), notiz: wert('fzNotiz').trim(),
+      reifengroesse: wert('fzReifengroesse').trim(), oel: wert('fzOel').trim(), fin: wert('fzFin').trim().toUpperCase(), vers: wert('fzVers').trim(), versNr: wert('fzVersNr').trim(),
+      panne: wert('fzPanne').trim(), panneTel: wert('fzPanneTel').trim(),
+      fixkosten: fixEntwurf.filter(x => (x.name || '').trim() || x.betrag || x.faellig).map(x => Object.assign({}, x, { name: String(x.name || '').trim(), intervall: Number(x.intervall) || 12 })),
+      wartung: wartEntwurf.filter(w => String(w.name || '').replace(/^\S+\s*/, '').trim() && (num(w.km) > 0 || num(w.monate) > 0))
+        .map(w => Object.assign({}, w, { name: String(w.name).trim(), km: num(w.km) || '', monate: num(w.monate) || '', zuletztKm: num(w.zuletztKm) || '' })) };
     if (bearbeiteId) Object.assign(fz(bearbeiteId), daten); else fahrzeuge.push(Object.assign({ id: neueId('fz') }, daten));
     speichern(KEY_FZ, fahrzeuge); zu('modalFahrzeug'); render();
   });
@@ -373,6 +797,7 @@
     const f = fz(bearbeiteId);
     if (!f || !confirm('„' + f.name + '“ mit allen Tank- und Werkstatt-Einträgen löschen?')) return;
     fahrzeuge = fahrzeuge.filter(x => x.id !== bearbeiteId);
+    tanken.concat(werkstatt).filter(x => x.fahrzeugId === bearbeiteId).forEach(finanzLoeschen);
     tanken = tanken.filter(x => x.fahrzeugId !== bearbeiteId); werkstatt = werkstatt.filter(x => x.fahrzeugId !== bearbeiteId);
     speichern(KEY_FZ, fahrzeuge); speichern(KEY_TANKEN, tanken); speichern(KEY_WS, werkstatt);
     zu('modalFahrzeug'); render();
@@ -385,44 +810,117 @@
     const standard = t.fahrzeugId || (filterFz !== 'alle' ? filterFz : fahrzeuge[0].id);
     fahrzeugAuswahl('tkFahrzeug', standard);
     setze('tkDatum', t.datum || heuteISO()); setze('tkKm', t.km); setze('tkLiter', t.liter); setze('tkBetrag', t.betrag);
+    setze('tkPreis', num(t.liter) > 0 && num(t.betrag) > 0 ? (num(t.betrag) / num(t.liter)).toFixed(3) : '');
+    tkAuto = new Set(num(t.liter) > 0 && num(t.betrag) > 0 ? ['tkPreis'] : []);
+    tkKmHinweis();
     document.getElementById('tkVoll').checked = id ? !!t.voll : true;
     document.getElementById('tkLoeschen').style.display = id ? '' : 'none';
     zeige('modalTanken');
   }
+  // Zwei von drei Werten (Liter, Betrag, €/l) reichen – der dritte wird ausgerechnet
+  let tkAuto = new Set();
+  function tkRechnen(geaendert) {
+    tkAuto.delete(geaendert);
+    const L = num(wert('tkLiter')), B = num(wert('tkBetrag')), P = num(wert('tkPreis'));
+    const frei = ['tkLiter', 'tkBetrag', 'tkPreis'].filter(id => !num(wert(id)) || tkAuto.has(id));
+    if (frei.length !== 1) return;
+    const ziel = frei[0];
+    let v = null;
+    if (ziel === 'tkBetrag' && L > 0 && P > 0) v = (L * P).toFixed(2);
+    if (ziel === 'tkPreis' && L > 0 && B > 0) v = (B / L).toFixed(3);
+    if (ziel === 'tkLiter' && B > 0 && P > 0) v = (B / P).toFixed(2);
+    if (v !== null) { setze(ziel, v); tkAuto.add(ziel); }
+  }
+  ['tkLiter', 'tkBetrag', 'tkPreis'].forEach(id => document.getElementById(id).addEventListener('input', () => tkRechnen(id)));
+  function letzteTankung(fid, ausser) {
+    return tanken.filter(x => x.fahrzeugId === fid && x.id !== ausser && num(x.km) > 0).sort((a, b) => num(b.km) - num(a.km))[0] || null;
+  }
+  function tkKmHinweis() {
+    const l = letzteTankung(wert('tkFahrzeug'), bearbeiteId);
+    const el = document.getElementById('tkKmHinweis');
+    if (!l) { el.textContent = ''; return; }
+    const km = num(wert('tkKm'));
+    el.innerHTML = 'Zuletzt ' + zahl(l.km) + ' km am ' + datumText(l.datum) + (km > num(l.km) ? ' · seitdem ' + zahl(km - num(l.km)) + ' km' : km && km < num(l.km) ? ' · <b style="color:var(--terracotta-text)">⚠ weniger als beim letzten Mal?</b>' : '');
+  }
+  document.getElementById('tkKm').addEventListener('input', tkKmHinweis);
+  document.getElementById('tkFahrzeug').addEventListener('change', tkKmHinweis);
   document.getElementById('tkSpeichern').addEventListener('click', () => {
-    const liter = parseFloat(String(wert('tkLiter')).replace(',', '.')), betrag = parseFloat(String(wert('tkBetrag')).replace(',', '.'));
+    const liter = num(wert('tkLiter')), betrag = num(wert('tkBetrag'));
     if (!(liter > 0)) { document.getElementById('tkLiter').focus(); return; }
+    const l = letzteTankung(wert('tkFahrzeug'), bearbeiteId);
+    if (l && num(wert('tkKm')) > 0 && num(wert('tkKm')) < num(l.km) && wert('tkDatum') >= (l.datum || '') &&
+      !confirm('Der Kilometerstand ist kleiner als bei der letzten Tankung (' + zahl(l.km) + ' km). Trotzdem speichern?')) return;
     const daten = { fahrzeugId: wert('tkFahrzeug'), datum: wert('tkDatum') || heuteISO(), km: wert('tkKm'), liter, betrag: betrag > 0 ? betrag : 0, voll: document.getElementById('tkVoll').checked };
-    if (bearbeiteId) Object.assign(tanken.find(x => x.id === bearbeiteId), daten); else tanken.push(Object.assign({ id: neueId('tk') }, daten));
+    let eintrag;
+    if (bearbeiteId) { eintrag = tanken.find(x => x.id === bearbeiteId); Object.assign(eintrag, daten); }
+    else { eintrag = Object.assign({ id: neueId('tk') }, daten); tanken.push(eintrag); }
+    finanzBuchen(eintrag, '⛽ Tanken – ' + ((fz(daten.fahrzeugId) || {}).name || 'Auto'), daten.betrag, daten.datum);
     speichern(KEY_TANKEN, tanken); zu('modalTanken'); render();
   });
   document.getElementById('tkLoeschen').addEventListener('click', () => {
     if (!confirm('Tank-Eintrag löschen?')) return;
+    finanzLoeschen(tanken.find(x => x.id === bearbeiteId));
     tanken = tanken.filter(x => x.id !== bearbeiteId); speichern(KEY_TANKEN, tanken); zu('modalTanken'); render();
   });
 
   function wsArtenRendern() {
     document.getElementById('wsArten').innerHTML = WS_ARTEN.map(a => '<button type="button" class="chip' + (a[0] === wsArt ? ' active' : '') + '" data-art="' + a[0] + '">' + a[1] + '</button>').join('');
-    document.querySelectorAll('#wsArten [data-art]').forEach(b => b.addEventListener('click', () => { wsArt = b.dataset.art; wsArtenRendern(); }));
+    document.querySelectorAll('#wsArten [data-art]').forEach(b => b.addEventListener('click', () => { wsArt = b.dataset.art; wsArtenRendern(); wsVorauswahl(); wsErledigtRendern(); }));
     document.getElementById('wsHinweis').textContent = wsArt === 'tuev' ? '✅ Beim Speichern wird die nächste HU automatisch auf 2 Jahre später gesetzt.'
       : wsArt === 'inspektion' ? '🔧 Beim Speichern wird der nächste Service auf 1 Jahr später gesetzt (im Fahrzeug anpassbar).' : '';
   }
-  function werkstattOeffnen(id) {
+  let wsWartung = [], wsMaengel = [];
+  function wsErledigtRendern() {
+    const f = fz(wert('wsFahrzeug'));
+    const box = document.getElementById('wsErledigtBox');
+    if (!f) { box.innerHTML = ''; return; }
+    const offeneM = (f.maengel || []).filter(m => !m.erledigt || wsMaengel.includes(m.id));
+    const wt = f.wartung || [];
+    if (!wt.length && !offeneM.length) { box.innerHTML = ''; return; }
+    box.innerHTML = (wt.length ? '<label>Dabei erledigt (Wartungsplan)</label><div class="wahl-chips">' + wt.map(w => '<button type="button" class="chip' + (wsWartung.includes(w.id) ? ' active' : '') + '" data-wsw="' + esc(w.id) + '">' + esc(w.name) + '</button>').join('') + '</div>' : '') +
+      (offeneM.length ? '<label style="margin-top:8px">Behobene Mängel</label><div class="wahl-chips">' + offeneM.map(m => '<button type="button" class="chip' + (wsMaengel.includes(m.id) ? ' active' : '') + '" data-wsm="' + esc(m.id) + '">⚠️ ' + esc(m.text) + '</button>').join('') + '</div>' : '');
+    box.querySelectorAll('[data-wsw]').forEach(b => b.addEventListener('click', () => { const id = b.dataset.wsw; wsWartung = wsWartung.includes(id) ? wsWartung.filter(x => x !== id) : wsWartung.concat([id]); wsErledigtRendern(); }));
+    box.querySelectorAll('[data-wsm]').forEach(b => b.addEventListener('click', () => { const id = b.dataset.wsm; wsMaengel = wsMaengel.includes(id) ? wsMaengel.filter(x => x !== id) : wsMaengel.concat([id]); wsErledigtRendern(); }));
+  }
+  document.getElementById('wsFahrzeug').addEventListener('change', () => { wsWartung = []; wsMaengel = []; wsVorauswahl(); wsErledigtRendern(); });
+  // Art „Ölwechsel“/„Inspektion“: passende Wartungspunkte vorauswählen
+  function wsVorauswahl() {
+    const f = fz(wert('wsFahrzeug')); if (!f || bearbeiteId) return;
+    (f.wartung || []).forEach(w => { if (w.art && (w.art === wsArt || (wsArt === 'inspektion' && w.art === 'oel')) && !wsWartung.includes(w.id)) wsWartung.push(w.id); });
+  }
+  function werkstattOeffnen(id, vorgabe) {
     if (!fahrzeuge.length) { fahrzeugOeffnen(); return; }
     bearbeiteId = id || null;
-    const w = id ? werkstatt.find(x => x.id === id) : {};
+    const w = id ? werkstatt.find(x => x.id === id) : (vorgabe || {});
     wsArt = w.art || 'inspektion';
     fahrzeugAuswahl('wsFahrzeug', w.fahrzeugId || (filterFz !== 'alle' ? filterFz : fahrzeuge[0].id));
     setze('wsDatum', w.datum || heuteISO()); setze('wsKm', w.km); setze('wsKosten', w.kosten); setze('wsWo', w.wo); setze('wsNotiz', w.notiz);
     document.getElementById('wsLoeschen').style.display = id ? '' : 'none';
+    wsWartung = Array.isArray(w.wartungIds) ? w.wartungIds.slice() : [];
+    const fw = fz(w.fahrzeugId || wert('wsFahrzeug'));
+    wsMaengel = fw && id ? (fw.maengel || []).filter(m => m.wsId === id).map(m => m.id) : [];
     wsArtenRendern();
+    if (!id && !(vorgabe && vorgabe.wartungIds)) wsVorauswahl();
+    wsErledigtRendern();
     zeige('modalWerkstatt');
   }
   document.getElementById('wsSpeichern').addEventListener('click', () => {
     const daten = { fahrzeugId: wert('wsFahrzeug'), art: wsArt, datum: wert('wsDatum') || heuteISO(), km: wert('wsKm'),
       kosten: parseFloat(String(wert('wsKosten')).replace(',', '.')) || '', wo: wert('wsWo').trim(), notiz: wert('wsNotiz').trim() };
-    if (bearbeiteId) Object.assign(werkstatt.find(x => x.id === bearbeiteId), daten); else werkstatt.push(Object.assign({ id: neueId('ws') }, daten));
+    daten.wartungIds = wsWartung.slice();
+    let eintrag;
+    if (bearbeiteId) { eintrag = werkstatt.find(x => x.id === bearbeiteId); Object.assign(eintrag, daten); }
+    else { eintrag = Object.assign({ id: neueId('ws') }, daten); werkstatt.push(eintrag); }
+    const artName = ((WS_ARTEN.find(a => a[0] === daten.art) || WS_ARTEN[5])[1]).replace(/^\S+\s/, '');
+    finanzBuchen(eintrag, '🔧 ' + artName + ' – ' + ((fz(daten.fahrzeugId) || {}).name || 'Auto'), num(daten.kosten), daten.datum);
     const f = fz(daten.fahrzeugId);
+    if (f) {
+      (f.maengel || []).forEach(m => {
+        if (wsMaengel.includes(m.id)) { m.erledigt = true; m.erledigtDatum = m.erledigtDatum || daten.datum; m.wsId = eintrag.id; }
+        else if (m.wsId === eintrag.id) { m.erledigt = false; delete m.wsId; delete m.erledigtDatum; }
+      });
+      speichern(KEY_FZ, fahrzeuge);
+    }
     if (f && !bearbeiteId) {
       const d = ausISO(daten.datum);
       if (wsArt === 'tuev') f.tuev = (d.getFullYear() + 2) + '-' + String(d.getMonth() + 1).padStart(2, '0');
@@ -434,6 +932,7 @@
   });
   document.getElementById('wsLoeschen').addEventListener('click', () => {
     if (!confirm('Eintrag löschen?')) return;
+    finanzLoeschen(werkstatt.find(x => x.id === bearbeiteId));
     werkstatt = werkstatt.filter(x => x.id !== bearbeiteId); speichern(KEY_WS, werkstatt); zu('modalWerkstatt'); render();
   });
 

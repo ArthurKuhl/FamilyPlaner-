@@ -2,6 +2,12 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
+## 2026-10-26 | 🚗 Fahrzeuge: Wartungsplan, Fixkosten & Mängel
+Jedes Fahrzeug hat jetzt einen 🔧 Wartungsplan (Ölwechsel, Bremsflüssigkeit, Klimaservice … mit km- und Monats-Abstand) – fällige Punkte erscheinen auf der Karte, und beim Werkstatt-Eintrag hakst du ab, was erledigt wurde. KFZ-Steuer und Versicherung lassen sich als 📆 Fixkosten mit Fälligkeit eintragen („Bezahlt“ rechnet die nächste Fälligkeit aus); im Herbst erinnert die App an den Versicherungsvergleich vor dem 30.11. Auffälligkeiten sammelst du unter „⚠️ Für die nächste Werkstatt“ und kannst die Liste der Werkstatt schicken.
+
+## 2026-10-26 | ⛽ Tanken, Steckbrief, Statistik
+Beim Tanken reichen zwei von Liter, Betrag und €/Liter – der dritte wird ausgerechnet; dazu „zuletzt … km“ und eine Warnung bei Tippfehlern im km-Stand. Tank-, Werkstatt- und Fixkosten landen auf Wunsch automatisch in 💰 Finanzen (Kategorie „🚗 Auto“). Der 📋 Steckbrief merkt sich Reifengröße, Ölsorte, Fahrgestellnummer, Versicherung und Pannenhilfe (direkt anrufbar); „🚨 Unfall“ zeigt Notruf und eine Schritt-für-Schritt-Liste. Neu ist der Reiter 📊 Statistik mit Kosten pro Jahr, €/km und Verbrauchsverlauf.
+
 ## 2026-10-26 | 🛍️ Einkaufen im Laden
 Mit 🛍️ oben in der Einkaufsliste startet der Einkaufsmodus: große Zeilen, Fortschritt „7 / 12“, der Bildschirm bleibt an. Antippen legt den Artikel in den Wagen (ohne Preisfenster), lange drücken notiert den Preis. Bei „✅ Fertig“ lässt sich die Kassenbon-Summe eintragen – sie landet als eine Ausgabe in den Finanzen (einzeln notierte Preise werden abgezogen). Unter ⚙️ „Liste verwalten“ legst du pro Markt die 🔀 Reihenfolge fest, in der du durch den Laden läufst.
 
