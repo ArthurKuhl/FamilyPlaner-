@@ -96,6 +96,8 @@
   .konto-karte .konto-name { font-size: 0.85rem; font-weight: 600; opacity: 0.9; }
   .konto-karte .konto-stand { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 700; margin: 4px 0; }
   .konto-karte .konto-info { font-size: 0.7rem; opacity: 0.85; }
+  html[data-dark="1"] .konto-karte { color: var(--on-moss, #16140f); }
+  html[data-dark="1"] .konto-karte .sparziel .sz-balken span { background: #fff6cf; }
 
   .buchungs-zeile { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--parchment); gap: 8px; }
   .buchungs-zeile:last-child { border-bottom: none; }
@@ -126,6 +128,54 @@
   .jahr-balken-saeule { flex: 1; display: flex; align-items: flex-end; height: 100%; }
   .jahr-balken-saeule .balken-innen { width: 100%; background: var(--moss); border-radius: 4px 4px 0 0; min-height: 2px; transition: height 0.2s; }
   .jahr-balken-labels-zeile { flex: 1; text-align: center; font-size: 0.6rem; color: var(--bark); }
+
+  /* ---- Neu: Monat, Gesamtbudget, Bearbeiten, Sparziel, Jahresvergleich ---- */
+  :root { --gold: #c99a3a; }
+  html[data-dark="1"] { --gold: #dcb158; }
+  .monat-nav { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+  .monat-nav b { font-family: 'Playfair Display', serif; font-size: 1.1rem; }
+  .monat-nav button { background: var(--white); border: 1px solid var(--parchment); color: var(--soil); border-radius: 50%; width: 36px; height: 36px; font-size: 0.95rem; cursor: pointer; box-shadow: var(--shadow-soft); }
+  .monat-nav button:disabled { opacity: 0.35; cursor: default; }
+  .budget-gesamt .bg-zahl { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; }
+  .budget-gesamt .bg-zeile { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .budget-gesamt .bg-info { font-size: 0.8rem; color: var(--bark); margin-top: 6px; line-height: 1.45; }
+  .budget-gesamt .bg-info b { color: var(--soil); }
+  .balken.warn { background: var(--gold); }
+  .kat-betrag.warn { color: var(--soil); font-weight: 700; }
+  .kat-zeile { cursor: pointer; }
+  .kat-zeile.gefiltert { background: rgba(196,107,65,0.08); border-radius: 8px; padding-left: 6px; padding-right: 6px; }
+  .kat-zeile .kat-edit { background: none; border: none; color: var(--bark); cursor: pointer; font-size: 0.85rem; padding: 0 2px 0 6px; }
+  .such-reihe { display: flex; gap: 6px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
+  .such-reihe input { flex: 1; min-width: 140px; padding: 8px 12px; border-radius: 999px; border: 1px solid var(--parchment); background: var(--cream); color: var(--soil); font-size: 0.85rem; }
+  .filter-pille { background: var(--terracotta); color: var(--white); border: none; border-radius: 999px; padding: 6px 10px; font-size: 0.75rem; font-weight: 700; cursor: pointer; }
+  .buchungs-zeile.klickbar { cursor: pointer; }
+  .quelle-badge { display: inline-block; font-size: 0.62rem; font-weight: 700; padding: 0 6px; border-radius: 999px; background: var(--parchment); color: var(--bark); margin-left: 4px; }
+  .monat-summe { font-size: 0.78rem; color: var(--bark); text-align: right; margin-top: 8px; }
+  .kat-wahl { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 6px; }
+  .kat-wahl button { background: var(--cream); border: 2px solid var(--parchment); color: var(--soil); border-radius: 12px; padding: 8px 4px; font-size: 0.74rem; font-weight: 600; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; line-height: 1.2; }
+  .kat-wahl button .em { font-size: 1.3rem; }
+  .kat-wahl button.aktiv { border-color: var(--moss); background: rgba(79,111,69,0.14); }
+  .betrag-gross { font-size: 1.6rem !important; font-weight: 700; text-align: center; padding: 10px !important; }
+  .wer-reihe { display: flex; flex-wrap: wrap; gap: 6px; }
+  .wer-reihe button { border: 1px solid var(--parchment); background: var(--cream); color: var(--soil); border-radius: 999px; padding: 6px 12px; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
+  .wer-reihe button.aktiv { background: var(--moss); color: var(--on-moss, #fff); border-color: var(--moss); }
+  html:not([data-dark="1"]) .wer-reihe button.aktiv { color: #fff; }
+  .modal-btns .btn-danger { margin-right: auto; }
+  .abo-zeile { cursor: pointer; }
+  .abo-hinweis { display: inline-block; font-size: 0.66rem; font-weight: 700; padding: 1px 7px; border-radius: 999px; margin-top: 3px; background: rgba(201,154,58,0.2); color: var(--soil); }
+  .abo-hinweis.dringend { background: rgba(196,107,65,0.22); }
+  .sparziel { margin-top: 12px; background: rgba(255,255,255,0.14); border-radius: 12px; padding: 10px 12px; }
+  .sparziel .sz-kopf { display: flex; justify-content: space-between; gap: 8px; font-size: 0.82rem; font-weight: 700; }
+  .sparziel .sz-balken { height: 9px; background: rgba(0,0,0,0.18); border-radius: 5px; overflow: hidden; margin: 6px 0 4px; }
+  .sparziel .sz-balken span { display: block; height: 100%; background: #f6e7a8; border-radius: 5px; }
+  .sparziel .sz-info { font-size: 0.72rem; opacity: 0.9; }
+  .konto-knoepfe { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  .konto-knoepfe button { background: rgba(255,255,255,0.18); color: inherit; border: none; border-radius: 999px; padding: 6px 12px; font-size: 0.74rem; font-weight: 700; cursor: pointer; }
+  .jahr-balken-saeule { position: relative; }
+  .jahr-balken-saeule .balken-vorjahr { position: absolute; left: 12%; right: 12%; bottom: 0; border: 1.5px dashed var(--bark); border-bottom: none; border-radius: 4px 4px 0 0; opacity: 0.55; pointer-events: none; }
+  .vergleich { font-size: 0.72rem; font-weight: 700; }
+  .vergleich.mehr { color: var(--terracotta-text); }
+  .vergleich.weniger { color: var(--moss-text, var(--moss)); }
 
   /* Dark-Mode-Kontrast (alle Module gleich): Akzentfarbe als Text heller,
      Text auf Akzent-Knöpfen dunkel – außer bei „Schnee“, dort ist der Knopf selbst dunkel. */
@@ -172,20 +222,28 @@
 <main>
   <!-- BUDGET -->
   <section id="ansichtBudget">
+    <div class="monat-nav">
+      <button type="button" id="btnMonatZurueck" aria-label="Vormonat">◀</button>
+      <b id="monatTitel"></b>
+      <button type="button" id="btnMonatVor" aria-label="Nächster Monat">▶</button>
+    </div>
+    <div class="karte budget-gesamt" id="budgetGesamt"></div>
     <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
       <button class="btn btn-secondary" id="btnKategorieNeu" style="font-size:0.76rem;padding:6px 12px;">＋ Kategorie</button>
     </div>
     <div class="karte">
-      <h3>Kategorien diesen Monat</h3>
+      <h3 id="kategorienTitel">Kategorien diesen Monat</h3>
       <div id="kategorienListe"></div>
       <div id="kategorienLeer" class="leer-hinweis" style="display:none;padding:16px 8px;"><span class="em">📊</span>Noch keine Kategorien angelegt.</div>
     </div>
     <div class="karte">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-        <h3 style="margin:0;">Letzte Ausgaben</h3>
+        <h3 style="margin:0;" id="ausgabenTitel">Ausgaben</h3>
         <button class="btn btn-primary" id="btnAusgabeNeu" style="font-size:0.76rem;padding:6px 12px;">＋ Ausgabe</button>
       </div>
+      <div class="such-reihe"><input type="search" id="fAusgabeSuche" placeholder="🔍 Suchen …" aria-label="Ausgaben durchsuchen"><span id="filterPille"></span></div>
       <div id="ausgabenListe"></div>
+      <div class="monat-summe" id="monatSumme"></div>
       <div id="ausgabenLeer" class="leer-hinweis" style="display:none;padding:16px 8px;"><span class="em">🧾</span>Noch keine Ausgaben erfasst.</div>
     </div>
   </section>
@@ -234,6 +292,10 @@
       <div id="jahrBalkenChart" style="display:flex;align-items:flex-end;gap:4px;height:140px;padding-top:8px;"></div>
       <div id="jahrBalkenLabels" style="display:flex;gap:4px;margin-top:4px;"></div>
       <div style="margin-top:10px;font-size:0.82rem;color:var(--bark);" id="jahrGesamtText"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap;">
+        <span style="font-size:0.7rem;color:var(--bark);">▭ gestrichelt = Vorjahr</span>
+        <button class="btn btn-secondary" id="btnCsvExport" style="font-size:0.76rem;padding:6px 12px;">📤 Als CSV exportieren</button>
+      </div>
     </div>
     <div class="karte">
       <h3>Nach Kategorie (gesamtes Jahr)</h3>
@@ -246,11 +308,13 @@
 <!-- MODAL: Neue Kategorie -->
 <div class="modal-bg" id="modalKategorie">
   <div class="modal">
-    <h2>Kategorie anlegen</h2>
+    <h2 id="katModalTitel">Kategorie anlegen</h2>
     <div class="feld"><label>Icon (Emoji)</label><input type="text" id="fKatIcon" placeholder="🛒" maxlength="4"></div>
     <div class="feld"><label>Name</label><input type="text" id="fKatName" placeholder="z.B. Lebensmittel"></div>
     <div class="feld"><label>Monatliches Limit (€, optional)</label><input type="number" id="fKatLimit" placeholder="z.B. 400" min="0" step="1"></div>
+    <div class="feld" id="katUmbuchenFeld" style="display:none;"><label>Beim Löschen: Ausgaben umbuchen nach</label><select id="fKatUmbuchen"></select></div>
     <div class="modal-btns">
+      <button class="btn btn-danger" id="btnKategorieLoeschen" style="display:none;">🗑</button>
       <button class="btn btn-secondary" id="btnKategorieAbbrechen">Abbrechen</button>
       <button class="btn btn-primary" id="btnKategorieSpeichern">Anlegen</button>
     </div>
@@ -260,12 +324,16 @@
 <!-- MODAL: Neue Ausgabe -->
 <div class="modal-bg" id="modalAusgabe">
   <div class="modal">
-    <h2>Ausgabe erfassen</h2>
-    <div class="feld"><label>Kategorie</label><select id="fAusgabeKategorie"></select></div>
-    <div class="feld"><label>Betrag (€)</label><input type="number" id="fAusgabeBetrag" min="0" step="0.01" placeholder="0,00"></div>
-    <div class="feld"><label>Beschreibung (optional)</label><input type="text" id="fAusgabeBeschreibung" placeholder="z.B. Wocheneinkauf"></div>
-    <div class="feld"><label>Datum</label><input type="date" id="fAusgabeDatum"></div>
+    <h2 id="ausgabeModalTitel">Ausgabe erfassen</h2>
+    <div class="feld"><input type="text" inputmode="decimal" id="fAusgabeBetrag" class="betrag-gross" placeholder="0,00 €" aria-label="Betrag in Euro" autocomplete="off"></div>
+    <div class="feld"><label>Kategorie</label><div class="kat-wahl" id="fAusgabeKatWahl"></div><input type="hidden" id="fAusgabeKategorie"></div>
+    <div class="feld"><label>Beschreibung (optional)</label><input type="text" id="fAusgabeBeschreibung" placeholder="z.B. Wocheneinkauf" list="beschreibungVorschlaege" autocomplete="off"><datalist id="beschreibungVorschlaege"></datalist></div>
+    <div style="display:flex;gap:8px;">
+      <div class="feld" style="flex:1;"><label>Datum</label><input type="date" id="fAusgabeDatum"></div>
+    </div>
+    <div class="feld" id="ausgabeWerFeld"><label>Wer hat bezahlt? (optional)</label><div class="wer-reihe" id="fAusgabeWer"></div></div>
     <div class="modal-btns">
+      <button class="btn btn-danger" id="btnAusgabeLoeschen" style="display:none;">🗑</button>
       <button class="btn btn-secondary" id="btnAusgabeAbbrechen">Abbrechen</button>
       <button class="btn btn-primary" id="btnAusgabeSpeichern">Speichern</button>
     </div>
@@ -314,10 +382,24 @@
   </div>
 </div>
 
+<!-- MODAL: Sparziel -->
+<div class="modal-bg" id="modalSparziel">
+  <div class="modal">
+    <h2>🎯 Sparziel</h2>
+    <div class="feld"><label>Wofür wird gespart?</label><input type="text" id="fSzName" placeholder="z.B. Lego-Set, Fahrrad, Kinobesuch"></div>
+    <div class="feld"><label>Betrag (€)</label><input type="text" inputmode="decimal" id="fSzBetrag" placeholder="z.B. 40"></div>
+    <div class="modal-btns">
+      <button class="btn btn-danger" id="btnSzLoeschen" style="display:none;">Ziel entfernen</button>
+      <button class="btn btn-secondary" id="btnSzAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnSzSpeichern">Speichern</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: Neues Abo/Rechnung -->
 <div class="modal-bg" id="modalAbo">
   <div class="modal">
-    <h2>Abo/Rechnung anlegen</h2>
+    <h2 id="aboModalTitel">Abo/Rechnung anlegen</h2>
     <div class="feld"><label>Name</label><input type="text" id="fAboName" placeholder="z.B. Netflix, Miete, Strom"></div>
     <div class="feld"><label>Betrag (€)</label><input type="number" id="fAboBetrag" min="0" step="0.01" placeholder="0,00"></div>
     <div class="feld"><label>Rhythmus</label>
@@ -328,7 +410,10 @@
       </select>
     </div>
     <div class="feld"><label>Nächste Fälligkeit</label><input type="date" id="fAboFaelligkeit"></div>
+    <div class="feld"><label>Automatisch als Ausgabe buchen in</label><select id="fAboKategorie"></select></div>
+    <div class="feld"><label>Kündigen bis (optional)</label><input type="date" id="fAboKuendigen"></div>
     <div class="modal-btns">
+      <button class="btn btn-danger" id="btnAboLoeschen" style="display:none;">🗑</button>
       <button class="btn btn-secondary" id="btnAboAbbrechen">Abbrechen</button>
       <button class="btn btn-primary" id="btnAboSpeichern">Speichern</button>
     </div>
@@ -483,7 +568,9 @@
   })();
 
   function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-  function heute() { return new Date().toISOString().slice(0,10); }
+  // Lokales Datum (nicht UTC): toISOString() würde in Deutschland nachts bzw. bei Datumsrechnungen einen Tag zu früh liefern
+  function lokalIso(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+  function heute() { return lokalIso(new Date()); }
   function formatEuro(n) { return (Math.round(n*100)/100).toLocaleString('de-DE', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' €'; }
   function formatDatum(iso) { if (!iso) return ''; const [j,m,t] = iso.split('-'); return t+'.'+m+'.'+j; }
   function laden(key, fallback) { try { const r = localStorage.getItem(key); return r ? JSON.parse(r) : fallback; } catch(e) { return fallback; } }
@@ -567,6 +654,7 @@
     try { localStorage.setItem('finanzen_aktiverTab', name); } catch(e) {}
     if (name === 'jahr') renderJahresuebersicht();
   }
+  window.zeigeTab = zeigeTab;
   document.getElementById('btnTabBudget').addEventListener('click', () => zeigeTab('budget'));
   document.getElementById('btnTabTaschengeld').addEventListener('click', () => zeigeTab('taschengeld'));
   document.getElementById('btnTabAbos').addEventListener('click', () => zeigeTab('abos'));
@@ -582,6 +670,7 @@
   const KEY_TG_BUCHUNGEN = 'finanzen_taschengeld_buchungen';
   const KEY_ABOS = 'finanzen_abos';
   const KEY_PREISE = 'finanzen_preisbeobachtung';
+  const KEY_EINST = 'finanzen_einstellungen'; // { monatsbudget }
 
   let kategorien = laden(KEY_KATEGORIEN, []);
   let ausgaben = laden(KEY_AUSGABEN, []);
@@ -589,6 +678,8 @@
   let tgBuchungen = laden(KEY_TG_BUCHUNGEN, []); // { id, kontoId, datum, betrag, beschreibung, typ }
   let abos = laden(KEY_ABOS, []);
   let preisProdukte = laden(KEY_PREISE, []); // { id, name, url, feedUrl, letzterPreis, letztesUpdate, verlauf: [{datum, preis}] }
+  let einstellungen = laden(KEY_EINST, {});
+  if (!einstellungen || typeof einstellungen !== 'object') einstellungen = {};
 
   function speichernAlles() {
     speichern(KEY_KATEGORIEN, kategorien);
@@ -597,6 +688,7 @@
     speichern(KEY_TG_BUCHUNGEN, tgBuchungen);
     speichern(KEY_ABOS, abos);
     speichern(KEY_PREISE, preisProdukte);
+    speichern(KEY_EINST, einstellungen);
     if (finanzenSyncHandle) finanzenSyncHandle.melde();
   }
 
@@ -604,11 +696,55 @@
   // BUDGET-TAB
   // ============================================================
   function aktuellerMonatSchluessel() { return heute().slice(0,7); } // "YYYY-MM"
+  let budgetMonat = aktuellerMonatSchluessel();
+  let katFilter = null, suchText = '';
+  const MONATE_LANG = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+  function monatName(m) { const [j, mo] = m.split('-').map(Number); return MONATE_LANG[mo - 1] + (String(j) !== heute().slice(0,4) ? ' ' + j : ''); }
+  function monatVerschieben(m, n) { const [j, mo] = m.split('-').map(Number); const d = new Date(j, mo - 1 + n, 1); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); }
+  function ausgabenImMonat(m) { return ausgaben.filter(a => (a.datum || '').slice(0,7) === m); }
   function ausgabenDiesenMonat(katId) {
-    const monat = aktuellerMonatSchluessel();
-    return ausgaben.filter(a => a.kategorieId === katId && a.datum.slice(0,7) === monat).reduce((s,a) => s + a.betrag, 0);
+    return ausgabenImMonat(budgetMonat).filter(a => a.kategorieId === katId).reduce((s,a) => s + a.betrag, 0);
+  }
+  function katInfo(id) { return kategorien.find(k => k.id === id) || null; }
+  const QUELLEN = { einkauf: '🛒 Einkauf', fahrzeuge: '🚗 Fahrzeuge', abo: '🔁 Abo', taschengeld: '💰 Taschengeld' };
+  function renderBudgetGesamt() {
+    const box = document.getElementById('budgetGesamt');
+    const summe = ausgabenImMonat(budgetMonat).reduce((s,a) => s + a.betrag, 0);
+    const budget = Number(einstellungen.monatsbudget) || 0;
+    const istAktuell = budgetMonat === aktuellerMonatSchluessel();
+    let info = '';
+    if (budget > 0) {
+      const rest = budget - summe;
+      const prozent = Math.min(100, summe / budget * 100);
+      const klasse = summe > budget ? ' ueber' : (summe >= budget * 0.8 ? ' warn' : '');
+      if (istAktuell) {
+        const h = new Date(heute() + 'T12:00');
+        const tageImMonat = new Date(h.getFullYear(), h.getMonth() + 1, 0).getDate();
+        const tag = h.getDate(), restTage = tageImMonat - tag + 1;
+        const prognose = summe / tag * tageImMonat;
+        info = (rest >= 0 ? 'Noch <b>' + formatEuro(rest) + '</b> für ' + restTage + (restTage === 1 ? ' Tag' : ' Tage') + ' ≈ <b>' + formatEuro(rest / restTage) + '</b>/Tag'
+                         : '<b style="color:var(--terracotta-text)">' + formatEuro(-rest) + ' über dem Budget</b>') +
+          (tag >= 5 ? '<br>Prognose bei gleichem Tempo: ' + formatEuro(prognose) + (prognose > budget ? ' ⚠️' : ' ✓') : '');
+      } else info = rest >= 0 ? formatEuro(rest) + ' unter dem Budget geblieben ✓' : formatEuro(-rest) + ' über dem Budget';
+      box.innerHTML = '<div class="bg-zeile"><span class="bg-zahl">' + formatEuro(summe) + '</span><span style="font-size:0.8rem;color:var(--bark)">von ' + formatEuro(budget) + ' <button class="loeschen-btn" id="btnBudgetSetzen" title="Monatsbudget ändern">✏️</button></span></div>' +
+        '<div class="balken-wrap" style="margin-top:6px"><div class="balken' + klasse + '" style="width:' + prozent + '%"></div></div><div class="bg-info">' + info + '</div>';
+    } else {
+      box.innerHTML = '<div class="bg-zeile"><span class="bg-zahl">' + formatEuro(summe) + '</span><span style="font-size:0.8rem;color:var(--bark)">ausgegeben</span></div>' +
+        '<div class="bg-info">Mit einem Monatsbudget siehst du, wie viel pro Tag noch übrig ist. <button class="btn btn-secondary" id="btnBudgetSetzen" style="font-size:0.72rem;padding:4px 10px;">💶 Budget festlegen</button></div>';
+    }
+    document.getElementById('btnBudgetSetzen').addEventListener('click', () => {
+      const ein = prompt('Monatsbudget für alle Ausgaben (€) – leer lassen zum Entfernen:', budget ? String(budget).replace('.', ',') : '');
+      if (ein === null) return;
+      const wert = parseFloat(String(ein).replace(/[^\d,.]/g, '').replace(',', '.'));
+      einstellungen.monatsbudget = wert > 0 ? Math.round(wert * 100) / 100 : 0;
+      speichernAlles(); renderAlles();
+    });
   }
   function renderKategorien() {
+    document.getElementById('monatTitel').textContent = monatName(budgetMonat);
+    document.getElementById('btnMonatVor').disabled = budgetMonat >= aktuellerMonatSchluessel();
+    document.getElementById('kategorienTitel').textContent = 'Kategorien ' + (budgetMonat === aktuellerMonatSchluessel() ? 'diesen Monat' : 'im ' + monatName(budgetMonat));
+    renderBudgetGesamt();
     const box = document.getElementById('kategorienListe');
     document.getElementById('kategorienLeer').style.display = kategorien.length ? 'none' : '';
     box.innerHTML = kategorien.map(k => {
@@ -616,27 +752,61 @@
       const hatLimit = k.limit && k.limit > 0;
       const prozent = hatLimit ? Math.min(100, (ausgegeben / k.limit) * 100) : 0;
       const ueber = hatLimit && ausgegeben > k.limit;
-      return '<div class="kat-zeile">' +
+      const warn = hatLimit && !ueber && ausgegeben >= k.limit * 0.8;
+      return '<div class="kat-zeile' + (katFilter === k.id ? ' gefiltert' : '') + '" data-kat="' + k.id + '" title="Antippen: nur diese Ausgaben zeigen">' +
         '<div class="kat-kopf"><span class="kat-name">' + (k.icon||'💶') + ' ' + escapeHtml(k.name) + '</span>' +
-        '<span class="kat-betrag' + (ueber ? ' ueber' : '') + '">' + formatEuro(ausgegeben) + (hatLimit ? ' / ' + formatEuro(k.limit) : '') + '</span></div>' +
-        (hatLimit ? '<div class="balken-wrap"><div class="balken' + (ueber ? ' ueber' : '') + '" style="width:' + prozent + '%"></div></div>' : '') +
+        '<span class="kat-betrag' + (ueber ? ' ueber' : warn ? ' warn' : '') + '">' + formatEuro(ausgegeben) + (hatLimit ? ' / ' + formatEuro(k.limit) : '') +
+        '<button class="kat-edit" data-kat-edit="' + k.id + '" aria-label="Kategorie bearbeiten">✏️</button></span></div>' +
+        (hatLimit ? '<div class="balken-wrap"><div class="balken' + (ueber ? ' ueber' : warn ? ' warn' : '') + '" style="width:' + prozent + '%"></div></div>' : '') +
         '</div>';
     }).join('');
+    box.querySelectorAll('[data-kat]').forEach(z => z.addEventListener('click', (e) => {
+      if (e.target.closest('[data-kat-edit]')) return;
+      katFilter = katFilter === z.dataset.kat ? null : z.dataset.kat;
+      renderKategorien(); renderAusgaben();
+    }));
+    box.querySelectorAll('[data-kat-edit]').forEach(b => b.addEventListener('click', (e) => { e.stopPropagation(); kategorieOeffnen(b.dataset.katEdit); }));
   }
   function renderAusgaben() {
     const box = document.getElementById('ausgabenListe');
-    const letzte = [...ausgaben].sort((a,b) => b.datum.localeCompare(a.datum)).slice(0, 15);
-    document.getElementById('ausgabenLeer').style.display = letzte.length ? 'none' : '';
-    box.innerHTML = letzte.map(a => {
-      const kat = kategorien.find(k => k.id === a.kategorieId);
-      return '<div class="buchungs-zeile">' +
+    const q = suchText.trim().toLowerCase();
+    const imMonat = ausgabenImMonat(budgetMonat);
+    const liste = imMonat.filter(a => !katFilter || a.kategorieId === katFilter)
+      .filter(a => !q || ((a.beschreibung || '') + ' ' + ((katInfo(a.kategorieId) || {}).name || '') + ' ' + String(a.betrag).replace('.', ',')).toLowerCase().includes(q))
+      .sort((a,b) => b.datum.localeCompare(a.datum) || String(b.id).localeCompare(String(a.id)));
+    document.getElementById('ausgabenTitel').textContent = 'Ausgaben im ' + monatName(budgetMonat);
+    const fk = katFilter && katInfo(katFilter);
+    document.getElementById('filterPille').innerHTML = fk ? '<button class="filter-pille" id="btnFilterWeg">' + (fk.icon || '💶') + ' ' + escapeHtml(fk.name) + ' ✕</button>' : '';
+    const weg = document.getElementById('btnFilterWeg'); if (weg) weg.addEventListener('click', () => { katFilter = null; renderKategorien(); renderAusgaben(); });
+    document.getElementById('ausgabenLeer').style.display = liste.length ? 'none' : '';
+    document.getElementById('ausgabenLeer').innerHTML = '<span class="em">🧾</span>' + (imMonat.length ? 'Nichts gefunden.' : 'Keine Ausgaben in diesem Monat.');
+    const personen = PERSONEN();
+    box.innerHTML = liste.map(a => {
+      const kat = katInfo(a.kategorieId);
+      const wer = a.wer && personen.find(p => p.id === a.wer);
+      return '<div class="buchungs-zeile klickbar" data-ausgabe="' + a.id + '">' +
         '<div class="buchungs-info"><div class="buchungs-titel">' + (kat ? kat.icon + ' ' + escapeHtml(kat.name) : '💶 Sonstiges') + (a.beschreibung ? ' · ' + escapeHtml(a.beschreibung) : '') + '</div>' +
-        '<div class="buchungs-datum">' + formatDatum(a.datum) + (a.quelle === 'einkauf' ? ' · aus Einkauf' : '') + '</div></div>' +
+        '<div class="buchungs-datum">' + formatDatum(a.datum) + (wer ? ' · ' + escapeHtml(wer.label) : '') + (QUELLEN[a.quelle] ? '<span class="quelle-badge">' + QUELLEN[a.quelle] + '</span>' : '') + '</div></div>' +
         '<span class="buchungs-betrag minus">−' + formatEuro(a.betrag) + '</span>' +
-        '<button class="loeschen-btn" onclick="ausgabeLoeschen(\'' + a.id + '\')">✕</button></div>';
+        '<button class="loeschen-btn" data-ausgabe-weg="' + a.id + '" aria-label="Löschen">✕</button></div>';
     }).join('');
+    const summe = liste.reduce((s, a) => s + a.betrag, 0);
+    document.getElementById('monatSumme').textContent = liste.length ? liste.length + (liste.length === 1 ? ' Ausgabe' : ' Ausgaben') + ' · ' + formatEuro(summe) : '';
+    box.querySelectorAll('[data-ausgabe]').forEach(z => z.addEventListener('click', (e) => { if (e.target.closest('[data-ausgabe-weg]')) return; ausgabeOeffnen(z.dataset.ausgabe); }));
+    box.querySelectorAll('[data-ausgabe-weg]').forEach(b => b.addEventListener('click', (e) => { e.stopPropagation(); ausgabeLoeschen(b.dataset.ausgabeWeg); }));
   }
-  window.ausgabeLoeschen = function(id) { ausgaben = ausgaben.filter(a => a.id !== id); speichernAlles(); renderAlles(); };
+  function ausgabeLoeschen(id) {
+    const index = ausgaben.findIndex(a => a.id === id);
+    if (index < 0) return;
+    const entfernt = ausgaben.splice(index, 1)[0];
+    speichernAlles(); renderAlles();
+    showTempStatus('🗑 Ausgabe ' + formatEuro(entfernt.betrag) + ' gelöscht', 6, { rueckgaengig: () => { if (!ausgaben.some(a => a.id === entfernt.id)) ausgaben.splice(index, 0, entfernt); speichernAlles(); renderAlles(); } });
+  }
+  window.ausgabeLoeschen = ausgabeLoeschen;
+  document.getElementById('btnMonatZurueck').addEventListener('click', () => { budgetMonat = monatVerschieben(budgetMonat, -1); renderKategorien(); renderAusgaben(); });
+  document.getElementById('btnMonatVor').addEventListener('click', () => { if (budgetMonat < aktuellerMonatSchluessel()) { budgetMonat = monatVerschieben(budgetMonat, 1); renderKategorien(); renderAusgaben(); } });
+  let suchTimer = null;
+  document.getElementById('fAusgabeSuche').addEventListener('input', (e) => { clearTimeout(suchTimer); suchTimer = setTimeout(() => { suchText = e.target.value; renderAusgaben(); }, 200); });
 
   // ============================================================
   // JAHRESÜBERSICHT-TAB
@@ -655,83 +825,212 @@
     sel.innerHTML = jahre.map(j => '<option value="' + j + '"' + (j === jahresUebersichtJahr ? ' selected' : '') + '>' + j + '</option>').join('');
 
     const ausgabenJahr = ausgaben.filter(a => a.datum.slice(0,4) === jahresUebersichtJahr);
-    const monatsSummen = Array(12).fill(0);
+    const vorjahr = String(Number(jahresUebersichtJahr) - 1);
+    const ausgabenVorjahr = ausgaben.filter(a => a.datum.slice(0,4) === vorjahr);
+    const monatsSummen = Array(12).fill(0), vorjahrSummen = Array(12).fill(0);
     ausgabenJahr.forEach(a => { monatsSummen[parseInt(a.datum.slice(5,7),10) - 1] += a.betrag; });
-    const maxMonat = Math.max(1, ...monatsSummen);
+    ausgabenVorjahr.forEach(a => { vorjahrSummen[parseInt(a.datum.slice(5,7),10) - 1] += a.betrag; });
+    const maxMonat = Math.max(1, ...monatsSummen, ...vorjahrSummen);
 
     const chartBox = document.getElementById('jahrBalkenChart');
-    chartBox.innerHTML = monatsSummen.map(s =>
-      '<div class="jahr-balken-saeule" title="' + formatEuro(s) + '"><div class="balken-innen" style="height:' + Math.max(2, (s / maxMonat) * 100) + '%"></div></div>'
+    chartBox.innerHTML = monatsSummen.map((s, i) =>
+      '<div class="jahr-balken-saeule" title="' + MONATS_KUERZEL[i] + ' ' + jahresUebersichtJahr + ': ' + formatEuro(s) + (vorjahrSummen[i] ? ' · ' + vorjahr + ': ' + formatEuro(vorjahrSummen[i]) : '') + '"><div class="balken-innen" style="height:' + Math.max(2, (s / maxMonat) * 100) + '%"></div>' +
+      (vorjahrSummen[i] ? '<div class="balken-vorjahr" style="height:' + (vorjahrSummen[i] / maxMonat * 100) + '%"></div>' : '') + '</div>'
     ).join('');
     document.getElementById('jahrBalkenLabels').innerHTML = MONATS_KUERZEL.map(m => '<div class="jahr-balken-labels-zeile">' + m + '</div>').join('');
 
     const gesamtJahr = monatsSummen.reduce((s,v) => s+v, 0);
     const monateMitDaten = monatsSummen.filter(s => s > 0).length;
-    document.getElementById('jahrGesamtText').textContent =
-      'Gesamt ' + jahresUebersichtJahr + ': ' + formatEuro(gesamtJahr) + (monateMitDaten ? ' · Ø ' + formatEuro(gesamtJahr / monateMitDaten) + ' / Monat mit Ausgaben' : '');
+    const gesamtVorjahr = vorjahrSummen.reduce((s,v) => s+v, 0);
+    // fairer Vergleich im laufenden Jahr: nur bis zum selben Monat
+    const bisMonat = jahresUebersichtJahr === heute().slice(0,4) ? parseInt(heute().slice(5,7), 10) : 12;
+    const vorjahrBis = vorjahrSummen.slice(0, bisMonat).reduce((s,v) => s+v, 0);
+    const vergleich = vorjahrBis > 0 ? (gesamtJahr - vorjahrBis) / vorjahrBis * 100 : null;
+    document.getElementById('jahrGesamtText').innerHTML =
+      'Gesamt ' + jahresUebersichtJahr + ': <b>' + formatEuro(gesamtJahr) + '</b>' + (monateMitDaten ? ' · Ø ' + formatEuro(gesamtJahr / monateMitDaten) + ' / Monat mit Ausgaben' : '') +
+      (gesamtVorjahr ? '<br>' + vorjahr + (bisMonat < 12 ? ' bis ' + MONATS_KUERZEL[bisMonat - 1] : '') + ': ' + formatEuro(vorjahrBis) +
+        (vergleich !== null ? ' <span class="vergleich ' + (vergleich > 0 ? 'mehr' : 'weniger') + '">(' + (vergleich > 0 ? '+' : '') + Math.round(vergleich) + ' %)</span>' : '') : '');
 
     const katSummen = {};
     ausgabenJahr.forEach(a => { katSummen[a.kategorieId] = (katSummen[a.kategorieId] || 0) + a.betrag; });
+    const katVorjahr = {};
+    ausgabenVorjahr.filter(a => parseInt(a.datum.slice(5,7), 10) <= bisMonat).forEach(a => { katVorjahr[a.kategorieId] = (katVorjahr[a.kategorieId] || 0) + a.betrag; });
     const katListe = Object.keys(katSummen).map(id => ({
       kat: kategorien.find(k => k.id === id),
       summe: katSummen[id],
+      vorjahr: katVorjahr[id] || 0,
     })).sort((a,b) => b.summe - a.summe);
     document.getElementById('jahrKategorienLeer').style.display = katListe.length ? 'none' : '';
     document.getElementById('jahrKategorienListe').innerHTML = katListe.map(e => {
       const prozent = gesamtJahr ? (e.summe / gesamtJahr) * 100 : 0;
       const name = e.kat ? e.kat.icon + ' ' + escapeHtml(e.kat.name) : '💶 Sonstiges';
       return '<div class="kat-zeile">' +
-        '<div class="kat-kopf"><span class="kat-name">' + name + '</span><span class="kat-betrag">' + formatEuro(e.summe) + ' (' + Math.round(prozent) + '%)</span></div>' +
+        '<div class="kat-kopf"><span class="kat-name">' + name + '</span><span class="kat-betrag">' + formatEuro(e.summe) + ' (' + Math.round(prozent) + '%)' +
+          (e.vorjahr ? ' <span class="vergleich ' + (e.summe > e.vorjahr ? 'mehr' : 'weniger') + '" title="Vorjahr: ' + formatEuro(e.vorjahr) + '">' + (e.summe > e.vorjahr ? '▲' : '▼') + '</span>' : '') + '</span></div>' +
         '<div class="balken-wrap"><div class="balken" style="width:' + prozent + '%"></div></div>' +
         '</div>';
     }).join('');
   }
+  document.getElementById('btnCsvExport').addEventListener('click', () => {
+    const jahr = jahresUebersichtJahr || heute().slice(0,4);
+    const liste = ausgaben.filter(a => (a.datum || '').slice(0,4) === jahr).sort((a,b) => a.datum.localeCompare(b.datum));
+    if (!liste.length) { showTempStatus('ℹ️ Für ' + jahr + ' gibt es keine Ausgaben', 3); return; }
+    const personen = PERSONEN();
+    const zelle = (v) => { const t = String(v == null ? '' : v); return /[;"\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; };
+    const zeilen = [['Datum', 'Kategorie', 'Beschreibung', 'Betrag (EUR)', 'Bezahlt von', 'Quelle']].concat(liste.map(a => {
+      const kat = katInfo(a.kategorieId), wer = a.wer && personen.find(p => p.id === a.wer);
+      return [formatDatum(a.datum), kat ? kat.name : 'Sonstiges', a.beschreibung || '', a.betrag.toFixed(2).replace('.', ','), wer ? wer.label : '', (QUELLEN[a.quelle] || '').replace(/^\S+\s/, '')];
+    }));
+    const csv = '\ufeff' + zeilen.map(z => z.map(zelle).join(';')).join('\r\n');
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    const link = document.createElement('a');
+    link.href = url; link.download = 'Ausgaben-' + jahr + '.csv';
+    document.body.appendChild(link); link.click(); link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    showTempStatus('📤 ' + liste.length + ' Ausgaben exportiert', 3);
+  });
   document.getElementById('fJahrAuswahl').addEventListener('change', (e) => {
     jahresUebersichtJahr = e.target.value;
     renderJahresuebersicht();
   });
 
-  document.getElementById('btnKategorieNeu').addEventListener('click', () => {
-    document.getElementById('fKatIcon').value = '';
-    document.getElementById('fKatName').value = '';
-    document.getElementById('fKatLimit').value = '';
+  let bearbeiteKatId = null;
+  function kategorieOeffnen(id) {
+    bearbeiteKatId = id || null;
+    const k = id ? katInfo(id) : null;
+    document.getElementById('katModalTitel').textContent = k ? 'Kategorie bearbeiten' : 'Kategorie anlegen';
+    document.getElementById('btnKategorieSpeichern').textContent = k ? 'Speichern' : 'Anlegen';
+    document.getElementById('fKatIcon').value = k ? (k.icon || '') : '';
+    document.getElementById('fKatName').value = k ? k.name : '';
+    document.getElementById('fKatLimit').value = k && k.limit ? k.limit : '';
+    document.getElementById('btnKategorieLoeschen').style.display = k ? '' : 'none';
+    const andere = kategorien.filter(x => x.id !== id);
+    const anzahl = k ? ausgaben.filter(a => a.kategorieId === id).length : 0;
+    document.getElementById('katUmbuchenFeld').style.display = k && anzahl && andere.length ? '' : 'none';
+    document.getElementById('fKatUmbuchen').innerHTML = andere.map(x => '<option value="' + x.id + '">' + x.icon + ' ' + escapeHtml(x.name) + '</option>').join('');
     document.getElementById('modalKategorie').classList.add('zeigen');
-  });
+  }
+  document.getElementById('btnKategorieNeu').addEventListener('click', () => kategorieOeffnen(null));
   document.getElementById('btnKategorieAbbrechen').addEventListener('click', () => document.getElementById('modalKategorie').classList.remove('zeigen'));
   document.getElementById('modalKategorie').addEventListener('click', (e) => { if (e.target.id === 'modalKategorie') e.currentTarget.classList.remove('zeigen'); });
   document.getElementById('btnKategorieSpeichern').addEventListener('click', () => {
     const name = document.getElementById('fKatName').value.trim();
     if (!name) { alert('Bitte einen Namen eingeben.'); return; }
     const icon = document.getElementById('fKatIcon').value.trim() || '💶';
-    const limit = parseFloat(document.getElementById('fKatLimit').value) || 0;
-    kategorien.push({ id: neueId('kat'), name, icon, limit });
+    const limit = parseFloat(String(document.getElementById('fKatLimit').value).replace(',', '.')) || 0;
+    const k = bearbeiteKatId && katInfo(bearbeiteKatId);
+    if (k) Object.assign(k, { name, icon, limit });
+    else kategorien.push({ id: neueId('kat'), name, icon, limit });
     speichernAlles();
     document.getElementById('modalKategorie').classList.remove('zeigen');
     renderAlles();
   });
-
-  document.getElementById('btnAusgabeNeu').addEventListener('click', () => {
-    if (!kategorien.length) { alert('Bitte zuerst eine Kategorie anlegen.'); return; }
-    const sel = document.getElementById('fAusgabeKategorie');
-    sel.innerHTML = kategorien.map(k => '<option value="' + k.id + '">' + k.icon + ' ' + escapeHtml(k.name) + '</option>').join('');
-    document.getElementById('fAusgabeBetrag').value = '';
-    document.getElementById('fAusgabeBeschreibung').value = '';
-    document.getElementById('fAusgabeDatum').value = heute();
-    document.getElementById('modalAusgabe').classList.add('zeigen');
+  document.getElementById('btnKategorieLoeschen').addEventListener('click', () => {
+    const k = katInfo(bearbeiteKatId); if (!k) return;
+    const betroffen = ausgaben.filter(a => a.kategorieId === k.id);
+    const ziel = document.getElementById('fKatUmbuchen').value;
+    if (betroffen.length && !ziel) { if (!confirm('„' + k.name + '“ und ' + betroffen.length + ' Ausgaben darin löschen?')) return; }
+    else if (!confirm('Kategorie „' + k.name + '“ löschen?' + (betroffen.length ? ' Die ' + betroffen.length + ' Ausgaben kommen nach „' + katInfo(ziel).name + '“.' : ''))) return;
+    const index = kategorien.indexOf(k);
+    const vorher = betroffen.map(a => [a, a.kategorieId]);
+    let geloeschteAusgaben = [];
+    if (ziel) betroffen.forEach(a => { a.kategorieId = ziel; });
+    else { geloeschteAusgaben = betroffen; ausgaben = ausgaben.filter(a => a.kategorieId !== k.id); }
+    kategorien.splice(index, 1);
+    abos.forEach(a => { if (a.kategorieId === k.id) a.kategorieId = ziel || ''; });
+    if (katFilter === k.id) katFilter = null;
+    speichernAlles();
+    document.getElementById('modalKategorie').classList.remove('zeigen');
+    renderAlles();
+    showTempStatus('🗑 Kategorie „' + k.name + '“ gelöscht', 6, { rueckgaengig: () => {
+      kategorien.splice(index, 0, k);
+      vorher.forEach(([a, alt]) => { a.kategorieId = alt; });
+      geloeschteAusgaben.forEach(a => { if (!ausgaben.includes(a)) ausgaben.push(a); });
+      speichernAlles(); renderAlles();
+    } });
   });
+
+  let bearbeiteAusgabeId = null, ausgabeWer = '';
+  const KEY_LETZTE_KAT = 'finanzen_letzteKategorie'; // geräte-lokal
+  function katWahlRendern(gewaehlt) {
+    document.getElementById('fAusgabeKategorie').value = gewaehlt || '';
+    document.getElementById('fAusgabeKatWahl').innerHTML = kategorien.map(k => '<button type="button" class="' + (k.id === gewaehlt ? 'aktiv' : '') + '" data-kw="' + k.id + '"><span class="em">' + (k.icon || '💶') + '</span>' + escapeHtml(k.name) + '</button>').join('');
+    document.querySelectorAll('#fAusgabeKatWahl [data-kw]').forEach(b => b.addEventListener('click', () => katWahlRendern(b.dataset.kw)));
+  }
+  function werRendern() {
+    const personen = PERSONEN().filter(p => p.id !== 'familie');
+    document.getElementById('ausgabeWerFeld').style.display = personen.length ? '' : 'none';
+    document.getElementById('fAusgabeWer').innerHTML = personen.map(p => '<button type="button" class="' + (ausgabeWer === p.id ? 'aktiv' : '') + '" data-wer="' + p.id + '">' + escapeHtml(p.label) + '</button>').join('');
+    document.querySelectorAll('#fAusgabeWer [data-wer]').forEach(b => b.addEventListener('click', () => { ausgabeWer = ausgabeWer === b.dataset.wer ? '' : b.dataset.wer; werRendern(); }));
+  }
+  // Vorschläge aus früheren Beschreibungen (meist genutzte zuerst); Auswahl setzt auch die Kategorie
+  function beschreibungVorschlaege() {
+    const zaehl = {};
+    ausgaben.forEach(a => { const b = (a.beschreibung || '').trim(); if (b && b.length < 60) { zaehl[b] = zaehl[b] || { n: 0, kat: a.kategorieId }; zaehl[b].n++; zaehl[b].kat = a.kategorieId; } });
+    return Object.keys(zaehl).sort((a, b) => zaehl[b].n - zaehl[a].n).slice(0, 40).map(b => ({ text: b, kat: zaehl[b].kat }));
+  }
+  function ausgabeOeffnen(id, vorgabe) {
+    if (!kategorien.length) { alert('Bitte zuerst eine Kategorie anlegen.'); return; }
+    bearbeiteAusgabeId = id || null;
+    const a = id ? ausgaben.find(x => x.id === id) : null;
+    vorgabe = vorgabe || {};
+    let letzte = ''; try { letzte = localStorage.getItem(KEY_LETZTE_KAT) || ''; } catch (e) {}
+    document.getElementById('ausgabeModalTitel').textContent = a ? 'Ausgabe bearbeiten' : 'Ausgabe erfassen';
+    document.getElementById('fAusgabeBetrag').value = a ? String(a.betrag).replace('.', ',') : (vorgabe.betrag ? String(vorgabe.betrag).replace('.', ',') : '');
+    document.getElementById('fAusgabeBeschreibung').value = a ? (a.beschreibung || '') : (vorgabe.beschreibung || '');
+    document.getElementById('fAusgabeDatum').value = a ? a.datum : (budgetMonat === aktuellerMonatSchluessel() ? heute() : budgetMonat + '-15');
+    katWahlRendern(a ? a.kategorieId : (katFilter || (katInfo(letzte) ? letzte : kategorien[0].id)));
+    ausgabeWer = a ? (a.wer || '') : (localStorage.getItem('planer_geraetIdentitaet') || '');
+    werRendern();
+    document.getElementById('beschreibungVorschlaege').innerHTML = beschreibungVorschlaege().map(v => '<option value="' + escapeHtml(v.text) + '"></option>').join('');
+    document.getElementById('btnAusgabeLoeschen').style.display = a ? '' : 'none';
+    document.getElementById('modalAusgabe').classList.add('zeigen');
+    if (!a) setTimeout(() => document.getElementById('fAusgabeBetrag').focus(), 60);
+  }
+  document.getElementById('fAusgabeBeschreibung').addEventListener('change', (e) => {
+    if (bearbeiteAusgabeId) return;
+    const v = beschreibungVorschlaege().find(x => x.text === e.target.value);
+    if (v && katInfo(v.kat)) katWahlRendern(v.kat);
+  });
+  document.getElementById('btnAusgabeNeu').addEventListener('click', () => ausgabeOeffnen(null));
   document.getElementById('btnAusgabeAbbrechen').addEventListener('click', () => document.getElementById('modalAusgabe').classList.remove('zeigen'));
   document.getElementById('modalAusgabe').addEventListener('click', (e) => { if (e.target.id === 'modalAusgabe') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('fAusgabeBetrag').addEventListener('keydown', (e) => { if (e.key === 'Enter') document.getElementById('btnAusgabeSpeichern').click(); });
   document.getElementById('btnAusgabeSpeichern').addEventListener('click', () => {
-    const betrag = parseFloat(document.getElementById('fAusgabeBetrag').value.replace(',', '.'));
-    if (!(betrag > 0)) { alert('Bitte einen gültigen Betrag eingeben.'); return; }
-    ausgaben.push({
-      id: neueId('a'), kategorieId: document.getElementById('fAusgabeKategorie').value, betrag,
+    const betrag = parseFloat(String(document.getElementById('fAusgabeBetrag').value).replace(/[^\d,.-]/g, '').replace(',', '.'));
+    if (!(betrag > 0)) { alert('Bitte einen gültigen Betrag eingeben.'); document.getElementById('fAusgabeBetrag').focus(); return; }
+    const daten = {
+      kategorieId: document.getElementById('fAusgabeKategorie').value, betrag: Math.round(betrag * 100) / 100,
       beschreibung: document.getElementById('fAusgabeBeschreibung').value.trim(),
-      datum: document.getElementById('fAusgabeDatum').value || heute(), quelle: 'manuell',
-    });
+      datum: document.getElementById('fAusgabeDatum').value || heute(),
+    };
+    if (ausgabeWer) daten.wer = ausgabeWer;
+    const a = bearbeiteAusgabeId && ausgaben.find(x => x.id === bearbeiteAusgabeId);
+    if (a) { Object.assign(a, daten); if (!ausgabeWer) delete a.wer; }
+    else ausgaben.push(Object.assign({ id: neueId('a'), quelle: 'manuell' }, daten));
+    try { localStorage.setItem(KEY_LETZTE_KAT, daten.kategorieId); } catch (e) {}
     speichernAlles();
     document.getElementById('modalAusgabe').classList.remove('zeigen');
+    if (!a && daten.datum.slice(0,7) !== budgetMonat) budgetMonat = daten.datum.slice(0,7) <= aktuellerMonatSchluessel() ? daten.datum.slice(0,7) : budgetMonat;
     renderAlles();
+    const k = katInfo(daten.kategorieId);
+    if (!a && k && k.limit > 0) {
+      const summe = ausgaben.filter(x => x.kategorieId === k.id && x.datum.slice(0,7) === daten.datum.slice(0,7)).reduce((s, x) => s + x.betrag, 0);
+      if (summe > k.limit) showTempStatus('⚠️ ' + k.name + ': ' + formatEuro(summe - k.limit) + ' über dem Limit', 4);
+      else if (summe >= k.limit * 0.8) showTempStatus('🟡 ' + k.name + ': noch ' + formatEuro(k.limit - summe) + ' bis zum Limit', 4);
+    }
+  });
+  document.getElementById('btnAusgabeLoeschen').addEventListener('click', () => {
+    document.getElementById('modalAusgabe').classList.remove('zeigen');
+    ausgabeLoeschen(bearbeiteAusgabeId);
+  });
+  // „＋ Schnell festhalten“ aus der Shell: z.B. „Bäcker 4,50“ → Betrag und Beschreibung vorausfüllen
+  window.addEventListener('message', (e) => {
+    if (e.origin !== window.location.origin || !e.data || e.data.type !== 'shortcutAktion' || e.data.aktion !== 'neu') return;
+    zeigeTab('budget');
+    const t = String(e.data.text || '').trim();
+    const m = t.match(/(\d+(?:[.,]\d{1,2})?)\s*(?:€|eur|euro)?/i);
+    ausgabeOeffnen(null, { betrag: m ? parseFloat(m[1].replace(',', '.')) : '', beschreibung: m ? t.replace(m[0], '').replace(/\s+/g, ' ').trim() : t });
   });
 
   // ============================================================
@@ -745,17 +1044,17 @@
     if (konto.rhythmus === 'woechentlich') {
       const diff = (konto.tagWoche - heuteD.getDay() + 7) % 7;
       const d = new Date(heuteD); d.setDate(d.getDate() + diff);
-      return d.toISOString().slice(0,10);
+      return lokalIso(d);
     }
     const d = new Date(heuteD.getFullYear(), heuteD.getMonth(), konto.tagMonat);
     if (d < heuteD) d.setMonth(d.getMonth() + 1);
-    return d.toISOString().slice(0,10);
+    return lokalIso(d);
   }
   function tgNaechsteFaelligkeitBerechnen(konto, vonDatum) {
     const d = new Date(vonDatum + 'T00:00:00');
     if (konto.rhythmus === 'woechentlich') { d.setDate(d.getDate() + 7); }
     else { d.setMonth(d.getMonth() + 1); d.setDate(konto.tagMonat); }
-    return d.toISOString().slice(0,10);
+    return lokalIso(d);
   }
   function taschengeldAutomatikPruefen() {
     let geaendert = false;
@@ -764,7 +1063,9 @@
       if (!k.naechsteFaelligkeit) { k.naechsteFaelligkeit = tgErsteFaelligkeitBerechnen(k); geaendert = true; }
       let sicherheit = 0;
       while (k.naechsteFaelligkeit <= heuteStr && sicherheit < 104) {
-        tgBuchungen.push({ id: neueId('tgb'), kontoId: k.id, betrag: k.betrag, typ: 'gutschrift', beschreibung: 'Automatische Gutschrift', datum: k.naechsteFaelligkeit });
+        // feste Kennung je Konto+Tag: laufen zwei Geräte gleichzeitig, entsteht keine doppelte Gutschrift
+        const autoId = 'tgauto_' + k.id + '_' + k.naechsteFaelligkeit;
+        if (!tgBuchungen.some(b => b.id === autoId)) tgBuchungen.push({ id: autoId, kontoId: k.id, betrag: k.betrag, typ: 'gutschrift', beschreibung: 'Automatische Gutschrift', datum: k.naechsteFaelligkeit });
         k.naechsteFaelligkeit = tgNaechsteFaelligkeitBerechnen(k, k.naechsteFaelligkeit);
         geaendert = true;
         sicherheit++;
@@ -790,6 +1091,9 @@
         '<div class="konto-name">💰 ' + escapeHtml(name) + '</div>' +
         '<div class="konto-stand">' + formatEuro(stand) + '</div>' +
         '<div class="konto-info">' + rhythmusText + naechsteText + '</div>' +
+        sparzielHtml(k, stand) +
+        '<div class="konto-knoepfe"><button type="button" data-sparziel="' + k.id + '">🎯 ' + (k.sparziel ? 'Sparziel ändern' : 'Sparziel festlegen') + '</button>' +
+          (k.sparziel && stand >= k.sparziel.betrag ? '<button type="button" data-sz-gekauft="' + k.id + '">🎉 Gekauft!</button>' : '') + '</div>' +
         '</div>' +
         '<div class="karte">' +
         '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">' +
@@ -806,6 +1110,63 @@
         '</div>';
     }).join('');
   }
+  // ---------- 🎯 Sparziel ----------
+  function sparzielSchaetzung(k, stand) {
+    const z = k.sparziel; if (!z) return null;
+    const rest = z.betrag - stand;
+    if (rest <= 0) return { rest: 0, text: 'Geschafft! 🎉' };
+    if (!(k.betrag > 0)) return { rest, text: 'noch ' + formatEuro(rest) };
+    const n = Math.ceil(rest / k.betrag);
+    const einheit = k.rhythmus === 'woechentlich' ? (n === 1 ? 'Woche' : 'Wochen') : (n === 1 ? 'Monat' : 'Monate');
+    return { rest, text: 'noch ' + formatEuro(rest) + ' ≈ ' + n + ' ' + einheit };
+  }
+  function sparzielHtml(k, stand) {
+    if (!k.sparziel) return '';
+    const z = k.sparziel, prozent = Math.max(0, Math.min(100, stand / z.betrag * 100));
+    const s = sparzielSchaetzung(k, stand);
+    return '<div class="sparziel"><div class="sz-kopf"><span>🎯 ' + escapeHtml(z.name) + '</span><span>' + formatEuro(z.betrag) + '</span></div>' +
+      '<div class="sz-balken"><span style="width:' + prozent + '%"></span></div><div class="sz-info">' + Math.round(prozent) + ' % · ' + s.text + '</div></div>';
+  }
+  let sparzielKontoId = null;
+  document.getElementById('taschengeldKonten').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-sparziel]');
+    if (b) {
+      sparzielKontoId = b.dataset.sparziel;
+      const k = tgKonten.find(x => x.id === sparzielKontoId);
+      document.getElementById('fSzName').value = k && k.sparziel ? k.sparziel.name : '';
+      document.getElementById('fSzBetrag').value = k && k.sparziel ? String(k.sparziel.betrag).replace('.', ',') : '';
+      document.getElementById('btnSzLoeschen').style.display = k && k.sparziel ? '' : 'none';
+      document.getElementById('modalSparziel').classList.add('zeigen');
+      return;
+    }
+    const g = e.target.closest('[data-sz-gekauft]');
+    if (g) {
+      const k = tgKonten.find(x => x.id === g.dataset.szGekauft);
+      if (!k || !k.sparziel || !confirm('„' + k.sparziel.name + '“ für ' + formatEuro(k.sparziel.betrag) + ' gekauft? Der Betrag wird vom Taschengeld abgebucht.')) return;
+      tgBuchungen.push({ id: neueId('tgb'), kontoId: k.id, betrag: k.sparziel.betrag, typ: 'ausgabe', beschreibung: '🎯 ' + k.sparziel.name, datum: heute() });
+      delete k.sparziel;
+      speichernAlles(); renderAlles();
+      showTempStatus('🎉 Glückwunsch zum ' + 'Sparziel!', 3);
+    }
+  });
+  document.getElementById('btnSzAbbrechen').addEventListener('click', () => document.getElementById('modalSparziel').classList.remove('zeigen'));
+  document.getElementById('modalSparziel').addEventListener('click', (e) => { if (e.target.id === 'modalSparziel') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnSzSpeichern').addEventListener('click', () => {
+    const k = tgKonten.find(x => x.id === sparzielKontoId); if (!k) return;
+    const name = document.getElementById('fSzName').value.trim();
+    const betrag = parseFloat(String(document.getElementById('fSzBetrag').value).replace(/[^\d,.]/g, '').replace(',', '.'));
+    if (!name || !(betrag > 0)) { alert('Bitte Ziel und Betrag eingeben.'); return; }
+    k.sparziel = { name, betrag: Math.round(betrag * 100) / 100, seit: (k.sparziel && k.sparziel.seit) || heute() };
+    speichernAlles();
+    document.getElementById('modalSparziel').classList.remove('zeigen');
+    renderAlles();
+  });
+  document.getElementById('btnSzLoeschen').addEventListener('click', () => {
+    const k = tgKonten.find(x => x.id === sparzielKontoId); if (!k) return;
+    delete k.sparziel; speichernAlles();
+    document.getElementById('modalSparziel').classList.remove('zeigen');
+    renderAlles();
+  });
   document.getElementById('btnTaschengeldKontoNeu').addEventListener('click', () => {
     const personen = PERSONEN();
     if (!personen.length) { alert('Keine Familienmitglieder gefunden. Bitte zuerst unter "👪 Personen verwalten" anlegen.'); return; }
@@ -878,7 +1239,27 @@
     if (rhythmus === 'woechentlich') d.setDate(d.getDate() + 7);
     else if (rhythmus === 'jaehrlich') d.setFullYear(d.getFullYear() + 1);
     else d.setMonth(d.getMonth() + 1);
-    return d.toISOString().slice(0,10);
+    return lokalIso(d);
+  }
+  function tageBis(iso) { return Math.round((new Date(iso + 'T12:00') - new Date(heute() + 'T12:00')) / 864e5); }
+  // Fällige Abos: als Ausgabe buchen (wenn eine Kategorie gewählt ist) und die Fälligkeit weiterrücken.
+  // Feste Kennung je Abo+Fälligkeit: zwei Geräte gleichzeitig erzeugen keine doppelte Buchung.
+  function aboAutomatikPruefen() {
+    let geaendert = false;
+    const h = heute();
+    abos.forEach(a => {
+      if (!a.faelligkeit) return;
+      let sicherheit = 0;
+      while (a.faelligkeit <= h && sicherheit < 60) {
+        if (a.kategorieId && katInfo(a.kategorieId)) {
+          const id = 'abo_' + a.id + '_' + a.faelligkeit;
+          if (!ausgaben.some(x => x.id === id)) ausgaben.push({ id, kategorieId: a.kategorieId, betrag: a.betrag, beschreibung: a.name, datum: a.faelligkeit, quelle: 'abo', aboId: a.id });
+        }
+        a.faelligkeit = naechsteFaelligkeitBerechnen(a.faelligkeit, a.rhythmus);
+        geaendert = true; sicherheit++;
+      }
+    });
+    if (geaendert) speichernAlles();
   }
   function renderAbos() {
     const box = document.getElementById('abosListe');
@@ -886,11 +1267,22 @@
     document.getElementById('abosLeer').style.display = sortiert.length ? 'none' : '';
     box.innerHTML = sortiert.map(a => {
       const rhythmusLabel = { monatlich: 'monatlich', jaehrlich: 'jährlich', woechentlich: 'wöchentlich' }[a.rhythmus];
-      return '<div class="abo-zeile"><div class="abo-info"><div class="abo-name">' + escapeHtml(a.name) + '</div>' +
-        '<div class="abo-details">' + rhythmusLabel + ' · nächste Fälligkeit ' + formatDatum(a.faelligkeit) + '</div></div>' +
+      const t = tageBis(a.faelligkeit);
+      const kat = a.kategorieId && katInfo(a.kategorieId);
+      let hinweis = '';
+      if (a.kuendigenBis) {
+        const tk = tageBis(a.kuendigenBis);
+        if (tk >= 0 && tk <= 45) hinweis += '<span class="abo-hinweis' + (tk <= 14 ? ' dringend' : '') + '">✂️ Kündigen bis ' + formatDatum(a.kuendigenBis) + (tk <= 14 ? ' – noch ' + tk + (tk === 1 ? ' Tag' : ' Tage') : '') + '</span> ';
+        else if (tk < 0 && tk > -30) hinweis += '<span class="abo-hinweis">✂️ Kündigungsfrist am ' + formatDatum(a.kuendigenBis) + ' abgelaufen</span> ';
+      }
+      if (t >= 0 && t <= 3) hinweis += '<span class="abo-hinweis">' + (t === 0 ? 'heute' : t === 1 ? 'morgen' : 'in ' + t + ' Tagen') + ' fällig</span>';
+      return '<div class="abo-zeile" data-abo="' + a.id + '"><div class="abo-info"><div class="abo-name">' + escapeHtml(a.name) + '</div>' +
+        '<div class="abo-details">' + rhythmusLabel + ' · nächste Fälligkeit ' + formatDatum(a.faelligkeit) + (kat ? ' · bucht in ' + kat.icon + ' ' + escapeHtml(kat.name) : '') + '</div>' + (hinweis ? '<div>' + hinweis + '</div>' : '') + '</div>' +
         '<span class="abo-betrag">' + formatEuro(a.betrag) + '</span>' +
-        '<button class="loeschen-btn" onclick="aboLoeschen(\'' + a.id + '\')">✕</button></div>';
+        '<button class="loeschen-btn" data-abo-weg="' + a.id + '" aria-label="Löschen">✕</button></div>';
     }).join('');
+    box.querySelectorAll('[data-abo]').forEach(z => z.addEventListener('click', (e) => { if (e.target.closest('[data-abo-weg]')) return; aboOeffnen(z.dataset.abo); }));
+    box.querySelectorAll('[data-abo-weg]').forEach(b => b.addEventListener('click', (e) => { e.stopPropagation(); aboLoeschen(b.dataset.aboWeg); }));
     const monatsSumme = abos.reduce((s,a) => {
       if (a.rhythmus === 'monatlich') return s + a.betrag;
       if (a.rhythmus === 'jaehrlich') return s + a.betrag / 12;
@@ -900,26 +1292,46 @@
     document.getElementById('abosSummeKarte').style.display = abos.length ? '' : 'none';
     document.getElementById('abosSumme').textContent = formatEuro(monatsSumme) + ' / Monat';
   }
-  window.aboLoeschen = function(id) { abos = abos.filter(a => a.id !== id); speichernAlles(); renderAlles(); };
-
-  document.getElementById('btnAboNeu').addEventListener('click', () => {
-    document.getElementById('fAboName').value = '';
-    document.getElementById('fAboBetrag').value = '';
-    document.getElementById('fAboRhythmus').value = 'monatlich';
-    document.getElementById('fAboFaelligkeit').value = heute();
+  function aboLoeschen(id) {
+    const index = abos.findIndex(a => a.id === id); if (index < 0) return;
+    const entfernt = abos.splice(index, 1)[0];
+    speichernAlles(); renderAlles();
+    showTempStatus('🗑 „' + entfernt.name + '“ gelöscht', 6, { rueckgaengig: () => { if (!abos.some(a => a.id === entfernt.id)) abos.splice(index, 0, entfernt); speichernAlles(); renderAlles(); } });
+  }
+  window.aboLoeschen = aboLoeschen;
+  let bearbeiteAboId = null;
+  function aboOeffnen(id) {
+    bearbeiteAboId = id || null;
+    const a = id ? abos.find(x => x.id === id) : null;
+    document.getElementById('aboModalTitel').textContent = a ? 'Abo/Rechnung bearbeiten' : 'Abo/Rechnung anlegen';
+    document.getElementById('fAboName').value = a ? a.name : '';
+    document.getElementById('fAboBetrag').value = a ? a.betrag : '';
+    document.getElementById('fAboRhythmus').value = a ? a.rhythmus : 'monatlich';
+    document.getElementById('fAboFaelligkeit').value = a ? a.faelligkeit : heute();
+    document.getElementById('fAboKuendigen').value = a ? (a.kuendigenBis || '') : '';
+    document.getElementById('fAboKategorie').innerHTML = '<option value="">– nicht automatisch buchen –</option>' + kategorien.map(k => '<option value="' + k.id + '">' + k.icon + ' ' + escapeHtml(k.name) + '</option>').join('');
+    document.getElementById('fAboKategorie').value = a && a.kategorieId && katInfo(a.kategorieId) ? a.kategorieId : '';
+    document.getElementById('btnAboLoeschen').style.display = a ? '' : 'none';
     document.getElementById('modalAbo').classList.add('zeigen');
-  });
+  }
+  document.getElementById('btnAboNeu').addEventListener('click', () => aboOeffnen(null));
   document.getElementById('btnAboAbbrechen').addEventListener('click', () => document.getElementById('modalAbo').classList.remove('zeigen'));
   document.getElementById('modalAbo').addEventListener('click', (e) => { if (e.target.id === 'modalAbo') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnAboLoeschen').addEventListener('click', () => { document.getElementById('modalAbo').classList.remove('zeigen'); aboLoeschen(bearbeiteAboId); });
   document.getElementById('btnAboSpeichern').addEventListener('click', () => {
     const name = document.getElementById('fAboName').value.trim();
-    const betrag = parseFloat(document.getElementById('fAboBetrag').value.replace(',', '.'));
+    const betrag = parseFloat(String(document.getElementById('fAboBetrag').value).replace(',', '.'));
     if (!name || !(betrag > 0)) { alert('Bitte Name und gültigen Betrag eingeben.'); return; }
-    abos.push({
-      id: neueId('abo'), name, betrag, rhythmus: document.getElementById('fAboRhythmus').value,
+    const daten = { name, betrag, rhythmus: document.getElementById('fAboRhythmus').value,
       faelligkeit: document.getElementById('fAboFaelligkeit').value || heute(),
-    });
+      kategorieId: document.getElementById('fAboKategorie').value, kuendigenBis: document.getElementById('fAboKuendigen').value };
+    const a = bearbeiteAboId && abos.find(x => x.id === bearbeiteAboId);
+    if (a) Object.assign(a, daten); else abos.push(Object.assign({ id: neueId('abo') }, daten));
+    // Liegt die Fälligkeit in der Vergangenheit, wird beim Buchen nur ab heute gerechnet (keine Nachbuchung alter Zeiträume)
+    const neu = a || abos[abos.length - 1];
+    if (neu.faelligkeit < heute() && neu.kategorieId) { while (neu.faelligkeit < heute()) neu.faelligkeit = naechsteFaelligkeitBerechnen(neu.faelligkeit, neu.rhythmus); }
     speichernAlles();
+    aboAutomatikPruefen();
     document.getElementById('modalAbo').classList.remove('zeigen');
     renderAlles();
   });
@@ -1091,7 +1503,7 @@
     if (typeof PlanerSync === 'undefined') return;
     finanzenSyncHandle = PlanerSync.starteSync({
       modul: 'finanzen',
-      keys: [KEY_KATEGORIEN, KEY_AUSGABEN, KEY_TG_KONTEN, KEY_TG_BUCHUNGEN, KEY_ABOS, KEY_PREISE],
+      keys: [KEY_KATEGORIEN, KEY_AUSGABEN, KEY_TG_KONTEN, KEY_TG_BUCHUNGEN, KEY_ABOS, KEY_PREISE, KEY_EINST],
       ersterAbgleichVereinen: true, // war bis v374 ohne Firebase eingebunden
       onRemoteChange: () => {
         kategorien = laden(KEY_KATEGORIEN, kategorien);
@@ -1100,7 +1512,9 @@
         tgBuchungen = laden(KEY_TG_BUCHUNGEN, tgBuchungen);
         abos = laden(KEY_ABOS, abos);
         preisProdukte = laden(KEY_PREISE, preisProdukte);
+        einstellungen = laden(KEY_EINST, einstellungen) || {};
         taschengeldAutomatikPruefen();
+        aboAutomatikPruefen();
         renderAlles();
       },
     });
@@ -1110,6 +1524,7 @@
   try { const g = localStorage.getItem('finanzen_aktiverTab'); if (g) startTab = g; } catch(e) {}
   zeigeTab(startTab);
   taschengeldAutomatikPruefen();
+  aboAutomatikPruefen();
   renderAlles();
   starteFinanzenSync();
   preisAlleFeedsAbrufen();

@@ -358,6 +358,14 @@
     if (tg) {
       html += '<div class="geld">' + euro(tg.stand) + '</div>';
       if (tg.konto.naechsteFaelligkeit) html += '<p class="klein" style="margin:4px 0 8px;">Nächstes Taschengeld: <b>' + euro(tg.konto.betrag) + '</b> am ' + new Date(tg.konto.naechsteFaelligkeit + 'T00:00').toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' }) + '</p>';
+      if (tg.konto.sparziel && tg.konto.sparziel.betrag > 0) {
+        const z = tg.konto.sparziel, p = Math.max(0, Math.min(100, tg.stand / z.betrag * 100)), rest = z.betrag - tg.stand;
+        const n = tg.konto.betrag > 0 && rest > 0 ? Math.ceil(rest / tg.konto.betrag) : 0;
+        const wann = n ? ' ≈ ' + n + ' ' + (tg.konto.rhythmus === 'woechentlich' ? (n === 1 ? 'Woche' : 'Wochen') : (n === 1 ? 'Monat' : 'Monate')) : '';
+        html += '<div style="margin:6px 0 10px;"><div style="display:flex;justify-content:space-between;font-weight:700;font-size:0.85rem;"><span>🎯 ' + esc(z.name) + '</span><span>' + euro(z.betrag) + '</span></div>' +
+          '<div style="height:12px;border-radius:6px;background:rgba(127,127,127,0.2);overflow:hidden;margin:5px 0 3px;"><div style="height:100%;width:' + p + '%;background:linear-gradient(90deg,#e6b84d,#f3d27a);border-radius:6px;"></div></div>' +
+          '<p class="klein" style="margin:0;">' + (rest <= 0 ? 'Geschafft! Du kannst es dir kaufen 🎉' : 'Noch ' + euro(rest) + wann) + '</p></div>';
+      }
       tg.letzte.forEach(b => { html += '<div class="buchung"><span>' + esc(b.beschreibung || (b.typ === 'ausgabe' ? 'Ausgabe' : 'Gutschrift')) + '</span><span class="' + (b.typ === 'ausgabe' ? 'minus">−' : 'plus">+') + euro(b.betrag) + '</span></div>'; });
     } else html += '<p class="klein">Noch kein Taschengeld-Konto. Eltern können es unter 💶 Finanzen → Taschengeld anlegen.</p>';
     html += '</div>';

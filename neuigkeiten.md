@@ -2,6 +2,12 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
+## 2026-10-26 | 💶 Finanzen: Monate, Gesamtbudget & Bearbeiten
+Im Budget blätterst du jetzt mit ◀ ▶ durch die Monate und siehst alle Ausgaben des Monats – mit Suche und Filter (Kategorie antippen). Mit einem 💶 Monatsbudget zeigt die App „Noch 524 € für 6 Tage ≈ 87 €/Tag“ und eine Prognose bis Monatsende; Kategorien werden ab 80 % gelb. Ausgaben, Kategorien und Abos lassen sich antippen und bearbeiten, Löschen hat „Rückgängig“. Neue Ausgaben gehen schneller: Betrag, Kategorie-Knopf, fertig – mit Vorschlägen und „Wer hat bezahlt?“.
+
+## 2026-10-26 | 🔁 Abos buchen sich selbst, 🎯 Sparziele
+Wählst du beim Abo eine Kategorie, wird es zur Fälligkeit automatisch als Ausgabe gebucht; „Kündigen bis“ erinnert rechtzeitig an Fristen. Beim Taschengeld gibt es Sparziele mit Fortschritt („noch 12 € ≈ 3 Wochen“) – auch in der Kinderecke sichtbar. Die Jahresübersicht vergleicht mit dem Vorjahr und exportiert als CSV für Excel. Behoben: Fälligkeiten von Abos und Taschengeld rutschten bei jeder Wiederholung einen Tag nach vorn.
+
 ## 2026-10-26 | 🚗 Fahrzeuge: Wartungsplan, Fixkosten & Mängel
 Jedes Fahrzeug hat jetzt einen 🔧 Wartungsplan (Ölwechsel, Bremsflüssigkeit, Klimaservice … mit km- und Monats-Abstand) – fällige Punkte erscheinen auf der Karte, und beim Werkstatt-Eintrag hakst du ab, was erledigt wurde. KFZ-Steuer und Versicherung lassen sich als 📆 Fixkosten mit Fälligkeit eintragen („Bezahlt“ rechnet die nächste Fälligkeit aus); im Herbst erinnert die App an den Versicherungsvergleich vor dem 30.11. Auffälligkeiten sammelst du unter „⚠️ Für die nächste Werkstatt“ und kannst die Liste der Werkstatt schicken.
 
