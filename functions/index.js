@@ -9,10 +9,12 @@
 //   kalender       – Termine als Kalender-Abo (ICS) für Google/Apple/Outlook
 //   rezeptImport   – liest ein Rezept von einer Webseite (schema.org/Recipe)
 //   chatPush       – Benachrichtigung bei neuen Nachrichten im Familien-Chat
+//   Garten (in „erinnerungen“): Frost um 18 Uhr, Hitze morgens, Monatsvorschau am 1.
 //
 // Datenquellen (wie von der App synchronisiert):
 //   planerFamilien/{familie}/daten/termine     → werte.termine_events_v1
 //   planerFamilien/{familie}/daten/gesundheit  → werte.gesundheit_medikamente, werte.gesundheit_medErledigt
+//   planerFamilien/{familie}/daten/garten      → werte.garten_pushPlan (von der Garten-App berechneter Auszug)
 //   planerFamilien/{familie}/geraete/{gerät}   → Token + Einstellungen des Geräts (von der App angelegt)
 // ============================================================
 const { onSchedule } = require('firebase-functions/v2/scheduler');
@@ -179,6 +181,91 @@ function faelligeErinnerungen(geraet, daten) {
   return liste.map(e => Object.assign(e, { datum, uhrzeit: minutenZuHHMM(minuten) }));
 }
 
+// ============================================================
+// 🌱 GARTEN – Frost, Hitze und Monatsvorschau
+// Die Garten-App legt einen kleinen „Push-Plan“ ab (werte.garten_pushPlan):
+//   { gaerten: [{ name, lat, lon, pflanzen, frost: [{ n: 'Tomate', ab: 'JJJJ-MM-TT'|null }] }],
+//     monate: { 'JJJJ-MM': { vorziehen: [], direktsaat: [], auspflanzen: [], schneiden: [] } } }
+// Das Wetter kommt von Open-Meteo (kostenlos, ohne Schlüssel) – nur in den Minuten, in denen
+// wirklich ein Garten-Hinweis fällig sein kann.
+// ============================================================
+const FROST_GRENZE = 1;   // °C Tiefstwert in der kommenden Nacht
+const HITZE_GRENZE = 30;  // °C Höchstwert heute
+const MONATSNAMEN = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+function gradText(t) { return (Math.round(t * 10) / 10).toString().replace('.', ',').replace('-', '−') + ' °C'; }
+function listeKurz(namen, max) { return namen.slice(0, max).join(', ') + (namen.length > max ? ' …' : ''); }
+// Merkt sich das Wetter je Standort für einen Lauf (mehrere Geräte, ein Abruf)
+function wetterHolerErzeugen() {
+  const cache = new Map();
+  return (lat, lon) => {
+    const k = lat + ',' + lon;
+    if (!cache.has(k)) {
+      const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + encodeURIComponent(lat) + '&longitude=' + encodeURIComponent(lon) +
+        '&daily=temperature_2m_min,temperature_2m_max&timezone=auto&forecast_days=2';
+      cache.set(k, fetch(url, { signal: AbortSignal.timeout(8000) })
+        .then(a => (a.ok ? a.json() : null))
+        .then(j => (j && j.daily && Array.isArray(j.daily.temperature_2m_min) ? { min: j.daily.temperature_2m_min, max: j.daily.temperature_2m_max } : null))
+        .catch(err => { console.warn('Wetter', k, err && err.message); return null; }));
+    }
+    return cache.get(k);
+  };
+}
+// Ist für dieses Gerät gerade ein Garten-Hinweis möglich? (spart Lesen und Wetterabruf)
+function gartenFensterOffen(geraet) {
+  if (geraet.garten === false) return false;
+  const { datum, minuten } = lokaleZeit(geraet.zeitzone);
+  const imFenster = (ziel) => ziel !== null && ziel <= minuten && minuten - ziel < FENSTER_MIN;
+  const tagesZiel = hhmmZuMinuten(geraet.tagesZeit || '08:00');
+  return imFenster(18 * 60) || imFenster(tagesZiel) || (datum.endsWith('-01') && imFenster(tagesZiel));
+}
+async function gartenErinnerungen(geraet, plan, wetterHolen) {
+  if (geraet.garten === false || !plan || !Array.isArray(plan.gaerten)) return [];
+  const { datum, minuten } = lokaleZeit(geraet.zeitzone);
+  const imFenster = (ziel) => ziel !== null && ziel <= minuten && minuten - ziel < FENSTER_MIN;
+  const tagesZiel = hhmmZuMinuten(geraet.tagesZeit || '08:00');
+  const mehrere = plan.gaerten.length > 1;
+  const liste = [];
+  // ❄️ Frost: abends um 18 Uhr, wenn die kommende Nacht frostig wird und Frostempfindliches draußen steht
+  if (imFenster(18 * 60)) {
+    const morgen = isoPlusTage(datum, 1);
+    for (let i = 0; i < plan.gaerten.length; i++) {
+      const g = plan.gaerten[i];
+      const betroffen = (g.frost || []).filter(f => f && f.n && (!f.ab || f.ab <= morgen)).map(f => f.n);
+      if (!betroffen.length) continue;
+      const w = await wetterHolen(g.lat, g.lon);
+      if (!w || typeof w.min[1] !== 'number') continue;
+      const tmin = w.min[1]; // Nacht auf morgen = Tiefstwert des morgigen Tages (fällt meist in die frühen Morgenstunden)
+      if (tmin > FROST_GRENZE) continue;
+      liste.push({ schluessel: 'gartenFrost_' + i, titel: (tmin <= 0 ? '❄️ Frost heute Nacht' : '❄️ Frostgefahr heute Nacht') + ' (bis ' + gradText(tmin) + ')',
+        text: (mehrere ? g.name + ': ' : '') + 'Abdecken oder reinholen: ' + listeKurz(betroffen, 6), seite: 'garten' });
+    }
+  }
+  if (imFenster(tagesZiel)) {
+    // ☀️ Hitze: morgens zur Tageszeit des Geräts
+    for (let i = 0; i < plan.gaerten.length; i++) {
+      const g = plan.gaerten[i];
+      if (!g.pflanzen) continue;
+      const w = await wetterHolen(g.lat, g.lon);
+      if (!w || typeof w.max[0] !== 'number' || w.max[0] < HITZE_GRENZE) continue;
+      liste.push({ schluessel: 'gartenHitze_' + i, titel: '☀️ Heute bis ' + gradText(w.max[0]),
+        text: (mehrere ? g.name + ': ' : '') + 'Garten früh morgens oder abends gründlich gießen – nicht in der Mittagshitze.', seite: 'garten' });
+    }
+    // 🌱 Monatsvorschau am 1. des Monats
+    if (datum.endsWith('-01') && plan.monate) {
+      const mo = plan.monate[datum.slice(0, 7)];
+      if (mo) {
+        const teile = [];
+        if ((mo.vorziehen || []).length) teile.push('🏠 vorziehen: ' + listeKurz(mo.vorziehen, 5));
+        if ((mo.direktsaat || []).length) teile.push('🌍 säen: ' + listeKurz(mo.direktsaat, 5));
+        if ((mo.auspflanzen || []).length) teile.push('🌱 auspflanzen: ' + listeKurz(mo.auspflanzen, 5));
+        if ((mo.schneiden || []).length) teile.push('✂️ schneiden: ' + listeKurz(mo.schneiden, 4));
+        if (teile.length) liste.push({ schluessel: 'gartenMonat', titel: '🌱 ' + MONATSNAMEN[Number(datum.slice(5, 7)) - 1] + ' im Garten', text: teile.join('\n').slice(0, 300), seite: 'garten' });
+      }
+    }
+  }
+  return liste.map(e => Object.assign(e, { datum, uhrzeit: minutenZuHHMM(minuten) }));
+}
+
 exports.erinnerungen = onSchedule(
   { schedule: 'every 5 minutes', timeZone: 'Europe/Berlin', region: 'europe-west3', memory: '256MiB', timeoutSeconds: 120 },
   async () => {
@@ -201,12 +288,14 @@ exports.erinnerungen = onSchedule(
     for (const { ref: familieRef, geraete } of proFamilie.values()) {
       const brauchtVorrat = geraete.some(g => g.daten.vorrat);
       const brauchtWartung = geraete.some(g => g.daten.wartung);
+      const brauchtGarten = geraete.some(g => gartenFensterOffen(g.daten)); // Gartendaten nur lesen, wenn ein Hinweis fällig sein kann
       const leer = { exists: false };
-      const [terminDoc, gesundheitDoc, vorratDoc, handwerkDoc] = await Promise.all([
+      const [terminDoc, gesundheitDoc, vorratDoc, handwerkDoc, gartenDoc] = await Promise.all([
         familieRef.collection('daten').doc('termine').get(),
         familieRef.collection('daten').doc('gesundheit').get(),
         brauchtVorrat ? familieRef.collection('daten').doc('vorratskammer').get() : leer,
         brauchtWartung ? familieRef.collection('daten').doc('handwerk').get() : leer,
+        brauchtGarten ? familieRef.collection('daten').doc('garten').get() : leer,
       ]);
       const werteVon = (doc) => (doc.exists && doc.data().werte) || {};
       const tw = werteVon(terminDoc), gw = werteVon(gesundheitDoc);
@@ -217,9 +306,16 @@ exports.erinnerungen = onSchedule(
         vorrat: werteVon(vorratDoc).vorratskammer_items || [],
         wartung: werteVon(handwerkDoc).handwerk_wartung || [],
       };
+      let gartenPlan = werteVon(gartenDoc).garten_pushPlan || null;
+      if (typeof gartenPlan === 'string') { try { gartenPlan = JSON.parse(gartenPlan); } catch (e) { gartenPlan = null; } }
+      const wetterHolen = wetterHolerErzeugen();
 
       for (const geraet of geraete) {
         const faellig = faelligeErinnerungen(geraet.daten, daten);
+        if (gartenPlan && gartenFensterOffen(geraet.daten)) {
+          try { faellig.push(...await gartenErinnerungen(geraet.daten, gartenPlan, wetterHolen)); }
+          catch (err) { console.warn('Garten-Erinnerung', geraet.id, err && err.message); }
+        }
         for (const e of faellig) {
           // Merker anlegen – schlägt fehl, wenn diese Erinnerung schon verschickt wurde (keine Dopplungen)
           const merker = familieRef.collection('pushVersand').doc(`${e.datum}_${geraet.id}_${e.schluessel}`.replace(/[^\w.-]/g, '_'));
@@ -590,4 +686,4 @@ exports.chatPush = onRequest({ region: 'europe-west3', memory: '256MiB', invoker
 });
 
 // Für Tests (node): reine Hilfsfunktionen
-if (process.env.FAMILIENPLANER_TEST) exports._test = { chatVorschau, sonntagsbriefText, kalenderIcs, rezeptAusJsonLd, zutatZerlegen, schritteListe, isoDauerMinuten, privateAdresse };
+if (process.env.FAMILIENPLANER_TEST) exports._test = { gartenErinnerungen, gartenFensterOffen, chatVorschau, sonntagsbriefText, kalenderIcs, rezeptAusJsonLd, zutatZerlegen, schritteListe, isoDauerMinuten, privateAdresse };
