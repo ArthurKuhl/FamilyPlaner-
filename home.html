@@ -1846,7 +1846,9 @@
     const ziele = [];
     ausfluege.forEach(a => { if (imJahr(a.datum) && new Date(a.datum) <= heute) ziele.push((a.ort || a.titel || '').trim()); });
     erlebt.forEach(e => { if (imJahr(e.datum) && !e.ausflugId) ziele.push((e.titel || '').trim()); });
-    if (ziele.length) punkte.push({ icon: '🧭', zahl: String(ziele.length), text: ziele.length === 1 ? 'Ausflug' : 'Ausflüge', extra: ziele.filter(Boolean).slice(0, 3).join(', ') });
+    const bestes = erlebt.filter(e => imJahr(e.datum) && Number(e.bewertung) > 0).sort((a, b) => Number(b.bewertung) - Number(a.bewertung))[0];
+    if (ziele.length) punkte.push({ icon: '🧭', zahl: String(ziele.length), text: ziele.length === 1 ? 'Ausflug' : 'Ausflüge',
+      extra: bestes ? 'Am schönsten: ' + (bestes.titel || '') + ' ' + '⭐'.repeat(Math.min(5, Number(bestes.bewertung))) : ziele.filter(Boolean).slice(0, 3).join(', ') });
 
     // 🏃 Sport
     const sport = lies('gesundheit_sport', []), training = lies('gesundheit_trainingslog', []);

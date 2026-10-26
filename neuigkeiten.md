@@ -2,6 +2,12 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
+## 2026-10-26 | 🧭 Ausflüge: Wetter, Ideen & „Wie war's?“
+Geplante Ausflüge zeigen bis zu 15 Tage vorher das Wetter am Ziel – mit Regen-Hinweis und „＋ Regensachen auf die Packliste“. Den Ort antippen öffnet die Route in der Karten-App. Neu ist der Reiter 💡 Ideen für „Irgendwann mal“-Ziele (☔ bei Regen, 💶 kostenlos, 👶 für Kinder, 🚗 Fahrzeit) mit 🎲 „Was machen wir am Wochenende?“ – der Würfel schaut aufs Wetter. Nach dem Ausflug fragt „⭐ Wie war's?“ nach Sternen und Kosten; die Statistik zeigt jetzt Ausgaben pro Jahr und die bestbewerteten Ziele.
+
+## 2026-10-26 | 🎒 Packlisten-Vorlagen & Fotos für die Familie
+Packlisten lassen sich mit einem Tipp aus Vorlagen füllen (Tagesausflug, Wandern, Schwimmbad/See, Zoo/Freizeitpark, Wochenende weg) – eigene Listen per „💾 Als eigene Vorlage merken“. Erinnerungsfotos werden jetzt in besserer Qualität im Familien-Fotospeicher abgelegt (👪 Familie oder 🔒 Nur ich), mehrere auf einmal auswählbar. „Als Termin eintragen“ kommt sofort bei allen an und legt keinen doppelten Termin mehr an.
+
 ## 2026-10-26 | ⭐ Gartenhelfer in der Kinderecke
 Ist ein Beet einem Kind zugeteilt (Garten → Heute → „👤 wer?“), erscheint es in der Kinderecke unter „🌱 Meine Beete“. Mit „Gegossen! ⭐“ gibt es einen Stern – und im Garten ist das Beet dann für alle als „erledigt · von Lev“ abgehakt. Hakt Mama oder Papa ein Kinder-Beet im Garten ab, bekommt das Kind den Stern ebenfalls.
 
