@@ -833,7 +833,7 @@
       <button class="tool-btn dropdown-toggle" onclick="toggleDropdown(this)" title="Saatgut, Vorrat, Vorlagen">🥫 Bestand <span class="caret">▾</span></button>
       <div class="dropdown-menu">
         <button class="tool-btn" onclick="openSeedInventory();closeDropdowns()" title="Vorrätiges Saatgut verwalten">🌰 Saatgutinventar</button>
-        <button class="tool-btn" onclick="openPantry();closeDropdowns()" title="Eingekochtes, Fermentiertes & Co.">🥫 Vorratsliste</button>
+        <button class="tool-btn" onclick="zurVorratskammer();closeDropdowns()" title="Eingekochtes, Eingefrorenes & Co. stehen jetzt in der Vorratskammer">🥫 Vorratskammer ›</button>
         <button class="tool-btn" onclick="openTemplateModal();closeDropdowns()" title="Gespeicherte Beet-Vorlagen">🧩 Vorlagen</button>
       </div>
     </div>
@@ -9485,21 +9485,38 @@ function renderHarvestJournal(entries, years) {
       <span style="font-size:1rem">${e.sym}</span>
       <span style="font-size:0.74rem;color:var(--bark);min-width:70px">${escapeHtml(e.date||'')}</span>
       <span style="flex:1;font-size:0.78rem"><strong>${escapeHtml(e.plant)}</strong> · ${escapeHtml(e.bed)} — ${e.amount} ${escapeHtml(e.unit)}${e.method?' · '+escapeHtml(harvestUseLabel(e.method)||e.method):''}${e.note?' · '+escapeHtml(e.note):''}</span>
-      <button onclick="addHarvestToPantry('${e.bedId}',${e.plantIdx},${e.hIdx})" style="background:none;border:none;color:var(--moss);cursor:pointer;font-size:0.9rem;opacity:0.75;flex-shrink:0" title="In Vorratsliste übernehmen">🥫</button>
+      <button onclick="addHarvestToPantry('${e.bedId}',${e.plantIdx},${e.hIdx})" style="background:none;border:none;color:var(--moss);cursor:pointer;font-size:0.9rem;opacity:0.75;flex-shrink:0" title="In die Vorratskammer übernehmen">🥫</button>
     </div>`).join('') || '<div class="empty-state">Keine Einträge in diesem Zeitraum.</div>';
 
   box.innerHTML = html;
 }
 // Ernte direkt in den Eingang der Vorratskammer legen (dort wird sie einsortiert) – gleicher Weg wie beim Einkauf
-function ernteInVorratskammer(name, amount, unit, date) {
+// extra (optional): { methode: 'Eingekocht' | 'Eingefroren' | ..., verfall: 'JJJJ-MM-TT', notiz, ernteDatum, still }
+function ernteInVorratskammer(name, amount, unit, date, extra) {
+  extra = extra || {};
   try {
     const eingang = JSON.parse(localStorage.getItem('vorratskammer_eingang') || '[]');
-    eingang.push({ id: 'e_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name: name,
-      menge: (amount + ' ' + (unit || '')).trim(), einkaufKategorie: 'obst_gemuese', datum: date || new Date().toISOString().slice(0, 10), quelle: 'garten' });
+    const eintrag = { id: 'e_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name: name,
+      menge: (String(amount == null ? '' : amount) + ' ' + (unit || '')).trim(), einkaufKategorie: 'obst_gemuese',
+      // Eingangsdatum = heute: der Eingang räumt Einträge nach 30 Tagen selbst weg – eine ältere Ernte wäre sonst sofort verschwunden
+      datum: new Date().toISOString().slice(0, 10), quelle: 'garten' };
+    if (date) eintrag.ernteDatum = date;
+    if (extra.methode) eintrag.methode = extra.methode;
+    if (extra.verfall) eintrag.verfall = extra.verfall;
+    if (extra.notiz) eintrag.notiz = extra.notiz;
+    eingang.push(eintrag);
     localStorage.setItem('vorratskammer_eingang', JSON.stringify(eingang));
     if (window._vorratSync) window._vorratSync.melde();
-    showTempStatus('📥 „' + name + '“ liegt jetzt im Eingang der Vorratskammer', 4);
-  } catch (e) { showTempStatus('⚠ Konnte nicht an die Vorratskammer übergeben werden.', 5); }
+    if (!extra.still) showTempStatus('📥 „' + name + '“ liegt jetzt im Eingang der Vorratskammer', 5, { label: 'Öffnen', aktion: zurVorratskammer });
+    return true;
+  } catch (e) { if (!extra.still) showTempStatus('⚠ Konnte nicht an die Vorratskammer übergeben werden.', 5); return false; }
+}
+function zurVorratskammer() {
+  if (window.parent && window.parent !== window) {
+    try { window.parent.postMessage({ type: 'navigiere', modul: 'vorratskammer' }, window.location.origin); } catch (e) {}
+  } else {
+    window.location.href = 'vorratskammer.html';
+  }
 }
 function addHarvestEntry() {
   if (!activePlantBedId) return;
@@ -9564,7 +9581,7 @@ function renderHarvestLog(bed, idx) {
     <div style="display:flex;align-items:center;gap:8px;padding:5px 8px;margin-bottom:4px;border-radius:7px;background:var(--cream)">
       <span style="font-size:0.76rem;color:var(--bark);min-width:70px">${escapeHtml(h.date)}</span>
       <span style="flex:1;font-size:0.8rem"><strong>${h.amount} ${escapeHtml(h.unit)}</strong>${h.method ? ' · '+escapeHtml(harvestUseLabel(h.method)||h.method) : ''}${h.note ? ' · '+escapeHtml(h.note) : ''}</span>
-      <button onclick="addHarvestToPantry('${bed.id}',${idx},${i})" style="background:none;border:none;color:var(--moss);cursor:pointer;font-size:0.9rem;opacity:0.7" title="In Vorratsliste übernehmen">🥫</button>
+      <button onclick="addHarvestToPantry('${bed.id}',${idx},${i})" style="background:none;border:none;color:var(--moss);cursor:pointer;font-size:0.9rem;opacity:0.7" title="In die Vorratskammer übernehmen">🥫</button>
       <button onclick="deleteHarvestEntry(${i})" style="background:none;border:none;color:#c05030;cursor:pointer;font-size:0.85rem;opacity:0.6" title="Löschen">🗑</button>
     </div>`).join('');
 }
@@ -10203,6 +10220,25 @@ let pantryFilter = 'vorhanden';
 function loadPantry() {
   try { pantryEntries = JSON.parse(localStorage.getItem('gartenplaner_pantry') || '[]') || []; }
   catch(e) { pantryEntries = []; }
+  vorratslisteUmziehen();
+}
+// Die frühere Garten-Vorratsliste ist in die Vorratskammer umgezogen: noch vorhandene Einträge
+// landen einmalig im Eingang der Vorratskammer (dort einsortieren), danach ist die Garten-Liste leer.
+function vorratslisteUmziehen() {
+  if (!pantryEntries.length) return;
+  const offen = pantryEntries.filter(e => !e.consumed && e.item);
+  let ok = true;
+  offen.forEach(e => {
+    const notiz = [e.location ? 'Lagerort: ' + e.location : '', e.note || '', e.date ? 'eingelagert am ' + new Date(e.date + 'T00:00:00').toLocaleDateString('de-DE') : ''].filter(Boolean).join(' · ');
+    if (!ernteInVorratskammer(e.item, e.amount || '', '', null, { methode: e.method || '', verfall: e.useBy || '', notiz, still: true })) ok = false;
+  });
+  if (!ok) return; // bei Fehler lieber nichts löschen
+  pantryEntries = [];
+  savePantry();
+  if (offen.length) {
+    setTimeout(() => { if (window._vorratSync) window._vorratSync.melde(); }, 4000);
+    setTimeout(() => showTempStatus('🥫 ' + offen.length + ' Vorrat/Vorräte aus dem Garten liegen jetzt im Eingang der Vorratskammer', 7, { label: 'Öffnen', aktion: zurVorratskammer }), 1500);
+  }
 }
 function savePantry() {
   try { localStorage.setItem('gartenplaner_pantry', JSON.stringify(pantryEntries)); } catch(e) {}
@@ -10316,10 +10352,7 @@ function addHarvestToPantry(bedId, plantIdx, hIdx) {
     fermentieren: 'Fermentiert', trocknen: 'Getrocknet', einfrieren: 'Eingefroren',
   };
   const pantryMethod = HARVEST_METHOD_TO_PANTRY[h.method] || null;
-  const journalModal = document.getElementById('harvestJournalModal');
-  if (journalModal) journalModal.style.display = 'none';
-  openPantryForm(null, { item: name, amount: amountStr, date: h.date, method: pantryMethod });
-  showTempStatus(`🥫 „${name}“ in Vorratsliste vorbereitet – Methode & Haltbarkeit ergänzen und speichern.`, 5);
+  ernteInVorratskammer(name, h.amount, h.unit, h.date, { methode: pantryMethod, notiz: h.note || '' });
 }
 function closePantryForm() { document.getElementById('pantryFormModal').style.display = 'none'; }
 function savePantryForm() {

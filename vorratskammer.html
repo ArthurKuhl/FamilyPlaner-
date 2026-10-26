@@ -890,14 +890,16 @@
     box.style.display = '';
     const offen = box.dataset.zu !== '1';
     box.innerHTML =
-      '<div class="eingang-kopf"><button type="button" class="eingang-titel" id="btnEingangToggle">📥 Vom Einkauf <span class="eingang-zahl">' + eingang.length + '</span> ' + (offen ? '▾' : '▸') + '</button>' +
+      '<div class="eingang-kopf"><button type="button" class="eingang-titel" id="btnEingangToggle">📥 Eingang <span class="eingang-zahl">' + eingang.length + '</span> ' + (offen ? '▾' : '▸') + '</button>' +
       (offen ? '<button type="button" class="eingang-link" id="btnEingangAlleWeg">Alle verwerfen</button>' : '') + '</div>' +
-      (offen ? '<div class="eingang-hinweis">Abgehakt beim Einkauf – hier einsortieren oder verwerfen.</div>' +
+      (offen ? '<div class="eingang-hinweis">Beim Einkauf abgehakt oder im Garten geerntet – hier einsortieren oder verwerfen.</div>' +
         eingang.map(e => {
           const vorhanden = passenderVorrat(e.name);
           return '<div class="eingang-zeile" data-id="' + e.id + '">' +
             '<div class="eingang-info"><b>' + escapeHtml(e.name) + '</b>' + (e.menge ? ' <span>· ' + escapeHtml(e.menge) + '</span>' : '') +
-              '<div class="eingang-datum">' + ausISO(e.datum).toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'short' }) +
+              (e.methode ? ' <span>· ' + escapeHtml(e.methode) + '</span>' : '') +
+              '<div class="eingang-datum">' + (e.quelle === 'garten' ? '🌱 aus dem Garten · ' : '🛒 ') + ausISO(e.datum).toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'short' }) +
+              (e.verfall ? ' · haltbar bis ' + ausISO(e.verfall).toLocaleDateString('de-DE') : '') +
               (vorhanden ? ' · schon im Vorrat' + (vorhanden.lagerort && lagerortInfo(vorhanden.lagerort) ? ' (' + lagerortInfo(vorhanden.lagerort).icon + ' ' + escapeHtml(lagerortInfo(vorhanden.lagerort).label) + ')' : '') : '') + '</div></div>' +
             '<div class="eingang-knoepfe">' +
               (vorhanden ? '<button type="button" class="eingang-btn haupt" data-aktion="auffuellen">↻ Auffüllen</button>' : '<button type="button" class="eingang-btn haupt" data-aktion="neu">＋ Einordnen</button>') +
@@ -941,7 +943,12 @@
       document.getElementById('fBestand').value = 'viel';
       document.getElementById('fGekauft').value = e.datum || '';
       if (e.code && window.Lebensmittel) { const prod = window.Lebensmittel.produkt(e.code); if (prod) window.vorratProduktUebernehmen(Object.assign({}, prod, { name: e.name, menge: e.menge || prod.menge })); }
-      const lagerVorschlag = EINGANG_LAGERORT[e.einkaufKategorie];
+      // Aus dem Garten: Haltbarkeit und Hinweise übernehmen, Lagerort nach Methode vorschlagen
+      if (e.verfall) document.getElementById('fVerfall').value = e.verfall;
+      const notizTeile = [e.methode, e.notiz, e.ernteDatum ? 'geerntet am ' + ausISO(e.ernteDatum).toLocaleDateString('de-DE') : ''].filter(Boolean);
+      if (notizTeile.length && !document.getElementById('fNotiz').value) document.getElementById('fNotiz').value = notizTeile.join(' · ');
+      const METHODE_LAGERORT = { Eingefroren: 'gefrierfach', Eingekocht: 'vorratsschrank', Fermentiert: 'keller', Getrocknet: 'vorratsschrank' };
+      const lagerVorschlag = METHODE_LAGERORT[e.methode] || EINGANG_LAGERORT[e.einkaufKategorie];
       if (lagerVorschlag && !editLagerort) { editLagerort = lagerVorschlag; renderFormLagerortReihe(); }
       if (e.einkaufKategorie === 'drogerie') {
         // Drogerieartikel passen eher in eine eigene Kategorie – sonst bleibt die aktuelle Auswahl
