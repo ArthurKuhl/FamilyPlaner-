@@ -9891,6 +9891,52 @@ function saatgutFehltHtml() {
     <div style="text-align:right;margin-top:4px"><button class="nav-btn" style="padding:4px 10px;font-size:0.7rem" onclick="openSeedInventory()">Saatgutinventar öffnen</button></div></div>`;
 }
 
+// ==================== 🧒 KINDERECKE ↔ GARTEN ====================
+// Ist ein Beet einem Kind zugeteilt (Heute → „👤 wer?“), gibt das Abhaken einen ⭐ in der Kinderecke.
+// Umgekehrt meldet die Kinderecke „Gegossen!“ über garten_kinderErledigt – das wird hier als Gießen übernommen.
+function gartenKinder() { try { const e = JSON.parse(localStorage.getItem('kinder_einstellungen') || '{}') || {}; return Array.isArray(e.kinder) ? e.kinder : []; } catch (e) { return []; } }
+function istKind(id) { return !!id && gartenKinder().includes(id); }
+function kinderSternSetzen(personId, sternId, grund, an) {
+  let liste = []; try { liste = JSON.parse(localStorage.getItem('kinder_sterne') || '[]') || []; } catch (e) {}
+  const i = liste.findIndex(x => x.id === sternId);
+  if (an && i === -1) liste.push({ id: sternId, personId, datum: new Date().toISOString(), anzahl: 1, grund });
+  else if (!an && i !== -1) liste.splice(i, 1);
+  else return;
+  try { localStorage.setItem('kinder_sterne', JSON.stringify(liste)); } catch (e) {}
+  if (window._kinderSync) window._kinderSync.melde();
+}
+function kinderErledigtAnwenden() {
+  let erl = [], angewendet = [];
+  try { erl = JSON.parse(localStorage.getItem('garten_kinderErledigt') || '[]') || []; } catch (e) {}
+  try { angewendet = JSON.parse(localStorage.getItem('garten_kinderErledigtAngewendet') || '[]') || []; } catch (e) {}
+  const neu = erl.filter(x => x && x.id && !angewendet.includes(x.id));
+  if (!neu.length) return false;
+  const heute = heuteISO();
+  let geaendert = false;
+  neu.forEach(x => {
+    const g = gardens[x.gartenId] || gardens[currentGardenId];
+    const bed = g && (g.beds || []).find(b => b.id === x.bedId);
+    angewendet.push(x.id);
+    if (!bed) return;
+    (bed.plants || []).forEach((p, idx) => {
+      const info = CARE_INFO[lexKatalogName((p.name || '').trim())];
+      if (!info || !info.waterDays) return;
+      if (!p.lastWatered || p.lastWatered < x.datum) { p.lastWatered = x.datum; geaendert = true; }
+      if (x.datum === heute) {
+        const id = bed.id + '_' + idx + '_water';
+        const state = getCareDoneState();
+        if (!state.done.includes(id)) state.done.push(id);
+        state.wer = state.wer || {}; state.wer[id] = x.kind;
+        localStorage.setItem('gartenplaner_careDone', JSON.stringify(state));
+      }
+    });
+  });
+  try { localStorage.setItem('garten_kinderErledigtAngewendet', JSON.stringify(angewendet.slice(-200))); } catch (e) {}
+  if (geaendert) saveData();
+  return true;
+}
+setTimeout(() => { try { if (kinderErledigtAnwenden() && document.getElementById('view-home').classList.contains('active')) renderHomeOverview(); } catch (e) {} }, 1500);
+
 // ==================== „Heute zu erledigen“ (Startseite) ====================
 // Gießen und Düngen werden je Beet zu einer Zeile zusammengefasst (ein Haken für alle Pflanzen),
 // Ernten bleiben einzeln und haben einen Knopf, der direkt das Ernte-Formular der Pflanze öffnet.
@@ -9935,6 +9981,17 @@ function heuteGruppeUmschalten(idsText) {
   }
   ids.forEach(id => { if (!alleErledigt && ich) state.wer[id] = ich; else delete state.wer[id]; });
   localStorage.setItem('gartenplaner_careDone', JSON.stringify(state));
+  // ⭐ für das Kind, dem das Beet zugeteilt ist (bzw. das selbst abhakt)
+  const t0 = careIdTeile(ids[0]);
+  const bed = getCurrentBeds().find(b => b.id === t0.bedId);
+  const kind = bed && istKind(bed.zustaendig) ? bed.zustaendig : (istKind(ich) ? ich : null);
+  if (kind && (t0.art === 'water' || t0.art === 'fertilize' || t0.art === 'harvest')) {
+    const verb = { water: 'gegossen', fertilize: 'gedüngt', harvest: 'geerntet' }[t0.art];
+    const was = t0.art === 'harvest' ? ((bed.plants[t0.idx] || {}).name || 'Pflanze') : (bed.name || 'Beet');
+    const sternId = 'st_garten_' + bed.id + '_' + (t0.art === 'harvest' ? t0.idx + '_' : '') + t0.art + '_' + heuteISO();
+    kinderSternSetzen(kind, sternId, '🌱 ' + was + ' ' + verb, !alleErledigt);
+    if (!alleErledigt) showTempStatus('⭐ Ein Stern für ' + ((gartenPersonInfo(kind) || {}).label || 'die Kinderecke') + '!', 3);
+  }
   renderHomeOverview();
 }
 function heuteErnteEintragen(id) {
@@ -9978,7 +10035,7 @@ function heuteAufgabenHtml(todayTasks) {
       const werHtml = g.erledigt
         ? (werErledigt ? ` · von ${escapeHtml(werErledigt.label)}` : '')
         : (personen.length ? `<select class="heute-wer${zust && zust.id === ich ? ' ich' : ''}" onchange="beetZustaendigSetzen('${t0.bedId}', this.value)" title="Wer kümmert sich um dieses Beet?" style="${zust && zust.farbe ? 'border-color:' + zust.farbe : ''}">
-            <option value="">👤 wer?</option>${personen.map(p => `<option value="${escapeHtml(p.id)}"${zust && zust.id === p.id ? ' selected' : ''}>${escapeHtml(p.label)}${p.id === ich ? ' (ich)' : ''}</option>`).join('')}</select>` : '');
+            <option value="">👤 wer?</option>${personen.map(p => `<option value="${escapeHtml(p.id)}"${zust && zust.id === p.id ? ' selected' : ''}>${escapeHtml(p.label)}${p.id === ich ? ' (ich)' : ''}${istKind(p.id) ? ' ⭐' : ''}</option>`).join('')}</select>` : '');
       return `<div class="heute-aufgabe${g.erledigt ? ' erledigt' : ''}${zust && zust.id === ich && !g.erledigt ? ' meins' : ''}">
         <button type="button" class="heute-haken${g.erledigt ? ' an' : ''}" onclick="heuteGruppeUmschalten('${ids}')" aria-label="${g.erledigt ? 'Wieder öffnen' : 'Erledigt'}">${g.erledigt ? '✓' : ''}</button>
         <span class="heute-icon">${a.icon}</span>
@@ -11978,6 +12035,8 @@ if (window.PlanerSync) {
   // Eingang der Vorratskammer (Ernte → Vorratskammer)
   window._vorratSync = window.PlanerSync.starteSync({ modul: 'vorratskammer', keys: ['vorratskammer_eingang'] });
   window._einkaufSync = window.PlanerSync.starteSync({ modul: 'einkauf', keys: ['einkauf_listen'] }); // „Saatgut fehlt → Einkauf“
+  // Kinderecke: Sterne für Garten-Aufgaben + „Gegossen!“ aus der Kinderecke übernehmen
+  window._kinderSync = window.PlanerSync.starteSync({ modul: 'kinder', keys: ['kinder_sterne', 'garten_kinderErledigt'], onRemoteChange: () => { if (kinderErledigtAnwenden() && document.getElementById('view-home').classList.contains('active')) renderHomeOverview(); } });
 }
 
 // ==================== BARRIEREFREIHEIT: FOKUS-MANAGEMENT FÜR MODALS ====================

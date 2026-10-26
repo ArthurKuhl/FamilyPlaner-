@@ -2,6 +2,9 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
+## 2026-10-26 | ⭐ Gartenhelfer in der Kinderecke
+Ist ein Beet einem Kind zugeteilt (Garten → Heute → „👤 wer?“), erscheint es in der Kinderecke unter „🌱 Meine Beete“. Mit „Gegossen! ⭐“ gibt es einen Stern – und im Garten ist das Beet dann für alle als „erledigt · von Lev“ abgehakt. Hakt Mama oder Papa ein Kinder-Beet im Garten ab, bekommt das Kind den Stern ebenfalls.
+
 ## 2026-10-26 | 🛠️ App-Check: besser lesbar
 Alle Bereiche wurden automatisch durchgeklickt – ohne Programmfehler. Verbessert wurde die Lesbarkeit: Fehlermeldungen der News-Feeds sind im Dunkelmodus nicht mehr blau/schwarz, im Handwerk ist der gewählte Knopf „Niemand“ wieder sichtbar und die Material-Felder passen aufs Handy, blasse Reiter (z.B. in Vorratskammer, Haushalt, Ausflüge) sind kräftiger. Ein Garten-Treffer in der großen Suche öffnet jetzt direkt das Pflanzenlexikon.
 

@@ -10,6 +10,7 @@
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
 <script src="personen.js"></script>
 <script src="sync.js"></script>
+<script src="pflanzendaten.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap');
   :root {
@@ -124,6 +125,7 @@
   const KEY_EINST = 'kinder_einstellungen';   // { kinder: [personId], belohnungen: [{id, text, sterne}] }
   const KEY_STERNE = 'kinder_sterne';         // [{ id, personId, datum, anzahl (+ Bonus / − eingelöst), grund }]
   const KEY_AKTIV = 'kinder_aktivesKind';     // geräte-lokal
+  const KEY_GARTEN_ERL = 'garten_kinderErledigt'; // [{ id, bedId, gartenId, datum, kind }] – Gartenmodul übernimmt das als „gegossen“
   function laden(k, f) { try { const r = localStorage.getItem(k); return r === null ? f : JSON.parse(r); } catch (e) { return f; } }
   function speichern(k, v, handle) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} if (handle) handle.melde(); }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
@@ -181,6 +183,55 @@
     return (garten && garten.tierSichtungen) || {};
   }
 
+  // ---------- 🌱 Garten: Beete, die diesem Kind zugeteilt sind (Garten → Heute → „👤 wer?“) ----------
+  function gartenAktuell() {
+    const g = laden('gartenplaner_v3', null);
+    return g && g.gardens ? { g, gid: g.currentGardenId, garten: g.gardens[g.currentGardenId] } : null;
+  }
+  function gartenGiessInfo(name) {
+    const care = (typeof CARE_INFO !== 'undefined') ? CARE_INFO : {};
+    const n = String(name || '').trim();
+    return care[n] || care[n.replace(/(s|n|en)$/, '')] || care[n + 'e'] || null;
+  }
+  function gartenBeeteVon(kindId) {
+    const a = gartenAktuell();
+    if (!a || !a.garten) return [];
+    const heute = new Date(); heute.setHours(0, 0, 0, 0);
+    const erl = laden(KEY_GARTEN_ERL, []);
+    let careDone = {}; try { careDone = laden('gartenplaner_careDone', {}) || {}; } catch (e) {}
+    return (a.garten.beds || []).filter(b => b.kind !== 'struktur' && b.zustaendig === kindId && (b.plants || []).length).map(b => {
+      let faellig = false, intervall = null;
+      const letzteErl = erl.filter(x => x.bedId === b.id).map(x => x.datum).sort().pop() || null;
+      const heuteErledigt = letzteErl === heuteISO() ||
+        (careDone.date === heuteISO() && (careDone.done || []).some(id => id.indexOf(b.id + '_') === 0 && /_water$/.test(id)));
+      (b.plants || []).forEach(p => {
+        const info = gartenGiessInfo(p.name);
+        if (!info || !info.waterDays) return;
+        intervall = Math.min(intervall || 99, info.waterDays);
+        let zuletzt = p.lastWatered ? new Date(p.lastWatered + 'T00:00:00') : null;
+        if (letzteErl) { const d = new Date(letzteErl + 'T00:00:00'); if (!zuletzt || d > zuletzt) zuletzt = d; }
+        if (zuletzt) { if (Math.round((heute - zuletzt) / 864e5) >= info.waterDays) faellig = true; }
+        else if (p.date) { const alter = Math.round((heute - new Date(p.date + 'T00:00:00')) / 864e5); if (alter >= 0 && alter % info.waterDays === 0) faellig = true; }
+      });
+      const namen = [...new Set((b.plants || []).map(p => p.name).filter(Boolean))];
+      return { bed: b, gid: a.gid, faellig, heuteErledigt, intervall, namen };
+    }).filter(x => x.intervall);
+  }
+  function gartenGegossen(bedId, kind) {
+    const a = gartenAktuell();
+    const bed = a && a.garten && (a.garten.beds || []).find(b => b.id === bedId);
+    if (!bed) return;
+    const grenze = new Date(Date.now() - 14 * 864e5).toISOString().slice(0, 10);
+    const erl = laden(KEY_GARTEN_ERL, []).filter(x => (x.datum || '') >= grenze);
+    erl.push({ id: neueId('ge'), bedId, gartenId: a.gid, datum: heuteISO(), kind: kind.id });
+    speichern(KEY_GARTEN_ERL, erl, null);
+    const liste = laden(KEY_STERNE, []);
+    liste.push({ id: 'st_garten_' + bedId + '_water_' + heuteISO(), personId: kind.id, datum: new Date().toISOString(), anzahl: 1, grund: '🌱 ' + (bed.name || 'Beet') + ' gegossen' });
+    speichern(KEY_STERNE, liste, sync);
+    konfetti();
+    renderAlles();
+  }
+
   // ---------- Geburtstag aus den Terminen ----------
   function tageBisGeburtstag(kind) {
     const events = laden('termine_events_v1', []);
@@ -208,7 +259,7 @@
   // ---------- Sync ----------
   let sync = null, haushaltSync = null, finanzenSync = null;
   if (window.PlanerSync) {
-    sync = window.PlanerSync.starteSync({ modul: 'kinder', keys: [KEY_EINST, KEY_STERNE], onRemoteChange: () => renderAlles() });
+    sync = window.PlanerSync.starteSync({ modul: 'kinder', keys: [KEY_EINST, KEY_STERNE, KEY_GARTEN_ERL], onRemoteChange: () => renderAlles() });
     haushaltSync = window.PlanerSync.starteSync({ modul: 'haushalt', keys: ['haushalt_aufgaben'], onRemoteChange: () => renderAlles() });
     // nur lesen, damit Taschengeld & Co. aktuell sind
     finanzenSync = window.PlanerSync.starteSync({ modul: 'finanzen', keys: ['finanzen_taschengeld_konten', 'finanzen_taschengeld_buchungen'], onRemoteChange: () => renderAlles() });
@@ -256,6 +307,8 @@
     const ziel = belohnungen.find(b => b.sterne > sterne) || null;
     const aufgaben = laden('haushalt_aufgaben', []).filter(a => !a.pausiert && zustaendig(a) === kind.id);
     const offen = aufgaben.filter(a => heuteFaellig(a) && !heuteErledigt(a));
+    const beete = gartenBeeteVon(kind.id);
+    const beeteOffen = beete.filter(x => x.faellig && !x.heuteErledigt);
     const fertig = aufgaben.filter(heuteErledigt);
     const sicht = tierSichtungen();
     const geb = tageBisGeburtstag(kind);
@@ -263,7 +316,7 @@
     const gruss = stunde < 11 ? 'Guten Morgen' : stunde < 18 ? 'Hallo' : 'Guten Abend';
 
     let html = '<div class="karte"><div class="gruss">' + gruss + ', ' + esc(kind.label) + '! 👋</div><div class="gruss-sub">' +
-      (offen.length ? 'Heute ' + (offen.length === 1 ? 'wartet 1 Aufgabe' : 'warten ' + offen.length + ' Aufgaben') + ' auf dich.' : (fertig.length ? 'Alles erledigt – super gemacht! 🎉' : 'Heute hast du frei. 😊')) +
+      ((offen.length + beeteOffen.length) ? 'Heute ' + ((offen.length + beeteOffen.length) === 1 ? 'wartet 1 Aufgabe' : 'warten ' + (offen.length + beeteOffen.length) + ' Aufgaben') + ' auf dich.' : (fertig.length ? 'Alles erledigt – super gemacht! 🎉' : 'Heute hast du frei. 😊')) +
       (geb !== null ? (geb === 0 ? ' 🎂 Heute ist dein Geburtstag – alles Gute!' : ' 🎂 Noch ' + geb + (geb === 1 ? ' Tag' : ' Tage') + ' bis zu deinem Geburtstag.') : '') + '</div></div>';
 
     // Aufgaben
@@ -272,6 +325,17 @@
     offen.forEach(a => { html += '<div class="aufgabe"><span class="a-titel">' + esc(a.titel) + '</span><button class="knopf-gross gold" data-erledigt="' + esc(a.id) + '">Erledigt! ⭐</button></div>'; });
     fertig.forEach(a => { html += '<div class="aufgabe fertig"><span class="a-titel">' + esc(a.titel) + '</span><span>✅</span></div>'; });
     html += '</div>';
+    // Garten-Beete
+    if (beete.length) {
+      html += '<div class="karte"><h2>🌱 Meine Beete</h2>';
+      beete.forEach(x => {
+        const unter = '<span class="klein" style="display:block">' + esc(x.namen.slice(0, 4).join(', ')) + ' · 💧 etwa alle ' + x.intervall + ' Tage</span>';
+        if (x.heuteErledigt) html += '<div class="aufgabe fertig"><span class="a-titel">💧 ' + esc(x.bed.name || 'Beet') + ' gegossen' + unter + '</span><span>✅</span></div>';
+        else if (x.faellig) html += '<div class="aufgabe"><span class="a-titel">💧 ' + esc(x.bed.name || 'Beet') + ' gießen' + unter + '</span><button class="knopf-gross gold" data-gegossen="' + esc(x.bed.id) + '">Gegossen! ⭐</button></div>';
+        else html += '<div class="aufgabe" style="opacity:0.8"><span class="a-titel">🌿 ' + esc(x.bed.name || 'Beet') + ' – heute nicht nötig' + unter + '</span></div>';
+      });
+      html += '</div>';
+    }
 
     // Sterne
     html += '<div class="karte"><h2>⭐ Meine Sterne <button class="knopf-klein" id="btnBonus" title="Für Eltern: einen Bonus-Stern vergeben">+⭐ Bonus</button></h2>' +
@@ -306,6 +370,7 @@
 
     box.innerHTML = html;
     box.querySelectorAll('[data-erledigt]').forEach(b => b.addEventListener('click', () => aufgabeErledigt(b.dataset.erledigt, kind.id)));
+    box.querySelectorAll('[data-gegossen]').forEach(b => b.addEventListener('click', () => gartenGegossen(b.dataset.gegossen, kind)));
     box.querySelectorAll('[data-einloesen]').forEach(b => b.addEventListener('click', () => einloesen(b.dataset.einloesen, kind)));
     document.getElementById('btnBonus').addEventListener('click', () => {
       const grund = prompt('Bonus-Stern für ' + kind.label + ' – wofür? (optional)', '');
