@@ -102,9 +102,10 @@
   .add-sport-btn { width: 100%; background: var(--white); border: 1px dashed var(--sage); color: var(--moss-text, var(--moss)); border-radius: var(--radius-md); padding: 10px; font-size: 0.85rem; font-weight: 700; cursor: pointer; margin-bottom: 12px; }
 
   .chart-balken-reihe { display: flex; align-items: flex-end; gap: 4px; height: 90px; margin-bottom: 6px; }
-  .chart-balken-spalte { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 3px; }
+  .chart-balken-spalte { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 3px; }
   .chart-balken { width: 100%; background: var(--moss); border-radius: 3px 3px 0 0; min-height: 2px; }
-  .chart-balken-label { font-size: 0.58rem; color: var(--bark); white-space: nowrap; }
+  .chart-balken-label { font-size: 0.56rem; color: var(--bark); white-space: nowrap; }
+  .chart-balken-spalte:nth-child(even) .chart-balken-label { visibility: hidden; } /* jedes zweite Datum – passt so aufs Handy */
   .chart-leer { font-size: 0.78rem; color: var(--bark); opacity: 0.7; padding: 10px 0; }
 
   .top-spiel-zeile { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--parchment); }
@@ -197,6 +198,52 @@
   header.top .titel-zeile, header .hdr-right { gap: 4px !important; }
   header.top .titel-zeile h1, header h1 { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
+  /* ---- Neu: Fortschritt, Bildschirmzeit, Spieleabend, Bestenliste ---- */
+  .fortschritt { height: 5px; border-radius: 3px; background: var(--parchment); overflow: hidden; }
+  .fortschritt span { display: block; height: 100%; background: var(--moss); }
+  .spiel-meta { font-size: 0.64rem; color: var(--bark); }
+  .knopf-reihe { display: flex; gap: 8px; margin-bottom: 10px; }
+  .knopf-reihe .add-sport-btn { flex: 1; }
+  .timer-rest { font-size: 0.78rem; font-weight: 700; margin-top: 2px; }
+  .timer-rest.ueber { color: var(--terracotta-text); }
+  #gamingTimerLaeuftBox.zeit-um { box-shadow: 0 0 0 3px var(--terracotta) !important; }
+  .limit-zeile { padding: 10px 0; border-bottom: 1px solid var(--parchment); }
+  .limit-zeile:last-child { border-bottom: none; }
+  .limit-kopf { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 0.86rem; font-weight: 700; }
+  .limit-balken { height: 8px; border-radius: 4px; background: var(--parchment); overflow: hidden; margin: 6px 0 3px; }
+  .limit-balken span { display: block; height: 100%; background: var(--moss); }
+  .limit-balken span.warn { background: #c99a3a; }
+  .limit-balken span.ueber { background: var(--terracotta); }
+  .limit-info { font-size: 0.72rem; color: var(--bark); }
+  .limit-felder { display: flex; gap: 8px; margin-top: 8px; }
+  .limit-felder label { flex: 1; font-size: 0.68rem; font-weight: 700; color: var(--bark); }
+  .limit-felder input { width: 100%; margin-top: 3px; padding: 7px 8px; border-radius: 8px; border: 1px solid var(--parchment); background: var(--cream); color: var(--soil); font-size: 0.85rem; }
+  .stepper { display: flex; align-items: center; gap: 10px; }
+  .stepper button { width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--parchment); background: var(--white); color: var(--soil); font-size: 1.1rem; cursor: pointer; }
+  .stepper b { font-size: 1.3rem; min-width: 28px; text-align: center; }
+  .wurf-ergebnis { background: var(--cream); border-radius: var(--radius-md); padding: 12px; margin-top: 10px; text-align: center; }
+  .wurf-ergebnis:empty { display: none; }
+  .wurf-ergebnis .wt { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.2rem; margin: 4px 0; }
+  .wurf-ergebnis .wi { font-size: 0.76rem; color: var(--bark); }
+  .wahl-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .wahl-chips button { border: 1px solid var(--parchment); background: var(--white); color: var(--soil); border-radius: 999px; padding: 6px 12px; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
+  .wahl-chips button.aktiv { background: var(--moss); color: var(--on-moss, #fff); border-color: var(--moss); }
+  html:not([data-dark="1"]) .wahl-chips button.aktiv { color: #fff; }
+  .wahl-chips button.sieger { background: #c99a3a; color: #1d160c; border-color: #c99a3a; }
+  .punkte-reihe { display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 0.82rem; }
+  .punkte-reihe span { flex: 1; }
+  .punkte-reihe input { width: 90px; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--parchment); background: var(--white); color: var(--soil); }
+  .bestenliste-zeile { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--parchment); font-size: 0.85rem; }
+  .bestenliste-zeile:last-child { border-bottom: none; }
+  .bestenliste-zeile .rang { width: 26px; font-size: 1.05rem; text-align: center; }
+  .bestenliste-zeile .name { flex: 1; font-weight: 700; }
+  .bestenliste-zeile .zahl { font-size: 0.78rem; color: var(--bark); }
+  #modalWunsch, #modalPartie, #modalWuerfel { z-index: 210; } /* öffnen sich auch über dem Spiel-Formular */
+  .klein-knopf { background: var(--parchment); color: var(--soil); border: none; border-radius: 999px; padding: 7px 12px; font-size: 0.76rem; font-weight: 700; cursor: pointer; }
+  .partie-zeile { font-size: 0.78rem; color: var(--bark); padding: 4px 0; }
+  details.extra { border: 1px solid var(--parchment); border-radius: var(--radius-sm); padding: 8px 10px; margin-bottom: 12px; }
+  details.extra summary { font-size: 0.78rem; font-weight: 700; cursor: pointer; color: var(--bark); }
+
   /* Dark-Mode-Kontrast (alle Module gleich): Akzentfarbe als Text heller,
      Text auf Akzent-Knöpfen dunkel – außer bei „Schnee“, dort ist der Knopf selbst dunkel. */
   html[data-dark="1"] { --moss-text: var(--sage); --on-moss: #16140f; }
@@ -205,8 +252,10 @@
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-storage-compat.js"></script>
 <script src="personen.js"></script>
 <script src="sync.js"></script>
+<script src="fotospeicher.js"></script>
 </head>
 <body>
 <div class="deko-rand links" aria-hidden="true"></div>
@@ -261,12 +310,17 @@
         <div style="font-size:0.78rem;color:var(--bark);">⏱ Läuft gerade</div>
         <div id="gamingTimerSpielName" style="font-weight:700;font-size:0.9rem;"></div>
         <div id="gamingTimerAnzeige" style="font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;color:var(--moss);"></div>
+        <div class="timer-rest" id="gamingTimerRest"></div>
       </div>
       <button class="btn btn-primary" id="btnGamingTimerStopp" style="flex-shrink:0;">■ Stopp</button>
     </div>
     <div style="display:flex;gap:8px;">
       <button class="add-sport-btn" id="btnGamingTimerStart" style="flex:1;">⏱ Jetzt spielen</button>
       <button class="add-sport-btn" id="btnSitzungHinzufuegen" style="flex:1;">▶ Nachträglich erfassen</button>
+    </div>
+    <div class="knopf-reihe" style="margin-top:8px;">
+      <button class="add-sport-btn" id="btnWuerfel">🎲 Was spielen wir?</button>
+      <button class="add-sport-btn" id="btnPartieNeu">🏆 Partie eintragen</button>
     </div>
     <div class="spiel-grid" id="spielGrid"></div>
     <div class="leer-hinweis" id="leerHinweis" style="display:none;">
@@ -283,6 +337,14 @@
     <div class="karte">
       <h3>🏆 Meistgespielt</h3>
       <div id="meistgespieltListe"></div>
+    </div>
+    <div class="karte">
+      <h3>👦 Bildschirmzeit</h3>
+      <div id="bildschirmzeitBox"></div>
+    </div>
+    <div class="karte">
+      <h3>🏆 Bestenliste</h3>
+      <div id="bestenlisteBox"></div>
     </div>
     <div class="karte">
       <h3>📜 Verlauf</h3>
@@ -316,12 +378,59 @@
   </div>
 </div>
 
+<div class="modal-bg" id="modalWuerfel">
+  <div class="modal">
+    <h2>🎲 Was spielen wir?</h2>
+    <div class="feld"><label>Wie viele spielen mit?</label><div class="stepper"><button type="button" id="wuSpielerMinus">−</button><b id="wuSpieler">4</b><button type="button" id="wuSpielerPlus">＋</button></div></div>
+    <div class="feld"><label>Wie viel Zeit habt ihr?</label><div class="wahl-chips" id="wuZeit"></div></div>
+    <div class="feld"><label>Was?</label><div class="wahl-chips" id="wuArt"></div></div>
+    <div class="wurf-ergebnis" id="wuErgebnis"></div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnWuerfelZu">Schließen</button>
+      <button class="btn btn-primary" id="btnWuerfeln">🎲 Würfeln</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalPartie">
+  <div class="modal">
+    <h2>🏆 Partie eintragen</h2>
+    <div class="feld"><label for="fPartieSpiel">Spiel</label><select id="fPartieSpiel"></select></div>
+    <div class="feld"><label for="fPartieDatum">Datum</label><input type="date" id="fPartieDatum"></div>
+    <div class="feld"><label>Wer hat mitgespielt?</label><div class="wahl-chips" id="fPartieSpieler"></div></div>
+    <div class="feld"><label>Wer hat gewonnen? (antippen, auch mehrere)</label><div class="wahl-chips" id="fPartieSieger"></div></div>
+    <details class="extra"><summary>Punkte (optional)</summary><div id="fPartiePunkte"></div></details>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnPartieAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnPartieSpeichern">💾 Speichern</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalWunsch">
+  <div class="modal">
+    <h2>🎁 Auf die Wunschliste</h2>
+    <div class="feld"><label>Für wen?</label><div class="wahl-chips" id="fWunschPerson"></div></div>
+    <div class="feld"><label>Anlass</label><div class="wahl-chips" id="fWunschAnlass"></div></div>
+    <div class="feld"><label for="fWunschPreis">Preis (ca.)</label><input type="text" id="fWunschPreis" placeholder="z.B. 59 €"></div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnWunschAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnWunschSpeichern">🎁 Eintragen</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="modalTimerStart">
   <div class="modal">
     <h2>⏱ Jetzt spielen</h2>
     <div class="feld">
       <label for="fTimerSpiel">Spiel</label>
       <select id="fTimerSpiel"></select>
+    </div>
+    <div class="feld">
+      <label>Wer spielt?</label>
+      <div class="wahl-chips" id="fTimerWer"></div>
+      <div class="limit-info" id="fTimerLimitInfo" style="margin-top:6px;"></div>
     </div>
     <div class="modal-btns">
       <button class="btn btn-secondary" id="btnTimerStartAbbrechen">Abbrechen</button>
@@ -346,6 +455,10 @@
         <label for="fSitzungDauer">Dauer (Min.)</label>
         <input type="number" id="fSitzungDauer" min="1" value="30">
       </div>
+    </div>
+    <div class="feld">
+      <label>Wer hat gespielt?</label>
+      <div class="wahl-chips" id="fSitzungWer"></div>
     </div>
     <div class="modal-btns">
       <button class="btn btn-secondary" id="btnSitzungAbbrechen">Abbrechen</button>
@@ -389,8 +502,9 @@
           <input type="number" id="fGeschaetzteDauer" min="0" step="0.5" placeholder="z.B. 40">
         </div>
         <div class="feld">
-          <label for="fSpielzeit">Spielzeit (Std.)</label>
+          <label for="fSpielzeit">Spielzeit vorher (Std.)</label>
           <input type="number" id="fSpielzeit" min="0" step="0.5" placeholder="z.B. 12">
+          <div class="spiel-meta" id="fSpielzeitInfo" style="margin-top:3px;"></div>
         </div>
       </div>
       <div class="feld bewertung-spalte">
@@ -400,6 +514,22 @@
         <div id="bewKriterien"></div>
       </div>
     </div>
+    <details class="extra" id="spieleabendFelder">
+      <summary>🎲 Für Spieleabende (Brett-/Partyspiele)</summary>
+      <div class="zeile" style="margin-top:8px;">
+        <div class="feld"><label for="fSpielerMin">Spieler von</label><input type="number" id="fSpielerMin" min="1" placeholder="2"></div>
+        <div class="feld"><label for="fSpielerMax">bis</label><input type="number" id="fSpielerMax" min="1" placeholder="5"></div>
+      </div>
+      <div class="zeile">
+        <div class="feld"><label for="fDauerMin">Dauer (Min.)</label><input type="number" id="fDauerMin" min="5" step="5" placeholder="45"></div>
+        <div class="feld"><label for="fAlterAb">ab Alter</label><input type="number" id="fAlterAb" min="2" placeholder="8"></div>
+      </div>
+    </details>
+    <div class="knopf-reihe" id="editExtraKnoepfe">
+      <button type="button" class="klein-knopf" id="btnEditPartie">🏆 Partie eintragen</button>
+      <button type="button" class="klein-knopf" id="btnEditWunsch">🎁 Auf die Wunschliste</button>
+    </div>
+    <div class="partie-zeile" id="editBestenliste"></div>
     <div class="feld">
       <label for="fNotiz">Notiz (optional)</label>
       <textarea id="fNotiz" placeholder="z.B. Geschenkidee, Fortschritt, Eindruck ..."></textarea>
@@ -600,19 +730,89 @@
   // Spielbilder liegen in einem eigenen Schlüssel + eigenem Sync-Dokument, damit die
   // Spieleliste unter der 1-MB-Grenze von Firestore bleibt: { spielId: 'data:image/jpeg;base64,...' }
   const KEY_BILDER = 'gaming_bilder';
-  const BILD_MAX_KANTE = 360;
+  const BILD_MAX_KANTE = (window.FotoSpeicher && window.FotoSpeicher.verfuegbar && window.FotoSpeicher.verfuegbar()) ? 720 : 360;
   const BILDER_WARNGRENZE = 850 * 1024;
   let bilder = laden(KEY_BILDER, {});
   let bilderSync = null;
+  // 📷 Cover im Familien-Fotospeicher: im Spiel steht nur { url, pfad }, das 1-MB-Dokument „gaming_bilder“
+  // wird nur noch als Zwischenablage (ohne Familien-Cloud bzw. bis zum Hochladen) genutzt.
+  function coverQuelle(s) { return (s && s.cover && s.cover.url) || bilder[s && s.id] || ''; }
+  function cloudBereit() { return !!(window.FotoSpeicher && window.FotoSpeicher.verfuegbar()); }
+  function bildHash(t) { let h1 = 0x811c9dc5, h2 = 5381; for (let i = 0; i < t.length; i++) { const c = t.charCodeAt(i); h1 = Math.imul(h1 ^ c, 16777619); h2 = (Math.imul(h2, 33) + c) | 0; } return (h1 >>> 0).toString(36) + (h2 >>> 0).toString(36); }
+  async function vorhandeneDatei(id) {
+    try { await window.PlanerSync.authBereit(); const pfad = 'planerFamilien/' + window.PlanerSync.familienId() + '/fotos/' + id + '.jpg'; return { url: await firebase.storage().ref(pfad).getDownloadURL(), pfad }; }
+    catch (e) { return null; }
+  }
+  let coverUploadLaeuft = false;
+  async function coverHochladen() {
+    if (coverUploadLaeuft || !cloudBereit() || !navigator.onLine) return;
+    coverUploadLaeuft = true;
+    let geaendert = false;
+    try {
+      for (const spielId of Object.keys(bilder)) {
+        const daten = bilder[spielId];
+        const s = spiele.find(x => x.id === spielId);
+        if (!s || typeof daten !== 'string' || daten.indexOf('data:image') !== 0) continue;
+        const fotoId = 'gc' + bildHash(daten);
+        let erg = null;
+        try { erg = await vorhandeneDatei(fotoId) || await window.FotoSpeicher.hochladen(fotoId, daten); }
+        catch (err) { console.warn('Gaming: Cover-Upload fehlgeschlagen', err); break; }
+        const aktuell = spiele.find(x => x.id === spielId);
+        if (!aktuell || bilder[spielId] !== daten) continue; // inzwischen geändert/gelöscht
+        if (aktuell.cover && aktuell.cover.pfad && aktuell.cover.pfad !== erg.pfad) window.FotoSpeicher.loeschen(aktuell.cover.pfad);
+        aktuell.cover = { url: erg.url, pfad: erg.pfad };
+        delete bilder[spielId];
+        geaendert = true;
+      }
+    } finally {
+      coverUploadLaeuft = false;
+      if (geaendert) { speichernSpiele(); speichernBilder(); renderGrid(); }
+    }
+  }
+  setTimeout(coverHochladen, 2500);
+  window.addEventListener('online', () => setTimeout(coverHochladen, 1500));
   function speichernBilder() {
     try { localStorage.setItem(KEY_BILDER, JSON.stringify(bilder)); }
     catch (e) { alert('Bild konnte nicht gespeichert werden – ist der Speicher voll?'); return; }
     if (bilderSync) bilderSync.melde();
     const groesse = new Blob([JSON.stringify(bilder)]).size;
-    if (groesse > BILDER_WARNGRENZE) alert('Achtung: Die Spielbilder belegen jetzt ' + Math.round(groesse / 1024) + ' KB. Ab 1 MB können sie nicht mehr synchronisiert werden. Lösch am besten ein paar ältere Bilder.');
+    if (groesse > BILDER_WARNGRENZE && !cloudBereit()) alert('Achtung: Die Spielbilder belegen jetzt ' + Math.round(groesse / 1024) + ' KB. Ab 1 MB können sie nicht mehr synchronisiert werden. Lösch am besten ein paar ältere Bilder.');
   }
   const KEY_SITZUNGEN = 'gaming_sessions';
-  let sitzungen = laden(KEY_SITZUNGEN, []); // [{id, spielId, datum, minuten}]
+  let sitzungen = laden(KEY_SITZUNGEN, []); // [{id, spielId, datum, minuten, person}]
+  const KEY_LIMITS = 'gaming_limits';   // { personId: { tag: Minuten, woche: Minuten } }
+  const KEY_PARTIEN = 'gaming_partien'; // [{ id, spielId, datum, spieler: [pid], sieger: [pid], punkte: { pid: n } }]
+  let limits = laden(KEY_LIMITS, {}) || {};
+  let partien = laden(KEY_PARTIEN, []) || [];
+  const echtePersonen = () => PERSONEN.filter(p => p.id !== 'alle' && p.id !== 'familie');
+  const personName = (id) => (PERSONEN.find(p => p.id === id) || { label: id || '?' }).label;
+  function ichBin() { try { return localStorage.getItem('planer_geraetIdentitaet') || ''; } catch (e) { return ''; } }
+  // ⏱ Spielzeit = „vorher“ (Std., von Hand) + alle Sitzungen
+  function sitzungsMinuten(spielId) { return sitzungen.filter(sz => sz.spielId === spielId).reduce((s, sz) => s + (Number(sz.minuten) || 0), 0); }
+  function spielzeitGesamt(s) { return (parseFloat(String(s.spielzeit || '').replace(',', '.')) || 0) + sitzungsMinuten(s.id) / 60; }
+  function zuletztGespielt(spielId) { return sitzungen.filter(sz => sz.spielId === spielId).map(sz => sz.datum).sort().pop() || ''; }
+  function stdText(h) { return h >= 10 ? Math.round(h) + ' Std.' : (Math.round(h * 10) / 10).toLocaleString('de-DE') + ' Std.'; }
+  function vorTagen(iso) {
+    if (!iso) return '';
+    const t = Math.round((new Date(heuteISOGaming() + 'T12:00') - new Date(iso + 'T12:00')) / 864e5);
+    return t <= 0 ? 'heute' : t === 1 ? 'gestern' : 'vor ' + t + ' Tagen';
+  }
+  // 👦 Bildschirmzeit: Minuten heute / diese Woche (Mo–So) je Person
+  function wochenStart() { const d = new Date(heuteISOGaming() + 'T12:00'); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+  function minutenVon(person, zusatz) {
+    const h = heuteISOGaming(), ws = wochenStart();
+    let tag = 0, woche = 0;
+    sitzungen.filter(sz => sz.person === person).forEach(sz => { if (sz.datum === h) tag += sz.minuten; if (sz.datum >= ws && sz.datum <= h) woche += sz.minuten; });
+    return { tag: tag + (zusatz || 0), woche: woche + (zusatz || 0) };
+  }
+  function restMinuten(person, zusatz) {
+    const l = limits[person]; if (!l || (!l.tag && !l.woche)) return null;
+    const m = minutenVon(person, zusatz);
+    const reste = [];
+    if (l.tag) reste.push(l.tag - m.tag);
+    if (l.woche) reste.push(l.woche - m.woche);
+    return Math.min(...reste);
+  }
   let personFilter = localStorage.getItem(KEY_AKTIVE_PERSON) || 'alle';
   let statusFilter = 'alle';
   let suchtext = '';
@@ -703,14 +903,15 @@
       if (suchtext && !s.titel.toLowerCase().includes(suchtext)) return false;
       return true;
     });
-    gefiltert.sort((a, b) => sortRichtung === 'za' ? b.titel.localeCompare(a.titel) : a.titel.localeCompare(b.titel));
+    if (sortRichtung === 'zuletzt') gefiltert.sort((a, b) => zuletztGespielt(b.id).localeCompare(zuletztGespielt(a.id)) || a.titel.localeCompare(b.titel));
+    else gefiltert.sort((a, b) => sortRichtung === 'za' ? b.titel.localeCompare(a.titel) : a.titel.localeCompare(b.titel));
     return gefiltert;
   }
   function renderSortButton() {
-    document.getElementById('btnSortRichtung').textContent = sortRichtung === 'za' ? '🔤 Z–A' : '🔤 A–Z';
+    document.getElementById('btnSortRichtung').textContent = sortRichtung === 'za' ? '🔤 Z–A' : sortRichtung === 'zuletzt' ? '⏱ Zuletzt' : '🔤 A–Z';
   }
   document.getElementById('btnSortRichtung').addEventListener('click', () => {
-    sortRichtung = sortRichtung === 'za' ? 'az' : 'za';
+    sortRichtung = sortRichtung === 'az' ? 'za' : sortRichtung === 'za' ? 'zuletzt' : 'az';
     try { localStorage.setItem('gaming_sortRichtung', sortRichtung); } catch (e) {}
     renderSortButton();
     renderGrid();
@@ -723,7 +924,7 @@
     const basis = spiele.filter(s => personFilter === 'alle' || s.person === personFilter);
     const aktuell = basis.filter(s => s.status === 'spiele_ich').length;
     const durch = basis.filter(s => s.status === 'durchgespielt').length;
-    const gesamtStunden = basis.reduce((sum, s) => sum + (parseFloat(s.spielzeit) || 0), 0);
+    const gesamtStunden = basis.reduce((sum, s) => sum + spielzeitGesamt(s), 0);
     [
       { wert: aktuell, label: 'Aktuell aktiv' },
       { wert: durch, label: 'Durchgespielt' },
@@ -751,19 +952,28 @@
     karte.className = 'spiel-karte';
     karte.style.borderTopColor = stat.farbe;
     karte.innerHTML =
-      (bilder[s.id] ? '<div class="spiel-cover" style="background-image:url(\'' + bilder[s.id] + '\')"></div>' : '') +
+      (coverQuelle(s) ? '<div class="spiel-cover" style="background-image:url(\'' + coverQuelle(s) + '\')"></div>' : '') +
       '<div class="spiel-titel">' + escapeHtml(s.titel) + '</div>' +
       '<div class="spiel-chips">' +
         '<span class="mini-chip" style="background:' + plat.farbe + '22; color:' + plat.farbe + ';">' + plat.icon + ' ' + plat.label + '</span>' +
         '<span class="mini-chip" style="background:' + stat.farbe + '22; color:' + stat.farbe + ';">' + stat.icon + ' ' + stat.label + '</span>' +
       '</div>' +
       sterneAnzeige(s.bewertung || 0) +
-      (s.spielzeit ? '<div class="spiel-zeit">⏱ ' + s.spielzeit + ' Std.</div>' : '') +
+      (spielzeitGesamt(s) > 0 ? '<div class="spiel-zeit">⏱ ' + stdText(spielzeitGesamt(s)) + (zuletztGespielt(s.id) ? ' · zuletzt ' + vorTagen(zuletztGespielt(s.id)) : '') + '</div>' : '') +
+      fortschrittHtml(s) +
+      (s.spielerMin || s.spielerMax ? '<div class="spiel-meta">👥 ' + (s.spielerMin || '?') + (s.spielerMax && s.spielerMax !== s.spielerMin ? '–' + s.spielerMax : '') + ' Spieler' + (s.dauerMin ? ' · ⏳ ' + s.dauerMin + ' Min.' : '') + (s.alterAb ? ' · ab ' + s.alterAb : '') + '</div>' : '') +
+      (s.wunschId ? '<div class="spiel-meta">🎁 steht auf der Wunschliste</div>' : '') +
       (s.status === 'wunschliste' && s.geschaetzteDauer ? '<div class="spiel-zeit">⏳ ca. ' + s.geschaetzteDauer + ' Std. (geschätzt)</div>' : '');
     karte.addEventListener('click', () => editModalOeffnen(s));
     return karte;
   }
 
+  function fortschrittHtml(s) {
+    const geschaetzt = parseFloat(String(s.geschaetzteDauer || '').replace(',', '.'));
+    if (!(geschaetzt > 0) || !['spiele_ich', 'pausiert'].includes(s.status)) return '';
+    const p = Math.min(99, Math.round(spielzeitGesamt(s) / geschaetzt * 100));
+    return '<div class="fortschritt" title="' + p + ' % von ca. ' + geschaetzt + ' Std."><span style="width:' + p + '%"></span></div><div class="spiel-meta">≈ ' + p + ' % geschafft</div>';
+  }
   function renderGrid() {
     const box = document.getElementById('spielGrid');
     box.innerHTML = '';
@@ -850,7 +1060,11 @@
   function renderEditStatusReihe() {
     auswahlFuellen('fStatus', STATUSSE, editStatus);
     const feld = document.getElementById('fGeschaetzteDauerFeld');
-    if (feld) feld.style.display = (editStatus === 'wunschliste') ? '' : 'none';
+    if (feld) feld.style.display = ['wunschliste', 'spiele_ich', 'pausiert'].includes(editStatus) ? '' : 'none';
+    const wb = document.getElementById('btnEditWunsch');
+    if (wb) wb.style.display = editStatus === 'wunschliste' ? '' : 'none';
+    const sf = document.getElementById('spieleabendFelder');
+    if (sf && editPlattform === 'brettspiel') sf.open = true;
   }
   function sterneKnoepfe(box, wert, klickbar, onWahl, name) {
     box.innerHTML = '';
@@ -939,7 +1153,16 @@
     editPlattform = s ? s.plattform : 'pc';
     editStatus = s ? s.status : 'wunschliste';
     editDetail = Object.assign({}, (s && s.bewertungDetail) || {});
-    editBild = s ? (bilder[s.id] || null) : null;
+    editBild = s ? (coverQuelle(s) || null) : null;
+    document.getElementById('fSpielerMin').value = s ? (s.spielerMin || '') : '';
+    document.getElementById('fSpielerMax').value = s ? (s.spielerMax || '') : '';
+    document.getElementById('fDauerMin').value = s ? (s.dauerMin || '') : '';
+    document.getElementById('fAlterAb').value = s ? (s.alterAb || '') : '';
+    document.getElementById('spieleabendFelder').open = !!(s && (s.spielerMin || s.spielerMax || s.plattform === 'brettspiel'));
+    document.getElementById('editExtraKnoepfe').style.display = s ? '' : 'none';
+    const sm = s ? sitzungsMinuten(s.id) : 0;
+    document.getElementById('fSpielzeitInfo').textContent = sm ? '+ ' + stdText(sm / 60) + ' aus Sitzungen = ' + stdText(spielzeitGesamt(s)) : 'Sitzungen (⏱) werden automatisch dazugezählt.';
+    document.getElementById('editBestenliste').innerHTML = s ? bestenlisteSpielText(s.id) : '';
     renderBildFeld();
     // Ältere Spiele haben nur "bewertung" – die gilt dann als direkt gesetzte Gesamtbewertung
     editBewertung = s ? (s.bewertungManuell !== undefined ? s.bewertungManuell : (bewerteteKriterien(editDetail).length ? 0 : (s.bewertung || 0))) : 0;
@@ -983,15 +1206,25 @@
       bewertungManuell: editBewertung,
       notiz: document.getElementById('fNotiz').value.trim(),
       notizen: bearbeiteId ? ((spiele.find(s => s.id === bearbeiteId) || {}).notizen || []) : [],
+      spielerMin: parseInt(document.getElementById('fSpielerMin').value, 10) || '',
+      spielerMax: parseInt(document.getElementById('fSpielerMax').value, 10) || '',
+      dauerMin: parseInt(document.getElementById('fDauerMin').value, 10) || '',
+      alterAb: parseInt(document.getElementById('fAlterAb').value, 10) || '',
     };
     // Object.assign: unbekannte/weitere Felder des alten Eintrags bleiben erhalten
     if (bearbeiteId) spiele = spiele.map(s => s.id === bearbeiteId ? Object.assign({}, s, neu) : s);
     else spiele.push(neu);
-    speichernSpiele();
-    if ((bilder[neu.id] || null) !== editBild) {
+    const gespeichert = spiele.find(x => x.id === neu.id);
+    const bisher = coverQuelle(gespeichert) || null;
+    if (bisher !== editBild) {
+      // altes Cloud-Cover entfernen; neues Bild erst lokal, dann in den Fotospeicher
+      if (gespeichert.cover && gespeichert.cover.pfad && window.FotoSpeicher) window.FotoSpeicher.loeschen(gespeichert.cover.pfad);
+      delete gespeichert.cover;
       if (editBild) bilder[neu.id] = editBild; else delete bilder[neu.id];
       speichernBilder();
+      setTimeout(coverHochladen, 300);
     }
+    speichernSpiele();
     document.getElementById('modalEdit').classList.remove('zeigen');
     entwurfUeberwachungStoppen(); entwurfLoeschen();
     renderAlles();
@@ -1005,11 +1238,14 @@
     spiele.splice(index, 1);
     speichernSpiele();
     if (entferntesBild) { delete bilder[entfernt.id]; speichernBilder(); }
+    let wiederhergestellt = false;
+    setTimeout(() => { if (!wiederhergestellt && entfernt.cover && entfernt.cover.pfad && window.FotoSpeicher) window.FotoSpeicher.loeschen(entfernt.cover.pfad); }, 8000);
     document.getElementById('modalEdit').classList.remove('zeigen');
     entwurfUeberwachungStoppen(); entwurfLoeschen();
     renderAlles();
     showTempStatus('Gelöscht: „' + entfernt.titel + '"', 6, {
       rueckgaengig: () => {
+        wiederhergestellt = true;
         spiele.splice(index, 0, entfernt); speichernSpiele();
         if (entferntesBild) { bilder[entfernt.id] = entferntesBild; speichernBilder(); }
         renderAlles();
@@ -1020,6 +1256,19 @@
   // ============================================================
   // SPIELSITZUNGEN ERFASSEN
   // ============================================================
+  let sitzungWer = '', timerWer = '';
+  // Wer spielt? Standard: Person des Spiels, sonst wer dieses Gerät nutzt
+  function standardSpieler(spielId) {
+    const s = spiele.find(x => x.id === spielId);
+    if (s && s.person && s.person !== 'familie' && s.person !== 'alle') return s.person;
+    if (personFilter !== 'alle' && personFilter !== 'familie') return personFilter;
+    return ichBin();
+  }
+  function werChipsRendern(boxId, holen, setzen, nachher) {
+    const box = document.getElementById(boxId);
+    box.innerHTML = echtePersonen().map(p => '<button type="button" class="' + (holen() === p.id ? 'aktiv' : '') + '" data-p="' + escapeHtml(p.id) + '">' + escapeHtml(p.label) + '</button>').join('');
+    box.querySelectorAll('[data-p]').forEach(b => b.addEventListener('click', () => { setzen(holen() === b.dataset.p ? '' : b.dataset.p); werChipsRendern(boxId, holen, setzen, nachher); if (nachher) nachher(); }));
+  }
   function spielFilterFuerPerson() {
     return personFilter === 'alle' ? spiele : spiele.filter(s => s.person === personFilter);
   }
@@ -1029,6 +1278,9 @@
     select.innerHTML = spiele.map(s => '<option value="' + s.id + '">' + escapeHtml(s.titel) + '</option>').join('');
     document.getElementById('fSitzungDatum').value = heuteISOGaming();
     document.getElementById('fSitzungDauer').value = 30;
+    sitzungWer = standardSpieler(select.value);
+    select.onchange = () => { sitzungWer = standardSpieler(select.value); werChipsRendern('fSitzungWer', () => sitzungWer, (v) => { sitzungWer = v; }); };
+    werChipsRendern('fSitzungWer', () => sitzungWer, (v) => { sitzungWer = v; });
     document.getElementById('modalSitzung').classList.add('zeigen');
   });
   document.getElementById('btnSitzungAbbrechen').addEventListener('click', () => document.getElementById('modalSitzung').classList.remove('zeigen'));
@@ -1038,9 +1290,10 @@
     const datum = document.getElementById('fSitzungDatum').value;
     const minuten = Math.max(1, parseInt(document.getElementById('fSitzungDauer').value, 10) || 30);
     if (!spielId || !datum) return;
-    sitzungen.push({ id: neueId('sz'), spielId, datum, minuten });
+    sitzungen.push(Object.assign({ id: neueId('sz'), spielId, datum, minuten }, sitzungWer ? { person: sitzungWer } : {}));
     speichernSitzungen();
     document.getElementById('modalSitzung').classList.remove('zeigen');
+    renderAlles();
     if (aktiveAnsicht === 'statistik') renderStatistik();
     alert('Spielsitzung gespeichert (' + minuten + ' Min.).');
   });
@@ -1070,6 +1323,19 @@
       const mm = String(Math.floor(sekunden / 60)).padStart(2, '0');
       const ss = String(sekunden % 60).padStart(2, '0');
       document.getElementById('gamingTimerAnzeige').textContent = mm + ':' + ss;
+      // 👦 Restzeit für Kinder mit Limit
+      const restEl = document.getElementById('gamingTimerRest');
+      const r = laufend.person ? restMinuten(laufend.person, Math.floor(sekunden / 60)) : null;
+      if (r === null) { restEl.textContent = laufend.person ? '👤 ' + personName(laufend.person) : ''; box.classList.remove('zeit-um'); return; }
+      restEl.className = 'timer-rest' + (r <= 0 ? ' ueber' : '');
+      restEl.textContent = r > 0 ? '⏳ ' + personName(laufend.person) + ': noch ' + r + ' Min.' : '⏰ Zeit ist um' + (r < 0 ? ' (' + (-r) + ' Min. drüber)' : '') + '!';
+      box.classList.toggle('zeit-um', r <= 0);
+      const warnKey = laufend.startZeit + ':' + (r <= 0 ? 'um' : r <= 5 ? 'bald' : '');
+      if ((r <= 5) && gamingTimerAnzeigeAktualisieren._gewarnt !== warnKey) {
+        gamingTimerAnzeigeAktualisieren._gewarnt = warnKey;
+        try { navigator.vibrate && navigator.vibrate(r <= 0 ? [300, 150, 300, 150, 300] : [200]); } catch (e) {}
+        showTempStatus(r <= 0 ? '⏰ ' + personName(laufend.person) + ': Spielzeit für heute ist um!' : '⏳ ' + personName(laufend.person) + ': noch ' + r + ' Minuten', 6);
+      }
     };
     aktualisieren();
     if (!gamingTimerIntervall) gamingTimerIntervall = setInterval(aktualisieren, 1000);
@@ -1079,6 +1345,14 @@
     if (gamingTimerLaufend()) { alert('Es läuft bereits ein Timer – erst stoppen, bevor ein neuer gestartet wird.'); return; }
     const select = document.getElementById('fTimerSpiel');
     select.innerHTML = spielFilterFuerPerson().map(s => '<option value="' + s.id + '">' + escapeHtml(s.titel) + '</option>').join('');
+    const limitInfo = () => {
+      const r = timerWer ? restMinuten(timerWer) : null;
+      document.getElementById('fTimerLimitInfo').innerHTML = r === null ? '' : (r > 0 ? '⏳ ' + escapeHtml(personName(timerWer)) + ' hat heute noch <b>' + r + ' Min.</b>' : '⛔ Die Spielzeit für heute ist schon aufgebraucht.');
+    };
+    timerWer = standardSpieler(select.value);
+    select.onchange = () => { timerWer = standardSpieler(select.value); werChipsRendern('fTimerWer', () => timerWer, (v) => { timerWer = v; }, limitInfo); limitInfo(); };
+    werChipsRendern('fTimerWer', () => timerWer, (v) => { timerWer = v; }, limitInfo);
+    limitInfo();
     document.getElementById('modalTimerStart').classList.add('zeigen');
   });
   document.getElementById('btnTimerStartAbbrechen').addEventListener('click', () => document.getElementById('modalTimerStart').classList.remove('zeigen'));
@@ -1086,7 +1360,7 @@
   document.getElementById('btnTimerStartBestaetigen').addEventListener('click', () => {
     const spielId = document.getElementById('fTimerSpiel').value;
     if (!spielId) return;
-    try { localStorage.setItem(KEY_GAMING_TIMER, JSON.stringify({ spielId, startZeit: Date.now() })); } catch (e) {}
+    try { localStorage.setItem(KEY_GAMING_TIMER, JSON.stringify({ spielId, startZeit: Date.now(), person: timerWer || '' })); } catch (e) {}
     document.getElementById('modalTimerStart').classList.remove('zeigen');
     gamingTimerAnzeigeAktualisieren();
   });
@@ -1094,10 +1368,11 @@
     const laufend = gamingTimerLaufend();
     if (!laufend) return;
     const minuten = Math.max(1, Math.round((Date.now() - laufend.startZeit) / 60000));
-    sitzungen.push({ id: neueId('sz'), spielId: laufend.spielId, datum: heuteISOGaming(), minuten });
+    sitzungen.push(Object.assign({ id: neueId('sz'), spielId: laufend.spielId, datum: heuteISOGaming(), minuten }, laufend.person ? { person: laufend.person } : {}));
     speichernSitzungen();
     try { localStorage.removeItem(KEY_GAMING_TIMER); } catch (e) {}
     gamingTimerAnzeigeAktualisieren();
+    renderAlles();
     if (aktiveAnsicht === 'statistik') renderStatistik();
     const spiel = spiele.find(s => s.id === laufend.spielId);
     alert('Sitzung gespeichert: ' + (spiel ? spiel.titel : '') + ' – ' + minuten + ' Min.');
@@ -1148,7 +1423,7 @@
     box.innerHTML = sortiert.map(([spielId, minuten], i) =>
       '<div class="top-spiel-zeile"><span class="top-spiel-rang">' + (i+1) + '.</span>' +
       '<span class="top-spiel-name">' + escapeHtml(spielTitel(spielId)) + '</span>' +
-      '<span class="top-spiel-zeit">' + (minuten >= 60 ? (Math.round(minuten/6)/10) + ' Std.' : minuten + ' Min.') + '</span></div>'
+      '<span class="top-spiel-zeit">' + (minuten >= 60 ? (Math.round(minuten/6)/10).toLocaleString('de-DE') + ' Std.' : minuten + ' Min.') + '</span></div>'
     ).join('');
   }
 
@@ -1162,7 +1437,7 @@
       const zeile = document.createElement('div');
       zeile.className = 'verlauf-zeile';
       const datumKurz = new Date(sz.datum).toLocaleDateString('de-DE', { day: 'numeric', month: 'short' });
-      zeile.innerHTML = '<span class="verlauf-datum">' + datumKurz + '</span><span style="flex:1;">' + escapeHtml(spielTitel(sz.spielId)) + '</span><span>' + sz.minuten + ' Min.</span><button class="verlauf-loeschen" aria-label="Löschen">✕</button>';
+      zeile.innerHTML = '<span class="verlauf-datum">' + datumKurz + '</span><span style="flex:1;">' + escapeHtml(spielTitel(sz.spielId)) + (sz.person ? ' <span class="spiel-meta">· ' + escapeHtml(personName(sz.person)) + '</span>' : '') + '</span><span>' + sz.minuten + ' Min.</span><button class="verlauf-loeschen" aria-label="Löschen">✕</button>';
       zeile.querySelector('.verlauf-loeschen').addEventListener('click', () => {
         sitzungen = sitzungen.filter(x => x.id !== sz.id);
         speichernSitzungen();
@@ -1181,8 +1456,8 @@
     const box = document.getElementById('statistikStatReihe');
     box.innerHTML = '';
     [
-      { wert: Math.round(gesamtMinuten/6)/10, label: 'Std. gesamt' },
-      { wert: Math.round(minutenLetzte7/6)/10, label: 'Std. (7 Tage)' },
+      { wert: (Math.round(gesamtMinuten/6)/10).toLocaleString('de-DE'), label: 'Std. gesamt' },
+      { wert: (Math.round(minutenLetzte7/6)/10).toLocaleString('de-DE'), label: 'Std. (7 Tage)' },
       { wert: sitzungen.filter(sz => relevanteSpielIds.has(sz.spielId)).length, label: 'Sitzungen' },
     ].forEach(s => {
       const el = document.createElement('div');
@@ -1192,7 +1467,60 @@
     });
   }
 
+  function renderBildschirmzeit() {
+    const box = document.getElementById('bildschirmzeitBox');
+    let kinder = [];
+    try { kinder = (JSON.parse(localStorage.getItem('kinder_einstellungen') || '{}').kinder) || []; } catch (e) {}
+    const liste = echtePersonen().filter(p => kinder.includes(p.id) || limits[p.id] || sitzungen.some(sz => sz.person === p.id));
+    if (!liste.length) { box.innerHTML = '<div class="chart-leer">Wird eine Sitzung einer Person zugeordnet („Wer spielt?“), erscheint hier ihre Spielzeit – auf Wunsch mit Limit.</div>'; return; }
+    const balken = (wert, limit) => { if (!limit) return ''; const p = Math.min(100, wert / limit * 100); return '<div class="limit-balken"><span class="' + (wert > limit ? 'ueber' : wert >= limit * 0.8 ? 'warn' : '') + '" style="width:' + p + '%"></span></div>'; };
+    box.innerHTML = liste.map(p => {
+      const m = minutenVon(p.id), l = limits[p.id] || {};
+      return '<div class="limit-zeile"><div class="limit-kopf"><span>' + escapeHtml(p.label) + '</span><span class="limit-info">heute ' + m.tag + (l.tag ? ' / ' + l.tag : '') + ' Min. · Woche ' + stdText(m.woche / 60) + (l.woche ? ' / ' + stdText(l.woche / 60) : '') + '</span></div>' +
+        balken(m.tag, l.tag) + balken(m.woche, l.woche) +
+        '<div class="limit-felder"><label>Limit pro Tag (Min.)<input type="number" min="0" step="5" data-limit="' + escapeHtml(p.id) + '" data-art="tag" value="' + (l.tag || '') + '" placeholder="kein"></label>' +
+        '<label>Limit pro Woche (Std.)<input type="number" min="0" step="0.5" data-limit="' + escapeHtml(p.id) + '" data-art="woche" value="' + (l.woche ? Math.round(l.woche / 6) / 10 : '') + '" placeholder="kein"></label></div></div>';
+    }).join('');
+    box.querySelectorAll('[data-limit]').forEach(inp => inp.addEventListener('change', () => {
+      const pid = inp.dataset.limit, art = inp.dataset.art;
+      const w = parseFloat(String(inp.value).replace(',', '.')) || 0;
+      limits[pid] = Object.assign({}, limits[pid], { [art]: art === 'woche' ? Math.round(w * 60) : Math.round(w) });
+      if (!limits[pid].tag && !limits[pid].woche) delete limits[pid];
+      speichern(KEY_LIMITS, limits);
+      renderBildschirmzeit();
+    }));
+  }
+  function bestenliste(spielId) {
+    const st = {};
+    partien.filter(pa => !spielId || pa.spielId === spielId).forEach(pa => {
+      (pa.spieler || []).forEach(p => { st[p] = st[p] || { siege: 0, partien: 0 }; st[p].partien++; });
+      (pa.sieger || []).forEach(p => { st[p] = st[p] || { siege: 0, partien: 0 }; st[p].siege++; });
+    });
+    return Object.keys(st).map(p => ({ p, siege: st[p].siege, partien: st[p].partien, quote: st[p].partien ? st[p].siege / st[p].partien : 0 }))
+      .sort((a, b) => b.siege - a.siege || b.quote - a.quote);
+  }
+  function bestenlisteSpielText(spielId) {
+    const b = bestenliste(spielId), n = partien.filter(pa => pa.spielId === spielId).length;
+    if (!n) return '';
+    return '🏆 ' + n + (n === 1 ? ' Partie' : ' Partien') + ' · ' + b.slice(0, 3).map(x => escapeHtml(personName(x.p)) + ' ' + x.siege + '×').join(' · ');
+  }
+  function renderBestenliste() {
+    const box = document.getElementById('bestenlisteBox');
+    if (!partien.length) { box.innerHTML = '<div class="chart-leer">Noch keine Partien – nach dem Spieleabend „🏆 Partie eintragen“.</div>'; return; }
+    const medaille = ['🥇', '🥈', '🥉'];
+    const gesamt = bestenliste(null);
+    const proSpiel = {};
+    partien.forEach(pa => { proSpiel[pa.spielId] = (proSpiel[pa.spielId] || 0) + 1; });
+    const top = Object.keys(proSpiel).sort((a, b) => proSpiel[b] - proSpiel[a]).slice(0, 5);
+    box.innerHTML = gesamt.map((x, i) => '<div class="bestenliste-zeile"><span class="rang">' + (medaille[i] || (i + 1) + '.') + '</span><span class="name">' + escapeHtml(personName(x.p)) + '</span>' +
+      '<span class="zahl">' + x.siege + (x.siege === 1 ? ' Sieg' : ' Siege') + ' aus ' + x.partien + ' · ' + Math.round(x.quote * 100) + ' %</span></div>').join('') +
+      '<div style="margin-top:10px;font-size:0.75rem;font-weight:700;color:var(--bark);">Meistgespielte Spieleabend-Spiele</div>' +
+      top.map(id => { const b = bestenliste(id)[0]; return '<div class="partie-zeile">🎲 ' + escapeHtml(spielTitel(id)) + ' – ' + proSpiel[id] + '× gespielt' + (b && b.siege ? ' · 👑 ' + escapeHtml(personName(b.p)) + ' (' + b.siege + ')' : '') + '</div>'; }).join('') +
+      '<div class="partie-zeile" style="margin-top:6px;">Zuletzt: ' + partien.slice().sort((a, b) => b.datum.localeCompare(a.datum)).slice(0, 3).map(pa => escapeHtml(spielTitel(pa.spielId)) + ' (' + new Date(pa.datum + 'T12:00').toLocaleDateString('de-DE', { day: 'numeric', month: 'numeric' }) + ', ' + (pa.sieger || []).map(personName).map(escapeHtml).join(' & ') + ')').join(' · ') + '</div>';
+  }
   function renderStatistik() {
+    renderBildschirmzeit();
+    renderBestenliste();
     renderStatistikStats();
     renderSpielzeitChart();
     renderMeistgespielt();
@@ -1224,6 +1552,158 @@
   document.getElementById('btnNewsSchliessen').addEventListener('click', () => document.getElementById('newsModal').classList.remove('zeigen'));
   document.getElementById('newsModal').addEventListener('click', (e) => { if (e.target.id === 'newsModal') e.currentTarget.classList.remove('zeigen'); });
 
+  // ============================================================
+  // 🎲 WAS SPIELEN WIR?
+  // ============================================================
+  let wuSpieler = 4, wuZeit = 0, wuArt = 'brett', wuLetzte = null;
+  const WU_ZEITEN = [[0, 'egal'], [20, '≤ 20 Min.'], [45, '≤ 45 Min.'], [90, '≤ 1,5 Std.']];
+  const WU_ARTEN = [['brett', '🎲 Brett-/Kartenspiel'], ['alle', '🎮 Auch Videospiele']];
+  function wuChips() {
+    document.getElementById('wuSpieler').textContent = wuSpieler;
+    const chips = (id, liste, wert, setzen) => {
+      const box = document.getElementById(id);
+      box.innerHTML = liste.map(([v, t]) => '<button type="button" class="' + (v === wert ? 'aktiv' : '') + '" data-v="' + v + '">' + t + '</button>').join('');
+      box.querySelectorAll('[data-v]').forEach(b => b.addEventListener('click', () => { setzen(isNaN(Number(b.dataset.v)) ? b.dataset.v : Number(b.dataset.v)); wuChips(); }));
+    };
+    chips('wuZeit', WU_ZEITEN, wuZeit, v => { wuZeit = v; });
+    chips('wuArt', WU_ARTEN, wuArt, v => { wuArt = v; });
+  }
+  function wuKandidaten() {
+    return spiele.filter(s => !['wunschliste', 'abgebrochen'].includes(s.status))
+      .filter(s => wuArt === 'alle' || s.plattform === 'brettspiel' || s.spielerMin || s.spielerMax)
+      .filter(s => (!s.spielerMin || wuSpieler >= s.spielerMin) && (!s.spielerMax || wuSpieler <= s.spielerMax))
+      .filter(s => !wuZeit || !s.dauerMin || s.dauerMin <= wuZeit);
+  }
+  function wuerfeln() {
+    let pool = wuKandidaten();
+    const box = document.getElementById('wuErgebnis');
+    if (!pool.length) { box.innerHTML = '<div class="wi">Kein passendes Spiel gefunden. Tipp: Bei Brettspielen unter ✏️ → „🎲 Für Spieleabende“ Spieleranzahl und Dauer eintragen.</div>'; return; }
+    if (pool.length > 1) pool = pool.filter(s => s.id !== wuLetzte);
+    // Gut bewertete und länger nicht gespielte Spiele kommen öfter dran
+    const gewicht = (s) => {
+      const letzte = partien.filter(pa => pa.spielId === s.id).map(pa => pa.datum).sort().pop() || zuletztGespielt(s.id);
+      const tage = letzte ? (Date.now() - new Date(letzte + 'T12:00')) / 864e5 : 365;
+      return (1 + (s.bewertung || 2.5)) * (tage > 30 ? 2 : 1);
+    };
+    const g = pool.map(gewicht);
+    let r = Math.random() * g.reduce((a, b) => a + b, 0), wahl = pool[0];
+    for (let i = 0; i < pool.length; i++) { r -= g[i]; if (r <= 0) { wahl = pool[i]; break; } }
+    wuLetzte = wahl.id;
+    const b = bestenliste(wahl.id)[0];
+    box.innerHTML = '<div class="wi">Heute spielt ihr …</div><div class="wt">' + escapeHtml(wahl.titel) + '</div>' +
+      '<div class="wi">' + [wahl.spielerMin || wahl.spielerMax ? '👥 ' + (wahl.spielerMin || '?') + '–' + (wahl.spielerMax || '?') : '', wahl.dauerMin ? '⏳ ' + wahl.dauerMin + ' Min.' : '', wahl.bewertung ? '★ ' + bewertungText(wahl.bewertung) : '', b && b.siege ? '👑 ' + escapeHtml(personName(b.p)) : ''].filter(Boolean).join(' · ') + '</div>' +
+      '<div class="knopf-reihe" style="justify-content:center;margin:10px 0 0;"><button type="button" class="klein-knopf" id="wuPartie">🏆 Ergebnis eintragen</button></div>';
+    document.getElementById('wuPartie').addEventListener('click', () => { document.getElementById('modalWuerfel').classList.remove('zeigen'); partieOeffnen(wahl.id); });
+  }
+  document.getElementById('btnWuerfel').addEventListener('click', () => { document.getElementById('wuErgebnis').innerHTML = ''; wuChips(); document.getElementById('modalWuerfel').classList.add('zeigen'); });
+  document.getElementById('wuSpielerMinus').addEventListener('click', () => { wuSpieler = Math.max(1, wuSpieler - 1); wuChips(); });
+  document.getElementById('wuSpielerPlus').addEventListener('click', () => { wuSpieler = Math.min(20, wuSpieler + 1); wuChips(); });
+  document.getElementById('btnWuerfeln').addEventListener('click', wuerfeln);
+  document.getElementById('btnWuerfelZu').addEventListener('click', () => document.getElementById('modalWuerfel').classList.remove('zeigen'));
+  document.getElementById('modalWuerfel').addEventListener('click', (e) => { if (e.target.id === 'modalWuerfel') e.currentTarget.classList.remove('zeigen'); });
+
+  // ============================================================
+  // 🏆 PARTIEN & BESTENLISTE
+  // ============================================================
+  let paSpieler = [], paSieger = [], paPunkte = {};
+  function partieChips() {
+    const pers = echtePersonen();
+    const box = document.getElementById('fPartieSpieler');
+    box.innerHTML = pers.map(p => '<button type="button" class="' + (paSpieler.includes(p.id) ? 'aktiv' : '') + '" data-p="' + escapeHtml(p.id) + '">' + escapeHtml(p.label) + '</button>').join('');
+    box.querySelectorAll('[data-p]').forEach(b => b.addEventListener('click', () => {
+      const p = b.dataset.p;
+      if (paSpieler.includes(p)) { paSpieler = paSpieler.filter(x => x !== p); paSieger = paSieger.filter(x => x !== p); } else paSpieler.push(p);
+      partieChips();
+    }));
+    const sb = document.getElementById('fPartieSieger');
+    sb.innerHTML = paSpieler.length ? paSpieler.map(p => '<button type="button" class="' + (paSieger.includes(p) ? 'sieger' : '') + '" data-p="' + escapeHtml(p) + '">' + (paSieger.includes(p) ? '👑 ' : '') + escapeHtml(personName(p)) + '</button>').join('') : '<span class="spiel-meta">Erst Mitspieler wählen.</span>';
+    sb.querySelectorAll('[data-p]').forEach(b => b.addEventListener('click', () => { const p = b.dataset.p; paSieger = paSieger.includes(p) ? paSieger.filter(x => x !== p) : paSieger.concat([p]); partieChips(); }));
+    const pb = document.getElementById('fPartiePunkte');
+    pb.innerHTML = paSpieler.map(p => '<div class="punkte-reihe"><span>' + escapeHtml(personName(p)) + '</span><input type="number" inputmode="numeric" data-pp="' + escapeHtml(p) + '" value="' + (paPunkte[p] != null ? paPunkte[p] : '') + '"></div>').join('');
+    pb.querySelectorAll('[data-pp]').forEach(inp => inp.addEventListener('input', () => {
+      const v = inp.value.trim(); if (v === '') delete paPunkte[inp.dataset.pp]; else paPunkte[inp.dataset.pp] = Number(v);
+      // Mit Punkten: Sieger automatisch = höchste Punktzahl
+      const werte = paSpieler.filter(p => paPunkte[p] != null);
+      if (werte.length === paSpieler.length && werte.length) { const max = Math.max(...werte.map(p => paPunkte[p])); paSieger = werte.filter(p => paPunkte[p] === max); partieSiegerNeu(); }
+    }));
+  }
+  function partieSiegerNeu() {
+    const sb = document.getElementById('fPartieSieger');
+    sb.querySelectorAll('[data-p]').forEach(b => { const an = paSieger.includes(b.dataset.p); b.className = an ? 'sieger' : ''; b.textContent = (an ? '👑 ' : '') + personName(b.dataset.p); });
+  }
+  function partieOeffnen(spielId) {
+    const sel = document.getElementById('fPartieSpiel');
+    const liste = spiele.slice().sort((a, b) => (b.plattform === 'brettspiel') - (a.plattform === 'brettspiel') || a.titel.localeCompare(b.titel));
+    if (!liste.length) { alert('Lege zuerst ein Spiel an.'); return; }
+    sel.innerHTML = liste.map(s => '<option value="' + s.id + '">' + (s.plattform === 'brettspiel' ? '🎲 ' : '') + escapeHtml(s.titel) + '</option>').join('');
+    if (spielId) sel.value = spielId;
+    document.getElementById('fPartieDatum').value = heuteISOGaming();
+    const letzte = partien.slice().sort((a, b) => b.datum.localeCompare(a.datum))[0];
+    paSpieler = letzte ? letzte.spieler.slice() : echtePersonen().map(p => p.id);
+    paSieger = []; paPunkte = {};
+    partieChips();
+    document.getElementById('modalPartie').classList.add('zeigen');
+  }
+  document.getElementById('btnPartieNeu').addEventListener('click', () => partieOeffnen(null));
+  document.getElementById('btnEditPartie').addEventListener('click', () => { const id = bearbeiteId; document.getElementById('modalEdit').classList.remove('zeigen'); entwurfUeberwachungStoppen(); entwurfLoeschen(); partieOeffnen(id); });
+  document.getElementById('btnPartieAbbrechen').addEventListener('click', () => document.getElementById('modalPartie').classList.remove('zeigen'));
+  document.getElementById('modalPartie').addEventListener('click', (e) => { if (e.target.id === 'modalPartie') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnPartieSpeichern').addEventListener('click', () => {
+    if (paSpieler.length < 1) { alert('Bitte die Mitspieler antippen.'); return; }
+    if (!paSieger.length && !confirm('Ohne Sieger speichern (z.B. kooperatives Spiel)?')) return;
+    const pa = { id: neueId('pa'), spielId: document.getElementById('fPartieSpiel').value, datum: document.getElementById('fPartieDatum').value || heuteISOGaming(), spieler: paSpieler.slice(), sieger: paSieger.slice() };
+    if (Object.keys(paPunkte).length) pa.punkte = Object.assign({}, paPunkte);
+    partien.push(pa);
+    speichern(KEY_PARTIEN, partien);
+    document.getElementById('modalPartie').classList.remove('zeigen');
+    if (aktiveAnsicht === 'statistik') renderStatistik();
+    showTempStatus(paSieger.length ? '👑 Glückwunsch, ' + paSieger.map(personName).join(' & ') + '!' : '🤝 Partie gespeichert', 3);
+  });
+
+  // ============================================================
+  // 🎁 AUF DIE WUNSCHLISTE (Familien-Wunschliste)
+  // ============================================================
+  const WUNSCH_ANLAESSE = [['geburtstag', '🎂 Geburtstag'], ['weihnachten', '🎄 Weihnachten'], ['ostern', '🐣 Ostern'], ['sonstiges', '✨ Sonstiges']];
+  let wuPerson = '', wuAnlass = 'weihnachten', termineSync = null;
+  if (window.PlanerSync) termineSync = window.PlanerSync.starteSync({ modul: 'termine', keys: ['termine_wunschliste'] });
+  function wunschChips() {
+    const pb = document.getElementById('fWunschPerson');
+    pb.innerHTML = PERSONEN.filter(p => p.id !== 'alle').map(p => '<button type="button" class="' + (wuPerson === p.id ? 'aktiv' : '') + '" data-p="' + escapeHtml(p.id) + '">' + escapeHtml(p.label) + '</button>').join('');
+    pb.querySelectorAll('[data-p]').forEach(b => b.addEventListener('click', () => { wuPerson = b.dataset.p; wunschChips(); }));
+    const ab = document.getElementById('fWunschAnlass');
+    ab.innerHTML = WUNSCH_ANLAESSE.map(([v, t]) => '<button type="button" class="' + (wuAnlass === v ? 'aktiv' : '') + '" data-a="' + v + '">' + t + '</button>').join('');
+    ab.querySelectorAll('[data-a]').forEach(b => b.addEventListener('click', () => { wuAnlass = b.dataset.a; wunschChips(); }));
+  }
+  document.getElementById('btnEditWunsch').addEventListener('click', () => {
+    const s = spiele.find(x => x.id === bearbeiteId); if (!s) return;
+    if (s.wunschId && laden('termine_wunschliste', []).some(w => w.id === s.wunschId)) { showTempStatus('🎁 „' + s.titel + '“ steht schon auf der Wunschliste', 3); return; }
+    wuPerson = s.person && s.person !== 'alle' ? s.person : (echtePersonen()[0] || {}).id || 'familie';
+    const m = new Date().getMonth() + 1;
+    wuAnlass = (m >= 9 || m <= 1) ? 'weihnachten' : 'geburtstag';
+    document.getElementById('fWunschPreis').value = '';
+    wunschChips();
+    document.getElementById('modalWunsch').classList.add('zeigen');
+  });
+  document.getElementById('btnWunschAbbrechen').addEventListener('click', () => document.getElementById('modalWunsch').classList.remove('zeigen'));
+  document.getElementById('modalWunsch').addEventListener('click', (e) => { if (e.target.id === 'modalWunsch') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnWunschSpeichern').addEventListener('click', () => {
+    const s = spiele.find(x => x.id === bearbeiteId); if (!s) return;
+    const plat = plattformInfo(s.plattform);
+    const liste = laden('termine_wunschliste', []);
+    const id = 'wunsch_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+    liste.push({ id, person: wuPerson, anlass: wuAnlass, name: s.titel + (s.plattform !== 'sonstiges' ? ' (' + plat.label + ')' : ''), preis: document.getElementById('fWunschPreis').value.trim(),
+      jahr: '', prioritaet: 'mittel', link: '', notiz: 'Aus 🎮 Gaming' + (s.notiz ? ' – ' + s.notiz : ''), reserviert: false, reserviertVon: '', versteckenVor: [] });
+    try { localStorage.setItem('termine_wunschliste', JSON.stringify(liste)); } catch (e) { alert('Speichern fehlgeschlagen.'); return; }
+    if (termineSync) termineSync.melde();
+    s.wunschId = id;
+    speichernSpiele();
+    document.getElementById('modalWunsch').classList.remove('zeigen');
+    document.getElementById('modalEdit').classList.remove('zeigen');
+    entwurfUeberwachungStoppen(); entwurfLoeschen();
+    renderAlles();
+    showTempStatus('🎁 „' + s.titel + '“ steht jetzt auf der Wunschliste', 3);
+  });
+
   function renderAlles() {
     renderStats();
     renderGrid();
@@ -1238,10 +1718,12 @@
   if (window.PlanerSync) {
     window._sync = window.PlanerSync.starteSync({
       modul: 'gaming',
-      keys: [KEY_SPIELE, KEY_SITZUNGEN],
+      keys: [KEY_SPIELE, KEY_SITZUNGEN, KEY_LIMITS, KEY_PARTIEN],
       onRemoteChange: function () {
         spiele = laden(KEY_SPIELE, spiele);
         sitzungen = laden(KEY_SITZUNGEN, sitzungen);
+        limits = laden(KEY_LIMITS, limits) || {};
+        partien = laden(KEY_PARTIEN, partien) || [];
         renderAlles();
         if (aktiveAnsicht === 'statistik') renderStatistik();
       },
@@ -1252,6 +1734,7 @@
       onRemoteChange: function () {
         bilder = laden(KEY_BILDER, bilder);
         renderGrid();
+        coverHochladen();
       },
     });
   }

@@ -2,6 +2,12 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
+## 2026-10-26 | 🎮 Gaming: Spielzeit, Bildschirmzeit & Spieleabend
+Timer und nachgetragene Sitzungen zählen jetzt automatisch zur Spielzeit – mit „≈ 36 % geschafft“ und „zuletzt gespielt vor 2 Tagen“ (neue Sortierung „⏱ Zuletzt“). Jede Sitzung weiß, wer gespielt hat; unter 📊 Statistik lässt sich pro Kind ein Tages- und Wochenlimit setzen. Der Timer zeigt dann die Restzeit, vibriert kurz vor Schluss und wenn die Zeit um ist – und in der Kinderecke steht „🎮 Heute noch 15 Minuten“.
+
+## 2026-10-26 | 🎲 Was spielen wir? & 🏆 Bestenliste
+Bei Brett- und Partyspielen gibt es jetzt Spieleranzahl, Dauer und Alter; „🎲 Was spielen wir?“ sucht passend zu „wir sind 5, haben 45 Minuten“ ein Spiel aus. Nach dem Spieleabend trägst du die Partie mit Siegern (und optional Punkten) ein – die Bestenliste zeigt, wer am häufigsten gewinnt. Spiele auf der „💭 Wunschliste“ wandern per Knopf in die Familien-Wunschliste. Coverbilder liegen jetzt im Familien-Fotospeicher – schärfer und ohne 1-MB-Grenze.
+
 ## 2026-10-26 | 💶 Finanzen: Monate, Gesamtbudget & Bearbeiten
 Im Budget blätterst du jetzt mit ◀ ▶ durch die Monate und siehst alle Ausgaben des Monats – mit Suche und Filter (Kategorie antippen). Mit einem 💶 Monatsbudget zeigt die App „Noch 524 € für 6 Tage ≈ 87 €/Tag“ und eine Prognose bis Monatsende; Kategorien werden ab 80 % gelb. Ausgaben, Kategorien und Abos lassen sich antippen und bearbeiten, Löschen hat „Rückgängig“. Neue Ausgaben gehen schneller: Betrag, Kategorie-Knopf, fertig – mit Vorschlägen und „Wer hat bezahlt?“.
 

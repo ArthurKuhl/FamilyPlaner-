@@ -264,6 +264,7 @@
     // nur lesen, damit Taschengeld & Co. aktuell sind
     finanzenSync = window.PlanerSync.starteSync({ modul: 'finanzen', keys: ['finanzen_taschengeld_konten', 'finanzen_taschengeld_buchungen'], onRemoteChange: () => renderAlles() });
     window.PlanerSync.starteSync({ modul: 'termine', keys: ['termine_events_v1'], onRemoteChange: () => renderAlles() });
+    window.PlanerSync.starteSync({ modul: 'gaming', keys: ['gaming_sessions', 'gaming_limits'], onRemoteChange: () => renderAlles() }); // nur lesen: Spielzeit-Limit
   }
 
   let aktivesKind = null;
@@ -352,6 +353,21 @@
         '<div class="belohnung"><span class="b-text">' + esc(b.text) + '</span><span class="klein">' + b.sterne + ' ⭐</span><button class="knopf-gross" data-einloesen="' + esc(b.id) + '" style="padding:7px 12px;">Einlösen</button></div>').join('');
     }
     html += '</div>';
+
+    // 🎮 Spielzeit (Limit aus dem Gaming-Bereich)
+    const spielLimit = (laden('gaming_limits', {}) || {})[kind.id];
+    if (spielLimit && (spielLimit.tag || spielLimit.woche)) {
+      const jetzt = new Date(), h = jetzt.getFullYear() + '-' + String(jetzt.getMonth() + 1).padStart(2, '0') + '-' + String(jetzt.getDate()).padStart(2, '0'), wd = new Date(h + 'T12:00'); // lokales Datum wie im Gaming-Bereich wd.setDate(wd.getDate() - ((wd.getDay() + 6) % 7));
+      const ws = wd.getFullYear() + '-' + String(wd.getMonth() + 1).padStart(2, '0') + '-' + String(wd.getDate()).padStart(2, '0');
+      let tag = 0, woche = 0;
+      (laden('gaming_sessions', []) || []).filter(sz => sz.person === kind.id).forEach(sz => { if (sz.datum === h) tag += sz.minuten; if (sz.datum >= ws && sz.datum <= h) woche += sz.minuten; });
+      const reste = []; if (spielLimit.tag) reste.push(spielLimit.tag - tag); if (spielLimit.woche) reste.push(spielLimit.woche - woche);
+      const rest = Math.min(...reste);
+      const anteil = spielLimit.tag ? Math.min(100, tag / spielLimit.tag * 100) : Math.min(100, woche / spielLimit.woche * 100);
+      html += '<div class="karte"><h2>🎮 Meine Spielzeit</h2><p style="font-size:1.05rem;font-weight:700;margin:2px 0 6px;">' + (rest > 0 ? 'Heute noch ' + rest + ' Minuten 🎮' : 'Für heute ist die Spielzeit aufgebraucht 🌳') + '</p>' +
+        '<div style="height:12px;border-radius:6px;background:rgba(127,127,127,0.2);overflow:hidden;"><div style="height:100%;width:' + anteil + '%;background:' + (rest > 0 ? '#5b8bb5' : '#c46b41') + ';border-radius:6px;"></div></div>' +
+        '<p class="klein" style="margin:4px 0 0;">Heute ' + tag + (spielLimit.tag ? ' von ' + spielLimit.tag : '') + ' Min.' + (spielLimit.woche ? ' · diese Woche ' + (Math.round(woche / 6) / 10).toLocaleString('de-DE') + ' von ' + (Math.round(spielLimit.woche / 6) / 10).toLocaleString('de-DE') + ' Std.' : '') + '</p></div>';
+    }
 
     // Taschengeld
     html += '<div class="karte"><h2>💰 Mein Taschengeld</h2>';

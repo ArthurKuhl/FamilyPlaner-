@@ -479,7 +479,7 @@
         syncTransform: (werte) => window.PlanerSync ? window.PlanerSync.entferneFotosTief(werte) : werte },
       { id: 'vorratskammer', label: 'Vorratskammer', emoji: '🥫', src: 'vorratskammer.html', syncKeys: ['vorratskammer_items','vorratskammer_kategorien','vorratskammer_eingang'] },
       // zusatzSync: weitere Sync-Dokumente eines Moduls (z.B. Bilder, wegen 1-MB-Grenze je Dokument)
-      { id: 'gaming',      label: 'Gaming',    emoji: '🎮', src: 'gaming.html', syncKeys: ['gaming_spiele','gaming_sessions'],
+      { id: 'gaming',      label: 'Gaming',    emoji: '🎮', src: 'gaming.html', syncKeys: ['gaming_spiele','gaming_sessions','gaming_limits','gaming_partien'],
         zusatzSync: [{ modul: 'gaming_bilder', keys: ['gaming_bilder'] }] },
       { id: 'medien',      label: 'Medien',    emoji: '🍿', src: 'medien.html', syncKeys: ['medien_eintraege'],
         zusatzSync: [{ modul: 'medien_bilder', keys: ['medien_bilder'] }] },
