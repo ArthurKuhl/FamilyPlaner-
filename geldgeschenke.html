@@ -175,6 +175,34 @@
      Text auf Akzent-Knöpfen dunkel – außer bei „Schnee“, dort ist der Knopf selbst dunkel. */
   html[data-dark="1"] { --moss-text: var(--sage); --on-moss: #16140f; }
   html[data-dark="1"][data-farbschema="schnee"] { --on-moss: #f4f5f6; }
+
+  /* ---- Neu: Richtung, Hinweise, Danke, Anstehend ---- */
+  .richtung-wahl { display: flex; gap: 8px; margin-bottom: 14px; }
+  .richtung-wahl button { flex: 1; padding: 11px 8px; border-radius: var(--radius-md); border: 2px solid var(--parchment); background: var(--white); color: var(--soil); font-weight: 700; font-size: 0.85rem; cursor: pointer; }
+  .richtung-wahl button.aktiv { border-color: var(--moss); background: rgba(79,111,69,0.14); }
+  .richtung-wahl button.aktiv.raus { border-color: var(--terracotta); background: rgba(196,107,65,0.14); }
+  .gegen-hinweis { background: rgba(201,154,58,0.16); border-radius: var(--radius-sm); padding: 8px 10px; font-size: 0.8rem; line-height: 1.45; margin: -4px 0 12px; color: var(--soil); }
+  .gegen-hinweis:empty { display: none; }
+  .gk-betrag.raus { color: var(--terracotta-text); }
+  .gk-notiz { font-size: 0.74rem; color: var(--bark); margin-top: 4px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .mini-chip.danke-offen { background: rgba(196,107,65,0.18); color: var(--terracotta-text); }
+  .mini-chip.danke-ok { background: rgba(79,111,69,0.16); color: var(--moss-text, var(--moss)); }
+  .info-karte2 { background: var(--white); border-radius: var(--radius-md); padding: 12px 14px; box-shadow: var(--shadow-soft); margin-bottom: 12px; }
+  .info-karte2 h3 { font-size: 0.9rem; margin: 0 0 8px; }
+  .info-zeile2 { display: flex; align-items: center; gap: 8px; padding: 7px 0; border-top: 1px solid var(--parchment); font-size: 0.82rem; }
+  .info-zeile2:first-of-type { border-top: none; }
+  .info-zeile2 .iz-text { flex: 1; min-width: 0; }
+  .info-zeile2 .iz-text small { display: block; color: var(--bark); font-size: 0.72rem; }
+  .knopf-klein { background: var(--parchment); color: var(--soil); border: none; border-radius: 999px; padding: 6px 11px; font-size: 0.74rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
+  .such-feld { width: 100%; padding: 8px 12px; border-radius: 999px; border: 1px solid var(--parchment); background: var(--white); color: var(--soil); font-size: 0.85rem; margin-bottom: 8px; }
+  .puk-summe small { display: block; font-size: 0.7rem; font-weight: 600; text-align: right; }
+  .puk-summe .rein { color: var(--moss-text, var(--moss)); }
+  .puk-summe .raus { color: var(--terracotta-text); }
+  .jv-doppel { display: grid; gap: 3px; }
+  .balken.raus { background: var(--terracotta); }
+  .balken.rein { background: var(--moss); }
+  .legende { display: flex; gap: 12px; font-size: 0.7rem; color: var(--bark); margin-top: 6px; }
+  .legende i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
 </style>
 </head>
 <body>
@@ -219,6 +247,10 @@
   </div>
 
   <div id="ansichtListe">
+    <div id="anstehendBox"></div>
+    <div id="dankeBox"></div>
+    <input type="search" class="such-feld" id="fSuche" placeholder="🔍 Suchen (Name, Notiz …)" aria-label="Geldgeschenke durchsuchen">
+    <div class="filter-reihe" id="richtungFilterReihe" style="margin-bottom:6px;"></div>
     <div class="filter-reihe" id="anlassFilterReihe" style="margin-bottom:8px;"></div>
     <div class="geschenk-liste" id="geschenkListe"></div>
     <div class="leer-hinweis" id="leerHinweis" style="display:none;">
@@ -228,7 +260,7 @@
   </div>
 
   <div id="ansichtUebersicht" style="display:none;">
-    <p style="font-size:0.78rem;color:var(--bark);margin-bottom:12px;">Summe pro Person, über alle Anlässe und Jahre hinweg – hilft bei der Einschätzung für ein gleichwertiges Geschenk.</p>
+    <p style="font-size:0.78rem;color:var(--bark);margin-bottom:12px;">Was ihr von jemandem bekommen und ihm/ihr geschenkt habt – über alle Anlässe und Jahre. Hilft bei der Einschätzung für ein gleichwertiges Geschenk.</p>
     <div id="uebersichtListe"></div>
     <div class="leer-hinweis" id="uebersichtLeer" style="display:none;">
       <span class="em">👤</span>
@@ -238,7 +270,7 @@
 
   <div id="ansichtJahresvergleich" style="display:none;">
     <div class="karte">
-      <h3 style="margin-top:0;">📈 Ausgegeben pro Jahr</h3>
+      <h3 style="margin-top:0;">📈 Pro Jahr</h3>
       <div id="jvJahrListe"></div>
       <div class="leer-hinweis" id="jvJahrLeer" style="display:none;padding:10px 0;">Noch keine Einträge mit Datum vorhanden.</div>
     </div>
@@ -248,6 +280,10 @@
       <div id="jvAnlassListe"></div>
       <div class="leer-hinweis" id="jvAnlassLeer" style="display:none;padding:10px 0;">Für dieses Jahr liegen noch keine Einträge vor.</div>
     </div>
+    <div class="karte">
+      <h3>👪 Pro Familienmitglied (gewähltes Jahr)</h3>
+      <div id="jvPersonListe"></div>
+    </div>
   </div>
 </main>
 
@@ -256,13 +292,17 @@
   <div class="modal">
     <h2 id="editTitelKopf">Neues Geldgeschenk</h2>
     <input type="hidden" id="editId" value="">
+    <div class="richtung-wahl" id="richtungWahl">
+      <button type="button" data-r="bekommen">🎁 Bekommen</button>
+      <button type="button" data-r="verschenkt" class="raus">💸 Verschenkt</button>
+    </div>
     <div class="feld">
-      <label for="fVon">Von wem?</label>
+      <label for="fVon" id="labelVon">Von wem?</label>
       <input type="text" id="fVon" list="vonHistorieListe" placeholder="z.B. Oma Erika, Tante Sabine ...">
       <datalist id="vonHistorieListe"></datalist>
     </div>
     <div class="feld">
-      <label>Für wen (Familienmitglied)?</label>
+      <label id="labelFuer">Für wen (Familienmitglied)?</label>
       <div class="opt-reihe" id="fuerPersonReihe"></div>
     </div>
     <div class="feld">
@@ -282,6 +322,18 @@
         <label for="fDatum">Datum</label>
         <input type="date" id="fDatum">
       </div>
+    </div>
+    <div class="gegen-hinweis" id="gegenHinweis"></div>
+    <div id="bekommenFelder">
+      <div class="feld">
+        <label>Was passiert mit dem Geld?</label>
+        <div class="opt-reihe" id="verwendungReihe"></div>
+      </div>
+      <div class="feld" id="verwendungTextFeld" style="display:none;">
+        <label for="fVerwendungText">Wofür?</label>
+        <input type="text" id="fVerwendungText" placeholder="z.B. Fahrrad, Lego, Sparbuch">
+      </div>
+      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;margin-bottom:12px;cursor:pointer;"><input type="checkbox" id="fDanke" style="width:20px;height:20px;"> 💌 Danke gesagt</label>
     </div>
     <div class="feld">
       <label for="fNotiz">Notiz (optional)</label>
@@ -434,7 +486,7 @@
   }
   function personLabel(id) {
     const p = PERSONEN().find(x => x.id === id);
-    return p ? p.label : id;
+    return p ? p.label : (id === 'familie' || !id ? 'Familie' : id);
   }
   function personFarbe(id) {
     const p = PERSONEN().find(x => x.id === id);
@@ -459,6 +511,63 @@
   let aktiveAnsicht = 'liste';
   let filterFuer = 'alle';
   let filterAnlass = 'alle';
+  let filterRichtung = 'alle';
+  let suchText = '';
+  const richtung = (g) => g.richtung === 'verschenkt' ? 'verschenkt' : 'bekommen'; // alte Einträge = bekommen
+  const euro = (n) => (Number(n) || 0).toLocaleString('de-DE', { maximumFractionDigits: 2 }) + ' €';
+  const norm = (t) => String(t || '').trim().toLowerCase();
+  const VERWENDUNG = [
+    { id: '', label: '– offen –' },
+    { id: 'taschengeld', label: '💰 Ins Taschengeld' },
+    { id: 'gespart', label: '🐷 Gespart' },
+    { id: 'ausgegeben', label: '🛍️ Ausgegeben für …' },
+  ];
+  // Taschengeld-Konten (Finanzen) mitlesen und beschreiben
+  let finanzenSync = null, termineSync = null;
+  if (window.PlanerSync) {
+    finanzenSync = window.PlanerSync.starteSync({ modul: 'finanzen', keys: ['finanzen_taschengeld_konten', 'finanzen_taschengeld_buchungen'], ersterAbgleichVereinen: true });
+    termineSync = window.PlanerSync.starteSync({ modul: 'termine', keys: ['termine_events_v1'], onRemoteChange: () => { if (aktiveAnsicht === 'liste') renderListe(); } });
+  }
+  const tgKonto = (personId) => laden('finanzen_taschengeld_konten', []).find(k => k.personId === personId) || null;
+  function taschengeldBuchen(g) {
+    const buchungen = laden('finanzen_taschengeld_buchungen', []);
+    const id = 'gg_' + g.id;
+    const vorhanden = buchungen.find(b => b.id === id);
+    const soll = g.richtung !== 'verschenkt' && g.verwendung && g.verwendung.art === 'taschengeld';
+    const konto = soll ? tgKonto(g.fuer) : null;
+    let geaendert = false;
+    if (soll && konto) {
+      const daten = { id, kontoId: konto.id, betrag: Number(g.betrag) || 0, typ: 'gutschrift', beschreibung: '💶 ' + g.von + ' (' + anlassLabel(g).replace(/^\S+\s/, '') + ')', datum: g.datum };
+      if (vorhanden) Object.assign(vorhanden, daten); else buchungen.push(daten);
+      geaendert = true;
+    } else if (vorhanden) {
+      buchungen.splice(buchungen.indexOf(vorhanden), 1);
+      geaendert = true;
+    }
+    if (geaendert) {
+      try { localStorage.setItem('finanzen_taschengeld_buchungen', JSON.stringify(buchungen)); } catch (e) {}
+      if (finanzenSync) finanzenSync.melde();
+    }
+    return soll && !konto ? false : true;
+  }
+  // 💡 Was gab es zuletzt zwischen uns und dieser Person?
+  function gegenHinweisText(name, anlass, aktuelleId) {
+    const n = norm(name);
+    if (n.length < 2) return '';
+    const mit = geschenke.filter(g => g.id !== aktuelleId && norm(g.von) === n).sort((a, b) => (b.datum || '').localeCompare(a.datum || ''));
+    if (!mit.length) return '';
+    const teile = [];
+    const rein = mit.filter(g => richtung(g) === 'bekommen');
+    const raus = mit.filter(g => richtung(g) === 'verschenkt');
+    const jahr = (g) => g.datum ? ' (' + g.datum.slice(0, 4) + ')' : '';
+    const reinPassend = rein.find(g => g.anlass === anlass) || rein[0];
+    const rausPassend = raus.find(g => g.anlass === anlass) || raus[0];
+    if (reinPassend) teile.push('🎁 ' + escapeHtml(name) + ' hat ' + escapeHtml(personLabel(reinPassend.fuer)) + ' zuletzt ' + (reinPassend.anlass === anlass ? 'zu diesem Anlass ' : 'zum ' + escapeHtml(anlassLabel(reinPassend).replace(/^\S+\s/, '')) + ' ') + '<b>' + euro(reinPassend.betrag) + '</b> geschenkt' + jahr(reinPassend));
+    if (rausPassend) teile.push('💸 Ihr habt zuletzt ' + (rausPassend.anlass === anlass ? 'zu diesem Anlass ' : '') + '<b>' + euro(rausPassend.betrag) + '</b> geschenkt' + jahr(rausPassend));
+    const summeRein = rein.reduce((s, g) => s + (Number(g.betrag) || 0), 0), summeRaus = raus.reduce((s, g) => s + (Number(g.betrag) || 0), 0);
+    if (rein.length && raus.length) teile.push('Insgesamt: bekommen ' + euro(summeRein) + ' · verschenkt ' + euro(summeRaus));
+    return teile.join('<br>');
+  }
 
   // ---------- Filter-Leisten ----------
   function renderFilter() {
@@ -477,6 +586,13 @@
       box.appendChild(chip);
     });
   }
+  function renderRichtungFilter() {
+    const box = document.getElementById('richtungFilterReihe');
+    box.innerHTML = [['alle', 'Alle'], ['bekommen', '🎁 Bekommen'], ['verschenkt', '💸 Verschenkt']].map(([id, t]) => '<button class="filter-chip' + (filterRichtung === id ? ' active' : '') + '" data-r="' + id + '">' + t + '</button>').join('');
+    box.querySelectorAll('[data-r]').forEach(b => b.addEventListener('click', () => { filterRichtung = b.dataset.r; renderRichtungFilter(); renderListe(); }));
+  }
+  let suchTimer = null;
+  document.getElementById('fSuche').addEventListener('input', (e) => { clearTimeout(suchTimer); suchTimer = setTimeout(() => { suchText = norm(e.target.value); renderListe(); }, 200); });
   function renderAnlassFilter() {
     const box = document.getElementById('anlassFilterReihe');
     box.innerHTML = '';
@@ -501,60 +617,124 @@
       (filterAnlass === 'alle' || g.anlass === filterAnlass)
     );
   }
+  function listeGefiltert() {
+    return gefiltert().filter(g => (filterRichtung === 'alle' || richtung(g) === filterRichtung) &&
+      (!suchText || norm([g.von, g.notiz, g.anlassText, g.verwendung && g.verwendung.text, personLabel(g.fuer)].join(' ')).includes(suchText)));
+  }
   function renderListe() {
     const box = document.getElementById('geschenkListe');
     const leer = document.getElementById('leerHinweis');
-    const liste = gefiltert().slice().sort((a, b) => (b.datum || '') < (a.datum || '') ? -1 : 1);
+    const liste = listeGefiltert().slice().sort((a, b) => (b.datum || '') < (a.datum || '') ? -1 : 1);
     box.innerHTML = '';
     leer.style.display = liste.length ? 'none' : '';
+    leer.innerHTML = '<span class="em">💶</span>' + (geschenke.length ? 'Nichts gefunden – Filter oder Suche anpassen.' : 'Noch keine Geldgeschenke erfasst.<br>Tippe auf „＋ Neu“, um den ersten Eintrag anzulegen.');
     liste.forEach(g => {
+      const raus = richtung(g) === 'verschenkt';
+      const v = g.verwendung || {};
       const karte = document.createElement('div');
       karte.className = 'geschenk-karte';
-      karte.style.borderLeftColor = personFarbe(g.fuer);
+      karte.style.borderLeftColor = raus ? 'var(--terracotta)' : personFarbe(g.fuer);
       karte.innerHTML =
-        '<div class="gk-icon">💶</div>' +
+        '<div class="gk-icon">' + (raus ? '💸' : '🎁') + '</div>' +
         '<div class="gk-body">' +
-          '<div class="gk-titel">' + escapeHtml(g.von) + '</div>' +
+          '<div class="gk-titel">' + (raus ? 'An ' : 'Von ') + escapeHtml(g.von) + '</div>' +
           '<div class="gk-meta">' +
-            '<span class="mini-chip person" style="background:' + personFarbe(g.fuer) + '">Für ' + escapeHtml(personLabel(g.fuer)) + '</span>' +
+            (g.fuer && g.fuer !== 'familie' ? '<span class="mini-chip person" style="background:' + personFarbe(g.fuer) + '">' + (raus ? 'von ' : 'für ') + escapeHtml(personLabel(g.fuer)) + '</span>' : '') +
             '<span class="mini-chip">' + escapeHtml(anlassLabel(g)) + '</span>' +
             '<span class="mini-chip">' + datumAnzeige(g.datum) + '</span>' +
+            (!raus && g.danke === false ? '<span class="mini-chip danke-offen">💌 Danke offen</span>' : '') +
+            (!raus && g.danke === true ? '<span class="mini-chip danke-ok">💌 ✓</span>' : '') +
+            (!raus && v.art ? '<span class="mini-chip">' + (v.art === 'taschengeld' ? '💰 Taschengeld' : v.art === 'gespart' ? '🐷 gespart' : '🛍️ ' + escapeHtml(v.text || 'ausgegeben')) + '</span>' : '') +
           '</div>' +
+          (g.notiz ? '<div class="gk-notiz">📝 ' + escapeHtml(g.notiz) + '</div>' : '') +
         '</div>' +
-        '<div class="gk-betrag">' + Number(g.betrag || 0).toLocaleString('de-DE') + ' €</div>';
+        '<div class="gk-betrag' + (raus ? ' raus' : '') + '">' + (raus ? '−' : '+') + euro(g.betrag) + '</div>';
       karte.addEventListener('click', () => editOeffnen(g.id));
       box.appendChild(karte);
     });
+    renderDanke();
+    renderAnstehend();
+  }
+  // ---------- 💌 Offene Dankeschöns ----------
+  function renderDanke() {
+    const box = document.getElementById('dankeBox');
+    const offen = geschenke.filter(g => richtung(g) === 'bekommen' && g.danke === false).sort((a, b) => (b.datum || '').localeCompare(a.datum || ''));
+    if (!offen.length) { box.innerHTML = ''; return; }
+    box.innerHTML = '<div class="info-karte2"><h3>💌 ' + offen.length + (offen.length === 1 ? ' Dankeschön offen' : ' Dankeschöns offen') + '</h3>' +
+      offen.slice(0, 8).map(g => '<div class="info-zeile2"><span class="iz-text">' + escapeHtml(g.von) + ' → ' + escapeHtml(personLabel(g.fuer)) + ' · ' + euro(g.betrag) +
+        '<small>' + escapeHtml(anlassLabel(g)) + ' · ' + datumAnzeige(g.datum) + '</small></span><button class="knopf-klein" data-danke="' + escapeHtml(g.id) + '">✓ Danke gesagt</button></div>').join('') + '</div>';
+    box.querySelectorAll('[data-danke]').forEach(b => b.addEventListener('click', () => {
+      const g = geschenke.find(x => x.id === b.dataset.danke); if (!g) return;
+      g.danke = true; speichern(KEY_GESCHENKE, geschenke); renderListe();
+      showTempStatus('💌 Erledigt', 2, { rueckgaengig: () => { g.danke = false; speichern(KEY_GESCHENKE, geschenke); renderListe(); } });
+    }));
+  }
+  // ---------- 🎂 Bald steht etwas an (Geburtstage aus den Terminen) ----------
+  function naechsterTermin(ev) {
+    if (!ev || !ev.date) return null;
+    const h = new Date(); h.setHours(0, 0, 0, 0);
+    const [j, m, d] = ev.date.split('-').map(Number);
+    const jaehrlich = ev.recurrence && ev.recurrence.freq === 'jaehrlich';
+    let n = new Date(jaehrlich ? h.getFullYear() : j, m - 1, d);
+    if (jaehrlich && n < h) n = new Date(h.getFullYear() + 1, m - 1, d);
+    const tage = Math.round((n - h) / 864e5);
+    return tage >= 0 ? { datum: n, tage } : null;
+  }
+  function renderAnstehend() {
+    const box = document.getElementById('anstehendBox');
+    const namen = [...new Set(geschenke.map(g => (g.von || '').trim()).filter(n => n.length >= 3))];
+    if (!namen.length) { box.innerHTML = ''; return; }
+    const events = laden('termine_events_v1', []).filter(e => e && /geburtstag|🎂|geb\./i.test(String(e.title || '')));
+    const treffer = [];
+    events.forEach(ev => {
+      const t = naechsterTermin(ev); if (!t || t.tage > 42) return;
+      const titel = norm(ev.title);
+      const name = namen.find(n => titel.includes(norm(n))) || namen.find(n => { const v = norm(n).split(/\s+/).filter(w => w.length >= 3); return v.length > 1 && v.every(w => titel.includes(w)); });
+      if (!name || treffer.some(x => x.name === name)) return;
+      treffer.push({ name, tage: t.tage, datum: t.datum });
+    });
+    if (!treffer.length) { box.innerHTML = ''; return; }
+    treffer.sort((a, b) => a.tage - b.tage);
+    const iso = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    box.innerHTML = '<div class="info-karte2"><h3>🎂 Bald steht etwas an</h3>' + treffer.map(x => {
+      const letztes = geschenke.filter(g => norm(g.von) === norm(x.name) && richtung(g) === 'verschenkt').sort((a, b) => (b.datum || '').localeCompare(a.datum || ''))[0];
+      const bekommen = geschenke.filter(g => norm(g.von) === norm(x.name) && richtung(g) === 'bekommen').sort((a, b) => (b.datum || '').localeCompare(a.datum || ''))[0];
+      const bereits = geschenke.some(g => norm(g.von) === norm(x.name) && richtung(g) === 'verschenkt' && g.datum && Math.abs(new Date(g.datum + 'T12:00') - x.datum) < 30 * 864e5);
+      return '<div class="info-zeile2"><span class="iz-text">🎂 ' + escapeHtml(x.name) + ' · ' + (x.tage === 0 ? '<b>heute</b>' : x.tage === 1 ? 'morgen' : 'in ' + x.tage + ' Tagen') +
+        '<small>' + (letztes ? 'Letztes Mal ' + euro(letztes.betrag) + ' geschenkt (' + (letztes.datum || '').slice(0, 4) + ')' : 'Noch nichts verschenkt eingetragen') + (bekommen ? ' · von ' + escapeHtml(x.name) + ' zuletzt ' + euro(bekommen.betrag) : '') + '</small></span>' +
+        (bereits ? '<span class="mini-chip danke-ok">✓ eingetragen</span>' : '<button class="knopf-klein" data-schenken="' + escapeHtml(x.name) + '" data-datum="' + iso(x.datum) + '">💸 Eintragen</button>') + '</div>';
+    }).join('') + '</div>';
+    box.querySelectorAll('[data-schenken]').forEach(b => b.addEventListener('click', () => editOeffnen(null, { richtung: 'verschenkt', von: b.dataset.schenken, anlass: 'geburtstag', datum: b.dataset.datum })));
   }
 
   // ---------- Übersicht nach Person (Geber) ----------
   function renderUebersicht() {
     const box = document.getElementById('uebersichtListe');
     const leer = document.getElementById('uebersichtLeer');
-    const gefilterteListe = gefiltert();
     const gruppen = {};
-    gefilterteListe.forEach(g => {
+    gefiltert().forEach(g => {
       const key = (g.von || '').trim();
       if (!key) return;
-      (gruppen[key] = gruppen[key] || []).push(g);
+      const k = norm(key);
+      (gruppen[k] = gruppen[k] || { name: key, liste: [] }).liste.push(g);
     });
-    const namen = Object.keys(gruppen).sort((a, b) => {
-      const summeA = gruppen[a].reduce((s, g) => s + (Number(g.betrag) || 0), 0);
-      const summeB = gruppen[b].reduce((s, g) => s + (Number(g.betrag) || 0), 0);
-      return summeB - summeA;
-    });
+    const summe = (l, r) => l.filter(g => richtung(g) === r).reduce((s, g) => s + (Number(g.betrag) || 0), 0);
+    const keys = Object.keys(gruppen).sort((a, b) => (summe(gruppen[b].liste, 'bekommen') + summe(gruppen[b].liste, 'verschenkt')) - (summe(gruppen[a].liste, 'bekommen') + summe(gruppen[a].liste, 'verschenkt')));
     box.innerHTML = '';
-    leer.style.display = namen.length ? 'none' : '';
-    namen.forEach(name => {
-      const eintraege = gruppen[name].slice().sort((a, b) => (b.datum || '') < (a.datum || '') ? -1 : 1);
-      const summe = eintraege.reduce((s, g) => s + (Number(g.betrag) || 0), 0);
+    leer.style.display = keys.length ? 'none' : '';
+    keys.forEach(k => {
+      const { name, liste } = gruppen[k];
+      const eintraege = liste.slice().sort((a, b) => (b.datum || '') < (a.datum || '') ? -1 : 1);
+      const rein = summe(liste, 'bekommen'), raus = summe(liste, 'verschenkt');
       const karte = document.createElement('div');
       karte.className = 'person-uebersicht-karte';
       karte.innerHTML =
-        '<div class="puk-kopf"><span class="puk-name">' + escapeHtml(name) + '</span><span class="puk-summe">' + summe.toLocaleString('de-DE') + ' €</span></div>' +
-        eintraege.map(g =>
-          '<div class="puk-eintrag"><span>' + escapeHtml(anlassLabel(g)) + ' · für ' + escapeHtml(personLabel(g.fuer)) + ' · ' + datumAnzeige(g.datum) + '</span><span class="pe-betrag">' + Number(g.betrag || 0).toLocaleString('de-DE') + ' €</span></div>'
-        ).join('');
+        '<div class="puk-kopf"><span class="puk-name">' + escapeHtml(name) + '</span><span class="puk-summe">' +
+          (rein ? '<small class="rein">🎁 bekommen ' + euro(rein) + '</small>' : '') + (raus ? '<small class="raus">💸 verschenkt ' + euro(raus) + '</small>' : '') + '</span></div>' +
+        eintraege.map(g => {
+          const r = richtung(g) === 'verschenkt';
+          return '<div class="puk-eintrag"><span>' + (r ? '💸 ' : '🎁 ') + escapeHtml(anlassLabel(g)) + (r && (!g.fuer || g.fuer === 'familie') ? '' : ' · ' + (r ? 'von ' : 'für ') + escapeHtml(personLabel(g.fuer))) + ' · ' + datumAnzeige(g.datum) + '</span><span class="pe-betrag">' + (r ? '−' : '+') + euro(g.betrag) + '</span></div>';
+        }).join('');
       box.appendChild(karte);
     });
   }
@@ -579,31 +759,37 @@
   function renderJahresvergleich() {
     const mitDatum = geschenke.filter(g => g.datum);
     const proJahr = {};
-    mitDatum.forEach(g => { const j = g.datum.slice(0,4); proJahr[j] = (proJahr[j] || 0) + (Number(g.betrag) || 0); });
+    mitDatum.forEach(g => { const j = g.datum.slice(0,4); proJahr[j] = proJahr[j] || { bekommen: 0, verschenkt: 0 }; proJahr[j][richtung(g)] += (Number(g.betrag) || 0); });
     const jahre = Object.keys(proJahr).sort((a,b) => b.localeCompare(a));
     if (!jvAusgewaehltesJahr || !jahre.includes(jvAusgewaehltesJahr)) jvAusgewaehltesJahr = jahre[0] || String(new Date().getFullYear());
-
-    const maxJahr = Math.max(1, ...Object.values(proJahr));
+    const maxJahr = Math.max(1, ...jahre.map(j => Math.max(proJahr[j].bekommen, proJahr[j].verschenkt)));
     document.getElementById('jvJahrLeer').style.display = jahre.length ? 'none' : '';
     document.getElementById('jvJahrListe').innerHTML = jahre.map(j => {
-      const prozent = Math.round((proJahr[j] / maxJahr) * 100);
+      const d = proJahr[j];
       return '<div class="jv-jahr-zeile">' +
-        '<div class="jv-jahr-kopf"><span>' + j + '</span><span>' + proJahr[j].toLocaleString('de-DE') + ' €</span></div>' +
-        '<div class="balken-wrap"><div class="balken" style="width:' + prozent + '%"></div></div>' +
+        '<div class="jv-jahr-kopf"><span>' + j + '</span><span>🎁 ' + euro(d.bekommen) + ' · 💸 ' + euro(d.verschenkt) + '</span></div>' +
+        '<div class="jv-doppel"><div class="balken-wrap"><div class="balken rein" style="width:' + Math.round(d.bekommen / maxJahr * 100) + '%"></div></div>' +
+        '<div class="balken-wrap"><div class="balken raus" style="width:' + Math.round(d.verschenkt / maxJahr * 100) + '%"></div></div></div>' +
       '</div>';
-    }).join('');
+    }).join('') + (jahre.length ? '<div class="legende"><span><i style="background:var(--moss)"></i>bekommen</span><span><i style="background:var(--terracotta)"></i>verschenkt</span></div>' : '');
 
     const sel = document.getElementById('jvJahrAuswahl');
     sel.innerHTML = jahre.map(j => '<option value="' + j + '"' + (j === jvAusgewaehltesJahr ? ' selected' : '') + '>' + j + '</option>').join('');
 
     const jahresEintraege = mitDatum.filter(g => g.datum.slice(0,4) === jvAusgewaehltesJahr);
     const proAnlass = {};
-    jahresEintraege.forEach(g => { const key = anlassLabel(g); proAnlass[key] = (proAnlass[key] || 0) + (Number(g.betrag) || 0); });
-    const anlassEintraege = Object.keys(proAnlass).map(k => ({ label: k, summe: proAnlass[k] })).sort((a,b) => b.summe - a.summe);
+    jahresEintraege.forEach(g => { const key = anlassLabel(g); proAnlass[key] = proAnlass[key] || { bekommen: 0, verschenkt: 0 }; proAnlass[key][richtung(g)] += (Number(g.betrag) || 0); });
+    const anlassEintraege = Object.keys(proAnlass).map(k => ({ label: k, d: proAnlass[k] })).sort((a,b) => (b.d.bekommen + b.d.verschenkt) - (a.d.bekommen + a.d.verschenkt));
     document.getElementById('jvAnlassLeer').style.display = anlassEintraege.length ? 'none' : '';
     document.getElementById('jvAnlassListe').innerHTML = anlassEintraege.map(e =>
-      '<div class="jv-anlass-zeile"><span>' + escapeHtml(e.label) + '</span><span>' + e.summe.toLocaleString('de-DE') + ' €</span></div>'
+      '<div class="jv-anlass-zeile"><span>' + escapeHtml(e.label) + '</span><span>' + (e.d.bekommen ? '🎁 ' + euro(e.d.bekommen) : '') + (e.d.bekommen && e.d.verschenkt ? ' · ' : '') + (e.d.verschenkt ? '💸 ' + euro(e.d.verschenkt) : '') + '</span></div>'
     ).join('');
+    const proPerson = {};
+    jahresEintraege.forEach(g => { if (!g.fuer) return; proPerson[g.fuer] = proPerson[g.fuer] || { bekommen: 0, verschenkt: 0 }; proPerson[g.fuer][richtung(g)] += (Number(g.betrag) || 0); });
+    const pk = Object.keys(proPerson).sort((a, b) => proPerson[b].bekommen - proPerson[a].bekommen);
+    document.getElementById('jvPersonListe').innerHTML = pk.length ? pk.map(p =>
+      '<div class="jv-anlass-zeile"><span>' + escapeHtml(personLabel(p)) + '</span><span>' + (proPerson[p].bekommen ? 'hat ' + euro(proPerson[p].bekommen) + ' bekommen' : '') + (proPerson[p].bekommen && proPerson[p].verschenkt ? ' · ' : '') + (proPerson[p].verschenkt ? euro(proPerson[p].verschenkt) + ' verschenkt' : '') + '</span></div>').join('')
+      : '<div class="verlauf-leer">Für dieses Jahr liegen noch keine Einträge vor.</div>';
   }
   document.getElementById('jvJahrAuswahl').addEventListener('change', (e) => { jvAusgewaehltesJahr = e.target.value; renderJahresvergleich(); });
 
@@ -611,6 +797,28 @@
   let editId = null;
   let gewaehltFuer = null;
   let gewaehltAnlass = 'geburtstag';
+  let gewaehltRichtung = 'bekommen';
+  let gewaehltVerwendung = '';
+  function richtungAnwenden() {
+    const raus = gewaehltRichtung === 'verschenkt';
+    document.querySelectorAll('#richtungWahl [data-r]').forEach(b => b.classList.toggle('aktiv', b.dataset.r === gewaehltRichtung));
+    document.getElementById('labelVon').textContent = raus ? 'An wen?' : 'Von wem?';
+    document.getElementById('labelFuer').textContent = raus ? 'Wer aus der Familie schenkt? (optional)' : 'Für wen (Familienmitglied)?';
+    document.getElementById('bekommenFelder').style.display = raus ? 'none' : '';
+    document.getElementById('editTitelKopf').textContent = (editId ? (raus ? 'Verschenkt – bearbeiten' : 'Geldgeschenk bearbeiten') : (raus ? 'Geld verschenken' : 'Neues Geldgeschenk'));
+    hinweisAktualisieren();
+  }
+  document.querySelectorAll('#richtungWahl [data-r]').forEach(b => b.addEventListener('click', () => { gewaehltRichtung = b.dataset.r; richtungAnwenden(); }));
+  function hinweisAktualisieren() {
+    document.getElementById('gegenHinweis').innerHTML = gegenHinweisText(document.getElementById('fVon').value, gewaehltAnlass, editId);
+  }
+  document.getElementById('fVon').addEventListener('input', hinweisAktualisieren);
+  function verwendungRendern() {
+    const box = document.getElementById('verwendungReihe');
+    box.innerHTML = VERWENDUNG.map(v => '<button type="button" class="opt klein' + (gewaehltVerwendung === v.id ? ' aktiv' : '') + '" data-v="' + v.id + '">' + v.label + '</button>').join('');
+    box.querySelectorAll('[data-v]').forEach(b => b.addEventListener('click', () => { gewaehltVerwendung = b.dataset.v; verwendungRendern(); }));
+    document.getElementById('verwendungTextFeld').style.display = gewaehltVerwendung === 'ausgegeben' || gewaehltVerwendung === 'gespart' ? '' : 'none';
+  }
   const KEY_ENTWURF = 'geldgeschenke_entwurf';
   let entwurfIntervall = null;
   function entwurfSammeln() {
@@ -660,7 +868,7 @@
       opt.type = 'button';
       opt.className = 'opt' + (gewaehltFuer === p.id ? ' aktiv' : '');
       opt.textContent = p.label;
-      opt.addEventListener('click', () => { gewaehltFuer = p.id; fuerReiheRendern(); });
+      opt.addEventListener('click', () => { gewaehltFuer = (gewaehltRichtung === 'verschenkt' && gewaehltFuer === p.id) ? null : p.id; fuerReiheRendern(); });
       box.appendChild(opt);
     });
   }
@@ -675,6 +883,7 @@
       opt.addEventListener('click', () => {
         gewaehltAnlass = a.id;
         anlassReiheRendern();
+        hinweisAktualisieren();
         document.getElementById('anlassSonstigesFeld').style.display = a.id === 'sonstiges' ? '' : 'none';
       });
       box.appendChild(opt);
@@ -686,17 +895,24 @@
     document.getElementById('vonHistorieListe').innerHTML = namen.map(n => '<option value="' + escapeHtml(n) + '"></option>').join('');
   }
 
-  function editOeffnen(id) {
+  function editOeffnen(id, vorgabe) {
     editId = id || null;
     const g = editId ? geschenke.find(x => x.id === editId) : null;
+    vorgabe = vorgabe || {};
     document.getElementById('editTitelKopf').textContent = g ? 'Geldgeschenk bearbeiten' : 'Neues Geldgeschenk';
     document.getElementById('editId').value = editId || '';
-    document.getElementById('fVon').value = g ? g.von : '';
+    document.getElementById('fVon').value = g ? g.von : (vorgabe.von || '');
     document.getElementById('fBetrag').value = g ? g.betrag : '';
-    document.getElementById('fDatum').value = g ? g.datum : heuteISO();
+    document.getElementById('fDatum').value = g ? g.datum : (vorgabe.datum || heuteISO());
     document.getElementById('fNotiz').value = g ? (g.notiz || '') : '';
-    gewaehltFuer = g ? g.fuer : (PERSONEN()[0] ? PERSONEN()[0].id : null);
-    gewaehltAnlass = g ? g.anlass : 'geburtstag';
+    gewaehltRichtung = g ? richtung(g) : (vorgabe.richtung || (filterRichtung === 'verschenkt' ? 'verschenkt' : 'bekommen'));
+    gewaehltFuer = g ? g.fuer : (gewaehltRichtung === 'verschenkt' ? null : (filterFuer !== 'alle' ? filterFuer : (PERSONEN()[0] ? PERSONEN()[0].id : null)));
+    gewaehltAnlass = g ? g.anlass : (vorgabe.anlass || 'geburtstag');
+    gewaehltVerwendung = g && g.verwendung ? (g.verwendung.art || '') : '';
+    document.getElementById('fVerwendungText').value = g && g.verwendung ? (g.verwendung.text || '') : '';
+    document.getElementById('fDanke').checked = !!(g && g.danke !== false);
+    if (!g) document.getElementById('fDanke').checked = false;
+    verwendungRendern();
     document.getElementById('fAnlassSonstiges').value = g ? (g.anlassText || '') : '';
     document.getElementById('anlassSonstigesFeld').style.display = gewaehltAnlass === 'sonstiges' ? '' : 'none';
     fuerReiheRendern();
@@ -704,6 +920,7 @@
     vonHistorieBefuellen();
     document.getElementById('editLoeschZeile').style.display = g ? '' : 'none';
     document.getElementById('modalEdit').classList.add('zeigen');
+    richtungAnwenden();
 
     const entwurf = (() => { try { const roh = localStorage.getItem(KEY_ENTWURF); return roh ? JSON.parse(roh) : null; } catch (e) { return null; } })();
     if (entwurf && entwurf.daten.editId === editId && entwurfHatInhalt(entwurf.daten)) {
@@ -728,7 +945,7 @@
   document.getElementById('btnEditSpeichern').addEventListener('click', () => {
     const von = document.getElementById('fVon').value.trim();
     if (!von) { document.getElementById('fVon').focus(); return; }
-    if (!gewaehltFuer) { alert('Bitte auswählen, für wen das Geschenk war.'); return; }
+    if (!gewaehltFuer && gewaehltRichtung === 'bekommen') { alert('Bitte auswählen, für wen das Geschenk war.'); return; }
     let g = editId ? geschenke.find(x => x.id === editId) : null;
     if (!g) {
       g = { id: neueId('geld') };
@@ -741,6 +958,14 @@
     g.betrag = parseFloat(document.getElementById('fBetrag').value) || 0;
     g.datum = document.getElementById('fDatum').value || heuteISO();
     g.notiz = document.getElementById('fNotiz').value.trim();
+    g.richtung = gewaehltRichtung;
+    if (gewaehltRichtung === 'bekommen') {
+      g.danke = document.getElementById('fDanke').checked;
+      const text = document.getElementById('fVerwendungText').value.trim();
+      if (gewaehltVerwendung) g.verwendung = Object.assign({ art: gewaehltVerwendung }, text && gewaehltVerwendung !== 'taschengeld' ? { text } : {}); else delete g.verwendung;
+    } else { delete g.danke; delete g.verwendung; g.fuer = gewaehltFuer || 'familie'; }
+    if (!taschengeldBuchen(g)) alert('Für ' + personLabel(g.fuer) + ' gibt es noch kein Taschengeld-Konto (💶 Finanzen → 💰 Taschengeld). Der Eintrag ist gespeichert, aber nicht gebucht.');
+    else if (g.verwendung && g.verwendung.art === 'taschengeld') showTempStatus('💰 ' + euro(g.betrag) + ' im Taschengeld von ' + personLabel(g.fuer) + ' gutgeschrieben', 4);
     speichern(KEY_GESCHENKE, geschenke);
     document.getElementById('modalEdit').classList.remove('zeigen');
     entwurfUeberwachungStoppen(); entwurfLoeschen();
@@ -752,6 +977,7 @@
     if (index === -1) return;
     const entfernt = geschenke[index];
     geschenke.splice(index, 1);
+    taschengeldBuchen(Object.assign({}, entfernt, { verwendung: null })); // ggf. Gutschrift zurücknehmen
     speichern(KEY_GESCHENKE, geschenke);
     document.getElementById('modalEdit').classList.remove('zeigen');
     entwurfUeberwachungStoppen(); entwurfLoeschen();
@@ -759,6 +985,7 @@
     showTempStatus('Eintrag gelöscht', 6, {
       rueckgaengig: () => {
         geschenke.splice(index, 0, entfernt);
+        taschengeldBuchen(entfernt);
         speichern(KEY_GESCHENKE, geschenke);
         renderFilter(); renderListe(); renderUebersicht();
       }
@@ -848,14 +1075,20 @@
   })();
 
   renderFilter();
+  renderRichtungFilter();
   renderAnlassFilter();
   renderListe();
+  // „＋ Schnell festhalten“ aus der Shell
+  window.addEventListener('message', (e) => {
+    if (e.origin !== location.origin || !e.data || e.data.type !== 'shortcutAktion' || e.data.aktion !== 'neu') return;
+    editOeffnen(null, { von: e.data.text || '' });
+  });
 
   if (window.PlanerSync) {
     window._sync = window.PlanerSync.starteSync({
       modul: 'geldgeschenke',
       keys: [KEY_GESCHENKE],
-      onRemoteChange: function () { geschenke = laden(KEY_GESCHENKE, geschenke); renderFilter(); renderListe(); renderUebersicht(); },
+      onRemoteChange: function () { geschenke = laden(KEY_GESCHENKE, geschenke); renderFilter(); renderListe(); renderUebersicht(); if (aktiveAnsicht === 'jahresvergleich') renderJahresvergleich(); },
     });
   }
 })();

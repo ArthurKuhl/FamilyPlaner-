@@ -2,6 +2,9 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
+## 2026-10-26 | 💶 Geldgeschenke: bekommen & verschenkt
+Jeder Eintrag ist jetzt „🎁 bekommen“ oder „💸 verschenkt“ – die Übersicht zeigt pro Person beides. Beim Eintragen erscheint, was zwischen euch zuletzt geschenkt wurde („Tante Sabine hat Lev zum Geburtstag 30 € geschenkt · ihr zuletzt 25 €“). Oben erinnert „🎂 Bald steht etwas an“ an Geburtstage aus den Terminen. Für erhaltenes Geld gibt es „💌 Danke gesagt“ mit einer Liste offener Dankeschöns und „Was passiert mit dem Geld?“ – „💰 Ins Taschengeld“ bucht es direkt auf das Taschengeld-Konto des Kindes. Dazu Suche, Notiz auf der Karte und ein Jahresvergleich pro Familienmitglied.
+
 ## 2026-10-26 | 🎮 Gaming: Spielzeit, Bildschirmzeit & Spieleabend
 Timer und nachgetragene Sitzungen zählen jetzt automatisch zur Spielzeit – mit „≈ 36 % geschafft“ und „zuletzt gespielt vor 2 Tagen“ (neue Sortierung „⏱ Zuletzt“). Jede Sitzung weiß, wer gespielt hat; unter 📊 Statistik lässt sich pro Kind ein Tages- und Wochenlimit setzen. Der Timer zeigt dann die Restzeit, vibriert kurz vor Schluss und wenn die Zeit um ist – und in der Kinderecke steht „🎮 Heute noch 15 Minuten“.
 
