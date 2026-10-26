@@ -2,6 +2,9 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
+## 2026-10-26 | 💬 Chat: Antworten, Reaktionen & Umfragen
+Lange auf eine Nachricht drücken: „↩️ Antworten“ zitiert sie (Zitat antippen springt hin), 👍 ❤️ 😂 😮 🙏 setzen eine Reaktion. Neu unter ＋: 📊 Umfrage – z.B. „Was essen wir heute?“ mit Rezepten als Antworten; ist die Umfrage beendet, landet das Sieger-Rezept mit „🍳 Heute kochen“ im Wochenplan (bei Ausflugsideen: „🧭 Ausflug planen“). Außerdem teilbar: 🧭 Ausflüge (mit Wetter und Route), 📍 der eigene Standort und die 🗒️ Einkaufsliste als Text. Mehrere Fotos lassen sich auf einmal senden, und 🔍 oben durchsucht den Verlauf – auch im verschlüsselten Chat.
+
 ## 2026-10-26 | 🧭 Ausflüge: Wetter, Ideen & „Wie war's?“
 Geplante Ausflüge zeigen bis zu 15 Tage vorher das Wetter am Ziel – mit Regen-Hinweis und „＋ Regensachen auf die Packliste“. Den Ort antippen öffnet die Route in der Karten-App. Neu ist der Reiter 💡 Ideen für „Irgendwann mal“-Ziele (☔ bei Regen, 💶 kostenlos, 👶 für Kinder, 🚗 Fahrzeit) mit 🎲 „Was machen wir am Wochenende?“ – der Würfel schaut aufs Wetter. Nach dem Ausflug fragt „⭐ Wie war's?“ nach Sternen und Kosten; die Statistik zeigt jetzt Ausgaben pro Jahr und die bestbewerteten Ziele.
 

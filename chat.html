@@ -132,6 +132,71 @@
   .personen-wahl { display: flex; flex-wrap: wrap; gap: 8px; }
   .personen-wahl button { border: 2px solid transparent; border-radius: 999px; padding: 8px 14px; font: 700 0.85rem 'Inter', sans-serif; cursor: pointer; color: #fff; }
   .einr-status { font-size: 0.78rem; margin-top: 6px; min-height: 1em; }
+
+  /* ↩️ Antworten */
+  .zitat { display: block; border-left: 3px solid var(--terracotta); background: rgba(127,127,127,0.13); border-radius: 8px; padding: 4px 8px; margin: 1px 0 5px; font-size: 0.78rem; cursor: pointer; max-width: 100%; }
+  .zeile.eigen .zitat { background: rgba(255,255,255,0.18); border-left-color: rgba(255,255,255,0.75); }
+  .zitat b { display: block; font-size: 0.7rem; }
+  .zitat span { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; opacity: 0.85; }
+  #antwortLeiste { display: none; flex-shrink: 0; align-items: center; gap: 8px; padding: 6px 10px 2px; background: var(--cream); border-top: 1px solid var(--parchment); }
+  #antwortLeiste.an { display: flex; }
+  #antwortLeiste .al-inhalt { flex: 1; min-width: 0; border-left: 3px solid var(--terracotta); padding: 2px 8px; font-size: 0.78rem; }
+  #antwortLeiste .al-inhalt b { display: block; font-size: 0.72rem; color: var(--terracotta-text); }
+  #antwortLeiste .al-inhalt span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--bark); }
+  #antwortLeiste button { background: none; border: none; color: var(--bark); font-size: 1rem; cursor: pointer; padding: 4px 6px; }
+  .blase.aufblitzen { animation: aufblitzen 1.6s ease; }
+  @keyframes aufblitzen { 0%, 60% { box-shadow: 0 0 0 3px var(--terracotta); } 100% { box-shadow: 0 1px 2px rgba(0,0,0,0.08); } }
+
+  /* 👍 Reaktionen */
+  .reaktionen { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+  .reak { border: 1px solid rgba(127,127,127,0.3); background: rgba(127,127,127,0.12); color: inherit; border-radius: 999px; padding: 1px 7px; font: 600 0.74rem 'Inter', sans-serif; cursor: pointer; line-height: 1.5; }
+  .reak.meine { border-color: var(--terracotta); background: rgba(196,107,65,0.18); }
+  .zeile.eigen .reak { border-color: rgba(255,255,255,0.35); background: rgba(255,255,255,0.16); }
+  .zeile.eigen .reak.meine { border-color: rgba(255,255,255,0.9); }
+  .reak-reihe { display: flex; justify-content: space-between; gap: 4px; margin-bottom: 10px; background: var(--white); border-radius: 14px; padding: 6px 8px; }
+  .reak-reihe button { background: none; border: none; font-size: 1.6rem; cursor: pointer; padding: 4px 6px; border-radius: 10px; line-height: 1; }
+  .reak-reihe button.an { background: rgba(196,107,65,0.2); }
+
+  /* 📊 Umfrage */
+  .umfrage { min-width: 220px; }
+  .u-frage { font-weight: 700; font-size: 0.92rem; margin-bottom: 2px; }
+  .u-hinweis { font-size: 0.68rem; opacity: 0.75; margin-bottom: 6px; }
+  .u-opt { position: relative; display: flex; align-items: center; gap: 6px; width: 100%; border: 1px solid rgba(127,127,127,0.3); background: rgba(127,127,127,0.08); color: inherit; border-radius: 10px; padding: 7px 9px; margin-top: 5px; font: 500 0.84rem 'Inter', sans-serif; cursor: pointer; text-align: left; overflow: hidden; }
+  .zeile.eigen .u-opt { border-color: rgba(255,255,255,0.35); background: rgba(255,255,255,0.1); }
+  .u-opt .u-balken { position: absolute; left: 0; top: 0; bottom: 0; background: rgba(196,107,65,0.22); transition: width 0.25s; }
+  .zeile.eigen .u-opt .u-balken { background: rgba(255,255,255,0.22); }
+  .u-opt > span { position: relative; }
+  .u-opt .u-text { flex: 1; min-width: 0; }
+  .u-opt .u-zahl { font-weight: 700; font-size: 0.78rem; }
+  .u-opt.gewaehlt { border-color: var(--terracotta); border-width: 2px; padding: 6px 8px; }
+  .zeile.eigen .u-opt.gewaehlt { border-color: #fff; }
+  .u-opt.sieger .u-text { font-weight: 700; }
+  .u-namen { font-size: 0.66rem; opacity: 0.75; margin: 1px 0 0 4px; }
+  .u-fuss { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 7px; font-size: 0.7rem; opacity: 0.9; }
+  .u-fuss button { border: none; border-radius: 999px; padding: 5px 10px; font: 700 0.72rem 'Inter', sans-serif; cursor: pointer; background: var(--terracotta); color: #fff; }
+  .u-fuss button.zweit { background: rgba(127,127,127,0.2); color: inherit; }
+  .feld-in { width: 100%; padding: 9px 11px; border-radius: 10px; border: 1px solid var(--parchment); background: var(--white); color: var(--soil); font: 0.9rem 'Inter', sans-serif; margin-bottom: 6px; }
+  .u-zeile { display: flex; gap: 6px; align-items: center; }
+  .u-zeile .feld-in { flex: 1; min-width: 0; }
+  .u-zeile .u-weg { background: none; border: none; color: var(--terracotta-text); font-size: 0.95rem; cursor: pointer; padding: 0 4px 6px; }
+  .u-vorlagen, .u-knoepfe { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  .u-vorlagen button, .u-knoepfe button { border: 1px solid var(--parchment); background: var(--white); color: var(--soil); border-radius: 999px; padding: 6px 11px; font: 600 0.75rem 'Inter', sans-serif; cursor: pointer; }
+  .u-mehr { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; margin: 4px 0 6px; }
+  .u-mehr input { width: 18px; height: 18px; }
+
+  /* Karten mit zweitem Knopf (Route) */
+  .karte-knoepfe { display: flex; gap: 6px; }
+  .karte-knoepfe button { flex: 1; }
+  .karte button.zweit { background: rgba(127,127,127,0.22); color: inherit; }
+
+  /* 🔍 Suche */
+  #suchLeiste { display: none; flex-shrink: 0; align-items: center; gap: 4px; padding: 6px 8px; background: var(--cream); border-bottom: 1px solid var(--parchment); }
+  #suchLeiste.an { display: flex; }
+  #suchFeld { flex: 1; min-width: 0; padding: 8px 12px; border-radius: 999px; border: 1px solid var(--parchment); background: var(--white); color: var(--soil); font: 0.9rem 'Inter', sans-serif; }
+  #suchZahl { font-size: 0.72rem; color: var(--bark); min-width: 38px; text-align: center; font-variant-numeric: tabular-nums; }
+  #suchLeiste button { background: var(--parchment); color: var(--soil); border: none; border-radius: 50%; width: 34px; height: 34px; cursor: pointer; font-size: 0.85rem; flex-shrink: 0; }
+  .blase.treffer { box-shadow: 0 0 0 2px rgba(201,154,58,0.7); }
+  .blase.treffer-akt { box-shadow: 0 0 0 3px var(--gold); }
 </style>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
@@ -144,13 +209,22 @@
     <div class="top-titel-zeile">
       <h1>💬 Familien-Chat</h1>
       <span class="kopf-info" id="kopfInfo"></span>
-      <button class="kopf-btn" id="btnChatInfo" title="Über den Chat" aria-label="Über den Chat">ℹ️</button>
+      <button class="kopf-btn" id="btnChatSuche" title="Im Chat suchen" aria-label="Im Chat suchen">🔍</button>
+    <button class="kopf-btn" id="btnChatInfo" title="Über den Chat" aria-label="Über den Chat">ℹ️</button>
     </div>
   </header>
+  <div id="suchLeiste">
+    <input type="search" id="suchFeld" placeholder="Im Chat suchen …" aria-label="Im Chat suchen" autocomplete="off">
+    <span id="suchZahl"></span>
+    <button type="button" id="btnSuchHoch" aria-label="Älterer Treffer" title="Älterer Treffer">▲</button>
+    <button type="button" id="btnSuchRunter" aria-label="Neuerer Treffer" title="Neuerer Treffer">▼</button>
+    <button type="button" id="btnSuchZu" aria-label="Suche schließen" title="Suche schließen">✕</button>
+  </div>
 
   <div id="einrichtung"></div>
   <div id="verlauf" aria-live="polite"></div>
 
+  <div id="antwortLeiste"><div class="al-inhalt"><b id="alWer"></b><span id="alText"></span></div><button type="button" id="btnAntwortWeg" aria-label="Antworten abbrechen">✕</button></div>
   <div id="eingabeLeiste">
     <button class="rund" id="btnPlus" aria-label="Teilen: Foto, Termin, Rezept …" title="Foto, Termin, Rezept, Wunsch teilen">＋</button>
     <textarea id="eingabe" rows="1" placeholder="Nachricht …" aria-label="Nachricht"></textarea>
@@ -163,7 +237,7 @@
     <button class="rund" id="btnAufnahmeWeg" style="background:var(--parchment);color:var(--soil);" aria-label="Aufnahme verwerfen">🗑</button>
     <button class="rund" id="btnAufnahmeSenden" style="background:var(--moss);color:#fff;" aria-label="Sprachnachricht senden">➤</button>
   </div>
-  <input type="file" id="bildInput" accept="image/*" style="display:none;">
+  <input type="file" id="bildInput" accept="image/*" multiple style="display:none;">
   <input type="file" id="kameraInput" accept="image/*" capture="environment" style="display:none;">
 
   <div class="blatt-bg" id="blattBg"><div class="blatt" id="blatt"></div></div>
@@ -199,7 +273,7 @@
   const geraet = () => (window.PlanerSync && window.PlanerSync.geraeteId) || 'geraet';
 
   let db = null, nachrichten = [], limit = SEITE, abbestellen = null, statusAbbestellen = null;
-  let status = { gelesen: {}, verschluesselung: null }, schluessel = null, statusGeladen = false;
+  let status = { gelesen: {}, verschluesselung: null, reaktionen: {}, stimmen: {}, umfrageEnde: {} }, schluessel = null, statusGeladen = false;
   const medienCache = new Map(); // id → { bild | audio } (entschlüsselt)
 
   // ---------------------------------------------------------------- Verschlüsselung
@@ -237,7 +311,7 @@
     db = firebase.firestore();
     statusAbbestellen = statusDoc().onSnapshot(snap => {
       const d = (snap.exists && snap.data()) || {};
-      status = { gelesen: d.gelesen || {}, verschluesselung: d.verschluesselung || null };
+      status = { gelesen: d.gelesen || {}, verschluesselung: d.verschluesselung || null, reaktionen: d.reaktionen || {}, stimmen: d.stimmen || {}, umfrageEnde: d.umfrageEnde || {} };
       statusGeladen = true;
       einrichtungPruefen();
       render();
@@ -327,6 +401,7 @@
       }
       nachrichten = liste.reverse();
       nachrichten._mehr = snap.size >= limit;
+      if (suche.offen) sucheAusfuehren(false);
       render();
       gelesenMelden();
     }, err => fehlerZeigen(err));
@@ -361,16 +436,79 @@
     if (m.typ === 'bild') h += medienCache.has(m.id) ? '<img class="bild" src="' + medienCache.get(m.id).bild + '" alt="Foto">' : '<div class="platzhalter" data-medien="' + esc(m.id) + '">📷 Foto wird geladen …</div>';
     if (m.typ === 'sprache') h += '<div class="sprache" data-sprache="' + esc(m.id) + '"><button type="button" aria-label="Abspielen">▶</button><div class="balken"><span></span></div><span class="dauer">' + dauerText(m.dauer || 0) + '</span></div>';
     if (m.typ === 'karte' && m.karte) h += karteHtml(m.karte);
+    if (m.typ === 'umfrage' && m.umfrage) h += umfrageHtml(m);
     if (m.text) h += '<div class="text">' + linkify(m.text) + '</div>';
     return h;
   }
+  // Kurzfassung einer Nachricht (für Zitate beim Antworten)
+  function kurzVon(m) {
+    if (!m) return '';
+    let t = '';
+    if (m.typ === 'umfrage' && m.umfrage) t = '📊 ' + (m.umfrage.frage || 'Umfrage');
+    else if (m.text) t = m.text;
+    else if (m.typ === 'bild') t = '📷 Foto';
+    else if (m.typ === 'sprache') t = '🎤 Sprachnachricht';
+    else if (m.karte) t = (KARTE_ICON[m.karte.art] || '📎') + ' ' + (m.karte.titel || '');
+    t = String(t).replace(/\s+/g, ' ').trim();
+    return t.length > 100 ? t.slice(0, 99) + '…' : t;
+  }
+  const nameVon = (pid, fallback) => ((person(pid) || {}).label) || fallback || '?';
+  function zitatHtml(a) {
+    return '<span class="zitat" data-zitat="' + esc(a.id) + '"><b>' + esc(a.von === ich() ? 'Du' : nameVon(a.von, a.name)) + '</b><span>' + esc(a.kurz || '…') + '</span></span>';
+  }
+  function reaktionenHtml(m) {
+    const r = (status.reaktionen || {})[m.id];
+    if (!r) return '';
+    const gruppen = {};
+    Object.keys(r).forEach(p => { const e = r[p]; if (typeof e === 'string' && e) (gruppen[e] = gruppen[e] || []).push(p); });
+    const emojis = Object.keys(gruppen);
+    if (!emojis.length) return '';
+    return '<div class="reaktionen">' + emojis.map(e => {
+      const ps = gruppen[e];
+      return '<button type="button" class="reak' + (ps.includes(ich()) ? ' meine' : '') + '" data-reak="' + esc(m.id) + '" data-e="' + esc(e) + '" title="' + esc(ps.map(p => nameVon(p)).join(', ')) + '">' + esc(e) + (ps.length > 1 ? ' ' + ps.length : '') + '</button>';
+    }).join('') + '</div>';
+  }
+  // ---------- 📊 Umfrage ----------
+  function umfrageStand(m) {
+    const u = m.umfrage, st = (status.stimmen || {})[m.id] || {};
+    const zaehl = (u.optionen || []).map(() => []);
+    Object.keys(st).forEach(p => { const w = Array.isArray(st[p]) ? st[p] : [st[p]]; w.forEach(i => { if (zaehl[i] && !zaehl[i].includes(p)) zaehl[i].push(p); }); });
+    const teilnehmer = Object.keys(st).filter(p => (Array.isArray(st[p]) ? st[p] : [st[p]]).some(i => zaehl[i])).length;
+    const max = Math.max(0, ...zaehl.map(z => z.length));
+    const sieger = max > 0 ? zaehl.map((z, i) => z.length === max ? i : -1).filter(i => i >= 0) : [];
+    const meine = Array.isArray(st[ich()]) ? st[ich()] : (st[ich()] !== undefined ? [st[ich()]] : []);
+    return { zaehl, teilnehmer, max, sieger, meine, ende: (status.umfrageEnde || {})[m.id] || 0 };
+  }
+  function umfrageHtml(m) {
+    const u = m.umfrage, s = umfrageStand(m);
+    const icon = (o) => o.art === 'rezept' ? '🍳 ' : (o.art === 'idee' ? '🧭 ' : '');
+    let h = '<div class="umfrage"><div class="u-frage">📊 ' + esc(u.frage || 'Umfrage') + '</div>' +
+      '<div class="u-hinweis">' + (s.ende ? '✅ Beendet' : (u.mehrfach ? 'Mehrere Antworten möglich' : 'Eine Antwort wählen')) + '</div>';
+    (u.optionen || []).forEach((o, i) => {
+      const n = s.zaehl[i].length;
+      const breite = s.teilnehmer ? Math.round(n / s.teilnehmer * 100) : 0;
+      h += '<button type="button" class="u-opt' + (s.meine.includes(i) ? ' gewaehlt' : '') + (s.ende && s.sieger.includes(i) ? ' sieger' : '') + '" data-u="' + esc(m.id) + '" data-o="' + i + '">' +
+        '<span class="u-balken" style="width:' + breite + '%"></span><span class="u-text">' + icon(o) + esc(o.text) + (s.ende && s.sieger.includes(i) ? ' 🏆' : '') + '</span><span class="u-zahl">' + (n || '') + '</span></button>' +
+        (n ? '<div class="u-namen">' + esc(s.zaehl[i].map(p => nameVon(p)).join(', ')) + '</div>' : '');
+    });
+    h += '<div class="u-fuss"><span>' + (s.teilnehmer === 1 ? '1 Stimme' : s.teilnehmer + ' Stimmen') + '</span>';
+    if (!s.ende && m.von === ich()) h += '<button type="button" class="zweit" data-u-ende="' + esc(m.id) + '">Umfrage beenden</button>';
+    if (s.ende && s.sieger.length === 1) {
+      const o = u.optionen[s.sieger[0]];
+      if (o && o.art === 'rezept' && o.id) h += '<button type="button" data-u-rezept="' + esc(m.id) + '">🍳 Heute kochen</button>';
+      if (o && o.art === 'idee' && o.id) h += '<button type="button" data-u-idee="' + esc(o.id) + '">🧭 Ausflug planen</button>';
+    }
+    return h + '</div></div>';
+  }
   const dauerText = (s) => Math.floor(s / 60) + ':' + String(Math.round(s % 60)).padStart(2, '0');
-  const KARTE_ICON = { termin: '🗓️', rezept: '🍳', wunsch: '🎁', einkauf: '🛒' };
-  const KARTE_KNOPF = { termin: 'Im Kalender öffnen', rezept: 'Rezept öffnen', wunsch: 'In der Wunschliste öffnen', einkauf: 'Einkaufsliste öffnen' };
+  const KARTE_ICON = { termin: '🗓️', rezept: '🍳', wunsch: '🎁', einkauf: '🛒', ausflug: '🧭', standort: '📍' };
+  const KARTE_KNOPF = { termin: 'Im Kalender öffnen', rezept: 'Rezept öffnen', wunsch: 'In der Wunschliste öffnen', einkauf: 'Einkaufsliste öffnen', ausflug: 'Öffnen', standort: '🗺️ In der Karten-App öffnen' };
   function karteHtml(k) {
+    const daten = esc(JSON.stringify({ art: k.art, id: k.id, datum: k.datum, ort: k.ort, lat: k.lat, lon: k.lon }));
+    const route = k.art === 'ausflug' && k.ort ? '<button type="button" class="zweit" data-karte-route=\'' + daten + '\'>🧭 Route</button>' : '';
     return '<div class="karte"><div class="karte-titel">' + (KARTE_ICON[k.art] || '📎') + ' ' + esc(k.titel || '') + '</div>' +
       (k.info ? '<div class="karte-info">' + esc(k.info) + '</div>' : '') +
-      '<button type="button" data-karte=\'' + esc(JSON.stringify({ art: k.art, id: k.id, datum: k.datum })) + '\'>' + (KARTE_KNOPF[k.art] || 'Öffnen') + '</button></div>';
+      '<div class="karte-knoepfe"><button type="button" data-karte=\'' + daten + '\'>' + (KARTE_KNOPF[k.art] || 'Öffnen') + '</button>' + route + '</div></div>';
   }
   function render() {
     if (!db || $('einrichtung').classList.contains('zeigen')) return;
@@ -396,9 +534,11 @@
         const gel = gelesenVon(m);
         haken = m._ausstehend ? '<span class="haken" title="Wird gesendet">🕓</span>' : '<span class="haken' + (gel.length ? ' gelesen' : '') + '" title="' + (gel.length ? 'Gelesen von ' + esc(gel.join(', ')) : 'Gesendet') + '">' + (gel.length ? '✓✓' : '✓') + '</span>';
       }
-      html += '<div class="zeile' + (eigen ? ' eigen' : '') + (folge ? ' folge' : '') + '"><div class="blase" data-id="' + esc(m.id) + '">' +
+      const trefferKlasse = suche.offen && suche.treffer.includes(m.id) ? (suche.treffer[suche.idx] === m.id ? ' treffer treffer-akt' : ' treffer') : '';
+      html += '<div class="zeile' + (eigen ? ' eigen' : '') + (folge ? ' folge' : '') + '"><div class="blase' + trefferKlasse + '" data-id="' + esc(m.id) + '">' +
         (!eigen && !folge ? '<div class="absender" style="color:' + esc((p && p.farbe) || 'var(--terracotta)') + '">' + esc((p && p.label) || m.name || '?') + '</div>' : '') +
-        inhaltHtml(m) + '<div class="fuss">' + zeitText(m._ms) + ' ' + haken + '</div></div></div>';
+        (m.antwort && m.antwort.id && !m._kaputt ? zitatHtml(m.antwort) : '') +
+        inhaltHtml(m) + reaktionenHtml(m) + '<div class="fuss">' + zeitText(m._ms) + ' ' + haken + '</div></div></div>';
       letzterVon = m.von; letzteZeit = m._ms;
     });
     box.innerHTML = html;
@@ -408,6 +548,20 @@
     const aelt = $('btnAeltere');
     if (aelt) aelt.addEventListener('click', () => { limit += SEITE; render._aeltere = true; abonnieren(); });
     medienBeobachten();
+    if (sprungZiel) { const ziel = sprungZiel; sprungZiel = null; zuNachricht(ziel, true); }
+  }
+  // Zu einer Nachricht springen (Zitat antippen, Suchtreffer). Ist sie noch nicht geladen, ältere nachladen.
+  let sprungZiel = null;
+  function zuNachricht(id, nachgeladen) {
+    const el = document.querySelector('.blase[data-id="' + CSS.escape(id) + '"]');
+    if (el) {
+      el.scrollIntoView({ block: 'center', behavior: nachgeladen ? 'auto' : 'smooth' });
+      el.classList.remove('aufblitzen'); void el.offsetWidth; el.classList.add('aufblitzen');
+      return true;
+    }
+    if (nachrichten._mehr && limit < 2000) { sprungZiel = id; limit += SEITE * 2; render._aeltere = true; abonnieren(); toast('⏳ Lade ältere Nachrichten …'); return false; }
+    toast('Diese Nachricht gibt es nicht mehr.');
+    return false;
   }
 
   // Fotos/Sprachnachrichten erst laden, wenn sie in Sicht kommen
@@ -459,10 +613,12 @@
     const p = person(ich()) || {};
     const ref = chatCol().doc();
     const doc = { von: ich(), name: p.label || '', geraet: geraet(), zeit: Date.now(), erstellt: firebase.firestore.FieldValue.serverTimestamp(), typ: inhalt.typ, dauer: inhalt.dauer || null };
-    const geheim = { text: inhalt.text || '', karte: inhalt.karte || null };
+    const antwort = inhalt.antwort !== undefined ? inhalt.antwort : antwortAuf;
+    const geheim = { text: inhalt.text || '', karte: inhalt.karte || null, umfrage: inhalt.umfrage || null, antwort: antwort || null };
+    antwortBeenden();
     if (verschluesselt) Object.assign(doc, { v: 1 }, await verschl(schluessel, JSON.stringify(geheim)));
     else Object.assign(doc, geheim);
-    if (!doc.karte) delete doc.karte;
+    ['karte', 'umfrage', 'antwort'].forEach(k => { if (!doc[k]) delete doc[k]; });
     if (medien) {
       medienCache.set(ref.id, medien);
       const mdoc = verschluesselt ? Object.assign({ v: 1 }, await verschl(schluessel, JSON.stringify(medien))) : medien;
@@ -505,25 +661,36 @@
   // ---------------------------------------------------------------- Foto
   $('kameraInput').addEventListener('change', (e) => bildGewaehlt(e));
   $('bildInput').addEventListener('change', (e) => bildGewaehlt(e));
-  function bildGewaehlt(e) {
-    const datei = e.target.files && e.target.files[0]; e.target.value = '';
-    if (!datei) return;
-    const img = new Image();
-    img.onload = () => {
-      let breite = 1280, qualitaet = 0.72, url = '';
-      for (let i = 0; i < 4; i++) {
-        const f = Math.min(1, breite / Math.max(img.width, img.height));
-        const c = document.createElement('canvas'); c.width = Math.round(img.width * f); c.height = Math.round(img.height * f);
-        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-        url = c.toDataURL('image/jpeg', qualitaet);
-        if (url.length < 420000) break;
-        breite = Math.round(breite * 0.8); qualitaet -= 0.07;
-      }
-      URL.revokeObjectURL(img.src);
-      senden({ typ: 'bild' }, { bild: url }).catch(err => alert('Foto konnte nicht gesendet werden: ' + fehlerText(err)));
-    };
-    img.onerror = () => alert('Die Datei ist kein lesbares Bild.');
-    img.src = URL.createObjectURL(datei);
+  function bildVorbereiten(datei) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        let breite = 1280, qualitaet = 0.72, url = '';
+        for (let i = 0; i < 4; i++) {
+          const f = Math.min(1, breite / Math.max(img.width, img.height));
+          const c = document.createElement('canvas'); c.width = Math.round(img.width * f); c.height = Math.round(img.height * f);
+          c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+          url = c.toDataURL('image/jpeg', qualitaet);
+          if (url.length < 420000) break;
+          breite = Math.round(breite * 0.8); qualitaet -= 0.07;
+        }
+        URL.revokeObjectURL(img.src);
+        resolve(url);
+      };
+      img.onerror = () => { URL.revokeObjectURL(img.src); reject(new Error('kein Bild')); };
+      img.src = URL.createObjectURL(datei);
+    });
+  }
+  async function bildGewaehlt(e) {
+    const dateien = Array.from((e.target.files) || []).slice(0, 10); e.target.value = '';
+    if (!dateien.length) return;
+    if (dateien.length > 1) toast('📷 ' + dateien.length + ' Fotos werden gesendet …');
+    for (const datei of dateien) {
+      let url;
+      try { url = await bildVorbereiten(datei); } catch (err) { alert('„' + datei.name + '“ ist kein lesbares Bild.'); continue; }
+      try { await senden({ typ: 'bild' }, { bild: url }); }
+      catch (err) { alert('Foto konnte nicht gesendet werden: ' + fehlerText(err)); break; }
+    }
   }
 
   // ---------------------------------------------------------------- Sprachnachricht
@@ -588,7 +755,11 @@
       '<button type="button" data-t="termin"><span class="em">🗓️</span>Termin</button>' +
       '<button type="button" data-t="rezept"><span class="em">🍳</span>Rezept</button>' +
       '<button type="button" data-t="wunsch"><span class="em">🎁</span>Wunsch</button>' +
+      '<button type="button" data-t="umfrage"><span class="em">📊</span>Umfrage</button>' +
+      '<button type="button" data-t="ausflug"><span class="em">🧭</span>Ausflug</button>' +
+      '<button type="button" data-t="standort"><span class="em">📍</span>Mein Standort</button>' +
       '<button type="button" data-t="einkauf"><span class="em">🛒</span>Ich fahre einkaufen</button>' +
+      '<button type="button" data-t="liste"><span class="em">🗒️</span>Einkaufsliste schicken</button>' +
       '<button type="button" data-t="unterwegs"><span class="em">🚗</span>Bin unterwegs</button></div>');
     $('blatt').querySelectorAll('[data-t]').forEach(b => b.addEventListener('click', () => teilen(b.dataset.t)));
   });
@@ -630,12 +801,190 @@
       return;
     }
     if (was === 'unterwegs') { blattZu(); senden({ typ: 'text', text: '🚗 Bin unterwegs – bis gleich!' }).catch(e => alert(fehlerText(e))); }
+    if (was === 'umfrage') { umfrageBlatt(); return; }
+    if (was === 'ausflug') {
+      const h = heuteISO();
+      const alle = lies('ausfluege_planung', []).filter(a => a && (a.titel || a.ort));
+      const kommend = alle.filter(a => !a.datum || (a.datumBis || a.datum) >= h).sort((a, b) => (a.datum || '9999').localeCompare(b.datum || '9999'));
+      const liste = (kommend.length ? kommend : alle.slice().sort((a, b) => (b.datum || '').localeCompare(a.datum || '')).slice(0, 10))
+        .map(a => ({ icon: '🧭', titel: a.titel || a.ort, info: ausflugInfo(a), a }));
+      auswahl('🧭 Ausflug teilen', liste, 'Noch keine Ausflüge geplant (oder Ausflüge auf diesem Gerät noch nicht geöffnet).',
+        x => karteSenden({ art: 'ausflug', id: x.a.id, titel: x.a.titel || x.a.ort, datum: x.a.datum || '', ort: x.a.ort || '', info: x.info }, 'Wer kommt mit? 🙋'));
+      return;
+    }
+    if (was === 'standort') {
+      blattZu();
+      if (!navigator.geolocation) { alert('Dieses Gerät kann den Standort nicht ermitteln.'); return; }
+      toast('📍 Standort wird ermittelt …');
+      navigator.geolocation.getCurrentPosition(pos => {
+        const lat = Math.round(pos.coords.latitude * 100000) / 100000, lon = Math.round(pos.coords.longitude * 100000) / 100000;
+        const genau = pos.coords.accuracy ? ' · auf ca. ' + (pos.coords.accuracy < 1000 ? Math.round(pos.coords.accuracy / 10) * 10 + ' m' : (pos.coords.accuracy / 1000).toFixed(1).replace('.', ',') + ' km') + ' genau' : '';
+        karteSenden({ art: 'standort', titel: 'Hier bin ich gerade', info: 'Stand ' + zeitText(Date.now()) + ' Uhr' + genau, lat, lon });
+      }, err => alert('Standort nicht verfügbar' + (err && err.code === 1 ? ' – bitte die Standortfreigabe erlauben.' : '.')), { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 });
+      return;
+    }
+    if (was === 'liste') {
+      const listen = lies('einkauf_listen', []).filter(l => l && Array.isArray(l.items) && l.items.some(i => !i.erledigt));
+      const schicken = (l) => {
+        const zeilen = l.items.filter(i => !i.erledigt).map(i => '• ' + (i.menge ? String(i.menge) + (i.einheit ? ' ' + i.einheit : '') + ' ' : '') + i.name);
+        senden({ typ: 'text', text: '🛒 Einkaufsliste „' + (l.name || 'Einkauf') + '“ (' + zeilen.length + '):\n' + zeilen.join('\n') }).catch(e => alert(fehlerText(e)));
+      };
+      if (listen.length === 1) { blattZu(); schicken(listen[0]); return; }
+      auswahl('🗒️ Welche Liste schicken?', listen.map(l => ({ icon: '🛒', titel: l.name || 'Einkauf', info: l.items.filter(i => !i.erledigt).length + ' offene Artikel', l })),
+        'Auf den Einkaufslisten ist gerade nichts offen.', x => schicken(x.l));
+    }
+  }
+  // Ausflug-Info inkl. Wetter aus dem Wetter-Speicher der Ausflüge (kein eigener Abruf)
+  function ausflugInfo(a) {
+    const teile = [];
+    if (a.datum) teile.push(datumText(a.datum) + (a.datumBis && a.datumBis !== a.datum ? ' – ' + datumText(a.datumBis) : '') + (a.abfahrt ? ' · ab ' + a.abfahrt : ''));
+    if (a.ort) teile.push('📍 ' + a.ort);
+    try {
+      const c = lies('ausfluege_wetterCache', {});
+      const geo = a.ort && c.geo && c.geo[String(a.ort).trim().toLowerCase()];
+      const v = geo && geo.lat != null && c.vorhersage && c.vorhersage[Number(geo.lat).toFixed(2) + ',' + Number(geo.lon).toFixed(2)];
+      const i = v && v.daily && v.daily.time ? v.daily.time.indexOf(a.datum) : -1;
+      if (i >= 0) {
+        const d = v.daily, code = d.weather_code[i];
+        const em = code === 0 ? '☀️' : code <= 2 ? '⛅' : code === 3 ? '☁️' : code <= 48 ? '🌫️' : code <= 67 ? '🌧️' : code <= 77 ? '🌨️' : code <= 82 ? '🌦️' : code <= 86 ? '🌨️' : '⛈️';
+        teile.push(em + ' ' + Math.round(d.temperature_2m_max[i]) + '°' + (d.precipitation_probability_max && d.precipitation_probability_max[i] != null ? ' · 💧 ' + d.precipitation_probability_max[i] + ' %' : ''));
+      }
+    } catch (e) {}
+    return teile.join(' · ');
+  }
+
+  // ---------- 📊 Umfrage anlegen ----------
+  const UMFRAGE_VORLAGEN = [
+    { frage: 'Was essen wir heute?', optionen: [] , rezepte: true },
+    { frage: 'Wer kommt mit?', optionen: ['Bin dabei 🙋', 'Kann nicht', 'Vielleicht'] },
+    { frage: 'Welcher Ausflug am Wochenende?', optionen: [], ideen: true },
+    { frage: 'Wann passt es euch?', optionen: ['Sa vormittags', 'Sa nachmittags', 'So vormittags', 'So nachmittags'], mehrfach: true },
+  ];
+  let uEntwurf = null;
+  function umfrageBlatt() {
+    if (!uEntwurf) uEntwurf = { frage: '', optionen: [{ text: '' }, { text: '' }], mehrfach: false };
+    const u = uEntwurf;
+    blatt('<h3>📊 Umfrage</h3>' +
+      '<div class="u-vorlagen">' + UMFRAGE_VORLAGEN.map((v, i) => '<button type="button" data-uv="' + i + '">' + esc(v.frage) + '</button>').join('') + '</div>' +
+      '<input class="feld-in" id="uFrage" placeholder="Frage, z.B. Was essen wir heute?" value="' + esc(u.frage) + '" maxlength="140">' +
+      u.optionen.map((o, i) => '<div class="u-zeile"><input class="feld-in" data-uo="' + i + '" placeholder="Antwort ' + (i + 1) + '" value="' + esc((o.art === 'rezept' ? '🍳 ' : o.art === 'idee' ? '🧭 ' : '') + o.text) + '" maxlength="80"' + (o.art ? ' readonly' : '') + '>' +
+        '<button type="button" class="u-weg" data-uweg="' + i + '" aria-label="Antwort entfernen">✕</button></div>').join('') +
+      '<div class="u-knoepfe">' + (u.optionen.length < 10 ? '<button type="button" id="uPlus">＋ Antwort</button><button type="button" id="uRezepte">🍳 Aus Rezepten</button><button type="button" id="uIdeen">💡 Aus Ausflugsideen</button>' : '') + '</div>' +
+      '<label class="u-mehr"><input type="checkbox" id="uMehr"' + (u.mehrfach ? ' checked' : '') + '> Mehrere Antworten erlaubt</label>' +
+      '<button type="button" class="einr-knopf" id="btnUmfrageSenden">📊 Umfrage senden</button><div class="einr-status" id="uStatus"></div>');
+    const merken = () => {
+      u.frage = $('uFrage').value;
+      $('blatt').querySelectorAll('[data-uo]').forEach(inp => { const o = u.optionen[Number(inp.dataset.uo)]; if (o && !o.art) o.text = inp.value; });
+      u.mehrfach = $('uMehr').checked;
+    };
+    $('uFrage').addEventListener('input', merken);
+    $('uMehr').addEventListener('change', merken);
+    $('blatt').querySelectorAll('[data-uo]').forEach(inp => inp.addEventListener('input', merken));
+    $('blatt').querySelectorAll('[data-uweg]').forEach(b => b.addEventListener('click', () => { merken(); u.optionen.splice(Number(b.dataset.uweg), 1); if (u.optionen.length < 2) u.optionen.push({ text: '' }); umfrageBlatt(); }));
+    const dazu = (o) => {
+      const leer = u.optionen.findIndex(x => !x.art && !x.text.trim());
+      if (u.optionen.some(x => x.art && x.art === o.art && x.id === o.id)) return;
+      if (leer >= 0) u.optionen[leer] = o; else if (u.optionen.length < 10) u.optionen.push(o);
+    };
+    $('blatt').querySelectorAll('[data-uv]').forEach(b => b.addEventListener('click', () => {
+      const v = UMFRAGE_VORLAGEN[Number(b.dataset.uv)];
+      u.frage = v.frage; u.mehrfach = !!v.mehrfach;
+      const eigene = u.optionen.filter(o => o.art || o.text.trim());
+      u.optionen = v.optionen.length ? v.optionen.map(t => ({ text: t })) : (eigene.length ? eigene : [{ text: '' }, { text: '' }]);
+      umfrageBlatt();
+      if (v.rezepte) $('uRezepte').click();
+      if (v.ideen) $('uIdeen').click();
+    }));
+    const plus = $('uPlus'); if (plus) plus.addEventListener('click', () => { merken(); u.optionen.push({ text: '' }); umfrageBlatt(); const l = $('blatt').querySelectorAll('[data-uo]'); l[l.length - 1].focus(); });
+    const rezeptAuswahl = () => {
+      merken();
+      const gewaehlt = new Set(u.optionen.filter(o => o.art === 'rezept').map(o => o.id));
+      const liste = lies('kochen_rezepte', []).filter(r => r && r.titel && !gewaehlt.has(r.id)).sort((a, b) => a.titel.localeCompare(b.titel, 'de'))
+        .map(r => ({ icon: '🍳', titel: r.titel, info: r.zeit ? '⏱ ' + r.zeit + ' Min.' : '', r }));
+      auswahl('🍳 Rezept als Antwort', liste, 'Keine (weiteren) Rezepte gefunden.', x => { dazu({ text: x.r.titel, art: 'rezept', id: x.r.id }); umfrageBlatt(); });
+      zurueckKnopf();
+    };
+    const ideenAuswahl = () => {
+      merken();
+      const gewaehlt = new Set(u.optionen.filter(o => o.art === 'idee').map(o => o.id));
+      const liste = lies('ausfluege_ideen', []).filter(i => i && (i.titel || i.ort) && !gewaehlt.has(i.id)).sort((a, b) => (a.titel || '').localeCompare(b.titel || '', 'de'))
+        .map(i => ({ icon: '💡', titel: i.titel || i.ort, info: i.ort || '', i }));
+      auswahl('💡 Ausflugsidee als Antwort', liste, 'Keine (weiteren) Ausflugsideen gefunden – sie werden unter Ausflüge → 💡 Ideen gesammelt.', x => { dazu({ text: x.i.titel || x.i.ort, art: 'idee', id: x.i.id }); umfrageBlatt(); });
+      zurueckKnopf();
+    };
+    // Unten in der Auswahl: zurück zur Umfrage statt alles zu schließen
+    const zurueckKnopf = () => { const z = $('btnBlattZu'); if (z) { z.textContent = '← Zurück zur Umfrage'; z.replaceWith(z.cloneNode(true)); $('btnBlattZu').addEventListener('click', umfrageBlatt); } };
+    const rb = $('uRezepte'); if (rb) rb.addEventListener('click', rezeptAuswahl);
+    const ib = $('uIdeen'); if (ib) ib.addEventListener('click', ideenAuswahl);
+    $('btnUmfrageSenden').addEventListener('click', () => {
+      merken();
+      const frage = u.frage.trim();
+      const optionen = u.optionen.map(o => Object.assign({}, o, { text: String(o.text || '').trim() })).filter(o => o.text);
+      if (!frage) { $('uStatus').textContent = '⚠ Bitte eine Frage eintragen.'; $('uFrage').focus(); return; }
+      if (optionen.length < 2) { $('uStatus').textContent = '⚠ Bitte mindestens zwei Antworten.'; return; }
+      blattZu();
+      uEntwurf = null;
+      senden({ typ: 'umfrage', umfrage: { frage, optionen: optionen.map(o => o.art ? { text: o.text, art: o.art, id: o.id } : { text: o.text }), mehrfach: !!u.mehrfach } })
+        .catch(e => alert('Senden fehlgeschlagen: ' + fehlerText(e)));
+    });
+  }
+  function abstimmen(mid, i) {
+    const m = nachrichten.find(x => x.id === mid);
+    if (!m || !m.umfrage) return;
+    if ((status.umfrageEnde || {})[mid]) { toast('Die Umfrage ist schon beendet.'); return; }
+    const p = ich(); if (!p) return;
+    let meine = umfrageStand(m).meine.slice();
+    if (m.umfrage.mehrfach) meine = meine.includes(i) ? meine.filter(x => x !== i) : meine.concat([i]).sort((a, b) => a - b);
+    else meine = (meine.length === 1 && meine[0] === i) ? [] : [i];
+    status.stimmen = Object.assign({}, status.stimmen, { [mid]: Object.assign({}, (status.stimmen || {})[mid], { [p]: meine }) });
+    render();
+    statusDoc().set({ stimmen: { [mid]: { [p]: meine } } }, { merge: true }).catch(e => toast('⚠ ' + fehlerText(e)));
+  }
+  function reagieren(mid, emoji) {
+    const p = ich(); if (!p) return;
+    const aktuell = ((status.reaktionen || {})[mid] || {})[p];
+    const neu = aktuell === emoji ? null : emoji;
+    const kopie = Object.assign({}, (status.reaktionen || {})[mid]);
+    if (neu) kopie[p] = neu; else delete kopie[p];
+    status.reaktionen = Object.assign({}, status.reaktionen, { [mid]: kopie });
+    render();
+    statusDoc().set({ reaktionen: { [mid]: { [p]: neu || firebase.firestore.FieldValue.delete() } } }, { merge: true }).catch(e => toast('⚠ ' + fehlerText(e)));
+  }
+  // „Heute kochen“: Gewinner-Rezept in den Wochenplan von heute
+  let kochenSync = null;
+  function rezeptHeuteKochen(rid, titel) {
+    const wp = lies('kochen_wochenplan', {}) || {}, h = heuteISO();
+    if (wp[h] === rid) { toast('🍳 Steht schon im Wochenplan für heute'); return; }
+    if (wp[h] && !confirm('Für heute steht schon ein anderes Rezept im Wochenplan – ersetzen?')) return;
+    wp[h] = rid;
+    try { localStorage.setItem('kochen_wochenplan', JSON.stringify(wp)); } catch (e) { alert('Speichern fehlgeschlagen.'); return; }
+    if (kochenSync) kochenSync.melde();
+    toast('🍳 „' + titel + '“ steht jetzt heute im Wochenplan');
   }
 
   // ---------------------------------------------------------------- Klicks im Verlauf
   $('verlauf').addEventListener('click', (e) => {
     const kb = e.target.closest('[data-karte]');
     if (kb) { karteOeffnen(JSON.parse(kb.getAttribute('data-karte'))); return; }
+    const kr = e.target.closest('[data-karte-route]');
+    if (kr) { const k = JSON.parse(kr.getAttribute('data-karte-route')); window.open('https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(k.ort || ''), '_blank', 'noopener'); return; }
+    const z = e.target.closest('[data-zitat]');
+    if (z) { zuNachricht(z.dataset.zitat); return; }
+    const rk = e.target.closest('[data-reak]');
+    if (rk) { reagieren(rk.dataset.reak, rk.dataset.e); return; }
+    const uo = e.target.closest('[data-u]');
+    if (uo) { abstimmen(uo.dataset.u, Number(uo.dataset.o)); return; }
+    const ue = e.target.closest('[data-u-ende]');
+    if (ue) { if (confirm('Umfrage beenden? Danach kann niemand mehr abstimmen.')) statusDoc().set({ umfrageEnde: { [ue.dataset.uEnde]: Date.now() } }, { merge: true }).catch(x => toast('⚠ ' + fehlerText(x))); return; }
+    const ur = e.target.closest('[data-u-rezept]');
+    if (ur) {
+      const m = nachrichten.find(x => x.id === ur.dataset.uRezept);
+      const s2 = m && umfrageStand(m), o = s2 && m.umfrage.optionen[s2.sieger[0]];
+      if (o) rezeptHeuteKochen(o.id, o.text);
+      return;
+    }
+    const ui = e.target.closest('[data-u-idee]');
+    if (ui) { navigiere('ausfluege', 'idee', ui.dataset.uIdee); return; }
     const sp = e.target.closest('.sprache button');
     if (sp) { abspielen(sp.closest('.sprache')); return; }
     const img = e.target.closest('img.bild');
@@ -647,7 +996,9 @@
     if (k.art === 'rezept') { try { localStorage.setItem('kochen_oeffneRezeptId', k.id); } catch (e) {} navigiere('kochen'); return; }
     if (k.art === 'termin') { navigiere('termine', 'zeige', k.datum || ''); return; }
     if (k.art === 'wunsch') { navigiere('wunschliste', 'zeige', k.id); return; }
-    if (k.art === 'einkauf') { navigiere('einkauf'); }
+    if (k.art === 'einkauf') { navigiere('einkauf'); return; }
+    if (k.art === 'ausflug') { navigiere('ausfluege', 'zeige', k.id || ''); return; }
+    if (k.art === 'standort' && k.lat != null) window.open('https://www.google.com/maps/search/?api=1&query=' + k.lat + ',' + k.lon, '_blank', 'noopener');
   }
 
   // Lange drücken (oder Rechtsklick) auf eine Nachricht: Aktionen
@@ -666,7 +1017,12 @@
     const b = document.querySelector('.blase[data-id="' + CSS.escape(id) + '"]'); if (b) b.classList.add('markiert');
     const text = (m.text || (m.karte && m.karte.titel) || '').trim();
     const gel = m.von === ich() ? gelesenVon(m) : [];
-    const knoepfe = [];
+    const knoepfe = [['antworten', '↩️', 'Antworten']];
+    if (m.typ === 'umfrage' && m.umfrage) {
+      const t = '📊 ' + m.umfrage.frage + '\n' + m.umfrage.optionen.map(o => '• ' + o.text).join('\n');
+      knoepfe.push(['kopieren', '📋', 'Umfrage als Text kopieren']);
+      m._kopierText = t;
+    }
     if (text) {
       knoepfe.push(['kopieren', '📋', 'Text kopieren']);
       knoepfe.push(['einkauf', '🛒', 'Auf die Einkaufsliste', 'Jede Zeile wird ein Eintrag']);
@@ -676,23 +1032,93 @@
     if (m.typ === 'bild' && medienCache.has(m.id)) knoepfe.push(['speichern', '💾', 'Foto speichern']);
     if (m.von === ich()) knoepfe.push(['info', 'ℹ️', 'Gelesen von', gel.length ? gel.join(', ') : 'noch niemandem']);
     if (m.von === ich()) knoepfe.push(['loeschen', '🗑', 'Für alle löschen']);
-    blatt('<h3>Nachricht</h3><div class="blatt-liste">' + knoepfe.map(k => '<button type="button" data-a="' + k[0] + '"><span style="font-size:1.2rem">' + k[1] + '</span><span>' + k[2] + (k[3] ? '<small>' + esc(k[3]) + '</small>' : '') + '</span></button>').join('') + '</div>');
+    const meineReak = ((status.reaktionen || {})[m.id] || {})[ich()];
+    blatt('<div class="reak-reihe">' + REAKTIONEN.map(r => '<button type="button" data-r="' + r + '" class="' + (meineReak === r ? 'an' : '') + '" aria-label="Reaktion ' + r + '">' + r + '</button>').join('') + '</div>' +
+      '<div class="blatt-liste">' + knoepfe.map(k => '<button type="button" data-a="' + k[0] + '"><span style="font-size:1.2rem">' + k[1] + '</span><span>' + k[2] + (k[3] ? '<small>' + esc(k[3]) + '</small>' : '') + '</span></button>').join('') + '</div>');
     const aufraeumen = () => { if (b) b.classList.remove('markiert'); };
     $('btnBlattZu').addEventListener('click', aufraeumen);
+    $('blatt').querySelectorAll('[data-r]').forEach(r => r.addEventListener('click', () => { blattZu(); aufraeumen(); reagieren(m.id, r.dataset.r); }));
     $('blatt').querySelectorAll('[data-a]').forEach(k => k.addEventListener('click', async () => {
       const a = k.dataset.a;
       if (a === 'info') return;
       blattZu(); aufraeumen();
-      if (a === 'kopieren') { try { await navigator.clipboard.writeText(text); } catch (e) {} }
+      if (a === 'antworten') { antwortStarten(m); return; }
+      if (a === 'kopieren') { try { await navigator.clipboard.writeText(m._kopierText || text); toast('📋 Kopiert'); } catch (e) {} }
       if (a === 'einkauf') zurEinkaufsliste(text);
       if (a === 'termin') navigiereText('termine', text.split('\n')[0].slice(0, 80));
       if (a === 'notiz') navigiereText('notizblock', text);
       if (a === 'speichern') { const l = document.createElement('a'); l.href = medienCache.get(m.id).bild; l.download = 'familienchat-' + new Date(m._ms).toISOString().slice(0, 10) + '.jpg'; document.body.appendChild(l); l.click(); l.remove(); }
       if (a === 'loeschen' && confirm('Diese Nachricht für alle löschen?')) {
-        try { await chatCol().doc(m.id).delete(); if (m.typ === 'bild' || m.typ === 'sprache') medienCol().doc(m.id).delete().catch(() => {}); } catch (e) { alert(fehlerText(e)); }
+        try {
+          await chatCol().doc(m.id).delete();
+          if (m.typ === 'bild' || m.typ === 'sprache') medienCol().doc(m.id).delete().catch(() => {});
+          const weg = firebase.firestore.FieldValue.delete();
+          statusDoc().set({ reaktionen: { [m.id]: weg }, stimmen: { [m.id]: weg }, umfrageEnde: { [m.id]: weg } }, { merge: true }).catch(() => {});
+        } catch (e) { alert(fehlerText(e)); }
       }
     }));
   }
+  const REAKTIONEN = ['👍', '❤️', '😂', '😮', '🙏'];
+  // ---------- ↩️ Antworten ----------
+  let antwortAuf = null;
+  function antwortStarten(m) {
+    antwortAuf = { id: m.id, von: m.von, name: m.name || '', kurz: kurzVon(m) };
+    $('alWer').textContent = 'Antwort an ' + (m.von === ich() ? 'dich selbst' : nameVon(m.von, m.name));
+    $('alText').textContent = antwortAuf.kurz;
+    $('antwortLeiste').classList.add('an');
+    $('eingabe').focus();
+  }
+  function antwortBeenden() { antwortAuf = null; $('antwortLeiste').classList.remove('an'); }
+  $('btnAntwortWeg').addEventListener('click', antwortBeenden);
+
+  // ---------- 🔍 Suche ----------
+  const suche = { offen: false, begriff: '', treffer: [], idx: -1 };
+  function suchText(m) {
+    if (m._kaputt) return '';
+    const teile = [m.text, m.name, (person(m.von) || {}).label];
+    if (m.karte) teile.push(m.karte.titel, m.karte.info);
+    if (m.umfrage) { teile.push(m.umfrage.frage); (m.umfrage.optionen || []).forEach(o => teile.push(o.text)); }
+    if (m.typ === 'bild') teile.push('foto bild');
+    if (m.typ === 'sprache') teile.push('sprachnachricht');
+    return teile.filter(Boolean).join(' ').toLowerCase();
+  }
+  function sucheAusfuehren(springen) {
+    const q = suche.begriff.trim().toLowerCase();
+    const vorher = suche.treffer[suche.idx];
+    suche.treffer = q.length < 2 ? [] : nachrichten.filter(m => suchText(m).includes(q)).map(m => m.id);
+    if (springen || !suche.treffer.includes(vorher)) suche.idx = suche.treffer.length - 1; // neuester Treffer zuerst
+    else suche.idx = suche.treffer.indexOf(vorher);
+    $('suchZahl').textContent = q.length < 2 ? '' : (suche.treffer.length ? (suche.idx + 1) + '/' + suche.treffer.length : '0');
+    if (springen) { render(); if (suche.idx >= 0) zuNachricht(suche.treffer[suche.idx]); }
+  }
+  function trefferWechseln(schritt) {
+    if (!suche.treffer.length) return;
+    suche.idx = (suche.idx + schritt + suche.treffer.length) % suche.treffer.length;
+    $('suchZahl').textContent = (suche.idx + 1) + '/' + suche.treffer.length;
+    render();
+    zuNachricht(suche.treffer[suche.idx]);
+  }
+  let suchTimer = null;
+  $('btnChatSuche').addEventListener('click', () => {
+    if (suche.offen) { sucheSchliessen(); return; }
+    suche.offen = true;
+    $('suchLeiste').classList.add('an');
+    $('suchFeld').focus();
+    // Für die Suche mehr Verlauf laden (die Nachrichten werden auf dem Gerät durchsucht – auch verschlüsselte)
+    if (nachrichten._mehr && limit < 400 && db) { limit = 400; render._aeltere = true; abonnieren(); }
+  });
+  $('suchFeld').addEventListener('input', () => { clearTimeout(suchTimer); suchTimer = setTimeout(() => { suche.begriff = $('suchFeld').value; sucheAusfuehren(true); }, 250); });
+  $('suchFeld').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); trefferWechseln(-1); } if (e.key === 'Escape') sucheSchliessen(); });
+  $('btnSuchHoch').addEventListener('click', () => trefferWechseln(-1));
+  $('btnSuchRunter').addEventListener('click', () => trefferWechseln(1));
+  function sucheSchliessen() {
+    suche.offen = false; suche.begriff = ''; suche.treffer = []; suche.idx = -1;
+    $('suchFeld').value = ''; $('suchZahl').textContent = '';
+    $('suchLeiste').classList.remove('an');
+    render();
+  }
+  $('btnSuchZu').addEventListener('click', sucheSchliessen);
+
   function navigiereText(modul, text) { try { parent.postMessage({ type: 'navigiere', modul, aktion: 'neu', text }, location.origin); } catch (e) {} }
   // „Auf die Einkaufsliste“: direkt in die aktive Liste schreiben (eigener Sync-Kanal fürs Einkaufs-Dokument)
   let einkaufSync = null;
@@ -715,7 +1141,7 @@
   }
   function toast(t) {
     let el = $('chatToast');
-    if (!el) { el = document.createElement('div'); el.id = 'chatToast'; el.style.cssText = 'position:fixed;left:50%;bottom:80px;transform:translateX(-50%);background:#2a2016;color:#bcd196;padding:9px 16px;border-radius:20px;font-size:0.82rem;font-weight:600;z-index:300;transition:opacity .3s;max-width:88vw;text-align:center;'; document.body.appendChild(el); }
+    if (!el) { el = document.createElement('div'); el.id = 'chatToast'; el.style.cssText = 'position:fixed;left:50%;bottom:80px;transform:translateX(-50%);background:#2a2016;color:#bcd196;padding:9px 16px;border-radius:20px;font-size:0.82rem;font-weight:600;z-index:300;transition:opacity .3s;max-width:88vw;text-align:center;pointer-events:none;'; document.body.appendChild(el); }
     el.textContent = t; el.style.opacity = '1'; clearTimeout(el._t); el._t = setTimeout(() => { el.style.opacity = '0'; }, 2600);
   }
 
@@ -724,7 +1150,7 @@
     const v = status.verschluesselung;
     blatt('<h3>ℹ️ Familien-Chat</h3><div style="font-size:0.82rem;line-height:1.55;">' +
       '<p>' + (v && v.aktiv ? '🔒 <b>Verschlüsselt</b> mit eurem Familien-Passwort. In der Cloud liegt nur Zeichensalat; Benachrichtigungen zeigen keinen Text.' : '🔓 <b>Ohne Passwort.</b> Die Nachrichten liegen lesbar in eurer Familien-Cloud (geschützt wie der Rest der App durch den Familien-Code).') + '</p>' +
-      '<p style="margin-top:8px;">✓ = angekommen · <b style="color:#4fc3f7">✓✓</b> = gelesen. Lange auf eine Nachricht drücken für mehr (Einkaufsliste, Termin, Notiz, Löschen).</p>' +
+      '<p style="margin-top:8px;">✓ = angekommen · <b style="color:#4fc3f7">✓✓</b> = gelesen. Lange auf eine Nachricht drücken für mehr (↩️ Antworten, 👍 Reaktion, Einkaufsliste, Termin, Notiz, Löschen). 🔍 oben durchsucht den Verlauf.</p>' +
       '<p style="margin-top:8px;">Du schreibst als <b>' + esc((person(ich()) || { label: '?' }).label) + '</b>. <a href="#" id="lnkWerBinIch">Ändern</a></p>' +
       '<p style="margin-top:8px;">Benachrichtigungen kommen, wenn unter ⚙️ → „Erinnerungen aufs Handy“ aktiviert ist (Häkchen „💬 Familien-Chat“).</p></div>');
     $('lnkWerBinIch').addEventListener('click', (e) => { e.preventDefault(); blattZu(); try { localStorage.removeItem(KEY_IDENTITAET); } catch (x) {} einrichtungPruefen(); });
@@ -740,6 +1166,8 @@
     // Für „Termin/Wunsch teilen“ und „Auf die Einkaufsliste“ die Daten aktuell halten
     try { window.PlanerSync.starteSync({ modul: 'termine', keys: ['termine_events_v1', 'termine_wunschliste'] }); } catch (e) {}
     try { einkaufSync = window.PlanerSync.starteSync({ modul: 'einkauf', keys: ['einkauf_listen'] }); } catch (e) {}
+    // Für „🍳 Heute kochen“ nach einer Essens-Umfrage (nur der Wochenplan, keine Rezepte/Fotos)
+    try { kochenSync = window.PlanerSync.starteSync({ modul: 'kochen', keys: ['kochen_wochenplan'] }); } catch (e) {}
   }
   eingabeAnpassen();
   start();

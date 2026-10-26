@@ -1919,6 +1919,18 @@
   fotoDatenAufraeumen();
   renderAusflugListe();
 
+  // Sprünge aus anderen Bereichen (z.B. Chat: „Ausflug öffnen“, Umfrage-Sieger „Ausflug planen“)
+  window.addEventListener('message', (e) => {
+    if (e.origin !== location.origin || !e.data || e.data.type !== 'shortcutAktion') return;
+    const ziel = e.data.ziel || '';
+    if (e.data.aktion === 'zeige' && ausfluege.some(a => a.id === ziel)) { aktiveAnsicht = 'planung'; ansichtAnwenden(); planungOeffnen(ziel); }
+    else if (e.data.aktion === 'idee') {
+      const i = ideen.find(x => x.id === ziel);
+      if (i) { aktiveAnsicht = 'ideen'; ansichtAnwenden(); ideeAlsAusflugPlanen(i, ''); }
+    }
+    else if (e.data.aktion === 'neu') planungOeffnen(null, e.data.text ? { titel: e.data.text } : null);
+  });
+
   if (window.PlanerSync) {
     window._sync = window.PlanerSync.starteSync({
       modul: 'ausfluege',
