@@ -2,6 +2,39 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
+## 2026-10-26 | 🧭 Garten neu sortiert
+Der Garten hat oben jetzt fünf klare Bereiche: 🏠 Heute · 🗺️ Mein Garten · 📅 Planen & Ernten · 📖 Lexikon · ⚙️ Mehr. Statt verschachtelter Menüs gibt es übersichtliche Kacheln – Aussaatkalender, Pflegeplan, Erntebuch & Co. unter „Planen & Ernten“, Sichern, PDF und Pflanzschilder unter „Mehr“.
+
+## 2026-10-26 | 📖 Pflanzenlexikon & Suche im Garten
+Mit 🔍 oben im Garten findest du Pflanzen, Tipps, Tiere, Probleme und Funktionen auf einen Blick. Jede der über 100 Pflanzen hat eine eigene Seite mit allem, was die App weiß: Standort, Jahreskalender, gute und schlechte Nachbarn, Pflege, Verwertung, eure Sorten und Rezepte. Aus dem Pflanzen-Steckbrief führt „📖 Alles über …“ direkt dorthin.
+
+## 2026-10-26 | ✅ „Heute“ im Garten
+Gießen und Düngen stehen jetzt pro Beet in einer Zeile mit einem großen Haken. Bei Ernte-Aufgaben öffnet „Eintragen“ direkt das Ernte-Formular. Jedem Beet lässt sich jemand zuordnen („👤 Lev“) – und wer abgehakt hat, sehen alle („erledigt · von Mama“).
+
+## 2026-10-26 | 💧 Gieß-Tagebuch
+Wird ein Beet als gegossen abgehakt, merkt sich die App das Datum und rechnet den nächsten Gießtag ab dann – kräftiger Regen zählt automatisch mit. Im Pflanzen-Steckbrief steht „Zuletzt gegossen gestern · wieder in 1 Tag“, mit „💧 Gegossen“ lässt sich auch außer der Reihe gießen eintragen.
+
+## 2026-10-26 | 🔔 Garten-Hinweise aufs Handy
+Abends um 18 Uhr kommt eine Warnung, wenn Frost droht und Empfindliches wie Chili oder Tomaten draußen steht. Bei über 30 °C gibt es morgens einen Gieß-Hinweis, und am Monatsersten eine Vorschau, was vorzuziehen, zu säen, zu pflanzen oder zu schneiden ist. Dafür im Garten den Wetter-Standort hinterlegen; abschaltbar unter ⚙️ → Erinnerungen aufs Handy.
+
+## 2026-10-26 | 🗺️ Plan fürs nächste Gartenjahr
+Unter „Planen & Ernten“ schlägt die App für jedes Beet vor, was nächstes Jahr gut passt – nach Fruchtfolge und Stark-/Mittel-/Schwachzehrern, bevorzugt mit Pflanzen, die ihr schon angebaut habt oder als Saatgut da habt. Vorgemerktes erscheint auch in der Monatsvorschau.
+
+## 2026-10-26 | 🛒 Saatgut fehlt? Ab auf die Einkaufsliste
+Rückt die Aussaat einer Pflanze näher, die ihr angebaut oder vorgemerkt habt, und es ist kein Saatgut im Inventar, erscheint auf „Heute“ ein Hinweis – mit „＋ Einkauf“ landet es auf der Einkaufsliste.
+
+## 2026-10-26 | 🍳 Aus deiner Ernte kochen
+Auf „Heute“ im Garten stehen jetzt bis zu drei Rezepte aus eurem Kochbuch, die zur aktuellen Ernte passen – ein Tipp öffnet das Rezept im Kochen-Bereich. Ergänzt den „🌱 Garten“-Filter beim Kochen.
+
+## 2026-10-26 | 🧳 Urlaubsvertretung
+Unter „Planen & Ernten“ entsteht für euren Urlaub ein Gieß-Plan für Nachbarn oder Oma: welche Beete an welchen Tagen, was besonders durstig ist und was geerntet werden darf. Per WhatsApp teilen oder mit Lageplan ausdrucken.
+
+## 2026-10-26 | 🥫 Vorräte an einem Ort
+Die frühere Vorratsliste im Garten ist in die Vorratskammer umgezogen – vorhandene Einträge wurden automatisch übernommen. Ernten aus dem Erntebuch landen per 🥫 im „📥 Eingang“ der Vorratskammer, mit Haltbarkeit und passendem Lagerort.
+
+## 2026-10-23 | 🐦 Nistkästen selber bauen
+Im Handwerk gibt es den neuen Reiter „🐦 Nistkästen“: Baupläne mit Zeichnung, Zuschnittplan und Materialliste für Meisen-, Staren- und Mauerseglerkasten, Halbhöhle und Spatzen-Reihenhaus. Aus dem Garten (📖 Lexikon → Naturgarten-Projekte → Nistkästen) führt ein Tipp auf die Skizze direkt zum passenden Plan.
+
 ## 2026-10-21 | 💬 Familien-Chat
 Der neue Bereich „Chat“ ist nur für eure Familie: Nachrichten, Fotos und Sprachnachrichten, mit ✓✓ wenn gelesen. Über ＋ lassen sich Termine, Rezepte und Wünsche als Karte teilen – ein Tipp darauf öffnet sie direkt. „🛒 Ich fahre einkaufen“ fragt in die Runde, und lange Drücken auf eine Nachricht setzt sie auf die Einkaufsliste oder macht einen Termin daraus. Auf Wunsch mit Familien-Passwort Ende-zu-Ende-verschlüsselt. Neue Nachrichten kommen als Benachrichtigung aufs Handy.
 
@@ -70,6 +103,15 @@ Die Kachel „Termine heute“ auf der Übersicht zeigt die Termine des Tages je
 
 ## 2026-10-19 | 🦔 Tiere im Garten
 Neuer Bereich im Garten: 26 heimische Tiere von der Holzbiene bis zum Igel – was sie fressen, wo sie wohnen und wie man sie in den Garten lockt. Dazu Bauanleitungen (Insektenhotel, Sandarium, Igelhaus …), Futterpflanzen nach Jahreszeit und für Kinder „👀 Gesehen!“ zum Sammeln eurer Entdeckungen.
+
+## 2026-10-18 | 🌿 Beetübersicht aufgeräumt
+Die Listenansicht im Garten fasst gleiche Pflanzen zusammen („Gurke ×2“), zeigt mit kleinen Symbolen, was ansteht (💧 🧺 ✂️ ⚠️ ❄️), und Beete lassen sich zuklappen. Umschaltbar nach Beet, nach Pflanze oder „✅ Zu tun“.
+
+## 2026-10-17 | 📅 Aussaatkalender mit drei Ansichten
+Der Aussaatkalender zeigt wahlweise eine Tabelle, eine Jahresübersicht als Balken oder Monat für Monat – sortiert nach Name, „als Nächstes dran“ oder Art und gefiltert z.B. auf „🌱 In meinem Garten“ oder „🌰 Saatgut da“.
+
+## 2026-10-17 | 🌶️ 20 neue Pflanzen & Menge beim Einkauf
+Neu im Garten u.a. Chili, Physalis, Artischocke, Felsenbirne, Granatapfel, Kirschblüte, Topinambur, Spitz- und Palmkohl, Tomatillo, Fetthenne und Strandflieder – jeweils mit Standort, Aussaat, Pflege und Rückschnitt. In der Einkaufsliste gibt es ein eigenes Feld für die Menge, die gut sichtbar vor dem Produkt steht („2×“, „500 g“).
 
 ## 2026-10-18 | 📚 Beispielbeete
 Unter 🥫 Bestand → 🧩 Vorlagen gibt es jetzt 8 bewährte Mischkultur-Beete (Tomaten-, Kohl-, Kräuterbeet, Drei Schwestern …) zum direkten Einfügen.

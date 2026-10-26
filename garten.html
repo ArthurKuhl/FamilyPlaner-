@@ -10870,6 +10870,144 @@ function jahresplanRendern() {
   box.innerHTML = html;
 }
 
+// ==================== 🧳 URLAUBSVERTRETUNG: Gieß-Anleitung für Nachbarn, Oma & Co. ====================
+const URLAUB_KEY = 'garten_urlaub'; // { von, bis, helfer } – nur auf diesem Gerät
+const WOCHENTAG = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+function isoZuDatum(iso) { return new Date(iso + 'T00:00:00'); }
+function datumZuIso(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function urlaubOeffnen() {
+  let m = document.getElementById('urlaubModal');
+  if (!m) {
+    m = document.createElement('div');
+    m.className = 'modal-bg'; m.id = 'urlaubModal'; m.style.display = 'none';
+    m.innerHTML = `<div class="modal" style="width:min(600px,96vw);max-height:90vh;overflow-y:auto">
+      <h2 style="margin-bottom:4px">🧳 Urlaubsvertretung</h2>
+      <p style="font-size:0.78rem;color:var(--bark);margin-bottom:10px">Erstellt eine Gieß-Anleitung für die Zeit, in der ihr weg seid – zum Teilen per WhatsApp oder zum Ausdrucken.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <label style="flex:1;min-width:130px;font-size:0.75rem">Von<input type="date" id="urlaubVon" style="width:100%"></label>
+        <label style="flex:1;min-width:130px;font-size:0.75rem">Bis<input type="date" id="urlaubBis" style="width:100%"></label>
+        <label style="flex:1 1 100%;font-size:0.75rem">Wer gießt? (optional)<input type="text" id="urlaubHelfer" placeholder="z.B. Familie Müller, Oma" style="width:100%"></label>
+      </div>
+      <div id="urlaubVorschau" style="margin-top:12px"></div>
+      <div class="modal-btns" style="margin-top:12px;flex-wrap:wrap;gap:6px">
+        <button class="btn-cancel" onclick="document.getElementById('urlaubModal').style.display='none'">Schließen</button>
+        <button class="btn-cancel" onclick="urlaubTeilen()">📤 Als Text teilen</button>
+        <button class="btn-primary" onclick="urlaubDrucken()">🖨 Drucken / PDF</button>
+      </div></div>`;
+    m.addEventListener('click', e => { if (e.target === m) m.style.display = 'none'; });
+    document.body.appendChild(m);
+    ['urlaubVon', 'urlaubBis', 'urlaubHelfer'].forEach(id => m.querySelector('#' + id).addEventListener('input', () => { urlaubSpeichern(); urlaubVorschauRendern(); }));
+  }
+  let u = {}; try { u = JSON.parse(localStorage.getItem(URLAUB_KEY) || '{}') || {}; } catch (e) {}
+  const heute = new Date(); heute.setHours(0, 0, 0, 0);
+  const vonStd = new Date(heute.getTime() + 7 * 86400000), bisStd = new Date(heute.getTime() + 20 * 86400000);
+  document.getElementById('urlaubVon').value = u.von && u.von >= datumZuIso(heute) ? u.von : datumZuIso(vonStd);
+  document.getElementById('urlaubBis').value = u.bis && u.bis >= (u.von || '') && u.von >= datumZuIso(heute) ? u.bis : datumZuIso(bisStd);
+  document.getElementById('urlaubHelfer').value = u.helfer || '';
+  urlaubVorschauRendern();
+  m.style.display = 'flex';
+}
+function urlaubSpeichern() {
+  try { localStorage.setItem(URLAUB_KEY, JSON.stringify({ von: document.getElementById('urlaubVon').value, bis: document.getElementById('urlaubBis').value, helfer: document.getElementById('urlaubHelfer').value.trim() })); } catch (e) {}
+}
+// Berechnet den Plan: Gießtage je Beet, durstige Pflanzen, was geerntet werden darf
+function urlaubPlan(vonIso, bisIso) {
+  const von = isoZuDatum(vonIso), bis = isoZuDatum(bisIso);
+  if (isNaN(von) || isNaN(bis) || bis < von) return null;
+  const heute = new Date(); heute.setHours(0, 0, 0, 0);
+  const tage = [];
+  for (let d = new Date(von); d <= bis && tage.length < 62; d.setDate(d.getDate() + 1)) tage.push(new Date(d));
+  const beete = [];
+  getCurrentBeds().filter(b => b.kind !== 'struktur' && (b.plants || []).length).forEach(bed => {
+    const mitGiessen = (bed.plants || []).map(p => ({ p, k: lexKatalogName((p.name || '').trim()) })).map(x => Object.assign(x, { info: CARE_INFO[x.k] })).filter(x => x.info && x.info.waterDays > 0);
+    if (!mitGiessen.length) return;
+    const intervall = Math.min(...mitGiessen.map(x => x.info.waterDays));
+    // nächster Gießtag ab heute, dann im Rhythmus weiter
+    let naechster = null;
+    mitGiessen.forEach(x => {
+      const alter = x.p.date ? daysBetween(new Date(x.p.date + 'T00:00:00'), heute) : 0;
+      const gf = giessFaelligkeit(x.p, x.info.waterDays, Math.max(0, alter));
+      const d = new Date(heute.getTime() + (gf.dueToday && !gf.gegossenHeute ? 0 : gf.dueIn) * 86400000);
+      if (!naechster || d < naechster) naechster = d;
+    });
+    while (naechster < von) naechster = new Date(naechster.getTime() + intervall * 86400000);
+    const giessTage = [];
+    for (let d = new Date(naechster); d <= bis; d = new Date(d.getTime() + intervall * 86400000)) giessTage.push(datumZuIso(d));
+    const durstig = [...new Set(mitGiessen.filter(x => { const b = pflanzenBedingungenFinden(x.k); return (b && b[1] === 'v') || x.info.waterDays <= 2; }).map(x => x.k))];
+    beete.push({ name: bed.name || 'Beet', intervall, giessTage, pflanzen: [...new Set(mitGiessen.map(x => x.k))], durstig });
+  });
+  // Ernte: was in dem Zeitraum reif wird oder Saison hat
+  const ernte = new Set();
+  getCurrentBeds().forEach(b => (b.plants || []).forEach(p => {
+    const k = lexKatalogName((p.name || '').trim()), info = CARE_INFO[k];
+    if (info && info.harvestDays > 0 && p.date) {
+      const reif = new Date(new Date(p.date + 'T00:00:00').getTime() + info.harvestDays * 86400000);
+      if (reif <= bis) ernte.add(k);
+    } else if (tage.some(d => isInHarvestWindow(HARVEST_WINDOW[k], d.getMonth() + 1))) ernte.add(k);
+  }));
+  getCurrentFreiPflanzen().forEach(fp => { const k = lexKatalogName((fp.name || '').trim()); if (tage.some(d => isInHarvestWindow(HARVEST_WINDOW[k], d.getMonth() + 1))) ernte.add(k); });
+  const frost = [...new Set(getCurrentBeds().flatMap(b => (b.plants || []).map(p => lexKatalogName((p.name || '').trim()))).filter(isFrostTender))];
+  const frostZeit = tage.some(d => [4, 5, 9, 10, 11].includes(d.getMonth() + 1));
+  return { tage, beete, ernte: [...ernte].sort((a, b) => a.localeCompare(b, 'de')), frost: frostZeit ? frost : [] };
+}
+function urlaubTagText(iso) { const d = isoZuDatum(iso); return WOCHENTAG[d.getDay()] + ' ' + d.getDate() + '.' + (d.getMonth() + 1) + '.'; }
+function urlaubVorschauRendern() {
+  const box = document.getElementById('urlaubVorschau');
+  const plan = urlaubPlan(document.getElementById('urlaubVon').value, document.getElementById('urlaubBis').value);
+  if (!plan) { box.innerHTML = '<div class="empty-state">Bitte einen gültigen Zeitraum wählen.</div>'; return; }
+  if (!plan.beete.length) { box.innerHTML = '<div class="empty-state">In diesem Garten gibt es keine Beete mit Pflanzen, die gegossen werden müssen.</div>'; return; }
+  // Kalender: Tag → Beete
+  const proTag = {};
+  plan.beete.forEach(b => b.giessTage.forEach(t => { (proTag[t] = proTag[t] || []).push(b.name); }));
+  const tageMitGiessen = Object.keys(proTag).sort();
+  box.innerHTML = `<div class="lex-abschnitt">📅 Gießtage (${plan.tage.length} Tage weg)</div>
+    <div class="lex-karte">${tageMitGiessen.length ? tageMitGiessen.map(t => `<div class="bed-zeile">💧 <b>${urlaubTagText(t)}</b> – ${proTag[t].map(escapeHtml).join(', ')}</div>`).join('') : '<div class="bed-zeile">In diesem Zeitraum ist laut Plan kein Gießen nötig.</div>'}</div>
+    <div class="lex-abschnitt">🌱 Die Beete</div>
+    <div class="lex-karte">${plan.beete.map(b => `<div class="bed-zeile"><b>${escapeHtml(b.name)}</b> (etwa alle ${b.intervall} Tage): ${b.pflanzen.map(escapeHtml).join(', ')}${b.durstig.length ? `<br><span style="color:#5b8bb5">💦 Besonders durstig: ${b.durstig.map(escapeHtml).join(', ')}</span>` : ''}</div>`).join('')}</div>
+    ${plan.ernte.length ? `<div class="lex-abschnitt">🧺 Darf gern geerntet werden</div><div class="lex-karte">${plan.ernte.map(escapeHtml).join(', ')}</div>` : ''}
+    <div class="lex-hinweis">Der Plan geht vom normalen Wetter aus: bei Hitze (über 28 °C) lieber täglich, nach kräftigem Regen einmal auslassen.</div>`;
+}
+function urlaubText() {
+  const von = document.getElementById('urlaubVon').value, bis = document.getElementById('urlaubBis').value, helfer = document.getElementById('urlaubHelfer').value.trim();
+  const plan = urlaubPlan(von, bis);
+  if (!plan) return '';
+  const proTag = {};
+  plan.beete.forEach(b => b.giessTage.forEach(t => { (proTag[t] = proTag[t] || []).push(b.name); }));
+  const z = [];
+  z.push('🌱 Gieß-Plan für unseren Garten (' + urlaubTagText(von) + ' – ' + urlaubTagText(bis) + ')');
+  if (helfer) z.push('Danke, ' + helfer + '! 💚');
+  z.push('');
+  z.push('💧 Bitte gießen an diesen Tagen:');
+  Object.keys(proTag).sort().forEach(t => z.push('• ' + urlaubTagText(t) + ': ' + proTag[t].join(', ')));
+  z.push('');
+  z.push('🌱 Was wo steht:');
+  plan.beete.forEach(b => z.push('• ' + b.name + ': ' + b.pflanzen.join(', ') + (b.durstig.length ? ' (besonders durstig: ' + b.durstig.join(', ') + ')' : '')));
+  z.push('');
+  z.push('Tipps: morgens oder abends gießen, direkt an die Wurzel, Blätter (v. a. Tomaten) möglichst trocken lassen. Bei über 28 °C lieber täglich, nach kräftigem Regen einmal auslassen.');
+  if (plan.frost.length) z.push('❄️ Falls Frost angesagt ist: ' + plan.frost.join(', ') + ' mit Vlies abdecken.');
+  if (plan.ernte.length) z.push('🧺 Gern ernten und mitnehmen: ' + plan.ernte.join(', ') + ' 😊');
+  return z.join('\n');
+}
+function urlaubTeilen() {
+  const text = urlaubText();
+  if (!text) return;
+  if (navigator.share) { navigator.share({ title: 'Gieß-Plan', text }).catch(() => {}); return; }
+  try { navigator.clipboard.writeText(text).then(() => showTempStatus('📋 Gieß-Plan kopiert – jetzt z.B. in WhatsApp einfügen', 5)); }
+  catch (e) { prompt('Text kopieren:', text); }
+}
+function urlaubDrucken() {
+  const text = urlaubText();
+  if (!text) return;
+  let karte = '';
+  try { karte = document.getElementById('gardenCanvas').toDataURL('image/png'); } catch (e) {}
+  const zeilen = text.split('\n').map(l => l.startsWith('•') ? '<li>' + escapeHtml(l.slice(2)) + '</li>' : (l ? '<p>' + escapeHtml(l) + '</p>' : ''));
+  const html = '<!doctype html><html lang="de"><head><meta charset="utf-8"><title>Gieß-Plan</title><style>body{font-family:system-ui,sans-serif;max-width:720px;margin:24px auto;padding:0 16px;color:#222;line-height:1.5}p:first-child{font-size:1.3em;font-weight:700}li{margin:2px 0}img{max-width:100%;border:1px solid #ccc;border-radius:8px;margin-top:12px}</style></head><body>' +
+    zeilen.join('').replace(/(<li>.*?<\/li>)+/g, m => '<ul>' + m + '</ul>') + (karte && karte.length > 2000 ? '<p><b>🗺️ Lageplan:</b></p><img src="' + karte + '">' : '') + '<script>setTimeout(function(){print()},400)<\/script></body></html>';
+  const w = window.open('', '_blank');
+  if (!w) { showTempStatus('⚠ Bitte Pop-ups erlauben, um zu drucken.', 5); return; }
+  w.document.write(html); w.document.close();
+}
+
 // ==================== BEREICHS-SEITEN: Planen & Ernten · Lexikon · Mehr ====================
 function hubKachel(icon, name, text, onclick, badge, extraKlasse) {
   return `<button type="button" class="hub-kachel${extraKlasse ? ' ' + extraKlasse : ''}" onclick="${onclick}">
@@ -10923,6 +11061,7 @@ function hubRendern(bereich) {
         ${hubKachel('📊', 'Statistik', 'Beete, Pflanzen, Erträge im Überblick', 'openStats()')}
         ${hubKachel('🌾', 'Sorten-Erfahrungen', 'Welche Sorte hat sich bewährt?', 'openVarietyDB()')}
         ${hubKachel('📸', 'Fotoalbum', 'Dein Foto-Tagebuch aus dem Garten', "showView('album')")}
+        ${hubKachel('🧳', 'Urlaubsvertretung', 'Gieß-Plan für Nachbarn oder Oma – teilen oder drucken', 'urlaubOeffnen()')}
       </div>
       <div class="hub-titel">Bestand</div><div class="hub-grid">
         ${hubKachel('🌰', 'Saatgut', 'Was ist an Samen da, wie lange keimfähig', 'openSeedInventory()', seedInventory.length ? { text: String(seedInventory.length), ruhig: true } : null)}
