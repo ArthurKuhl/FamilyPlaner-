@@ -8,8 +8,10 @@
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-storage-compat.js"></script>
 <script src="personen.js"></script>
 <script src="sync.js"></script>
+<script src="fotospeicher.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap');
   :root {
@@ -196,6 +198,53 @@
   .foto-hinzufuegen { position: relative; display: block; text-align: center; }
   .foto-hinzufuegen input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
   .fertig-hinweis { font-size: 0.8rem; color: var(--moss); font-weight: 600; margin-top: 2px; }
+  .foto-kachel .foto-typ { position: absolute; left: 4px; bottom: 4px; font-size: 0.58rem; font-weight: 800; padding: 2px 6px; border-radius: 10px; background: rgba(0,0,0,0.62); color: #fff; letter-spacing: 0.02em; }
+  .foto-kachel .foto-typ.nachher { background: var(--moss); color: var(--on-moss, #fff); }
+  .foto-kachel .foto-wolke { position: absolute; right: 4px; top: 4px; font-size: 0.65rem; background: rgba(255,255,255,0.85); border-radius: 8px; padding: 0 4px; }
+  .foto-typ-reihe { display: flex; gap: 6px; justify-content: center; margin: 10px 0 2px; }
+  .foto-typ-reihe .opt { background: rgba(255,255,255,0.12); color: #fff; border-color: rgba(255,255,255,0.3); }
+  .foto-typ-reihe .opt.aktiv { background: var(--moss); color: var(--on-moss, #fff); }
+  .vergleich-box { position: relative; width: 100%; border-radius: 10px; overflow: hidden; background: #000; user-select: none; touch-action: pan-y; }
+  .vergleich-box img { display: block; width: 100%; max-height: 70vh; object-fit: contain; }
+  .vergleich-box .vg-oben { position: absolute; inset: 0; }
+  .vergleich-box .vg-oben img { width: 100%; height: 100%; object-fit: contain; }
+  .vergleich-box .vg-linie { position: absolute; top: 0; bottom: 0; width: 3px; background: #fff; box-shadow: 0 0 6px rgba(0,0,0,0.5); pointer-events: none; }
+  .vergleich-box .vg-label { position: absolute; top: 8px; font-size: 0.65rem; font-weight: 800; color: #fff; background: rgba(0,0,0,0.6); padding: 2px 8px; border-radius: 10px; pointer-events: none; }
+  .vergleich-regler { width: 100%; margin: 12px 0 4px; accent-color: var(--moss); }
+  .vergleich-waehler { display: flex; gap: 6px; overflow-x: auto; padding: 4px 0; }
+  .vergleich-waehler img { width: 52px; height: 52px; object-fit: cover; border-radius: 6px; border: 2px solid transparent; cursor: pointer; flex-shrink: 0; }
+  .vergleich-waehler img.aktiv { border-color: var(--moss); }
+  #modalVergleich, #modalRechner, #modalAbschluss, #modalSaison, #modalWerkzeug { z-index: 115; }
+  #modalVergleich .modal { max-width: 720px; }
+  .jahres-bilanz { background: var(--white); border-radius: var(--radius-md); box-shadow: var(--shadow-soft); padding: 10px 12px; font-size: 0.82rem; font-weight: 600; margin-bottom: 10px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .jahres-bilanz .jb-zahl { color: var(--moss-text, var(--moss)); font-weight: 800; }
+  .jahres-bilanz .jb-klein { font-weight: 500; color: var(--bark); font-size: 0.75rem; width: 100%; }
+  /* Werkzeug */
+  .wz-kopf { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+  .wz-kopf input { flex: 1 1 160px; min-width: 0; padding: 9px 12px; border-radius: var(--radius-pill); border: 1px solid var(--parchment); background: var(--white); color: var(--soil); font-size: 0.85rem; }
+  .wz-ort-titel { font-size: 0.72rem; font-weight: 700; color: var(--bark); text-transform: uppercase; letter-spacing: 0.03em; margin: 14px 0 6px; }
+  .wz-karte { background: var(--white); border-radius: var(--radius-md); padding: 10px 12px; box-shadow: var(--shadow-soft); display: flex; align-items: center; gap: 10px; margin-bottom: 6px; cursor: pointer; border-left: 4px solid var(--parchment); }
+  .wz-karte.verliehen { border-left-color: var(--terracotta); }
+  .wz-karte .wz-body { flex: 1; min-width: 0; }
+  .wz-karte .wz-name { font-weight: 700; font-size: 0.9rem; }
+  .wz-karte .wz-meta { font-size: 0.74rem; color: var(--bark); margin-top: 2px; }
+  .wz-karte .wz-meta.verliehen { color: var(--terracotta-text); font-weight: 600; }
+  .wz-zurueck { flex-shrink: 0; padding: 6px 10px; border-radius: var(--radius-pill); border: 1px solid var(--moss); background: transparent; color: var(--moss-text, var(--moss)); font-weight: 700; font-size: 0.72rem; cursor: pointer; }
+  /* Rechner */
+  .rechner-ergebnis { background: var(--white); border-radius: var(--radius-md); padding: 12px; border: 1px solid var(--parchment); margin: 6px 0 4px; }
+  .rechner-ergebnis .re-gross { font-size: 1.25rem; font-weight: 800; color: var(--moss-text, var(--moss)); }
+  .rechner-ergebnis .re-klein { font-size: 0.78rem; color: var(--bark); margin-top: 4px; line-height: 1.4; }
+  .rechner-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 10px; }
+  .rechner-grid .feld.breit { grid-column: 1 / -1; }
+  .check-zeile { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; margin: 4px 0 10px; }
+  .check-zeile input { width: 18px; height: 18px; flex-shrink: 0; }
+  /* Saison-Pakete */
+  .saison-paket { background: var(--white); border-radius: var(--radius-md); padding: 10px 12px; margin-bottom: 10px; box-shadow: var(--shadow-soft); }
+  .saison-paket h3 { font-size: 0.92rem; margin-bottom: 6px; }
+  .saison-paket label { display: flex; gap: 8px; align-items: center; font-size: 0.83rem; padding: 4px 0; }
+  .saison-paket label.vorhanden { opacity: 0.55; }
+  .saison-paket input { width: 17px; height: 17px; flex-shrink: 0; }
+  .saison-btn { width: 100%; margin-bottom: 10px; }
   #modalFoto { z-index: 120; align-items: center; background: rgba(20,15,10,0.88); padding: 12px; }
   #modalFoto .foto-gross { max-width: 100%; max-height: 78vh; border-radius: 10px; display: block; margin: 0 auto; }
   #modalFoto .foto-leiste { display: flex; gap: 8px; margin-top: 12px; }
@@ -242,6 +291,7 @@
   <div class="titel-zeile">
     <h1>🔨 Handwerk</h1>
     <button class="theme-btn" id="btnInfosModal" title="Infos">ℹ️</button>
+    <button class="theme-btn" id="btnRechner" title="Heimwerker-Rechner">🧮</button>
     <button class="theme-btn" id="btnNews" title="Aktuelle Handwerk-News">🌐</button>
     <button class="theme-btn" id="btnThemeAuswahl" title="Hintergrundmuster wählen">🎨</button>
     <button class="add-btn" id="btnNeu">＋ Neu</button>
@@ -249,6 +299,7 @@
   <div class="ansicht-tabs">
     <button class="ansicht-tab active" id="tabProjekte">📋 Projekte</button>
     <button class="ansicht-tab" id="tabWartung">🔁 Wartung</button>
+    <button class="ansicht-tab" id="tabWerkzeug">🧰 Werkzeug</button>
     <button class="ansicht-tab" id="tabPaletten">🪵 Paletten</button>
     <button class="ansicht-tab" id="tabNistkaesten">🐦 Nistkästen</button>
   </div>
@@ -283,18 +334,30 @@
 
 <main>
   <div id="ansichtProjekte">
+    <div class="jahres-bilanz" id="jahresBilanz" style="display:none;"></div>
     <div class="projekt-grid" id="projektGrid"></div>
     <div class="leer-hinweis" id="leerHinweis" style="display:none;">
       <span class="em">🔨</span><span id="leerText">Noch keine Projekte. Tippe auf „＋ Neu“, um eins anzulegen.</span>
     </div>
   </div>
   <div id="ansichtWartung" style="display:none;">
+    <button class="zeile-hinzufuegen saison-btn" id="btnSaisonPakete">🍂🌸 Saison-Pakete übernehmen (Herbst, Frühjahr, Haustechnik)</button>
     <div class="wartung-liste" id="wartungListe"></div>
     <div class="leer-hinweis" id="wartungLeerHinweis" style="display:none;">
       <span class="em">🔁</span>Noch keine wiederkehrende Wartung angelegt.<br>Tippe auf „＋ Neu", um z.B. Rauchmelder-Batterie oder Dachrinne reinigen anzulegen.
     </div>
   </div>
 
+  <div id="ansichtWerkzeug" style="display:none;">
+    <div class="wz-kopf">
+      <input type="text" id="wzSuche" placeholder="Werkzeug oder Ort suchen ...">
+    </div>
+    <div class="filter-reihe" id="wzFilterReihe" style="margin-bottom:6px;"></div>
+    <div id="wzListe"></div>
+    <div class="leer-hinweis" id="wzLeerHinweis" style="display:none;">
+      <span class="em">🧰</span>Noch kein Werkzeug eingetragen.<br>Tippe auf „＋ Neu“, um z.B. Akkuschrauber, Leiter oder Stichsäge anzulegen – mit Lagerort und an wen es verliehen ist.
+    </div>
+  </div>
   <div id="ansichtPaletten" style="display:none;"></div>
   <div id="ansichtNistkaesten" style="display:none;"></div>
 
@@ -420,7 +483,9 @@
     <button class="zeile-hinzufuegen" id="btnNeueSkizze">＋ Neue Skizze</button>
     <div class="unterliste-titel">📷 Fotos</div>
     <div id="detailFotoGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;margin-bottom:8px"></div>
+    <button class="zeile-hinzufuegen" id="btnVergleich" style="display:none;margin-bottom:6px;">↔️ Vorher / Nachher vergleichen</button>
     <label class="zeile-hinzufuegen foto-hinzufuegen" id="btnFotoHinzufuegen">＋ Foto hinzufügen<input type="file" accept="image/*" id="fotoInput"></label>
+    <button class="zeile-hinzufuegen" id="btnDetailRechner" style="margin-top:6px;">🧮 Material berechnen (Farbe, Fliesen, Tapete, Beton)</button>
     <div class="detail-notiz-box" id="detailNotizBox" style="display:none;margin-top:14px"></div>
     <div class="modal-btns">
       <button class="btn btn-secondary" id="btnDetailSchliessen">Schließen</button>
@@ -518,6 +583,10 @@
       <label>Turnus</label>
       <div class="opt-reihe" id="wartungTurnusReihe"></div>
     </div>
+    <div class="feld" id="wartungMonatFeld" style="display:none;">
+      <label for="fWartungMonat">Fällig im Monat (Saison)</label>
+      <select id="fWartungMonat"></select>
+    </div>
     <div class="feld">
       <label>Zuständigkeit</label>
       <div class="opt-reihe" id="wartungZuweisungReihe"></div>
@@ -540,6 +609,7 @@
       <button class="btn btn-primary" id="btnWartungSpeichern">💾 Speichern</button>
     </div>
     <div class="modal-btns" id="wartungLoeschZeile" style="display:none;">
+      <button class="btn btn-secondary" id="btnWartungTermin">📅 Als Termin</button>
       <button class="btn btn-danger" id="btnWartungLoeschen">Wartungsaufgabe löschen</button>
     </div>
   </div>
@@ -557,10 +627,104 @@
   </div>
 </div>
 
+<!-- Vorher/Nachher-Vergleich -->
+<div class="modal-bg" id="modalVergleich">
+  <div class="modal">
+    <h2>↔️ Vorher / Nachher</h2>
+    <div class="vergleich-box" id="vergleichBox">
+      <img id="vgNachher" alt="Nachher">
+      <div class="vg-oben" id="vgObenWrap"><img id="vgVorher" alt="Vorher"></div>
+      <div class="vg-linie" id="vgLinie"></div>
+      <span class="vg-label" style="left:8px;">VORHER</span>
+      <span class="vg-label" style="right:8px;">NACHHER</span>
+    </div>
+    <input type="range" class="vergleich-regler" id="vgRegler" min="0" max="100" value="50" aria-label="Vergleichsregler">
+    <div class="unterliste-titel">Vorher-Foto</div>
+    <div class="vergleich-waehler" id="vgWahlVorher"></div>
+    <div class="unterliste-titel">Nachher-Foto</div>
+    <div class="vergleich-waehler" id="vgWahlNachher"></div>
+    <div class="modal-btns"><button class="btn btn-secondary" id="btnVergleichSchliessen">Schließen</button></div>
+  </div>
+</div>
+
+<!-- Heimwerker-Rechner -->
+<div class="modal-bg" id="modalRechner">
+  <div class="modal">
+    <h2>🧮 Heimwerker-Rechner</h2>
+    <div class="opt-reihe" id="rechnerArtReihe" style="margin-bottom:12px;"></div>
+    <div class="rechner-grid" id="rechnerFelder"></div>
+    <div class="rechner-ergebnis" id="rechnerErgebnis"></div>
+    <div class="feld" style="margin-top:12px;">
+      <label for="rechnerZiel">Übernehmen in</label>
+      <select id="rechnerZiel"></select>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnRechnerSchliessen">Schließen</button>
+      <button class="btn btn-primary" id="btnRechnerUebernehmen">➕ Übernehmen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Projekt abschließen: Kosten -->
+<div class="modal-bg" id="modalAbschluss">
+  <div class="modal" style="max-width:420px;">
+    <h2>✅ Projekt abschließen</h2>
+    <div class="feld">
+      <label for="fAbschlussKosten">Was hat es insgesamt gekostet? (€)</label>
+      <input type="number" id="fAbschlussKosten" min="0" step="0.01" inputmode="decimal" placeholder="0,00">
+      <div class="fertig-hinweis" id="abschlussHinweis" style="color:var(--bark);font-weight:500;"></div>
+    </div>
+    <label class="check-zeile"><input type="checkbox" id="fAbschlussFinanzen" checked> In den Finanzen buchen (Kategorie 🔨 Handwerk)</label>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnAbschlussAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnAbschlussOk">✅ Abschließen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Saison-Pakete -->
+<div class="modal-bg" id="modalSaison">
+  <div class="modal">
+    <h2>🍂🌸 Saison-Wartung</h2>
+    <div style="font-size:0.8rem;color:var(--bark);margin-bottom:10px;">Häkchen setzen und übernehmen. Saison-Aufgaben werden jedes Jahr im passenden Monat fällig.</div>
+    <div id="saisonListe"></div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnSaisonAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnSaisonUebernehmen">➕ Übernehmen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Werkzeug Neu/Bearbeiten -->
+<div class="modal-bg" id="modalWerkzeug">
+  <div class="modal">
+    <h2 id="wzTitelKopf">Neues Werkzeug</h2>
+    <div class="feld"><label for="fWzName">Werkzeug</label><input type="text" id="fWzName" placeholder="z.B. Akkuschrauber, Stehleiter, Stichsäge ..."></div>
+    <div class="feld"><label for="fWzOrt">Lagerort</label><input type="text" id="fWzOrt" list="wzOrtListe" placeholder="z.B. Keller, Regal 2 · Garage · Werkbank"><datalist id="wzOrtListe"></datalist></div>
+    <div class="rechner-grid">
+      <div class="feld"><label for="fWzVerliehen">Verliehen an</label><input type="text" id="fWzVerliehen" list="wzLeiherListe" placeholder="leer = da"><datalist id="wzLeiherListe"></datalist></div>
+      <div class="feld"><label for="fWzSeit">Seit</label><input type="date" id="fWzSeit"></div>
+    </div>
+    <div class="feld"><label for="fWzNotiz">Notiz</label><input type="text" id="fWzNotiz" placeholder="z.B. Akku 18 V, Bits im Koffer"></div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnWzAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnWzSpeichern">💾 Speichern</button>
+    </div>
+    <div class="modal-btns" id="wzLoeschZeile" style="display:none;">
+      <button class="btn btn-danger" id="btnWzLoeschen">Werkzeug löschen</button>
+    </div>
+  </div>
+</div>
+
 <!-- Foto-Großansicht -->
 <div class="modal-bg" id="modalFoto">
   <div style="width:100%;max-width:720px;">
     <img class="foto-gross" id="fotoGross" alt="Projektfoto">
+    <div class="foto-typ-reihe" id="fotoTypReihe">
+      <button type="button" class="opt" data-typ="vorher">⬅️ Vorher</button>
+      <button type="button" class="opt" data-typ="">Kein Etikett</button>
+      <button type="button" class="opt" data-typ="nachher">Nachher ➡️</button>
+    </div>
     <div class="foto-leiste">
       <button class="btn btn-danger" id="btnFotoLoeschen" style="background:var(--cream);">Foto löschen</button>
       <button class="btn btn-secondary" id="btnFotoSchliessen">Schließen</button>
@@ -781,7 +945,30 @@
     return karte;
   }
 
+  function materialSumme(p) {
+    return (p.material || []).reduce((s, m) => {
+      const preisZahl = parseFloat(String(m.preis || '').replace(',', '.'));
+      return s + (preisZahl > 0 ? preisZahl : 0);
+    }, 0);
+  }
+  function projektKosten(p) { return (typeof p.kostenIst === 'number') ? p.kostenIst : materialSumme(p); }
+  function euro(b, nachkomma) { return b.toLocaleString('de-DE', { minimumFractionDigits: nachkomma ? 2 : 0, maximumFractionDigits: nachkomma ? 2 : 0 }) + ' €'; }
+  function renderJahresBilanz() {
+    const box = document.getElementById('jahresBilanz');
+    const jahr = new Date().getFullYear();
+    const fertig = projekte.filter(p => p.status === 'fertig' && p.fertigAm && new Date(p.fertigAm).getFullYear() === jahr);
+    const laufend = projekte.filter(p => p.status === 'laufend').length;
+    if (!fertig.length && !laufend) { box.style.display = 'none'; return; }
+    const summe = fertig.reduce((s, p) => s + projektKosten(p), 0);
+    const vorjahr = projekte.filter(p => p.status === 'fertig' && p.fertigAm && new Date(p.fertigAm).getFullYear() === jahr - 1);
+    box.style.display = '';
+    box.innerHTML = '🏆 <span>' + jahr + ': <span class="jb-zahl">' + fertig.length + '</span> ' + (fertig.length === 1 ? 'Projekt' : 'Projekte') + ' fertig' +
+      (summe > 0 ? ' · <span class="jb-zahl">' + euro(summe) + '</span>' : '') + '</span>' +
+      (laufend ? '<span style="margin-left:auto;">🔨 ' + laufend + ' laufend</span>' : '') +
+      (vorjahr.length ? '<span class="jb-klein">' + (jahr - 1) + ': ' + vorjahr.length + ' fertig · ' + euro(vorjahr.reduce((s, p) => s + projektKosten(p), 0)) + '</span>' : '');
+  }
   function renderGrid() {
+    renderJahresBilanz();
     const box = document.getElementById('projektGrid');
     box.innerHTML = '';
     const liste = gefilterteProjekte();
@@ -806,6 +993,7 @@
     const metaTeile = [];
     if (person) metaTeile.push('Wer: ' + person.label);
     if (p.status === 'fertig' && p.fertigAm) metaTeile.push('Fertig seit ' + new Date(p.fertigAm).toLocaleDateString('de-DE'));
+    if (p.status === 'fertig' && typeof p.kostenIst === 'number' && p.kostenIst > 0) metaTeile.push('Gekostet: ' + euro(p.kostenIst, true) + (p.finanzId ? ' 💶' : ''));
     document.getElementById('detailMeta').textContent = metaTeile.join(' · ');
     document.getElementById('btnProjektAbschliessen').style.display = p.status === 'fertig' ? 'none' : '';
     document.getElementById('detailNotizBox').style.display = p.notiz ? '' : 'none';
@@ -890,16 +1078,20 @@
     kandidat.menge = String(Math.round((kZahl + nZahl) * 100) / 100);
     return true;
   }
+  let einkaufSync = null;
+  if (window.PlanerSync) { try { einkaufSync = window.PlanerSync.starteSync({ modul: 'einkauf', keys: [KEY_EINKAUF_LISTEN] }); } catch (e) {} }
   document.getElementById('btnZumEinkauf').addEventListener('click', () => {
     const p = projekte.find(x => x.id === detailId);
     if (!p || !p.material || !p.material.length) { alert('Für dieses Projekt ist noch kein Material eingetragen.'); return; }
+    alert(materialZurEinkaufsliste(p.material, 'projekt:' + p.titel));
+  });
+  function materialZurEinkaufsliste(material, herkunft) {
     let listen = laden(KEY_EINKAUF_LISTEN, null);
     if (!listen || !listen.length) listen = [{ id: neueId('l'), name: 'Wocheneinkauf', items: [] }];
     let aktivId = localStorage.getItem(KEY_EINKAUF_AKTIV);
     let aktiv = listen.find(l => l.id === aktivId) || listen[0];
-    const herkunft = 'projekt:' + p.titel;
     let zusammengefuehrt = 0;
-    p.material.forEach(m => {
+    material.forEach(m => {
       const kandidat = aktiv.items.find(i => !i.erledigt && i.name.trim().toLowerCase() === m.name.trim().toLowerCase());
       if (kandidat && versucheMengeZusammenfuehren(kandidat, m.menge || '', m.einheit || '')) {
         kandidat.hinzugefuegtVon = herkunft;
@@ -909,11 +1101,12 @@
       }
     });
     speichern(KEY_EINKAUF_LISTEN, listen);
+    if (einkaufSync) einkaufSync.melde();
     if (!aktivId) localStorage.setItem(KEY_EINKAUF_AKTIV, aktiv.id);
-    let meldung = p.material.length + ' Material-Posten wurden zu „' + aktiv.name + '“ in Einkauf hinzugefügt.';
+    let meldung = material.length + ' Material-Posten wurden zu „' + aktiv.name + '“ in Einkauf hinzugefügt.';
     if (zusammengefuehrt) meldung += ' (' + zusammengefuehrt + ' davon mit bereits vorhandenen Posten zusammengeführt.)';
-    alert(meldung);
-  });
+    return meldung;
+  }
 
   // --- BEARBEITEN / NEU ---
   let editStatus = 'idee', editPerson = null;
@@ -1057,6 +1250,7 @@
   }
   document.getElementById('btnNeu').addEventListener('click', () => {
     if (typeof aktiveAnsicht !== 'undefined' && aktiveAnsicht === 'wartung') wartungEditOeffnen(null);
+    else if (typeof aktiveAnsicht !== 'undefined' && aktiveAnsicht === 'werkzeug') werkzeugEditOeffnen(null);
     else editModalOeffnen(null);
   });
   document.getElementById('btnDetailBearbeiten').addEventListener('click', () => {
@@ -1126,6 +1320,7 @@
     showTempStatus('Gelöscht: „' + entfernt.titel + '"', 6, {
       rueckgaengig: () => { projekte.splice(index, 0, entfernt); speichernProjekte(); renderGrid(); }
     });
+    (entfernt.fotos || []).forEach(f => cloudFotoSpaeterLoeschen(f));
   });
 
   // --- SKIZZEN (grobe 2D-Zeichnungen pro Projekt) ---
@@ -1418,7 +1613,7 @@
     if (!p) return;
     if (!p.skizzen) p.skizzen = [];
     const name = document.getElementById('fSkizzeName').value.trim();
-    const thumb = skizzeCanvas.toDataURL('image/png');
+    const thumb = skizzeThumbKlein(skizzeCanvas);
     if (skizzeBearbeiteId) {
       const s = p.skizzen.find(x => x.id === skizzeBearbeiteId);
       if (s) { s.name = name; s.shapes = skizzeShapes; s.thumb = thumb; }
@@ -1461,7 +1656,7 @@
   // ============================================================
   // PROJEKT-FOTOS (werden verkleinert und wie die Skizzen mitsynchronisiert)
   // ============================================================
-  const FOTO_MAX_KANTE = 800;
+  const FOTO_MAX_KANTE = (window.FotoSpeicher && window.FotoSpeicher.verfuegbar && window.FotoSpeicher.verfuegbar()) ? 1280 : 800;
   const SYNC_WARNGRENZE = 850 * 1024; // Firestore erlaubt max. 1 MB pro Modul-Dokument
   let grossFotoId = null;
 
@@ -1471,11 +1666,140 @@
     (p.fotos || []).forEach(f => {
       const el = document.createElement('div');
       el.className = 'foto-kachel';
-      el.innerHTML = '<img src="' + f.bild + '" alt="Projektfoto">';
+      el.innerHTML = '<img src="' + escapeHtml(fotoSrc(f)) + '" alt="Projektfoto" loading="lazy">' +
+        (f.typ ? '<span class="foto-typ ' + f.typ + '">' + (f.typ === 'vorher' ? 'VORHER' : 'NACHHER') + '</span>' : '') +
+        (!f.url && cloudBereit() ? '<span class="foto-wolke" title="Wird hochgeladen …">⏳</span>' : '');
       el.addEventListener('click', () => fotoGrossZeigen(f.id));
       grid.appendChild(el);
     });
+    const hatV = (p.fotos || []).some(f => f.typ === 'vorher'), hatN = (p.fotos || []).some(f => f.typ === 'nachher');
+    document.getElementById('btnVergleich').style.display = (hatV && hatN) ? '' : 'none';
   }
+
+  // ---------- 📷 Familien-Fotospeicher (Firebase Storage) ----------
+  // Im Projekt steht nach dem Hochladen nur { url, pfad } – so bleibt das 1-MB-Dokument klein.
+  function fotoSrc(f) { return (f && (f.url || f.bild)) || ''; }
+  function cloudBereit() { return !!(window.FotoSpeicher && window.FotoSpeicher.verfuegbar && window.FotoSpeicher.verfuegbar()); }
+  function bildHash(t) { let h1 = 0x811c9dc5, h2 = 5381; for (let i = 0; i < t.length; i++) { const c = t.charCodeAt(i); h1 = Math.imul(h1 ^ c, 16777619); h2 = (Math.imul(h2, 33) + c) | 0; } return (h1 >>> 0).toString(36) + (h2 >>> 0).toString(36); }
+  async function vorhandeneCloudDatei(id) {
+    try {
+      await window.PlanerSync.authBereit();
+      const pfad = 'planerFamilien/' + window.PlanerSync.familienId() + '/fotos/' + id + '.jpg';
+      return { url: await firebase.storage().ref(pfad).getDownloadURL(), pfad };
+    } catch (e) { return null; }
+  }
+  let fotoUploadLaeuft = false;
+  async function fotosHochladen() {
+    if (fotoUploadLaeuft || !cloudBereit() || !navigator.onLine) return;
+    fotoUploadLaeuft = true;
+    let geaendert = false;
+    try {
+      const offen = [];
+      projekte.forEach(p => (p.fotos || []).forEach(f => { if (!f.url && typeof f.bild === 'string' && f.bild.indexOf('data:image') === 0) offen.push([p.id, f.id, f.bild]); }));
+      for (const [pid, fid, daten] of offen) {
+        const cloudId = 'hw' + bildHash(daten);
+        let erg = null;
+        try { erg = await vorhandeneCloudDatei(cloudId) || await window.FotoSpeicher.hochladen(cloudId, daten); }
+        catch (err) { console.warn('Handwerk: Foto-Upload fehlgeschlagen', err); break; }
+        const p = projekte.find(x => x.id === pid);
+        const f = p && (p.fotos || []).find(x => x.id === fid);
+        if (!f || f.bild !== daten || !erg) continue;
+        f.url = erg.url; f.pfad = erg.pfad; delete f.bild;
+        geaendert = true;
+      }
+    } finally {
+      fotoUploadLaeuft = false;
+      if (geaendert) {
+        speichernProjekte();
+        const p = detailId && projekte.find(x => x.id === detailId);
+        if (p && document.getElementById('modalDetail').classList.contains('zeigen')) detailFotosRendern(p);
+      }
+    }
+  }
+  function cloudFotoSpaeterLoeschen(f) {
+    if (!f || !f.pfad || !cloudBereit()) return;
+    setTimeout(() => {
+      const nochDa = projekte.some(p => (p.fotos || []).some(x => x.pfad === f.pfad));
+      if (!nochDa) { try { window.FotoSpeicher.loeschen(f.pfad); } catch (e) {} }
+    }, 9000);
+  }
+  setTimeout(fotosHochladen, 2500);
+  window.addEventListener('online', () => setTimeout(fotosHochladen, 1500));
+
+  // ---------- Skizzen-Vorschaubilder: kleines JPEG statt großem PNG ----------
+  function skizzeThumbKlein(quelle) {
+    const c = document.createElement('canvas');
+    c.width = 320; c.height = 200;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
+    ctx.drawImage(quelle, 0, 0, c.width, c.height);
+    return c.toDataURL('image/jpeg', 0.7);
+  }
+  function skizzenThumbsUmstellen() {
+    const offen = [];
+    projekte.forEach(p => (p.skizzen || []).forEach(sk => { if (typeof sk.thumb === 'string' && sk.thumb.indexOf('data:image/png') === 0) offen.push(sk); }));
+    if (!offen.length) return;
+    let rest = offen.length, geaendert = false;
+    offen.forEach(sk => {
+      const img = new Image();
+      img.onload = () => {
+        try { const neu = skizzeThumbKlein(img); if (neu.length < sk.thumb.length) { sk.thumb = neu; geaendert = true; } } catch (e) {}
+        if (--rest === 0 && geaendert) speichernProjekte();
+      };
+      img.onerror = () => { if (--rest === 0 && geaendert) speichernProjekte(); };
+      img.src = sk.thumb;
+    });
+  }
+  setTimeout(skizzenThumbsUmstellen, 1200);
+
+  // ---------- ↔️ Vorher/Nachher-Vergleich ----------
+  let vgVorherId = null, vgNachherId = null;
+  function vergleichOeffnen() {
+    const p = projekte.find(x => x.id === detailId);
+    if (!p) return;
+    const vor = (p.fotos || []).filter(f => f.typ === 'vorher'), nach = (p.fotos || []).filter(f => f.typ === 'nachher');
+    if (!vor.length || !nach.length) return;
+    if (!vor.some(f => f.id === vgVorherId)) vgVorherId = vor[0].id;
+    if (!nach.some(f => f.id === vgNachherId)) vgNachherId = nach[nach.length - 1].id;
+    vergleichRendern(p);
+    document.getElementById('vgRegler').value = 50; vergleichRegler();
+    document.getElementById('modalVergleich').classList.add('zeigen');
+  }
+  function vergleichRendern(p) {
+    const vor = (p.fotos || []).filter(f => f.typ === 'vorher'), nach = (p.fotos || []).filter(f => f.typ === 'nachher');
+    document.getElementById('vgVorher').src = fotoSrc(vor.find(f => f.id === vgVorherId));
+    document.getElementById('vgNachher').src = fotoSrc(nach.find(f => f.id === vgNachherId));
+    [['vgWahlVorher', vor, 'v'], ['vgWahlNachher', nach, 'n']].forEach(([boxId, liste, art]) => {
+      const box = document.getElementById(boxId);
+      box.innerHTML = '';
+      box.parentElement && (box.style.display = liste.length > 1 ? '' : 'none');
+      box.previousElementSibling.style.display = liste.length > 1 ? '' : 'none';
+      liste.forEach(f => {
+        const img = document.createElement('img');
+        img.src = fotoSrc(f);
+        img.className = (art === 'v' ? f.id === vgVorherId : f.id === vgNachherId) ? 'aktiv' : '';
+        img.addEventListener('click', () => { if (art === 'v') vgVorherId = f.id; else vgNachherId = f.id; vergleichRendern(p); });
+        box.appendChild(img);
+      });
+    });
+  }
+  function vergleichRegler() {
+    const wert = document.getElementById('vgRegler').value;
+    document.getElementById('vgObenWrap').style.clipPath = 'inset(0 ' + (100 - wert) + '% 0 0)';
+    document.getElementById('vgLinie').style.left = 'calc(' + wert + '% - 1px)';
+  }
+  document.getElementById('vgRegler').addEventListener('input', vergleichRegler);
+  (function () {
+    const box = document.getElementById('vergleichBox');
+    let zieht = false;
+    const setzen = (x) => { const r = box.getBoundingClientRect(); document.getElementById('vgRegler').value = Math.max(0, Math.min(100, Math.round((x - r.left) / r.width * 100))); vergleichRegler(); };
+    box.addEventListener('pointerdown', (e) => { zieht = true; setzen(e.clientX); });
+    box.addEventListener('pointermove', (e) => { if (zieht) setzen(e.clientX); });
+    window.addEventListener('pointerup', () => { zieht = false; });
+  })();
+  document.getElementById('btnVergleich').addEventListener('click', vergleichOeffnen);
+  document.getElementById('btnVergleichSchliessen').addEventListener('click', () => document.getElementById('modalVergleich').classList.remove('zeigen'));
+  document.getElementById('modalVergleich').addEventListener('click', (e) => { if (e.target.id === 'modalVergleich') e.currentTarget.classList.remove('zeigen'); });
 
   function bildVerkleinern(datei) {
     return new Promise((resolve, reject) => {
@@ -1506,9 +1830,11 @@
     try {
       const bild = await bildVerkleinern(datei);
       if (!p.fotos) p.fotos = [];
-      p.fotos.push({ id: neueId('f'), bild, erstellt: new Date().toISOString() });
+      const typVorschlag = p.status === 'fertig' ? 'nachher' : ((p.status === 'idee' || p.status === 'geplant') && !(p.fotos || []).some(f => f.typ === 'vorher') ? 'vorher' : '');
+      p.fotos.push({ id: neueId('f'), bild, typ: typVorschlag || undefined, erstellt: new Date().toISOString() });
       speichernProjekte();
       detailFotosRendern(p);
+      if (cloudBereit()) { setTimeout(fotosHochladen, 300); return; }
       const groesse = new Blob([JSON.stringify(projekte)]).size;
       if (groesse > SYNC_WARNGRENZE) {
         alert('Achtung: Die Handwerk-Daten sind jetzt ' + Math.round(groesse / 1024) + ' KB groß. Ab 1 MB kann nicht mehr synchronisiert werden. Lösch am besten ein paar ältere Fotos.');
@@ -1523,9 +1849,22 @@
     const f = p && (p.fotos || []).find(x => x.id === fotoId);
     if (!f) return;
     grossFotoId = fotoId;
-    document.getElementById('fotoGross').src = f.bild;
+    document.getElementById('fotoGross').src = fotoSrc(f);
+    fotoTypReiheRendern(f);
     document.getElementById('modalFoto').classList.add('zeigen');
   }
+  function fotoTypReiheRendern(f) {
+    document.querySelectorAll('#fotoTypReihe .opt').forEach(b => b.classList.toggle('aktiv', (f.typ || '') === b.dataset.typ));
+  }
+  document.querySelectorAll('#fotoTypReihe .opt').forEach(b => b.addEventListener('click', () => {
+    const p = projekte.find(x => x.id === detailId);
+    const f = p && (p.fotos || []).find(x => x.id === grossFotoId);
+    if (!f) return;
+    if (b.dataset.typ) f.typ = b.dataset.typ; else delete f.typ;
+    speichernProjekte();
+    fotoTypReiheRendern(f);
+    detailFotosRendern(p);
+  }));
   function fotoGrossSchliessen() { document.getElementById('modalFoto').classList.remove('zeigen'); grossFotoId = null; }
   document.getElementById('btnFotoSchliessen').addEventListener('click', fotoGrossSchliessen);
   document.getElementById('modalFoto').addEventListener('click', (e) => { if (e.target.id === 'modalFoto') fotoGrossSchliessen(); });
@@ -1541,20 +1880,81 @@
     showTempStatus('Foto gelöscht', 6, {
       rueckgaengig: () => { p.fotos.splice(index, 0, entfernt); speichernProjekte(); detailFotosRendern(p); }
     });
+    cloudFotoSpaeterLoeschen(entfernt);
   });
 
   // ---------- Projekt abschließen ----------
+  // 💶 Kosten landen auf Wunsch in den Finanzen (Kategorie „🔨 Handwerk“)
+  const KEY_FIN_AUS = 'handwerk_finanzenAus'; // geräte-lokal: '1' = nicht buchen
+  let finanzenSync = null;
+  if (window.PlanerSync) {
+    try {
+      finanzenSync = window.PlanerSync.starteSync({ modul: 'finanzen',
+        keys: ['finanzen_kategorien', 'finanzen_ausgaben', 'finanzen_taschengeld_konten', 'finanzen_taschengeld_buchungen', 'finanzen_abos'], ersterAbgleichVereinen: true });
+    } catch (e) {}
+  }
+  function lokalIso(d) { d = d || new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+  function finanzSpeichern(key, wert) {
+    try { localStorage.setItem(key, JSON.stringify(wert)); } catch (e) { console.warn('Handwerk: Finanzen', e); }
+    if (finanzenSync) finanzenSync.melde();
+  }
+  function finanzBuchen(p, betrag) {
+    try {
+      const ausgaben = laden('finanzen_ausgaben', []);
+      const kategorien = laden('finanzen_kategorien', []);
+      if (!kategorien.some(k => k.id === 'kat_handwerk')) {
+        kategorien.push({ id: 'kat_handwerk', name: 'Handwerk', icon: '🔨', limit: 0 });
+        finanzSpeichern('finanzen_kategorien', kategorien);
+      }
+      const id = 'hw_' + p.id;
+      const vorhanden = ausgaben.find(a => a.id === id);
+      const eintrag = { id, kategorieId: 'kat_handwerk', betrag: Math.round(betrag * 100) / 100, beschreibung: 'Projekt: ' + p.titel, datum: lokalIso(), quelle: 'handwerk' };
+      if (vorhanden) Object.assign(vorhanden, eintrag); else ausgaben.push(eintrag);
+      finanzSpeichern('finanzen_ausgaben', ausgaben);
+      p.finanzId = id;
+    } catch (e) { console.warn('Handwerk: Finanzen buchen', e); }
+  }
+  function finanzLoeschen(p) {
+    if (!p || !p.finanzId) return;
+    finanzSpeichern('finanzen_ausgaben', laden('finanzen_ausgaben', []).filter(a => a.id !== p.finanzId));
+    delete p.finanzId;
+  }
   document.getElementById('btnProjektAbschliessen').addEventListener('click', () => {
     const p = projekte.find(x => x.id === detailId);
     if (!p) return;
-    const vorher = { status: p.status, fertigAm: p.fertigAm || null };
+    const summe = materialSumme(p);
+    document.getElementById('fAbschlussKosten').value = summe > 0 ? (Math.round(summe * 100) / 100) : '';
+    document.getElementById('abschlussHinweis').textContent = summe > 0 ? 'Vorausgefüllt mit der Materialsumme (' + euro(summe, true) + ').' + (p.budgetGeplant ? ' Budget: ' + euro(p.budgetGeplant, true) + '.' : '') : (p.budgetGeplant ? 'Geplantes Budget: ' + euro(p.budgetGeplant, true) + '.' : 'Leer lassen, wenn nichts gebucht werden soll.');
+    let finAus = false; try { finAus = localStorage.getItem(KEY_FIN_AUS) === '1'; } catch (e) {}
+    document.getElementById('fAbschlussFinanzen').checked = !finAus;
+    document.getElementById('modalAbschluss').classList.add('zeigen');
+    setTimeout(() => document.getElementById('fAbschlussKosten').focus(), 50);
+  });
+  document.getElementById('btnAbschlussAbbrechen').addEventListener('click', () => document.getElementById('modalAbschluss').classList.remove('zeigen'));
+  document.getElementById('modalAbschluss').addEventListener('click', (e) => { if (e.target.id === 'modalAbschluss') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnAbschlussOk').addEventListener('click', () => {
+    const p = projekte.find(x => x.id === detailId);
+    if (!p) return;
+    const roh = String(document.getElementById('fAbschlussKosten').value || '').replace(',', '.');
+    const betrag = parseFloat(roh);
+    const buchen = document.getElementById('fAbschlussFinanzen').checked;
+    try { localStorage.setItem(KEY_FIN_AUS, buchen ? '0' : '1'); } catch (e) {}
+    const vorher = { status: p.status, fertigAm: p.fertigAm || null, kostenIst: p.kostenIst, finanzId: p.finanzId };
     p.status = 'fertig';
     p.fertigAm = new Date().toISOString();
+    if (betrag >= 0 && roh !== '') p.kostenIst = Math.round(betrag * 100) / 100; else delete p.kostenIst;
+    if (buchen && p.kostenIst > 0) finanzBuchen(p, p.kostenIst);
     speichernProjekte();
+    document.getElementById('modalAbschluss').classList.remove('zeigen');
     document.getElementById('modalDetail').classList.remove('zeigen');
     renderGrid();
-    showTempStatus('„' + p.titel + '" abgeschlossen', 6, {
-      rueckgaengig: () => { p.status = vorher.status; p.fertigAm = vorher.fertigAm; speichernProjekte(); renderGrid(); }
+    showTempStatus('„' + p.titel + '" abgeschlossen' + (p.finanzId && !vorher.finanzId ? ' · 💶 in Finanzen gebucht' : ''), 6, {
+      rueckgaengig: () => {
+        if (p.finanzId && !vorher.finanzId) finanzLoeschen(p);
+        p.status = vorher.status; p.fertigAm = vorher.fertigAm;
+        if (vorher.kostenIst === undefined) delete p.kostenIst; else p.kostenIst = vorher.kostenIst;
+        speichernProjekte(); renderGrid();
+      }
     });
   });
 
@@ -1588,10 +1988,33 @@
     if (!w.erledigt || !w.erledigt.length) return null;
     return w.erledigt[w.erledigt.length - 1];
   }
+  const MONATSNAMEN = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+  function wartungHatSaison(w) { return !!w.monat && (w.turnus === 'jaehrlich' || w.turnus === 'halbjaehrlich'); }
+  // Letzter Saisonbeginn (1. des Monats) vor/an "jetzt" und der nächste danach
+  function wartungSaison(w, jetzt) {
+    jetzt = jetzt || new Date();
+    const monate = w.turnus === 'halbjaehrlich' ? [w.monat, ((w.monat + 5) % 12) + 1] : [w.monat];
+    const starts = [];
+    [-1, 0, 1].forEach(dj => monate.forEach(m => starts.push(new Date(jetzt.getFullYear() + dj, m - 1, 1))));
+    starts.sort((a, b) => a - b);
+    let start = starts[0];
+    starts.forEach(d => { if (d <= jetzt) start = d; });
+    const naechster = starts.find(d => d > jetzt);
+    return { start, naechster };
+  }
   function wartungIstFaellig(w) {
     if (w.pausiert) return false;
     const letzte = wartungLetzteErledigung(w);
     if (w.turnus === 'einmalig') return !letzte;
+    if (wartungHatSaison(w)) {
+      const jetzt = new Date();
+      const { start } = wartungSaison(w, jetzt);
+      const toleranz = new Date(start); toleranz.setMonth(toleranz.getMonth() - 1); // vier Wochen vorher erledigt zählt mit
+      if (letzte) return new Date(letzte.datum) < toleranz;
+      // noch nie erledigt: nur in der laufenden Saison (3 Monate) fällig, sonst ab der nächsten
+      const saisonEnde = new Date(start); saisonEnde.setMonth(saisonEnde.getMonth() + 3);
+      return jetzt < saisonEnde;
+    }
     if (!letzte) return true;
     const monate = WARTUNG_MONATE[w.turnus] || 1;
     const faelligAb = new Date(letzte.datum);
@@ -1599,7 +2022,24 @@
     return faelligAb <= new Date();
   }
   function wartungTurnusText(w) {
-    return (WARTUNG_TURNUS_OPTIONEN.find(t => t.id === w.turnus) || {}).label || w.turnus;
+    const t = (WARTUNG_TURNUS_OPTIONEN.find(t => t.id === w.turnus) || {}).label || w.turnus;
+    if (!wartungHatSaison(w)) return t;
+    if (w.turnus === 'halbjaehrlich') return t + ' · ' + MONATSNAMEN[w.monat - 1].slice(0, 3) + '/' + MONATSNAMEN[(w.monat + 5) % 12].slice(0, 3);
+    return t + ' · ' + MONATSNAMEN[w.monat - 1];
+  }
+  // Nächstes Fälligkeitsdatum (für „📅 Als Termin“)
+  function wartungNaechstesDatum(w) {
+    const heute = new Date(); heute.setHours(0, 0, 0, 0);
+    if (wartungIstFaellig(w)) {
+      const d = new Date(heute); d.setDate(d.getDate() + ((6 - d.getDay() + 7) % 7 || 7)); // nächster Samstag
+      return d;
+    }
+    if (wartungHatSaison(w)) return wartungSaison(w).naechster;
+    const letzte = wartungLetzteErledigung(w);
+    if (!letzte || w.turnus === 'einmalig') return null;
+    const d = new Date(letzte.datum); d.setHours(0, 0, 0, 0);
+    d.setMonth(d.getMonth() + (WARTUNG_MONATE[w.turnus] || 1));
+    return d < heute ? heute : d;
   }
   function wartungAktuellZustaendig(w) {
     if (w.zuweisung === 'fest' && w.person) return personInfo(w.person);
@@ -1611,6 +2051,11 @@
   }
   function wartungNaechsteFaelligkeitText(w) {
     const letzte = wartungLetzteErledigung(w);
+    if (wartungHatSaison(w) && w.turnus !== 'einmalig') {
+      if (wartungIstFaellig(w)) return 'fällig seit ' + wartungSaison(w).start.toLocaleDateString('de-DE', { month: 'short', year: 'numeric' });
+      const n = wartungSaison(w).naechster;
+      return (letzte ? '' : 'noch nie · ') + 'ab ' + n.toLocaleDateString('de-DE', { month: 'short', year: 'numeric' });
+    }
     if (!letzte) return 'noch nie erledigt';
     if (w.turnus === 'einmalig') return 'erledigt';
     const monate = WARTUNG_MONATE[w.turnus] || 1;
@@ -1632,6 +2077,9 @@
     document.getElementById('ansichtPaletten').style.display = (aktiveAnsicht === 'paletten') ? '' : 'none';
     if (aktiveAnsicht === 'wartung') { renderWartungFilter(); renderWartungListe(); }
     if (aktiveAnsicht === 'paletten' && window.palettenIdeenRendern) window.palettenIdeenRendern();
+    document.getElementById('tabWerkzeug').classList.toggle('active', aktiveAnsicht === 'werkzeug');
+    document.getElementById('ansichtWerkzeug').style.display = (aktiveAnsicht === 'werkzeug') ? '' : 'none';
+    if (aktiveAnsicht === 'werkzeug') renderWerkzeug();
     document.getElementById('tabNistkaesten').classList.toggle('active', aktiveAnsicht === 'nistkaesten');
     document.getElementById('ansichtNistkaesten').style.display = (aktiveAnsicht === 'nistkaesten') ? '' : 'none';
     if (aktiveAnsicht === 'nistkaesten' && window.nistkastenRendern) window.nistkastenRendern();
@@ -1793,7 +2241,12 @@
       btn.addEventListener('click', () => { wGewaehlterTurnus = t.id; wartungTurnusReiheRendern(); });
       box.appendChild(btn);
     });
+    document.getElementById('wartungMonatFeld').style.display = (wGewaehlterTurnus === 'jaehrlich' || wGewaehlterTurnus === 'halbjaehrlich') ? '' : 'none';
   }
+  (function () {
+    const sel = document.getElementById('fWartungMonat');
+    sel.innerHTML = '<option value="">Kein fester Monat (ab letzter Erledigung)</option>' + MONATSNAMEN.map((m, i) => '<option value="' + (i + 1) + '">' + m + '</option>').join('');
+  })();
   function wartungZuweisungReiheRendern() {
     const box = document.getElementById('wartungZuweisungReihe');
     box.innerHTML = '';
@@ -1881,6 +2334,7 @@
     wGewaehltePerson = w ? w.person : (PERSONEN[0] || {}).id;
     wGewaehlteRotation = w ? (w.rotationPersonen || []).slice() : PERSONEN.map(p => p.id);
     wGewaehltPausiert = w ? !!w.pausiert : false;
+    document.getElementById('fWartungMonat').value = (w && w.monat) ? String(w.monat) : '';
     wartungTurnusReiheRendern();
     wartungZuweisungReiheRendern();
     wartungFestPersonReiheRendern();
@@ -1898,7 +2352,9 @@
     if (!titel) { document.getElementById('fWartungTitel').focus(); return; }
     const icon = document.getElementById('fWartungIcon').value.trim() || '🔁';
     let w = editWartungId ? wartungsaufgaben.find(x => x.id === editWartungId) : null;
-    if (!w) { w = { id: neueId('wa'), erledigt: [], rotationIndex: 0 }; wartungsaufgaben.push(w); }
+    if (!w) { w = { id: neueId('wa'), erledigt: [], rotationIndex: 0, angelegt: new Date().toISOString() }; wartungsaufgaben.push(w); }
+    const monatWert = parseInt(document.getElementById('fWartungMonat').value, 10);
+    if (monatWert >= 1 && monatWert <= 12 && (wGewaehlterTurnus === 'jaehrlich' || wGewaehlterTurnus === 'halbjaehrlich')) w.monat = monatWert; else delete w.monat;
     w.titel = titel;
     w.icon = icon;
     w.turnus = wGewaehlterTurnus;
@@ -1921,6 +2377,365 @@
 
   // "＋ Neu"-Button kontextabhängig: Projekt oder Wartungsaufgabe (Listener s. weiter oben, wird dort ersetzt)
 
+  // ============================================================
+  // 📅 WARTUNG ALS TERMIN
+  // ============================================================
+  let termineSync = null;
+  if (window.PlanerSync) { try { termineSync = window.PlanerSync.starteSync({ modul: 'termine', keys: ['termine_events_v1'] }); } catch (e) {} }
+  document.getElementById('btnWartungTermin').addEventListener('click', () => {
+    const gespeichert = editWartungId && wartungsaufgaben.find(x => x.id === editWartungId);
+    if (!gespeichert) return;
+    // aktuelle Eingaben im Formular berücksichtigen (Turnus/Monat), auch wenn noch nicht gespeichert
+    const w = Object.assign({}, gespeichert, { turnus: wGewaehlterTurnus, titel: document.getElementById('fWartungTitel').value.trim() || gespeichert.titel, icon: document.getElementById('fWartungIcon').value.trim() || gespeichert.icon });
+    const mw = parseInt(document.getElementById('fWartungMonat').value, 10);
+    if (mw >= 1 && mw <= 12) w.monat = mw; else delete w.monat;
+    const d = wartungNaechstesDatum(w) || (() => { const x = new Date(); x.setDate(x.getDate() + 1); return x; })();
+    const iso = lokalIso(d);
+    const events = laden('termine_events_v1', []);
+    const titel = (w.icon || '🔁') + ' ' + w.titel;
+    if (events.some(e => e.title === titel && e.date === iso)) { alert('Steht schon in den Terminen (' + d.toLocaleDateString('de-DE') + ').'); return; }
+    const z = wartungAktuellZustaendig(w);
+    events.push({ id: 't_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7), title: titel, date: iso, allDay: false, startTime: '10:00', endTime: '',
+      wer: z ? z.id : 'familie', location: '', notes: 'Aus 🔨 Handwerk · Wartung', erinnerung: 1440, recurrence: { freq: 'keine', until: null } });
+    try { localStorage.setItem('termine_events_v1', JSON.stringify(events)); } catch (e) {}
+    if (termineSync) termineSync.melde();
+    showTempStatus('📅 Termin am ' + d.toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'short' }) + ', 10:00 eingetragen', 4);
+  });
+
+  // ============================================================
+  // 🍂🌸 SAISON-PAKETE
+  // ============================================================
+  const SAISON_PAKETE = [
+    { id: 'herbst', titel: '🍂 Herbst', aufgaben: [
+      { titel: 'Dachrinne reinigen', icon: '🍂', turnus: 'jaehrlich', monat: 11 },
+      { titel: 'Außenwasserhahn abstellen & entleeren', icon: '🚰', turnus: 'jaehrlich', monat: 10 },
+      { titel: 'Heizkörper entlüften', icon: '🔥', turnus: 'jaehrlich', monat: 10 },
+      { titel: 'Fenster- & Türdichtungen prüfen', icon: '🪟', turnus: 'jaehrlich', monat: 10 },
+      { titel: 'Gartengeräte einwintern', icon: '🧤', turnus: 'jaehrlich', monat: 11 },
+      { titel: 'Gartenmöbel & Schläuche einlagern', icon: '🪑', turnus: 'jaehrlich', monat: 10 },
+    ] },
+    { id: 'fruehjahr', titel: '🌸 Frühjahr', aufgaben: [
+      { titel: 'Rauchmelder testen', icon: '🚨', turnus: 'jaehrlich', monat: 3 },
+      { titel: 'Rasenmäher-Service (Messer, Öl, Filter)', icon: '🌱', turnus: 'jaehrlich', monat: 3 },
+      { titel: 'Außenwasserhahn wieder aufdrehen', icon: '🚰', turnus: 'jaehrlich', monat: 4 },
+      { titel: 'Fenster- & Türbeschläge ölen', icon: '🪟', turnus: 'jaehrlich', monat: 4 },
+      { titel: 'Dach & Dachrinne nach dem Winter prüfen', icon: '🏠', turnus: 'jaehrlich', monat: 4 },
+      { titel: 'Holz außen streichen/ölen prüfen', icon: '🪵', turnus: 'jaehrlich', monat: 5 },
+    ] },
+    { id: 'technik', titel: '🔧 Haustechnik', aufgaben: [
+      { titel: 'Heizungswartung', icon: '🔥', turnus: 'jaehrlich', monat: 9 },
+      { titel: 'FI-Schalter testen (Prüftaste)', icon: '⚡', turnus: 'halbjaehrlich', monat: 1 },
+      { titel: 'Wasserfilter rückspülen', icon: '💧', turnus: 'halbjaehrlich', monat: 3 },
+      { titel: 'Dunstabzug-Filter reinigen', icon: '🍳', turnus: 'vierteljaehrlich' },
+      { titel: 'Duschköpfe & Perlatoren entkalken', icon: '🚿', turnus: 'vierteljaehrlich' },
+      { titel: 'Silikonfugen in Bad & Küche prüfen', icon: '🛁', turnus: 'jaehrlich', monat: 6 },
+    ] },
+  ];
+  const normTitel = t => String(t || '').trim().toLowerCase();
+  function saisonModalOeffnen() {
+    const box = document.getElementById('saisonListe');
+    const vorhanden = new Set(wartungsaufgaben.map(w => normTitel(w.titel)));
+    const monatAkt = new Date().getMonth() + 1;
+    box.innerHTML = SAISON_PAKETE.map(pk => '<div class="saison-paket"><h3>' + pk.titel + '</h3>' + pk.aufgaben.map((a, i) => {
+      const da = vorhanden.has(normTitel(a.titel));
+      const vorauswahl = !da && (pk.id === 'herbst' ? (monatAkt >= 8 && monatAkt <= 11) : pk.id === 'fruehjahr' ? (monatAkt >= 1 && monatAkt <= 4) : false);
+      const zusatz = a.monat ? ' · ' + (a.turnus === 'halbjaehrlich' ? 'halbjährlich ab ' : '') + MONATSNAMEN[a.monat - 1] : ' · ' + wartungTurnusText({ turnus: a.turnus });
+      return '<label class="' + (da ? 'vorhanden' : '') + '"><input type="checkbox" data-paket="' + pk.id + '" data-idx="' + i + '"' + (da ? ' disabled checked' : (vorauswahl ? ' checked' : '')) + '>' +
+        '<span>' + a.icon + ' ' + escapeHtml(a.titel) + '<span style="color:var(--bark);font-size:0.72rem;">' + escapeHtml(zusatz) + (da ? ' · schon da' : '') + '</span></span></label>';
+    }).join('') + '</div>').join('');
+    document.getElementById('modalSaison').classList.add('zeigen');
+  }
+  document.getElementById('btnSaisonPakete').addEventListener('click', saisonModalOeffnen);
+  document.getElementById('btnSaisonAbbrechen').addEventListener('click', () => document.getElementById('modalSaison').classList.remove('zeigen'));
+  document.getElementById('modalSaison').addEventListener('click', (e) => { if (e.target.id === 'modalSaison') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnSaisonUebernehmen').addEventListener('click', () => {
+    const neu = [];
+    document.querySelectorAll('#saisonListe input[type="checkbox"]:checked:not(:disabled)').forEach(cb => {
+      const a = SAISON_PAKETE.find(p => p.id === cb.dataset.paket).aufgaben[parseInt(cb.dataset.idx, 10)];
+      const w = { id: neueId('wa'), titel: a.titel, icon: a.icon, turnus: a.turnus, zuweisung: 'offen', person: null, rotationPersonen: PERSONEN.map(p => p.id), pausiert: false, erledigt: [], rotationIndex: 0, angelegt: new Date().toISOString() };
+      if (a.monat) w.monat = a.monat;
+      neu.push(w);
+    });
+    document.getElementById('modalSaison').classList.remove('zeigen');
+    if (!neu.length) return;
+    neu.forEach(w => wartungsaufgaben.push(w));
+    speichernWartung();
+    renderWartungFilter(); renderWartungListe();
+    showTempStatus('➕ ' + neu.length + ' Wartungsaufgabe' + (neu.length === 1 ? '' : 'n') + ' übernommen', 6, {
+      rueckgaengig: () => { const ids = new Set(neu.map(w => w.id)); wartungsaufgaben = wartungsaufgaben.filter(w => !ids.has(w.id)); speichernWartung(); renderWartungFilter(); renderWartungListe(); }
+    });
+  });
+
+  // ============================================================
+  // 🧰 WERKZEUG-INVENTAR
+  // ============================================================
+  const KEY_WERKZEUG = 'handwerk_werkzeug';
+  let werkzeug = laden(KEY_WERKZEUG, []);
+  let wzFilter = 'alle', wzSuchtext = '', wzEditId = null;
+  function speichernWerkzeug() { speichern(KEY_WERKZEUG, werkzeug); }
+  function tageSeit(iso) { if (!iso) return null; const d = new Date(iso + 'T00:00:00'); return Math.max(0, Math.round((new Date().setHours(0, 0, 0, 0) - d) / 864e5)); }
+  function renderWerkzeug() {
+    const verliehenAnz = werkzeug.filter(t => t.verliehenAn).length;
+    const fbox = document.getElementById('wzFilterReihe');
+    fbox.innerHTML = '';
+    [{ id: 'alle', label: 'Alle (' + werkzeug.length + ')' }, { id: 'verliehen', label: '🤝 Verliehen' + (verliehenAnz ? ' (' + verliehenAnz + ')' : '') }, { id: 'da', label: '✅ Da' }].forEach(f => {
+      const b = document.createElement('button');
+      b.className = 'filter-chip' + (wzFilter === f.id ? ' active' : '');
+      b.textContent = f.label;
+      b.addEventListener('click', () => { wzFilter = f.id; renderWerkzeug(); });
+      fbox.appendChild(b);
+    });
+    fbox.style.display = werkzeug.length ? '' : 'none';
+    document.getElementById('wzSuche').parentElement.style.display = werkzeug.length ? '' : 'none';
+    document.getElementById('wzLeerHinweis').style.display = werkzeug.length ? 'none' : '';
+    let liste = werkzeug.filter(t => {
+      if (wzFilter === 'verliehen' && !t.verliehenAn) return false;
+      if (wzFilter === 'da' && t.verliehenAn) return false;
+      if (wzSuchtext && !((t.name || '') + ' ' + (t.ort || '') + ' ' + (t.verliehenAn || '') + ' ' + (t.notiz || '')).toLowerCase().includes(wzSuchtext)) return false;
+      return true;
+    });
+    const box = document.getElementById('wzListe');
+    box.innerHTML = '';
+    if (werkzeug.length && !liste.length) { box.innerHTML = '<div class="leer-hinweis" style="padding:24px 10px;">Nichts gefunden.</div>'; return; }
+    const gruppen = {};
+    liste.forEach(t => { const o = (t.ort || '').trim() || 'Ohne Lagerort'; (gruppen[o] = gruppen[o] || []).push(t); });
+    Object.keys(gruppen).sort((a, b) => a === 'Ohne Lagerort' ? 1 : b === 'Ohne Lagerort' ? -1 : a.localeCompare(b, 'de')).forEach(ort => {
+      const h = document.createElement('div');
+      h.className = 'wz-ort-titel';
+      h.textContent = '📍 ' + ort;
+      box.appendChild(h);
+      gruppen[ort].sort((a, b) => (a.name || '').localeCompare(b.name || '', 'de')).forEach(t => {
+        const k = document.createElement('div');
+        k.className = 'wz-karte' + (t.verliehenAn ? ' verliehen' : '');
+        const tage = tageSeit(t.verliehenSeit);
+        const meta = t.verliehenAn
+          ? '<div class="wz-meta verliehen">🤝 bei ' + escapeHtml(t.verliehenAn) + (tage !== null ? ' · seit ' + (tage === 0 ? 'heute' : tage === 1 ? 'gestern' : tage + ' Tagen') : '') + '</div>'
+          : (t.notiz ? '<div class="wz-meta">' + escapeHtml(t.notiz) + '</div>' : '');
+        k.innerHTML = '<div class="wz-body"><div class="wz-name">' + escapeHtml(t.name) + '</div>' + meta + '</div>' +
+          (t.verliehenAn ? '<button class="wz-zurueck" type="button">↩️ Zurück</button>' : '');
+        k.addEventListener('click', (e) => {
+          if (e.target.closest('.wz-zurueck')) {
+            e.stopPropagation();
+            const vorher = { an: t.verliehenAn, seit: t.verliehenSeit };
+            t.verliehenAn = ''; t.verliehenSeit = '';
+            speichernWerkzeug(); renderWerkzeug();
+            showTempStatus('↩️ ' + t.name + ' ist zurück', 6, { rueckgaengig: () => { t.verliehenAn = vorher.an; t.verliehenSeit = vorher.seit; speichernWerkzeug(); renderWerkzeug(); } });
+            return;
+          }
+          werkzeugEditOeffnen(t.id);
+        });
+        box.appendChild(k);
+      });
+    });
+  }
+  document.getElementById('wzSuche').addEventListener('input', (e) => { wzSuchtext = e.target.value.trim().toLowerCase(); renderWerkzeug(); });
+  function werkzeugEditOeffnen(id) {
+    wzEditId = id || null;
+    const t = wzEditId ? werkzeug.find(x => x.id === wzEditId) : null;
+    document.getElementById('wzTitelKopf').textContent = t ? 'Werkzeug bearbeiten' : 'Neues Werkzeug';
+    document.getElementById('fWzName').value = t ? t.name : '';
+    document.getElementById('fWzOrt').value = t ? (t.ort || '') : '';
+    document.getElementById('fWzVerliehen').value = t ? (t.verliehenAn || '') : '';
+    document.getElementById('fWzSeit').value = t ? (t.verliehenSeit || '') : '';
+    document.getElementById('fWzNotiz').value = t ? (t.notiz || '') : '';
+    const orte = [...new Set(werkzeug.map(x => (x.ort || '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'de'));
+    document.getElementById('wzOrtListe').innerHTML = orte.map(o => '<option value="' + escapeHtml(o) + '">').join('');
+    const leiher = [...new Set(PERSONEN.map(p => p.label).concat(werkzeug.map(x => (x.verliehenAn || '').trim()).filter(Boolean)))];
+    document.getElementById('wzLeiherListe').innerHTML = leiher.map(o => '<option value="' + escapeHtml(o) + '">').join('');
+    document.getElementById('wzLoeschZeile').style.display = t ? '' : 'none';
+    document.getElementById('modalWerkzeug').classList.add('zeigen');
+    setTimeout(() => document.getElementById('fWzName').focus(), 50);
+  }
+  document.getElementById('fWzVerliehen').addEventListener('input', (e) => {
+    const seit = document.getElementById('fWzSeit');
+    if (e.target.value.trim() && !seit.value) seit.value = lokalIso();
+    if (!e.target.value.trim()) seit.value = '';
+  });
+  document.getElementById('btnWzAbbrechen').addEventListener('click', () => document.getElementById('modalWerkzeug').classList.remove('zeigen'));
+  document.getElementById('modalWerkzeug').addEventListener('click', (e) => { if (e.target.id === 'modalWerkzeug') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnWzSpeichern').addEventListener('click', () => {
+    const name = document.getElementById('fWzName').value.trim();
+    if (!name) { document.getElementById('fWzName').focus(); return; }
+    let t = wzEditId ? werkzeug.find(x => x.id === wzEditId) : null;
+    if (!t) { t = { id: neueId('wz'), erstellt: new Date().toISOString() }; werkzeug.push(t); }
+    t.name = name;
+    t.ort = document.getElementById('fWzOrt').value.trim();
+    t.verliehenAn = document.getElementById('fWzVerliehen').value.trim();
+    t.verliehenSeit = t.verliehenAn ? (document.getElementById('fWzSeit').value || lokalIso()) : '';
+    t.notiz = document.getElementById('fWzNotiz').value.trim();
+    speichernWerkzeug();
+    document.getElementById('modalWerkzeug').classList.remove('zeigen');
+    renderWerkzeug();
+  });
+  document.getElementById('btnWzLoeschen').addEventListener('click', () => {
+    const index = werkzeug.findIndex(x => x.id === wzEditId);
+    if (index === -1) return;
+    const entfernt = werkzeug.splice(index, 1)[0];
+    speichernWerkzeug();
+    document.getElementById('modalWerkzeug').classList.remove('zeigen');
+    renderWerkzeug();
+    showTempStatus('Gelöscht: „' + entfernt.name + '“', 6, { rueckgaengig: () => { werkzeug.splice(index, 0, entfernt); speichernWerkzeug(); renderWerkzeug(); } });
+  });
+  document.getElementById('tabWerkzeug').addEventListener('click', () => { aktiveAnsicht = 'werkzeug'; ansichtAnwenden(); });
+
+  // ============================================================
+  // 🧮 HEIMWERKER-RECHNER
+  // ============================================================
+  const RECHNER_ARTEN = [
+    { id: 'farbe', label: '🎨 Wandfarbe' },
+    { id: 'boden', label: '🟫 Fliesen/Laminat' },
+    { id: 'tapete', label: '🧻 Tapete' },
+    { id: 'beton', label: '🧱 Beton/Estrich' },
+  ];
+  const KEY_RECHNER = 'handwerk_rechner'; // geräte-lokal: letzte Eingaben
+  let rechnerArt = 'farbe', rechnerWerte = {}, rechnerErgebnis = null;
+  try { const r = JSON.parse(localStorage.getItem(KEY_RECHNER) || 'null'); if (r) { rechnerArt = r.art || 'farbe'; rechnerWerte = r.werte || {}; } } catch (e) {}
+  const RECHNER_FELDER = {
+    farbe: [
+      { id: 'laenge', label: 'Raumlänge (m)', std: 4 }, { id: 'breite', label: 'Raumbreite (m)', std: 3 },
+      { id: 'hoehe', label: 'Raumhöhe (m)', std: 2.5 }, { id: 'abzug', label: 'Fenster/Türen (m²)', std: 4 },
+      { id: 'anstriche', label: 'Anstriche', std: 2 }, { id: 'ergiebig', label: 'Ergiebigkeit (m²/l)', std: 7 },
+      { id: 'eimer', label: 'Eimergröße (l)', std: 10 }, { id: 'decke', label: 'Decke mitstreichen', typ: 'check', std: false },
+    ],
+    boden: [
+      { id: 'laenge', label: 'Raumlänge (m)', std: 4 }, { id: 'breite', label: 'Raumbreite (m)', std: 3 },
+      { id: 'verschnitt', label: 'Verschnitt (%)', std: 10 }, { id: 'paket', label: 'm² pro Paket', std: 2.2 },
+      { id: 'material', label: 'Material', typ: 'wahl', optionen: ['Laminat', 'Fliesen', 'Vinyl', 'Parkett'], std: 'Laminat' },
+      { id: 'leisten', label: 'Sockelleisten mitrechnen', typ: 'check', std: true },
+    ],
+    tapete: [
+      { id: 'laenge', label: 'Raumlänge (m)', std: 4 }, { id: 'breite', label: 'Raumbreite (m)', std: 3 },
+      { id: 'hoehe', label: 'Raumhöhe (m)', std: 2.5 }, { id: 'abzugBreite', label: 'Fenster/Türen Breite (m)', std: 2 },
+      { id: 'rollenLaenge', label: 'Rollenlänge (m)', std: 10.05 }, { id: 'rollenBreite', label: 'Rollenbreite (m)', std: 0.53 },
+      { id: 'rapport', label: 'Rapport (cm)', std: 0 },
+    ],
+    beton: [
+      { id: 'laenge', label: 'Länge (m)', std: 2 }, { id: 'breite', label: 'Breite (m)', std: 1 },
+      { id: 'dicke', label: 'Dicke (cm)', std: 10 }, { id: 'sack', label: 'Sackgröße (kg)', std: 25 },
+      { id: 'material', label: 'Material', typ: 'wahl', optionen: ['Fertigbeton', 'Estrich', 'Mörtel'], std: 'Fertigbeton' },
+    ],
+  };
+  const zahl = v => { const n = parseFloat(String(v === undefined ? '' : v).replace(',', '.')); return isFinite(n) ? n : 0; };
+  const fmt = (n, st) => n.toLocaleString('de-DE', { maximumFractionDigits: st === undefined ? 1 : st });
+  function rechnerWert(f) { const w = (rechnerWerte[rechnerArt] || {})[f.id]; return w === undefined ? f.std : w; }
+  function rechnerRendern() {
+    const reihe = document.getElementById('rechnerArtReihe');
+    reihe.innerHTML = '';
+    RECHNER_ARTEN.forEach(a => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'opt' + (a.id === rechnerArt ? ' aktiv' : '');
+      b.textContent = a.label;
+      b.addEventListener('click', () => { rechnerArt = a.id; rechnerRendern(); });
+      reihe.appendChild(b);
+    });
+    const box = document.getElementById('rechnerFelder');
+    box.innerHTML = RECHNER_FELDER[rechnerArt].map(f => {
+      const w = rechnerWert(f);
+      if (f.typ === 'check') return '<label class="check-zeile feld breit"><input type="checkbox" data-feld="' + f.id + '"' + (w ? ' checked' : '') + '> ' + f.label + '</label>';
+      if (f.typ === 'wahl') return '<div class="feld breit"><label>' + f.label + '</label><select data-feld="' + f.id + '">' + f.optionen.map(o => '<option' + (o === w ? ' selected' : '') + '>' + o + '</option>').join('') + '</select></div>';
+      return '<div class="feld"><label>' + f.label + '</label><input type="number" inputmode="decimal" min="0" step="any" data-feld="' + f.id + '" value="' + w + '"></div>';
+    }).join('');
+    box.querySelectorAll('[data-feld]').forEach(el => el.addEventListener(el.type === 'checkbox' || el.tagName === 'SELECT' ? 'change' : 'input', () => {
+      const r = rechnerWerte[rechnerArt] = rechnerWerte[rechnerArt] || {};
+      r[el.dataset.feld] = el.type === 'checkbox' ? el.checked : (el.tagName === 'SELECT' ? el.value : el.value);
+      rechnerBerechnen();
+    }));
+    rechnerBerechnen();
+  }
+  function rechnerBerechnen() {
+    const w = {}; RECHNER_FELDER[rechnerArt].forEach(f => { const v = rechnerWert(f); w[f.id] = (f.typ === 'check' || f.typ === 'wahl') ? v : zahl(v); });
+    let gross = '', klein = '', material = [];
+    if (rechnerArt === 'farbe') {
+      const wand = 2 * (w.laenge + w.breite) * w.hoehe;
+      const flaeche = Math.max(0, wand - w.abzug) + (w.decke ? w.laenge * w.breite : 0);
+      const liter = w.ergiebig > 0 ? flaeche * Math.max(1, w.anstriche) / w.ergiebig : 0;
+      const literRund = Math.ceil(liter * 2) / 2;
+      const eimer = w.eimer > 0 ? Math.ceil(liter / w.eimer) : 0;
+      gross = fmt(literRund) + ' l Wandfarbe' + (eimer ? ' ≈ ' + eimer + ' × ' + fmt(w.eimer) + ' l' : '');
+      klein = 'Streichfläche ' + fmt(flaeche) + ' m² (Wände ' + fmt(wand) + ' m² − ' + fmt(w.abzug) + ' m²' + (w.decke ? ' + Decke ' + fmt(w.laenge * w.breite) + ' m²' : '') + ') · ' + fmt(w.anstriche, 0) + ' Anstriche.<br>Dazu: Abdeckfolie, Malerkrepp ≈ ' + Math.ceil(2 * (w.laenge + w.breite) * (w.decke ? 2 : 1) / 50) + ' Rolle(n), Rolle & Pinsel.';
+      if (eimer) material.push({ menge: String(eimer), einheit: 'Eimer', name: 'Wandfarbe ' + fmt(w.eimer) + ' l (' + fmt(literRund) + ' l für ' + fmt(flaeche, 0) + ' m²)' });
+      material.push({ menge: String(Math.ceil(2 * (w.laenge + w.breite) * (w.decke ? 2 : 1) / 50)), einheit: 'Rolle', name: 'Malerkrepp' });
+    } else if (rechnerArt === 'boden') {
+      const flaeche = w.laenge * w.breite;
+      const mitV = flaeche * (1 + w.verschnitt / 100);
+      const pakete = w.paket > 0 ? Math.ceil(mitV / w.paket) : 0;
+      const leisten = Math.ceil(2 * (w.laenge + w.breite) * 1.1 / 2.4);
+      gross = pakete + ' Pakete ' + w.material + ' (' + fmt(pakete * w.paket) + ' m²)';
+      klein = 'Raum ' + fmt(flaeche) + ' m² + ' + fmt(w.verschnitt, 0) + ' % Verschnitt = ' + fmt(mitV) + ' m².' +
+        (w.leisten ? '<br>Sockelleisten: Umfang ' + fmt(2 * (w.laenge + w.breite)) + ' m → ' + leisten + ' Stück à 2,4 m (inkl. 10 % Reserve).' : '') +
+        (w.material === 'Fliesen' ? '<br>Fliesenkleber ≈ ' + Math.ceil(flaeche * 3.5 / 25) + ' Sack à 25 kg, Fugenmörtel ≈ ' + Math.ceil(flaeche * 0.5 / 5) + ' × 5 kg.' : '<br>Trittschalldämmung ≈ ' + fmt(Math.ceil(flaeche * 1.05)) + ' m².');
+      if (pakete) material.push({ menge: String(pakete), einheit: 'Paket', name: w.material + ' (' + fmt(mitV, 1) + ' m² inkl. Verschnitt)' });
+      if (w.leisten) material.push({ menge: String(leisten), einheit: 'Stk', name: 'Sockelleiste 2,4 m' });
+      if (w.material === 'Fliesen') {
+        material.push({ menge: String(Math.ceil(flaeche * 3.5 / 25)), einheit: 'Sack', name: 'Fliesenkleber 25 kg' });
+        material.push({ menge: String(Math.ceil(flaeche * 0.5 / 5)), einheit: 'Sack', name: 'Fugenmörtel 5 kg' });
+      } else material.push({ menge: String(Math.ceil(flaeche * 1.05)), einheit: 'm²', name: 'Trittschalldämmung' });
+    } else if (rechnerArt === 'tapete') {
+      const umfang = Math.max(0, 2 * (w.laenge + w.breite) - w.abzugBreite);
+      const bahnLaenge = w.hoehe + w.rapport / 100 + 0.1;
+      const proRolle = bahnLaenge > 0 ? Math.floor(w.rollenLaenge / bahnLaenge) : 0;
+      const bahnen = w.rollenBreite > 0 ? Math.ceil(umfang / w.rollenBreite) : 0;
+      const rollen = proRolle > 0 ? Math.ceil(bahnen / proRolle) : 0;
+      gross = rollen + ' Rollen Tapete';
+      klein = bahnen + ' Bahnen à ' + fmt(bahnLaenge, 2) + ' m (inkl. 10 cm Zugabe' + (w.rapport ? ' + Rapport' : '') + ') · ' + proRolle + ' Bahnen pro Rolle.<br>Tapetenkleister ≈ ' + Math.max(1, Math.ceil(rollen / 5)) + ' Paket(e). Tipp: eine Rolle Reserve aus derselben Charge kaufen.';
+      if (proRolle === 0) klein = 'Die Rolle ist kürzer als eine Bahn – bitte Rollenlänge/Raumhöhe prüfen.';
+      if (rollen) {
+        material.push({ menge: String(rollen), einheit: 'Rolle', name: 'Tapete (' + bahnen + ' Bahnen)' });
+        material.push({ menge: String(Math.max(1, Math.ceil(rollen / 5))), einheit: 'Paket', name: 'Tapetenkleister' });
+      }
+    } else if (rechnerArt === 'beton') {
+      const volumen = w.laenge * w.breite * w.dicke / 100;
+      const kg = volumen * (w.material === 'Mörtel' ? 1800 : 2000) * 1.05;
+      const saecke = w.sack > 0 ? Math.ceil(kg / w.sack) : 0;
+      gross = saecke + ' Sack ' + w.material + ' à ' + fmt(w.sack, 0) + ' kg';
+      klein = 'Volumen ' + fmt(volumen, 3) + ' m³ (' + fmt(volumen * 1000, 0) + ' l) → ca. ' + fmt(kg, 0) + ' kg Trockenmischung inkl. 5 % Reserve.' +
+        (w.material === 'Fertigbeton' ? '<br>Wasser ≈ ' + fmt(saecke * w.sack * 0.1, 0) + ' l (ca. 2,5 l pro 25-kg-Sack, siehe Sackaufdruck).' : '');
+      if (saecke) material.push({ menge: String(saecke), einheit: 'Sack', name: w.material + ' ' + fmt(w.sack, 0) + ' kg (' + fmt(volumen * 1000, 0) + ' l)' });
+    }
+    rechnerErgebnis = { titel: gross, material };
+    document.getElementById('rechnerErgebnis').innerHTML = '<div class="re-gross">' + escapeHtml(gross) + '</div><div class="re-klein">' + klein + '</div>' +
+      (material.length ? '<div class="re-klein" style="margin-top:8px;"><b>Wird übernommen:</b> ' + material.map(m => escapeHtml(m.menge + ' ' + m.einheit + ' ' + m.name)).join(' · ') + '</div>' : '');
+    try { localStorage.setItem(KEY_RECHNER, JSON.stringify({ art: rechnerArt, werte: rechnerWerte })); } catch (e) {}
+  }
+  function rechnerOeffnen(projektId) {
+    const sel = document.getElementById('rechnerZiel');
+    const offen = projekte.filter(p => p.status !== 'fertig').sort((a, b) => a.titel.localeCompare(b.titel, 'de'));
+    sel.innerHTML = '<option value="einkauf">🛒 Einkaufsliste</option>' + offen.map(p => '<option value="' + escapeHtml(p.id) + '">📋 ' + escapeHtml(p.titel) + '</option>').join('') + '<option value="neu">➕ Neues Projekt</option>';
+    sel.value = projektId && offen.some(p => p.id === projektId) ? projektId : 'einkauf';
+    rechnerRendern();
+    document.getElementById('modalRechner').classList.add('zeigen');
+  }
+  document.getElementById('btnRechner').addEventListener('click', () => rechnerOeffnen(null));
+  document.getElementById('btnDetailRechner').addEventListener('click', () => rechnerOeffnen(detailId));
+  document.getElementById('btnRechnerSchliessen').addEventListener('click', () => document.getElementById('modalRechner').classList.remove('zeigen'));
+  document.getElementById('modalRechner').addEventListener('click', (e) => { if (e.target.id === 'modalRechner') e.currentTarget.classList.remove('zeigen'); });
+  document.getElementById('btnRechnerUebernehmen').addEventListener('click', () => {
+    if (!rechnerErgebnis || !rechnerErgebnis.material.length) { alert('Bitte erst Maße eingeben.'); return; }
+    const ziel = document.getElementById('rechnerZiel').value;
+    const material = rechnerErgebnis.material.map(m => Object.assign({ preis: '' }, m));
+    if (ziel === 'einkauf') {
+      const meldung = materialZurEinkaufsliste(material, 'rechner:' + (RECHNER_ARTEN.find(a => a.id === rechnerArt) || {}).label);
+      document.getElementById('modalRechner').classList.remove('zeigen');
+      showTempStatus('🛒 ' + meldung, 5);
+      return;
+    }
+    let p;
+    if (ziel === 'neu') {
+      const titel = prompt('Name des neuen Projekts:', (RECHNER_ARTEN.find(a => a.id === rechnerArt) || {}).label.replace(/^\S+\s/, '') || 'Neues Projekt');
+      if (!titel) return;
+      p = { id: neueId('p'), titel: titel.trim(), status: 'geplant', person: null, budgetGeplant: null, fertigAm: null, erstelltAm: new Date().toISOString(), material: [], schritte: [] };
+      projekte.push(p);
+    } else p = projekte.find(x => x.id === ziel);
+    if (!p) return;
+    p.material = (p.material || []).concat(material);
+    speichernProjekte();
+    renderGrid();
+    document.getElementById('modalRechner').classList.remove('zeigen');
+    if (document.getElementById('modalDetail').classList.contains('zeigen') && detailId === p.id) detailOeffnen(p.id);
+    showTempStatus('📋 ' + material.length + ' Posten zu „' + p.titel + '“ hinzugefügt', 5);
+  });
+
   renderSortButton();
   renderFilter();
   renderGrid();
@@ -1929,9 +2744,12 @@
   if (window.PlanerSync) {
     window._sync = window.PlanerSync.starteSync({
       modul: 'handwerk',
-      keys: [KEY_PROJEKTE, KEY_WARTUNG],
+      keys: [KEY_PROJEKTE, KEY_WARTUNG, KEY_WERKZEUG],
       onRemoteChange: function () {
         projekte = laden(KEY_PROJEKTE, projekte); renderFilter(); renderGrid();
+        werkzeug = laden(KEY_WERKZEUG, werkzeug);
+        if (aktiveAnsicht === 'werkzeug') renderWerkzeug();
+        setTimeout(fotosHochladen, 1500);
         wartungsaufgaben = laden(KEY_WARTUNG, wartungsaufgaben);
         if (aktiveAnsicht === 'wartung') { renderWartungFilter(); renderWartungListe(); }
       },

@@ -2,6 +2,12 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
+## 2026-10-26 | 🔨 Handwerk: Fotos, Vorher/Nachher & Kosten
+Projektfotos liegen jetzt im Familien-Fotospeicher: schärfer und ohne 1-MB-Grenze. Vorhandene Fotos werden automatisch umgezogen, Skizzen-Vorschaubilder sind deutlich kleiner. Fotos lassen sich als „Vorher“ oder „Nachher“ markieren, und „↔️ Vorher / Nachher vergleichen“ zeigt beide Bilder mit einem Schieberegler übereinander. Beim „✅ Projekt abschließen“ fragt die App, was es gekostet hat (vorausgefüllt mit der Materialsumme), und bucht den Betrag auf Wunsch in 💰 Finanzen (Kategorie „🔨 Handwerk“). Über den Projekten steht die Jahresbilanz: „2026: 3 Projekte fertig · 840 €“. Behoben: „🛒 Material zum Einkauf“ kam bisher nur auf dem eigenen Gerät an.
+
+## 2026-10-26 | 🧰 Werkzeug, 🧮 Rechner & 🍂 Saison-Wartung
+Neuer Reiter „🧰 Werkzeug“: Lagerort eintragen, und „verliehen an … seit 14 Tagen“ zeigt, wo die Bohrmaschine gerade ist. „↩️ Zurück“ beendet den Verleih mit einem Tipp. Der 🧮 Heimwerker-Rechner ermittelt Wandfarbe, Fliesen/Laminat (mit Verschnitt und Sockelleisten), Tapetenrollen und Beton- bzw. Estrichsäcke. Das Ergebnis kommt mit einem Tipp ins Projekt oder auf die Einkaufsliste. In der Wartung gibt es fertige Saison-Pakete (Herbst, Frühjahr, Haustechnik). Aufgaben können an einen Monat gebunden werden („jedes Jahr im Oktober“), und „📅 Als Termin“ trägt die nächste Fälligkeit in die Termine ein.
+
 ## 2026-10-26 | 🩺 Gesundheit: Vorsorge & Notfall
 Neuer Reiter „🩺 Vorsorge & Notfall“ pro Person: eine 🆘 Notfall-Karte (Geburtsdatum, Blutgruppe, Allergien, Vorerkrankungen, Medikamente, Krankenkasse) mit 112, 116 117 und euren Ärzten zum Antippen; der 💉 Impfpass mit Hinweis, wenn Tetanus, FSME oder Grippe aufgefrischt werden sollten; der 🩺 Vorsorge-Kalender mit U-Untersuchungen, Zahnarzt alle 6 Monate, Check-up und Hautkrebs-Screening – jeweils mit „📅 Als Termin“; und 📏 Größe & Gewicht als Verlaufskurve („+21 cm seit letztem Jahr“).
 
