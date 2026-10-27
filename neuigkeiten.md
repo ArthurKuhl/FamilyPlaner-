@@ -2,6 +2,12 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
+## 2026-10-27 | 🎁 Wunschliste: Überraschungen geschützt & „Ich besorge das“
+Behoben: Wer sich etwas wünscht, sah auf dem eigenen Gerät, dass es schon reserviert war. Jetzt bleibt das verborgen, bis der Anlass vorbei ist. Mit „🙋 Ich besorge das“ reservierst du direkt auf der Karte. Danach geht es weiter über 🛍️ besorgt (mit tatsächlichem Preis, auf Wunsch in Finanzen gebucht) bis 🎁 verschenkt. Verschenktes landet im 📜 Verlauf, also z. B. „Was hat Malia letztes Jahr bekommen?“. 🔁 Dauerwünsche bleiben stehen. Links werden nur noch geöffnet, wenn es echte Webadressen sind.
+
+## 2026-10-27 | 📅 Wunschliste: Countdown, Budget & Wunschzettel teilen
+„Als Nächstes“ zeigt Geburtstage (aus Termine), Weihnachten und Ostern mit Countdown und Stand, z. B. „Lev in 12 Tagen · 2 Wünsche, 1 reserviert“. Ab drei Wochen vorher steht das auch auf der Startseite. Unter 💶 Budget legt ihr pro Anlass und Person ein Budget fest und seht, was schon ausgegeben und was noch geplant ist. 📤 schickt den Wunschzettel einer Person als Text z. B. per WhatsApp an Oma und Opa, Reserviertes wird dabei weggelassen. Neu sind außerdem Fotos zu Wünschen und „👥 Andere“ für Geschenkideen an Oma, Paten & Co.
+
 ## 2026-10-27 | 🥫 Vorrat: Stückzahl, Nachkaufen & Suche
 Optional zählt der Vorrat jetzt Stück: „3 Dosen“ mit −/＋ direkt auf der Karte. Mit „Nachkaufen ab“ oder 📌 „Immer im Haus“ kommt ein Artikel von selbst auf die Einkaufsliste, sobald er knapp oder leer ist. Behoben: 🛒 aus dem Vorrat landete bisher nur auf dem eigenen Handy. Jetzt erscheint der Artikel auf allen Geräten und in der richtigen Einkaufs-Kategorie. 🔔 ist ein Schalter, erinnert per Push am Vorabend und legt keine doppelten Termine mehr an. Neu sind die Suche über alle Kategorien, Filter nach Lagerort und die Übersicht „⏳ bald ablaufend · 🔴 leer“.
 
