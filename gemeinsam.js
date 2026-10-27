@@ -91,7 +91,7 @@ function showTempStatus(text, sekunden, optionen) {
   el.appendChild(textSpan);
   if (typeof optionen.rueckgaengig === 'function') {
     const btn = document.createElement('button');
-    btn.textContent = 'Rückgängig';
+    btn.textContent = optionen.label || 'Rückgängig';
     btn.style.cssText = 'background:none;border:none;color:#e8c98a;font-weight:700;font-size:0.85rem;cursor:pointer;padding:2px 4px;flex-shrink:0;text-decoration:underline;';
     btn.addEventListener('click', () => {
       clearTimeout(el._timeout);

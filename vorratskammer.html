@@ -183,6 +183,48 @@
   .info-inhalt strong { color: var(--soil); }
   .info-disclaimer { background: #fff3d9; border: 1px solid #e0c27a; border-radius: var(--radius-md); padding: 12px 14px; font-size: 0.78rem; color: #6b5220; margin-bottom: 14px; line-height: 1.5; }
 
+  .vk-uebersicht { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+  .vk-ue-chip { border: 1px solid var(--parchment); background: var(--white); color: var(--soil); border-radius: var(--radius-pill); padding: 5px 11px; font-size: 0.74rem; font-weight: 700; cursor: pointer; }
+  .vk-ue-chip.warn { border-color: var(--terracotta); color: var(--terracotta-text); }
+  .vk-ue-chip.rot { border-color: #c0392b; color: #c0392b; }
+  html[data-dark="1"] .vk-ue-chip.rot { color: #ef8a7e; border-color: #ef8a7e; }
+  .vk-ue-chip.active { background: var(--terracotta); color: #fff; border-color: var(--terracotta); }
+  .vk-suche { flex: 1 1 160px; min-width: 0; padding: 8px 12px; border-radius: var(--radius-pill); border: 1px solid var(--parchment); background: var(--white); color: var(--soil); font-size: 0.82rem; }
+  .ort-reihe { display: flex; gap: 5px; overflow-x: auto; scrollbar-width: none; margin-bottom: 10px; padding-bottom: 2px; }
+  .ort-reihe::-webkit-scrollbar { display: none; }
+  .ort-chip { flex: 0 0 auto; border: 1px solid var(--parchment); background: var(--white); color: var(--bark); border-radius: var(--radius-pill); padding: 5px 11px; font-size: 0.72rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .ort-chip.active { background: var(--moss); color: var(--on-moss, #fff); border-color: var(--moss); }
+  .werkzeug-knopf { border: 1px solid var(--parchment); background: var(--white); color: var(--soil); border-radius: var(--radius-pill); padding: 7px 11px; font-size: 0.76rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
+  .vk-stepper { display: inline-flex; align-items: center; border: 1px solid var(--parchment); border-radius: var(--radius-pill); overflow: hidden; background: var(--cream); }
+  .vk-stepper button { border: none; background: transparent; color: var(--soil); width: 30px; height: 26px; font-size: 1rem; font-weight: 700; cursor: pointer; }
+  .vk-stepper span { font-size: 0.74rem; font-weight: 700; padding: 0 4px; min-width: 52px; text-align: center; color: var(--soil); }
+  .vk-chip.erinnerung-an { background: rgba(91,139,181,0.2); color: var(--sky); }
+  .vk-chip.knapp { background: rgba(192,57,43,0.13); color: #b03a2e; }
+  html[data-dark="1"] .vk-chip.knapp { color: #ef8a7e; }
+  html[data-dark="1"] .vk-chip.verfall-ok { background: rgba(111,174,94,0.18); }
+  html[data-dark="1"] .vk-chip.verfall-bald { background: rgba(217,133,90,0.2); }
+  html[data-dark="1"] .vk-chip.verfall-um { background: rgba(192,57,43,0.25); color: #ef8a7e; }
+  .vk-kat-hinweis { font-size: 0.66rem; color: var(--bark); }
+  .vk-pin { font-size: 0.75rem; margin-left: 3px; }
+  .check-zeile { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--soil); }
+  .check-zeile input { width: 18px !important; height: 18px; flex-shrink: 0; }
+  .feld-hinweis { font-size: 0.7rem; color: var(--bark); margin-top: 4px; }
+  .vorschlag-btn { margin-top: 6px; border: 1px dashed var(--sage); background: transparent; color: var(--moss-text, var(--moss)); border-radius: var(--radius-sm); padding: 6px 10px; font-size: 0.74rem; font-weight: 600; cursor: pointer; width: 100%; text-align: left; }
+  .wahl-liste { display: flex; flex-direction: column; gap: 8px; }
+  .wahl-liste button { text-align: left; padding: 12px 14px; border-radius: var(--radius-md); border: 1px solid var(--parchment); background: var(--white); color: var(--soil); font-size: 0.88rem; font-weight: 700; cursor: pointer; }
+  .wahl-liste button small { display: block; font-weight: 400; font-size: 0.72rem; color: var(--bark); margin-top: 2px; }
+  .mehr-zeile { display: flex; justify-content: space-between; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--parchment); font-size: 0.84rem; }
+  .mehr-zeile span:last-child { font-size: 0.7rem; font-weight: 700; color: var(--moss-text, var(--moss)); white-space: nowrap; }
+  .mehr-zeile.auffuellen span:last-child { color: var(--sky); }
+  .apo-zeile { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--parchment); font-size: 0.85rem; }
+  .apo-zeile .apo-status { width: 22px; text-align: center; flex-shrink: 0; }
+  .apo-zeile .apo-text { flex: 1; min-width: 0; }
+  .apo-zeile .apo-text small { display: block; font-size: 0.7rem; color: var(--bark); }
+  .apo-zeile button { border: 1px solid var(--parchment); background: var(--white); color: var(--soil); border-radius: var(--radius-pill); padding: 4px 9px; font-size: 0.72rem; font-weight: 700; cursor: pointer; flex-shrink: 0; }
+  .balken { height: 6px; border-radius: 3px; background: var(--parchment); overflow: hidden; margin-top: 3px; }
+  .balken div { height: 100%; background: var(--terracotta); }
+  #modalVerbleib, #modalMehrere, #modalApotheke { z-index: 110; }
+
   /* Kopfzeile kompakter: Modulname bleibt immer einzeilig (notfalls mit ...),
      Icons rücken näher zusammen. Ergänzt auf Arthurs Wunsch, robust über alle
      leicht unterschiedlichen Header-Varianten der Module hinweg. */
@@ -241,6 +283,13 @@
 
   <div id="ansichtVorrat">
     <div class="eingang-box" id="eingangBox" style="display:none;"></div>
+    <div class="vk-uebersicht" id="vkUebersicht"></div>
+    <div class="werkzeug-zeile">
+      <input type="search" class="vk-suche" id="fVorratSuche" placeholder="🔎 In allen Kategorien suchen …" autocomplete="off">
+      <button type="button" class="werkzeug-knopf" id="btnMehrere" title="Mehrere Artikel auf einmal erfassen">📝 Mehrere</button>
+      <button type="button" class="werkzeug-knopf" id="btnApoCheck" style="display:none;" title="Grundausstattung der Hausapotheke prüfen">✅ Grundausstattung</button>
+    </div>
+    <div class="ort-reihe" id="ortReihe"></div>
     <div class="werkzeug-zeile">
       <span class="anzahl-text" id="anzahlText"></span>
       <select id="sortAuswahl">
@@ -251,9 +300,7 @@
         <option value="bestand">🔴 Bestand (wenig zuerst)</option>
       </select>
     </div>
-    <div class="filter-reihe" style="display:flex;gap:5px;margin-bottom:8px;">
-      <button type="button" class="kat-tab" id="btnFilterBaldAblaufend" style="border-color:var(--terracotta);color:var(--terracotta-text);">⏳ Bald ablaufend</button>
-    </div>
+    <button type="button" id="btnFilterBaldAblaufend" style="display:none;"></button>
     <div id="vorratListe"></div>
     <div class="leer-hinweis" id="leerHinweis" style="display:none;">
       <span class="em">🥫</span>
@@ -267,6 +314,15 @@
       <h3 style="margin-top:0;">🔻 Am häufigsten aufgebraucht</h3>
       <div id="verbrauchListe"></div>
       <div class="leer-hinweis" id="verbrauchLeer" style="display:none;padding:10px 0;">Noch keine Daten – wird erfasst, sobald ein Artikel auf „leer" gesetzt wird.</div>
+    </div>
+    <div class="karte" id="reichweiteKarte" style="display:none;">
+      <h3 style="margin-top:0;">⏱️ Wie lange reicht es noch?</h3>
+      <p style="font-size:0.72rem;color:var(--bark);margin-bottom:6px;">Geschätzt aus dem bisherigen Verbrauch (Stückzahl mit −).</p>
+      <div id="reichweiteListe"></div>
+    </div>
+    <div class="karte">
+      <h3 style="margin-top:0;">🗑️ Weggeworfen vs. ✓ aufgebraucht <span style="font-weight:400;font-size:0.75rem;color:var(--bark);">(letzte 90 Tage)</span></h3>
+      <div id="verbleibBox"></div>
     </div>
   </div>
 
@@ -344,6 +400,25 @@
         <input type="text" id="fMenge" placeholder="z.B. 3 Packungen, 500 g">
       </div>
     </div>
+    <div class="zeile">
+      <div class="feld" style="flex:0 0 84px;">
+        <label for="fAnzahl">Stück</label>
+        <input type="number" id="fAnzahl" min="0" step="1" inputmode="numeric" placeholder="–">
+      </div>
+      <div class="feld">
+        <label for="fEinheit">Einheit</label>
+        <input type="text" id="fEinheit" placeholder="Dosen, Packungen …" list="einheitListe">
+        <datalist id="einheitListe"><option value="Stück"><option value="Dosen"><option value="Packungen"><option value="Gläser"><option value="Flaschen"><option value="Beutel"><option value="Rollen"><option value="Tuben"><option value="Portionen"></datalist>
+      </div>
+      <div class="feld" style="flex:0 0 96px;">
+        <label for="fMinAnzahl">Nachkaufen ab</label>
+        <input type="number" id="fMinAnzahl" min="0" step="1" inputmode="numeric" placeholder="–">
+      </div>
+    </div>
+    <div class="feld-hinweis" style="margin:-6px 0 10px;">Optional: Mit Stückzahl gibt es −/＋ auf der Karte; bei „Nachkaufen ab“ kommt der Artikel von selbst auf die Einkaufsliste.</div>
+    <div class="feld">
+      <label class="check-zeile" style="text-transform:none;letter-spacing:0;font-size:0.85rem;"><input type="checkbox" id="fImmer"> 📌 Immer im Haus – wird leer → automatisch auf die Einkaufsliste</label>
+    </div>
     <div class="feld">
       <label for="fBestand">Bestand grob (schneller als genau zählen)</label>
       <select id="fBestand">
@@ -357,9 +432,40 @@
       <label>Lagerort</label>
       <div class="kategorie-reihe" id="fLagerortReihe"></div>
     </div>
+    <div class="feld" id="eingefrorenFeld" style="display:none;">
+      <label for="fEingefroren">❄️ Eingefroren am</label>
+      <input type="date" id="fEingefroren">
+      <button type="button" class="vorschlag-btn" id="btnTkVorschlag" style="display:none;"></button>
+    </div>
     <div class="feld">
       <label>Kategorie</label>
       <div class="kategorie-reihe" id="fKategorieReihe"></div>
+    </div>
+    <div id="apothekeFelder" style="display:none;">
+      <div class="feld">
+        <label>💊 Für wen</label>
+        <div class="kategorie-reihe" id="fFuerWenReihe"></div>
+      </div>
+      <div class="zeile">
+        <div class="feld">
+          <label for="fAngebrochen">🔓 Angebrochen am</label>
+          <input type="date" id="fAngebrochen">
+        </div>
+        <div class="feld">
+          <label for="fNachOeffnen">Nach dem Öffnen haltbar</label>
+          <select id="fNachOeffnen">
+            <option value="">– nicht bekannt –</option>
+            <option value="7">1 Woche</option>
+            <option value="14">2 Wochen</option>
+            <option value="28">4 Wochen</option>
+            <option value="42">6 Wochen</option>
+            <option value="90">3 Monate</option>
+            <option value="180">6 Monate</option>
+            <option value="365">12 Monate</option>
+          </select>
+        </div>
+      </div>
+      <div class="feld-hinweis" style="margin:-6px 0 10px;">Die Angabe steht auf Beipackzettel oder Packung (z. B. Säfte, Augen- und Nasentropfen). Daraus wird „Aufbrauchen bis“ berechnet.</div>
     </div>
     <div class="feld">
       <label for="fGruppierung">Gruppierung</label>
@@ -400,6 +506,49 @@
   </div>
 </div>
 
+<!-- MODAL: Aufgebraucht oder weggeworfen? -->
+<div class="modal-bg" id="modalVerbleib">
+  <div class="modal" style="max-width:420px;">
+    <h2 id="verbleibTitel">Was ist damit passiert?</h2>
+    <div class="wahl-liste">
+      <button type="button" data-verbleib="aufgebraucht">✓ Aufgebraucht<small>Zählt für den Verbrauch</small></button>
+      <button type="button" data-verbleib="weggeworfen">🗑️ Weggeworfen<small>Abgelaufen oder verdorben – zählt für die Statistik</small></button>
+      <button type="button" data-verbleib="nur">Nur löschen<small>Falsch erfasst o. Ä.</small></button>
+    </div>
+    <div class="modal-btns"><button class="btn btn-secondary" id="btnVerbleibAbbrechen">Abbrechen</button></div>
+  </div>
+</div>
+
+<!-- MODAL: Mehrere auf einmal -->
+<div class="modal-bg" id="modalMehrere">
+  <div class="modal">
+    <h2>📝 Mehrere auf einmal</h2>
+    <div class="feld">
+      <label for="fMehrere">Eine Zeile oder mit Komma getrennt</label>
+      <textarea id="fMehrere" rows="5" placeholder="2 Dosen Tomaten&#10;Nudeln, 500 g Reis&#10;3 Gläser Apfelmus"></textarea>
+    </div>
+    <div class="feld">
+      <label>Lagerort für alle (optional)</label>
+      <div class="kategorie-reihe" id="fMehrereOrt"></div>
+    </div>
+    <div id="mehrereVorschau" style="max-height:30vh;overflow-y:auto;"></div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnMehrereAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnMehrereOk">Übernehmen</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Hausapotheke-Grundausstattung -->
+<div class="modal-bg" id="modalApotheke">
+  <div class="modal">
+    <h2>✅ Hausapotheke: Grundausstattung</h2>
+    <p style="font-size:0.74rem;color:var(--bark);margin-bottom:8px;line-height:1.45;">Allgemeine Checkliste zum Abgleich mit eurem Vorrat – erkannt wird über die Namen der Einträge. Welche Medikamente und Dosierungen für wen passen, bitte mit Arzt oder Apotheke klären.</p>
+    <div id="apoListe"></div>
+    <div class="modal-btns"><button class="btn btn-secondary" id="btnApoZu">Schließen</button></div>
+  </div>
+</div>
+
 <!-- MODAL: Neue Kategorie -->
 <div class="modal-bg" id="modalKategorie">
   <div class="modal">
@@ -425,6 +574,7 @@
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
+<script src="personen.js"></script>
 <script src="sync.js"></script>
 <script src="lebensmittel.js"></script>
 <script src="scanner.js"></script>
@@ -458,6 +608,11 @@
   let aktiveKategorie = 'lebensmittel';
   let sortierung = localStorage.getItem(KEY_SORT) || 'alpha';
   let nurBaldAblaufend = false;
+  let nurLeer = false;
+  let ortFilter = '';
+  let suchText = '';
+  const KEY_VERBLEIB = 'vorratskammer_verbleib'; // [{ name, kategorie, art: 'aufgebraucht'|'weggeworfen', datum }]
+  let verbleib = laden(KEY_VERBLEIB, []);
   let bearbeitenId = null;
   let editSterne = 0;
   let editKategorie = 'lebensmittel';
@@ -501,6 +656,9 @@
       aufbrauchen: document.getElementById('fAufbrauchen').value,
       notiz: document.getElementById('fNotiz').value,
       sterne: editSterne, kategorie: editKategorie, lagerort: editLagerort,
+      anzahl: document.getElementById('fAnzahl').value, einheit: document.getElementById('fEinheit').value, minAnzahl: document.getElementById('fMinAnzahl').value,
+      immer: document.getElementById('fImmer').checked, eingefroren: document.getElementById('fEingefroren').value,
+      angebrochen: document.getElementById('fAngebrochen').value, nachOeffnen: document.getElementById('fNachOeffnen').value, fuerWen: editFuerWen,
     };
   }
   function entwurfHatInhalt(d) { return !!(d.name.trim() || d.notiz.trim()); }
@@ -529,6 +687,15 @@
     document.getElementById('fAufbrauchen').value = d.aufbrauchen || '';
     document.getElementById('fNotiz').value = d.notiz || '';
     editSterne = d.sterne || 0; editKategorie = d.kategorie; editLagerort = d.lagerort || '';
+    document.getElementById('fAnzahl').value = d.anzahl || '';
+    document.getElementById('fEinheit').value = d.einheit || '';
+    document.getElementById('fMinAnzahl').value = d.minAnzahl || '';
+    document.getElementById('fImmer').checked = !!d.immer;
+    document.getElementById('fEingefroren').value = d.eingefroren || '';
+    document.getElementById('fAngebrochen').value = d.angebrochen || '';
+    document.getElementById('fNachOeffnen').value = d.nachOeffnen || '';
+    editFuerWen = d.fuerWen || '';
+    renderFuerWen();
     renderFormLagerortReihe();
     renderFormKategorieReihe();
     renderSterneEingabe();
@@ -552,6 +719,7 @@
           return;
         }
         aktiveKategorie = k.id;
+        nurBaldAblaufend = false; nurLeer = false; ortFilter = '';
         renderKatTabs();
         renderListe();
       });
@@ -649,11 +817,7 @@
     else { text = label + ': ' + ausISO(datum).toLocaleDateString('de-DE'); }
     return '<span class="vk-chip ' + klasse + '">' + text + '</span>';
   }
-  document.getElementById('btnFilterBaldAblaufend').addEventListener('click', () => {
-    nurBaldAblaufend = !nurBaldAblaufend;
-    document.getElementById('btnFilterBaldAblaufend').classList.toggle('active', nurBaldAblaufend);
-    renderListe();
-  });
+  // (⏳ Bald ablaufend sitzt seit v446 als Chip in der Übersicht über der Liste)
 
   // ---------- LISTE RENDERN ----------
   const BESTAND_STUFEN = [
@@ -674,34 +838,180 @@
     return '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:3px;">' + (prod.nutriscore ? window.Lebensmittel.nutriScoreHtml(prod.nutriscore, true) : '') +
       (betr.length ? '<span class="vk-chip" style="background:rgba(192,57,43,0.14);color:#b03a2e;" title="' + escapeHtml(betr.map(b => b.person.label + ': ' + window.Lebensmittel.allergenText(b.enthalten)).join(' · ')) + '">⚠ ' + escapeHtml(betr.map(b => b.person.label).join(', ')) + '</span>' : '') + '</div>';
   }
+  // ---------- 🔢 Stückzahl, Nachkaufen, Reichweite ----------
+  function hatAnzahl(item) { return item.anzahl !== undefined && item.anzahl !== null && item.anzahl !== '' && !isNaN(Number(item.anzahl)); }
+  function bestandAusAnzahl(item) {
+    if (!hatAnzahl(item)) return item.bestand || '';
+    const n = Number(item.anzahl), min = item.minAnzahl !== undefined && item.minAnzahl !== null && item.minAnzahl !== '' ? Number(item.minAnzahl) : null;
+    if (n <= 0) return 'leer';
+    if (n <= (min !== null ? min : 1)) return 'mittel';
+    return 'viel';
+  }
+  function nachkaufNoetig(item) {
+    if (hatAnzahl(item) && item.minAnzahl !== undefined && item.minAnzahl !== null && item.minAnzahl !== '' && Number(item.anzahl) <= Number(item.minAnzahl)) return true;
+    return !!item.immer && (item.bestand === 'leer');
+  }
+  function mengeText(item) {
+    if (!hatAnzahl(item)) return '';
+    return Number(item.anzahl) + (item.einheit ? ' ' + item.einheit : '');
+  }
+  // Durchschnittlicher Verbrauch pro Tag aus den „−“-Schritten der letzten 120 Tage
+  function verbrauchProTag(item) {
+    const log = (item.verbrauchsLog || []).filter(l => l.art === 'minus' && l.datum);
+    if (log.length < 2) return null;
+    const grenze = new Date(Date.now() - 120 * 864e5).toISOString().slice(0, 10);
+    const neu = log.filter(l => l.datum >= grenze);
+    if (neu.length < 2) return null;
+    const erster = ausISO(neu[0].datum), tage = Math.max(7, Math.round((ausISO(heuteISO()) - erster) / 864e5));
+    return neu.reduce((s, l) => s + (Number(l.n) || 1), 0) / tage;
+  }
+  function reichweiteTage(item) {
+    if (!hatAnzahl(item)) return null;
+    const rate = verbrauchProTag(item);
+    if (!rate) return null;
+    return Math.round(Number(item.anzahl) / rate);
+  }
+  function reichweiteText(t) {
+    if (t === null) return '';
+    if (t <= 0) return 'aufgebraucht';
+    if (t < 14) return 'reicht noch ca. ' + t + ' Tag' + (t === 1 ? '' : 'e');
+    if (t < 60) return 'reicht noch ca. ' + Math.round(t / 7) + ' Wochen';
+    return 'reicht noch ca. ' + Math.round(t / 30) + ' Monate';
+  }
+  // Nach jeder Mengenänderung: Bestand ableiten, Verbrauch loggen, ggf. automatisch nachkaufen
+  function mengeGeaendert(item, vorher) {
+    const warNoetig = vorher.noetig;
+    if (hatAnzahl(item)) item.bestand = bestandAusAnzahl(item);
+    if (item.bestand === 'leer' && vorher.bestand !== 'leer') {
+      item.verbrauchsLog = item.verbrauchsLog || [];
+      item.verbrauchsLog.push({ datum: heuteISO() });
+    }
+    speichern(KEY_ITEMS, items);
+    renderListe();
+    if (!warNoetig && nachkaufNoetig(item)) {
+      const eintrag = zumEinkaufHinzufuegen(item, true);
+      if (eintrag) showTempStatus('🛒 „' + item.name + '“ ist knapp – steht jetzt auf „' + eintrag.liste + '“', 6, { rueckgaengig: () => einkaufEintragEntfernen(eintrag) });
+      return;
+    }
+    if (item.bestand === 'leer' && vorher.bestand !== 'leer' && !nachkaufNoetig(item)) {
+      showTempStatus('🔴 „' + item.name + '“ ist leer', 6, { label: '🛒 Nachkaufen', rueckgaengig: () => zumEinkaufHinzufuegen(item) });
+    }
+  }
+  function vorherStand(item) { return { bestand: item.bestand, noetig: nachkaufNoetig(item) }; }
+
+  // ---------- ❄️ Tiefkühl-Faustregeln (Monate) ----------
+  const TK_REGELN = [
+    [/hack/i, 3, 'Hackfleisch'], [/fisch|lachs|forelle|garnele|scampi/i, 4, 'Fisch'], [/hähnchen|huhn|geflügel|pute|chicken/i, 6, 'Geflügel'],
+    [/rind|schwein|lamm|wild|fleisch|steak|braten|wurst|schnitzel|gulasch/i, 6, 'Fleisch'], [/brot|brötchen|baguette|toast|semmel/i, 3, 'Brot'],
+    [/kuchen|torte|gebäck|muffin|waffel|pfannkuchen/i, 3, 'Kuchen & Gebäck'], [/suppe|eintopf|soße|sauce|reste|gericht|lasagne|chili|bolognese|curry/i, 3, 'gekochte Gerichte'],
+    [/butter/i, 6, 'Butter'], [/käse/i, 3, 'Käse'], [/kräuter|petersilie|schnittlauch|basilikum|dill/i, 6, 'Kräuter'],
+    [/beere|obst|apfel|kirsch|mango|pflaume|frucht/i, 10, 'Obst'], [/gemüse|erbse|bohne|spinat|brokkoli|blumenkohl|möhre|karotte|mais|paprika|zucchini/i, 12, 'Gemüse'],
+    [/eis\b|eiscreme/i, 2, 'Speiseeis'],
+  ];
+  function tkRegel(name, gruppe) {
+    const text = (name || '') + ' ' + (gruppe || '');
+    const r = TK_REGELN.find(x => x[0].test(text));
+    return r ? { monate: r[1], was: r[2] } : { monate: 6, was: 'Tiefkühlware allgemein' };
+  }
+  function plusMonate(iso, m) { const d = ausISO(iso); const z = new Date(d.getFullYear(), d.getMonth() + m, d.getDate()); return z.getFullYear() + '-' + String(z.getMonth() + 1).padStart(2, '0') + '-' + String(z.getDate()).padStart(2, '0'); }
+  function plusTage(iso, t) { const d = ausISO(iso); const z = new Date(d.getFullYear(), d.getMonth(), d.getDate() + t); return z.getFullYear() + '-' + String(z.getMonth() + 1).padStart(2, '0') + '-' + String(z.getDate()).padStart(2, '0'); }
+  function monateSeit(iso) { const d = ausISO(iso), h = ausISO(heuteISO()); return (h.getFullYear() - d.getFullYear()) * 12 + h.getMonth() - d.getMonth() - (h.getDate() < d.getDate() ? 1 : 0); }
+
+  // ---------- 💊 Für wen ----------
+  function fuerWenOptionen() {
+    return [{ id: 'kinder', label: '👶 Kinder' }, { id: 'erwachsene', label: '🧑 Erwachsene' }].concat((window.PLANER_PERSONEN || []).filter(p => p.id !== 'familie').map(p => ({ id: p.id, label: p.label })));
+  }
+  function fuerWenLabel(id) { const o = fuerWenOptionen().find(x => x.id === id); return o ? o.label : ''; }
+
+  // ---------- Übersicht & Filter ----------
+  function sichtbareItems() {
+    const q = suchText.trim().toLowerCase();
+    let liste;
+    if (q) liste = items.filter(i => [i.name, i.gruppierung, i.notiz, i.menge, i.einheit].some(x => String(x || '').toLowerCase().includes(q)));
+    else if (nurBaldAblaufend || nurLeer) liste = items.slice();
+    else liste = items.filter(i => i.kategorie === aktiveKategorie);
+    if (nurBaldAblaufend) liste = liste.filter(istBaldAblaufend);
+    if (nurLeer) liste = liste.filter(i => i.bestand === 'leer' || nachkaufNoetig(i));
+    if (ortFilter) liste = liste.filter(i => (i.lagerort || '') === ortFilter);
+    return liste;
+  }
+  function renderUebersicht() {
+    const box = document.getElementById('vkUebersicht');
+    const bald = items.filter(i => { const t = tageBisVerfall(i); return t !== null && t <= 7; });
+    const abgelaufen = bald.filter(i => tageBisVerfall(i) < 0).length;
+    const leer = items.filter(i => i.bestand === 'leer' || nachkaufNoetig(i)).length;
+    const chips = [];
+    if (bald.length || nurBaldAblaufend) chips.push('<button type="button" class="vk-ue-chip warn' + (nurBaldAblaufend ? ' active' : '') + '" data-ue="bald">⏳ ' + bald.length + ' bald ablaufend' + (abgelaufen ? ' (' + abgelaufen + ' abgelaufen)' : '') + '</button>');
+    if (leer || nurLeer) chips.push('<button type="button" class="vk-ue-chip rot' + (nurLeer ? ' active' : '') + '" data-ue="leer">🔴 ' + leer + ' leer/knapp</button>');
+    const kochbar = bald.filter(i => i.kategorie === 'lebensmittel' && tageBisVerfall(i) >= -2);
+    if (kochbar.length) chips.push('<button type="button" class="vk-ue-chip" data-ue="kochen" title="Passende Rezepte in Kochen zeigen">🍳 Damit kochen</button>');
+    box.innerHTML = chips.join('');
+    box.style.display = chips.length ? '' : 'none';
+    box.querySelectorAll('[data-ue]').forEach(b => b.addEventListener('click', () => {
+      if (b.dataset.ue === 'bald') { nurBaldAblaufend = !nurBaldAblaufend; nurLeer = false; }
+      else if (b.dataset.ue === 'leer') { nurLeer = !nurLeer; nurBaldAblaufend = false; }
+      else if (b.dataset.ue === 'kochen') { mitKochenOeffnen(kochbar.map(i => i.name)); return; }
+      renderListe();
+    }));
+  }
+  function mitKochenOeffnen(namen) {
+    try { window.parent.postMessage({ type: 'navigiere', modul: 'kochen', aktion: 'reste', text: namen.join('|') }, window.location.origin); } catch (e) {}
+  }
+  function renderOrte(basis) {
+    const box = document.getElementById('ortReihe');
+    const vorhanden = LAGERORT_OPTIONEN.filter(l => basis.some(i => i.lagerort === l.id));
+    if (vorhanden.length < 2 && !ortFilter) { box.innerHTML = ''; box.style.display = 'none'; return; }
+    box.style.display = '';
+    box.innerHTML = '<button type="button" class="ort-chip' + (!ortFilter ? ' active' : '') + '" data-ort="">Alle Orte</button>' +
+      vorhanden.map(l => '<button type="button" class="ort-chip' + (ortFilter === l.id ? ' active' : '') + '" data-ort="' + l.id + '">' + l.icon + ' ' + escapeHtml(l.label) + ' <span style="opacity:.7">' + basis.filter(i => i.lagerort === l.id).length + '</span></button>').join('');
+    box.querySelectorAll('[data-ort]').forEach(b => b.addEventListener('click', () => { ortFilter = b.dataset.ort; renderListe(); }));
+  }
+
   function renderListe() {
     const box = document.getElementById('vorratListe');
-    let eigene = sortiereItems(items.filter(i => i.kategorie === aktiveKategorie));
-    if (nurBaldAblaufend) eigene = eigene.filter(istBaldAblaufend);
-    document.getElementById('leerHinweis').style.display = eigene.length ? 'none' : '';
-    document.getElementById('anzahlText').textContent = eigene.length + ' Eintrag' + (eigene.length === 1 ? '' : 'e') + (nurBaldAblaufend ? ' (bald ablaufend)' : '');
+    renderUebersicht();
+    const filterAktiv = !!suchText.trim() || nurBaldAblaufend || nurLeer;
+    const ortFrei = ortFilter; ortFilter = '';
+    const basis = sichtbareItems(); ortFilter = ortFrei;
+    renderOrte(basis);
+    const eigene = sortiereItems(sichtbareItems());
+    document.getElementById('btnApoCheck').style.display = aktiveKategorie === 'apotheke' && !filterAktiv ? '' : 'none';
+    const leer = document.getElementById('leerHinweis');
+    leer.style.display = eigene.length ? 'none' : '';
+    leer.innerHTML = filterAktiv ? '<span class="em">🔎</span>Nichts gefunden.' : '<span class="em">🥫</span>Noch nichts in dieser Kategorie erfasst.<br>Mit „＋ Neu" den ersten Vorrat anlegen.';
+    document.getElementById('anzahlText').textContent = eigene.length + (eigene.length === 1 ? ' Eintrag' : ' Einträge') +
+      (suchText.trim() ? ' · alle Kategorien' : nurBaldAblaufend ? ' · bald ablaufend, alle Kategorien' : nurLeer ? ' · leer/knapp, alle Kategorien' : '');
     box.innerHTML = '';
     eigene.forEach(item => {
       const karte = document.createElement('div');
       karte.className = 'vorrat-karte';
-      const sterneHtml = '<div class="sterne-reihe">' + [1,2,3,4,5].map(i => '<span class="stern' + (i <= (item.sterne||0) ? ' aktiv' : '') + '">★</span>').join('') + '</div>';
+      const sterneHtml = item.sterne ? '<div class="sterne-reihe">' + [1,2,3,4,5].map(i => '<span class="stern' + (i <= (item.sterne||0) ? ' aktiv' : '') + '">★</span>').join('') + '</div>' : '';
       const bi = bestandInfo(item.bestand);
+      const tage = tageBisVerfall(item);
+      const reicht = reichweiteTage(item);
+      const katHinweis = filterAktiv && item.kategorie !== aktiveKategorie ? '<div class="vk-kat-hinweis">' + kategorieInfo(item.kategorie).icon + ' ' + escapeHtml(kategorieInfo(item.kategorie).label) + '</div>' : '';
       karte.innerHTML =
         '<div class="vk-kopf">' +
-          '<button class="vk-herz' + (item.favorit ? ' aktiv' : '') + '" data-id="' + item.id + '">' + (item.favorit ? '♥' : '♡') + '</button>' +
-          '<button class="vk-bestand" data-id="' + item.id + '" style="background:' + (bi ? bi.bg : '#ece5d8') + ';color:' + (bi ? bi.farbe : '#8a7c5f') + '" title="' + (bi ? bi.titel : 'Bestand grob einschätzen – antippen') + '">' + (bi ? bi.label : '?') + '</button>' +
-          '<div class="vk-titel-block">' +
-            '<span class="vk-name">' + escapeHtml(item.name) + '</span> ' +
+          '<button class="vk-herz' + (item.favorit ? ' aktiv' : '') + '" data-id="' + item.id + '" aria-label="Favorit">' + (item.favorit ? '♥' : '♡') + '</button>' +
+          '<button class="vk-bestand" data-id="' + item.id + '" style="background:' + (bi ? bi.bg : '#ece5d8') + ';color:' + (bi ? bi.farbe : '#8a7c5f') + '" title="' + (hatAnzahl(item) ? 'Bestand ergibt sich aus der Stückzahl' : (bi ? bi.titel : 'Bestand grob einschätzen – antippen')) + '">' + (bi ? bi.label : '?') + '</button>' +
+          '<div class="vk-titel-block">' + katHinweis +
+            '<span class="vk-name">' + escapeHtml(item.name) + '</span>' + (item.immer ? '<span class="vk-pin" title="Immer im Haus">📌</span>' : '') + ' ' +
             (item.menge ? '<span class="vk-menge">· ' + escapeHtml(item.menge) + '</span>' : '') +
             sterneHtml + produktHinweisHtml(item) +
           '</div>' +
           '<button class="vk-cart" data-id="' + item.id + '" title="Zur Einkaufsliste hinzufügen">🛒</button>' +
         '</div>' +
         '<div class="vk-meta-reihe">' +
-          (item.lagerort && lagerortInfo(item.lagerort) ? '<span class="vk-chip">' + lagerortInfo(item.lagerort).icon + ' ' + escapeHtml(lagerortInfo(item.lagerort).label) + '</span>' : '') +
+          (hatAnzahl(item) ? '<span class="vk-stepper"><button type="button" data-schritt="-1" aria-label="Eins weniger">−</button><span>' + escapeHtml(mengeText(item)) + '</span><button type="button" data-schritt="1" aria-label="Eins mehr">＋</button></span>' : '') +
+          (nachkaufNoetig(item) ? '<span class="vk-chip knapp">🛒 nachkaufen</span>' : '') +
+          (reicht !== null && reicht < 60 ? '<span class="vk-chip">⏱️ ' + reichweiteText(reicht) + '</span>' : '') +
+          (item.lagerort && lagerortInfo(item.lagerort) ? '<span class="vk-chip">' + lagerortInfo(item.lagerort).icon + ' ' + escapeHtml(lagerortInfo(item.lagerort).label) + (item.lagerort === 'gefrierfach' && item.eingefrorenAm ? ' · seit ' + (monateSeit(item.eingefrorenAm) < 1 ? 'diesem Monat' : monateSeit(item.eingefrorenAm) + ' Mon.') : '') + '</span>' : '') +
+          (item.fuerWen ? '<span class="vk-chip">' + escapeHtml(fuerWenLabel(item.fuerWen)) + '</span>' : '') +
+          (item.angebrochenAm ? '<span class="vk-chip">🔓 offen seit ' + ausISO(item.angebrochenAm).toLocaleDateString('de-DE', { day: 'numeric', month: 'numeric' }) + '</span>' : '') +
           (item.gruppierung ? '<span class="vk-chip">' + escapeHtml(item.gruppierung) + '</span>' : '') +
           verfallBadge(item) +
-          ((item.verfallsdatum || item.aufbrauchenBis) ? '<button type="button" class="vk-chip vk-erinnerung-btn" data-id="' + item.id + '" style="border:none;cursor:pointer;">🔔 Erinnerung</button>' : '') +
+          ((item.verfallsdatum || item.aufbrauchenBis) ? '<button type="button" class="vk-chip vk-erinnerung-btn' + (erinnerungAktiv(item) ? ' erinnerung-an' : '') + '" data-id="' + item.id + '" style="border:none;cursor:pointer;" title="' + (erinnerungAktiv(item) ? 'Erinnerung entfernen' : 'Am Vorabend per Push erinnern') + '">' + (erinnerungAktiv(item) ? '🔔 an' : '🔕 Erinnern') + '</button>' : '') +
+          (item.kategorie === 'lebensmittel' && tage !== null && tage <= 3 && tage >= -2 ? '<button type="button" class="vk-chip vk-kochen-btn" style="border:none;cursor:pointer;">🍳 Damit kochen</button>' : '') +
         '</div>' +
         (item.notiz ? '<div class="vk-notiz">' + escapeHtml(item.notiz) + '</div>' : '');
       karte.addEventListener('click', (e) => {
@@ -712,16 +1022,25 @@
           renderListe();
           return;
         }
+        const schritt = e.target.closest('[data-schritt]');
+        if (schritt) {
+          e.stopPropagation();
+          const vorher = vorherStand(item);
+          const d = Number(schritt.dataset.schritt);
+          const neu = Math.max(0, Number(item.anzahl) + d);
+          if (neu === Number(item.anzahl)) return;
+          if (d < 0) { item.verbrauchsLog = item.verbrauchsLog || []; item.verbrauchsLog.push({ datum: heuteISO(), art: 'minus', n: 1 }); if (item.verbrauchsLog.length > 300) item.verbrauchsLog.splice(0, item.verbrauchsLog.length - 300); }
+          else item.gekauftAm = item.gekauftAm && item.gekauftAm > heuteISO() ? item.gekauftAm : (d > 0 ? heuteISO() : item.gekauftAm);
+          item.anzahl = neu;
+          mengeGeaendert(item, vorher);
+          return;
+        }
         if (e.target.closest('.vk-bestand')) {
           e.stopPropagation();
-          const neuerBestand = naechsterBestand(item.bestand);
-          if (neuerBestand === 'leer' && item.bestand !== 'leer') {
-            item.verbrauchsLog = item.verbrauchsLog || [];
-            item.verbrauchsLog.push({ datum: heuteISO() });
-          }
-          item.bestand = neuerBestand;
-          speichern(KEY_ITEMS, items);
-          renderListe();
+          if (hatAnzahl(item)) { showTempStatus('Bestand folgt der Stückzahl – mit −/＋ ändern', 3); return; }
+          const vorher = vorherStand(item);
+          item.bestand = naechsterBestand(item.bestand);
+          mengeGeaendert(item, vorher);
           return;
         }
         if (e.target.closest('.vk-cart')) {
@@ -731,7 +1050,12 @@
         }
         if (e.target.closest('.vk-erinnerung-btn')) {
           e.stopPropagation();
-          erinnerungAlsTerminAnlegen(item);
+          erinnerungUmschalten(item);
+          return;
+        }
+        if (e.target.closest('.vk-kochen-btn')) {
+          e.stopPropagation();
+          mitKochenOeffnen([item.name]);
           return;
         }
         itemFormOeffnen(item.id);
@@ -739,45 +1063,87 @@
       box.appendChild(karte);
     });
   }
+  document.getElementById('fVorratSuche').addEventListener('input', (e) => { suchText = e.target.value; renderListe(); });
 
-  // ---------- Erinnerung als Termin (Verknüpfung mit Termine-Modul) ----------
+  // ---------- 🔔 Erinnerung als Termin (Schalter; Push am Vorabend um 18 Uhr) ----------
   const KEY_TERMINE_EVENTS = 'termine_events_v1';
-  function erinnerungAlsTerminAnlegen(item) {
+  function terminIdVon(item) { return 't_vorrat_' + item.id; }
+  function erinnerungAktiv(item) { return !!item.terminId; }
+  function terminDaten(item) {
     const datum = item.verfallsdatum || item.aufbrauchenBis;
-    if (!datum) return;
-    const events = laden(KEY_TERMINE_EVENTS, []);
-    events.push({
-      id: 't_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+    return {
+      id: item.terminId || terminIdVon(item),
       title: '⏳ ' + item.name + (item.verfallsdatum ? ' – MHD' : ' – aufbrauchen'),
-      date: datum,
-      allDay: true,
-      startTime: '', endTime: '',
-      wer: 'familie',
-      location: '',
-      notes: 'Aus der Vorratskammer erinnert.',
-      erinnerung: 0,
-      recurrence: { freq: 'keine', until: null }
-    });
-    speichern(KEY_TERMINE_EVENTS, events);
-    if (window._termineSync) window._termineSync.melde(); // sonst bliebe der Termin nur auf diesem Gerät
-    showTempStatus('„' + item.name + '" wurde in die Termine eingetragen.');
+      date: datum, allDay: true, startTime: '', endTime: '', wer: 'familie', location: '',
+      notes: 'Aus der Vorratskammer erinnert.', erinnerung: 0, erinnerungVorabend: true,
+      recurrence: { freq: 'keine', until: null },
+    };
+  }
+  function termineSpeichern(events) { speichern(KEY_TERMINE_EVENTS, events); if (window._termineSync) window._termineSync.melde(); }
+  // Hält den verknüpften Termin aktuell (Datum/Name geändert) oder entfernt ihn (gelöscht/kein Datum)
+  function erinnerungAbgleichen(item, entfernen) {
+    if (!item.terminId) return;
+    const events = laden(KEY_TERMINE_EVENTS, []);
+    const rest = events.filter(ev => ev.id !== item.terminId);
+    if (entfernen || !(item.verfallsdatum || item.aufbrauchenBis)) {
+      if (rest.length !== events.length) termineSpeichern(rest);
+      if (!entfernen) delete item.terminId;
+      return;
+    }
+    rest.push(terminDaten(item));
+    termineSpeichern(rest);
+  }
+  function erinnerungUmschalten(item) {
+    if (!(item.verfallsdatum || item.aufbrauchenBis)) return;
+    if (item.terminId) {
+      erinnerungAbgleichen(item, true);
+      delete item.terminId;
+      speichern(KEY_ITEMS, items); renderListe();
+      showTempStatus('🔕 Erinnerung für „' + item.name + '“ entfernt', 3);
+      return;
+    }
+    item.terminId = terminIdVon(item);
+    erinnerungAbgleichen(item, false);
+    speichern(KEY_ITEMS, items); renderListe();
+    const d = ausISO(item.verfallsdatum || item.aufbrauchenBis);
+    showTempStatus('🔔 Erinnerung am Vorabend (' + new Date(d.getFullYear(), d.getMonth(), d.getDate() - 1).toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'numeric' }) + ', 18 Uhr) – steht auch in den Terminen', 4);
   }
 
-  // ---------- ZUR EINKAUFSLISTE ----------
-  function zumEinkaufHinzufuegen(item) {
+  // ---------- ZUR EINKAUFSLISTE (mit Sync auf alle Geräte) ----------
+  function einkaufKategorieFuer(name) {
+    const fav = laden('einkauf_favoriten', {}) || {};
+    const f = fav[String(name).trim().toLowerCase()];
+    if (f && f.kategorie) return f.kategorie;
+    if (window.Lebensmittel && window.Lebensmittel.produktZuName) { const p = window.Lebensmittel.produktZuName(name); if (p && p.kategorie) return p.kategorie; }
+    return 'sonstiges';
+  }
+  // Rückgabe: { liste, listeId, itemId } oder null (stand schon drauf)
+  function zumEinkaufHinzufuegen(item, still) {
     let listen = laden(KEY_EINKAUF_LISTEN, null);
     if (!listen || !listen.length) listen = [{ id: neueId('l'), name: 'Wocheneinkauf', items: [] }];
     let aktivId = localStorage.getItem(KEY_EINKAUF_AKTIV);
     let aktiv = listen.find(l => l.id === aktivId) || listen[0];
-    const kandidat = aktiv.items.find(i => !i.erledigt && i.name.trim().toLowerCase() === item.name.trim().toLowerCase());
+    if (!aktiv.items) aktiv.items = [];
+    const kandidat = aktiv.items.find(i => !i.erledigt && String(i.name || '').trim().toLowerCase() === item.name.trim().toLowerCase());
     if (kandidat) {
-      showTempStatus('„' + item.name + '" steht schon in „' + aktiv.name + '".');
-      return;
+      if (!still) showTempStatus('„' + item.name + '" steht schon in „' + aktiv.name + '".');
+      return null;
     }
-    aktiv.items.push({ id: neueId('i'), name: item.name, menge: '', einheit: '', kategorie: 'sonstiges', erledigt: false, hinzugefuegtVon: 'vorrat:' + item.name });
+    const neu = { id: neueId('i'), name: item.name, menge: item.minAnzahl && hatAnzahl(item) ? String(Math.max(1, Number(item.minAnzahl) + 1 - Number(item.anzahl))) : '', einheit: item.einheit && item.minAnzahl ? item.einheit : '', kategorie: einkaufKategorieFuer(item.name), erledigt: false, hinzugefuegtVon: 'vorrat:' + item.name };
+    aktiv.items.push(neu);
     speichern(KEY_EINKAUF_LISTEN, listen);
-    if (!aktivId) localStorage.setItem(KEY_EINKAUF_AKTIV, aktiv.id);
-    showTempStatus('🛒 „' + item.name + '" zu „' + aktiv.name + '" hinzugefügt.');
+    if (window._einkaufSync) window._einkaufSync.melde();
+    if (!aktivId) { try { localStorage.setItem(KEY_EINKAUF_AKTIV, aktiv.id); } catch (e) {} }
+    const eintrag = { liste: aktiv.name, listeId: aktiv.id, itemId: neu.id };
+    if (!still) showTempStatus('🛒 „' + item.name + '" zu „' + aktiv.name + '" hinzugefügt.', 5, { rueckgaengig: () => einkaufEintragEntfernen(eintrag) });
+    return eintrag;
+  }
+  function einkaufEintragEntfernen(eintrag) {
+    const listen = laden(KEY_EINKAUF_LISTEN, []);
+    const l = listen.find(x => x.id === eintrag.listeId); if (!l) return;
+    l.items = (l.items || []).filter(i => i.id !== eintrag.itemId);
+    speichern(KEY_EINKAUF_LISTEN, listen);
+    if (window._einkaufSync) window._einkaufSync.melde();
   }
 
   // ---------- FORMULAR: ITEM ANLEGEN/BEARBEITEN ----------
@@ -787,16 +1153,66 @@
       '<button type="button" class="kategorie-opt' + (l.id === editLagerort ? ' aktiv' : '') + '" data-id="' + l.id + '">' + l.icon + ' ' + escapeHtml(l.label) + '</button>'
     ).join('');
     box.querySelectorAll('.kategorie-opt').forEach(btn => {
-      btn.addEventListener('click', () => { editLagerort = (editLagerort === btn.dataset.id) ? '' : btn.dataset.id; renderFormLagerortReihe(); });
+      btn.addEventListener('click', () => {
+        editLagerort = (editLagerort === btn.dataset.id) ? '' : btn.dataset.id; renderFormLagerortReihe();
+        if (editLagerort === 'gefrierfach' && !document.getElementById('fEingefroren').value && !bearbeitenId) document.getElementById('fEingefroren').value = heuteISO();
+        zusatzFelderAktualisieren();
+      });
     });
   }
+  let editFuerWen = '';
+  function renderFuerWen() {
+    const box = document.getElementById('fFuerWenReihe');
+    box.innerHTML = fuerWenOptionen().map(o => '<button type="button" class="kategorie-opt' + (o.id === editFuerWen ? ' aktiv' : '') + '" data-id="' + escapeHtml(o.id) + '">' + escapeHtml(o.label) + '</button>').join('');
+    box.querySelectorAll('.kategorie-opt').forEach(b => b.addEventListener('click', () => { editFuerWen = editFuerWen === b.dataset.id ? '' : b.dataset.id; renderFuerWen(); }));
+  }
+  function zusatzFelderAktualisieren() {
+    document.getElementById('apothekeFelder').style.display = editKategorie === 'apotheke' ? '' : 'none';
+    const tk = editLagerort === 'gefrierfach';
+    document.getElementById('eingefrorenFeld').style.display = tk ? '' : 'none';
+    tkVorschlagAktualisieren();
+  }
+  function tkVorschlagAktualisieren() {
+    const btn = document.getElementById('btnTkVorschlag');
+    const ein = document.getElementById('fEingefroren').value;
+    if (editLagerort !== 'gefrierfach' || !ein) { btn.style.display = 'none'; return; }
+    const r = tkRegel(document.getElementById('fName').value, document.getElementById('fGruppierung').value);
+    const bis = plusMonate(ein, r.monate);
+    btn.dataset.bis = bis;
+    btn.textContent = '💡 Faustregel ' + r.was + ': ca. ' + r.monate + ' Monate → bis ' + ausISO(bis).toLocaleDateString('de-DE') + ' übernehmen';
+    btn.style.display = document.getElementById('fVerfall').value === bis ? 'none' : '';
+  }
+  document.getElementById('btnTkVorschlag').addEventListener('click', () => {
+    document.getElementById('fVerfall').value = document.getElementById('btnTkVorschlag').dataset.bis;
+    tkVorschlagAktualisieren();
+  });
+  document.getElementById('fEingefroren').addEventListener('change', () => {
+    if (!document.getElementById('fVerfall').value && document.getElementById('fEingefroren').value) {
+      const r = tkRegel(document.getElementById('fName').value, document.getElementById('fGruppierung').value);
+      document.getElementById('fVerfall').value = plusMonate(document.getElementById('fEingefroren').value, r.monate);
+    }
+    tkVorschlagAktualisieren();
+  });
+  ['fName', 'fGruppierung', 'fVerfall'].forEach(id => document.getElementById(id).addEventListener('change', tkVorschlagAktualisieren));
+  function aufbrauchenNachOeffnen() {
+    const auf = document.getElementById('fAngebrochen').value, tage = Number(document.getElementById('fNachOeffnen').value);
+    if (auf && tage) document.getElementById('fAufbrauchen').value = plusTage(auf, tage);
+  }
+  document.getElementById('fAngebrochen').addEventListener('change', aufbrauchenNachOeffnen);
+  document.getElementById('fNachOeffnen').addEventListener('change', aufbrauchenNachOeffnen);
+  document.getElementById('fAnzahl').addEventListener('input', () => {
+    if (document.getElementById('fAnzahl').value !== '') {
+      const t = { anzahl: Number(document.getElementById('fAnzahl').value), minAnzahl: document.getElementById('fMinAnzahl').value };
+      document.getElementById('fBestand').value = bestandAusAnzahl(t);
+    }
+  });
   function renderFormKategorieReihe() {
     const box = document.getElementById('fKategorieReihe');
     box.innerHTML = alleKategorien().map(k =>
       '<button type="button" class="kategorie-opt' + (k.id === editKategorie ? ' aktiv' : '') + '" data-id="' + k.id + '">' + k.icon + ' ' + escapeHtml(k.label) + '</button>'
     ).join('');
     box.querySelectorAll('.kategorie-opt').forEach(btn => {
-      btn.addEventListener('click', () => { editKategorie = btn.dataset.id; renderFormKategorieReihe(); });
+      btn.addEventListener('click', () => { editKategorie = btn.dataset.id; renderFormKategorieReihe(); zusatzFelderAktualisieren(); });
     });
   }
   function renderSterneEingabe() {
@@ -834,11 +1250,21 @@
     editKategorie = item ? item.kategorie : aktiveKategorie;
     editLagerort = item ? (item.lagerort || '') : '';
     editCode = item ? (item.code || '') : '';
+    document.getElementById('fAnzahl').value = item && hatAnzahl(item) ? item.anzahl : '';
+    document.getElementById('fEinheit').value = item ? (item.einheit || '') : '';
+    document.getElementById('fMinAnzahl').value = item && item.minAnzahl !== undefined && item.minAnzahl !== null ? item.minAnzahl : '';
+    document.getElementById('fImmer').checked = !!(item && item.immer);
+    document.getElementById('fEingefroren').value = item ? (item.eingefrorenAm || '') : '';
+    document.getElementById('fAngebrochen').value = item ? (item.angebrochenAm || '') : '';
+    document.getElementById('fNachOeffnen').value = item && item.haltbarNachOeffnen ? String(item.haltbarNachOeffnen) : '';
+    editFuerWen = item ? (item.fuerWen || '') : '';
+    renderFuerWen();
     produktKarteZeigen(produktZuItem(item));
     aktualisiereGruppierungListe();
     renderFormLagerortReihe();
     renderFormKategorieReihe();
     renderSterneEingabe();
+    zusatzFelderAktualisieren();
     document.getElementById('loeschZeile').style.display = item ? '' : 'none';
     document.getElementById('modalItem').classList.add('zeigen');
 
@@ -980,7 +1406,7 @@
   // ---------- Verbrauchs-Auswertung ----------
   function renderVerbrauch() {
     const eintraege = items
-      .map(item => ({ item, anzahl: (item.verbrauchsLog || []).length }))
+      .map(item => ({ item, anzahl: (item.verbrauchsLog || []).filter(l => !l.art || l.art === 'leer').length }))
       .filter(e => e.anzahl > 0)
       .sort((a, b) => b.anzahl - a.anzahl)
       .slice(0, 15);
@@ -988,6 +1414,24 @@
     document.getElementById('verbrauchListe').innerHTML = eintraege.map(e =>
       '<div class="verbrauch-zeile"><span>' + escapeHtml(e.item.name) + '</span><span>' + e.anzahl + '× leer markiert</span></div>'
     ).join('');
+    // ⏱️ Reichweite
+    const rw = items.map(i => ({ i, t: reichweiteTage(i) })).filter(x => x.t !== null).sort((a, b) => a.t - b.t).slice(0, 12);
+    document.getElementById('reichweiteKarte').style.display = rw.length ? '' : 'none';
+    document.getElementById('reichweiteListe').innerHTML = rw.map(x => '<div class="verbrauch-zeile"><span>' + escapeHtml(x.i.name) + ' <span style="color:var(--bark);font-size:0.75rem;">(' + escapeHtml(mengeText(x.i)) + ')</span></span><span>' + reichweiteText(x.t).replace('reicht noch ', '') + '</span></div>').join('');
+    // 🗑️ Weggeworfen vs. aufgebraucht
+    const grenze = new Date(Date.now() - 90 * 864e5).toISOString().slice(0, 10);
+    const letzte = verbleib.filter(v => (v.datum || '') >= grenze);
+    const weg = letzte.filter(v => v.art === 'weggeworfen'), auf = letzte.filter(v => v.art === 'aufgebraucht');
+    const box = document.getElementById('verbleibBox');
+    if (!letzte.length) { box.innerHTML = '<div class="leer-hinweis" style="padding:10px 0;">Noch keine Daten – beim Löschen eines Eintrags fragt der Planer, ob er aufgebraucht oder weggeworfen wurde.</div>'; return; }
+    const anteil = Math.round(weg.length / letzte.length * 100);
+    const top = {};
+    weg.forEach(v => { const k = v.name.trim(); top[k] = (top[k] || 0) + 1; });
+    const topListe = Object.entries(top).sort((a, b) => b[1] - a[1]).slice(0, 6);
+    box.innerHTML = '<div style="font-size:0.85rem;">✓ ' + auf.length + ' aufgebraucht · 🗑️ ' + weg.length + ' weggeworfen <b>(' + anteil + ' %)</b></div>' +
+      '<div class="balken" style="margin:6px 0 10px;"><div style="width:' + anteil + '%"></div></div>' +
+      (topListe.length ? '<div style="font-size:0.72rem;font-weight:700;color:var(--bark);text-transform:uppercase;margin-bottom:2px;">Am häufigsten weggeworfen</div>' + topListe.map(([n, a]) => '<div class="verbrauch-zeile"><span>' + escapeHtml(n) + '</span><span>' + a + '×</span></div>').join('') +
+        '<div style="font-size:0.72rem;color:var(--bark);margin-top:6px;">💡 Tipp: kleinere Packungen kaufen, früher einfrieren oder 🔔 Erinnerung setzen.</div>' : '');
   }
   document.getElementById('btnAbbrechen').addEventListener('click', () => {
     eingangInBearbeitung = null;
@@ -1017,40 +1461,198 @@
       sterne: editSterne,
       code: editCode || undefined,
     };
+    const anz = document.getElementById('fAnzahl').value, min = document.getElementById('fMinAnzahl').value;
+    daten.anzahl = anz === '' ? undefined : Math.max(0, Math.round(Number(anz)));
+    daten.einheit = document.getElementById('fEinheit').value.trim() || undefined;
+    daten.minAnzahl = min === '' ? undefined : Math.max(0, Math.round(Number(min)));
+    daten.immer = document.getElementById('fImmer').checked || undefined;
+    daten.eingefrorenAm = editLagerort === 'gefrierfach' ? (document.getElementById('fEingefroren').value || undefined) : undefined;
+    const apo = editKategorie === 'apotheke';
+    daten.fuerWen = apo ? (editFuerWen || undefined) : undefined;
+    daten.angebrochenAm = apo ? (document.getElementById('fAngebrochen').value || undefined) : undefined;
+    daten.haltbarNachOeffnen = apo && document.getElementById('fNachOeffnen').value ? Number(document.getElementById('fNachOeffnen').value) : undefined;
+    if (daten.anzahl !== undefined) daten.bestand = bestandAusAnzahl(daten);
+    let item;
     if (bearbeitenId) {
-      const item = items.find(i => i.id === bearbeitenId);
+      item = items.find(i => i.id === bearbeitenId);
+      const vorher = vorherStand(item);
       Object.assign(item, daten);
+      Object.keys(daten).forEach(k => { if (daten[k] === undefined) delete item[k]; });
+      if (!vorher.noetig && nachkaufNoetig(item)) setTimeout(() => { const e = zumEinkaufHinzufuegen(item, true); if (e) showTempStatus('🛒 „' + item.name + '“ steht jetzt auf „' + e.liste + '“', 5, { rueckgaengig: () => einkaufEintragEntfernen(e) }); }, 50);
     } else {
-      items.push(Object.assign({ id: neueId('v'), favorit: false }, daten));
+      item = Object.assign({ id: neueId('v'), favorit: false }, daten);
+      Object.keys(item).forEach(k => { if (item[k] === undefined) delete item[k]; });
+      items.push(item);
     }
+    erinnerungAbgleichen(item, false);
     speichern(KEY_ITEMS, items);
     if (eingangInBearbeitung) { eingangEntfernen(eingangInBearbeitung, false); eingangInBearbeitung = null; }
     document.getElementById('modalItem').classList.remove('zeigen');
     entwurfUeberwachungStoppen(); entwurfLoeschen();
-    aktiveKategorie = editKategorie;
+    if (!suchText.trim() && !nurBaldAblaufend && !nurLeer) aktiveKategorie = editKategorie;
     renderKatTabs();
     renderListe();
   });
   document.getElementById('btnLoeschen').addEventListener('click', () => {
     if (!bearbeitenId) return;
-    const index = items.findIndex(i => i.id === bearbeitenId);
+    const item = items.find(i => i.id === bearbeitenId);
+    if (!item) return;
+    const t = tageBisVerfall(item);
+    document.getElementById('verbleibTitel').textContent = '„' + item.name + '“ ' + (t !== null && t < 0 ? '(abgelaufen) ' : '') + '– was ist damit passiert?';
+    document.getElementById('modalVerbleib').dataset.id = item.id;
+    document.getElementById('modalVerbleib').classList.add('zeigen');
+  });
+  document.getElementById('btnVerbleibAbbrechen').addEventListener('click', () => document.getElementById('modalVerbleib').classList.remove('zeigen'));
+  document.querySelectorAll('#modalVerbleib [data-verbleib]').forEach(b => b.addEventListener('click', () => {
+    const modal = document.getElementById('modalVerbleib');
+    modal.classList.remove('zeigen');
+    const index = items.findIndex(i => i.id === modal.dataset.id);
     if (index === -1) return;
     const entfernt = items[index];
+    const art = b.dataset.verbleib;
     items.splice(index, 1);
+    let vEintrag = null;
+    if (art !== 'nur') {
+      vEintrag = { name: entfernt.name, kategorie: entfernt.kategorie, art, datum: heuteISO() };
+      verbleib.push(vEintrag);
+      if (verbleib.length > 500) verbleib.splice(0, verbleib.length - 500);
+      speichern(KEY_VERBLEIB, verbleib);
+    }
+    erinnerungAbgleichen(entfernt, true);
     speichern(KEY_ITEMS, items);
     entwurfUeberwachungStoppen(); entwurfLoeschen();
     document.getElementById('modalItem').classList.remove('zeigen');
     renderListe();
-    showTempStatus('Gelöscht: „' + entfernt.name + '"', 6, {
-      rueckgaengig: () => { items.splice(index, 0, entfernt); speichern(KEY_ITEMS, items); renderListe(); }
+    showTempStatus((art === 'weggeworfen' ? '🗑️ Weggeworfen: „' : art === 'aufgebraucht' ? '✓ Aufgebraucht: „' : 'Gelöscht: „') + entfernt.name + '"', 6, {
+      rueckgaengig: () => {
+        items.splice(index, 0, entfernt); speichern(KEY_ITEMS, items);
+        if (vEintrag) { verbleib = verbleib.filter(v => v !== vEintrag); speichern(KEY_VERBLEIB, verbleib); }
+        erinnerungAbgleichen(entfernt, false);
+        renderListe();
+      }
     });
+  }));
+
+  // ---------- 📝 Mehrere auf einmal ----------
+  let mehrereOrt = '';
+  function mehrereZerlegen(text) {
+    return String(text || '').split(/[\n,;]+/).map(t => t.trim()).filter(Boolean).map(t => {
+      let m = t.match(/^(\d+)\s*[x×]?\s+(Dosen?|Packungen?|Pck\.?|Gläser|Glas|Flaschen?|Beutel|Rollen?|Tuben?|Stück|Stk\.?|Portionen?|Tüten?|Kartons?|Becher)\s+(.+)$/i);
+      if (m) return { name: m[3], anzahl: Number(m[1]), einheit: m[2] };
+      m = t.match(/^(\d+(?:[.,]\d+)?)\s*(g|kg|ml|l)\s+(.+)$/i);
+      if (m) return { name: m[3], menge: m[1] + ' ' + m[2] };
+      m = t.match(/^(\d+)\s*[x×]?\s+(.+)$/);
+      if (m) return { name: m[2], anzahl: Number(m[1]) };
+      return { name: t };
+    }).map(z => Object.assign(z, { name: z.name.charAt(0).toUpperCase() + z.name.slice(1), vorhanden: passenderVorrat(z.name) }));
+  }
+  function mehrereVorschau() {
+    const zeilen = mehrereZerlegen(document.getElementById('fMehrere').value);
+    document.getElementById('mehrereVorschau').innerHTML = zeilen.map(z =>
+      '<div class="mehr-zeile' + (z.vorhanden ? ' auffuellen' : '') + '"><span>' + escapeHtml(z.name) + (z.anzahl ? ' · ' + z.anzahl + (z.einheit ? ' ' + escapeHtml(z.einheit) : '') : '') + (z.menge ? ' · ' + escapeHtml(z.menge) : '') + '</span><span>' + (z.vorhanden ? '↻ auffüllen' : '＋ neu') + '</span></div>').join('');
+  }
+  function renderMehrereOrt() {
+    const box = document.getElementById('fMehrereOrt');
+    box.innerHTML = LAGERORT_OPTIONEN.map(l => '<button type="button" class="kategorie-opt' + (l.id === mehrereOrt ? ' aktiv' : '') + '" data-id="' + l.id + '">' + l.icon + ' ' + escapeHtml(l.label) + '</button>').join('');
+    box.querySelectorAll('.kategorie-opt').forEach(b => b.addEventListener('click', () => { mehrereOrt = mehrereOrt === b.dataset.id ? '' : b.dataset.id; renderMehrereOrt(); }));
+  }
+  document.getElementById('btnMehrere').addEventListener('click', () => {
+    document.getElementById('fMehrere').value = '';
+    mehrereOrt = ''; renderMehrereOrt(); mehrereVorschau();
+    document.getElementById('modalMehrere').classList.add('zeigen');
+    setTimeout(() => document.getElementById('fMehrere').focus(), 50);
   });
+  document.getElementById('fMehrere').addEventListener('input', mehrereVorschau);
+  document.getElementById('btnMehrereAbbrechen').addEventListener('click', () => document.getElementById('modalMehrere').classList.remove('zeigen'));
+  document.getElementById('btnMehrereOk').addEventListener('click', () => {
+    const zeilen = mehrereZerlegen(document.getElementById('fMehrere').value);
+    if (!zeilen.length) { document.getElementById('fMehrere').focus(); return; }
+    const vorher = JSON.parse(JSON.stringify(items));
+    let neu = 0, auf = 0;
+    zeilen.forEach(z => {
+      const v = z.vorhanden && items.find(i => i.id === z.vorhanden.id);
+      if (v) {
+        if (hatAnzahl(v) && z.anzahl) v.anzahl = Number(v.anzahl) + z.anzahl; else if (hatAnzahl(v)) v.anzahl = Number(v.anzahl) + 1;
+        v.bestand = hatAnzahl(v) ? bestandAusAnzahl(v) : 'viel';
+        v.gekauftAm = heuteISO();
+        if (mehrereOrt && !v.lagerort) v.lagerort = mehrereOrt;
+        auf++;
+      } else {
+        const item = { id: neueId('v'), favorit: false, name: z.name, menge: z.menge || '', bestand: 'viel', kategorie: aktiveKategorie, lagerort: mehrereOrt, gruppierung: '', gekauftAm: heuteISO(), verfallsdatum: '', aufbrauchenBis: '', notiz: '', sterne: 0 };
+        if (z.anzahl) { item.anzahl = z.anzahl; if (z.einheit) item.einheit = z.einheit; item.bestand = bestandAusAnzahl(item); }
+        if (mehrereOrt === 'gefrierfach') { item.eingefrorenAm = heuteISO(); item.verfallsdatum = plusMonate(heuteISO(), tkRegel(item.name, '').monate); }
+        items.push(item); neu++;
+      }
+    });
+    speichern(KEY_ITEMS, items);
+    document.getElementById('modalMehrere').classList.remove('zeigen');
+    suchText = ''; document.getElementById('fVorratSuche').value = ''; nurBaldAblaufend = false; nurLeer = false;
+    renderListe();
+    showTempStatus((neu ? neu + ' neu' : '') + (neu && auf ? ', ' : '') + (auf ? auf + ' aufgefüllt' : ''), 6, { rueckgaengig: () => { items = vorher; speichern(KEY_ITEMS, items); renderListe(); } });
+  });
+
+  // ---------- ✅ Hausapotheke: Grundausstattung ----------
+  const APO_LISTE = [
+    { was: 'Pflaster (verschiedene Größen)', re: /pflaster/i },
+    { was: 'Verbandsmaterial (Mullbinden, Kompressen)', re: /verband|mull|binde|kompresse/i },
+    { was: 'Wunddesinfektion', re: /desinf|wund.*spray|antisept|octeni|betaisodona|jod/i },
+    { was: 'Wund- & Brandsalbe', re: /salbe|panthenol|bepanthen|brand|wundgel/i },
+    { was: 'Fieberthermometer', re: /thermometer/i },
+    { was: 'Fieber-/Schmerzmittel für Erwachsene', re: /ibuprofen|paracetamol|aspirin|ass\b|schmerz|fieber|novalgin|dolormin/i, fuer: 'erwachsene' },
+    { was: 'Fieber-/Schmerzmittel für Kinder', re: /fiebersaft|zäpfchen|nurofen|kinder.*(saft|ibu|para)|(ibu|para).*kinder|ben-u-ron/i, fuer: 'kinder' },
+    { was: 'Elektrolyt-Lösung (Durchfall)', re: /elektrolyt|elotrans|oralpädon|oralpaedon/i },
+    { was: 'Mittel gegen Insektenstiche/Juckreiz', re: /stich|fenistil|juck|insekt|soventol/i },
+    { was: 'Nasenspray/-tropfen', re: /nasen/i },
+    { was: 'Zeckenzange/-karte', re: /zecke/i },
+    { was: 'Pinzette & Schere', re: /pinzette|schere/i },
+    { was: 'Kühlpack', re: /kühl|cool|kalt/i },
+    { was: 'Einmalhandschuhe', re: /handschuh/i },
+    { was: 'Rettungsdecke', re: /rettungsdecke|rettungsfolie/i },
+  ];
+  function apoStatus(eintrag) {
+    const vorrat = items.filter(i => i.kategorie === 'apotheke' && eintrag.re.test([i.name, i.gruppierung, i.notiz].join(' ')));
+    const passend = eintrag.fuer ? vorrat.filter(i => !i.fuerWen || i.fuerWen === eintrag.fuer || (eintrag.fuer === 'kinder' && /kind/i.test(i.name)) || (eintrag.fuer === 'erwachsene' && i.fuerWen !== 'kinder')) : vorrat;
+    const gueltig = passend.filter(i => { const t = tageBisVerfall(i); return (t === null || t >= 0) && i.bestand !== 'leer'; });
+    if (gueltig.length) return { status: 'ok', treffer: gueltig };
+    if (passend.length) return { status: passend.some(i => i.bestand === 'leer') ? 'leer' : 'abgelaufen', treffer: passend };
+    return { status: 'fehlt', treffer: [] };
+  }
+  function renderApotheke() {
+    const box = document.getElementById('apoListe');
+    box.innerHTML = APO_LISTE.map((e, i) => {
+      const st = apoStatus(e);
+      const icon = { ok: '✅', abgelaufen: '⚠️', leer: '🔴', fehlt: '⬜' }[st.status];
+      const info = st.status === 'ok' ? st.treffer.map(t => t.name).join(', ') : st.status === 'abgelaufen' ? 'abgelaufen: ' + st.treffer.map(t => t.name).join(', ') : st.status === 'leer' ? 'leer: ' + st.treffer.map(t => t.name).join(', ') : 'nicht im Vorrat gefunden';
+      return '<div class="apo-zeile"><span class="apo-status">' + icon + '</span><div class="apo-text">' + escapeHtml(e.was) + '<small>' + escapeHtml(info) + '</small></div>' +
+        (st.status !== 'ok' ? '<button type="button" data-apo-ek="' + i + '" title="Auf die Einkaufsliste">🛒</button><button type="button" data-apo-neu="' + i + '" title="Im Vorrat anlegen">＋</button>' : '') + '</div>';
+    }).join('');
+    const ok = APO_LISTE.filter(e => apoStatus(e).status === 'ok').length;
+    box.insertAdjacentHTML('afterbegin', '<div style="font-size:0.8rem;font-weight:700;margin-bottom:4px;">' + ok + ' von ' + APO_LISTE.length + ' vorhanden</div><div class="balken" style="margin-bottom:8px;"><div style="width:' + Math.round(ok / APO_LISTE.length * 100) + '%;background:var(--moss)"></div></div>');
+    box.querySelectorAll('[data-apo-ek]').forEach(b => b.addEventListener('click', () => {
+      const e = APO_LISTE[+b.dataset.apoEk];
+      zumEinkaufHinzufuegen({ name: e.was.replace(/\s*\(.*\)\s*/, '').trim(), kategorie: 'apotheke' });
+    }));
+    box.querySelectorAll('[data-apo-neu]').forEach(b => b.addEventListener('click', () => {
+      const e = APO_LISTE[+b.dataset.apoNeu];
+      document.getElementById('modalApotheke').classList.remove('zeigen');
+      itemFormOeffnen(null);
+      editKategorie = 'apotheke'; renderFormKategorieReihe(); zusatzFelderAktualisieren();
+      document.getElementById('fName').value = e.was.replace(/\s*\(.*\)\s*/, '').trim();
+      if (e.fuer) { editFuerWen = e.fuer; renderFuerWen(); }
+      document.getElementById('fBestand').value = 'viel';
+    }));
+  }
+  document.getElementById('btnApoCheck').addEventListener('click', () => { renderApotheke(); document.getElementById('modalApotheke').classList.add('zeigen'); });
+  document.getElementById('btnApoZu').addEventListener('click', () => document.getElementById('modalApotheke').classList.remove('zeigen'));
+  ['modalVerbleib', 'modalMehrere', 'modalApotheke'].forEach(id => document.getElementById(id).addEventListener('click', (e) => { if (e.target.id === id) e.currentTarget.classList.remove('zeigen'); }));
 
   renderKatTabs();
   renderListe();
 
   if (window.PlanerSync) {
     window._termineSync = window.PlanerSync.starteSync({ modul: 'termine', keys: [KEY_TERMINE_EVENTS] });
+    // Einkaufsliste mit-synchronisieren – sonst blieb „🛒“ nur auf diesem Gerät
+    window._einkaufSync = window.PlanerSync.starteSync({ modul: 'einkauf', keys: [KEY_EINKAUF_LISTEN] });
     if (window.Lebensmittel) window.Lebensmittel.syncStarten();
     // Der Vorrat war bis v370 nicht synchronisiert – jedes Gerät hat womöglich eigene Einträge.
     // Beim ersten Abgleich je Gerät werden deshalb lokale und Cloud-Einträge VEREINT (nach id),
@@ -1064,7 +1666,7 @@
     };
     window._sync = window.PlanerSync.starteSync({
       modul: 'vorratskammer',
-      keys: [KEY_ITEMS, KEY_KATEGORIEN, KEY_EINGANG],
+      keys: [KEY_ITEMS, KEY_KATEGORIEN, KEY_EINGANG, KEY_VERBLEIB],
       vorAnwendungTransform: function (werte, lokal) {
         if (!ersterAbgleich()) return werte;
         return Object.assign({}, werte, {
@@ -1080,6 +1682,7 @@
           setTimeout(() => { if (window._sync) window._sync.melde(); }, 500);
         }
         items = laden(KEY_ITEMS, items);
+        verbleib = laden(KEY_VERBLEIB, verbleib);
         eingang = laden(KEY_EINGANG, eingang);
         renderEingang();
         kategorienEigene = laden(KEY_KATEGORIEN, kategorienEigene);

@@ -2,6 +2,12 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
+## 2026-10-27 | 🥫 Vorrat: Stückzahl, Nachkaufen & Suche
+Optional zählt der Vorrat jetzt Stück: „3 Dosen“ mit −/＋ direkt auf der Karte. Mit „Nachkaufen ab“ oder 📌 „Immer im Haus“ kommt ein Artikel von selbst auf die Einkaufsliste, sobald er knapp oder leer ist. Behoben: 🛒 aus dem Vorrat landete bisher nur auf dem eigenen Handy. Jetzt erscheint der Artikel auf allen Geräten und in der richtigen Einkaufs-Kategorie. 🔔 ist ein Schalter, erinnert per Push am Vorabend und legt keine doppelten Termine mehr an. Neu sind die Suche über alle Kategorien, Filter nach Lagerort und die Übersicht „⏳ bald ablaufend · 🔴 leer“.
+
+## 2026-10-27 | ❄️ Tiefkühl, Resteküche & Hausapotheke
+Im Gefrierfach merkt sich der Vorrat das Einfrierdatum und schlägt eine Haltbarkeit nach Faustregel vor. „📝 Mehrere“ erfasst viele Artikel in einem Rutsch. „🍳 Damit kochen“ öffnet bei bald ablaufenden Lebensmitteln passende Rezepte. Beim Löschen fragt der Planer „aufgebraucht oder weggeworfen?“, der Verbrauch-Reiter zeigt daraus, was oft verdirbt und wie lange etwas noch reicht. In der Apotheke gibt es „für wen“, „angebrochen am“ (rechnet „aufbrauchen bis“ aus) und eine Checkliste zur Grundausstattung.
+
 ## 2026-10-27 | 🗓️ Termine: Serien richtig, einzeln änderbar & neue Rhythmen
 Behoben: Wiederkehrende Termine fehlten ab dem zweiten Mal im Monatsraster, im Tagesfenster und bei der Erinnerung. Ein Monatstermin am 31. rutschte ab Februar auf den 3. Jetzt fällt er in kürzeren Monaten auf den Monatsletzten. Alle Bereiche rechnen Serien jetzt gleich. Neue Rhythmen: alle 2/3/4 Wochen, werktags und „jeden 2. Dienstag“ oder „jeden letzten Freitag“ im Monat. Beim Ändern oder Löschen eines Serientermins wählst du: nur diesen, diesen und alle folgenden, oder alle. So lässt sich ein einzelnes Training absagen oder verschieben.
 

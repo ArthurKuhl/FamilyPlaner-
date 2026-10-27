@@ -3033,6 +3033,14 @@
     resteRendern();
   }
   document.getElementById('btnResteDazu').addEventListener('click', resteHinzufuegen);
+  // Aus der Vorratskammer: „🍳 Damit kochen“ → Reste-Ansicht mit diesen Zutaten vorausgewählt
+  window.addEventListener('message', (e) => {
+    if (e.origin !== window.location.origin || !e.data || e.data.type !== 'shortcutAktion' || e.data.aktion !== 'reste') return;
+    const namen = String(e.data.text || '').split('|').map(t => t.trim()).filter(Boolean);
+    if (!namen.length) return;
+    resteAuswahl = new Set(namen.map(norm));
+    zeigeKochenAnsicht('reste');
+  });
   document.getElementById('fResteEingabe').addEventListener('keydown', (e) => { if (e.key === 'Enter') resteHinzufuegen(); });
 
   // ---------- Statistik: Meistgekocht & Kategorie-Verteilung ----------
