@@ -25,6 +25,7 @@ const dns = require('node:dns').promises;
 const net = require('node:net');
 const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 const { getMessaging } = require('firebase-admin/messaging');
+const TerminLogik = require('./terminlogik'); // gleiche Datei wie terminlogik.js in der App
 
 initializeApp();
 
@@ -58,25 +59,9 @@ function isoPlusMonate(iso, monate) {
 const WARTUNG_MONATE = { monatlich: 1, vierteljaehrlich: 3, halbjaehrlich: 6, jaehrlich: 12 };
 function minutenZuHHMM(min) { return String(Math.floor(min / 60)).padStart(2, '0') + ':' + String(min % 60).padStart(2, '0'); }
 
-// Findet ein Termin (ggf. wiederkehrend) an diesem Datum statt? Gleiche Regeln wie in termine.html.
+// Beginnt ein Termin (ggf. wiederkehrend, mit Ausnahmen) an diesem Datum? Gleiche Regeln wie in der App (terminlogik.js).
 function terminAmTag(ev, datumISO) {
-  if (!ev || !ev.date) return false;
-  const [y, m, d] = ev.date.split('-').map(Number);
-  const ziel = Date.UTC(...datumISO.split('-').map((v, i) => i === 1 ? Number(v) - 1 : Number(v)));
-  const bis = ev.recurrence && ev.recurrence.until ? Date.parse(ev.recurrence.until + 'T00:00:00Z') : null;
-  const freq = ev.recurrence ? ev.recurrence.freq : 'keine';
-  let aktuell = Date.UTC(y, m - 1, d);
-  for (let i = 0; i < 2000 && aktuell <= ziel; i++) {
-    if (bis !== null && aktuell > bis) return false;
-    if (aktuell === ziel) return true;
-    const t = new Date(aktuell);
-    if (freq === 'taeglich') aktuell = Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), t.getUTCDate() + 1);
-    else if (freq === 'woechentlich') aktuell = Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), t.getUTCDate() + 7);
-    else if (freq === 'monatlich') aktuell = Date.UTC(t.getUTCFullYear(), t.getUTCMonth() + 1, t.getUTCDate());
-    else if (freq === 'jaehrlich') aktuell = Date.UTC(t.getUTCFullYear() + 1, t.getUTCMonth(), t.getUTCDate());
-    else return false;
-  }
-  return false;
+  return TerminLogik.startetAm(ev, datumISO);
 }
 
 // Liefert alle jetzt fälligen Erinnerungen für ein Gerät
@@ -88,19 +73,27 @@ function faelligeErinnerungen(geraet, daten) {
   // Termine: wie in der App zur Startzeit minus "Erinnerung"-Vorlauf
   if (geraet.termine === 'meine' || geraet.termine === 'alle') {
     (daten.termine || []).forEach(ev => {
-      if (!ev || ev.allDay || !ev.startTime) return;
+      if (!ev || !ev.date) return;
       if (geraet.termine === 'meine' && ev.wer !== geraet.person && ev.wer !== 'familie') return;
-      if (!terminAmTag(ev, datum)) return;
-      const start = hhmmZuMinuten(ev.startTime);
-      if (start === null) return;
-      const vorlauf = Number(ev.erinnerung) || 0;
-      const ziel = start - vorlauf;
-      if (!imFenster(ziel)) return;
-      liste.push({
-        schluessel: `t_${ev.id}_${ziel}`,
-        titel: '🗓️ ' + (ev.title || 'Termin'),
-        text: (vorlauf ? `in ${vorlauf} Min. (${ev.startTime} Uhr)` : `jetzt (${ev.startTime} Uhr)`) + (ev.location ? ' · ' + ev.location : ''),
-        seite: 'termine',
+      // Ganztägige nur mit ausdrücklicher Erinnerung (sonst über „ganztaegig“ unten)
+      if ((ev.allDay || !ev.startTime) && !ev.erinnerungVorabend && !(Number(ev.erinnerung) > 0)) return;
+      if (!ev.allDay && ev.startTime && !ev.erinnerungVorabend && !(Number(ev.erinnerung) > 0)) {
+        // Ohne Vorlauf: zur Startzeit (wie bisher)
+        if (!terminAmTag(ev, datum)) return;
+        const start = hhmmZuMinuten(ev.startTime);
+        if (start === null || !imFenster(start)) return;
+        liste.push({ schluessel: `t_${ev.id}_${datum}_${start}`, titel: '🗓️ ' + (ev.title || 'Termin'), text: `jetzt (${ev.startTime} Uhr)` + (ev.location ? ' · ' + ev.location : ''), seite: 'termine' });
+        return;
+      }
+      // Mit Vorlauf – auch über Tagesgrenzen (1 Tag, 2 Tage, 1 Woche) und „am Vorabend“
+      TerminLogik.erinnerungenAm(ev, datum).forEach(er => {
+        if (!imFenster(er.minuten)) return;
+        liste.push({
+          schluessel: `t_${ev.id}_${er.vorkommen}_${er.minuten}`,
+          titel: '🗓️ ' + (ev.title || 'Termin'),
+          text: TerminLogik.vorlaufText(ev, er.tageVorher) + (ev.location ? ' · ' + ev.location : ''),
+          seite: 'termine',
+        });
       });
     });
   }
@@ -134,7 +127,7 @@ function faelligeErinnerungen(geraet, daten) {
     (daten.termine || []).forEach(ev => {
       if (!ev || !ev.allDay || !fuerMich(ev.wer)) return;
       if (terminAmTag(ev, datum) && imFenster(tagesZiel)) {
-        liste.push({ schluessel: `g_${ev.id}`, titel: '📅 Heute: ' + (ev.title || 'Termin'), text: ev.notes ? String(ev.notes).slice(0, 120) : 'Ganztägiger Termin', seite: 'termine' });
+        liste.push({ schluessel: `g_${ev.id}`, titel: '📅 Heute: ' + (TerminLogik.titelMitAlter(ev, datum) || 'Termin'), text: ev.notes ? String(ev.notes).slice(0, 120) : 'Ganztägiger Termin', seite: 'termine' });
       }
       if (geraet.ganztaegig === 'vortag' && terminAmTag(ev, morgen) && imFenster(18 * 60)) {
         liste.push({ schluessel: `gv_${ev.id}`, titel: '📅 Morgen: ' + (ev.title || 'Termin'), text: 'Kleine Vorab-Erinnerung für morgen.', seite: 'termine' });
@@ -386,7 +379,7 @@ function sonntagsbriefText(geraet, daten) {
   const termine = [], geburtstage = [];
   tage.forEach(tag => (daten.termine || []).forEach(ev => {
     if (!ev || !terminAmTag(ev, tag)) return;
-    if (istGeburtstag(ev)) { geburtstage.push(wochentagVon(tag) + ' ' + (ev.title || '').replace(/🎂\s*/g, '').trim()); return; }
+    if (istGeburtstag(ev)) { geburtstage.push(wochentagVon(tag) + ' ' + TerminLogik.titelMitAlter(ev, tag).replace(/🎂\s*/g, '').trim()); return; }
     if (!fuerMich(ev.wer)) return;
     // Tägliche Serien (z.B. Vitamine) würden die Liste fluten – die gehören nicht in den Wochenüberblick
     if (ev.recurrence && ev.recurrence.freq === 'taeglich') return;
@@ -485,21 +478,30 @@ function kalenderIcs(termine, personen, person) {
   termine.forEach(ev => {
     if (!ev || !ev.id || !/^\d{4}-\d{2}-\d{2}/.test(ev.date || '')) return;
     if (person && ev.wer && ev.wer !== person && ev.wer !== 'familie') return;
-    const serie = ev.recurrence && ICS_FREQ[ev.recurrence.freq];
+    const regel = TerminLogik.icsRegel(ev);
+    const serie = !!regel;
     if (!serie && ev.date < grenze) return;
     if (serie && ev.recurrence.until && ev.recurrence.until < grenze) return;
     z.push('BEGIN:VEVENT', 'UID:' + String(ev.id).replace(/[^\w.-]/g, '_') + '@familienplaner', 'DTSTAMP:' + stempel);
+    const dauer = TerminLogik.dauerTage(ev);
     if (ev.allDay || !ev.startTime) {
-      z.push('DTSTART;VALUE=DATE:' + tag(ev.date), 'DTEND;VALUE=DATE:' + tag(isoPlusTage(ev.date.slice(0, 10), 1)));
+      z.push('DTSTART;VALUE=DATE:' + tag(ev.date), 'DTEND;VALUE=DATE:' + tag(isoPlusTage(ev.date.slice(0, 10), 1 + dauer)));
+    } else if (dauer) {
+      z.push('DTSTART;TZID=Europe/Berlin:' + tag(ev.date) + 'T' + zeit(ev.startTime), 'DTEND;TZID=Europe/Berlin:' + tag(ev.endDate) + 'T' + zeit(ev.endTime || ev.startTime));
     } else {
       const ende = ev.endTime && ev.endTime > ev.startTime ? ev.endTime : minutenZuHHMM(Math.min(hhmmZuMinuten(ev.startTime) + 60, 23 * 60 + 59));
       z.push('DTSTART;TZID=Europe/Berlin:' + tag(ev.date) + 'T' + zeit(ev.startTime), 'DTEND;TZID=Europe/Berlin:' + tag(ev.date) + 'T' + zeit(ende));
     }
-    if (serie) z.push('RRULE:FREQ=' + serie + (ev.recurrence.until ? ';UNTIL=' + tag(ev.recurrence.until) + 'T225959Z' : ''));
+    if (serie) {
+      z.push('RRULE:' + regel);
+      const ex = (ev.exdates || []).filter(x => /^\d{4}-\d{2}-\d{2}$/.test(x));
+      if (ex.length) z.push(ev.allDay || !ev.startTime ? 'EXDATE;VALUE=DATE:' + ex.map(tag).join(',') : 'EXDATE;TZID=Europe/Berlin:' + ex.map(x => tag(x) + 'T' + zeit(ev.startTime)).join(','));
+    }
     const wer = ev.wer && ev.wer !== 'familie' ? (personen.find(p => p.id === ev.wer) || {}).label : '';
     z.push('SUMMARY:' + icsText((ev.title || 'Termin') + (wer && !person ? ' (' + wer + ')' : '')));
     if (ev.location) z.push('LOCATION:' + icsText(ev.location));
     if (ev.notes) z.push('DESCRIPTION:' + icsText(ev.notes));
+    if (ev.erinnerungVorabend && !ev.allDay && ev.startTime) z.push('BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:' + icsText(ev.title || 'Termin'), 'TRIGGER:-PT' + (hhmmZuMinuten(ev.startTime) + 6 * 60) + 'M', 'END:VALARM');
     if (Number(ev.erinnerung) > 0 && !ev.allDay) z.push('BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:' + icsText(ev.title || 'Termin'), 'TRIGGER:-PT' + Number(ev.erinnerung) + 'M', 'END:VALARM');
     z.push('END:VEVENT');
   });
