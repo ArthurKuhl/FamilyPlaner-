@@ -2,6 +2,12 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
+## 2026-10-27 | 🍳 Kochen: Wochenplan 2.0 & besserer Einkauf
+Im Wochenplan lassen sich jetzt Mittag und Abend planen, auch „🍲 Reste“, und pro Tag die Portionen. „🎲 Woche füllen“ schlägt passende Gerichte für die freien Abende vor: lange nicht gekocht, Favoriten und Familienlieblinge zuerst, unter der Woche eher einfach, an vollen Tagen schnelle Gerichte, keine Allergie-Konflikte. „⧉ Letzte Woche übernehmen“ kopiert die Vorwoche. Vor dem Einkauf zeigt eine Vorschau alle Zutaten, zusammengerechnet und nach Portionen umgerechnet. Was laut Vorratskammer da ist, ist schon abgewählt, und die Kategorie kommt aus euren Einkauf-Favoriten. Behoben: „Zum Einkauf“ und „Als Termin planen“ kamen bisher nur auf dem eigenen Gerät an.
+
+## 2026-10-27 | 🧊 Was koche ich mit …? & 😋 Familien-Geschmack
+Neuer Reiter „🧊 Reste“: Zutaten antippen, und Lebensmittel, die bald ablaufen, sind schon ausgewählt. Die App zeigt passende Rezepte mit „✓ Feta, Zucchini · alles da“ oder „fehlt: Sahne“. Im Rezept kann jede Person 😋 oder 😕 vergeben. Der Rezept-Picker sortiert danach, und es gibt den Filter „Mag die ganze Familie“. Rezepte bekommen einen ⏰ Vorbereitungs-Hinweis („Hähnchen auftauen, 12 Std. vorher“). Er erscheint rechtzeitig im Wochenplan und unter „Demnächst“ auf der Startseite und lässt sich per „📅 Erinnern“ als Termin mit Push eintragen.
+
 ## 2026-10-27 | 🧒 Kinderecke: Routinen, Mein Tag & Abzeichen
 Eltern legen pro Kind ☀️ Routinen an (Vorlagen „Morgens“ und „Abends“, eigene Punkte mit Symbol). Die Kinder tippen die großen Symbole an. Ist alles geschafft, gibt es Konfetti und Sterne. „📅 Mein Tag“ zeigt die eigenen Termine von heute und morgen und einen Countdown zum nächsten großen Ereignis („Noch 10 Tage bis 🏖 Herbstferien Ende“). Neu sind außerdem ein eigener Avatar (🦊🐼🦄 …), 12 🏅 Abzeichen, die Serie „🔥 8 Tage am Stück“ und der Verlauf „📜 Woher kommen meine Sterne?“.
 

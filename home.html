@@ -1121,14 +1121,17 @@
     const wochenplan = laden('kochen_wochenplan', {});
     const rezepte = laden('kochen_rezepte', []);
     const heuteISO = toISODatum(heute());
-    const rezeptId = wochenplan[heuteISO];
-    const rezept = rezeptId ? rezepte.find(r => r.id === rezeptId) : null;
+    const slots = [['Mittag', wochenplan[heuteISO + '_mittag']], ['Abend', wochenplan[heuteISO]]].filter(x => x[1]);
     const kachel = document.getElementById('kachelKochen');
-    if (!rezept) { kachel.style.display = 'none'; return; }
+    const zeilen = slots.map(([label, id]) => {
+      if (id === 'reste') return { label, icon: '🍲', titel: 'Reste' };
+      const r = rezepte.find(x => x.id === id);
+      return r ? { label, icon: KOCHEN_KATEGORIE_ICONS[r.kategorie] || '🍽️', titel: r.titel } : null;
+    }).filter(Boolean);
+    if (!zeilen.length) { kachel.style.display = 'none'; return; }
     kachel.style.display = '';
-    const icon = KOCHEN_KATEGORIE_ICONS[rezept.kategorie] || '🍽️';
-    document.getElementById('kochenHeuteInfo').innerHTML =
-      '<div class="kochen-rezept-info"><span class="icon">' + icon + '</span><span>' + escapeHtml(rezept.titel) + '</span></div>';
+    document.getElementById('kochenHeuteInfo').innerHTML = zeilen.map(z =>
+      '<div class="kochen-rezept-info"><span class="icon">' + z.icon + '</span><span>' + (zeilen.length > 1 ? '<b style="font-size:0.72rem;color:var(--bark);">' + z.label + ':</b> ' : '') + escapeHtml(z.titel) + '</span></div>').join('');
   }
   document.getElementById('kachelKochen').addEventListener('click', () => navigiere('kochen'));
 
@@ -1951,6 +1954,21 @@
       const z = w.zuweisung === 'fest' ? w.person : (w.zuweisung === 'rotation' && (w.rotationPersonen || []).length ? w.rotationPersonen[(w.rotationIndex || 0) % w.rotationPersonen.length] : null);
       add(datum, w.icon || '🔁', w.titel || 'Wartung', 'handwerk', z);
     });
+    // ⏰ Koch-Vorbereitung (Auftauen, Teig über Nacht …) aus dem Wochenplan
+    if (modulSichtbar('kochen')) {
+      const wp = laden('kochen_wochenplan', {}) || {}, rz = laden('kochen_rezepte', []);
+      for (let t = 0; t <= bis + 3; t++) {
+        const d = new Date(h.getFullYear(), h.getMonth(), h.getDate() + t), iso = toISODatum(d);
+        [['_mittag', 12], ['', 18]].forEach(([suffix, stunde]) => {
+          const r = rz.find(x => x.id === wp[iso + suffix]);
+          if (!r || !r.vorbereitung || !r.vorbereitung.text) return;
+          const faellig = new Date(d.getFullYear(), d.getMonth(), d.getDate(), stunde, 0, 0, 0 - r.vorbereitung.stunden * 3600e3);
+          const fIso = toISODatum(faellig);
+          if (tageBis(fIso) < 0) return;
+          add(fIso, '⏰', String(faellig.getHours()).padStart(2, '0') + ':' + String(faellig.getMinutes()).padStart(2, '0') + ' ' + r.vorbereitung.text + ' (für ' + r.titel + ')', 'kochen');
+        });
+      }
+    }
     // 🥫 Vorrat läuft ab (7 Tage)
     if (modulSichtbar('vorratskammer')) laden('vorratskammer_items', []).forEach(i => {
       const d = i.verfallsdatum || i.aufbrauchenBis;
