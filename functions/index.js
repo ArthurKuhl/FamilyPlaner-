@@ -395,7 +395,7 @@ function sonntagsbriefText(geraet, daten) {
   const zeilen = [];
   if (termine.length) zeilen.push('🗓️ ' + termine.length + (termine.length === 1 ? ' Termin: ' : ' Termine: ') + termine.slice(0, 3).map(t => t.text).join(', ') + (termine.length > 3 ? ' …' : ''));
   if (geburtstage.length) zeilen.push('🎂 ' + geburtstage.join(', '));
-  const rezeptName = (id) => ((daten.rezepte || []).find(r => r && r.id === id) || {}).titel;
+  const rezeptName = (id) => id === 'reste' ? 'Reste' : ((daten.rezepte || []).find(r => r && r.id === id) || {}).titel;
   const gerichte = tage.map(t => daten.wochenplan && daten.wochenplan[t] ? wochentagVon(t) + ' ' + (rezeptName(daten.wochenplan[t]) || '?') : null).filter(Boolean);
   if (gerichte.length) zeilen.push('🍳 ' + gerichte.slice(0, 3).join(', ') + (gerichte.length > 3 ? ' …' : ''));
   const bald = (daten.vorrat || []).filter(it => {
