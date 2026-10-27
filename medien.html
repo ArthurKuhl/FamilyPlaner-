@@ -207,6 +207,33 @@
   .plus-eins { margin-left: auto; flex-shrink: 0; background: var(--cream); border: 1px solid var(--parchment); color: var(--moss-text, var(--moss)); font-weight: 700; font-size: 0.7rem; border-radius: var(--radius-pill); padding: 3px 9px; cursor: pointer; }
 
 
+  .titel-feld-zeile { display: flex; gap: 6px; }
+  .titel-feld-zeile input { flex: 1; min-width: 0; }
+  .titel-feld-zeile button { flex-shrink: 0; padding: 0 14px; border-radius: var(--radius-sm); border: 1px solid var(--parchment); background: var(--white); color: var(--soil); font-weight: 700; cursor: pointer; }
+  .such-ergebnisse { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; max-height: 320px; overflow-y: auto; }
+  .such-treffer { display: flex; gap: 10px; align-items: center; padding: 6px; border-radius: var(--radius-sm); background: var(--white); border: 1px solid var(--parchment); cursor: pointer; text-align: left; color: var(--soil); font: inherit; }
+  .such-treffer img, .such-treffer .kein-cover { width: 40px; height: 58px; object-fit: cover; border-radius: 4px; flex-shrink: 0; background: var(--parchment); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+  .such-treffer .st-titel { font-weight: 700; font-size: 0.84rem; }
+  .such-treffer .st-info { font-size: 0.7rem; color: var(--bark); }
+  .such-status { font-size: 0.75rem; color: var(--bark); margin-top: 4px; }
+  .spiel-info { font-size: 0.68rem; color: var(--bark); margin-top: -3px; }
+  .karte-hinweis { font-size: 0.66rem; font-weight: 700; padding: 3px 8px; border-radius: 8px; background: rgba(91,139,181,0.15); color: var(--soil); }
+  .karte-hinweis.dringend { background: rgba(196,107,65,0.2); color: var(--terracotta-text, #a8532e); }
+  .ausleihe-zeile { display: flex; gap: 6px; flex-wrap: wrap; }
+  .ausleihe-zeile > * { flex: 1 1 120px; min-width: 0; }
+  .stat-modal-person { background: var(--white); border-radius: var(--radius-md); padding: 12px; margin-bottom: 10px; box-shadow: var(--shadow-soft); }
+  .stat-modal-person h3 { font-size: 0.95rem; margin-bottom: 6px; }
+  .stat-zeile { display: flex; justify-content: space-between; font-size: 0.84rem; padding: 4px 0; border-bottom: 1px solid var(--parchment); gap: 8px; }
+  .stat-zeile:last-child { border-bottom: none; }
+  .ziel-balken { height: 9px; background: var(--parchment); border-radius: 5px; overflow: hidden; margin: 4px 0 8px; }
+  .ziel-balken div { height: 100%; background: var(--moss); border-radius: 5px; }
+  .ziel-eingabe { width: 56px !important; padding: 4px 6px !important; font-size: 0.8rem !important; }
+  .filmabend-karte { background: var(--white); border-radius: var(--radius-md); padding: 14px; text-align: center; margin: 10px 0; box-shadow: var(--shadow-soft); }
+  .filmabend-karte img { width: 120px; height: 170px; object-fit: cover; border-radius: 8px; display: block; margin: 0 auto 8px; }
+  .filmabend-karte .fa-titel { font-size: 1.15rem; font-weight: 800; }
+  .multi-opt.aktiv { background: var(--moss) !important; color: var(--on-moss, #fff) !important; border-color: var(--moss) !important; }
+  #modalStatistik, #modalFilmabend { z-index: 110; }
+
   /* Dark-Mode-Kontrast (alle Module gleich): Akzentfarbe als Text heller,
      Text auf Akzent-Knöpfen dunkel – außer bei „Schnee“, dort ist der Knopf selbst dunkel. */
   html[data-dark="1"] { --moss-text: var(--sage); --on-moss: #16140f; }
@@ -215,8 +242,10 @@
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-storage-compat.js"></script>
 <script src="personen.js"></script>
 <script src="sync.js"></script>
+<script src="fotospeicher.js"></script>
 </head>
 <body>
 <div class="deko-rand links" aria-hidden="true"></div>
@@ -225,6 +254,8 @@
 <header class="top">
   <div class="titel-zeile">
     <h1>🍿 Medien</h1>
+    <button class="theme-btn" id="btnFilmabend" title="Filmabend: Was schauen wir heute?">🍿</button>
+    <button class="theme-btn" id="btnStatistik" title="Jahresziele &amp; Statistik">📊</button>
     <button class="theme-btn" id="btnThemeAuswahl" title="Hintergrundmuster wählen">🎨</button>
     <button class="add-btn" id="btnNeu">＋ Neu</button>
   </div>
@@ -267,7 +298,13 @@
     <h2 id="editKopf">Neuer Eintrag</h2>
     <div class="feld">
       <label for="fTitel">Titel</label>
-      <input type="text" id="fTitel" placeholder="z.B. One Piece">
+      <div class="titel-feld-zeile">
+        <input type="text" id="fTitel" placeholder="z.B. One Piece">
+        <button type="button" id="btnOnlineSuche" title="Online suchen (Cover, Bände/Seiten/Folgen)">🔍</button>
+      </div>
+      <div class="such-status" id="sucheStatus"></div>
+      <div class="such-ergebnisse" id="sucheErgebnisse"></div>
+      <div class="spiel-info" id="fInfoAnzeige" style="margin-top:4px;"></div>
     </div>
     <div class="feld">
       <label>Art</label>
@@ -313,6 +350,19 @@
       </div>
     </div>
     <div class="feld">
+      <label for="fAusleiheArt">Ausleihe</label>
+      <div class="ausleihe-zeile">
+        <select id="fAusleiheArt">
+          <option value="">– nicht ausgeliehen –</option>
+          <option value="verliehen">🤝 verliehen an …</option>
+          <option value="geliehen">📚 ausgeliehen von …</option>
+        </select>
+        <input type="text" id="fAusleiheWer" placeholder="Name oder Bücherei" style="display:none;">
+        <input type="date" id="fAusleiheBis" title="Rückgabe bis" style="display:none;">
+      </div>
+      <button type="button" class="btn btn-secondary" id="btnAusleiheTermin" style="display:none;margin-top:6px;width:100%;padding:8px;">📅 Rückgabe als Termin mit Erinnerung</button>
+    </div>
+    <div class="feld">
       <label for="fNotiz">Notiz (optional)</label>
       <textarea id="fNotiz" placeholder="z.B. Empfehlung von …, Lieblingsfigur, Eindruck …"></textarea>
     </div>
@@ -322,6 +372,27 @@
     </div>
     <div class="modal-btns" id="loeschZeile" style="display:none;">
       <button class="btn btn-danger" id="btnLoeschen">Löschen</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalStatistik">
+  <div class="modal">
+    <h2 style="display:flex;align-items:center;justify-content:space-between;gap:8px;">📊 Jahresübersicht <span style="display:flex;gap:6px;align-items:center;"><button class="filter-chip" id="btnStatJahrZurueck" style="color:var(--soil);border-color:var(--parchment);">◀</button><b id="statJahr"></b><button class="filter-chip" id="btnStatJahrVor" style="color:var(--soil);border-color:var(--parchment);">▶</button></span></h2>
+    <div id="statInhalt"></div>
+    <div class="modal-btns"><button class="btn btn-secondary" id="btnStatSchliessen">Schließen</button></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalFilmabend">
+  <div class="modal">
+    <h2>🍿 Was schauen wir heute?</h2>
+    <div class="feld"><label>Wer schaut mit?</label><div class="opt-reihe" id="faPersonen"></div></div>
+    <div class="feld"><label>Was?</label><div class="opt-reihe" id="faTypen"></div></div>
+    <div id="faErgebnis"></div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnFaSchliessen">Schließen</button>
+      <button class="btn btn-primary" id="btnFaZiehen">🎲 Vorschlag</button>
     </div>
   </div>
 </div>
@@ -440,7 +511,8 @@
   const KEY_AKTIVE_PERSON = 'medien_personFilter';
   const KEY_TYP_FILTER = 'medien_typFilter';
   const KEY_SORT = 'medien_sortRichtung';
-  const BILD_MAX_KANTE = 360;
+  const KEY_ZIELE = 'medien_ziele';            // { "2026": { personId: { lesen: n, schauen: n } } }
+  const BILD_MAX_KANTE = (window.FotoSpeicher && window.FotoSpeicher.verfuegbar && window.FotoSpeicher.verfuegbar()) ? 720 : 360;
   const BILDER_WARNGRENZE = 850 * 1024;
 
   const PERSONEN = [{ id: 'alle', label: 'Alle' }].concat(window.PLANER_PERSONEN || [
@@ -661,7 +733,7 @@
       text = t.fort.a + ' ' + a + (b ? ' / ' + b : '');
       if (b) balken = '<div class="fortschritt-balken"><div style="width:' + Math.min(100, Math.round(a / b * 100)) + '%"></div></div>';
     } else {
-      text = [a !== null ? 'Staffel ' + a : '', b !== null ? 'Folge ' + b : ''].filter(Boolean).join(' · ');
+      text = [a !== null ? 'Staffel ' + a : '', b !== null ? 'Folge ' + b + (e.info && e.info.folgen && !a ? ' / ' + e.info.folgen : '') : ''].filter(Boolean).join(' · ');
     }
     return '<span>' + text + '</span>' + balken;
   }
@@ -671,6 +743,63 @@
     if (e.typ === 'manga') return 'a';
     if (e.typ === 'anime' || e.typ === 'serie') return 'b';
     return null;
+  }
+
+  // 📷 Cover: Online-Link oder eigenes Foto (im Familien-Fotospeicher, bis dahin lokal in medien_bilder)
+  function coverQuelle(e) { return (e && e.cover && e.cover.url) || bilder[e && e.id] || ''; }
+  function cloudBereit() { return !!(window.FotoSpeicher && window.FotoSpeicher.verfuegbar && window.FotoSpeicher.verfuegbar()); }
+  function bildHash(t) { let h1 = 0x811c9dc5, h2 = 5381; for (let i = 0; i < t.length; i++) { const c = t.charCodeAt(i); h1 = Math.imul(h1 ^ c, 16777619); h2 = (Math.imul(h2, 33) + c) | 0; } return (h1 >>> 0).toString(36) + (h2 >>> 0).toString(36); }
+  async function vorhandeneCloudDatei(id) {
+    try { await window.PlanerSync.authBereit(); const pfad = 'planerFamilien/' + window.PlanerSync.familienId() + '/fotos/' + id + '.jpg'; return { url: await firebase.storage().ref(pfad).getDownloadURL(), pfad }; }
+    catch (e) { return null; }
+  }
+  let coverUploadLaeuft = false;
+  async function coverHochladen() {
+    if (coverUploadLaeuft || !cloudBereit() || !navigator.onLine) return;
+    coverUploadLaeuft = true;
+    let geaendert = false;
+    try {
+      for (const id of Object.keys(bilder)) {
+        const daten = bilder[id];
+        const e = eintraege.find(x => x.id === id);
+        if (!e || typeof daten !== 'string' || daten.indexOf('data:image') !== 0) continue;
+        const cloudId = 'md' + bildHash(daten);
+        let erg = null;
+        try { erg = await vorhandeneCloudDatei(cloudId) || await window.FotoSpeicher.hochladen(cloudId, daten); }
+        catch (err) { console.warn('Medien: Cover-Upload fehlgeschlagen', err); break; }
+        const aktuell = eintraege.find(x => x.id === id);
+        if (!aktuell || bilder[id] !== daten || !erg) continue;
+        aktuell.cover = { url: erg.url, pfad: erg.pfad };
+        delete bilder[id];
+        geaendert = true;
+      }
+    } finally {
+      coverUploadLaeuft = false;
+      if (geaendert) { speichernEintraege(); speichernBilder(); renderGrid(); }
+    }
+  }
+  function coverCloudSpaeterLoeschen(pfad) {
+    if (!pfad || !cloudBereit()) return;
+    setTimeout(() => { if (!eintraege.some(x => x.cover && x.cover.pfad === pfad)) { try { window.FotoSpeicher.loeschen(pfad); } catch (e) {} } }, 9000);
+  }
+  // lokales Datum
+  function lokalIso(d) { d = d || new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+  function tageBis(iso) { const h = new Date(); h.setHours(12, 0, 0, 0); return Math.round((new Date(iso + 'T12:00') - h) / 864e5); }
+  function kurzDatum(iso) { return new Date(iso + 'T12:00').toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'numeric' }); }
+  function karteHinweise(e) {
+    let html = '';
+    if (e.ausleihe && e.ausleihe.art) {
+      const a = e.ausleihe;
+      let rueck = '';
+      let dringend = false;
+      if (a.bis) { const t = tageBis(a.bis); dringend = t <= 2; rueck = ' · ↩️ ' + (t < 0 ? 'seit ' + (-t) + ' T. überfällig' : t === 0 ? 'heute zurück' : t === 1 ? 'morgen zurück' : 'in ' + t + ' Tagen zurück'); }
+      html += '<div class="karte-hinweis' + (dringend ? ' dringend' : '') + '">' + (a.art === 'verliehen' ? '🤝 an ' : '📚 von ') + escapeHtml(a.wer || '?') + rueck + '</div>';
+    }
+    if (e.naechsteFolge && e.naechsteFolge.datum && tageBis(e.naechsteFolge.datum) >= 0 && e.status !== 'beendet' && e.status !== 'abgebrochen') {
+      const nf = e.naechsteFolge;
+      html += '<div class="karte-hinweis">📅 Nächste Folge: ' + escapeHtml(kurzDatum(nf.datum)) + (nf.s ? ' (S' + nf.s + 'E' + nf.e + ')' : '') + '</div>';
+    }
+    return html;
   }
 
   function eintragKarte(e) {
@@ -683,8 +812,10 @@
     const fort = fortschrittHtml(e);
     const plusFeld = plusEinsFeld(e);
     karte.innerHTML =
-      (bilder[e.id] ? '<div class="spiel-cover" style="background-image:url(\'' + bilder[e.id] + '\')"></div>' : '') +
+      (coverQuelle(e) ? '<div class="spiel-cover" style="background-image:url(\'' + escapeHtml(coverQuelle(e)).replace(/'/g, '%27') + '\')"></div>' : '') +
       '<div class="spiel-titel">' + escapeHtml(e.titel) + '</div>' +
+      (e.info && (e.info.autor || e.info.jahr) ? '<div class="spiel-info">' + escapeHtml([e.info.autor, e.info.jahr].filter(Boolean).join(' · ')) + '</div>' : '') +
+      karteHinweise(e) +
       '<div class="spiel-chips">' +
         '<span class="mini-chip" style="background:' + t.farbe + '22; color:' + t.farbe + ';">' + t.icon + ' ' + t.label + '</span>' +
         '<span class="mini-chip" style="background:' + stat.farbe + '22; color:' + stat.farbe + ';">' + stat.icon + ' ' + stat.label + '</span>' +
@@ -869,7 +1000,17 @@
     editStatus = e ? e.status : 'wunschliste';
     editDetail = Object.assign({}, (e && e.bewertungDetail) || {});
     editBewertung = e ? (e.bewertungManuell || 0) : 0;
-    editBild = e ? (bilder[e.id] || null) : null;
+    editBild = e ? (coverQuelle(e) || null) : null;
+    editInfo = e && e.info ? Object.assign({}, e.info) : null;
+    editExtern = e ? { tvmazeId: e.tvmazeId || null } : { tvmazeId: null };
+    infoAnzeigen();
+    document.getElementById('sucheErgebnisse').innerHTML = '';
+    document.getElementById('sucheStatus').textContent = '';
+    const al = (e && e.ausleihe) || {};
+    document.getElementById('fAusleiheArt').value = al.art || '';
+    document.getElementById('fAusleiheWer').value = al.wer || '';
+    document.getElementById('fAusleiheBis').value = al.bis || '';
+    ausleiheFelder();
     document.getElementById('fFortA').value = e && e.fortschritt ? (e.fortschritt.a || '') : '';
     document.getElementById('fFortB').value = e && e.fortschritt ? (e.fortschritt.b || '') : '';
     renderEditPersonReihe();
@@ -902,13 +1043,33 @@
       notiz: document.getElementById('fNotiz').value.trim(),
       erstelltAm: alt ? (alt.erstelltAm || new Date().toISOString()) : new Date().toISOString(),
     });
+    if (editInfo && (editInfo.autor || editInfo.jahr || editInfo.folgen || editInfo.seiten || editInfo.baende)) neu.info = editInfo; else delete neu.info;
+    if (editExtern.tvmazeId && (editTyp === 'serie' || editTyp === 'anime')) neu.tvmazeId = editExtern.tvmazeId; else { delete neu.tvmazeId; delete neu.naechsteFolge; }
+    // 🏆 Datum merken, wann etwas fertig gelesen/geschaut wurde
+    if (editStatus === 'beendet' && (!alt || alt.status !== 'beendet')) neu.beendetAm = lokalIso();
+    if (editStatus !== 'beendet') delete neu.beendetAm;
+    // 🤝 Ausleihe
+    const alArt = document.getElementById('fAusleiheArt').value;
+    if (alArt) neu.ausleihe = { art: alArt, wer: document.getElementById('fAusleiheWer').value.trim(), bis: document.getElementById('fAusleiheBis').value || '' };
+    else delete neu.ausleihe;
+    // 📷 Cover: Online-Link / eigenes Foto / keins
+    const altesCover = alt && alt.cover;
+    let bilderGeaendert = false;
+    if (!editBild) {
+      delete neu.cover;
+      if (bilder[neu.id]) { delete bilder[neu.id]; bilderGeaendert = true; }
+    } else if (editBild.indexOf('data:') === 0) {
+      if (bilder[neu.id] !== editBild) { bilder[neu.id] = editBild; bilderGeaendert = true; delete neu.cover; }
+    } else if (!altesCover || altesCover.url !== editBild) {
+      neu.cover = { url: editBild, quelle: 'online' };
+      if (bilder[neu.id]) { delete bilder[neu.id]; bilderGeaendert = true; }
+    }
+    if (altesCover && altesCover.pfad && (!neu.cover || neu.cover.pfad !== altesCover.pfad)) coverCloudSpaeterLoeschen(altesCover.pfad);
     if (alt) eintraege = eintraege.map(x => x.id === bearbeiteId ? neu : x);
     else eintraege.push(neu);
     speichernEintraege();
-    if ((bilder[neu.id] || null) !== editBild) {
-      if (editBild) bilder[neu.id] = editBild; else delete bilder[neu.id];
-      speichernBilder();
-    }
+    if (bilderGeaendert) { speichernBilder(); setTimeout(coverHochladen, 300); }
+    if (neu.tvmazeId) folgenAktualisieren(true);
     modalSchliessen();
     renderAlles();
   });
@@ -922,6 +1083,7 @@
     eintraege.splice(index, 1);
     speichernEintraege();
     if (entferntesBild) { delete bilder[entfernt.id]; speichernBilder(); }
+    if (entfernt.cover && entfernt.cover.pfad) coverCloudSpaeterLoeschen(entfernt.cover.pfad);
     modalSchliessen();
     renderAlles();
     showTempStatus('Gelöscht: „' + entfernt.titel + '"', 6, {
@@ -933,23 +1095,268 @@
     });
   });
 
+  // ============================================================
+  // 🔍 ONLINE-SUCHE (Open Library, Jikan/MyAnimeList, TVmaze, iTunes) – ohne Anmeldung
+  // ============================================================
+  let editInfo = null, editExtern = { tvmazeId: null };
+  function infoAnzeigen() {
+    const i = editInfo || {};
+    const teile = [i.autor, i.jahr, i.baende ? i.baende + ' Bände' : '', i.seiten ? i.seiten + ' Seiten' : '', i.folgen ? i.folgen + ' Folgen' : ''].filter(Boolean);
+    document.getElementById('fInfoAnzeige').textContent = teile.length ? 'ℹ️ ' + teile.join(' · ') : '';
+  }
+  function jsonp(url) {
+    return new Promise((resolve, reject) => {
+      const name = '__medienJsonp' + Date.now() + Math.floor(Math.random() * 1e4);
+      const sc = document.createElement('script');
+      const t = setTimeout(() => { aufraeumen(); reject(new Error('Zeitüberschreitung')); }, 9000);
+      function aufraeumen() { clearTimeout(t); try { delete window[name]; } catch (e) { window[name] = undefined; } sc.remove(); }
+      window[name] = (d) => { aufraeumen(); resolve(d); };
+      sc.onerror = () => { aufraeumen(); reject(new Error('Netzwerkfehler')); };
+      sc.src = url + (url.indexOf('?') === -1 ? '?' : '&') + 'callback=' + name;
+      document.head.appendChild(sc);
+    });
+  }
+  async function jsonHolen(url) { const r = await fetch(url); if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }
+  async function onlineSuchen(typ, q) {
+    const enc = encodeURIComponent(q);
+    if (typ === 'buch') {
+      const d = await jsonHolen('https://openlibrary.org/search.json?q=' + enc + '&limit=8&fields=key,title,author_name,first_publish_year,number_of_pages_median,cover_i');
+      return (d.docs || []).map(b => ({ titel: b.title, autor: (b.author_name || [])[0] || '', jahr: b.first_publish_year || '', seiten: b.number_of_pages_median || null,
+        cover: b.cover_i ? 'https://covers.openlibrary.org/b/id/' + b.cover_i + '-M.jpg' : '' }));
+    }
+    if (typ === 'manga' || typ === 'anime') {
+      const d = await jsonHolen('https://api.jikan.moe/v4/' + typ + '?q=' + enc + '&limit=8&sfw=true');
+      return (d.data || []).map(m => ({ titel: m.title_german || m.title || '', alt: m.title_english && m.title_english !== m.title ? m.title_english : '',
+        autor: typ === 'manga' ? ((m.authors || [])[0] || {}).name || '' : ((m.studios || [])[0] || {}).name || '',
+        jahr: (m.published && m.published.prop && m.published.prop.from && m.published.prop.from.year) || m.year || (m.aired && m.aired.prop && m.aired.prop.from && m.aired.prop.from.year) || '',
+        baende: typ === 'manga' ? m.volumes || null : null, folgen: typ === 'anime' ? m.episodes || null : null,
+        cover: (m.images && m.images.jpg && (m.images.jpg.large_image_url || m.images.jpg.image_url)) || '' }));
+    }
+    if (typ === 'serie') {
+      const d = await jsonHolen('https://api.tvmaze.com/search/shows?q=' + enc);
+      return (d || []).slice(0, 8).map(x => x.show).map(sh => ({ titel: sh.name, autor: (sh.network && sh.network.name) || (sh.webChannel && sh.webChannel.name) || '', jahr: (sh.premiered || '').slice(0, 4),
+        cover: (sh.image && (sh.image.medium || sh.image.original)) || '', tvmazeId: sh.id, laeuft: sh.status === 'Running' }));
+    }
+    // Film: iTunes-Katalog (JSONP, weil die Schnittstelle kein CORS anbietet)
+    const d = await jsonp('https://itunes.apple.com/search?term=' + enc + '&media=movie&entity=movie&country=de&limit=8');
+    return (d.results || []).map(f => ({ titel: f.trackName, autor: f.artistName || '', jahr: (f.releaseDate || '').slice(0, 4),
+      cover: f.artworkUrl100 ? f.artworkUrl100.replace('100x100bb', '400x400bb') : '' }));
+  }
+  document.getElementById('btnOnlineSuche').addEventListener('click', async () => {
+    const q = document.getElementById('fTitel').value.trim();
+    const status = document.getElementById('sucheStatus');
+    const box = document.getElementById('sucheErgebnisse');
+    if (!q) { document.getElementById('fTitel').focus(); return; }
+    if (!navigator.onLine) { status.textContent = 'Offline – die Suche braucht Internet.'; return; }
+    status.textContent = '🔍 Suche in ' + ({ buch: 'Open Library', manga: 'MyAnimeList', anime: 'MyAnimeList', serie: 'TVmaze', film: 'iTunes' }[editTyp] || '') + ' …';
+    box.innerHTML = '';
+    try {
+      const treffer = await onlineSuchen(editTyp, q);
+      if (!treffer.length) { status.textContent = 'Nichts gefunden – anders schreiben oder Art prüfen.'; return; }
+      status.textContent = 'Antippen zum Übernehmen:';
+      box.innerHTML = treffer.map((t, i) => '<button type="button" class="such-treffer" data-t="' + i + '">' + (t.cover ? '<img src="' + escapeHtml(t.cover) + '" alt="" loading="lazy">' : '<span class="kein-cover">' + typInfo(editTyp).icon + '</span>') +
+        '<span><span class="st-titel">' + escapeHtml(t.titel) + '</span><br><span class="st-info">' + escapeHtml([t.alt, t.autor, t.jahr, t.baende ? t.baende + ' Bände' : '', t.seiten ? t.seiten + ' S.' : '', t.folgen ? t.folgen + ' Folgen' : '', t.laeuft ? 'läuft noch' : ''].filter(Boolean).join(' · ')) + '</span></span></button>').join('');
+      box.querySelectorAll('[data-t]').forEach(b => b.addEventListener('click', () => {
+        const t = treffer[+b.dataset.t];
+        document.getElementById('fTitel').value = t.titel;
+        editInfo = { autor: t.autor || '', jahr: String(t.jahr || ''), baende: t.baende || null, seiten: t.seiten || null, folgen: t.folgen || null };
+        if (t.cover) { editBild = t.cover; renderBildFeld(); }
+        if (editTyp === 'manga' && t.baende && !document.getElementById('fFortB').value) document.getElementById('fFortB').value = t.baende;
+        if (editTyp === 'buch' && t.seiten && !document.getElementById('fFortB').value) document.getElementById('fFortB').value = t.seiten;
+        editExtern.tvmazeId = t.tvmazeId || null;
+        infoAnzeigen();
+        box.innerHTML = '';
+        status.textContent = '✓ Übernommen' + (t.cover ? ' (mit Cover)' : '');
+      }));
+    } catch (err) {
+      console.warn('Medien: Online-Suche', err);
+      status.textContent = '⚠ Die Suche hat gerade nicht geklappt (' + err.message + ').';
+    }
+  });
+  document.getElementById('fTitel').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('btnOnlineSuche').click(); } });
+
+  // 📅 Nächste Folge laufender Serien (TVmaze), höchstens einmal am Tag je Serie
+  let folgenLaeuft = false;
+  async function folgenAktualisieren(sofort) {
+    if (folgenLaeuft || !navigator.onLine) return;
+    folgenLaeuft = true;
+    let geaendert = false;
+    try {
+      const heute = lokalIso();
+      for (const e of eintraege.filter(x => x.tvmazeId && x.status !== 'beendet' && x.status !== 'abgebrochen')) {
+        if (!sofort && e.naechsteFolge && e.naechsteFolge.geprueft === heute) continue;
+        try {
+          const d = await jsonHolen('https://api.tvmaze.com/shows/' + encodeURIComponent(e.tvmazeId) + '?embed=nextepisode');
+          const nf = d && d._embedded && d._embedded.nextepisode;
+          const neu = nf && nf.airdate ? { datum: nf.airdate, s: nf.season || null, e: nf.number || null, geprueft: heute } : { geprueft: heute };
+          if (JSON.stringify(neu) !== JSON.stringify(e.naechsteFolge || null)) { e.naechsteFolge = neu; geaendert = true; }
+        } catch (err) { console.warn('Medien: TVmaze', err); break; }
+      }
+    } finally {
+      folgenLaeuft = false;
+      if (geaendert) { speichernEintraege(); renderGrid(); }
+    }
+  }
+
+  // ============================================================
+  // 🤝 AUSLEIHE & RÜCKGABE
+  // ============================================================
+  let termineSync = null;
+  if (window.PlanerSync) { try { termineSync = window.PlanerSync.starteSync({ modul: 'termine', keys: ['termine_events_v1'] }); } catch (e) {} }
+  function ausleiheFelder() {
+    const art = document.getElementById('fAusleiheArt').value;
+    document.getElementById('fAusleiheWer').style.display = art ? '' : 'none';
+    document.getElementById('fAusleiheBis').style.display = art ? '' : 'none';
+    document.getElementById('fAusleiheWer').placeholder = art === 'geliehen' ? 'z.B. Stadtbücherei, Tim' : 'z.B. Tim, Oma';
+    document.getElementById('btnAusleiheTermin').style.display = art && document.getElementById('fAusleiheBis').value ? '' : 'none';
+  }
+  document.getElementById('fAusleiheArt').addEventListener('change', () => {
+    if (document.getElementById('fAusleiheArt').value === 'geliehen' && !document.getElementById('fAusleiheBis').value) {
+      const d = new Date(); d.setDate(d.getDate() + 28); document.getElementById('fAusleiheBis').value = lokalIso(d); // Büchereien: meist 4 Wochen
+    }
+    ausleiheFelder();
+  });
+  document.getElementById('fAusleiheBis').addEventListener('change', ausleiheFelder);
+  document.getElementById('btnAusleiheTermin').addEventListener('click', () => {
+    const bis = document.getElementById('fAusleiheBis').value;
+    const titel = document.getElementById('fTitel').value.trim() || 'Medium';
+    const art = document.getElementById('fAusleiheArt').value, wer = document.getElementById('fAusleiheWer').value.trim();
+    if (!bis) return;
+    const events = laden('termine_events_v1', []);
+    const evTitel = art === 'geliehen' ? '↩️ „' + titel + '“ zurückgeben' + (wer ? ' (' + wer + ')' : '') : '↩️ „' + titel + '“ von ' + (wer || '?') + ' zurückholen';
+    if (events.some(ev => ev.title === evTitel && ev.date === bis)) { showTempStatus('Steht schon in den Terminen', 3); return; }
+    events.push({ id: 't_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7), title: evTitel, date: bis, allDay: true, startTime: '', endTime: '',
+      wer: editPerson && editPerson !== 'alle' ? editPerson : 'familie', location: art === 'geliehen' ? wer : '', notes: 'Aus 🍿 Medien', erinnerung: 1440, recurrence: { freq: 'keine', until: null } });
+    try { localStorage.setItem('termine_events_v1', JSON.stringify(events)); } catch (e) { alert('Speichern fehlgeschlagen.'); return; }
+    if (termineSync) termineSync.melde();
+    showTempStatus('📅 Rückgabe am ' + kurzDatum(bis) + ' eingetragen (Erinnerung am Vortag)', 4);
+  });
+
+  // ============================================================
+  // 📊 JAHRESÜBERSICHT & ZIELE
+  // ============================================================
+  let ziele = laden(KEY_ZIELE, {}) || {};
+  let statJahr = new Date().getFullYear();
+  function speichernZiele() { try { localStorage.setItem(KEY_ZIELE, JSON.stringify(ziele)); } catch (e) {} if (window._sync) window._sync.melde(); }
+  function renderStatistikModal() {
+    document.getElementById('statJahr').textContent = statJahr;
+    const jahr = String(statJahr);
+    const personen = PERSONEN.filter(p => p.id !== 'alle');
+    const imJahr = e => e.status === 'beendet' && String(e.beendetAm || '').slice(0, 4) === jahr;
+    const ohneDatum = eintraege.filter(e => e.status === 'beendet' && !e.beendetAm).length;
+    const box = document.getElementById('statInhalt');
+    const zeilenFuer = (liste) => {
+      const z = (typ) => liste.filter(e => e.typ === typ);
+      const zahlWert = v => parseInt(v, 10) || 0;
+      const seiten = z('buch').reduce((s, e) => s + (zahlWert(e.fortschritt && e.fortschritt.b) || zahlWert(e.info && e.info.seiten) || zahlWert(e.fortschritt && e.fortschritt.a)), 0);
+      const baende = z('manga').reduce((s, e) => s + (zahlWert(e.fortschritt && e.fortschritt.a) || zahlWert(e.info && e.info.baende)), 0);
+      const zeilen = [];
+      if (z('buch').length) zeilen.push(['📖 Bücher', z('buch').length + (seiten ? ' · ' + seiten.toLocaleString('de-DE') + ' Seiten' : '')]);
+      if (z('manga').length) zeilen.push(['📚 Manga', z('manga').length + (baende ? ' · ' + baende + ' Bände' : '')]);
+      if (z('anime').length) zeilen.push(['🍥 Anime', String(z('anime').length)]);
+      if (z('serie').length) zeilen.push(['📺 Serien', String(z('serie').length)]);
+      if (z('film').length) zeilen.push(['🎬 Filme', String(z('film').length)]);
+      const top = liste.filter(e => (e.bewertung || 0) >= 4).sort((a, b) => (b.bewertung || 0) - (a.bewertung || 0)).slice(0, 3);
+      if (top.length) zeilen.push(['⭐ Lieblinge', top.map(e => escapeHtml(e.titel) + ' (' + bewertungText(e.bewertung) + ')').join(', ')]);
+      return zeilen;
+    };
+    let html = '';
+    personen.forEach(p => {
+      const liste = eintraege.filter(e => e.person === p.id && imJahr(e));
+      const zz = (ziele[jahr] || {})[p.id] || {};
+      const lesen = liste.filter(e => typInfo(e.typ).lesen).length, schauen = liste.filter(e => !typInfo(e.typ).lesen).length;
+      const zielZeile = (art, label, ist) => '<div class="stat-zeile"><span>' + label + ': <b>' + ist + '</b>' + (zz[art] ? ' von ' + zz[art] : '') + '</span><span>🎯 Ziel <input type="number" min="0" class="ziel-eingabe" data-ziel="' + art + '" data-person="' + escapeHtml(p.id) + '" value="' + (zz[art] || '') + '" placeholder="–"></span></div>' +
+        (zz[art] ? '<div class="ziel-balken"><div style="width:' + Math.min(100, Math.round(ist / zz[art] * 100)) + '%"></div></div>' : '');
+      if (!liste.length && !zz.lesen && !zz.schauen && p.id === 'familie') return;
+      html += '<div class="stat-modal-person"><h3>' + escapeHtml(p.label) + '</h3>' + zielZeile('lesen', '📖 Gelesen', lesen) + zielZeile('schauen', '🎬 Geschaut', schauen) +
+        zeilenFuer(liste).map(([a, b]) => '<div class="stat-zeile"><span>' + a + '</span><span style="text-align:right">' + b + '</span></div>').join('') + '</div>';
+    });
+    if (ohneDatum && statJahr === new Date().getFullYear()) html += '<p style="font-size:0.75rem;color:var(--bark);">' + ohneDatum + ' ältere Einträge sind „beendet“, aber ohne Datum – sie zählen in keinem Jahr. Ab jetzt merkt sich die App das Datum automatisch.</p>';
+    box.innerHTML = html || '<div class="leer-hinweis">Noch keine Personen.</div>';
+    box.querySelectorAll('[data-ziel]').forEach(inp => inp.addEventListener('change', () => {
+      const n = Math.max(0, parseInt(inp.value, 10) || 0);
+      ziele[jahr] = ziele[jahr] || {}; ziele[jahr][inp.dataset.person] = Object.assign({}, ziele[jahr][inp.dataset.person]);
+      if (n) ziele[jahr][inp.dataset.person][inp.dataset.ziel] = n; else delete ziele[jahr][inp.dataset.person][inp.dataset.ziel];
+      speichernZiele(); renderStatistikModal();
+    }));
+  }
+  document.getElementById('btnStatistik').addEventListener('click', () => { statJahr = new Date().getFullYear(); renderStatistikModal(); document.getElementById('modalStatistik').classList.add('zeigen'); });
+  document.getElementById('btnStatJahrZurueck').addEventListener('click', () => { statJahr--; renderStatistikModal(); });
+  document.getElementById('btnStatJahrVor').addEventListener('click', () => { statJahr++; renderStatistikModal(); });
+  document.getElementById('btnStatSchliessen').addEventListener('click', () => document.getElementById('modalStatistik').classList.remove('zeigen'));
+  document.getElementById('modalStatistik').addEventListener('click', (e) => { if (e.target.id === 'modalStatistik') e.currentTarget.classList.remove('zeigen'); });
+
+  // ============================================================
+  // 🍿 FILMABEND
+  // ============================================================
+  let faPersonen = new Set(), faTypen = new Set(['film', 'serie', 'anime']), faLetzte = [];
+  function faRendern() {
+    const p = document.getElementById('faPersonen');
+    p.innerHTML = PERSONEN.filter(x => x.id !== 'alle').map(x => '<button type="button" class="opt multi-opt' + (faPersonen.has(x.id) ? ' aktiv' : '') + '" data-p="' + escapeHtml(x.id) + '">' + escapeHtml(x.label) + '</button>').join('');
+    p.querySelectorAll('[data-p]').forEach(b => b.addEventListener('click', () => { if (faPersonen.has(b.dataset.p)) faPersonen.delete(b.dataset.p); else faPersonen.add(b.dataset.p); faRendern(); }));
+    const t = document.getElementById('faTypen');
+    t.innerHTML = [['film', '🎬 Film'], ['serie', '📺 Serie'], ['anime', '🍥 Anime']].map(([id, l]) => '<button type="button" class="opt multi-opt' + (faTypen.has(id) ? ' aktiv' : '') + '" data-t="' + id + '">' + l + '</button>').join('');
+    t.querySelectorAll('[data-t]').forEach(b => b.addEventListener('click', () => { if (faTypen.has(b.dataset.t)) faTypen.delete(b.dataset.t); else faTypen.add(b.dataset.t); faRendern(); }));
+  }
+  function faKandidaten() {
+    return eintraege.filter(e => faTypen.has(e.typ) && (e.status === 'wunschliste' || e.status === 'pausiert' || (e.status === 'aktiv' && e.typ !== 'film')) &&
+      (!faPersonen.size || faPersonen.has(e.person) || e.person === 'familie'));
+  }
+  function faZiehen() {
+    const k = faKandidaten();
+    const box = document.getElementById('faErgebnis');
+    if (!k.length) { box.innerHTML = '<div class="filmabend-karte">Nichts Passendes auf den Wunschlisten 🤷<br><span style="font-size:0.78rem;color:var(--bark);">Personen oder Arten ändern – oder neue Titel auf die 💭 Wunschliste setzen.</span></div>'; return; }
+    let pool = k.filter(e => !faLetzte.includes(e.id));
+    if (!pool.length) { faLetzte = []; pool = k; }
+    // gut bewertete bzw. von mehreren gewünschte Titel etwas häufiger
+    const gewicht = e => 1 + (e.person === 'familie' ? 1 : 0) + (e.status === 'aktiv' || e.status === 'pausiert' ? 0.5 : 0);
+    const summe = pool.reduce((s, e) => s + gewicht(e), 0);
+    let r = Math.random() * summe, wahl = pool[0];
+    for (const e of pool) { r -= gewicht(e); if (r <= 0) { wahl = e; break; } }
+    faLetzte.push(wahl.id);
+    const t = typInfo(wahl.typ), wo = t.wo.find(w => w.id === wahl.wo);
+    const fort = fortschrittHtml(wahl).replace(/<[^>]+>/g, ' ').trim();
+    box.innerHTML = '<div class="filmabend-karte">' + (coverQuelle(wahl) ? '<img src="' + escapeHtml(coverQuelle(wahl)) + '" alt="">' : '<div style="font-size:3rem;">' + t.icon + '</div>') +
+      '<div class="fa-titel">' + escapeHtml(wahl.titel) + '</div><div style="font-size:0.8rem;color:var(--bark);margin:4px 0 10px;">' + t.icon + ' ' + t.label + (wo && wo.id !== 'sonstiges' ? ' · ' + escapeHtml(wo.label) : '') + (fort ? ' · ' + escapeHtml(fort) : '') + ' · ' + k.length + ' zur Auswahl</div>' +
+      '<button class="btn btn-primary" id="btnFaSchauen" style="width:100%;">▶️ Schauen wir!</button></div>';
+    document.getElementById('btnFaSchauen').addEventListener('click', () => {
+      const e = eintraege.find(x => x.id === wahl.id); if (!e) return;
+      const vorher = e.status;
+      e.status = 'aktiv';
+      speichernEintraege(); renderAlles();
+      document.getElementById('modalFilmabend').classList.remove('zeigen');
+      showTempStatus('🍿 Viel Spaß mit „' + e.titel + '“!', 5, { rueckgaengig: () => { e.status = vorher; speichernEintraege(); renderAlles(); } });
+    });
+  }
+  document.getElementById('btnFilmabend').addEventListener('click', () => {
+    if (!faPersonen.size && personFilter !== 'alle') faPersonen.add(personFilter);
+    faLetzte = []; faRendern(); document.getElementById('faErgebnis').innerHTML = '';
+    document.getElementById('modalFilmabend').classList.add('zeigen');
+  });
+  document.getElementById('btnFaZiehen').addEventListener('click', faZiehen);
+  document.getElementById('btnFaSchliessen').addEventListener('click', () => document.getElementById('modalFilmabend').classList.remove('zeigen'));
+  document.getElementById('modalFilmabend').addEventListener('click', (e) => { if (e.target.id === 'modalFilmabend') e.currentTarget.classList.remove('zeigen'); });
+
   // ---------- Start ----------
   if (!TYP_FILTER.some(f => f.id === typFilter)) typFilter = 'alle';
   if (!PERSONEN.some(p => p.id === personFilter)) personFilter = 'alle';
   renderSortButton();
   renderFilter();
   renderAlles();
+  setTimeout(coverHochladen, 2500);
+  setTimeout(() => folgenAktualisieren(false), 3000);
+  window.addEventListener('online', () => setTimeout(coverHochladen, 1500));
 
   if (window.PlanerSync) {
     window._sync = window.PlanerSync.starteSync({
       modul: 'medien',
-      keys: [KEY_EINTRAEGE],
-      onRemoteChange: function () { eintraege = laden(KEY_EINTRAEGE, eintraege); renderAlles(); },
+      keys: [KEY_EINTRAEGE, KEY_ZIELE],
+      onRemoteChange: function () { eintraege = laden(KEY_EINTRAEGE, eintraege); ziele = laden(KEY_ZIELE, ziele) || {}; renderAlles(); setTimeout(coverHochladen, 1500); },
     });
     bilderSync = window.PlanerSync.starteSync({
       modul: 'medien_bilder',
       keys: [KEY_BILDER],
-      onRemoteChange: function () { bilder = laden(KEY_BILDER, bilder); renderGrid(); },
+      onRemoteChange: function () { bilder = laden(KEY_BILDER, bilder); renderGrid(); setTimeout(coverHochladen, 1500); },
     });
   }
 })();

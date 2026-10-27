@@ -2,6 +2,12 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
+## 2026-10-27 | 🍿 Medien: Online-Suche, Cover & nächste Folge
+Beim Anlegen findet „🔍“ den Titel online: Bücher in Open Library, Manga und Anime in MyAnimeList, Serien in TVmaze, Filme im iTunes-Katalog. Ein Tipp übernimmt Titel, Autor bzw. Studio, Jahr, Seiten bzw. Bände und das Cover. Bei laufenden Serien zeigt die Karte „📅 Nächste Folge: Fr 30.10. (S5E3)“, auch unter „Demnächst“ auf der Startseite. Eigene Cover-Fotos liegen jetzt im Familien-Fotospeicher: schärfer und ohne 1-MB-Grenze.
+
+## 2026-10-27 | 📊 Lese- & Schauziele, 🍿 Filmabend, 📚 Ausleihe
+Unter 📊 gibt es pro Person und Jahr eine Übersicht: gelesene Bücher mit Seitenzahl, Manga-Bände, gesehene Filme, Serien und Anime, Lieblinge sowie ein eigenes 🎯 Ziel mit Fortschrittsbalken. Das Fertig-Datum merkt sich die App jetzt automatisch. „🍿 Was schauen wir heute?“ zieht aus den Wunschlisten der gewählten Personen einen Vorschlag. Bücher & Co. lassen sich als „verliehen an“ oder „ausgeliehen von“ markieren, mit Rückgabedatum. Die Karte zeigt „↩️ in 2 Tagen zurück“, der Termin mit Erinnerung ist einen Tipp entfernt, und die Rückgabe erscheint unter „Demnächst“.
+
 ## 2026-10-27 | 🍳 Kochen: Wochenplan 2.0 & besserer Einkauf
 Im Wochenplan lassen sich jetzt Mittag und Abend planen, auch „🍲 Reste“, und pro Tag die Portionen. „🎲 Woche füllen“ schlägt passende Gerichte für die freien Abende vor: lange nicht gekocht, Favoriten und Familienlieblinge zuerst, unter der Woche eher einfach, an vollen Tagen schnelle Gerichte, keine Allergie-Konflikte. „⧉ Letzte Woche übernehmen“ kopiert die Vorwoche. Vor dem Einkauf zeigt eine Vorschau alle Zutaten, zusammengerechnet und nach Portionen umgerechnet. Was laut Vorratskammer da ist, ist schon abgewählt, und die Kategorie kommt aus euren Einkauf-Favoriten. Behoben: „Zum Einkauf“ und „Als Termin planen“ kamen bisher nur auf dem eigenen Gerät an.
 

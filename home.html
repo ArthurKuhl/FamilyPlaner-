@@ -1969,6 +1969,13 @@
         });
       }
     }
+    // 🍿 Medien: Rückgabe ausgeliehener Bücher & Co., neue Folgen
+    if (modulSichtbar('medien')) laden('medien_eintraege', []).forEach(e => {
+      if (e && e.ausleihe && e.ausleihe.art && e.ausleihe.bis && tageBis(e.ausleihe.bis) >= -14)
+        liste.push({ datum: e.ausleihe.bis, tage: tageBis(e.ausleihe.bis), icon: '↩️', text: '„' + e.titel + '“ ' + (e.ausleihe.art === 'geliehen' ? 'zurückgeben' : 'von ' + (e.ausleihe.wer || '?') + ' zurück'), ziel: 'medien' });
+      if (e && e.naechsteFolge && e.naechsteFolge.datum && tageBis(e.naechsteFolge.datum) >= 0 && tageBis(e.naechsteFolge.datum) <= 7 && e.status !== 'beendet' && e.status !== 'abgebrochen')
+        add(e.naechsteFolge.datum, '📺', 'Neue Folge: ' + e.titel, 'medien', e.person);
+    });
     // 🥫 Vorrat läuft ab (7 Tage)
     if (modulSichtbar('vorratskammer')) laden('vorratskammer_items', []).forEach(i => {
       const d = i.verfallsdatum || i.aufbrauchenBis;
@@ -2074,7 +2081,7 @@
       ['termine', 'termine', ['termine_events_v1']], ['einkauf', 'einkauf', ['einkauf_listen']], ['haushalt', 'haushalt', ['haushalt_aufgaben']],
       ['kochen', 'kochen', ['kochen_wochenplan']], ['gesundheit', 'gesundheit', ['gesundheit_sport']], ['vorratskammer', 'vorratskammer', ['vorratskammer_items']],
       ['finanzen', 'finanzen', ['finanzen_ausgaben', 'finanzen_abos', 'finanzen_einstellungen']], ['fahrzeuge', 'fahrzeuge', ['fahrzeuge_liste', 'fahrzeuge_werkstatt']],
-      ['kinder', 'kinder', ['kinder_einstellungen', 'kinder_sterne', 'kinder_wuensche']], ['gaming', 'gaming', ['gaming_sessions', 'gaming_limits']], ['handwerk', 'handwerk', ['handwerk_wartung']],
+      ['kinder', 'kinder', ['kinder_einstellungen', 'kinder_sterne', 'kinder_wuensche']], ['gaming', 'gaming', ['gaming_sessions', 'gaming_limits']], ['handwerk', 'handwerk', ['handwerk_wartung']], ['medien', 'medien', ['medien_eintraege']],
     ];
     LIVE.forEach(([name, modul, keys]) => {
       if (!modulSichtbar(name)) return;
