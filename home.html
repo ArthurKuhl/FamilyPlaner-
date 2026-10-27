@@ -969,6 +969,11 @@
         chips.push({ text: '🎂 ' + name + (tage === 0 ? ' heute!' : tage === 1 ? ' morgen' : ' in ' + tage + ' Tagen'), ziel: 'termine', wichtig: tage <= 1 });
       });
     }
+    if (sichtbar('kinder')) {
+      const wuensche = lies('kinder_wuensche', []).filter(w => w && w.status === 'offen');
+      const pname = id => ((window.PLANER_PERSONEN || []).find(p => p.id === id) || { label: id }).label;
+      wuensche.slice(0, 2).forEach(w => chips.push({ text: '🎁 ' + pname(w.personId) + ' wünscht sich: ' + w.text, ziel: 'kinder', wichtig: true }));
+    }
     if (sichtbar('einkauf')) {
       const offen = lies('einkauf_listen', []).reduce((s, l) => s + (l.items || []).filter(i => !i.erledigt).length, 0);
       if (offen) chips.push({ text: '🛒 ' + offen + ' einzukaufen', ziel: 'einkauf' });
@@ -2051,7 +2056,7 @@
       ['termine', 'termine', ['termine_events_v1']], ['einkauf', 'einkauf', ['einkauf_listen']], ['haushalt', 'haushalt', ['haushalt_aufgaben']],
       ['kochen', 'kochen', ['kochen_wochenplan']], ['gesundheit', 'gesundheit', ['gesundheit_sport']], ['vorratskammer', 'vorratskammer', ['vorratskammer_items']],
       ['finanzen', 'finanzen', ['finanzen_ausgaben', 'finanzen_abos', 'finanzen_einstellungen']], ['fahrzeuge', 'fahrzeuge', ['fahrzeuge_liste', 'fahrzeuge_werkstatt']],
-      ['kinder', 'kinder', ['kinder_einstellungen', 'kinder_sterne']], ['gaming', 'gaming', ['gaming_sessions', 'gaming_limits']], ['handwerk', 'handwerk', ['handwerk_wartung']],
+      ['kinder', 'kinder', ['kinder_einstellungen', 'kinder_sterne', 'kinder_wuensche']], ['gaming', 'gaming', ['gaming_sessions', 'gaming_limits']], ['handwerk', 'handwerk', ['handwerk_wartung']],
     ];
     LIVE.forEach(([name, modul, keys]) => {
       if (!modulSichtbar(name)) return;

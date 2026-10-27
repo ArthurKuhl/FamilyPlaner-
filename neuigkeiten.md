@@ -2,6 +2,12 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
+## 2026-10-27 | 🧒 Kinderecke: Routinen, Mein Tag & Abzeichen
+Eltern legen pro Kind ☀️ Routinen an (Vorlagen „Morgens“ und „Abends“, eigene Punkte mit Symbol). Die Kinder tippen die großen Symbole an. Ist alles geschafft, gibt es Konfetti und Sterne. „📅 Mein Tag“ zeigt die eigenen Termine von heute und morgen und einen Countdown zum nächsten großen Ereignis („Noch 10 Tage bis 🏖 Herbstferien Ende“). Neu sind außerdem ein eigener Avatar (🦊🐼🦄 …), 12 🏅 Abzeichen, die Serie „🔥 8 Tage am Stück“ und der Verlauf „📜 Woher kommen meine Sterne?“.
+
+## 2026-10-27 | 🔒 Eltern-PIN, Wünsche & Wochenziel
+Mit einer Eltern-PIN sind Einstellungen, Bonus-Sterne und das Tauschen in Taschengeld geschützt. Die Kinder schicken dann einen „🎁 Wunsch“, der auf der Startseite der Eltern erscheint, und Mama oder Papa erlauben ihn mit der PIN. Nach „Erledigt!“ gibt es ein paar Sekunden lang „↩️ Hoppla, rückgängig“. Mit einem 🎯 Wochenziel („10 ⭐ in einer Woche = 3 ⭐ extra“) wird der Bonus automatisch gutgeschrieben. Behoben: Kurz nach Mitternacht passten „gegossen“ und die Gartenbeete nicht zusammen.
+
 ## 2026-10-26 | 🏠 Übersicht: live, zum Abhaken & „Demnächst“
 Die Startseite aktualisiert sich jetzt sofort, wenn jemand auf einem anderen Gerät Termine, Einkauf, Haushalt & Co. ändert. Bisher sah man das erst nach dem Öffnen des jeweiligen Bereichs. Haushaltsaufgaben und Einkaufsartikel lassen sich direkt auf der Startseite abhaken, und neue Artikel kommen über das ＋-Feld auf die Liste („Milch, Brot“). Die neue Kachel „⏰ Demnächst“ sammelt die nächsten 14 Tage: Geburtstage, Abo-Fristen und Abbuchungen, TÜV, KFZ-Fixkosten und Auto-Wartung, Haus-Wartungen und ablaufende Lebensmittel. Die Termine zeigen auch „Morgen“; ab 18 Uhr steht der nächste Tag oben.
 

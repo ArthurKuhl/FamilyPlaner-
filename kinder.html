@@ -82,6 +82,45 @@
   .modal h3 { font-size: 1rem; margin: 14px 0 8px; }
   .modal label.check { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 10px; background: var(--white); margin-bottom: 6px; font-weight: 600; }
   .modal input[type=text], .modal input[type=number] { padding: 9px 10px; border-radius: 10px; border: 1px solid var(--parchment); background: var(--white); color: var(--soil); font: inherit; min-width: 0; }
+  .avatar-gross { font-size: 2.4rem; line-height: 1; }
+  .gruss-zeile { display: flex; align-items: center; gap: 12px; }
+  .routine { margin-bottom: 12px; }
+  .routine-kopf { display: flex; justify-content: space-between; align-items: center; font-weight: 800; margin-bottom: 6px; }
+  .routine-punkte { display: grid; grid-template-columns: repeat(auto-fill, minmax(86px, 1fr)); gap: 8px; }
+  .r-punkt { border: 2px solid var(--parchment); background: var(--cream); border-radius: 16px; padding: 10px 6px; text-align: center; cursor: pointer; font: 700 0.75rem 'Inter', sans-serif; color: var(--soil); display: flex; flex-direction: column; align-items: center; gap: 4px; transition: transform .15s; }
+  .r-punkt .r-icon { font-size: 1.9rem; line-height: 1; }
+  .r-punkt.fertig { border-color: var(--kf, var(--moss)); background: color-mix(in srgb, var(--kf, var(--moss)) 18%, var(--white)); }
+  .r-punkt.fertig .r-icon { filter: none; }
+  .r-punkt.fertig::after { content: '✓'; font-size: 0.9rem; color: var(--moss-text, var(--moss)); font-weight: 900; }
+  .r-punkt:active { transform: scale(0.94); }
+  .termin-zeile { display: flex; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--parchment); font-size: 0.92rem; }
+  .termin-zeile:last-child { border-bottom: none; }
+  .termin-zeile .t-zeit { font-weight: 800; color: var(--bark); min-width: 54px; font-size: 0.82rem; }
+  .countdown { margin-top: 10px; padding: 12px; border-radius: var(--radius-md); background: linear-gradient(135deg, rgba(243,200,75,0.22), rgba(232,150,60,0.18)); font-weight: 800; text-align: center; font-size: 1rem; }
+  .verlauf-zeile { display: flex; justify-content: space-between; gap: 8px; font-size: 0.84rem; padding: 6px 0; border-bottom: 1px solid var(--parchment); }
+  .verlauf-zeile:last-child { border-bottom: none; }
+  .verlauf-zeile .v-datum { color: var(--bark); font-size: 0.72rem; min-width: 52px; }
+  .verlauf-zeile .v-text { flex: 1; min-width: 0; }
+  .verlauf-zeile .plus { color: var(--moss-text, var(--moss)); font-weight: 800; }
+  .verlauf-zeile .minus { color: var(--terracotta); font-weight: 800; }
+  .abzeichen-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 8px; }
+  .abzeichen { text-align: center; font-size: 0.66rem; font-weight: 700; padding: 8px 4px; border-radius: 14px; background: var(--cream); }
+  .abzeichen .a-icon { font-size: 1.8rem; display: block; margin-bottom: 3px; }
+  .abzeichen.gesperrt { opacity: 0.4; }
+  .abzeichen.gesperrt .a-icon { filter: grayscale(1); }
+  .wunsch { display: flex; align-items: center; gap: 8px; padding: 10px; border-radius: var(--radius-md); background: rgba(243,200,75,0.16); margin-bottom: 6px; font-weight: 600; }
+  .wunsch .b-text { flex: 1; }
+  .avatar-wahl { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 10px; }
+  .avatar-wahl button { width: 40px; height: 40px; border-radius: 50%; border: 2px solid transparent; background: var(--white); font-size: 1.3rem; cursor: pointer; }
+  .avatar-wahl button.aktiv { border-color: var(--moss); }
+  .einst-routine { background: var(--white); border-radius: 12px; padding: 10px; margin-bottom: 8px; }
+  .einst-routine .chips { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0; }
+  .einst-routine .chip { background: var(--cream); border-radius: 999px; padding: 3px 4px 3px 10px; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 4px; }
+  .einst-routine .chip button { border: none; background: none; cursor: pointer; color: var(--bark); font-size: 0.8rem; }
+  .einst-zeile { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .pin-eingabe { font-size: 1.6rem !important; letter-spacing: 0.5em; text-align: center; width: 100%; padding: 12px !important; }
+  #kiToast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 0); background: #2a2016; color: #bcd196; padding: 10px 16px; border-radius: 22px; font: 600 0.88rem 'Inter', sans-serif; box-shadow: 0 4px 14px rgba(0,0,0,0.25); z-index: 9998; display: flex; gap: 12px; align-items: center; max-width: 90vw; transition: opacity .2s; }
+  #kiToast button { background: none; border: none; color: #e8c98a; font-weight: 800; text-decoration: underline; cursor: pointer; font-size: 0.88rem; }
   .konfetti { position: fixed; top: -20px; font-size: 1.6rem; z-index: 9999; pointer-events: none; animation: fallen 1.8s ease-in forwards; }
   @keyframes fallen { to { transform: translateY(105vh) rotate(540deg); opacity: 0.2; } }
 </style>
@@ -96,18 +135,52 @@
 </header>
 <main id="inhalt"></main>
 
+<div class="modal-bg" id="modalPin">
+  <div class="modal" role="dialog" aria-label="Eltern-PIN" style="max-width:380px;">
+    <strong style="font-size:1.05rem;">🔒 Nur für Mama &amp; Papa</strong>
+    <p class="klein" id="pinFrage" style="margin:6px 0 10px;">Bitte die Eltern-PIN eingeben.</p>
+    <input type="password" id="pinEingabe" class="pin-eingabe" inputmode="numeric" maxlength="6" autocomplete="off">
+    <p class="klein" id="pinFehler" style="color:var(--terracotta);min-height:1.2em;margin-top:6px;"></p>
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button class="knopf-gross" id="btnPinAbbrechen" style="flex:1;background:var(--parchment);color:var(--soil);">Abbrechen</button>
+      <button class="knopf-gross" id="btnPinOk" style="flex:1;">OK</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="modalEinst">
   <div class="modal" role="dialog" aria-label="Einstellungen Kinderecke">
     <div style="display:flex;justify-content:space-between;align-items:center;"><strong style="font-size:1.05rem;">⚙️ Für Eltern</strong><button class="knopf-klein" id="btnEinstZu">Fertig</button></div>
     <h3>Wer sind die Kinder?</h3>
     <div id="einstKinder"></div>
     <h3>🎁 Belohnungen</h3>
-    <p class="klein" style="margin-bottom:8px;">Für jede erledigte Haushaltsaufgabe gibt es einen ⭐. Gesammelte Sterne können gegen Belohnungen eingetauscht werden.</p>
+    <p class="klein" style="margin-bottom:8px;">Für jede erledigte Haushaltsaufgabe gibt es Sterne (wie viele, legt ihr im 🧹 Haushalt pro Aufgabe fest). Mit Eltern-PIN wünschen sich die Kinder eine Belohnung, und ihr bestätigt sie.</p>
     <div id="einstBelohnungen"></div>
     <div style="display:flex;gap:6px;margin-top:8px;">
       <input type="text" id="neuBelohnungText" placeholder="z.B. Eis essen 🍦" style="flex:1;">
       <input type="number" id="neuBelohnungSterne" min="1" value="10" style="width:70px;" aria-label="Sterne">
       <button class="knopf-gross" id="btnBelohnungNeu" style="padding:8px 12px;">＋</button>
+    </div>
+    <h3>🦊 Avatar &amp; ☀️ Routinen</h3>
+    <div class="einst-zeile" id="einstKindWahl" style="margin-bottom:8px;"></div>
+    <div id="einstAvatar"></div>
+    <div id="einstRoutinen"></div>
+    <div class="einst-zeile" style="margin-bottom:6px;">
+      <button class="knopf-klein" id="btnRoutineMorgen">＋ ☀️ Morgen-Routine</button>
+      <button class="knopf-klein" id="btnRoutineAbend">＋ 🌙 Abend-Routine</button>
+      <button class="knopf-klein" id="btnRoutineEigen">＋ Eigene</button>
+    </div>
+    <h3>🎯 Wochenziel</h3>
+    <div class="einst-zeile" style="font-size:0.85rem;">
+      Wer <input type="number" id="wzSterne" min="0" style="width:64px;"> ⭐ in einer Woche sammelt, bekommt <input type="number" id="wzBonus" min="0" style="width:56px;"> ⭐ extra
+    </div>
+    <p class="klein" style="margin-top:4px;">0 = kein Wochenziel. Der Bonus wird einmal pro Woche (Mo–So) automatisch gutgeschrieben.</p>
+    <h3>🔒 Eltern-PIN</h3>
+    <p class="klein" style="margin-bottom:6px;" id="pinStatus"></p>
+    <div class="einst-zeile">
+      <input type="password" id="neuePin" inputmode="numeric" maxlength="6" placeholder="4–6 Ziffern" style="width:130px;" autocomplete="new-password">
+      <button class="knopf-klein" id="btnPinSetzen">PIN speichern</button>
+      <button class="knopf-klein" id="btnPinEntfernen">PIN entfernen</button>
     </div>
     <h3>💶 Sterne gegen Taschengeld</h3>
     <label class="check"><input type="checkbox" id="umrAktiv"> Kinder dürfen Sterne in Taschengeld tauschen</label>
@@ -131,7 +204,32 @@
   function speichern(k, v, handle) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} if (handle) handle.melde(); }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
   function neueId(p) { return (p || 'id') + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
-  const heuteISO = () => new Date().toISOString().slice(0, 10);
+  // lokales Datum (wie das Garten-Modul) – nicht UTC
+  const isoVon = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  const heuteISO = () => isoVon(new Date());
+  const KEY_WUENSCHE = 'kinder_wuensche';      // [{ id, personId, belohnungId, text, sterne, datum, status: offen|erfuellt|abgelehnt }]
+  const KEY_ROUTINE_STAND = 'kinder_routinen_stand'; // { kindId: { datum, erledigt: { routineId: [punktId] } } }
+  const AVATARE = ['🦊', '🐼', '🦄', '🚀', '🐯', '🐸', '🦖', '🐱', '🐶', '🐰', '🦁', '🐧', '🐙', '🦋', '⚽', '🎨', '🌟', '🧚'];
+  const ROUTINE_VORLAGEN = {
+    morgen: { name: 'Morgens', icon: '☀️', sterne: 1, punkte: [['🪥', 'Zähne putzen'], ['👕', 'Anziehen'], ['🥣', 'Frühstücken'], ['🎒', 'Ranzen packen']] },
+    abend: { name: 'Abends', icon: '🌙', sterne: 1, punkte: [['🧸', 'Aufräumen'], ['🛁', 'Waschen'], ['🪥', 'Zähne putzen'], ['📖', 'Lesen']] },
+  };
+  function wochenStartIso(iso) { const d = new Date(iso + 'T12:00'); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return isoVon(d); }
+  // Kleine Statusmeldung mit „Rückgängig“
+  function toast(text, sek, rueckgaengig) {
+    let el = document.getElementById('kiToast');
+    if (!el) { el = document.createElement('div'); el.id = 'kiToast'; document.body.appendChild(el); }
+    el.innerHTML = '';
+    const span = document.createElement('span'); span.textContent = text; el.appendChild(span);
+    if (rueckgaengig) {
+      const b = document.createElement('button'); b.textContent = '↩️ Hoppla, rückgängig';
+      b.addEventListener('click', () => { clearTimeout(el._t); el.style.opacity = '0'; el.style.pointerEvents = 'none'; rueckgaengig(); });
+      el.appendChild(b);
+    }
+    el.style.opacity = '1'; el.style.pointerEvents = 'auto';
+    clearTimeout(el._t);
+    el._t = setTimeout(() => { el.style.opacity = '0'; el.style.pointerEvents = 'none'; }, (sek || 4) * 1000);
+  }
 
   function personen() {
     if (window.PLANER_PERSONEN && window.PLANER_PERSONEN.length) return window.PLANER_PERSONEN;
@@ -142,6 +240,8 @@
     const e = laden(KEY_EINST, {});
     const u = e.umrechnung || {};
     return { umrechnung: { aktiv: !!u.aktiv, sterne: Math.max(1, parseInt(u.sterne, 10) || 10), betrag: Math.max(0.01, Number(u.betrag) || 1) },
+      pinHash: e.pinHash || '', avatare: e.avatare || {}, routinen: e.routinen || {},
+      wochenziel: { sterne: Math.max(0, parseInt((e.wochenziel || {}).sterne, 10) || 0), bonus: Math.max(0, parseInt((e.wochenziel || {}).bonus, 10) || 0) },
       kinder: Array.isArray(e.kinder) ? e.kinder : [], belohnungen: Array.isArray(e.belohnungen) ? e.belohnungen : [
       { id: 'b1', text: 'Eis essen 🍦', sterne: 10 }, { id: 'b2', text: '30 Min. länger aufbleiben 🌙', sterne: 15 }, { id: 'b3', text: 'Ausflug aussuchen 🧭', sterne: 30 }] };
   }
@@ -173,6 +273,123 @@
     const verdient = aufgaben.reduce((s, a) => s + (a.erledigt || []).filter(e => e.von === kindId).length * sterneJe(a), 0);
     const buchungen = laden(KEY_STERNE, []).filter(b => b.personId === kindId);
     return verdient + buchungen.reduce((s, b) => s + (Number(b.anzahl) || 0), 0);
+  }
+
+  // Alle Sterne-Bewegungen eines Kindes (Aufgaben + Buchungen), neueste zuerst
+  function sterneVerlauf(kindId) {
+    const liste = [];
+    const sterneJe = a => { const n = parseInt(a.sterne, 10); return isNaN(n) ? 1 : Math.max(0, n); };
+    laden('haushalt_aufgaben', []).forEach(a => (a.erledigt || []).forEach(e => {
+      if (e.von !== kindId) return;
+      const n = sterneJe(a); if (!n) return;
+      liste.push({ datum: e.datum, tag: isoVon(new Date(e.datum)), anzahl: n, text: (a.icon ? a.icon + ' ' : '✅ ') + a.titel, art: 'aufgabe' });
+    }));
+    laden(KEY_STERNE, []).filter(b => b.personId === kindId).forEach(b => {
+      const art = String(b.id || '').indexOf('st_routine_') === 0 ? 'routine' : String(b.id || '').indexOf('st_wochenziel_') === 0 ? 'wochenziel' : String(b.id || '').indexOf('st_garten_') === 0 ? 'garten' : (Number(b.anzahl) < 0 ? 'einloesen' : 'bonus');
+      liste.push({ datum: b.datum, tag: b.datum ? isoVon(new Date(b.datum)) : '', anzahl: Number(b.anzahl) || 0, text: b.grund || (art === 'bonus' ? '⭐ Bonus' : ''), art });
+    });
+    return liste.sort((x, y) => String(y.datum || '').localeCompare(String(x.datum || '')));
+  }
+  function wochenSterne(kindId, ohneWochenziel) {
+    const ws = wochenStartIso(heuteISO()), h = heuteISO();
+    return sterneVerlauf(kindId).filter(v => v.anzahl > 0 && v.tag >= ws && v.tag <= h && !(ohneWochenziel && v.art === 'wochenziel')).reduce((s, v) => s + v.anzahl, 0);
+  }
+  // 🎯 Wochenziel: Bonus einmal pro Woche automatisch gutschreiben
+  function wochenzielPruefen(kind) {
+    const z = einstellungen().wochenziel;
+    if (!z.sterne || !z.bonus) return false;
+    const id = 'st_wochenziel_' + kind.id + '_' + wochenStartIso(heuteISO());
+    const liste = laden(KEY_STERNE, []);
+    if (liste.some(b => b.id === id) || wochenSterne(kind.id, true) < z.sterne) return false;
+    liste.push({ id, personId: kind.id, datum: new Date().toISOString(), anzahl: z.bonus, grund: '🎯 Wochenziel geschafft' });
+    speichern(KEY_STERNE, liste, sync);
+    return true;
+  }
+  // ---------- 🏅 Abzeichen ----------
+  function serieTage(kindId) {
+    const tage = new Set(sterneVerlauf(kindId).filter(v => v.anzahl > 0 && v.art !== 'bonus' && v.art !== 'wochenziel').map(v => v.tag));
+    let d = new Date(); if (!tage.has(isoVon(d))) d.setDate(d.getDate() - 1);
+    let n = 0; while (tage.has(isoVon(d)) && n < 400) { n++; d.setDate(d.getDate() - 1); }
+    // längste Serie
+    const sortiert = Array.from(tage).sort(); let best = 0, lauf = 0, vor = null;
+    sortiert.forEach(t => { const v = vor ? new Date(vor + 'T12:00') : null; if (v) v.setDate(v.getDate() + 1); lauf = (v && isoVon(v) === t) ? lauf + 1 : 1; best = Math.max(best, lauf); vor = t; });
+    return { aktuell: n, best };
+  }
+  function abzeichenVon(kind) {
+    const verlauf = sterneVerlauf(kind.id);
+    const aufgaben = verlauf.filter(v => v.art === 'aufgabe').length;
+    const routinen = verlauf.filter(v => v.art === 'routine').length;
+    const gegossen = verlauf.filter(v => v.art === 'garten').length;
+    const verdient = verlauf.filter(v => v.anzahl > 0).reduce((s, v) => s + v.anzahl, 0);
+    const tiere = Object.keys(tierSichtungen()).filter(k => tierSichtungen()[k]).length;
+    const serie = serieTage(kind.id).best;
+    const tg = taschengeld(kind.id);
+    const spar = !!(tg && tg.konto.sparziel && tg.konto.sparziel.betrag > 0 && tg.stand >= tg.konto.sparziel.betrag);
+    return [
+      ['erste', '🌱', 'Erste Aufgabe', aufgaben >= 1], ['a10', '🧹', '10 Aufgaben', aufgaben >= 10], ['a50', '🏆', '50 Aufgaben', aufgaben >= 50], ['a100', '👑', '100 Aufgaben', aufgaben >= 100],
+      ['serie7', '🔥', '7 Tage am Stück', serie >= 7], ['serie30', '☄️', '30 Tage am Stück', serie >= 30],
+      ['r10', '☀️', '10 Routinen', routinen >= 10], ['g5', '💧', '5× gegossen', gegossen >= 5],
+      ['t5', '🔍', '5 Tiere entdeckt', tiere >= 5], ['t15', '🦉', '15 Tiere entdeckt', tiere >= 15],
+      ['s100', '⭐', '100 Sterne gesammelt', verdient >= 100], ['spar', '🐷', 'Sparziel erreicht', spar],
+    ].map(([id, icon, text, ok]) => ({ id, icon, text, ok }));
+  }
+  function neueAbzeichenFeiern(kind) {
+    const key = 'kinder_abzeichenGesehen_' + kind.id;
+    let gesehen = null; try { gesehen = JSON.parse(localStorage.getItem(key) || 'null'); } catch (e) {}
+    const ok = abzeichenVon(kind).filter(a => a.ok);
+    if (gesehen === null) { try { localStorage.setItem(key, JSON.stringify(ok.map(a => a.id))); } catch (e) {} return; } // beim ersten Mal nicht nachträglich feiern
+    const neu = ok.filter(a => !gesehen.includes(a.id));
+    if (!neu.length) return;
+    try { localStorage.setItem(key, JSON.stringify(gesehen.concat(neu.map(a => a.id)))); } catch (e) {}
+    konfetti();
+    toast('🏅 Neues Abzeichen: ' + neu.map(a => a.icon + ' ' + a.text).join(', '), 5);
+  }
+
+  // ---------- 📅 Mein Tag: Termine des Kindes ----------
+  function terminAm(ev, iso) {
+    if (!ev.date) return false;
+    const ziel = new Date(iso + 'T12:00');
+    let d = new Date(String(ev.date).slice(0, 10) + 'T12:00');
+    const bis = ev.recurrence && ev.recurrence.until ? new Date(String(ev.recurrence.until).slice(0, 10) + 'T12:00') : null;
+    const freq = ev.recurrence ? ev.recurrence.freq : 'keine';
+    for (let i = 0; i < 600 && d <= ziel; i++) {
+      if (bis && d > bis) return false;
+      if (isoVon(d) === iso) return true;
+      if (freq === 'taeglich') d.setDate(d.getDate() + 1);
+      else if (freq === 'woechentlich') d.setDate(d.getDate() + 7);
+      else if (freq === 'monatlich') d.setMonth(d.getMonth() + 1);
+      else if (freq === 'jaehrlich') d.setFullYear(d.getFullYear() + 1);
+      else return false;
+    }
+    return false;
+  }
+  function fuerKind(ev, kindId) {
+    const w = ev.wer;
+    if (!w || w === 'familie') return true;
+    return Array.isArray(w) ? (w.includes(kindId) || w.includes('familie')) : w === kindId;
+  }
+  function termineVon(kindId, iso) {
+    return laden('termine_events_v1', []).filter(ev => fuerKind(ev, kindId) && terminAm(ev, iso))
+      .sort((a, b) => (a.allDay ? '' : a.startTime || '').localeCompare(b.allDay ? '' : b.startTime || ''));
+  }
+  // Nächstes „großes Ereignis“: Geburtstage, Ferien, Urlaub, Feste aus den Terminen – sonst Weihnachten
+  function naechsterCountdown(kind) {
+    const h = new Date(); h.setHours(12, 0, 0, 0);
+    let best = null;
+    const pruefe = (datum, titel) => { const t = Math.round((datum - h) / 864e5); if (t >= 1 && t <= 120 && (!best || t < best.tage)) best = { tage: t, titel }; };
+    laden('termine_events_v1', []).forEach(ev => {
+      const titel = String(ev.title || '');
+      if (!ev.date || !/geburtstag|🎂|ferien|urlaub|ausflug|party|fest|kindergeburtstag|🎉|🏖|✈/i.test(titel)) return;
+      if (/geburtstag|🎂/i.test(titel) && titel.toLowerCase().includes(String(kind.label || '').toLowerCase())) return; // eigener Geburtstag steht schon oben
+      const [y, m, d] = String(ev.date).split('-').map(Number);
+      if (ev.recurrence && ev.recurrence.freq === 'jaehrlich') {
+        let n = new Date(h.getFullYear(), m - 1, d, 12); if (n < h) n = new Date(h.getFullYear() + 1, m - 1, d, 12);
+        pruefe(n, titel);
+      } else pruefe(new Date(y, m - 1, d, 12), titel);
+    });
+    let xmas = new Date(h.getFullYear(), 11, 24, 12); if (xmas < h) xmas = new Date(h.getFullYear() + 1, 11, 24, 12);
+    pruefe(xmas, '🎄 Weihnachten');
+    return best;
   }
 
   // ---------- Tiere (gleiche IDs wie „Tiere im Garten“) ----------
@@ -263,13 +480,41 @@
   // ---------- Sync ----------
   let sync = null, haushaltSync = null, finanzenSync = null;
   if (window.PlanerSync) {
-    sync = window.PlanerSync.starteSync({ modul: 'kinder', keys: [KEY_EINST, KEY_STERNE, KEY_GARTEN_ERL], onRemoteChange: () => renderAlles() });
+    sync = window.PlanerSync.starteSync({ modul: 'kinder', keys: [KEY_EINST, KEY_STERNE, KEY_GARTEN_ERL, KEY_WUENSCHE, KEY_ROUTINE_STAND], onRemoteChange: () => renderAlles() });
     haushaltSync = window.PlanerSync.starteSync({ modul: 'haushalt', keys: ['haushalt_aufgaben'], onRemoteChange: () => renderAlles() });
     // nur lesen, damit Taschengeld & Co. aktuell sind
     finanzenSync = window.PlanerSync.starteSync({ modul: 'finanzen', keys: ['finanzen_taschengeld_konten', 'finanzen_taschengeld_buchungen'], onRemoteChange: () => renderAlles() });
     window.PlanerSync.starteSync({ modul: 'termine', keys: ['termine_events_v1'], onRemoteChange: () => renderAlles() });
     window.PlanerSync.starteSync({ modul: 'gaming', keys: ['gaming_sessions', 'gaming_limits'], onRemoteChange: () => renderAlles() }); // nur lesen: Spielzeit-Limit
   }
+
+  // ---------- 🔒 Eltern-PIN ----------
+  async function pinHash(pin) {
+    const daten = new TextEncoder().encode('planer-kinder:' + pin);
+    try { const h = await crypto.subtle.digest('SHA-256', daten); return Array.from(new Uint8Array(h)).map(b => b.toString(16).padStart(2, '0')).join(''); }
+    catch (e) { let x = 0; for (const c of 'planer-kinder:' + pin) x = (Math.imul(x, 31) + c.charCodeAt(0)) | 0; return 'h' + (x >>> 0).toString(16); }
+  }
+  let pinEntsperrtBis = 0, pinWeiter = null;
+  // Führt aktion() aus – mit PIN-Abfrage, wenn eine PIN festgelegt ist (5 Minuten gültig)
+  function mitPin(aktion, frage) {
+    if (!einstellungen().pinHash || Date.now() < pinEntsperrtBis) { aktion(); return; }
+    pinWeiter = aktion;
+    document.getElementById('pinFrage').textContent = frage || 'Bitte die Eltern-PIN eingeben.';
+    document.getElementById('pinEingabe').value = '';
+    document.getElementById('pinFehler').textContent = '';
+    document.getElementById('modalPin').classList.add('zeigen');
+    setTimeout(() => document.getElementById('pinEingabe').focus(), 50);
+  }
+  async function pinPruefen() {
+    const eingabe = document.getElementById('pinEingabe').value.trim();
+    if (await pinHash(eingabe) !== einstellungen().pinHash) { document.getElementById('pinFehler').textContent = 'Falsche PIN.'; document.getElementById('pinEingabe').value = ''; return; }
+    pinEntsperrtBis = Date.now() + 5 * 60 * 1000;
+    document.getElementById('modalPin').classList.remove('zeigen');
+    const f = pinWeiter; pinWeiter = null; if (f) f();
+  }
+  document.getElementById('btnPinOk').addEventListener('click', pinPruefen);
+  document.getElementById('pinEingabe').addEventListener('keydown', (e) => { if (e.key === 'Enter') pinPruefen(); });
+  document.getElementById('btnPinAbbrechen').addEventListener('click', () => { pinWeiter = null; document.getElementById('modalPin').classList.remove('zeigen'); });
 
   let aktivesKind = null;
   try { aktivesKind = localStorage.getItem(KEY_AKTIV); } catch (e) {}
@@ -300,12 +545,14 @@
       return;
     }
     if (!kinder.some(k => k.id === aktivesKind)) aktivesKind = kinder[0].id;
-    reihe.innerHTML = kinder.map(k => '<button class="kind-btn' + (k.id === aktivesKind ? ' aktiv' : '') + '" data-kind="' + esc(k.id) + '" style="--kf:' + esc(k.farbe || '#4f6f45') + '"><span class="avatar" style="background:' + esc(k.farbe || '#4f6f45') + '">' + esc((k.label || '?').slice(0, 1).toUpperCase()) + '</span>' + esc(k.label) + '</button>').join('');
+    const avatar = (k) => e.avatare[k.id] || '';
+    reihe.innerHTML = kinder.map(k => '<button class="kind-btn' + (k.id === aktivesKind ? ' aktiv' : '') + '" data-kind="' + esc(k.id) + '" style="--kf:' + esc(k.farbe || '#4f6f45') + '"><span class="avatar" style="background:' + esc(k.farbe || '#4f6f45') + '">' + (avatar(k) ? avatar(k) : esc((k.label || '?').slice(0, 1).toUpperCase())) + '</span>' + esc(k.label) + '</button>').join('');
     reihe.querySelectorAll('[data-kind]').forEach(b => b.addEventListener('click', () => { aktivesKind = b.dataset.kind; try { localStorage.setItem(KEY_AKTIV, aktivesKind); } catch (err) {} renderAlles(); }));
 
     const kind = person(aktivesKind);
     const farbe = kind.farbe || '#4f6f45';
     box.style.setProperty('--kf', farbe);
+    if (wochenzielPruefen(kind)) { konfetti(); setTimeout(() => toast('🎯 Wochenziel geschafft – +' + e.wochenziel.bonus + ' ⭐ extra!', 5), 300); }
     const sterne = sterneVon(kind.id);
     const tg = taschengeld(kind.id);
     const belohnungen = e.belohnungen.slice().sort((a, b) => a.sterne - b.sterne);
@@ -320,9 +567,35 @@
     const stunde = new Date().getHours();
     const gruss = stunde < 11 ? 'Guten Morgen' : stunde < 18 ? 'Hallo' : 'Guten Abend';
 
-    let html = '<div class="karte"><div class="gruss">' + gruss + ', ' + esc(kind.label) + '! 👋</div><div class="gruss-sub">' +
+    let html = '<div class="karte"><div class="gruss-zeile">' + (avatar(kind) ? '<span class="avatar-gross">' + avatar(kind) + '</span>' : '') + '<div><div class="gruss">' + gruss + ', ' + esc(kind.label) + '! 👋</div><div class="gruss-sub">' +
       ((offen.length + beeteOffen.length) ? 'Heute ' + ((offen.length + beeteOffen.length) === 1 ? 'wartet 1 Aufgabe' : 'warten ' + (offen.length + beeteOffen.length) + ' Aufgaben') + ' auf dich.' : (fertig.length ? 'Alles erledigt – super gemacht! 🎉' : 'Heute hast du frei. 😊')) +
-      (geb !== null ? (geb === 0 ? ' 🎂 Heute ist dein Geburtstag – alles Gute!' : ' 🎂 Noch ' + geb + (geb === 1 ? ' Tag' : ' Tage') + ' bis zu deinem Geburtstag.') : '') + '</div></div>';
+      (geb !== null ? (geb === 0 ? ' 🎂 Heute ist dein Geburtstag – alles Gute!' : ' 🎂 Noch ' + geb + (geb === 1 ? ' Tag' : ' Tage') + ' bis zu deinem Geburtstag.') : '') + '</div></div></div></div>';
+
+    // ☀️ Routinen
+    const routinen = (e.routinen[kind.id] || []).filter(r => (r.punkte || []).length);
+    if (routinen.length) {
+      const stand = routinenStand(kind.id);
+      const std = new Date().getHours();
+      const sortiert = routinen.slice().sort((a, b) => { const p = r => (/abend|🌙|nacht/i.test(r.name + r.icon) ? (std >= 15 ? 0 : 2) : /morgen|☀️|früh/i.test(r.name + r.icon) ? (std < 12 ? 0 : 1) : 1); return p(a) - p(b); });
+      html += '<div class="karte"><h2>☀️ Meine Routinen</h2>' + sortiert.map(r => {
+        const erl = stand.erledigt[r.id] || [];
+        const fertig = r.punkte.every(p => erl.includes(p.id));
+        return '<div class="routine"><div class="routine-kopf"><span>' + esc(r.icon || '📋') + ' ' + esc(r.name) + '</span><span class="klein">' + (fertig ? '🎉 geschafft' + (r.sterne ? ' · +' + r.sterne + ' ⭐' : '') : erl.filter(id => r.punkte.some(p => p.id === id)).length + ' von ' + r.punkte.length) + '</span></div>' +
+          '<div class="routine-punkte">' + r.punkte.map(p => '<button type="button" class="r-punkt' + (erl.includes(p.id) ? ' fertig' : '') + '" data-routine="' + esc(r.id) + '" data-punkt="' + esc(p.id) + '"><span class="r-icon">' + esc(p.icon || '✔️') + '</span>' + esc(p.text) + '</button>').join('') + '</div></div>';
+      }).join('') + '</div>';
+    }
+
+    // 📅 Mein Tag
+    const morgen = new Date(); morgen.setDate(morgen.getDate() + 1);
+    const tHeute = termineVon(kind.id, heuteISO()), tMorgen = termineVon(kind.id, isoVon(morgen));
+    const cd = naechsterCountdown(kind);
+    if (tHeute.length || tMorgen.length || cd) {
+      const tz = ev => '<div class="termin-zeile"><span class="t-zeit">' + (ev.allDay ? 'ganztags' : esc(ev.startTime || '')) + '</span><span>' + esc(ev.title) + '</span></div>';
+      html += '<div class="karte"><h2>📅 Mein Tag</h2>' +
+        (tHeute.length ? '<p class="klein" style="font-weight:800;margin-bottom:2px;">HEUTE</p>' + tHeute.map(tz).join('') : '<p class="klein">Heute keine Termine.</p>') +
+        (tMorgen.length ? '<p class="klein" style="font-weight:800;margin:10px 0 2px;">MORGEN</p>' + tMorgen.map(tz).join('') : '') +
+        (cd ? '<div class="countdown">' + (cd.titel.match(/^\p{Extended_Pictographic}/u) ? '' : '⏳ ') + 'Noch ' + cd.tage + (cd.tage === 1 ? ' Tag' : ' Tage') + ' bis ' + esc(cd.titel.replace(/^(\p{Extended_Pictographic})\s*/u, '$1 ')) + '</div>' : '') + '</div>';
+    }
 
     // Aufgaben
     html += '<div class="karte"><h2>✅ Meine Aufgaben heute</h2>';
@@ -346,6 +619,13 @@
     html += '<div class="karte"><h2>⭐ Meine Sterne <button class="knopf-klein" id="btnBonus" title="Für Eltern: einen Bonus-Stern vergeben">+⭐ Bonus</button></h2>' +
       '<div class="sterne-zeile"><span class="sterne-zahl">' + sterne + '</span><span>' + (ziel ? 'Noch <b>' + (ziel.sterne - sterne) + ' ⭐</b> bis:<br><b>' + esc(ziel.text) + '</b>' : (belohnungen.length ? 'Du kannst dir eine Belohnung aussuchen! 🎁' : '')) + '</span></div>';
     if (ziel) html += '<div class="balken"><span style="width:' + Math.min(100, Math.round(sterne / ziel.sterne * 100)) + '%"></span></div>';
+    const woche = wochenSterne(kind.id);
+    const wz = e.wochenziel;
+    html += '<p class="klein" style="margin-top:8px;">📅 Diese Woche: <b>' + woche + ' ⭐</b>' + (wz.sterne && wz.bonus ? ' · 🎯 Ziel ' + wz.sterne + ' ⭐ = +' + wz.bonus + ' ⭐ extra' : '') + '</p>';
+    if (wz.sterne && wz.bonus) html += '<div class="balken" style="height:10px;margin-top:4px;"><span style="width:' + Math.min(100, Math.round(wochenSterne(kind.id, true) / wz.sterne * 100)) + '%"></span></div>';
+    const offeneWuensche = laden(KEY_WUENSCHE, []).filter(w => w.personId === kind.id && w.status === 'offen');
+    if (offeneWuensche.length) html += '<p class="klein" style="margin:10px 0 6px;">⏳ Deine Wünsche warten auf Mama oder Papa:</p>' + offeneWuensche.map(w =>
+      '<div class="wunsch"><span class="b-text">🎁 ' + esc(w.text) + ' <span class="klein">(' + w.sterne + ' ⭐)</span></span><button class="knopf-klein" data-wunsch-ok="' + esc(w.id) + '">✓ Erlauben</button><button class="knopf-klein" data-wunsch-weg="' + esc(w.id) + '">✕</button></div>').join('');
     if (e.umrechnung.aktiv && tg) {
       const kann = sterne >= e.umrechnung.sterne;
       html += '<div class="belohnung" style="margin-top:10px;"><span class="b-text">💶 ' + e.umrechnung.sterne + ' ⭐ = ' + euro(e.umrechnung.betrag) + ' Taschengeld</span>' +
@@ -354,7 +634,7 @@
     const erreichbar = belohnungen.filter(b => b.sterne <= sterne);
     if (erreichbar.length) {
       html += '<p class="klein" style="margin:10px 0 6px;">🎁 Das kannst du dir schon holen:</p>' + erreichbar.map(b =>
-        '<div class="belohnung"><span class="b-text">' + esc(b.text) + '</span><span class="klein">' + b.sterne + ' ⭐</span><button class="knopf-gross" data-einloesen="' + esc(b.id) + '" style="padding:7px 12px;">Einlösen</button></div>').join('');
+        '<div class="belohnung"><span class="b-text">' + esc(b.text) + '</span><span class="klein">' + b.sterne + ' ⭐</span><button class="knopf-gross" data-einloesen="' + esc(b.id) + '" style="padding:7px 12px;">' + (e.pinHash ? '🎁 Wünschen' : 'Einlösen') + '</button></div>').join('');
     }
     html += '</div>';
 
@@ -372,6 +652,21 @@
         '<div style="height:12px;border-radius:6px;background:rgba(127,127,127,0.2);overflow:hidden;"><div style="height:100%;width:' + anteil + '%;background:' + (rest > 0 ? '#5b8bb5' : '#c46b41') + ';border-radius:6px;"></div></div>' +
         '<p class="klein" style="margin:4px 0 0;">Heute ' + tag + (spielLimit.tag ? ' von ' + spielLimit.tag : '') + ' Min.' + (spielLimit.woche ? ' · diese Woche ' + (Math.round(woche / 6) / 10).toLocaleString('de-DE') + ' von ' + (Math.round(spielLimit.woche / 6) / 10).toLocaleString('de-DE') + ' Std.' : '') + '</p></div>';
     }
+
+    // 📜 Sterne-Verlauf
+    const verlauf = sterneVerlauf(kind.id);
+    if (verlauf.length) {
+      const zeigen = verlaufOffen ? verlauf.slice(0, 40) : verlauf.slice(0, 6);
+      html += '<div class="karte"><h2>📜 Woher kommen meine Sterne?</h2>' + zeigen.map(v =>
+        '<div class="verlauf-zeile"><span class="v-datum">' + (v.tag ? new Date(v.tag + 'T12:00').toLocaleDateString('de-DE', { day: 'numeric', month: 'numeric' }) : '') + '</span><span class="v-text">' + esc(v.text || (v.anzahl < 0 ? '🎁 Eingelöst' : '⭐')) + '</span><span class="' + (v.anzahl < 0 ? 'minus' : 'plus') + '">' + (v.anzahl > 0 ? '+' : '−') + Math.abs(v.anzahl) + ' ⭐</span></div>').join('') +
+        (verlauf.length > 6 ? '<button class="knopf-klein" id="btnVerlaufMehr" style="margin-top:8px;">' + (verlaufOffen ? 'Weniger zeigen' : 'Alle ' + Math.min(40, verlauf.length) + ' zeigen') + '</button>' : '') + '</div>';
+    }
+
+    // 🏅 Abzeichen
+    const abz = abzeichenVon(kind);
+    html += '<div class="karte"><h2>🏅 Meine Abzeichen <span class="klein">' + abz.filter(a => a.ok).length + ' von ' + abz.length + '</span></h2><div class="abzeichen-grid">' +
+      abz.map(a => '<div class="abzeichen' + (a.ok ? '' : ' gesperrt') + '"><span class="a-icon">' + a.icon + '</span>' + esc(a.text) + '</div>').join('') + '</div>' +
+      '<p class="klein" style="margin-top:8px;">🔥 Serie: ' + serieTage(kind.id).aktuell + ' Tage am Stück (Rekord ' + serieTage(kind.id).best + ')</p></div>';
 
     // Taschengeld
     html += '<div class="karte"><h2>💰 Mein Taschengeld</h2>';
@@ -400,16 +695,22 @@
     box.querySelectorAll('[data-erledigt]').forEach(b => b.addEventListener('click', () => aufgabeErledigt(b.dataset.erledigt, kind.id)));
     box.querySelectorAll('[data-gegossen]').forEach(b => b.addEventListener('click', () => gartenGegossen(b.dataset.gegossen, kind)));
     box.querySelectorAll('[data-einloesen]').forEach(b => b.addEventListener('click', () => einloesen(b.dataset.einloesen, kind)));
-    document.getElementById('btnBonus').addEventListener('click', () => {
+    box.querySelectorAll('[data-routine]').forEach(b => b.addEventListener('click', () => routinePunktUmschalten(kind, b.dataset.routine, b.dataset.punkt)));
+    box.querySelectorAll('[data-wunsch-ok]').forEach(b => b.addEventListener('click', () => mitPin(() => wunschErfuellen(b.dataset.wunschOk, kind), 'Wunsch erlauben? Bitte Eltern-PIN eingeben.')));
+    box.querySelectorAll('[data-wunsch-weg]').forEach(b => b.addEventListener('click', () => wunschZurueckziehen(b.dataset.wunschWeg)));
+    const mehrBtn = document.getElementById('btnVerlaufMehr');
+    if (mehrBtn) mehrBtn.addEventListener('click', () => { verlaufOffen = !verlaufOffen; renderAlles(); });
+    neueAbzeichenFeiern(kind);
+    document.getElementById('btnBonus').addEventListener('click', () => mitPin(() => {
       const grund = prompt('Bonus-Stern für ' + kind.label + ' – wofür? (optional)', '');
       if (grund === null) return;
       const liste = laden(KEY_STERNE, []);
       liste.push({ id: neueId('st'), personId: kind.id, datum: new Date().toISOString(), anzahl: 1, grund: grund || 'Bonus' });
       speichern(KEY_STERNE, liste, sync);
       konfetti(); renderAlles();
-    });
+    }, 'Bonus-Stern vergeben? Bitte Eltern-PIN eingeben.'));
     const geldBtn = document.getElementById('btnSterneGeld');
-    if (geldBtn) geldBtn.addEventListener('click', () => sterneInGeld(kind));
+    if (geldBtn) geldBtn.addEventListener('click', () => mitPin(() => sterneInGeld(kind), 'Sterne in Taschengeld tauschen? Bitte Eltern-PIN eingeben.'));
     document.getElementById('btnTiere').addEventListener('click', () => {
       try { localStorage.setItem('garten_aktiveAnsicht', 'tiere'); } catch (err) {}
       try { window.parent.postMessage({ type: 'navigiere', modul: 'garten' }, window.location.origin); } catch (err) {}
@@ -421,14 +722,86 @@
     const a = aufgaben.find(x => x.id === aufgabeId);
     if (!a) return;
     if (!a.erledigt) a.erledigt = [];
-    a.erledigt.push({ datum: new Date().toISOString(), von: kindId });
-    if (a.zuweisung === 'rotation' && (a.rotationPersonen || []).length) a.rotationIndex = ((a.rotationIndex || 0) + 1) % a.rotationPersonen.length;
+    const eintrag = { datum: new Date().toISOString(), von: kindId };
+    a.erledigt.push(eintrag);
+    const rot = a.zuweisung === 'rotation' && (a.rotationPersonen || []).length;
+    if (rot) a.rotationIndex = ((a.rotationIndex || 0) + 1) % a.rotationPersonen.length;
     speichern('haushalt_aufgaben', aufgaben, haushaltSync);
     konfetti();
     renderAlles();
+    toast('⭐ Super gemacht!', 6, () => {
+      const a2 = laden('haushalt_aufgaben', []); const x = a2.find(y => y.id === aufgabeId); if (!x) return;
+      const i = (x.erledigt || []).findIndex(e => e.datum === eintrag.datum && e.von === kindId);
+      if (i !== -1) x.erledigt.splice(i, 1);
+      if (rot) x.rotationIndex = ((x.rotationIndex || 0) - 1 + x.rotationPersonen.length) % x.rotationPersonen.length;
+      speichern('haushalt_aufgaben', a2, haushaltSync);
+      renderAlles();
+    });
+  }
+
+  // ---------- ☀️ Routinen ----------
+  let verlaufOffen = false;
+  function routinenStand(kindId) {
+    const alle = laden(KEY_ROUTINE_STAND, {}) || {};
+    const st = alle[kindId];
+    return (st && st.datum === heuteISO()) ? st : { datum: heuteISO(), erledigt: {} };
+  }
+  function routinePunktUmschalten(kind, routineId, punktId) {
+    const e = einstellungen();
+    const r = (e.routinen[kind.id] || []).find(x => x.id === routineId);
+    if (!r) return;
+    const alle = laden(KEY_ROUTINE_STAND, {}) || {};
+    const st = routinenStand(kind.id);
+    const liste = st.erledigt[routineId] = (st.erledigt[routineId] || []).filter(id => r.punkte.some(p => p.id === id));
+    const i = liste.indexOf(punktId);
+    if (i === -1) liste.push(punktId); else liste.splice(i, 1);
+    alle[kind.id] = st;
+    speichern(KEY_ROUTINE_STAND, alle, sync);
+    const fertig = r.punkte.every(p => liste.includes(p.id));
+    const sternId = 'st_routine_' + kind.id + '_' + routineId + '_' + heuteISO();
+    const sterne = laden(KEY_STERNE, []);
+    const hat = sterne.some(b => b.id === sternId);
+    if (fertig && !hat && r.sterne > 0) {
+      sterne.push({ id: sternId, personId: kind.id, datum: new Date().toISOString(), anzahl: r.sterne, grund: (r.icon || '☀️') + ' ' + r.name + '-Routine geschafft' });
+      speichern(KEY_STERNE, sterne, sync);
+      konfetti();
+      toast('🎉 ' + r.name + ' geschafft – +' + r.sterne + ' ⭐', 4);
+    } else if (fertig && !hat) { konfetti(); toast('🎉 ' + r.name + ' geschafft!', 3); }
+    else if (!fertig && hat) speichern(KEY_STERNE, sterne.filter(b => b.id !== sternId), sync); // wieder abgehakt → Sterne zurück
+    renderAlles();
+  }
+
+  // ---------- 🎁 Wünsche (bei gesetzter PIN) ----------
+  function wunschErfuellen(id, kind) {
+    const wuensche = laden(KEY_WUENSCHE, []);
+    const w = wuensche.find(x => x.id === id);
+    if (!w || w.status !== 'offen') return;
+    if (sterneVon(kind.id) < w.sterne) { toast('Nicht mehr genug Sterne für diesen Wunsch.', 4); return; }
+    w.status = 'erfuellt'; w.erledigtAm = new Date().toISOString();
+    speichern(KEY_WUENSCHE, wuensche, sync);
+    const liste = laden(KEY_STERNE, []);
+    liste.push({ id: neueId('st'), personId: kind.id, datum: new Date().toISOString(), anzahl: -w.sterne, grund: '🎁 ' + w.text });
+    speichern(KEY_STERNE, liste, sync);
+    konfetti(); renderAlles();
+  }
+  function wunschZurueckziehen(id) {
+    const wuensche = laden(KEY_WUENSCHE, []).filter(x => x.id !== id);
+    speichern(KEY_WUENSCHE, wuensche, sync);
+    renderAlles();
   }
   function einloesen(belohnungId, kind) {
-    const b = einstellungen().belohnungen.find(x => x.id === belohnungId);
+    const e0 = einstellungen();
+    const b0 = e0.belohnungen.find(x => x.id === belohnungId);
+    if (b0 && e0.pinHash) {
+      const wuensche = laden(KEY_WUENSCHE, []);
+      if (wuensche.some(w => w.personId === kind.id && w.belohnungId === b0.id && w.status === 'offen')) { toast('Den Wunsch hast du schon abgeschickt 🙂', 3); return; }
+      wuensche.push({ id: neueId('wu'), personId: kind.id, belohnungId: b0.id, text: b0.text, sterne: b0.sterne, datum: new Date().toISOString(), status: 'offen' });
+      speichern(KEY_WUENSCHE, wuensche, sync);
+      toast('🎁 Wunsch abgeschickt – Mama oder Papa sagen Bescheid!', 4);
+      renderAlles();
+      return;
+    }
+    const b = b0;
     if (!b || !confirm('„' + b.text + '“ für ' + b.sterne + ' ⭐ einlösen?\n(Am besten zusammen mit Mama oder Papa.)')) return;
     const liste = laden(KEY_STERNE, []);
     liste.push({ id: neueId('st'), personId: kind.id, datum: new Date().toISOString(), anzahl: -b.sterne, grund: b.text });
@@ -469,8 +842,83 @@
       const e2 = einstellungen(); e2.belohnungen = e2.belohnungen.filter(b => b.id !== btn.dataset.weg); einstSpeichern(e2); einstRendern(); renderAlles();
     }));
   }
+  let einstKind = null;
+  function einstZusatzRendern() {
+    const e = einstellungen();
+    const kinder = e.kinder.map(person);
+    const wahl = document.getElementById('einstKindWahl');
+    if (!kinder.length) { wahl.innerHTML = '<span class="klein">Erst oben Kinder auswählen.</span>'; document.getElementById('einstAvatar').innerHTML = ''; document.getElementById('einstRoutinen').innerHTML = ''; return; }
+    if (!kinder.some(k => k.id === einstKind)) einstKind = kinder.some(k => k.id === aktivesKind) ? aktivesKind : kinder[0].id;
+    wahl.innerHTML = kinder.map(k => '<button class="knopf-klein" data-ek="' + esc(k.id) + '" style="' + (k.id === einstKind ? 'background:var(--moss);color:var(--on-moss,#fff);border-color:var(--moss);' : '') + '">' + esc((e.avatare[k.id] || '') + ' ' + k.label) + '</button>').join('');
+    wahl.querySelectorAll('[data-ek]').forEach(b => b.addEventListener('click', () => { einstKind = b.dataset.ek; einstZusatzRendern(); }));
+    document.getElementById('einstAvatar').innerHTML = '<div class="avatar-wahl">' + ['', ...AVATARE].map(a => '<button type="button" data-av="' + a + '" class="' + ((e.avatare[einstKind] || '') === a ? 'aktiv' : '') + '" title="' + (a ? 'Avatar' : 'Anfangsbuchstabe') + '">' + (a || '<span style="font-size:0.8rem;font-weight:800;">Aa</span>') + '</button>').join('') + '</div>';
+    document.querySelectorAll('#einstAvatar [data-av]').forEach(b => b.addEventListener('click', () => {
+      const e2 = einstellungen(); e2.avatare = Object.assign({}, e2.avatare); if (b.dataset.av) e2.avatare[einstKind] = b.dataset.av; else delete e2.avatare[einstKind];
+      einstSpeichern(e2); einstZusatzRendern(); renderAlles();
+    }));
+    const routinen = e.routinen[einstKind] || [];
+    document.getElementById('einstRoutinen').innerHTML = routinen.map(r => '<div class="einst-routine" data-rid="' + esc(r.id) + '"><div class="einst-zeile">' +
+      '<input type="text" data-feld="icon" value="' + esc(r.icon || '') + '" style="width:48px;text-align:center;" aria-label="Symbol">' +
+      '<input type="text" data-feld="name" value="' + esc(r.name) + '" style="flex:1;" aria-label="Name">' +
+      '<input type="number" data-feld="sterne" value="' + (r.sterne || 0) + '" min="0" style="width:56px;" aria-label="Sterne"> ⭐' +
+      '<button class="knopf-klein" data-r-weg="1">🗑</button></div>' +
+      '<div class="chips">' + (r.punkte || []).map(p => '<span class="chip">' + esc((p.icon || '') + ' ' + p.text) + '<button data-p-weg="' + esc(p.id) + '" aria-label="Entfernen">✕</button></span>').join('') + '</div>' +
+      '<div class="einst-zeile"><input type="text" data-neu-punkt="1" placeholder="z.B. 🧦 Socken anziehen" style="flex:1;"><button class="knopf-klein" data-p-neu="1">＋</button></div></div>').join('') ||
+      '<p class="klein" style="margin-bottom:6px;">Noch keine Routine für dieses Kind.</p>';
+    const routineAendern = (rid, f) => { const e2 = einstellungen(); e2.routinen = Object.assign({}, e2.routinen); const l = (e2.routinen[einstKind] || []).slice(); const r = l.find(x => x.id === rid); if (!r) return; f(r, l); e2.routinen[einstKind] = l.filter(x => !x._weg); einstSpeichern(e2); renderAlles(); };
+    document.querySelectorAll('#einstRoutinen .einst-routine').forEach(box => {
+      const rid = box.dataset.rid;
+      box.querySelectorAll('[data-feld]').forEach(inp => inp.addEventListener('change', () => routineAendern(rid, r => { r[inp.dataset.feld] = inp.dataset.feld === 'sterne' ? Math.max(0, parseInt(inp.value, 10) || 0) : inp.value.trim(); })));
+      box.querySelector('[data-r-weg]').addEventListener('click', () => { if (!confirm('Diese Routine löschen?')) return; routineAendern(rid, r => { r._weg = true; }); einstZusatzRendern(); });
+      box.querySelectorAll('[data-p-weg]').forEach(b => b.addEventListener('click', () => { routineAendern(rid, r => { r.punkte = r.punkte.filter(p => p.id !== b.dataset.pWeg); }); einstZusatzRendern(); }));
+      const neuFeld = box.querySelector('[data-neu-punkt]');
+      const neuAnlegen = () => {
+        const t = neuFeld.value.trim(); if (!t) return;
+        const m = t.match(/^(\p{Extended_Pictographic}(?:\uFE0F|\u200D\p{Extended_Pictographic})*)\s*(.*)$/u);
+        routineAendern(rid, r => { r.punkte = (r.punkte || []).concat([{ id: neueId('rp'), icon: m ? m[1] : '✔️', text: m ? (m[2] || m[1]) : t }]); });
+        einstZusatzRendern();
+      };
+      box.querySelector('[data-p-neu]').addEventListener('click', neuAnlegen);
+      neuFeld.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') neuAnlegen(); });
+    });
+    const wz = e.wochenziel;
+    document.getElementById('wzSterne').value = wz.sterne || 0;
+    document.getElementById('wzBonus').value = wz.bonus || 0;
+    document.getElementById('pinStatus').textContent = e.pinHash ? '✓ Eine PIN ist festgelegt. Bonus, Einlösen und diese Einstellungen sind geschützt.' : 'Ohne PIN können die Kinder auch die Eltern-Knöpfe benutzen.';
+    document.getElementById('btnPinEntfernen').style.display = e.pinHash ? '' : 'none';
+  }
+  function routineHinzufuegen(vorlage) {
+    if (!einstKind) return;
+    const e2 = einstellungen(); e2.routinen = Object.assign({}, e2.routinen);
+    const v = vorlage ? ROUTINE_VORLAGEN[vorlage] : { name: prompt('Name der Routine:', 'Nach der Schule') || '', icon: '📋', sterne: 1, punkte: [] };
+    if (!v.name) return;
+    e2.routinen[einstKind] = (e2.routinen[einstKind] || []).concat([{ id: neueId('ro'), name: v.name, icon: v.icon, sterne: v.sterne, punkte: (v.punkte || []).map(([icon, text]) => ({ id: neueId('rp'), icon, text })) }]);
+    einstSpeichern(e2); einstZusatzRendern(); renderAlles();
+  }
+  document.getElementById('btnRoutineMorgen').addEventListener('click', () => routineHinzufuegen('morgen'));
+  document.getElementById('btnRoutineAbend').addEventListener('click', () => routineHinzufuegen('abend'));
+  document.getElementById('btnRoutineEigen').addEventListener('click', () => routineHinzufuegen(null));
+  ['wzSterne', 'wzBonus'].forEach(id => document.getElementById(id).addEventListener('change', () => {
+    const e2 = einstellungen();
+    e2.wochenziel = { sterne: Math.max(0, parseInt(document.getElementById('wzSterne').value, 10) || 0), bonus: Math.max(0, parseInt(document.getElementById('wzBonus').value, 10) || 0) };
+    einstSpeichern(e2); renderAlles();
+  }));
+  document.getElementById('btnPinSetzen').addEventListener('click', async () => {
+    const pin = document.getElementById('neuePin').value.trim();
+    if (!/^\d{4,6}$/.test(pin)) { alert('Bitte 4 bis 6 Ziffern eingeben.'); return; }
+    const e2 = einstellungen(); e2.pinHash = await pinHash(pin); einstSpeichern(e2);
+    document.getElementById('neuePin').value = '';
+    pinEntsperrtBis = Date.now() + 5 * 60 * 1000;
+    einstZusatzRendern(); renderAlles();
+    toast('🔒 PIN gespeichert – gilt auf allen Geräten der Familie', 4);
+  });
+  document.getElementById('btnPinEntfernen').addEventListener('click', () => {
+    if (!confirm('PIN wirklich entfernen?')) return;
+    const e2 = einstellungen(); e2.pinHash = ''; einstSpeichern(e2); einstZusatzRendern(); renderAlles();
+  });
   function einstOeffnen() {
     einstRendern();
+    einstZusatzRendern();
     const u = einstellungen().umrechnung;
     document.getElementById('umrAktiv').checked = u.aktiv;
     document.getElementById('umrSterne').value = u.sterne;
@@ -484,7 +932,7 @@
       betrag: Math.max(0.01, parseFloat(String(document.getElementById('umrBetrag').value).replace(',', '.')) || 1) };
     einstSpeichern(e); renderAlles();
   }));
-  document.getElementById('btnEinstellungen').addEventListener('click', einstOeffnen);
+  document.getElementById('btnEinstellungen').addEventListener('click', () => mitPin(einstOeffnen, 'Einstellungen nur für Eltern – bitte PIN eingeben.'));
   document.getElementById('btnEinstZu').addEventListener('click', () => document.getElementById('modalEinst').classList.remove('zeigen'));
   document.getElementById('modalEinst').addEventListener('click', (ev) => { if (ev.target.id === 'modalEinst') ev.currentTarget.classList.remove('zeigen'); });
   document.getElementById('btnBelohnungNeu').addEventListener('click', () => {
