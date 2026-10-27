@@ -286,6 +286,27 @@
   .nist-bp-name { font-weight: 700; font-size: 0.8rem; }
   .nist-bp-fuer { font-size: 0.68rem; color: var(--bark); line-height: 1.3; }
   .nist-bp-link { display: block; width: 100%; margin-top: 8px; padding: 10px 12px; border-radius: var(--radius-md); border: none; background: var(--moss); color: #fff; font-weight: 700; font-size: 0.8rem; font-family: inherit; cursor: pointer; text-align: center; }
+  .ws-variante { border: 1px solid var(--parchment); border-radius: var(--radius-md); padding: 10px 12px; margin-top: 10px; background: var(--cream); }
+  .ws-variante h4 { font-size: 0.86rem; margin: 0; }
+  .ws-variante .ws-info { font-size: 0.7rem; color: var(--bark); margin: 2px 0 6px; }
+  .ws-variante ul { margin: 4px 0 6px 18px; }
+  .ws-skizzen { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin-top: 6px; }
+  .ws-skizze { background: var(--white); border: 1px solid var(--parchment); border-radius: var(--radius-md); padding: 8px; }
+  .ws-skizze svg { width: 100%; height: auto; display: block; color: var(--soil); }
+  .ws-skizze-titel { font-size: 0.72rem; font-weight: 700; color: var(--bark); margin-bottom: 4px; }
+  .ws-tabelle { width: 100%; border-collapse: collapse; font-size: 0.76rem; }
+  .ws-tabelle td { padding: 5px 4px; border-top: 1px solid var(--parchment); vertical-align: top; }
+  .ws-tabelle td:first-child { font-weight: 600; white-space: nowrap; padding-right: 10px; }
+  .ws-fehler li::marker { content: '✕  '; color: var(--terracotta); }
+  .ws-meine { border: 1.5px solid var(--sage); border-radius: var(--radius-md); padding: 10px 12px; margin-top: 12px; background: var(--white); }
+  .ws-zeile { display: flex; align-items: center; gap: 8px; padding: 7px 0; border-top: 1px solid var(--parchment); font-size: 0.8rem; }
+  .ws-zeile:first-of-type { border-top: none; }
+  .ws-zeile .ws-name { flex: 1; min-width: 0; }
+  .ws-zeile .ws-name small { display: block; font-size: 0.68rem; color: var(--bark); }
+  .ws-zeile .ws-name small.faellig { color: var(--terracotta-text); font-weight: 700; }
+  .ws-zeile button, .ws-neu button { border: 1px solid var(--parchment); background: var(--cream); color: var(--soil); border-radius: 999px; padding: 4px 10px; font-size: 0.72rem; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .ws-zeile button.haupt { background: var(--moss); color: var(--on-moss, #fff); border-color: var(--moss); }
+  .ws-neu { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
   .tier-tipp { background: rgba(201,154,58,0.13); border-radius: var(--radius-sm); padding: 8px 10px; font-size: 0.76rem; margin-top: 6px; }
   .tier-abschnitt-titel { font-weight: 700; font-size: 0.8rem; margin: 14px 0 6px; color: var(--moss-text, var(--moss)); }
   html[data-dark="1"] .tier-abschnitt-titel { color: var(--sage); }
@@ -3234,7 +3255,7 @@ function wetterWarnBanner() {
   if (heatWarn) {
     const dayList = heatWarn.days.map(d => `${d.label} ${Math.round(d.tmax)}°C`).join(', ');
     heatBanner = `<div style="font-size:0.74rem;padding:6px 9px;border-radius:7px;background:#fdf3e0;border-left:3px solid #d4880a;margin-bottom:8px">
-      🌡️ <strong>Hitze erwartet:</strong> ${dayList} – morgens/abends gießen statt mittags, Mulch hilft gegen Austrocknung, empfindliche Pflanzen ggf. beschatten.
+      🌡️ <strong>Hitze erwartet:</strong> ${dayList} – morgens/abends gießen statt mittags, Mulch hilft gegen Austrocknung, empfindliche Pflanzen ggf. beschatten. Tränken für Insekten, Vögel &amp; Igel täglich frisch füllen.
     </div>`;
   }
   let heavyRainBanner = '';
@@ -3720,6 +3741,7 @@ function toggleCareTaskDone(id) {
   if (i === -1) state.done.push(id); else state.done.splice(i, 1);
   localStorage.setItem('gartenplaner_careDone', JSON.stringify(state));
   giessTagebuchBeimAbhaken(id, i === -1);
+  wasserstelleBeimAbhaken(id, i === -1);
 }
 
 // ==================== 💧 GIESS-TAGEBUCH ====================
@@ -3890,6 +3912,7 @@ async function computeCarePlanData() {
       }
     });
   }
+  wasserstellenPflegeItems(hotDry || !!heatWarn).forEach(i => items.push(i));
   return { items, undated, weather, rainSoon, bedWaterStatus, hotDry, recentRain, frostWarn, frostAffected, heatWarn, heavyRainWarn, hailWarn };
 }
 async function openCarePlan() {
@@ -3942,7 +3965,7 @@ function renderCarePlan(items, undated, weather, rainSoon, bedWaterStatus, hotDr
     return;
   }
   items.sort((a,b)=> (b.urgent?1:0) - (a.urgent?1:0));
-  const groups = { water: '🚿 Gießen', fertilize: '🌿 Düngen', harvest: '🧺 Ernte' };
+  const groups = { water: '🚿 Gießen', traenke: '💦 Wasserstellen', fertilize: '🌿 Düngen', harvest: '🧺 Ernte' };
   let html = frostBanner + weatherBanner + bedBanner;
   for (const kind of Object.keys(groups)) {
     const list = items.filter(i=>i.kind===kind);
@@ -10061,6 +10084,7 @@ async function renderHomeOverview() {
   lastCareItems = d.items;
   const todayTasks = d.items.filter(i =>
     (i.kind === 'water' && i.urgent && !i.skip) ||
+    (i.kind === 'traenke' && i.urgent) ||
     (i.kind === 'harvest' && i.urgent) ||
     (i.kind === 'fertilize')
   );
@@ -10085,6 +10109,8 @@ async function renderHomeOverview() {
     stats.push({ icon: '🌧️', label: `Starkregen ${d.heavyRainWarn.worst.label} (${Math.round(d.heavyRainWarn.worst.sum)}mm)`, tone: 'heavyrain', onclick: '' });
   }
   if (waterToday > 0) stats.push({ icon: '🚿', label: `${waterToday}× heute gießen`, tone: 'water', onclick: '' });
+  const traenkenHeute = openTasks.filter(i => i.kind === 'traenke').length;
+  if (traenkenHeute > 0) stats.push({ icon: '💦', label: `${traenkenHeute}× Tränke frisch füllen`, tone: 'water', onclick: '' });
   if (harvestReady > 0) stats.push({ icon: '🧺', label: `${harvestReady}× erntereif`, tone: 'harvest', onclick: '' });
   if (fertilizeDue > 0) stats.push({ icon: '🌿', label: `${fertilizeDue}× düngen fällig`, tone: 'fertilize', onclick: '' });
   if (expiringPantry.length > 0) stats.push({ icon: '🥫', label: `${expiringPantry.length}× Vorrat läuft bald ab`, tone: 'pantry', onclick: '' });
@@ -10394,6 +10420,163 @@ function nistBauplanOeffnen(id) {
     window.location.href = 'handwerk.html';
   }
 }
+function TIER_ID_TIERE(pid) { return TIERE.filter(t => (t.projekte || []).includes(pid)); }
+// Varianten, Material, Skizze, Pflanzen, Pflege & Fehler (z. B. Mini-Wasserstelle)
+function renderProjektExtrasHtml(p) {
+  let h = (p.varianten || []).map(v => `<div class="ws-variante"><h4>${escapeHtml(v.titel)}</h4><div class="ws-info">${escapeHtml(v.info || '')}</div>
+      ${v.material ? `<b style="font-size:0.74rem">🧺 Material</b><ul>${v.material.map(m => `<li>${escapeHtml(m)}</li>`).join('')}</ul>` : ''}
+      <b style="font-size:0.74rem">🛠️ So geht’s</b><ol>${v.schritte.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ol></div>`).join('');
+  if (p.id === 'miniwasser') h += `<div class="tier-abschnitt-titel">📐 Skizzen für 30 × 50 cm</div><div class="ws-skizzen">
+      <div class="ws-skizze"><div class="ws-skizze-titel">A · Tränken-Duo, von oben</div>${wsSkizzeDuo()}</div>
+      <div class="ws-skizze"><div class="ws-skizze-titel">B · Mini-Teich, im Querschnitt</div>${wsSkizzeTeich()}</div></div>`;
+  if (p.pflanzen) h += `<div class="tier-abschnitt-titel">🌿 Pflanzen für den Mini-Teich</div><table class="ws-tabelle">${p.pflanzen.map(z => `<tr><td>${escapeHtml(z[0])}</td><td>${escapeHtml(z[1])}</td></tr>`).join('')}</table>
+      <div class="tier-meta" style="margin-top:4px">Ein bis drei Pflanzen reichen – heimische Arten, im Körbchen, damit sie die Wanne nicht zuwuchern.</div>`;
+  if (p.pflege) h += `<div class="tier-abschnitt-titel">📅 Pflege durchs Jahr</div><table class="ws-tabelle">${p.pflege.map(z => `<tr><td>${escapeHtml(z[0])}</td><td>${escapeHtml(z[1])}</td></tr>`).join('')}</table>`;
+  if (p.fehler) h += `<div class="tier-abschnitt-titel">⚠️ Typische Fehler</div><ul class="ws-fehler" style="margin:4px 0 0 18px">${p.fehler.map(f => `<li>${escapeHtml(f)}</li>`).join('')}</ul>`;
+  return h;
+}
+// Skizze A: Draufsicht 50 × 30 cm (Maßstab 5 px = 1 cm)
+function wsSkizzeDuo() {
+  return `<svg viewBox="0 0 300 212" role="img" aria-label="Skizze: Insektentränke erhöht und Bodentränke nebeneinander auf 50 mal 30 Zentimetern">
+    <rect x="25" y="25" width="250" height="150" rx="6" fill="rgba(127,164,118,0.18)" stroke="currentColor" stroke-dasharray="5 4" stroke-width="1.2"/>
+    <g><rect x="45" y="45" width="110" height="110" rx="8" fill="rgba(160,120,80,0.35)" stroke="currentColor" stroke-width="0.8"/>
+      <circle cx="100" cy="100" r="62" fill="rgba(91,139,181,0.45)" stroke="currentColor" stroke-width="1.2"/>
+      <circle cx="82" cy="88" r="12" fill="#9a8f80"/><circle cx="114" cy="112" r="10" fill="#8b8173"/><circle cx="108" cy="78" r="7" fill="#a59a8b"/>
+      <path d="M68 118 L124 70" stroke="#7a5a36" stroke-width="5" stroke-linecap="round"/><circle cx="92" cy="122" r="6" fill="#6f9a5a"/></g>
+    <g><circle cx="215" cy="100" r="50" fill="rgba(91,139,181,0.45)" stroke="currentColor" stroke-width="1.2"/>
+      <circle cx="215" cy="100" r="14" fill="#9a8f80"/></g>
+    <g font-size="10" fill="currentColor" font-family="Inter, sans-serif">
+      <text x="150" y="18" text-anchor="middle">50 cm</text>
+      <text x="12" y="100" text-anchor="middle" transform="rotate(-90 12 100)">30 cm</text>
+      <text x="100" y="192" text-anchor="middle">Insektentränke ⌀ 25 cm</text><text x="100" y="205" text-anchor="middle" font-size="8.5">auf Sockel, 20–40 cm</text>
+      <text x="215" y="192" text-anchor="middle">Bodentränke ⌀ 20 cm</text><text x="215" y="205" text-anchor="middle" font-size="8.5">ebenerdig</text>
+    </g></svg>`;
+}
+// Skizze B: Querschnitt der eingegrabenen Wanne
+function wsSkizzeTeich() {
+  return `<svg viewBox="0 0 300 200" role="img" aria-label="Skizze: eingegrabene Wanne mit Steinstufen, Ast als Ausstieg, Pflanzkorb und Gitter">
+    <rect x="0" y="62" width="300" height="138" fill="rgba(140,105,70,0.28)"/>
+    <path d="M0 62 H300" stroke="#6f9a5a" stroke-width="4"/>
+    <path d="M50 62 L58 168 H242 L250 62" fill="rgba(91,139,181,0.42)" stroke="currentColor" stroke-width="1.5"/>
+    <path d="M57 160 H243" stroke="#c9b48a" stroke-width="12"/>
+    <rect x="58" y="70" width="184" height="2" fill="rgba(91,139,181,0.9)"/>
+    <path d="M52 75 H248" stroke="currentColor" stroke-dasharray="3 3" stroke-width="1"/>
+    <g fill="#9a8f80" stroke="currentColor" stroke-width="0.6"><rect x="196" y="128" width="44" height="26" rx="5"/><rect x="206" y="104" width="34" height="24" rx="5"/><rect x="216" y="84" width="24" height="20" rx="5"/></g>
+    <path d="M150 116 L262 48" stroke="#7a5a36" stroke-width="6" stroke-linecap="round"/>
+    <rect x="78" y="118" width="40" height="36" fill="#6b5a44" stroke="currentColor" stroke-width="0.8"/>
+    <path d="M90 118 C88 96 84 78 80 40 M100 118 C100 92 102 70 104 32 M110 118 C112 98 116 80 122 50" stroke="#5f8f4e" stroke-width="3" fill="none"/>
+    <g font-size="10" fill="currentColor" font-family="Inter, sans-serif">
+      <text x="150" y="14" text-anchor="middle">Wanne ca. 40 × 30 cm, bündig eingegraben</text>
+      <text x="270" y="40" text-anchor="end" font-size="8.5">Ast als Rampe</text>
+      <text x="245" y="194" text-anchor="end" font-size="8.5">Steinstufen als Ausstieg</text>
+      <text x="60" y="194" font-size="8.5">Sand-Kies</text>
+      <text x="40" y="112" text-anchor="end" font-size="8.5">Pflanz-</text><text x="40" y="122" text-anchor="end" font-size="8.5">korb</text>
+      <text x="150" y="88" text-anchor="middle" font-size="8.5">- - Gitter (bei Kindern)</text>
+    </g></svg>`;
+}
+
+// ==================== 💦 MEINE WASSERSTELLEN (mit Wasserwechsel im Pflegeplan) ====================
+// gardens[id].wasserstellen = [{ id, typ: 'traenke'|'boden'|'teich', name, angelegt, zuletzt }]
+const WASSERSTELLEN_TYPEN = {
+  traenke: { icon: '🥣', name: 'Insektentränke', intervall: 2, text: 'Wasser wechseln' },
+  boden: { icon: '🦔', name: 'Bodentränke', intervall: 2, text: 'Wasser wechseln' },
+  teich: { icon: '💧', name: 'Mini-Teich', intervall: 7, text: 'Wasserstand prüfen, mit Regenwasser auffüllen' },
+};
+function gartenWasserstellen() {
+  const g = gardens[currentGardenId];
+  if (!g) return [];
+  if (!Array.isArray(g.wasserstellen)) g.wasserstellen = [];
+  return g.wasserstellen;
+}
+function wsTageSeit(iso) { if (!iso) return null; const a = new Date(iso + 'T00:00:00'), h = new Date(); h.setHours(0, 0, 0, 0); return Math.round((h - a) / 864e5); }
+// Fälligkeit: Tränken alle 2 Tage (bei Hitze täglich), Mini-Teich wöchentlich (bei Hitze alle 2 Tage, im Winter Ruhe)
+function wsFaelligkeit(w, heiss) {
+  const typ = WASSERSTELLEN_TYPEN[w.typ] || WASSERSTELLEN_TYPEN.traenke;
+  const monat = new Date().getMonth() + 1;
+  if (w.typ === 'teich' && (monat >= 11 || monat <= 2)) return null;
+  const intervall = heiss ? (w.typ === 'teich' ? 2 : 1) : typ.intervall;
+  const seit = wsTageSeit(w.zuletzt || w.angelegt);
+  if (seit === null) return { dueToday: true, dueIn: 0, intervall };
+  return { dueToday: seit >= intervall, dueIn: Math.max(0, intervall - seit), seit, intervall };
+}
+function wsHeissJetzt() {
+  try { return !!(typeof getUpcomingHeatWarning === 'function' && getUpcomingHeatWarning()); } catch (e) { return false; }
+}
+function renderMeineWasserstellenHtml() {
+  const liste = gartenWasserstellen();
+  const heiss = wsHeissJetzt();
+  const zeilen = liste.map(w => {
+    const typ = WASSERSTELLEN_TYPEN[w.typ] || WASSERSTELLEN_TYPEN.traenke;
+    const f = wsFaelligkeit(w, heiss);
+    const seit = wsTageSeit(w.zuletzt || w.angelegt);
+    const stand = w.zuletzt ? (seit === 0 ? 'heute frisch' : seit === 1 ? 'gestern frisch' : 'zuletzt vor ' + seit + ' Tagen') : 'noch nicht abgehakt';
+    const faellig = f && f.dueToday;
+    return `<div class="ws-zeile"><span style="font-size:1.2rem">${typ.icon}</span><span class="ws-name">${escapeHtml(w.name || typ.name)}
+      <small class="${faellig ? 'faellig' : ''}">${escapeHtml(stand)}${f ? (faellig ? ' · 💧 heute fällig' : ' · nächstes Mal in ' + f.dueIn + ' Tag' + (f.dueIn === 1 ? '' : 'en')) : ' · Winterruhe'}${heiss && f ? ' (Hitze)' : ''}</small></span>
+      <button type="button" class="${faellig ? 'haupt' : ''}" onclick="wasserstelleGewechselt('${w.id}')">✓ ${w.typ === 'teich' ? 'Geprüft' : 'Gewechselt'}</button>
+      <button type="button" onclick="wasserstelleUmbenennen('${w.id}')" title="Umbenennen" aria-label="Umbenennen">✏️</button>
+      <button type="button" onclick="wasserstelleEntfernen('${w.id}')" title="Entfernen" aria-label="Entfernen">🗑</button></div>`;
+  }).join('');
+  return `<div class="ws-meine"><div class="tier-abschnitt-titel" style="margin-top:0">💦 Meine Wasserstellen</div>
+    ${liste.length ? zeilen : '<div class="tier-meta">Trag ein, was du angelegt hast – dann erinnert der Pflegeplan ans frische Wasser (bei Hitze täglich).</div>'}
+    <div class="ws-neu">${Object.entries(WASSERSTELLEN_TYPEN).map(([id, t]) => `<button type="button" onclick="wasserstelleNeu('${id}')">＋ ${t.icon} ${escapeHtml(t.name)}</button>`).join('')}</div></div>`;
+}
+function wsNeuZeichnen() { tierProjektOffen = 'miniwasser'; saveData(); if (typeof renderTiere === 'function') renderTiere(); }
+function wasserstelleNeu(typ) {
+  const t = WASSERSTELLEN_TYPEN[typ]; if (!t) return;
+  const name = prompt('Name der Wasserstelle (z. B. „' + t.name + ' am Beet“):', t.name);
+  if (name === null) return;
+  gartenWasserstellen().push({ id: 'ws' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), typ, name: name.trim() || t.name, angelegt: heuteISO(), zuletzt: heuteISO() });
+  wsNeuZeichnen();
+  showTempStatus('💦 ' + (name.trim() || t.name) + ' eingetragen – der Pflegeplan erinnert ans Wasser', 4);
+}
+function wasserstelleGewechselt(id) {
+  const w = gartenWasserstellen().find(x => x.id === id); if (!w) return;
+  const vorher = w.zuletzt;
+  w.zuletzt = heuteISO();
+  wsNeuZeichnen();
+  showTempStatus('💧 Frisches Wasser – danke!', 4, { label: 'Rückgängig', aktion: () => { w.zuletzt = vorher; wsNeuZeichnen(); } });
+}
+function wasserstelleUmbenennen(id) {
+  const w = gartenWasserstellen().find(x => x.id === id); if (!w) return;
+  const name = prompt('Neuer Name:', w.name || '');
+  if (name === null || !name.trim()) return;
+  w.name = name.trim(); wsNeuZeichnen();
+}
+function wasserstelleEntfernen(id) {
+  const liste = gartenWasserstellen();
+  const i = liste.findIndex(x => x.id === id); if (i === -1) return;
+  const weg = liste.splice(i, 1)[0];
+  wsNeuZeichnen();
+  showTempStatus('🗑 „' + (weg.name || 'Wasserstelle') + '“ entfernt', 5, { label: 'Rückgängig', aktion: () => { liste.splice(i, 0, weg); wsNeuZeichnen(); } });
+}
+// Pflegeplan-Aufgaben für die Wasserstellen
+function wasserstellenPflegeItems(heiss) {
+  const items = [];
+  gartenWasserstellen().forEach(w => {
+    const typ = WASSERSTELLEN_TYPEN[w.typ] || WASSERSTELLEN_TYPEN.traenke;
+    const f = wsFaelligkeit(w, heiss);
+    if (!f) return;
+    const id = 'ws_' + w.id + '_traenke';
+    const heuteErledigt = isCareTaskDone(id) && wsTageSeit(w.zuletzt) === 0;
+    if (!f.dueToday && !heuteErledigt && f.dueIn > 1) return;
+    items.push({ id, bed: 'Wasserstelle', plant: w.name || typ.name, sym: typ.icon, kind: 'traenke', urgent: f.dueToday || heuteErledigt,
+      text: (f.dueToday || heuteErledigt) ? '💧 ' + typ.text + (heiss ? ' (Hitze)' : '') : 'morgen wieder', dueInDays: (f.dueToday || heuteErledigt) ? 0 : f.dueIn });
+  });
+  return items;
+}
+// Abhaken im Pflegeplan trägt „frisches Wasser“ ein (Rückgängig stellt den alten Stand wieder her)
+function wasserstelleBeimAbhaken(id, jetztErledigt) {
+  const m = /^ws_(.+)_traenke$/.exec(id); if (!m) return;
+  const w = gartenWasserstellen().find(x => x.id === m[1]); if (!w) return;
+  const state = getCareDoneState();
+  state.wsVorher = state.wsVorher || {};
+  if (jetztErledigt) { if (!(id in state.wsVorher)) state.wsVorher[id] = w.zuletzt || null; w.zuletzt = heuteISO(); }
+  else if (id in state.wsVorher) { if (state.wsVorher[id]) w.zuletzt = state.wsVorher[id]; else delete w.zuletzt; delete state.wsVorher[id]; }
+  localStorage.setItem('gartenplaner_careDone', JSON.stringify(state));
+  saveData();
+}
+
 function renderBauplaeneHtml(ids) {
   return `<div class="tier-abschnitt-titel">📐 Baupläne zum Nachbauen</div>
     <div class="nist-bp-raster">${ids.map(id => { const b = NIST_BAUPLAENE[id]; return b ? `<button type="button" class="nist-bp-karte" onclick="nistBauplanOeffnen('${id}')">
@@ -10401,17 +10584,20 @@ function renderBauplaeneHtml(ids) {
     <button type="button" class="nist-bp-link" onclick="nistBauplanOeffnen('${ids[0]}')">🔨 Baupläne mit Maßen &amp; Zuschnitt im Handwerk-Modul öffnen ›</button>`;
 }
 
+let tierProjektOffen = null; // bleibt nach dem Neuzeichnen aufgeklappt (z. B. nach „＋ Wasserstelle“)
 function renderTierProjekteHtml() {
   return `<p class="tier-einleitung">Kleine und große Projekte – viele davon kann man gut zusammen mit Kindern bauen. Unter jedem Projekt steht, welche Tiere davon profitieren.</p>` +
     TIER_PROJEKTE.map(p => {
-      const tiere = TIERE.filter(t => t.projekte.includes(p.id));
-      return `<details class="tier-projekt" id="tierProjekt-${p.id}">
+      const tiere = TIER_ID_TIERE(p.id);
+      return `<details class="tier-projekt" id="tierProjekt-${p.id}"${tierProjektOffen === p.id ? ' open' : ''}>
         <summary><span class="tier-projekt-icon">${p.icon}</span><span class="tier-projekt-kopf"><b>${escapeHtml(p.titel)}</b><span class="tier-meta">${TIER_AUFWAND[p.aufwand]} · 📅 ${escapeHtml(p.zeit)}</span></span><span class="vlist-pfeil">▸</span></summary>
         <div class="tier-projekt-inhalt">
           <p>${escapeHtml(p.kurz)}</p>
-          <ol>${p.schritte.map(s => `<li>${escapeHtml(s)}</li>`).join('')}</ol>
+          ${p.schritte && p.schritte.length ? `<ol>${p.schritte.map(s => `<li>${escapeHtml(s)}</li>`).join('')}</ol>` : ''}
+          ${p.varianten ? renderProjektExtrasHtml(p) : ''}
           ${p.tipp ? `<div class="tier-tipp">💡 ${escapeHtml(p.tipp)}</div>` : ''}
           ${p.bauplaene ? renderBauplaeneHtml(p.bauplaene) : ''}
+          ${p.id === 'miniwasser' ? renderMeineWasserstellenHtml() : ''}
           ${tiere.length ? `<div class="tier-abschnitt-titel">Hilft diesen Tieren</div><div class="tier-chips">${tiere.map(t => `<button type="button" class="tier-chip tier-chip-btn" onclick="tierDetailOeffnen('${t.id}')">${t.icon} ${escapeHtml(t.name)}</button>`).join('')}</div>` : ''}
         </div>
       </details>`;
@@ -10534,6 +10720,7 @@ const LEX_FUNKTIONEN = [
   ['🧩', 'Beet-Vorlagen', 'vorlage vorlagen', () => openTemplateModal()],
   ['🥫', 'Verwertung & Haltbarmachen', 'einkochen einfrieren fermentieren trocknen verwertung', () => showView('preserve')],
   ['🦔', 'Tiere im Garten', 'tiere igel vögel bienen insekten naturgarten', () => showView('tiere')],
+  ['💦', 'Mini-Wasserstelle anlegen', 'wasserstelle tränke traenke insektentränke bienentränke vogeltränke miniteich teich wasser wanne', () => { showView('tiere'); tierProjektZeigen('miniwasser'); }],
   ['📖', 'Tipps & Tricks', 'tipps tricks wissen', () => showView('tips')],
   ['📸', 'Fotoalbum', 'foto album bilder', () => showView('album')],
   ['🏬', 'Shops & Dienstleister', 'shop gärtnerei hofladen', () => showView('shops')],

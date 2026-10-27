@@ -2,6 +2,9 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
+## 2026-10-27 | 💦 Garten: Mini-Wasserstelle für Insekten, Igel & Vögel
+Unter 🦔 Tiere im Garten → 🔨 Lebensräume bauen gibt es eine neue Anleitung für kleine Flächen ab 30 × 50 cm. Variante A ist ein Tränken-Duo (erhöht für Insekten, am Boden für Igel und Vögel), Variante B ein Mini-Teich in der Wanne. Dazu gibt es Materiallisten, Skizzen mit Maßen, passende heimische Pflanzen, Pflege durchs Jahr und typische Fehler, z. B. keine Glasmurmeln in die Tränke. Unter „Meine Wasserstellen“ trägst du ein, was du angelegt hast. Der Pflegeplan erinnert dann ans frische Wasser: alle 2 Tage, bei Hitze täglich, beim Mini-Teich wöchentlich. Auch im Lexikon findest du sie unter „Wasserstelle“.
+
 ## 2026-10-27 | 🔧 Gesamtcheck
 Alle Bereiche wurden einmal komplett durchgeprüft. Behoben: Ernährung, Krankheiten und Vorsorge aus Gesundheit sowie die Preisbeobachtung aus Finanzen fehlten bisher in der Suche oben. Nach dem Wiederherstellen einer Sicherung wurden sie außerdem nicht sofort in die Cloud übertragen.
 
