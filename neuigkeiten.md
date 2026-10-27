@@ -2,6 +2,9 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
+## 2026-10-27 | 🔧 Gesamtcheck
+Alle Bereiche wurden einmal komplett durchgeprüft. Behoben: Ernährung, Krankheiten und Vorsorge aus Gesundheit sowie die Preisbeobachtung aus Finanzen fehlten bisher in der Suche oben. Nach dem Wiederherstellen einer Sicherung wurden sie außerdem nicht sofort in die Cloud übertragen.
+
 ## 2026-10-27 | 🎁 Wunschliste: Überraschungen geschützt & „Ich besorge das“
 Behoben: Wer sich etwas wünscht, sah auf dem eigenen Gerät, dass es schon reserviert war. Jetzt bleibt das verborgen, bis der Anlass vorbei ist. Mit „🙋 Ich besorge das“ reservierst du direkt auf der Karte. Danach geht es weiter über 🛍️ besorgt (mit tatsächlichem Preis, auf Wunsch in Finanzen gebucht) bis 🎁 verschenkt. Verschenktes landet im 📜 Verlauf, also z. B. „Was hat Malia letztes Jahr bekommen?“. 🔁 Dauerwünsche bleiben stehen. Links werden nur noch geöffnet, wenn es echte Webadressen sind.
 
