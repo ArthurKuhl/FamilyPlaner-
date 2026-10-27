@@ -2,6 +2,9 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
+## 2026-10-27 | 📖 Bücher: Reihen als Ordner, Kindle+, Autor, Sprache & Inhalt
+Auf Caros Wunsch: Bücher einer Reihe landen in einem 📁 Ordner. Er zeigt Cover, Autor/in, „2 Bücher · 1 gelesen“ und das gerade gelesene Buch. Im Ordner sind die Bücher nach Band sortiert, und ＋ Neu trägt die Reihe gleich ein. Neu bei jedem Buch: Format „Kindle+“, ein eigenes Feld für Autor/in (die Online-Suche füllt es mit), „Gelesen am“ zum Eintragen oder Korrigieren, die Sprache (z. B. 🇬🇧 EN auf der Karte) und ein Feld „Inhalt“ für Klappentext oder eigene Zusammenfassung. Die Suche findet jetzt auch Autor, Reihe und Inhalt.
+
 ## 2026-10-27 | 🍳 Koch-Modus: Zutaten wieder sichtbar und direkt beim Schritt
 Behoben: Bei langem Schritt-Text und laufendem Timer wurde die Zutatenliste im Koch-Modus auf null Höhe zusammengedrückt und blieb leer. Neu: Unter jedem Schritt stehen automatisch die Zutaten, die darin vorkommen, mit der Menge für die gewählte Portionszahl. Dafür muss nichts extra eingetragen werden.
 

@@ -217,6 +217,21 @@
   .such-treffer .st-info { font-size: 0.7rem; color: var(--bark); }
   .such-status { font-size: 0.75rem; color: var(--bark); margin-top: 4px; }
   .spiel-info { font-size: 0.68rem; color: var(--bark); margin-top: -3px; }
+  .spiel-inhalt { font-size: 0.7rem; color: var(--bark); font-style: italic; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .reihe-karte { position: relative; }
+  .reihe-karte .reihe-stapel { display: flex; height: 96px; margin: -12px -12px 2px; overflow: hidden; }
+  .reihe-karte .reihe-stapel div { flex: 1; background-size: cover; background-position: center; border-right: 2px solid var(--white); }
+  .reihe-karte .reihe-stapel .leer { display: flex; align-items: center; justify-content: center; font-size: 2rem; background: rgba(125,99,57,0.12); }
+  .reihe-balken { height: 6px; border-radius: 3px; background: var(--parchment); overflow: hidden; }
+  .reihe-balken span { display: block; height: 100%; background: var(--moss); }
+  .reihe-kopf { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; background: var(--white); border-radius: var(--radius-md); padding: 10px 12px; box-shadow: var(--shadow-soft); }
+  .reihe-kopf button { border: 1px solid var(--parchment); background: var(--cream); color: var(--soil); border-radius: 999px; padding: 5px 12px; font-size: 0.78rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .reihe-kopf b { flex: 1; font-size: 0.92rem; }
+  .reihe-kopf small { font-size: 0.72rem; color: var(--bark); }
+  .reihe-nr { display: inline-block; min-width: 20px; padding: 0 5px; margin-right: 4px; border-radius: 999px; background: var(--parchment); color: var(--bark); font-size: 0.7rem; text-align: center; }
+  .zwei-felder { display: flex; gap: 8px; }
+  .zwei-felder > :first-child { flex: 1; min-width: 0; }
+  .zwei-felder > :last-child { flex: 0 0 82px; }
   .karte-hinweis { font-size: 0.66rem; font-weight: 700; padding: 3px 8px; border-radius: 8px; background: rgba(91,139,181,0.15); color: var(--soil); }
   .karte-hinweis.dringend { background: rgba(196,107,65,0.2); color: var(--terracotta-text, #a8532e); }
   .ausleihe-zeile { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -310,6 +325,19 @@
       <label>Art</label>
       <div class="opt-reihe" id="editTypReihe"></div>
     </div>
+    <div class="feld" id="fAutorFeld">
+      <label for="fAutor">Autor/in</label>
+      <input type="text" id="fAutor" placeholder="z.B. Sarah J. Maas" list="autorListe" autocomplete="off">
+      <datalist id="autorListe"></datalist>
+    </div>
+    <div class="feld" id="fReiheFeld">
+      <label for="fReihe">📁 Reihe (optional)</label>
+      <div class="zwei-felder">
+        <input type="text" id="fReihe" placeholder="z.B. Das Reich der sieben Höfe" list="reiheListe" autocomplete="off">
+        <input type="number" id="fReiheNr" min="0" step="0.5" inputmode="decimal" placeholder="Band">
+      </div>
+      <datalist id="reiheListe"></datalist>
+    </div>
     <div class="feld">
       <label>Person</label>
       <div class="opt-reihe" id="editPersonReihe"></div>
@@ -332,6 +360,22 @@
         <div class="feld">
           <label for="fStatus">Status</label>
           <select id="fStatus"></select>
+        </div>
+        <div class="feld" id="fBeendetFeld" style="display:none;">
+          <label for="fBeendetAm" id="fBeendetLabel">Gelesen am</label>
+          <input type="date" id="fBeendetAm">
+        </div>
+        <div class="feld" id="fSpracheFeld">
+          <label for="fSprache">Sprache</label>
+          <select id="fSprache">
+            <option value="">Deutsch</option>
+            <option value="en">🇬🇧 Englisch</option>
+            <option value="fr">🇫🇷 Französisch</option>
+            <option value="es">🇪🇸 Spanisch</option>
+            <option value="it">🇮🇹 Italienisch</option>
+            <option value="jp">🇯🇵 Japanisch</option>
+            <option value="sonst">🌍 andere</option>
+          </select>
         </div>
         <div class="feld" id="fFortschrittFeld">
           <label id="fFortschrittLabel">Fortschritt</label>
@@ -361,6 +405,10 @@
         <input type="date" id="fAusleiheBis" title="Rückgabe bis" style="display:none;">
       </div>
       <button type="button" class="btn btn-secondary" id="btnAusleiheTermin" style="display:none;margin-top:6px;width:100%;padding:8px;">📅 Rückgabe als Termin mit Erinnerung</button>
+    </div>
+    <div class="feld" id="fInhaltFeld">
+      <label for="fInhalt">Inhalt (optional)</label>
+      <textarea id="fInhalt" rows="3" placeholder="Worum geht es? Klappentext oder eigene kurze Zusammenfassung …"></textarea>
     </div>
     <div class="feld">
       <label for="fNotiz">Notiz (optional)</label>
@@ -523,12 +571,12 @@
 
   // Wo man etwas liest bzw. schaut
   const WO_LESEN_MANGA = [
-    { id: 'print', label: 'Print', icon: '📘' }, { id: 'ebook', label: 'E-Book', icon: '📱' },
+    { id: 'print', label: 'Print', icon: '📘' }, { id: 'ebook', label: 'E-Book', icon: '📱' }, { id: 'kindleplus', label: 'Kindle+', icon: '📲' },
     { id: 'online', label: 'Online/Webtoon', icon: '🌐' }, { id: 'geliehen', label: 'Ausgeliehen', icon: '🤝' },
     { id: 'sonstiges', label: 'Sonstiges', icon: '📦' },
   ];
   const WO_LESEN_BUCH = [
-    { id: 'print', label: 'Print', icon: '📘' }, { id: 'ebook', label: 'E-Book', icon: '📱' },
+    { id: 'print', label: 'Print', icon: '📘' }, { id: 'ebook', label: 'E-Book', icon: '📱' }, { id: 'kindleplus', label: 'Kindle+', icon: '📲' },
     { id: 'hoerbuch', label: 'Hörbuch', icon: '🎧' }, { id: 'geliehen', label: 'Ausgeliehen', icon: '🤝' },
     { id: 'sonstiges', label: 'Sonstiges', icon: '📦' },
   ];
@@ -575,6 +623,9 @@
     { id: 'film', label: '🎬 Filme/Serien' },
   ];
   function typInfo(id) { return TYPEN.find(t => t.id === id) || TYPEN[0]; }
+  const SPRACHEN = { en: '🇬🇧 EN', fr: '🇫🇷 FR', es: '🇪🇸 ES', it: '🇮🇹 IT', jp: '🇯🇵 JP', sonst: '🌍' };
+  let offeneReihe = null; // Name der geöffneten Reihe („Ordner“)
+  function reiheKey(n) { return String(n || '').trim().toLowerCase(); }
 
   // Status-IDs sind für alle Arten gleich, nur die Worte passen sich an
   const STATUS_BASIS = [
@@ -657,6 +708,7 @@
   function renderFilter() {
     chipReihe('typFilterReihe', TYP_FILTER, typFilter, (id) => {
       typFilter = id;
+      offeneReihe = null;
       try { localStorage.setItem(KEY_TYP_FILTER, id); } catch (e) {}
       renderFilter(); renderAlles();
     });
@@ -680,7 +732,7 @@
   function gefilterteEintraege() {
     const liste = basisListe().filter(e => {
       if (statusFilter !== 'alle' && e.status !== statusFilter) return false;
-      if (suchtext && !e.titel.toLowerCase().includes(suchtext)) return false;
+      if (suchtext && ![e.titel, e.info && e.info.autor, e.reihe, e.inhalt].some(x => String(x || '').toLowerCase().includes(suchtext))) return false;
       return true;
     });
     liste.sort((a, b) => sortRichtung === 'za' ? b.titel.localeCompare(a.titel) : a.titel.localeCompare(b.titel));
@@ -813,13 +865,17 @@
     const plusFeld = plusEinsFeld(e);
     karte.innerHTML =
       (coverQuelle(e) ? '<div class="spiel-cover" style="background-image:url(\'' + escapeHtml(coverQuelle(e)).replace(/'/g, '%27') + '\')"></div>' : '') +
-      '<div class="spiel-titel">' + escapeHtml(e.titel) + '</div>' +
+      '<div class="spiel-titel">' + (e.reihe && offeneReihe && e.reiheNr !== undefined && e.reiheNr !== '' ? '<span class="reihe-nr">' + escapeHtml(String(e.reiheNr)) + '</span>' : '') + escapeHtml(e.titel) + '</div>' +
       (e.info && (e.info.autor || e.info.jahr) ? '<div class="spiel-info">' + escapeHtml([e.info.autor, e.info.jahr].filter(Boolean).join(' · ')) + '</div>' : '') +
+      (e.reihe && !offeneReihe ? '<div class="spiel-info">📁 ' + escapeHtml(e.reihe) + (e.reiheNr !== undefined && e.reiheNr !== '' ? ' · Band ' + escapeHtml(String(e.reiheNr)) : '') + '</div>' : '') +
+      (e.status === 'beendet' && e.beendetAm ? '<div class="spiel-info">🏆 ' + (t.lesen ? 'gelesen' : 'gesehen') + ' am ' + escapeHtml(new Date(e.beendetAm + 'T12:00').toLocaleDateString('de-DE')) + '</div>' : '') +
+      (e.inhalt ? '<div class="spiel-inhalt">' + escapeHtml(e.inhalt) + '</div>' : '') +
       karteHinweise(e) +
       '<div class="spiel-chips">' +
         '<span class="mini-chip" style="background:' + t.farbe + '22; color:' + t.farbe + ';">' + t.icon + ' ' + t.label + '</span>' +
         '<span class="mini-chip" style="background:' + stat.farbe + '22; color:' + stat.farbe + ';">' + stat.icon + ' ' + stat.label + '</span>' +
         (wo && wo.id !== 'sonstiges' ? '<span class="mini-chip" style="background:var(--parchment); color:var(--bark);">' + escapeHtml(wo.label) + '</span>' : '') +
+        (e.sprache && SPRACHEN[e.sprache] ? '<span class="mini-chip" style="background:var(--parchment); color:var(--bark);">' + SPRACHEN[e.sprache] + '</span>' : '') +
       '</div>' +
       sterneAnzeige(e.bewertung || 0) +
       ((fort || plusFeld) ? '<div class="spiel-fortschritt">' + fort + (plusFeld ? '<button type="button" class="plus-eins" title="' + (plusFeld === 'a' ? 'Nächster Band' : 'Nächste Folge') + '">＋1</button>' : '') + '</div>' : '');
@@ -839,15 +895,61 @@
     return karte;
   }
 
+  function reiheNrZahl(e) { const n = parseFloat(String(e.reiheNr ?? '').replace(',', '.')); return isNaN(n) ? 9999 : n; }
+  // 📁 Ordner-Karte für eine Buchreihe
+  function reiheKarte(name, buecher) {
+    const karte = document.createElement('div');
+    karte.className = 'spiel-karte reihe-karte';
+    const gelesen = buecher.filter(b => b.status === 'beendet').length;
+    const aktiv = buecher.find(b => b.status === 'aktiv');
+    const sortiert = buecher.slice().sort((a, b) => reiheNrZahl(a) - reiheNrZahl(b));
+    const cover = sortiert.map(coverQuelle).filter(Boolean).slice(0, 3);
+    const autoren = [...new Set(buecher.map(b => b.info && b.info.autor).filter(Boolean))];
+    karte.style.borderTopColor = gelesen === buecher.length ? '#7fa476' : aktiv ? '#4f6f45' : '#7d6339';
+    karte.innerHTML = '<div class="reihe-stapel">' + (cover.length ? cover.map(c => '<div style="background-image:url(\'' + escapeHtml(c).replace(/'/g, '%27') + '\')"></div>').join('') : '<div class="leer">📁</div>') + '</div>' +
+      '<div class="spiel-titel">📁 ' + escapeHtml(name) + '</div>' +
+      (autoren.length ? '<div class="spiel-info">' + escapeHtml(autoren.join(', ')) + '</div>' : '') +
+      '<div class="spiel-info">' + buecher.length + ' Bücher · ' + gelesen + ' gelesen' + (aktiv ? ' · ▶️ ' + escapeHtml(aktiv.titel) : '') + '</div>' +
+      '<div class="reihe-balken"><span style="width:' + Math.round(gelesen / buecher.length * 100) + '%"></span></div>';
+    karte.addEventListener('click', () => { offeneReihe = name; renderGrid(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+    return karte;
+  }
   function renderGrid() {
     const box = document.getElementById('eintragGrid');
     box.innerHTML = '';
-    const liste = gefilterteEintraege();
+    let liste = gefilterteEintraege();
+    if (offeneReihe) {
+      // Geöffneter Ordner: nur die Bücher dieser Reihe, nach Band sortiert
+      liste = liste.filter(e => reiheKey(e.reihe) === reiheKey(offeneReihe)).sort((a, b) => reiheNrZahl(a) - reiheNrZahl(b) || a.titel.localeCompare(b.titel));
+      const kopf = document.createElement('div');
+      kopf.className = 'reihe-kopf';
+      const gelesen = liste.filter(e => e.status === 'beendet').length;
+      kopf.innerHTML = '<button type="button">← Zurück</button><b>📁 ' + escapeHtml(offeneReihe) + '</b><small>' + gelesen + ' von ' + liste.length + ' gelesen</small>';
+      kopf.querySelector('button').addEventListener('click', () => { offeneReihe = null; renderGrid(); });
+      box.appendChild(kopf);
+      if (!liste.length) { offeneReihe = null; renderGrid(); return; }
+      document.getElementById('leerHinweis').style.display = 'none';
+      liste.forEach(e => box.appendChild(eintragKarte(e)));
+      return;
+    }
     document.getElementById('leerHinweis').style.display = liste.length ? 'none' : '';
     document.getElementById('leerText').textContent = eintraege.length
       ? 'Nichts gefunden. Filter oder Suche anpassen.'
       : 'Noch nichts erfasst. Tippe auf „＋ Neu“ für den ersten Manga, das erste Buch, Anime, Film oder die erste Serie.';
-    liste.forEach(e => box.appendChild(eintragKarte(e)));
+    // Bücher einer Reihe (ab 2 Stück) zu einem Ordner zusammenfassen – bei der Suche alle einzeln zeigen
+    const reihen = {};
+    if (!suchtext) liste.forEach(e => { if (e.typ === 'buch' && e.reihe) (reihen[reiheKey(e.reihe)] = reihen[reiheKey(e.reihe)] || []).push(e); });
+    const gezeigt = new Set();
+    liste.forEach(e => {
+      const k = e.typ === 'buch' && e.reihe ? reiheKey(e.reihe) : null;
+      if (k && reihen[k] && reihen[k].length >= 2) {
+        if (gezeigt.has(k)) return;
+        gezeigt.add(k);
+        box.appendChild(reiheKarte(reihen[k][0].reihe.trim(), reihen[k]));
+        return;
+      }
+      box.appendChild(eintragKarte(e));
+    });
   }
   function renderAlles() { renderStats(); renderGrid(); }
 
@@ -898,6 +1000,12 @@
     document.getElementById('fWoLabel').textContent = t.lesen ? 'Format' : 'Wo';
     editWo = auswahlFuellen('fWo', t.wo, editWo);
     editStatus = auswahlFuellen('fStatus', statusListe(t.lesen), editStatus);
+    const istBuch = editTyp === 'buch';
+    document.getElementById('fAutorFeld').style.display = t.lesen ? '' : 'none';
+    document.getElementById('fReiheFeld').style.display = istBuch ? '' : 'none';
+    document.getElementById('fSpracheFeld').style.display = t.lesen ? '' : 'none';
+    document.getElementById('fBeendetLabel').textContent = t.lesen ? 'Gelesen am' : 'Gesehen am';
+    beendetFeldAktualisieren();
     const feld = document.getElementById('fFortschrittFeld');
     feld.style.display = t.fort ? '' : 'none';
     if (t.fort) {
@@ -909,7 +1017,11 @@
     renderSterneEingabe();
   }
   document.getElementById('fWo').addEventListener('change', (e) => { editWo = e.target.value; });
-  document.getElementById('fStatus').addEventListener('change', (e) => { editStatus = e.target.value; });
+  function beendetFeldAktualisieren() {
+    document.getElementById('fBeendetFeld').style.display = editStatus === 'beendet' ? '' : 'none';
+    if (editStatus === 'beendet' && !document.getElementById('fBeendetAm').value) document.getElementById('fBeendetAm').value = lokalIso();
+  }
+  document.getElementById('fStatus').addEventListener('change', (e) => { editStatus = e.target.value; beendetFeldAktualisieren(); });
 
   function sterneKnoepfe(box, wert, klickbar, onWahl, name) {
     box.innerHTML = '';
@@ -993,8 +1105,16 @@
     document.getElementById('editKopf').textContent = e ? 'Eintrag bearbeiten' : 'Neuer Eintrag';
     document.getElementById('fTitel').value = e ? e.titel : '';
     document.getElementById('fNotiz').value = e ? (e.notiz || '') : '';
+    document.getElementById('fInhalt').value = e ? (e.inhalt || '') : '';
+    document.getElementById('fAutor').value = e && e.info ? (e.info.autor || '') : '';
+    document.getElementById('fReihe').value = e ? (e.reihe || (offeneReihe && !e ? offeneReihe : '')) : (offeneReihe || '');
+    document.getElementById('fReiheNr').value = e && e.reiheNr !== undefined ? e.reiheNr : '';
+    document.getElementById('fSprache').value = e ? (e.sprache || '') : '';
+    document.getElementById('fBeendetAm').value = e && e.beendetAm ? e.beendetAm : '';
+    document.getElementById('reiheListe').innerHTML = [...new Set(eintraege.map(x => (x.reihe || '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'de')).map(n => '<option value="' + escapeHtml(n) + '">').join('');
+    document.getElementById('autorListe').innerHTML = [...new Set(eintraege.map(x => x.info && (x.info.autor || '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'de')).map(n => '<option value="' + escapeHtml(n) + '">').join('');
     // Neuer Eintrag: Art aus dem gewählten Reiter übernehmen (Filme/Serien → Film)
-    editTyp = e ? e.typ : (typFilter !== 'alle' ? typFilter : 'manga');
+    editTyp = e ? e.typ : (offeneReihe ? 'buch' : typFilter !== 'alle' ? typFilter : 'manga');
     editPerson = e ? e.person : (personFilter !== 'alle' ? personFilter : (PERSONEN[1] ? PERSONEN[1].id : 'familie'));
     editWo = e ? e.wo : typInfo(editTyp).wo[0].id;
     editStatus = e ? e.status : 'wunschliste';
@@ -1043,10 +1163,23 @@
       notiz: document.getElementById('fNotiz').value.trim(),
       erstelltAm: alt ? (alt.erstelltAm || new Date().toISOString()) : new Date().toISOString(),
     });
+    if (t.lesen) { editInfo = Object.assign({}, editInfo || {}, { autor: document.getElementById('fAutor').value.trim() }); }
     if (editInfo && (editInfo.autor || editInfo.jahr || editInfo.folgen || editInfo.seiten || editInfo.baende)) neu.info = editInfo; else delete neu.info;
+    const inhalt = document.getElementById('fInhalt').value.trim();
+    if (inhalt) neu.inhalt = inhalt; else delete neu.inhalt;
+    const sprache = t.lesen ? document.getElementById('fSprache').value : '';
+    if (sprache) neu.sprache = sprache; else delete neu.sprache;
+    const reihe = editTyp === 'buch' ? document.getElementById('fReihe').value.trim() : '';
+    if (reihe) {
+      // gleiche Schreibweise wie bei vorhandenen Bänden übernehmen
+      const vorhanden = eintraege.find(x => x.id !== neu.id && x.reihe && reiheKey(x.reihe) === reiheKey(reihe));
+      neu.reihe = vorhanden ? vorhanden.reihe.trim() : reihe;
+      const nr = document.getElementById('fReiheNr').value.trim();
+      if (nr !== '') neu.reiheNr = Number(nr.replace(',', '.')); else delete neu.reiheNr;
+    } else { delete neu.reihe; delete neu.reiheNr; }
     if (editExtern.tvmazeId && (editTyp === 'serie' || editTyp === 'anime')) neu.tvmazeId = editExtern.tvmazeId; else { delete neu.tvmazeId; delete neu.naechsteFolge; }
     // 🏆 Datum merken, wann etwas fertig gelesen/geschaut wurde
-    if (editStatus === 'beendet' && (!alt || alt.status !== 'beendet')) neu.beendetAm = lokalIso();
+    if (editStatus === 'beendet') neu.beendetAm = document.getElementById('fBeendetAm').value || (alt && alt.beendetAm) || lokalIso();
     if (editStatus !== 'beendet') delete neu.beendetAm;
     // 🤝 Ausleihe
     const alArt = document.getElementById('fAusleiheArt').value;
@@ -1160,6 +1293,7 @@
         const t = treffer[+b.dataset.t];
         document.getElementById('fTitel').value = t.titel;
         editInfo = { autor: t.autor || '', jahr: String(t.jahr || ''), baende: t.baende || null, seiten: t.seiten || null, folgen: t.folgen || null };
+        if (t.autor && typInfo(editTyp).lesen) document.getElementById('fAutor').value = t.autor;
         if (t.cover) { editBild = t.cover; renderBildFeld(); }
         if (editTyp === 'manga' && t.baende && !document.getElementById('fFortB').value) document.getElementById('fFortB').value = t.baende;
         if (editTyp === 'buch' && t.seiten && !document.getElementById('fFortB').value) document.getElementById('fFortB').value = t.seiten;
