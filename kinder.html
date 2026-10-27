@@ -11,6 +11,7 @@
 <script src="personen.js"></script>
 <script src="sync.js"></script>
 <script src="haushaltlogik.js"></script>
+<script src="terminlogik.js"></script>
 <script src="pflanzendaten.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap');
@@ -348,6 +349,7 @@
   // ---------- 📅 Mein Tag: Termine des Kindes ----------
   function terminAm(ev, iso) {
     if (!ev.date) return false;
+    if (window.TerminLogik) return window.TerminLogik.amTag(ev, iso);
     const ziel = new Date(iso + 'T12:00');
     let d = new Date(String(ev.date).slice(0, 10) + 'T12:00');
     const bis = ev.recurrence && ev.recurrence.until ? new Date(String(ev.recurrence.until).slice(0, 10) + 'T12:00') : null;

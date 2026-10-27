@@ -2,6 +2,12 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
+## 2026-10-27 | 🗓️ Termine: Serien richtig, einzeln änderbar & neue Rhythmen
+Behoben: Wiederkehrende Termine fehlten ab dem zweiten Mal im Monatsraster, im Tagesfenster und bei der Erinnerung. Ein Monatstermin am 31. rutschte ab Februar auf den 3. Jetzt fällt er in kürzeren Monaten auf den Monatsletzten. Alle Bereiche rechnen Serien jetzt gleich. Neue Rhythmen: alle 2/3/4 Wochen, werktags und „jeden 2. Dienstag“ oder „jeden letzten Freitag“ im Monat. Beim Ändern oder Löschen eines Serientermins wählst du: nur diesen, diesen und alle folgenden, oder alle. So lässt sich ein einzelnes Training absagen oder verschieben.
+
+## 2026-10-27 | ⚡ Termine schneller eintragen, Woche & Suche
+„Zahnarzt Lev morgen 15:30 bei Dr. Müller“ eintippen, ✨ antippen: Titel, Tag, Uhrzeit, Person und Ort sind ausgefüllt. Bekannte Titel übernehmen Ort, Person, Dauer und Erinnerung vom letzten Mal. Wer zur gleichen Zeit schon etwas hat, sieht einen Hinweis. Neu sind mehrtägige Termine (Urlaub, Klassenfahrt) als Balken im Kalender, die Schulferien Baden-Württemberg, eine Wochenansicht mit Uhrzeiten, die 🔎 Suche auch in vergangenen Terminen, Duplizieren, Erinnerungen 2 Tage oder 1 Woche vorher bzw. am Vorabend um 18 Uhr und das Alter bei Geburtstagen („🎂 Malia (wird 9)“).
+
 ## 2026-10-27 | 📝 Notizblock: Erinnern, Weiterleiten & Papierkorb
 Jede Notiz kann jetzt erinnern: Datum und Uhrzeit eintragen, dann kommt zur Zeit eine Push-Nachricht. Private Notizen erscheinen dabei nur als „🔒 Private Erinnerung“. Die Karte zeigt ⏰, überfällige in Rot, und die Startseite listet sie unter „Demnächst“. Über „➡️ Weiterleiten“ wird aus einer Notiz mit einem Tipp ein Einkauf (mit Vorschau), ein Termin, Haushaltsaufgaben oder ein Handwerk-Projekt mit Arbeitsschritten. Gelöschte Notizen liegen 30 Tage im 🗑️ Papierkorb. Fertige Listen wandern auf Wunsch ins 🗄️ Archiv. Ist eine Checkliste komplett abgehakt, bietet der Planer das gleich an.
 

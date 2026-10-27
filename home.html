@@ -283,6 +283,7 @@
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
 <script src="sync.js"></script>
 <script src="haushaltlogik.js"></script>
+<script src="terminlogik.js"></script>
 </head>
 <body>
 
@@ -753,6 +754,7 @@
     // Datum als lokalen Tag lesen – new Date('JJJJ-MM-TT') wäre UTC-Mitternacht und läge in
     // Deutschland bei 01:00/02:00 Uhr, wodurch heutige Termine nie als „heute“ erkannt wurden
     if (!ev.date) return false;
+    if (window.TerminLogik) return window.TerminLogik.amTag(ev, heuteISO);
     let d = ausISO(String(ev.date).slice(0, 10));
     const bisWiederholung = ev.recurrence && ev.recurrence.until ? ausISO(String(ev.recurrence.until).slice(0, 10)) : null;
     const freq = ev.recurrence ? ev.recurrence.freq : 'keine';
@@ -965,7 +967,9 @@
         if (n < h) n = new Date(h.getFullYear() + 1, m - 1, d);
         const tage = Math.round((n - h) / 864e5);
         if (tage > 7) return;
-        const name = String(ev.title).replace(/\b(geburtstag|von)\b|🎂|'s\b|’s\b/gi, '').replace(/\s+/g, ' ').trim() || 'Geburtstag';
+        let name = String(ev.title).replace(/\b(geburtstag|von)\b|🎂|'s\b|’s\b/gi, '').replace(/\s+/g, ' ').trim() || 'Geburtstag';
+        const alter = window.TerminLogik ? window.TerminLogik.alter(ev, toISODatum(n)) : null;
+        if (alter) name += ' (' + alter + ')';
         chips.push({ text: '🎂 ' + name + (tage === 0 ? ' heute!' : tage === 1 ? ' morgen' : ' in ' + tage + ' Tagen'), ziel: 'termine', wichtig: tage <= 1 });
       });
     }
@@ -1920,7 +1924,7 @@
       const [, m, d] = String(ev.date).split('-').map(Number);
       let n = new Date(h.getFullYear(), m - 1, d); if (n < h) n = new Date(h.getFullYear() + 1, m - 1, d);
       const iso = toISODatum(n);
-      if (tageBis(iso) >= 2) add(iso, '🎂', String(ev.title).replace(/🎂/g, '').trim(), 'termine');
+      if (tageBis(iso) >= 2) add(iso, '🎂', (window.TerminLogik ? window.TerminLogik.titelMitAlter(ev, iso) : String(ev.title)).replace(/🎂/g, '').trim(), 'termine');
     });
     // 💶 Abos: Kündigungsfristen (30 Tage) und Abbuchungen (7 Tage)
     if (modulSichtbar('finanzen')) laden('finanzen_abos', []).forEach(a => {

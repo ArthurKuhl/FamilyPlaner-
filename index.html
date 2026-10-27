@@ -19,6 +19,7 @@
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-storage-compat.js"></script>
 <script src="sync.js"></script>
+<script src="terminlogik.js"></script>
 <script src="fotosicherung.js"></script>
 <script src="lebensmittel.js"></script>
 <style>
@@ -2101,6 +2102,7 @@
     function toISODatumT(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
 
     function terminFaelltAufTag(ev, tagISO) {
+      if (window.TerminLogik) return window.TerminLogik.startetAm(ev, tagISO);
       let d = new Date(ev.date);
       const bisWiederholung = ev.recurrence && ev.recurrence.until ? new Date(ev.recurrence.until) : null;
       const freq = ev.recurrence ? ev.recurrence.freq : 'keine';
@@ -2122,6 +2124,8 @@
     function pruefeTerminErinnerungen() {
       if (!('Notification' in window) || Notification.permission !== 'granted') return;
       try { if (localStorage.getItem('planer_terminErinnerungenAktiv') === '0') return; } catch (e) {}
+      // Laufen die Termin-Erinnerungen schon per Push über den Server, nicht doppelt melden
+      try { const p = JSON.parse(localStorage.getItem('planer_push') || '{}'); if (p.aktiv && (p.termine === 'meine' || p.termine === 'alle')) return; } catch (e) {}
       let events;
       try { events = JSON.parse(localStorage.getItem(KEY_TERMINE) || '[]'); } catch (e) { events = []; }
       if (!events || !events.length) return;
@@ -2136,6 +2140,29 @@
       if (!gefeuert || gefeuert.datum !== heuteISO) gefeuert = { datum: heuteISO, ausgeloest: [] };
 
       let geaendert = false;
+      const TL = window.TerminLogik;
+      if (TL) {
+        const jetztMin = jetzt.getHours() * 60 + jetzt.getMinutes();
+        events.forEach((ev) => {
+          TL.erinnerungenAm(ev, heuteISO).forEach((er) => {
+            if (er.minuten !== jetztMin) return;
+            const marker = ev.id + '|' + er.vorkommen + '|' + er.minuten;
+            if (gefeuert.ausgeloest.indexOf(marker) !== -1) return;
+            gefeuert.ausgeloest.push(marker);
+            geaendert = true;
+            const titel = '🗓️ ' + ev.title;
+            const body = TL.vorlaufText(ev, er.tageVorher) + (ev.location ? ' · ' + ev.location : '');
+            const anzeigen = (reg) => reg.showNotification(titel, { body: body, icon: 'icon-192.png', badge: 'badge-96.png', tag: 'termin-' + marker });
+            if (navigator.serviceWorker && navigator.serviceWorker.ready) {
+              navigator.serviceWorker.ready.then(anzeigen).catch(() => { try { new Notification(titel, { body: body, icon: 'icon-192.png' }); } catch (e2) {} });
+            } else {
+              try { new Notification(titel, { body: body, icon: 'icon-192.png' }); } catch (e2) {}
+            }
+          });
+        });
+        if (geaendert) { try { localStorage.setItem(KEY_TERMINE_GEFEUERT, JSON.stringify(gefeuert)); } catch (e) {} }
+        return;
+      }
       events.forEach((ev) => {
         if (!ev.erinnerung) return;
         [heuteISO, morgenISO].forEach((tagISO) => {

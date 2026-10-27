@@ -113,6 +113,68 @@
   .cal-dots { display: flex; gap: 2px; margin-top: 3px; flex-wrap: wrap; justify-content: center; }
   .cal-dot { width: 6px; height: 6px; border-radius: 50%; }
 
+  .cal-day.ferien { background: rgba(91,139,181,0.13); }
+  html[data-dark="1"] .cal-day.ferien { background: rgba(127,168,204,0.16); }
+  .cal-baender { position: absolute; left: -3px; right: -3px; bottom: 3px; display: flex; flex-direction: column; gap: 1px; pointer-events: none; }
+  .cal-band { height: 4px; opacity: 0.85; }
+  .cal-band.anfang { margin-left: 6px; border-top-left-radius: 3px; border-bottom-left-radius: 3px; }
+  .cal-band.ende { margin-right: 6px; border-top-right-radius: 3px; border-bottom-right-radius: 3px; }
+  .cal-day { overflow: visible; }
+  .cal-grid { column-gap: 0; }
+  .cal-grid .cal-day { margin: 0 2px; }
+  .ansicht-gruppe { display: inline-flex; border: 1px solid var(--parchment); border-radius: var(--radius-pill); overflow: hidden; }
+  .cal-nav .ansicht-gruppe button { border: none; border-radius: 0; width: 30px; height: 28px; font-size: 0.82rem; }
+  .cal-nav .ansicht-gruppe button.aktiv { background: var(--moss); color: var(--on-moss, #fff); }
+  html[data-dark="1"] #serieBanner { background: #3a3020 !important; border-bottom-color: #6b5a30 !important; }
+  html[data-dark="1"] #serieBanner button[data-serie-oeffnen] { border-color: #6b5a30 !important; color: var(--soil); }
+  .tl-ferien { font-size: 0.66rem; color: var(--sky); font-weight: 600; }
+  .tl-tag.ferien:not(.feiertag) { box-shadow: inset 3px 0 0 var(--sky); }
+  .tl-termin .tl-zusatz { font-size: 0.66rem; color: var(--bark); flex-shrink: 0; }
+
+  /* Wochenansicht */
+  .woche { max-width: 820px; margin: 0 auto; padding-bottom: 90px; }
+  .wo-kopf, .wo-ganztags { display: grid; grid-template-columns: 34px repeat(7, minmax(0, 1fr)); }
+  .wo-ganztags > div { min-width: 0; }
+  .wo-kopf div { text-align: center; font-size: 0.62rem; font-weight: 700; color: var(--bark); padding: 3px 0; cursor: pointer; line-height: 1.2; }
+  .wo-kopf div b { display: block; font-size: 0.92rem; color: var(--soil); }
+  .wo-kopf div.heute b { color: var(--terracotta-text); }
+  .wo-kopf div.feiertag b, .wo-kopf div.feiertag { color: #c0392b; }
+  .wo-kopf div.ferien { background: rgba(91,139,181,0.13); border-radius: 6px; }
+  .wo-ganztags { border-bottom: 1px solid var(--parchment); padding-bottom: 3px; margin-bottom: 2px; min-height: 4px; }
+  .wo-ganztags .wo-gt { font-size: 0.6rem; font-weight: 600; color: #fff; border-radius: 4px; padding: 1px 3px; margin: 1px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; cursor: pointer; }
+  .wo-raster { display: grid; grid-template-columns: 34px repeat(7, minmax(0, 1fr)); position: relative; }
+  .wo-stunden div { font-size: 0.58rem; color: var(--bark); text-align: right; padding-right: 4px; transform: translateY(-6px); }
+  .wo-spalte { position: relative; border-left: 1px solid var(--parchment); cursor: pointer; }
+  .wo-spalte.heute { background: rgba(196,107,65,0.06); }
+  .wo-linie { position: absolute; left: 0; right: 0; border-top: 1px solid var(--parchment); opacity: 0.7; }
+  .wo-block { position: absolute; border-radius: 5px; padding: 2px 3px; font-size: 0.6rem; line-height: 1.15; color: #fff; overflow: hidden; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.18); }
+  .wo-block b { display: block; font-weight: 700; }
+  .wo-jetzt { position: absolute; left: 0; right: 0; height: 2px; background: var(--terracotta); z-index: 2; }
+
+  /* Formular-Extras */
+  .schnell-zeile { display: flex; gap: 6px; }
+  .schnell-zeile input { flex: 1; }
+  .schnell-zeile button { border: none; background: var(--moss); color: var(--on-moss, #fff); border-radius: var(--radius-sm); padding: 0 12px; font-size: 1rem; cursor: pointer; }
+  .schnell-vorschau { font-size: 0.7rem; color: var(--bark); margin-top: 4px; min-height: 0; }
+  .schnell-vorschau span { display: inline-block; background: var(--parchment); border-radius: 999px; padding: 1px 8px; margin: 2px 3px 0 0; color: var(--soil); }
+  .form-hinweis { font-size: 0.7rem; color: var(--moss-text, var(--moss)); margin-top: 4px; }
+  .konflikt { font-size: 0.74rem; background: rgba(196,107,65,0.13); color: var(--terracotta-text); border-radius: var(--radius-sm); padding: 7px 10px; margin: -4px 0 12px; line-height: 1.4; }
+  .intervall-zeile { display: flex; align-items: center; gap: 6px; font-size: 0.82rem; color: var(--soil); }
+  .form-row .intervall-zeile input { width: 60px; }
+  .serie-wahl { display: flex; flex-direction: column; gap: 8px; }
+  .serie-wahl button { text-align: left; padding: 11px 14px; border-radius: var(--radius-md); border: 1px solid var(--parchment); background: var(--cream); color: var(--soil); font-size: 0.85rem; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .serie-wahl button small { display: block; font-weight: 400; font-size: 0.7rem; color: var(--bark); margin-top: 2px; }
+  #modalSerie { z-index: 210; }
+
+  /* Suche */
+  .such-leiste { display: none; gap: 6px; padding: 10px 14px 0; max-width: 1000px; margin: 0 auto; }
+  .such-leiste.zeigen { display: flex; }
+  .such-leiste input { flex: 1; border: 1px solid var(--parchment); border-radius: var(--radius-pill); padding: 8px 14px; font-size: 0.85rem; background: var(--white); color: var(--soil); font-family: inherit; }
+  .such-leiste button { border: 1px solid var(--parchment); background: var(--white); color: var(--soil); border-radius: 50%; width: 36px; cursor: pointer; }
+  .such-treffer-kopf { font-size: 0.72rem; font-weight: 700; color: var(--bark); text-transform: uppercase; letter-spacing: .03em; margin: 12px 0 6px 2px; }
+  .such-datum { font-size: 0.68rem; color: var(--bark); }
+  mark { background: rgba(201,154,58,0.35); color: inherit; border-radius: 3px; padding: 0 1px; }
+
   /* Tagesliste (Kalender als eine Spalte, jeder Tag eine Zeile) */
   .monat-label-gruppe { display: flex; align-items: center; gap: 8px; }
   .cal-nav .ansicht-umschalter { width: 30px; height: 30px; font-size: 0.9rem; }
@@ -220,6 +282,7 @@
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
 <script src="personen.js"></script>
+<script src="terminlogik.js"></script>
 <script src="sync.js"></script>
 </head>
 <body>
@@ -230,6 +293,7 @@
     <div class="top-titel-zeile">
       <h1>🗓️ Termine</h1>
     <button class="theme-btn" id="btnThemeAuswahl" title="Hintergrundmuster wählen">🎨</button>
+      <button class="ics-btn" id="btnSuche" title="Termine durchsuchen – auch vergangene" aria-label="Suchen" style="margin-right:6px;">🔎</button>
       <button class="ics-btn" id="btnKalenderApp" title="Termine in Google Kalender, iPhone oder Outlook anzeigen">📲 Kalender-App</button>
     </div>
     <div class="view-toggle" role="tablist">
@@ -259,6 +323,7 @@
   </div>
 
 
+  <div class="such-leiste" id="suchLeiste"><input type="search" id="fSuche" placeholder="Suchen: Zahnarzt, Ort, Notiz …" autocomplete="off"><button type="button" id="btnSucheZu" aria-label="Suche schließen">✕</button></div>
   <div class="filter-row" id="filterRow"></div>
 
   <div id="serieBanner" style="display:none;background:#fdf3e0;border-bottom:1px solid #e8c98a;padding:8px 16px;flex-direction:column;gap:6px;font-size:0.78rem;color:var(--soil);"></div>
@@ -269,16 +334,21 @@
         <button id="calPrev" aria-label="Vorheriger Monat">‹</button>
         <span class="monat-label-gruppe">
           <span class="monat-label" id="monatLabel"></span>
-          <button type="button" id="btnKalenderAnsicht" class="ansicht-umschalter" aria-label="Ansicht wechseln" title="Zwischen Monatsraster und Tagesliste wechseln">☰</button>
+          <span class="ansicht-gruppe" role="group" aria-label="Ansicht"><button type="button" data-ansicht="raster" title="Monat">▦</button><button type="button" data-ansicht="woche" title="Woche mit Uhrzeiten">⧉</button><button type="button" data-ansicht="liste" title="Tagesliste">☰</button></span>
         </span>
         <button id="calNext" aria-label="Nächster Monat">›</button>
       </div>
       <div class="cal-grid" id="calGrid"></div>
       <div class="tagesliste" id="calTagesliste" style="display:none;"></div>
+      <div class="woche" id="calWoche" style="display:none;"></div>
     </section>
 
     <section id="listeView" style="display:none;">
       <div id="listeInhalt"></div>
+    </section>
+
+    <section id="sucheView" style="display:none;">
+      <div id="sucheInhalt"></div>
     </section>
 
   </main>
@@ -323,13 +393,26 @@
     <div class="modal">
       <h2 id="terminModalTitel">Neuer Termin</h2>
       <form id="terminForm">
-        <div class="form-row">
-          <label for="fTitel">Titel</label>
-          <input type="text" id="fTitel" required placeholder="z.B. Zahnarzt, Fußballtraining">
+        <div class="form-row" id="schnellRow">
+          <label for="fSchnell">⚡ Schnell eintippen</label>
+          <div class="schnell-zeile"><input type="text" id="fSchnell" placeholder="z. B. Zahnarzt Lev morgen 15:30 bei Dr. Müller" autocomplete="off" enterkeyhint="done"><button type="button" id="btnSchnell" title="Übernehmen" aria-label="Übernehmen">✨</button></div>
+          <div class="schnell-vorschau" id="schnellVorschau"></div>
         </div>
         <div class="form-row">
-          <label for="fDatum">Datum</label>
-          <input type="date" id="fDatum" required>
+          <label for="fTitel">Titel</label>
+          <input type="text" id="fTitel" required placeholder="z.B. Zahnarzt, Fußballtraining" list="titelVorschlaege" autocomplete="off">
+          <datalist id="titelVorschlaege"></datalist>
+          <div class="form-hinweis" id="titelHinweis" style="display:none;"></div>
+        </div>
+        <div class="two-col">
+          <div class="form-row">
+            <label for="fDatum">Datum</label>
+            <input type="date" id="fDatum" required>
+          </div>
+          <div class="form-row">
+            <label for="fEndDatum">bis (mehrtägig)</label>
+            <input type="date" id="fEndDatum">
+          </div>
         </div>
         <div class="check-row">
           <input type="checkbox" id="fGanztags">
@@ -349,23 +432,28 @@
           <label>Wer</label>
           <div class="chip-select" id="werSelect"></div>
         </div>
+        <div class="konflikt" id="konfliktHinweis" style="display:none;"></div>
         <div class="form-row">
           <label for="fOrt">Ort (optional)</label>
           <input type="text" id="fOrt" placeholder="z.B. Praxis Dr. Müller">
         </div>
         <div class="form-row">
           <label for="fWiederholung">Wiederholung</label>
-          <select id="fWiederholung">
-            <option value="keine">Keine</option>
-            <option value="taeglich">Täglich</option>
-            <option value="woechentlich">Wöchentlich</option>
-            <option value="monatlich">Monatlich</option>
-            <option value="jaehrlich">Jährlich</option>
-          </select>
+          <select id="fWiederholung"></select>
         </div>
-        <div class="form-row" id="wiederholungBisRow" style="display:none;">
-          <label for="fWiederholungBis">Wiederholen bis (optional)</label>
-          <input type="date" id="fWiederholungBis">
+        <div class="two-col" id="wiederholungBisRow" style="display:none;">
+          <div class="form-row" id="intervallRow">
+            <label for="fIntervall">Abstand</label>
+            <div class="intervall-zeile">alle <input type="number" id="fIntervall" min="1" max="52" value="1" inputmode="numeric"> <span id="intervallEinheit">Wochen</span></div>
+          </div>
+          <div class="form-row">
+            <label for="fWiederholungBis">bis (optional)</label>
+            <input type="date" id="fWiederholungBis">
+          </div>
+        </div>
+        <div class="form-row" id="geburtsjahrRow" style="display:none;">
+          <label for="fGeburtsjahr">Geburtsjahr (optional – zeigt das Alter)</label>
+          <input type="number" id="fGeburtsjahr" min="1900" max="2100" placeholder="z. B. 2017" inputmode="numeric">
         </div>
         <div class="form-row">
           <label for="fErinnerung">Erinnerung</label>
@@ -376,6 +464,9 @@
             <option value="60">1 Stunde vorher</option>
             <option value="120">2 Stunden vorher</option>
             <option value="1440">1 Tag vorher</option>
+            <option value="2880">2 Tage vorher</option>
+            <option value="10080">1 Woche vorher</option>
+            <option value="vorabend">Am Vorabend um 18 Uhr</option>
           </select>
         </div>
         <div class="form-row">
@@ -386,8 +477,22 @@
           <button type="button" class="btn-secondary" data-close="modalTermin">Abbrechen</button>
           <button type="submit" class="btn-primary">Speichern</button>
         </div>
+        <button type="button" class="btn-secondary" id="btnTerminDuplizieren" style="display:none;margin-top:8px;">⧉ Duplizieren</button>
         <button type="button" class="btn-delete" id="btnTerminLoeschen" style="display:none;">Termin löschen</button>
       </form>
+    </div>
+  </div>
+
+  <!-- Serie: nur dieser / folgende / alle -->
+  <div class="modal-bg" id="modalSerie">
+    <div class="modal">
+      <h2 id="serieTitel">Serie ändern</h2>
+      <div class="serie-wahl">
+        <button type="button" data-umfang="nur"><span id="serieNurText">Nur diesen Termin</span><small id="serieNurKlein"></small></button>
+        <button type="button" data-umfang="folgende">Diesen und alle folgenden<small id="serieFolgendeKlein"></small></button>
+        <button type="button" data-umfang="alle">Alle Termine der Serie<small id="serieAlleKlein"></small></button>
+      </div>
+      <button class="btn-secondary" id="btnSerieAbbrechen" style="margin-top:10px;">Abbrechen</button>
     </div>
   </div>
 
@@ -527,37 +632,32 @@
     let kalenderMonat = heute().getMonth();
     let kalenderJahr = heute().getFullYear();
 
-    // --- Wiederkehrende Termine: Vorkommen in einem Datumsbereich berechnen ---
-    function vorkommenImBereich(ev, vonISO, bisISO) {
-      const treffer = [];
-      const von = new Date(vonISO), bis = new Date(bisISO);
-      let d = new Date(ev.date);
-      const bisWiederholung = ev.recurrence && ev.recurrence.until ? new Date(ev.recurrence.until) : null;
-      const freq = ev.recurrence ? ev.recurrence.freq : 'keine';
-      let sicherheitszaehler = 0;
-      while (d <= bis && sicherheitszaehler < 500) {
-        sicherheitszaehler++;
-        if (bisWiederholung && d > bisWiederholung) break;
-        if (d >= von && d <= bis) treffer.push(toISO(d));
-        if (freq === 'keine') break;
-        if (freq === 'taeglich') d = new Date(d.getFullYear(), d.getMonth(), d.getDate()+1);
-        else if (freq === 'woechentlich') d = new Date(d.getFullYear(), d.getMonth(), d.getDate()+7);
-        else if (freq === 'monatlich') d = new Date(d.getFullYear(), d.getMonth()+1, d.getDate());
-        else if (freq === 'jaehrlich') d = new Date(d.getFullYear()+1, d.getMonth(), d.getDate());
-        else break;
-      }
-      return treffer;
-    }
+    // --- Wiederkehrende & mehrtägige Termine: gemeinsame Regeln aus terminlogik.js ---
+    const TL = window.TerminLogik;
+    function vorkommenImBereich(ev, vonISO, bisISO) { return TL.vorkommen(ev, vonISO, bisISO); }
 
+    // Ein Eintrag pro (Termin, Kalendertag) – mehrtägige Termine erscheinen an jedem ihrer Tage
     function alleVorkommen(vonISO, bisISO) {
       const liste = [];
       events.forEach(ev => {
         if (aktiverFilter !== 'alle' && ev.wer !== aktiverFilter) return;
-        vorkommenImBereich(ev, vonISO, bisISO).forEach(datum => liste.push({ ev, datum }));
+        const dauer = TL.dauerTage(ev);
+        vorkommenImBereich(ev, vonISO, bisISO).forEach(datum => {
+          for (let k = 0; k <= dauer; k++) {
+            const tag = k ? TL.plusTage(datum, k) : datum;
+            if (tag < vonISO || tag > bisISO) continue;
+            liste.push({ ev, datum, tag, tagNr: k + 1, tage: dauer + 1 });
+          }
+        });
       });
-      liste.sort((a,b) => (a.datum + (a.ev.startTime||'')).localeCompare(b.datum + (b.ev.startTime||'')));
+      liste.sort((a, b) => (a.tag + (a.tage > 1 ? '0' : a.ev.allDay ? '1' : '2') + (a.ev.startTime || '')).localeCompare(b.tag + (b.tage > 1 ? '0' : b.ev.allDay ? '1' : '2') + (b.ev.startTime || '')));
       return liste;
     }
+    function zeitText(ev) {
+      if (ev.allDay || !ev.startTime) return 'ganzt.';
+      return ev.startTime + (ev.endTime && ev.endTime > ev.startTime ? '–' + ev.endTime : '');
+    }
+    function kurzDatum(iso) { return new Date(iso + 'T12:00').toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'numeric' }); }
 
     // ============================================================
     // LIVE-ERINNERUNGEN (Browser-Benachrichtigungen, solange die App offen ist)
@@ -595,7 +695,7 @@
         } catch (e) {}
       });
     }
-    setInterval(pruefeTerminErinnerungen, 20000);
+    // (Erinnerungen bei geöffneter App kommen seit v445 zentral aus der App-Hülle – sonst doppelt)
 
     // --- Filter-Chips ---
     const filterRow = document.getElementById('filterRow');
@@ -664,6 +764,34 @@
     }
 
 
+    // --- 🏖️ Schulferien Baden-Württemberg (OpenHolidays API, jahresweise gecacht) ---
+    const ferienCache = {}, ferienVersucht = {};
+    function ferienSofort(jahr) {
+      if (ferienCache[jahr]) return ferienCache[jahr];
+      try { const g = JSON.parse(localStorage.getItem('termine_schulferien_BW_' + jahr) || 'null'); if (g) { ferienCache[jahr] = g; return g; } } catch (e) {}
+      if (!ferienVersucht[jahr] && navigator.onLine) {
+        ferienVersucht[jahr] = true;
+        fetch('https://openholidaysapi.org/SchoolHolidays?countryIsoCode=DE&subdivisionCode=DE-BW&languageIsoCode=DE&validFrom=' + jahr + '-01-01&validTo=' + jahr + '-12-31',
+          { headers: { accept: 'application/json' }, signal: AbortSignal.timeout ? AbortSignal.timeout(8000) : undefined })
+          .then(r => r.ok ? r.json() : Promise.reject(r.status))
+          .then(daten => {
+            const liste = (Array.isArray(daten) ? daten : []).filter(f => f && f.startDate && f.endDate).map(f => ({
+              von: String(f.startDate).slice(0, 10), bis: String(f.endDate).slice(0, 10),
+              name: ((f.name || []).find(n => n.language === 'DE') || (f.name || [])[0] || {}).text || 'Ferien',
+            }));
+            ferienCache[jahr] = liste;
+            try { localStorage.setItem('termine_schulferien_BW_' + jahr, JSON.stringify(liste)); } catch (e) {}
+            renderKalender();
+          }).catch(() => {});
+      }
+      return [];
+    }
+    function ferienAm(iso) {
+      const j = Number(iso.slice(0, 4));
+      const f = ferienSofort(j).concat(iso.slice(5, 7) === '01' ? ferienSofort(j - 1) : []).find(x => x.von <= iso && x.bis >= iso);
+      return f ? f.name : '';
+    }
+
     const calGrid = document.getElementById('calGrid');
     const monatLabel = document.getElementById('monatLabel');
     const MONATSNAMEN = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
@@ -671,14 +799,21 @@
     // --- Ansicht im Kalender-Reiter: Monatsraster oder Tagesliste (geräte-lokal gemerkt) ---
     const KEY_KALENDER_ANSICHT = 'termine_kalenderAnsicht';
     let kalenderAnsicht = 'raster';
-    try { if (localStorage.getItem(KEY_KALENDER_ANSICHT) === 'liste') kalenderAnsicht = 'liste'; } catch (e) {}
+    try { const a = localStorage.getItem(KEY_KALENDER_ANSICHT); if (a === 'liste' || a === 'woche') kalenderAnsicht = a; } catch (e) {}
     let tageslisteZuHeuteScrollen = true;
-    document.getElementById('btnKalenderAnsicht').addEventListener('click', () => {
-      kalenderAnsicht = kalenderAnsicht === 'liste' ? 'raster' : 'liste';
+    let wochenStart = (() => { const h = heute(); return new Date(h.getFullYear(), h.getMonth(), h.getDate() - ((h.getDay() + 6) % 7)); })();
+    document.querySelectorAll('.ansicht-gruppe [data-ansicht]').forEach(b => b.addEventListener('click', () => {
+      kalenderAnsicht = b.dataset.ansicht;
       try { localStorage.setItem(KEY_KALENDER_ANSICHT, kalenderAnsicht); } catch (e) {}
       tageslisteZuHeuteScrollen = true;
+      if (kalenderAnsicht === 'woche') {
+        // Woche passend zum gezeigten Monat wählen (heute, falls im Monat)
+        const h = heute();
+        const basis = (h.getMonth() === kalenderMonat && h.getFullYear() === kalenderJahr) ? h : new Date(kalenderJahr, kalenderMonat, 1);
+        wochenStart = new Date(basis.getFullYear(), basis.getMonth(), basis.getDate() - ((basis.getDay() + 6) % 7));
+      }
       renderKalender();
-    });
+    }));
     function kalenderwoche(d) {
       const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
       const wt = t.getUTCDay() || 7;
@@ -694,7 +829,7 @@
       const von = toISO(new Date(kalenderJahr, kalenderMonat, 1));
       const bis = toISO(new Date(kalenderJahr, kalenderMonat, tageImMonat));
       const proTag = {};
-      alleVorkommen(von, bis).forEach(t => { (proTag[t.datum] = proTag[t.datum] || []).push(t); });
+      alleVorkommen(von, bis).forEach(t => { (proTag[t.tag] = proTag[t.tag] || []).push(t); });
       box.innerHTML = '';
       let heuteZeile = null, letzteKW = null;
       for (let n = 1; n <= tageImMonat; n++) {
@@ -707,21 +842,23 @@
         }
         const wt = tag.getDay();
         const feiertag = feiertage[iso];
-        const termine = (proTag[iso] || []).slice().sort((a, b) =>
-          (a.ev.allDay === b.ev.allDay ? 0 : a.ev.allDay ? -1 : 1) || (a.ev.startTime || '').localeCompare(b.ev.startTime || ''));
+        const termine = proTag[iso] || [];
+        const ferien = ferienAm(iso);
         const zeile = document.createElement('div');
-        zeile.className = 'tl-tag' + (wt === 0 || wt === 6 ? ' wochenende' : '') + (iso === heuteISO ? ' heute' : '') + (feiertag ? ' feiertag' : '');
+        zeile.className = 'tl-tag' + (wt === 0 || wt === 6 ? ' wochenende' : '') + (iso === heuteISO ? ' heute' : '') + (feiertag ? ' feiertag' : '') + (ferien ? ' ferien' : '');
         zeile.innerHTML = '<div class="tl-datum"><span class="tl-wd">' + WOCHENTAGE[(wt + 6) % 7] + '</span><span class="tl-nr">' + n + '.</span></div><div class="tl-inhalt"></div>';
         const inhalt = zeile.querySelector('.tl-inhalt');
         if (feiertag) { const f = document.createElement('div'); f.className = 'tl-feiertag'; f.textContent = '🎉 ' + feiertag; inhalt.appendChild(f); }
+        if (ferien && (n === 1 || !ferienAm(toISO(new Date(kalenderJahr, kalenderMonat, n - 1))) || wt === 1)) { const f = document.createElement('div'); f.className = 'tl-ferien'; f.textContent = '🏖️ ' + ferien; inhalt.appendChild(f); }
         termine.forEach(t => {
           const el = document.createElement('div'); el.className = 'tl-termin';
           el.style.borderLeftColor = farbeFuer(t.ev.wer);
-          el.innerHTML = '<span class="tl-zeit">' + (t.ev.allDay ? 'ganzt.' : escapeHtml(t.ev.startTime || '')) + '</span><span class="tl-titel">' + escapeHtml(t.ev.title) + '</span>';
+          el.innerHTML = '<span class="tl-zeit">' + (t.tage > 1 ? (t.tagNr === 1 ? (t.ev.allDay ? 'ab' : escapeHtml(t.ev.startTime || 'ab')) : '↔') : escapeHtml(t.ev.allDay ? 'ganzt.' : (t.ev.startTime || ''))) + '</span><span class="tl-titel">' + escapeHtml(TL.titelMitAlter(t.ev, t.datum)) + '</span>' +
+            (t.tage > 1 ? '<span class="tl-zusatz">' + t.tagNr + '/' + t.tage + '</span>' : '');
           el.addEventListener('click', (e) => { e.stopPropagation(); terminModalOeffnen(t.ev, t.datum); });
           inhalt.appendChild(el);
         });
-        if (!termine.length && !feiertag) { const l = document.createElement('div'); l.className = 'tl-leer'; l.textContent = '＋'; inhalt.appendChild(l); }
+        if (!termine.length && !feiertag && !ferien) { const l = document.createElement('div'); l.className = 'tl-leer'; l.textContent = '＋'; inhalt.appendChild(l); }
         // Leerer Tag: direkt neuen Termin anlegen; Tag mit Einträgen: Tagesübersicht wie im Raster
         zeile.addEventListener('click', () => { if (termine.length) tagDetailOeffnen(iso); else terminModalOeffnen(null, iso); });
         box.appendChild(zeile);
@@ -735,12 +872,14 @@
 
     async function renderKalender() {
       monatLabel.textContent = MONATSNAMEN[kalenderMonat] + ' ' + kalenderJahr;
-      const istListe = kalenderAnsicht === 'liste';
-      const umschalter = document.getElementById('btnKalenderAnsicht');
-      umschalter.textContent = istListe ? '▦' : '☰';
-      umschalter.title = istListe ? 'Monatsraster anzeigen' : 'Tagesliste anzeigen';
-      calGrid.style.display = istListe ? 'none' : '';
+      const istListe = kalenderAnsicht === 'liste', istWoche = kalenderAnsicht === 'woche';
+      document.querySelectorAll('.ansicht-gruppe [data-ansicht]').forEach(b => { const a = b.dataset.ansicht === kalenderAnsicht; b.classList.toggle('aktiv', a); b.setAttribute('aria-pressed', a ? 'true' : 'false'); });
+      calGrid.style.display = istListe || istWoche ? 'none' : '';
       document.getElementById('calTagesliste').style.display = istListe ? '' : 'none';
+      document.getElementById('calWoche').style.display = istWoche ? '' : 'none';
+      document.getElementById('calPrev').setAttribute('aria-label', istWoche ? 'Vorherige Woche' : 'Vorheriger Monat');
+      document.getElementById('calNext').setAttribute('aria-label', istWoche ? 'Nächste Woche' : 'Nächster Monat');
+      if (istWoche) { renderWoche(); return; }
       if (istListe) { await renderTagesliste(); return; }
       calGrid.innerHTML = '';
       WOCHENTAGE.forEach(wd => {
@@ -760,28 +899,118 @@
         const tagISO = toISO(tag);
         const zelle = document.createElement('div');
         const feiertagName = (feiertagsMaps[tag.getFullYear()] || {})[tagISO];
-        zelle.className = 'cal-day' + (tag.getMonth()!==kalenderMonat ? ' andermonat':'') + (tagISO===heuteISO ? ' heute':'') + (feiertagName ? ' feiertag':'');
-        if (feiertagName) zelle.title = feiertagName;
+        const ferienName = ferienAm(tagISO);
+        zelle.className = 'cal-day' + (tag.getMonth()!==kalenderMonat ? ' andermonat':'') + (tagISO===heuteISO ? ' heute':'') + (feiertagName ? ' feiertag':'') + (ferienName ? ' ferien' : '');
+        zelle.title = [feiertagName, ferienName && '🏖️ ' + ferienName].filter(Boolean).join(' · ');
         zelle.innerHTML = `<span>${tag.getDate()}</span>`;
         const treffer = alleVorkommen(tagISO, tagISO);
-        if (treffer.length) {
+        const einzeln = treffer.filter(t => t.tage === 1), mehrtaegig = treffer.filter(t => t.tage > 1);
+        if (einzeln.length) {
           const dots = document.createElement('div'); dots.className='cal-dots';
-          treffer.slice(0,4).forEach(t => {
+          einzeln.slice(0,4).forEach(t => {
             const dot = document.createElement('span'); dot.className='cal-dot'; dot.style.background = farbeFuer(t.ev.wer);
             dots.appendChild(dot);
           });
           zelle.appendChild(dots);
         }
+        if (mehrtaegig.length) {
+          const baender = document.createElement('div'); baender.className = 'cal-baender';
+          mehrtaegig.slice(0, 3).forEach(t => {
+            const band = document.createElement('div');
+            const wtag = (tag.getDay() + 6) % 7;
+            band.className = 'cal-band' + (t.tagNr === 1 || wtag === 0 ? ' anfang' : '') + (t.tagNr === t.tage || wtag === 6 ? ' ende' : '');
+            band.style.background = farbeFuer(t.ev.wer);
+            band.title = t.ev.title;
+            baender.appendChild(band);
+          });
+          zelle.appendChild(baender);
+        }
         zelle.addEventListener('click', () => tagDetailOeffnen(tagISO));
         calGrid.appendChild(zelle);
       }
     }
+    function wocheVerschieben(n) {
+      wochenStart = new Date(wochenStart.getFullYear(), wochenStart.getMonth(), wochenStart.getDate() + 7 * n);
+      const mitte = new Date(wochenStart.getFullYear(), wochenStart.getMonth(), wochenStart.getDate() + 3);
+      kalenderMonat = mitte.getMonth(); kalenderJahr = mitte.getFullYear();
+      renderKalender();
+    }
     document.getElementById('calPrev').addEventListener('click', () => {
+      if (kalenderAnsicht === 'woche') { wocheVerschieben(-1); return; }
       kalenderMonat--; if (kalenderMonat<0){kalenderMonat=11;kalenderJahr--;} renderKalender();
     });
     document.getElementById('calNext').addEventListener('click', () => {
+      if (kalenderAnsicht === 'woche') { wocheVerschieben(1); return; }
       kalenderMonat++; if (kalenderMonat>11){kalenderMonat=0;kalenderJahr++;} renderKalender();
     });
+
+    // --- ⧉ Wochenansicht mit Zeitleiste ---
+    let wocheZuJetztScrollen = true;
+    function renderWoche() {
+      const box = document.getElementById('calWoche');
+      const tage = Array.from({ length: 7 }, (_, i) => new Date(wochenStart.getFullYear(), wochenStart.getMonth(), wochenStart.getDate() + i));
+      const isos = tage.map(toISO), heuteISO = toISO(heute());
+      const kw = kalenderwoche(tage[0]);
+      monatLabel.textContent = 'KW ' + kw + ' · ' + tage[0].getDate() + '.' + (tage[0].getMonth() + 1) + '.–' + tage[6].getDate() + '.' + (tage[6].getMonth() + 1) + '.';
+      const alle = alleVorkommen(isos[0], isos[6]);
+      const ganztags = alle.filter(t => t.ev.allDay || !t.ev.startTime || t.tage > 1);
+      const zeitlich = alle.filter(t => !(t.ev.allDay || !t.ev.startTime || t.tage > 1));
+      const minuten = (hm) => TL.hhmm(hm) || 0;
+      let vonH = 7, bisH = 20;
+      zeitlich.forEach(t => { const s = minuten(t.ev.startTime); const e = t.ev.endTime && t.ev.endTime > t.ev.startTime ? minuten(t.ev.endTime) : s + 60; vonH = Math.min(vonH, Math.floor(s / 60)); bisH = Math.max(bisH, Math.ceil(e / 60)); });
+      bisH = Math.min(24, bisH);
+      const PX = 40;
+      const feiertage = {}; new Set(isos.map(i => i.slice(0, 4))).forEach(j => Object.assign(feiertage, feiertageSofort(Number(j))));
+      let html = '<div class="wo-kopf"><div></div>' + tage.map((d, i) => {
+        const iso = isos[i], fe = ferienAm(iso);
+        return '<div data-tag="' + iso + '" class="' + (iso === heuteISO ? 'heute ' : '') + (feiertage[iso] ? 'feiertag ' : '') + (fe ? 'ferien' : '') + '" title="' + escapeHtml([feiertage[iso], fe].filter(Boolean).join(' · ')) + '">' + WOCHENTAGE[i] + '<b>' + d.getDate() + '</b></div>';
+      }).join('') + '</div>';
+      // Ganztägige & mehrtägige Termine oben
+      html += '<div class="wo-ganztags"><div></div>' + isos.map(iso => '<div data-tag="' + iso + '">' +
+        ganztags.filter(t => t.tag === iso).map(t => '<div class="wo-gt" data-ev="' + t.ev.id + '" data-datum="' + t.datum + '" style="background:' + farbeFuer(t.ev.wer) + '">' + escapeHtml(TL.titelMitAlter(t.ev, t.datum)) + '</div>').join('') +
+        (feiertage[iso] ? '<div class="wo-gt" style="background:#c0392b">' + escapeHtml(feiertage[iso]) + '</div>' : '') + '</div>').join('') + '</div>';
+      html += '<div class="wo-raster" style="height:' + ((bisH - vonH) * PX) + 'px"><div class="wo-stunden">' +
+        Array.from({ length: bisH - vonH }, (_, i) => '<div style="height:' + PX + 'px">' + (i ? (vonH + i) + ':00' : '') + '</div>').join('') + '</div>' +
+        isos.map(iso => {
+          const tagT = zeitlich.filter(t => t.tag === iso).map(t => {
+            const s = minuten(t.ev.startTime), e = t.ev.endTime && t.ev.endTime > t.ev.startTime ? minuten(t.ev.endTime) : s + 60;
+            return { t, s, e };
+          }).sort((a, b) => a.s - b.s);
+          // Überschneidungen nebeneinander: einfache Spurverteilung
+          const spuren = [];
+          tagT.forEach(x => { let i = spuren.findIndex(ende => ende <= x.s); if (i === -1) { i = spuren.length; spuren.push(0); } spuren[i] = x.e; x.spur = i; });
+          tagT.forEach(x => { x.breite = Math.max(...tagT.filter(y => y.s < x.e && y.e > x.s).map(y => y.spur)) + 1; });
+          const linien = Array.from({ length: bisH - vonH }, (_, i) => '<div class="wo-linie" style="top:' + (i * PX) + 'px"></div>').join('');
+          const jetzt = new Date();
+          const jetztMin = jetzt.getHours() * 60 + jetzt.getMinutes();
+          const jetztLinie = iso === heuteISO && jetztMin >= vonH * 60 && jetztMin <= bisH * 60 ? '<div class="wo-jetzt" style="top:' + ((jetztMin - vonH * 60) / 60 * PX) + 'px"></div>' : '';
+          return '<div class="wo-spalte' + (iso === heuteISO ? ' heute' : '') + '" data-tag="' + iso + '">' + linien + jetztLinie + tagT.map(x => {
+            const top = (x.s - vonH * 60) / 60 * PX, h = Math.max(18, (x.e - x.s) / 60 * PX - 2);
+            const w = 100 / x.breite;
+            return '<div class="wo-block" data-ev="' + x.t.ev.id + '" data-datum="' + x.t.datum + '" style="top:' + top + 'px;height:' + h + 'px;left:calc(' + (x.spur * w) + '% + 1px);width:calc(' + w + '% - 2px);background:' + farbeFuer(x.t.ev.wer) + '" title="' + escapeHtml(x.t.ev.startTime + ' ' + x.t.ev.title) + '"><b>' + escapeHtml(x.t.ev.startTime) + '</b>' + escapeHtml(x.t.ev.title) + '</div>';
+          }).join('') + '</div>';
+        }).join('') + '</div>';
+      box.innerHTML = html;
+      box.querySelectorAll('[data-ev]').forEach(el => el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const ev = events.find(x => x.id === el.dataset.ev); if (ev) terminModalOeffnen(ev, el.dataset.datum);
+      }));
+      box.querySelectorAll('.wo-kopf [data-tag], .wo-ganztags > [data-tag]').forEach(el => el.addEventListener('click', () => tagDetailOeffnen(el.dataset.tag)));
+      box.querySelectorAll('.wo-spalte').forEach(sp => sp.addEventListener('click', (e) => {
+        const r = sp.getBoundingClientRect();
+        const min = Math.max(0, Math.round(((e.clientY - r.top) / PX * 60 + vonH * 60) / 30) * 30);
+        terminModalOeffnen(null, sp.dataset.tag);
+        if (min < 24 * 60) {
+          document.getElementById('fStart').value = String(Math.floor(min / 60)).padStart(2, '0') + ':' + String(min % 60).padStart(2, '0');
+          document.getElementById('fGanztags').checked = false; zeitRowAktualisieren(); konfliktePruefen();
+        }
+      }));
+      if (wocheZuJetztScrollen) {
+        wocheZuJetztScrollen = false;
+        const ziel = box.querySelector('.wo-jetzt');
+        if (ziel) setTimeout(() => { try { ziel.scrollIntoView({ block: 'center' }); } catch (e) {} }, 50);
+      }
+    }
 
     // --- Listenansicht (kommende 60 Tage) ---
     function renderListe() {
@@ -794,31 +1023,37 @@
         return;
       }
       const gruppen = {};
-      treffer.forEach(t => { (gruppen[t.datum] = gruppen[t.datum] || []).push(t); });
+      treffer.forEach(t => { (gruppen[t.tag] = gruppen[t.tag] || []).push(t); });
       inhalt.innerHTML = '';
       Object.keys(gruppen).sort().forEach(datum => {
         const gruppe = document.createElement('div'); gruppe.className='tag-gruppe';
-        const d = new Date(datum);
+        const d = new Date(datum + 'T12:00');
         const titel = document.createElement('div'); titel.className='tag-titel';
         titel.textContent = d.toLocaleDateString('de-DE', { weekday:'long', day:'numeric', month:'long' });
         gruppe.appendChild(titel);
-        gruppen[datum].forEach(t => gruppe.appendChild(terminCard(t.ev, t.datum)));
+        const fe = ferienAm(datum);
+        if (fe) titel.textContent += ' · 🏖️ ' + fe;
+        gruppen[datum].forEach(t => gruppe.appendChild(terminCard(t.ev, t.datum, t)));
         inhalt.appendChild(gruppe);
       });
     }
 
-    function terminCard(ev, datumISO) {
+    function terminCard(ev, datumISO, info) {
       const card = document.createElement('div');
       card.className = 'termin-card';
       card.style.borderLeftColor = farbeFuer(ev.wer);
+      const dauer = TL.dauerTage(ev);
+      const zeitHtml = dauer && info && info.tagNr > 1 ? 'Tag ' + info.tagNr + '/' + info.tage : (ev.allDay ? 'Ganztags' : escapeHtml(ev.startTime || '') + (ev.endTime && ev.endTime > ev.startTime ? '<br><span style="font-weight:500">–' + escapeHtml(ev.endTime) + '</span>' : ''));
       card.innerHTML = `
-        <div class="termin-zeit">${ev.allDay ? 'Ganztags' : (ev.startTime||'')}</div>
+        <div class="termin-zeit">${zeitHtml}</div>
         <div class="termin-info">
-          <div class="termin-titel">${escapeHtml(ev.title)}</div>
+          <div class="termin-titel">${escapeHtml(TL.titelMitAlter(ev, datumISO || ev.date))}</div>
           <div class="termin-meta">
-            <span class="wer-badge" style="background:${farbeFuer(ev.wer)}">${labelFuer(ev.wer)}</span>
+            <span class="wer-badge" style="background:${farbeFuer(ev.wer)}">${escapeHtml(labelFuer(ev.wer))}</span>
+            ${dauer ? '<span>↔ ' + escapeHtml(kurzDatum(datumISO || ev.date)) + ' – ' + escapeHtml(kurzDatum(TL.plusTage(datumISO || ev.date, dauer))) + '</span>' : ''}
             ${ev.location ? '<span>📍 '+escapeHtml(ev.location)+'</span>' : ''}
-            ${ev.recurrence && ev.recurrence.freq !== 'keine' ? '<span>🔁</span>' : ''}
+            ${TL.istSerie(ev) ? '<span>🔁 ' + escapeHtml(TL.rhythmusText(ev)) + '</span>' : ''}
+            ${ev.erinnerung || ev.erinnerungVorabend ? '<span title="Erinnerung">⏰</span>' : ''}
           </div>
         </div>`;
       card.addEventListener('click', () => terminModalOeffnen(ev, datumISO));
@@ -833,6 +1068,7 @@
       renderKalender();
       renderListe();
       renderSerieBanner();
+      if (typeof suchModus !== 'undefined' && suchModus) renderSuche();
     }
 
     // --- Warnung: Serien, deren "Wiederholen bis"-Datum bald erreicht ist ---
@@ -904,13 +1140,15 @@
     async function tagDetailOeffnen(tagISO) {
       tagDetailDatum = tagISO;
       const treffer = alleVorkommen(tagISO, tagISO);
-      document.getElementById('tagModalTitel').textContent = new Date(tagISO).toLocaleDateString('de-DE', { weekday:'long', day:'numeric', month:'long' });
+      document.getElementById('tagModalTitel').textContent = new Date(tagISO + 'T12:00').toLocaleDateString('de-DE', { weekday:'long', day:'numeric', month:'long' });
       const feiertagBox = document.getElementById('tagModalFeiertag');
       const jahrDesTags = parseInt(tagISO.slice(0,4), 10);
       const feiertageDesJahres = feiertageSofort(jahrDesTags);
       const feiertagName = feiertageDesJahres[tagISO];
-      if (feiertagName) {
-        feiertagBox.textContent = '🎉 ' + feiertagName;
+      const ferienName = ferienAm(tagISO);
+      if (feiertagName || ferienName) {
+        feiertagBox.textContent = [feiertagName && '🎉 ' + feiertagName, ferienName && '🏖️ ' + ferienName].filter(Boolean).join('  ·  ');
+        feiertagBox.style.color = feiertagName ? '#c0392b' : 'var(--sky)';
         feiertagBox.style.display = '';
       } else {
         feiertagBox.style.display = 'none';
@@ -920,7 +1158,7 @@
       if (!treffer.length) {
         liste.innerHTML = '<p style="font-size:0.82rem;color:var(--bark);">Keine Termine an diesem Tag.</p>';
       } else {
-        treffer.forEach(t => liste.appendChild(terminCard(t.ev, t.datum)));
+        treffer.forEach(t => liste.appendChild(terminCard(t.ev, t.datum, t)));
       }
       document.getElementById('modalTag').classList.add('zeigen');
     }
@@ -937,6 +1175,7 @@
       opt.addEventListener('click', () => {
         werSelect.querySelectorAll('.opt').forEach(o => { o.classList.remove('active'); o.style.background=''; });
         opt.classList.add('active'); opt.style.background = w.farbe;
+        if (typeof konfliktePruefen === 'function') konfliktePruefen();
       });
       werSelect.appendChild(opt);
     });
@@ -960,6 +1199,9 @@
         wiederholungBis: document.getElementById('fWiederholungBis').value,
         erinnerung: document.getElementById('fErinnerung').value,
         wer: werBtn ? werBtn.dataset.wer : 'familie',
+        endDatum: document.getElementById('fEndDatum').value,
+        intervall: document.getElementById('fIntervall').value,
+        geburtsjahr: document.getElementById('fGeburtsjahr').value,
       };
     }
     function entwurfHatInhalt(d) { return !!(d.titel.trim() || d.notizen.trim() || d.ort.trim()); }
@@ -986,8 +1228,12 @@
       document.getElementById('fEnde').value = d.ende || '';
       document.getElementById('fOrt').value = d.ort || '';
       document.getElementById('fNotizen').value = d.notizen || '';
+      document.getElementById('fEndDatum').value = d.endDatum || '';
+      wiederholungOptionen();
       document.getElementById('fWiederholung').value = d.wiederholung || 'keine';
       document.getElementById('fWiederholungBis').value = d.wiederholungBis || '';
+      document.getElementById('fIntervall').value = d.intervall || '1';
+      document.getElementById('fGeburtsjahr').value = d.geburtsjahr || '';
       document.getElementById('fErinnerung').value = d.erinnerung || '0';
       werSelect.querySelectorAll('.opt').forEach(o => {
         const aktiv = o.dataset.wer === d.wer;
@@ -998,23 +1244,44 @@
       wiederholungBisAktualisieren();
     }
 
+    let bearbeiteVorkommen = null; // bei Serien: das angeklickte Datum
     function terminModalOeffnen(ev, vorausgewaehltesDatum) {
       const form = document.getElementById('terminForm');
       form.reset();
       bearbeiteId = ev ? ev.id : null;
-      document.getElementById('terminModalTitel').textContent = ev ? 'Termin bearbeiten' : 'Neuer Termin';
+      const serie = ev && TL.istSerie(ev);
+      bearbeiteVorkommen = serie ? (vorausgewaehltesDatum && /^\d{4}-\d{2}-\d{2}$/.test(vorausgewaehltesDatum) ? vorausgewaehltesDatum : ev.date) : null;
+      document.getElementById('terminModalTitel').textContent = ev ? (serie ? '🔁 Termin der Serie' : 'Termin bearbeiten') : 'Neuer Termin';
       document.getElementById('btnTerminLoeschen').style.display = ev ? '' : 'none';
+      document.getElementById('btnTerminDuplizieren').style.display = ev ? '' : 'none';
+      document.getElementById('schnellRow').style.display = ev ? 'none' : '';
+      document.getElementById('schnellVorschau').innerHTML = '';
+      document.getElementById('titelHinweis').style.display = 'none';
+      titelVorschlaegeFuellen();
 
       document.getElementById('fTitel').value = ev ? ev.title : '';
-      document.getElementById('fDatum').value = ev ? ev.date : (vorausgewaehltesDatum || toISO(heute()));
+      // Serien zeigen das angeklickte Datum; „Alle“ verschiebt dann die ganze Serie um denselben Abstand
+      document.getElementById('fDatum').value = ev ? (bearbeiteVorkommen || ev.date) : (vorausgewaehltesDatum || toISO(heute()));
+      const dauerAlt = ev ? TL.dauerTage(ev) : 0;
+      document.getElementById('fEndDatum').value = dauerAlt ? TL.plusTage(document.getElementById('fDatum').value, dauerAlt) : '';
       document.getElementById('fGanztags').checked = ev ? !!ev.allDay : false;
       document.getElementById('fStart').value = ev ? (ev.startTime||'09:00') : '09:00';
       document.getElementById('fEnde').value = ev ? (ev.endTime||'') : '';
       document.getElementById('fOrt').value = ev ? (ev.location||'') : '';
       document.getElementById('fNotizen').value = ev ? (ev.notes||'') : '';
-      document.getElementById('fWiederholung').value = ev && ev.recurrence ? ev.recurrence.freq : 'keine';
+      wiederholungOptionen();
+      const freqAlt = ev ? TL.freq(ev) : 'keine';
+      document.getElementById('fWiederholung').value = freqAlt === 'monatlichWt' && ev.recurrence.wtNr === -1 ? 'monatlichWtLetzt' : freqAlt;
+      if (!document.getElementById('fWiederholung').value) document.getElementById('fWiederholung').value = freqAlt === 'monatlichWt' ? 'monatlichWt' : 'keine';
       document.getElementById('fWiederholungBis').value = ev && ev.recurrence ? (ev.recurrence.until||'') : '';
-      document.getElementById('fErinnerung').value = ev ? String(ev.erinnerung || 0) : '0';
+      document.getElementById('fIntervall').value = ev ? TL.intervall(ev) : 1;
+      document.getElementById('fGeburtsjahr').value = ev && ev.geburtsjahr ? ev.geburtsjahr : '';
+      const erOpt = ev ? (ev.erinnerungVorabend ? 'vorabend' : String(ev.erinnerung || 0)) : '0';
+      document.getElementById('fErinnerung').value = erOpt;
+      if (document.getElementById('fErinnerung').value !== erOpt) { // ungewöhnlicher Wert (z. B. aus anderen Modulen)
+        const o = document.createElement('option'); o.value = erOpt; o.textContent = erOpt + ' Minuten vorher'; document.getElementById('fErinnerung').appendChild(o);
+        document.getElementById('fErinnerung').value = erOpt;
+      }
 
       const wer = ev ? ev.wer : 'familie';
       werSelect.querySelectorAll('.opt').forEach(o => {
@@ -1025,6 +1292,7 @@
 
       zeitRowAktualisieren();
       wiederholungBisAktualisieren();
+      konfliktePruefen();
       document.getElementById('modalTermin').classList.add('zeigen');
 
       const entwurf = (() => { try { const roh = localStorage.getItem(KEY_ENTWURF_TERMIN); return roh ? JSON.parse(roh) : null; } catch (e) { return null; } })();
@@ -1041,10 +1309,206 @@
     }
     document.getElementById('fGanztags').addEventListener('change', zeitRowAktualisieren);
 
+    function wiederholungOptionen() {
+      const sel = document.getElementById('fWiederholung');
+      const alt = sel.value;
+      const datum = document.getElementById('fDatum').value || toISO(heute());
+      const wt = TL.WT_LANG[TL.wochentag(TL.tagNr(datum))], tag = Number(datum.slice(8, 10)), nr = TL.wtNrVonDatum(datum);
+      const letzteWoche = tag + 7 > new Date(Number(datum.slice(0, 4)), Number(datum.slice(5, 7)), 0).getDate();
+      const opts = [['keine', 'Keine'], ['taeglich', 'Täglich'], ['werktags', 'Werktags (Mo–Fr)'], ['woechentlich', 'Wöchentlich (' + wt + ')'], ['monatlich', 'Monatlich am ' + tag + '.']];
+      if (nr !== -1) opts.push(['monatlichWt', 'Monatlich: jeden ' + nr + '. ' + wt]);
+      if (letzteWoche) opts.push(['monatlichWtLetzt', 'Monatlich: jeden letzten ' + wt]);
+      opts.push(['jaehrlich', 'Jährlich am ' + tag + '.' + Number(datum.slice(5, 7)) + '.']);
+      sel.innerHTML = opts.map(o => '<option value="' + o[0] + '">' + escapeHtml(o[1]) + '</option>').join('');
+      sel.value = opts.some(o => o[0] === alt) ? alt : (alt === 'monatlichWt' && letzteWoche ? 'monatlichWtLetzt' : alt === 'monatlichWtLetzt' && nr !== -1 ? 'monatlichWt' : 'keine');
+    }
     function wiederholungBisAktualisieren() {
-      document.getElementById('wiederholungBisRow').style.display = document.getElementById('fWiederholung').value === 'keine' ? 'none' : '';
+      const f = document.getElementById('fWiederholung').value;
+      document.getElementById('wiederholungBisRow').style.display = f === 'keine' ? 'none' : '';
+      document.getElementById('intervallRow').style.visibility = f === 'werktags' ? 'hidden' : '';
+      const n = Number(document.getElementById('fIntervall').value) || 1;
+      document.getElementById('intervallEinheit').textContent = { taeglich: n === 1 ? 'Tag' : 'Tage', woechentlich: n === 1 ? 'Woche' : 'Wochen', monatlich: n === 1 ? 'Monat' : 'Monate', monatlichWt: n === 1 ? 'Monat' : 'Monate', monatlichWtLetzt: n === 1 ? 'Monat' : 'Monate', jaehrlich: n === 1 ? 'Jahr' : 'Jahre' }[f] || '';
+      document.getElementById('geburtsjahrRow').style.display = f === 'jaehrlich' ? '' : 'none';
     }
     document.getElementById('fWiederholung').addEventListener('change', wiederholungBisAktualisieren);
+    document.getElementById('fIntervall').addEventListener('input', wiederholungBisAktualisieren);
+    document.getElementById('fDatum').addEventListener('change', () => {
+      wiederholungOptionen(); wiederholungBisAktualisieren();
+      const end = document.getElementById('fEndDatum');
+      if (end.value && end.value < document.getElementById('fDatum').value) end.value = '';
+      konfliktePruefen();
+    });
+    document.getElementById('fEndDatum').addEventListener('change', () => {
+      const end = document.getElementById('fEndDatum');
+      if (end.value && end.value <= document.getElementById('fDatum').value) end.value = '';
+      if (end.value && !document.getElementById('fGanztags').checked && !document.getElementById('fStart').value) { document.getElementById('fGanztags').checked = true; zeitRowAktualisieren(); }
+    });
+    // Startzeit verschoben → Endzeit mit gleicher Dauer mitziehen
+    let startVorher = null;
+    document.getElementById('fStart').addEventListener('focus', () => { startVorher = document.getElementById('fStart').value; });
+    document.getElementById('fStart').addEventListener('change', () => {
+      const st = document.getElementById('fStart'), en = document.getElementById('fEnde');
+      const alt = TL.hhmm(startVorher), neu = TL.hhmm(st.value), ende = TL.hhmm(en.value);
+      if (alt !== null && neu !== null && ende !== null && ende > alt) {
+        const e = Math.min(23 * 60 + 59, neu + (ende - alt));
+        en.value = String(Math.floor(e / 60)).padStart(2, '0') + ':' + String(e % 60).padStart(2, '0');
+      } else if (ende !== null && neu !== null && ende <= neu) en.value = '';
+      startVorher = st.value;
+    });
+    ['fStart', 'fEnde', 'fGanztags'].forEach(id => document.getElementById(id).addEventListener('change', konfliktePruefen));
+
+    // ---------- ⚠️ Überschneidungen ----------
+    function konfliktePruefen() {
+      const box = document.getElementById('konfliktHinweis');
+      const datum = document.getElementById('fDatum').value;
+      const ganztags = document.getElementById('fGanztags').checked;
+      const start = document.getElementById('fStart').value, ende = document.getElementById('fEnde').value;
+      const werBtn = werSelect.querySelector('.opt.active');
+      const wer = werBtn ? werBtn.dataset.wer : 'familie';
+      if (!datum || ganztags || !start) { box.style.display = 'none'; return; }
+      const s = TL.hhmm(start), e = ende && ende > start ? TL.hhmm(ende) : s + 60;
+      const treffer = [];
+      events.forEach(ev => {
+        if (ev.id === bearbeiteId || ev.allDay || !ev.startTime) return;
+        if (!(ev.wer === wer || ev.wer === 'familie' || wer === 'familie')) return;
+        if (!TL.startetAm(ev, datum)) return;
+        const s2 = TL.hhmm(ev.startTime), e2 = ev.endTime && ev.endTime > ev.startTime ? TL.hhmm(ev.endTime) : s2 + 60;
+        if (s < e2 && s2 < e) treffer.push(ev);
+      });
+      if (!treffer.length) { box.style.display = 'none'; return; }
+      box.innerHTML = '⚠️ Zur gleichen Zeit: ' + treffer.slice(0, 3).map(ev => '„' + escapeHtml(ev.title) + '“ ' + escapeHtml(zeitText(ev)) + ' (' + escapeHtml(labelFuer(ev.wer)) + ')').join(', ');
+      box.style.display = '';
+    }
+
+    // ---------- 💡 Titel-Vorschläge aus früheren Terminen ----------
+    function titelVorschlaegeFuellen() {
+      const gesehen = new Set(), liste = [];
+      events.slice().sort((a, b) => String(b.date).localeCompare(String(a.date))).forEach(ev => {
+        const t = String(ev.title || '').trim(); const k = t.toLowerCase();
+        if (t && !gesehen.has(k)) { gesehen.add(k); liste.push(t); }
+      });
+      document.getElementById('titelVorschlaege').innerHTML = liste.slice(0, 150).map(t => '<option value="' + escapeHtml(t) + '"></option>').join('');
+    }
+    function vorlageUebernehmen() {
+      if (bearbeiteId) return;
+      const titel = document.getElementById('fTitel').value.trim().toLowerCase();
+      if (!titel) return;
+      const vorbild = events.filter(ev => String(ev.title || '').trim().toLowerCase() === titel).sort((a, b) => String(b.date).localeCompare(String(a.date)))[0];
+      const hinweis = document.getElementById('titelHinweis');
+      if (!vorbild) { hinweis.style.display = 'none'; return; }
+      const uebernommen = [];
+      const ort = document.getElementById('fOrt');
+      if (!ort.value && vorbild.location) { ort.value = vorbild.location; uebernommen.push('Ort'); }
+      const werBtn = werSelect.querySelector('.opt.active');
+      if ((!werBtn || werBtn.dataset.wer === 'familie') && vorbild.wer && vorbild.wer !== 'familie') {
+        werSelect.querySelectorAll('.opt').forEach(o => { const a = o.dataset.wer === vorbild.wer; o.classList.toggle('active', a); o.style.background = a ? farbeFuer(vorbild.wer) : ''; });
+        uebernommen.push('Person');
+      }
+      if (vorbild.allDay && !document.getElementById('fGanztags').checked) { document.getElementById('fGanztags').checked = true; zeitRowAktualisieren(); uebernommen.push('ganztägig'); }
+      else if (!vorbild.allDay && vorbild.startTime && vorbild.endTime && vorbild.endTime > vorbild.startTime && !document.getElementById('fEnde').value) {
+        const d = TL.hhmm(vorbild.endTime) - TL.hhmm(vorbild.startTime), s = TL.hhmm(document.getElementById('fStart').value || '09:00');
+        const e = Math.min(23 * 60 + 59, s + d);
+        document.getElementById('fEnde').value = String(Math.floor(e / 60)).padStart(2, '0') + ':' + String(e % 60).padStart(2, '0');
+        uebernommen.push('Dauer ' + (d >= 60 ? (d / 60).toString().replace('.', ',') + ' Std.' : d + ' Min.'));
+      }
+      const er = document.getElementById('fErinnerung');
+      const erVorbild = vorbild.erinnerungVorabend ? 'vorabend' : String(vorbild.erinnerung || 0);
+      if (er.value === '0' && erVorbild !== '0' && [...er.options].some(o => o.value === erVorbild)) { er.value = erVorbild; uebernommen.push('Erinnerung'); }
+      if (uebernommen.length) { hinweis.textContent = '↺ Wie beim letzten Mal: ' + uebernommen.join(', '); hinweis.style.display = ''; konfliktePruefen(); }
+    }
+    document.getElementById('fTitel').addEventListener('change', vorlageUebernehmen);
+
+    // ---------- ⚡ Schnell eintippen: „Zahnarzt Lev morgen 15:30 bei Dr. Müller“ ----------
+    const WT_NAMEN = { mo: 0, montag: 0, di: 1, dienstag: 1, mi: 2, mittwoch: 2, do: 3, donnerstag: 3, fr: 4, freitag: 4, sa: 5, samstag: 5, so: 6, sonntag: 6 };
+    function schnellZerlegen(text) {
+      let rest = ' ' + String(text || '').trim() + ' ';
+      const e = {};
+      const h = heute();
+      const weg = (re) => { rest = rest.replace(re, ' '); };
+      let m;
+      // Ort: „bei …“ / „@ …“ / „in der …“ / „im …“ bis zum Ende (vorher Zeit/Datum am Ende abtrennen geht unten)
+      // Uhrzeit (auch Spanne): 15:30, 15.30 Uhr, 15 Uhr, um 9, 15-16 Uhr, 9:00–10:30
+      m = rest.match(/\s(?:um\s+|von\s+)?(\d{1,2})(?:[:.](\d{2}))?\s*(?:uhr\s*)?(?:-|–|bis)\s*(\d{1,2})(?:[:.](\d{2}))?\s*(?:uhr|h)?(?=\s)/i);
+      if (m && Number(m[1]) < 24 && Number(m[3]) < 25) {
+        e.start = m[1].padStart(2, '0') + ':' + (m[2] || '00'); e.ende = m[3].padStart(2, '0') + ':' + (m[4] || '00'); weg(m[0]);
+      } else {
+        m = rest.match(/\s(?:um\s+)?(\d{1,2})[:.](\d{2})\s*(?:uhr|h)?(?=\s)/i) || rest.match(/\s(?:um\s+)?(\d{1,2})\s*(?:uhr|h)(?=\s)/i) || rest.match(/\sum\s+(\d{1,2})(?=\s)/i);
+        if (m && Number(m[1]) < 24) { e.start = m[1].padStart(2, '0') + ':' + (m[2] || '00'); weg(m[0]); }
+      }
+      // Datum
+      const setze = (d) => { e.datum = toISO(d); };
+      if ((m = rest.match(/\s(\d{1,2})\.(\d{1,2})\.(\d{2,4})?(?=\s)/))) {
+        let j = m[3] ? Number(m[3].length === 2 ? '20' + m[3] : m[3]) : h.getFullYear();
+        let d = new Date(j, Number(m[2]) - 1, Number(m[1]));
+        if (!m[3] && d < h) d = new Date(j + 1, Number(m[2]) - 1, Number(m[1]));
+        if (d.getDate() === Number(m[1])) { setze(d); weg(m[0]); }
+      }
+      if (!e.datum && (m = rest.match(/\s(heute|morgen|übermorgen|uebermorgen)(?=\s)/i))) {
+        const n = { heute: 0, morgen: 1, übermorgen: 2, uebermorgen: 2 }[m[1].toLowerCase()];
+        setze(new Date(h.getFullYear(), h.getMonth(), h.getDate() + n)); weg(m[0]);
+      }
+      if (!e.datum && (m = rest.match(/\sin\s+(\d{1,2}|einer|einem|zwei|drei)\s+(tag|tagen|woche|wochen)(?=\s)/i))) {
+        const zahl = { einer: 1, einem: 1, zwei: 2, drei: 3 }[m[1].toLowerCase()] || Number(m[1]);
+        setze(new Date(h.getFullYear(), h.getMonth(), h.getDate() + zahl * (/woche/i.test(m[2]) ? 7 : 1))); weg(m[0]);
+      }
+      if ((m = rest.match(/\s(jeden|jede|immer)\s+(montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag|mo|di|mi|do|fr|sa|so)s?(?=\s)/i))) {
+        e.wiederholung = 'woechentlich';
+        const ziel = WT_NAMEN[m[2].toLowerCase()];
+        if (!e.datum) { const plus = (ziel - (h.getDay() + 6) % 7 + 7) % 7; setze(new Date(h.getFullYear(), h.getMonth(), h.getDate() + plus)); }
+        weg(m[0]);
+      }
+      if (!e.datum && (m = rest.match(/\s(?:am\s+|nächsten\s+|naechsten\s+|kommenden\s+)?(montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag|mo|di|mi|do|fr|sa|so)(?=[\s,])/i))) {
+        const ziel = WT_NAMEN[m[1].toLowerCase()];
+        let plus = (ziel - (h.getDay() + 6) % 7 + 7) % 7; if (plus === 0) plus = 7;
+        setze(new Date(h.getFullYear(), h.getMonth(), h.getDate() + plus)); weg(m[0]);
+      }
+      if ((m = rest.match(/\s(täglich|taeglich|jeden tag|werktags|wöchentlich|woechentlich|jede woche|monatlich|jeden monat|jährlich|jaehrlich|jedes jahr)(?=\s)/i))) {
+        const w = m[1].toLowerCase();
+        e.wiederholung = /tägl|taegl|jeden tag/.test(w) ? 'taeglich' : /werktag/.test(w) ? 'werktags' : /woch|woech/.test(w) ? 'woechentlich' : /monat/.test(w) ? 'monatlich' : 'jaehrlich';
+        weg(m[0]);
+      }
+      // Ort
+      if ((m = rest.match(/\s(?:bei|@|in der|im|ins|in)\s+(\S.*?)\s*$/i))) { e.ort = m[1].trim().replace(/[,;]+$/, ''); weg(m[0]); }
+      // Person (Name als eigenes Wort)
+      WER_OPTIONEN.forEach(w => {
+        if (e.wer || !w.label) return;
+        const re = new RegExp('\\s(?:für\\s+|mit\\s+)?' + w.label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?=[\\s,])', 'i');
+        if (re.test(rest)) { e.wer = w.id; rest = rest.replace(re, ' '); }
+      });
+      const titel = rest.replace(/\s+/g, ' ').replace(/^[\s,:-]+|[\s,:-]+$/g, '').trim();
+      if (titel) e.titel = titel.charAt(0).toUpperCase() + titel.slice(1);
+      return e;
+    }
+    function schnellVorschau() {
+      const e = schnellZerlegen(document.getElementById('fSchnell').value);
+      const teile = [];
+      if (e.titel) teile.push('📝 ' + e.titel);
+      if (e.datum) teile.push('📅 ' + kurzDatum(e.datum));
+      if (e.start) teile.push('🕐 ' + e.start + (e.ende ? '–' + e.ende : ''));
+      if (e.wer) teile.push('👤 ' + labelFuer(e.wer));
+      if (e.ort) teile.push('📍 ' + e.ort);
+      if (e.wiederholung) teile.push('🔁 ' + { taeglich: 'täglich', werktags: 'werktags', woechentlich: 'wöchentlich', monatlich: 'monatlich', jaehrlich: 'jährlich' }[e.wiederholung]);
+      document.getElementById('schnellVorschau').innerHTML = teile.map(t => '<span>' + escapeHtml(t) + '</span>').join('');
+    }
+    function schnellUebernehmen() {
+      const e = schnellZerlegen(document.getElementById('fSchnell').value);
+      if (e.titel) document.getElementById('fTitel').value = e.titel;
+      if (e.datum) document.getElementById('fDatum').value = e.datum;
+      if (e.start) { document.getElementById('fGanztags').checked = false; document.getElementById('fStart').value = e.start; document.getElementById('fEnde').value = e.ende || ''; }
+      else if (e.datum) document.getElementById('fGanztags').checked = true;
+      if (e.ort) document.getElementById('fOrt').value = e.ort;
+      if (e.wer) werSelect.querySelectorAll('.opt').forEach(o => { const a = o.dataset.wer === e.wer; o.classList.toggle('active', a); o.style.background = a ? farbeFuer(e.wer) : ''; });
+      wiederholungOptionen();
+      if (e.wiederholung) document.getElementById('fWiederholung').value = e.wiederholung;
+      zeitRowAktualisieren(); wiederholungBisAktualisieren();
+      vorlageUebernehmen();
+      konfliktePruefen();
+      document.getElementById('fSchnell').value = '';
+      document.getElementById('schnellVorschau').innerHTML = '';
+    }
+    document.getElementById('fSchnell').addEventListener('input', schnellVorschau);
+    document.getElementById('fSchnell').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); schnellUebernehmen(); } });
+    document.getElementById('btnSchnell').addEventListener('click', schnellUebernehmen);
 
     document.getElementById('fErinnerung').addEventListener('change', (e) => {
       if (e.target.value !== '0' && 'Notification' in window && Notification.permission === 'default') {
@@ -1052,34 +1516,129 @@
       }
     });
 
-    document.getElementById('terminForm').addEventListener('submit', (e) => {
-      e.preventDefault();
+    function neueTerminId() { return 't_' + Date.now() + '_' + Math.random().toString(36).slice(2,7); }
+    function formularLesen() {
       const werBtn = werSelect.querySelector('.opt.active');
-      const neuerEintrag = {
-        id: bearbeiteId || ('t_' + Date.now() + '_' + Math.random().toString(36).slice(2,7)),
+      const ganz = document.getElementById('fGanztags').checked;
+      const wahl = document.getElementById('fWiederholung').value;
+      const freq = wahl === 'monatlichWtLetzt' ? 'monatlichWt' : wahl;
+      const erWert = document.getElementById('fErinnerung').value;
+      const datum = document.getElementById('fDatum').value;
+      const end = document.getElementById('fEndDatum').value;
+      const e = {
         title: document.getElementById('fTitel').value.trim(),
-        date: document.getElementById('fDatum').value,
-        allDay: document.getElementById('fGanztags').checked,
-        startTime: document.getElementById('fGanztags').checked ? '' : document.getElementById('fStart').value,
-        endTime: document.getElementById('fGanztags').checked ? '' : document.getElementById('fEnde').value,
+        date: datum,
+        allDay: ganz,
+        startTime: ganz ? '' : document.getElementById('fStart').value,
+        endTime: ganz ? '' : document.getElementById('fEnde').value,
         wer: werBtn ? werBtn.dataset.wer : 'familie',
         location: document.getElementById('fOrt').value.trim(),
         notes: document.getElementById('fNotizen').value.trim(),
-        erinnerung: Number(document.getElementById('fErinnerung').value) || 0,
-        recurrence: {
-          freq: document.getElementById('fWiederholung').value,
-          until: document.getElementById('fWiederholungBis').value || null
-        }
+        erinnerung: erWert === 'vorabend' ? 0 : (Number(erWert) || 0),
+        recurrence: { freq, until: freq !== 'keine' ? (document.getElementById('fWiederholungBis').value || null) : null },
       };
-      if (bearbeiteId) {
-        events = events.map(ev => ev.id === bearbeiteId ? neuerEintrag : ev);
-      } else {
-        events.push(neuerEintrag);
-      }
+      if (erWert === 'vorabend') e.erinnerungVorabend = true;
+      if (end && end > datum) e.endDate = end;
+      const n = Math.max(1, Math.min(52, Math.floor(Number(document.getElementById('fIntervall').value) || 1)));
+      if (freq !== 'keine' && freq !== 'werktags' && n > 1) e.recurrence.interval = n;
+      if (freq === 'monatlichWt') e.recurrence.wtNr = wahl === 'monatlichWtLetzt' ? -1 : TL.wtNrVonDatum(datum);
+      const gj = Number(document.getElementById('fGeburtsjahr').value);
+      if (freq === 'jaehrlich' && gj >= 1900 && gj <= 2100) e.geburtsjahr = gj;
+      return e;
+    }
+    // Felder, die nur zum Termin selbst gehören, aus dem Formular übernehmen (Rest – z. B. Herkunft aus anderen Modulen – bleibt)
+    const FORM_FELDER = ['title', 'date', 'endDate', 'allDay', 'startTime', 'endTime', 'wer', 'location', 'notes', 'erinnerung', 'erinnerungVorabend', 'recurrence', 'geburtsjahr'];
+    function mitFormular(basis, form) {
+      const neu = Object.assign({}, basis);
+      FORM_FELDER.forEach(k => { if (form[k] === undefined) delete neu[k]; else neu[k] = form[k]; });
+      return neu;
+    }
+    function nachAenderung(text, vorher) {
       speichernAlle(events);
       document.getElementById('modalTermin').classList.remove('zeigen');
+      document.getElementById('modalSerie').classList.remove('zeigen');
       entwurfUeberwachungStoppen(); entwurfLoeschen();
       renderAktuelleAnsicht();
+      if (document.getElementById('modalTag').classList.contains('zeigen') && tagDetailDatum) tagDetailOeffnen(tagDetailDatum);
+      if (text) showTempStatus(text, 6, vorher ? { rueckgaengig: () => { events = vorher; speichernAlle(events); renderAktuelleAnsicht(); } } : undefined);
+    }
+    // Fragt bei Serien: nur dieser / dieser und folgende / alle
+    let serieAktion = null;
+    function serieFragen(art, vorkommen, ev, weiter) {
+      serieAktion = weiter;
+      document.getElementById('serieTitel').textContent = art === 'loeschen' ? '🗑️ Serie „' + ev.title + '“' : '🔁 Serie „' + ev.title + '“ ändern';
+      document.getElementById('serieNurText').textContent = art === 'loeschen' ? 'Nur diesen Termin absagen' : 'Nur diesen Termin';
+      document.getElementById('serieNurKlein').textContent = kurzDatum(vorkommen) + ' – die anderen bleiben unverändert';
+      document.getElementById('serieFolgendeKlein').textContent = 'ab ' + kurzDatum(vorkommen) + (art === 'loeschen' ? ' – frühere bleiben stehen' : ' – frühere bleiben wie sie waren');
+      document.getElementById('serieAlleKlein').textContent = TL.rhythmusText(ev) + ' seit ' + kurzDatum(ev.date);
+      document.querySelector('#modalSerie [data-umfang="folgende"]').style.display = vorkommen > ev.date ? '' : 'none';
+      document.getElementById('modalSerie').classList.add('zeigen');
+    }
+    document.querySelectorAll('#modalSerie [data-umfang]').forEach(b => b.addEventListener('click', () => {
+      document.getElementById('modalSerie').classList.remove('zeigen');
+      const f = serieAktion; serieAktion = null;
+      if (f) f(b.dataset.umfang);
+    }));
+    document.getElementById('btnSerieAbbrechen').addEventListener('click', () => { document.getElementById('modalSerie').classList.remove('zeigen'); serieAktion = null; });
+
+    document.getElementById('terminForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const form = formularLesen();
+      const vorher = JSON.parse(JSON.stringify(events));
+      const alt = bearbeiteId ? events.find(ev => ev.id === bearbeiteId) : null;
+      if (!alt) {
+        events.push(Object.assign({ id: neueTerminId() }, form));
+        nachAenderung('', null);
+        return;
+      }
+      if (!TL.istSerie(alt) || !bearbeiteVorkommen) {
+        events = events.map(ev => ev.id === alt.id ? mitFormular(ev, form) : ev);
+        nachAenderung('', null);
+        return;
+      }
+      const vk = bearbeiteVorkommen;
+      serieFragen('aendern', vk, alt, (umfang) => {
+        if (umfang === 'nur') {
+          // Ausnahme in der Serie + eigener Einzeltermin
+          const einzel = Object.assign(mitFormular({ id: neueTerminId(), ausSerie: alt.id }, form), { recurrence: { freq: 'keine', until: null } });
+          delete einzel.geburtsjahr;
+          events = events.map(ev => ev.id === alt.id ? Object.assign({}, ev, { exdates: [...new Set((ev.exdates || []).concat(vk))].sort() }) : ev);
+          events.push(einzel);
+          nachAenderung('✂️ Nur der Termin am ' + kurzDatum(vk) + ' wurde geändert', vorher);
+        } else if (umfang === 'folgende' && vk > alt.date) {
+          const altEnde = Object.assign({}, alt, { recurrence: Object.assign({}, alt.recurrence, { until: TL.plusTage(vk, -1) }), exdates: (alt.exdates || []).filter(x => x < vk) });
+          if (!altEnde.exdates.length) delete altEnde.exdates;
+          const neu = mitFormular({ id: neueTerminId(), ausSerie: alt.id }, form);
+          const ex = (alt.exdates || []).filter(x => x >= vk); if (ex.length) neu.exdates = ex;
+          events = events.map(ev => ev.id === alt.id ? altEnde : ev);
+          events.push(neu);
+          nachAenderung('🔁 Ab ' + kurzDatum(vk) + ' geändert', vorher);
+        } else {
+          // Alle: ganze Serie um denselben Abstand verschieben, den das angeklickte Datum bekommen hat
+          const verschiebung = TL.tagNr(form.date) - TL.tagNr(vk);
+          const f2 = Object.assign({}, form, { date: TL.plusTage(alt.date, verschiebung) });
+          if (form.endDate) f2.endDate = TL.plusTage(f2.date, TL.tagNr(form.endDate) - TL.tagNr(form.date));
+          if (f2.recurrence.freq === 'monatlichWt' && !(document.getElementById('fWiederholung').value === 'monatlichWtLetzt')) f2.recurrence.wtNr = TL.wtNrVonDatum(f2.date);
+          const neu = mitFormular(alt, f2);
+          if (verschiebung && neu.exdates) neu.exdates = neu.exdates.map(x => TL.plusTage(x, verschiebung));
+          events = events.map(ev => ev.id === alt.id ? neu : ev);
+          nachAenderung('🔁 Ganze Serie geändert', vorher);
+        }
+      });
+    });
+
+    document.getElementById('btnTerminDuplizieren').addEventListener('click', () => {
+      const form = formularLesen();
+      entwurfUeberwachungStoppen(); entwurfLoeschen();
+      bearbeiteId = null; bearbeiteVorkommen = null;
+      document.getElementById('terminModalTitel').textContent = '⧉ Kopie – neuer Termin';
+      document.getElementById('btnTerminLoeschen').style.display = 'none';
+      document.getElementById('btnTerminDuplizieren').style.display = 'none';
+      document.getElementById('konfliktHinweis').style.display = 'none';
+      document.getElementById('fDatum').focus();
+      showTempStatus('⧉ Kopie: Datum anpassen und speichern', 4);
+      void form;
+      entwurfUeberwachungStarten();
     });
 
     document.getElementById('btnTerminLoeschen').addEventListener('click', () => {
@@ -1087,14 +1646,24 @@
       const index = events.findIndex(ev => ev.id === bearbeiteId);
       if (index === -1) return;
       const entfernt = events[index];
-      const istSerie = entfernt.recurrence && entfernt.recurrence.freq !== 'keine';
-      events.splice(index, 1);
-      speichernAlle(events);
-      document.getElementById('modalTermin').classList.remove('zeigen');
-      entwurfUeberwachungStoppen(); entwurfLoeschen();
-      renderAktuelleAnsicht();
-      showTempStatus((istSerie ? 'Serie gelöscht: ' : 'Gelöscht: ') + '„' + entfernt.title + '"', 6, {
-        rueckgaengig: () => { events.splice(index, 0, entfernt); speichernAlle(events); renderAktuelleAnsicht(); }
+      const vorher = JSON.parse(JSON.stringify(events));
+      if (!TL.istSerie(entfernt) || !bearbeiteVorkommen) {
+        events.splice(index, 1);
+        nachAenderung('Gelöscht: „' + entfernt.title + '“', vorher);
+        return;
+      }
+      const vk = bearbeiteVorkommen;
+      serieFragen('loeschen', vk, entfernt, (umfang) => {
+        if (umfang === 'nur') {
+          events = events.map(ev => ev.id === entfernt.id ? Object.assign({}, ev, { exdates: [...new Set((ev.exdates || []).concat(vk))].sort() }) : ev);
+          nachAenderung('✂️ Abgesagt: „' + entfernt.title + '“ am ' + kurzDatum(vk), vorher);
+        } else if (umfang === 'folgende' && vk > entfernt.date) {
+          events = events.map(ev => ev.id === entfernt.id ? Object.assign({}, ev, { recurrence: Object.assign({}, ev.recurrence, { until: TL.plusTage(vk, -1) }) }) : ev);
+          nachAenderung('🔁 Serie endet jetzt am ' + kurzDatum(TL.plusTage(vk, -1)), vorher);
+        } else {
+          events = events.filter(ev => ev.id !== entfernt.id);
+          nachAenderung('Serie gelöscht: „' + entfernt.title + '“', vorher);
+        }
       });
     });
 
@@ -1115,6 +1684,73 @@
       });
     });
 
+    var suchModus = false;
+    function sucheOeffnen() {
+      suchModus = true;
+      document.getElementById('suchLeiste').classList.add('zeigen');
+      ['kalenderView', 'listeView'].forEach(id => document.getElementById(id).style.display = 'none');
+      document.getElementById('sucheView').style.display = '';
+      document.getElementById('fSuche').focus();
+      renderSuche();
+    }
+    function sucheSchliessen() {
+      suchModus = false;
+      document.getElementById('suchLeiste').classList.remove('zeigen');
+      document.getElementById('fSuche').value = '';
+      document.getElementById('sucheView').style.display = 'none';
+      const kal = btnViewKalender.classList.contains('active');
+      document.getElementById('kalenderView').style.display = kal ? '' : 'none';
+      document.getElementById('listeView').style.display = kal ? 'none' : '';
+    }
+    function markiere(text, q) {
+      const t = escapeHtml(text || '');
+      if (!q) return t;
+      const i = t.toLowerCase().indexOf(escapeHtml(q).toLowerCase());
+      return i === -1 ? t : t.slice(0, i) + '<mark>' + t.slice(i, i + escapeHtml(q).length) + '</mark>' + t.slice(i + escapeHtml(q).length);
+    }
+    function renderSuche() {
+      const box = document.getElementById('sucheInhalt');
+      const q = document.getElementById('fSuche').value.trim().toLowerCase();
+      if (q.length < 2) { box.innerHTML = '<div class="empty-state"><span class="em">🔎</span>Mindestens zwei Buchstaben eingeben – gesucht wird in Titel, Ort und Notizen, auch in vergangenen Terminen.</div>'; return; }
+      const hIso = toISO(heute());
+      const kommend = [], vergangen = [];
+      events.forEach(ev => {
+        if (aktiverFilter !== 'alle' && ev.wer !== aktiverFilter) return;
+        if (![ev.title, ev.location, ev.notes].some(x => String(x || '').toLowerCase().includes(q))) return;
+        const n = TL.naechstes(ev, hIso, 1100);
+        const l = TL.letztes(ev, hIso);
+        if (n) kommend.push({ ev, datum: n });
+        if (l && (!n || !TL.istSerie(ev))) vergangen.push({ ev, datum: l });
+        else if (l && TL.istSerie(ev)) vergangen.push({ ev, datum: l, serie: true });
+      });
+      kommend.sort((a, b) => a.datum.localeCompare(b.datum));
+      vergangen.sort((a, b) => b.datum.localeCompare(a.datum));
+      if (!kommend.length && !vergangen.length) { box.innerHTML = '<div class="empty-state"><span class="em">🤷</span>Nichts gefunden.</div>'; return; }
+      box.innerHTML = '';
+      const abschnitt = (titel, liste) => {
+        if (!liste.length) return;
+        const k = document.createElement('div'); k.className = 'such-treffer-kopf'; k.textContent = titel + ' (' + liste.length + ')'; box.appendChild(k);
+        liste.slice(0, 60).forEach(t => {
+          const card = terminCard(t.ev, t.datum);
+          const tage = TL.tagNr(t.datum) - TL.tagNr(hIso);
+          const rel = tage === 0 ? 'heute' : tage === 1 ? 'morgen' : tage === -1 ? 'gestern' : tage > 0 ? 'in ' + tage + ' Tagen' : (tage > -60 ? 'vor ' + (-tage) + ' Tagen' : 'vor ' + Math.round(-tage / 30.4) + ' Monaten');
+          const d = document.createElement('div'); d.className = 'such-datum';
+          d.textContent = new Date(t.datum + 'T12:00').toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' }) + ' · ' + rel + (t.serie ? ' (zuletzt)' : '');
+          card.querySelector('.termin-info').insertBefore(d, card.querySelector('.termin-titel'));
+          card.querySelector('.termin-titel').innerHTML = markiere(TL.titelMitAlter(t.ev, t.datum), q);
+          box.appendChild(card);
+        });
+      };
+      abschnitt('Kommend', kommend);
+      abschnitt('Vergangen', vergangen);
+    }
+    document.getElementById('btnSuche').addEventListener('click', () => suchModus ? sucheSchliessen() : sucheOeffnen());
+    document.getElementById('btnSucheZu').addEventListener('click', sucheSchliessen);
+    document.getElementById('fSuche').addEventListener('input', renderSuche);
+    document.getElementById('fSuche').addEventListener('keydown', (e) => { if (e.key === 'Escape') sucheSchliessen(); });
+    btnViewKalender.addEventListener('click', () => { if (suchModus) sucheSchliessen(); });
+    btnViewListe.addEventListener('click', () => { if (suchModus) sucheSchliessen(); });
+
     renderFilter();
     renderAktuelleAnsicht();
 
@@ -1131,7 +1767,7 @@
       }
       if (e.data && e.data.type === 'shortcutAktion' && e.data.aktion === 'neu') {
         terminModalOeffnen(null);
-        if (e.data.text) document.getElementById('fTitel').value = e.data.text; // aus „＋ Schnell festhalten“
+        if (e.data.text) { document.getElementById('fSchnell').value = e.data.text; schnellUebernehmen(); } // aus „＋ Schnell festhalten“
       }
     });
 
@@ -1146,16 +1782,13 @@
       return datumISO.replace(/-/g, '') + 'T' + (zeitHHMM || '00:00').replace(':', '') + '00';
     }
     function icsDatumTag(datumISO, plusTage) {
-      const d = new Date(datumISO);
-      if (plusTage) d.setDate(d.getDate() + plusTage);
-      return toISO(d).replace(/-/g, '');
+      return TL.plusTage(datumISO, plusTage || 0).replace(/-/g, '');
     }
     function icsRRULE(ev) {
-      if (!ev.recurrence || ev.recurrence.freq === 'keine') return '';
-      const freqMap = { taeglich: 'DAILY', woechentlich: 'WEEKLY', monatlich: 'MONTHLY', jaehrlich: 'YEARLY' };
-      let rrule = 'RRULE:FREQ=' + freqMap[ev.recurrence.freq];
-      if (ev.recurrence.until) rrule += ';UNTIL=' + icsDatumTag(ev.recurrence.until) + 'T235959Z';
-      return rrule;
+      const r = TL.icsRegel(ev);
+      if (!r) return '';
+      const ex = (ev.exdates || []).map(x => ev.allDay || !ev.startTime ? x.replace(/-/g, '') : icsDatumUhrzeit(x, ev.startTime));
+      return 'RRULE:' + r + (ex.length ? '\r\n' + (ev.allDay || !ev.startTime ? 'EXDATE;VALUE=DATE:' : 'EXDATE:') + ex.join(',') : '');
     }
     function icsErstellen(liste) {
       const zeilen = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Familienplaner//Termine//DE', 'CALSCALE:GREGORIAN'];
@@ -1163,9 +1796,12 @@
         zeilen.push('BEGIN:VEVENT');
         zeilen.push('UID:' + ev.id + '@familienplaner');
         zeilen.push('DTSTAMP:' + icsDatumTag(toISO(heute())) + 'T000000Z');
-        if (ev.allDay) {
+        if (ev.allDay || !ev.startTime) {
           zeilen.push('DTSTART;VALUE=DATE:' + icsDatumTag(ev.date));
-          zeilen.push('DTEND;VALUE=DATE:' + icsDatumTag(ev.date, 1));
+          zeilen.push('DTEND;VALUE=DATE:' + icsDatumTag(ev.date, 1 + TL.dauerTage(ev)));
+        } else if (TL.dauerTage(ev)) {
+          zeilen.push('DTSTART:' + icsDatumUhrzeit(ev.date, ev.startTime));
+          zeilen.push('DTEND:' + icsDatumUhrzeit(ev.endDate, ev.endTime || ev.startTime));
         } else {
           zeilen.push('DTSTART:' + icsDatumUhrzeit(ev.date, ev.startTime));
           zeilen.push('DTEND:' + icsDatumUhrzeit(ev.date, ev.endTime || ev.startTime));
@@ -1175,11 +1811,11 @@
         zeilen.push('SUMMARY:' + icsEscape(ev.title));
         if (ev.location) zeilen.push('LOCATION:' + icsEscape(ev.location));
         if (ev.notes) zeilen.push('DESCRIPTION:' + icsEscape(ev.notes));
-        if (ev.erinnerung) {
+        if (ev.erinnerung || ev.erinnerungVorabend) {
           zeilen.push('BEGIN:VALARM');
           zeilen.push('ACTION:DISPLAY');
           zeilen.push('DESCRIPTION:' + icsEscape(ev.title));
-          zeilen.push('TRIGGER:-PT' + ev.erinnerung + 'M');
+          zeilen.push('TRIGGER:-PT' + (ev.erinnerungVorabend ? Math.max(1, (ev.allDay || !ev.startTime ? 6 * 60 : TL.hhmm(ev.startTime) + 6 * 60)) : ev.erinnerung) + 'M');
           zeilen.push('END:VALARM');
         }
         zeilen.push('END:VEVENT');
