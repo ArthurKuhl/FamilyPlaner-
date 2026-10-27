@@ -2,6 +2,12 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
+## 2026-10-27 | 📰 Nachrichten: eigene Themen, „Alle“ & Unwetterwarnungen
+Neuer Reiter „⭐ Themen“ mit eigenen Suchbegriffen für die ganze Familie (z. B. „Dacia Jogger“, „Kita Pforzheim“). Auch die regionalen Orte lassen sich jetzt ergänzen oder entfernen. Der Chip „📰 Alle“ mischt die neuesten Meldungen aller Quellen ohne Doppelte, mit Quellenangabe und „vor 2 Std.“. Dazu kommen eine Suche, „Gelesene ausblenden“, „Alles gelesen“ und 🆕 für Neues seit dem letzten Besuch. Oben im Reiter „Regional“ stehen die amtlichen 🚨 Unwetterwarnungen des DWD für eure Kreise, bei einer Warnung auch auf der Startseite.
+
+## 2026-10-27 | 👪 Familien-Lesetipps & mehr Sicherheit
+Mit 👪 an einer Meldung landet sie samt Kommentar bei den Familien-Lesetipps. Neue Tipps erscheinen mit Abzeichen und auf der Startseite. 📤 öffnet das normale Teilen-Menü. Behoben: Links aus den Feeds wurden ungeprüft übernommen. Jetzt werden nur noch echte Webadressen geöffnet.
+
 ## 2026-10-27 | 🍿 Medien: Online-Suche, Cover & nächste Folge
 Beim Anlegen findet „🔍“ den Titel online: Bücher in Open Library, Manga und Anime in MyAnimeList, Serien in TVmaze, Filme im iTunes-Katalog. Ein Tipp übernimmt Titel, Autor bzw. Studio, Jahr, Seiten bzw. Bände und das Cover. Bei laufenden Serien zeigt die Karte „📅 Nächste Folge: Fr 30.10. (S5E3)“, auch unter „Demnächst“ auf der Startseite. Eigene Cover-Fotos liegen jetzt im Familien-Fotospeicher: schärfer und ohne 1-MB-Grenze.
 

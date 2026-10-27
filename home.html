@@ -969,6 +969,17 @@
         chips.push({ text: '🎂 ' + name + (tage === 0 ? ' heute!' : tage === 1 ? ' morgen' : ' in ' + tage + ' Tagen'), ziel: 'termine', wichtig: tage <= 1 });
       });
     }
+    if (sichtbar('nachrichten')) {
+      const dwd = lies('nachrichten_dwdCache', null);
+      if (dwd && Date.now() - dwd.zeit < 3 * 3600e3 && (dwd.warnungen || []).length) {
+        const w = dwd.warnungen.slice().sort((a, b) => (b.level || 0) - (a.level || 0))[0];
+        const aktiv = !w.end || w.end > Date.now();
+        if (aktiv) chips.push({ text: '🚨 ' + (w.event ? w.event.charAt(0) + w.event.slice(1).toLowerCase() : 'Wetterwarnung') + (new Set(dwd.warnungen.map(x => x.event)).size > 1 ? ' +' + (new Set(dwd.warnungen.map(x => x.event)).size - 1) : ''), ziel: 'nachrichten', wichtig: (w.level || 0) >= 2 });
+      }
+      const gesehen = lies('nachrichten_tippsGesehen', 0) || 0, ich = (function () { try { return localStorage.getItem('planer_geraetIdentitaet') || ''; } catch (e) { return ''; } })();
+      const neueTipps = (lies('nachrichten_tipps', []) || []).filter(t => new Date(t.am).getTime() > gesehen && t.von !== ich).length;
+      if (neueTipps) chips.push({ text: '👪 ' + neueTipps + (neueTipps === 1 ? ' Lesetipp' : ' Lesetipps'), ziel: 'nachrichten' });
+    }
     if (sichtbar('kinder')) {
       const wuensche = lies('kinder_wuensche', []).filter(w => w && w.status === 'offen');
       const pname = id => ((window.PLANER_PERSONEN || []).find(p => p.id === id) || { label: id }).label;
@@ -2081,13 +2092,36 @@
       ['termine', 'termine', ['termine_events_v1']], ['einkauf', 'einkauf', ['einkauf_listen']], ['haushalt', 'haushalt', ['haushalt_aufgaben']],
       ['kochen', 'kochen', ['kochen_wochenplan']], ['gesundheit', 'gesundheit', ['gesundheit_sport']], ['vorratskammer', 'vorratskammer', ['vorratskammer_items']],
       ['finanzen', 'finanzen', ['finanzen_ausgaben', 'finanzen_abos', 'finanzen_einstellungen']], ['fahrzeuge', 'fahrzeuge', ['fahrzeuge_liste', 'fahrzeuge_werkstatt']],
-      ['kinder', 'kinder', ['kinder_einstellungen', 'kinder_sterne', 'kinder_wuensche']], ['gaming', 'gaming', ['gaming_sessions', 'gaming_limits']], ['handwerk', 'handwerk', ['handwerk_wartung']], ['medien', 'medien', ['medien_eintraege']],
+      ['kinder', 'kinder', ['kinder_einstellungen', 'kinder_sterne', 'kinder_wuensche']], ['gaming', 'gaming', ['gaming_sessions', 'gaming_limits']], ['handwerk', 'handwerk', ['handwerk_wartung']], ['medien', 'medien', ['medien_eintraege']], ['nachrichten', 'nachrichten', ['nachrichten_tipps', 'nachrichten_themen']],
     ];
     LIVE.forEach(([name, modul, keys]) => {
       if (!modulSichtbar(name)) return;
       try { liveSync[name] = window.PlanerSync.starteSync({ modul, keys, onRemoteChange: liveNeuZeichnen }); } catch (e) { console.warn('Übersicht: Live-Sync', name, e); }
     });
   }
+  // 🚨 DWD-Warnungen für die eingestellten Kreise (gleicher Zwischenspeicher wie im Nachrichten-Bereich)
+  function dwdAktualisieren() {
+    if (!modulSichtbar('nachrichten') || !navigator.onLine) return;
+    const cache = laden('nachrichten_dwdCache', null);
+    if (cache && Date.now() - cache.zeit < 30 * 60e3) return;
+    const d = laden('nachrichten_themen', {}) || {};
+    const begriffe = (Array.isArray(d.dwd) ? d.dwd : ['Pforzheim', 'Enzkreis', 'Calw']).map(b => String(b).toLowerCase()).filter(Boolean);
+    if (!begriffe.length) return;
+    window.warnWetter = { loadWarnings: (daten) => {
+      const liste = [];
+      Object.values((daten && daten.warnings) || {}).forEach(arr => (arr || []).forEach(w => {
+        if (begriffe.some(b => String(w.regionName || '').toLowerCase().includes(b))) liste.push({ region: w.regionName, event: w.event, headline: w.headline, description: w.description, level: w.level, start: w.start, end: w.end });
+      }));
+      try { localStorage.setItem('nachrichten_dwdCache', JSON.stringify({ zeit: Date.now(), warnungen: liste, begriffe })); } catch (e) {}
+      renderHeuteZeile();
+    } };
+    const sc = document.createElement('script');
+    sc.src = 'https://www.dwd.de/DWD/warnungen/warnapp/json/warnings.json?' + Date.now();
+    sc.onload = sc.onerror = () => sc.remove();
+    document.head.appendChild(sc);
+  }
+  setTimeout(dwdAktualisieren, 1500);
+  setInterval(dwdAktualisieren, 15 * 60e3);
   // Tageswechsel: Begrüßung, „heute“ und Fälligkeiten von selbst umstellen
   let letzterTag = toISODatum(heute()), letzteStunde = new Date().getHours();
   setInterval(() => {

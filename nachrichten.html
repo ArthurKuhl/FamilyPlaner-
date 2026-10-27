@@ -5,6 +5,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Nachrichten</title>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
+<script src="personen.js"></script>
+<script src="sync.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap');
   :root {
@@ -103,6 +108,35 @@
   .quelle-fuszeile { margin-top:8px; font-size:0.68rem; color: var(--bark); opacity:0.85; }
   .quelle-fuszeile button { background:none; border:none; color:inherit; text-decoration:underline; cursor:pointer; padding:0; font-size:inherit; }
 
+  .news-eintrag img { background: var(--parchment); }
+  .news-eintrag .neu-marke { font-size: 0.6rem; font-weight: 800; color: var(--terracotta-text); margin-right: 4px; }
+  .news-aktionen { display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; }
+  .news-aktionen button { background: none; border: none; font-size: 0.95rem; cursor: pointer; opacity: 0.55; padding: 2px; }
+  .news-aktionen button.aktiv { opacity: 1; }
+  .na-link { background: none; border: none; color: inherit; text-decoration: underline; cursor: pointer; padding: 0; font-size: inherit; }
+  .quelle-label { font-weight: 700; }
+  .such-leiste { display: flex; gap: 6px; align-items: center; margin-bottom: 10px; flex-wrap: wrap; }
+  .such-leiste input { flex: 1 1 160px; min-width: 0; padding: 8px 12px; border-radius: var(--radius-pill); border: 1px solid var(--parchment); background: var(--white); color: var(--soil); font-size: 0.85rem; }
+  .eigen-zeile { display: flex; gap: 6px; margin-top: 8px; }
+  .eigen-zeile input { flex: 1; min-width: 0; padding: 7px 10px; border-radius: var(--radius-sm); border: 1px solid var(--parchment); background: var(--white); color: var(--soil); font-size: 0.85rem; }
+  .eigen-zeile button, .einstellungen-box .weg { border: 1px solid var(--parchment); background: var(--white); color: var(--soil); border-radius: var(--radius-pill); padding: 5px 12px; cursor: pointer; font-weight: 700; }
+  .einstellungen-box .weg { padding: 0 8px; margin-left: auto; font-size: 0.75rem; }
+  .warn-box { border-radius: var(--radius-md); padding: 10px 12px; margin-bottom: 12px; font-size: 0.84rem; }
+  .warn-box.ok { background: rgba(127,164,118,0.16); color: var(--soil); font-size: 0.78rem; padding: 7px 12px; }
+  .warnung { border-left: 4px solid #e6c229; background: rgba(230,194,41,0.14); border-radius: var(--radius-sm); padding: 8px 10px; margin-bottom: 6px; }
+  .warnung.s2 { border-color: #f08c00; background: rgba(240,140,0,0.15); }
+  .warnung.s3 { border-color: #e03131; background: rgba(224,49,49,0.14); }
+  .warnung.s4 { border-color: #9c36b5; background: rgba(156,54,181,0.16); }
+  .warnung b { display: block; }
+  .warnung .w-zeit { font-size: 0.72rem; color: var(--bark); }
+  .warnung details { font-size: 0.78rem; margin-top: 4px; }
+  .tipp { background: var(--white); border-radius: var(--radius-md); padding: 10px 12px; margin-bottom: 8px; box-shadow: var(--shadow-soft); }
+  .tipp a { color: var(--moss-text, var(--moss)); font-weight: 700; text-decoration: none; }
+  .tipp .t-kommentar { font-size: 0.84rem; margin: 4px 0; }
+  .tipp .t-meta { font-size: 0.7rem; color: var(--bark); display: flex; gap: 6px; align-items: center; }
+  .tipp .t-meta button { margin-left: auto; background: none; border: none; color: var(--bark); cursor: pointer; }
+  .tab-badge { display: inline-block; min-width: 16px; padding: 0 5px; border-radius: 999px; background: var(--terracotta); color: #fff; font-size: 0.62rem; margin-left: 4px; }
+
   /* Kopfzeile kompakter: Modulname bleibt immer einzeilig (notfalls mit ...),
      Icons rücken näher zusammen. Ergänzt auf Arthurs Wunsch, robust über alle
      leicht unterschiedlichen Header-Varianten der Module hinweg. */
@@ -132,6 +166,8 @@
     <button id="btnViewRegional" role="tab" aria-selected="true">📍 Regional</button>
     <button id="btnViewNational" role="tab" aria-selected="false">🇩🇪 National</button>
     <button id="btnViewInternational" role="tab" aria-selected="false">🌍 International</button>
+    <button id="btnViewThemen" role="tab" aria-selected="false">⭐ Themen</button>
+    <button id="btnViewTipps" role="tab" aria-selected="false">👪 Tipps<span class="tab-badge" id="tippsBadge" style="display:none;"></span></button>
     <button id="btnViewGemerkt" role="tab" aria-selected="false">🔖 Gemerkt</button>
   </div>
 </header>
@@ -157,27 +193,39 @@
 </div>
 
 <main>
+  <div class="such-leiste" id="suchLeiste">
+    <input type="search" id="fNewsSuche" placeholder="In den Meldungen suchen …">
+    <button type="button" class="filter-chip" id="btnGelesenAusblenden">👁 Gelesene ausblenden</button>
+    <button type="button" class="filter-chip" id="btnAllesGelesen">✓ Alles gelesen</button>
+  </div>
   <section id="ansichtRegional">
-    <button type="button" class="filter-chip" id="btnRegionalEinstellungenToggle" style="margin-bottom:10px;">⚙️ Quellen anpassen</button>
+    <div id="dwdBox"></div>
+    <button type="button" class="filter-chip" id="regionalEinstellungenToggle" style="margin-bottom:10px;">⚙️ Orte &amp; Quellen</button>
     <div class="einstellungen-box" id="regionalEinstellungenBox"></div>
     <div class="filter-reihe" id="regionalQuellenReihe"></div>
-    <div id="regionalInhalt"><div class="leer-hinweis"><span class="em">📍</span>Noch keine regionalen Quellen eingerichtet.</div></div>
+    <div id="regionalInhalt"></div>
   </section>
-
   <section id="ansichtNational" style="display:none;">
-    <button type="button" class="filter-chip" id="btnNationalEinstellungenToggle" style="margin-bottom:10px;">⚙️ Quellen anpassen</button>
+    <button type="button" class="filter-chip" id="nationalEinstellungenToggle" style="margin-bottom:10px;">⚙️ Quellen anpassen</button>
     <div class="einstellungen-box" id="nationalEinstellungenBox"></div>
     <div class="filter-reihe" id="nationalQuellenReihe"></div>
-    <div id="nationalInhalt"><div class="leer-hinweis"><span class="em">🇩🇪</span>Noch keine nationalen Quellen eingerichtet.</div></div>
+    <div id="nationalInhalt"></div>
   </section>
-
   <section id="ansichtInternational" style="display:none;">
-    <button type="button" class="filter-chip" id="btnInternationalEinstellungenToggle" style="margin-bottom:10px;">⚙️ Quellen anpassen</button>
+    <button type="button" class="filter-chip" id="internationalEinstellungenToggle" style="margin-bottom:10px;">⚙️ Quellen anpassen</button>
     <div class="einstellungen-box" id="internationalEinstellungenBox"></div>
     <div class="filter-reihe" id="internationalQuellenReihe"></div>
-    <div id="internationalInhalt"><div class="leer-hinweis"><span class="em">🌍</span>Noch keine internationalen Quellen eingerichtet.</div></div>
+    <div id="internationalInhalt"></div>
   </section>
-
+  <section id="ansichtThemen" style="display:none;">
+    <button type="button" class="filter-chip" id="themenEinstellungenToggle" style="margin-bottom:10px;">⚙️ Themen verwalten</button>
+    <div class="einstellungen-box" id="themenEinstellungenBox"></div>
+    <div class="filter-reihe" id="themenQuellenReihe"></div>
+    <div id="themenInhalt"></div>
+  </section>
+  <section id="ansichtTipps" style="display:none;">
+    <div id="tippsInhalt"></div>
+  </section>
   <section id="ansichtGemerkt" style="display:none;">
     <div id="gemerktInhalt"></div>
   </section>
@@ -290,78 +338,7 @@
   function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   function entitiesDekodieren(str) { if (!str) return str; const ta = document.createElement('textarea'); ta.innerHTML = str; return ta.value; }
 
-  // ---------- Ansicht umschalten: Regional / National / International / Gemerkt ----------
-  const btnViewRegional = document.getElementById('btnViewRegional');
-  const btnViewNational = document.getElementById('btnViewNational');
-  const btnViewInternational = document.getElementById('btnViewInternational');
-  const btnViewGemerkt = document.getElementById('btnViewGemerkt');
-  function zeigeAnsicht(name) {
-    document.getElementById('ansichtRegional').style.display = name === 'regional' ? '' : 'none';
-    document.getElementById('ansichtNational').style.display = name === 'national' ? '' : 'none';
-    document.getElementById('ansichtInternational').style.display = name === 'international' ? '' : 'none';
-    document.getElementById('ansichtGemerkt').style.display = name === 'gemerkt' ? '' : 'none';
-    btnViewRegional.classList.toggle('active', name === 'regional');
-    btnViewNational.classList.toggle('active', name === 'national');
-    btnViewInternational.classList.toggle('active', name === 'international');
-    btnViewGemerkt.classList.toggle('active', name === 'gemerkt');
-    btnViewRegional.setAttribute('aria-selected', name === 'regional');
-    btnViewNational.setAttribute('aria-selected', name === 'national');
-    btnViewInternational.setAttribute('aria-selected', name === 'international');
-    btnViewGemerkt.setAttribute('aria-selected', name === 'gemerkt');
-    try { localStorage.setItem('nachrichten_aktiveAnsicht', name); } catch (e) {}
-    if (name === 'gemerkt') renderMerkliste();
-  }
-  btnViewRegional.addEventListener('click', () => zeigeAnsicht('regional'));
-  btnViewNational.addEventListener('click', () => zeigeAnsicht('national'));
-  btnViewInternational.addEventListener('click', () => zeigeAnsicht('international'));
-  btnViewGemerkt.addEventListener('click', () => zeigeAnsicht('gemerkt'));
-  let startAnsicht = 'regional';
-  try { const g = localStorage.getItem('nachrichten_aktiveAnsicht'); if (g) startAnsicht = g; } catch (e) {}
-  zeigeAnsicht(startAnsicht);
 
-  // ---------- Gelesen-Status & Merkliste (nur auf diesem Gerät) ----------
-  const KEY_GELESEN = 'nachrichten_gelesen_v1';
-  const KEY_MERKLISTE = 'nachrichten_merkliste_v1';
-  function gelesenListe() { try { return JSON.parse(localStorage.getItem(KEY_GELESEN) || '[]'); } catch (e) { return []; } }
-  function istGelesen(link) { return gelesenListe().includes(link); }
-  function alsGelesenMarkieren(link) {
-    let liste = gelesenListe();
-    if (liste.includes(link)) return;
-    liste.push(link);
-    if (liste.length > 500) liste = liste.slice(liste.length - 500); // Speicher begrenzen
-    try { localStorage.setItem(KEY_GELESEN, JSON.stringify(liste)); } catch (e) {}
-  }
-  function merklisteListe() { try { return JSON.parse(localStorage.getItem(KEY_MERKLISTE) || '[]'); } catch (e) { return []; } }
-  function istGemerkt(link) { return merklisteListe().some(m => m.link === link); }
-  function merklisteUmschalten(item, quelleLabel) {
-    let liste = merklisteListe();
-    if (liste.some(m => m.link === item.link)) {
-      liste = liste.filter(m => m.link !== item.link);
-    } else {
-      liste.unshift({ link: item.link, title: item.title, quelle: quelleLabel, datum: item.pubDate || '', gemerktAm: new Date().toISOString() });
-    }
-    try { localStorage.setItem(KEY_MERKLISTE, JSON.stringify(liste)); } catch (e) {}
-  }
-  function renderMerkliste() {
-    const box = document.getElementById('gemerktInhalt');
-    const liste = merklisteListe();
-    if (!liste.length) { box.innerHTML = '<div class="leer-hinweis"><span class="em">🔖</span>Noch nichts gemerkt. Mit 🔖 an einer Meldung kannst du sie hier sammeln.</div>'; return; }
-    box.innerHTML = liste.map(m => {
-      const datum = m.datum ? new Date(m.datum.replace(' ', 'T')).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '';
-      return '<div class="news-eintrag' + (istGelesen(m.link) ? ' gelesen' : '') + '">' +
-        '<div class="news-inhalt"><a href="' + m.link + '" target="_blank" rel="noopener" data-link="' + escapeHtml(m.link) + '">' + escapeHtml(m.title) + '</a>' +
-        '<div class="datum">' + escapeHtml(m.quelle || '') + (datum ? ' · ' + datum : '') + '</div></div>' +
-        '<button type="button" class="news-merk-btn aktiv" data-unmerk="' + escapeHtml(m.link) + '" title="Aus Merkliste entfernen">🔖</button>' +
-      '</div>';
-    }).join('');
-    box.querySelectorAll('a[data-link]').forEach(a => a.addEventListener('click', () => { alsGelesenMarkieren(a.dataset.link); a.closest('.news-eintrag').classList.add('gelesen'); }));
-    box.querySelectorAll('[data-unmerk]').forEach(btn => btn.addEventListener('click', () => {
-      let liste = merklisteListe().filter(m => m.link !== btn.dataset.unmerk);
-      try { localStorage.setItem(KEY_MERKLISTE, JSON.stringify(liste)); } catch (e) {}
-      renderMerkliste();
-    }));
-  }
-  window.nachrichtenMerklisteRendernNeu = renderMerkliste;
 
   // ---------- Hintergrundmuster (🎨) ----------
   const themeBtn = document.getElementById('btnThemeAuswahl');
@@ -424,162 +401,393 @@
   }
   try { const gespeichertesTheme = localStorage.getItem(KEY_THEME_NACHRICHTEN); if (gespeichertesTheme) themeAnwenden(gespeichertesTheme); } catch (e) {}
 
-  // ---------- Generisches News-Kategorie-System (Regional / National / International) ----------
+  // ============================================================
+  // Grundlagen
+  // ============================================================
   const RSS2JSON_KEY = 'khhvce1zda9u9uia1due0cbu8xjiexqpbvqqql2s'; // eigener Key, separat vom Rest der App, wegen Kontingent-Trennung
+  const KEY_GELESEN = 'nachrichten_gelesen_v1';
+  const KEY_MERKLISTE = 'nachrichten_merkliste_v1';
+  const KEY_THEMEN = 'nachrichten_themen';       // familienweit: { orte: [{id,label,q}], themen: [{id,label,q}], dwd: ['Pforzheim', …] }
+  const KEY_TIPPS = 'nachrichten_tipps';         // familienweit: [{ id, link, title, quelle, kommentar, von, am }]
+  const KEY_TIPPS_GESEHEN = 'nachrichten_tippsGesehen'; // geräte-lokal
+  const KEY_BESUCH = 'nachrichten_letzterBesuch';       // geräte-lokal { kategorie: ms }
+  const KEY_GELESEN_AUS = 'nachrichten_gelesenAusblenden';
+  const lies = (k, f) => { try { const r = localStorage.getItem(k); return r === null ? f : JSON.parse(r); } catch (e) { return f; } };
+  const schreib = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+  // 🛡️ Nur echte Web-Adressen öffnen/anzeigen (schützt vor manipulierten Feeds)
+  function sichererLink(u) { u = String(u || '').trim(); return /^https?:\/\//i.test(u) ? u : ''; }
+  function ichBin() { try { return localStorage.getItem('planer_geraetIdentitaet') || ''; } catch (e) { return ''; } }
+  function personName(id) { const p = (window.PLANER_PERSONEN || []).find(x => x.id === id); return p ? p.label : (id || 'Jemand'); }
+  function neueId(p) { return p + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+  function zeitText(pub) {
+    if (!pub) return '';
+    const d = new Date(String(pub).replace(' ', 'T') + (/Z|[+-]\d\d:?\d\d$/.test(pub) || String(pub).indexOf('T') !== -1 ? '' : 'Z'));
+    if (isNaN(d)) return '';
+    const min = Math.round((Date.now() - d) / 60000);
+    if (min < 1) return 'gerade eben';
+    if (min < 60) return 'vor ' + min + ' Min.';
+    if (min < 24 * 60) return 'vor ' + Math.round(min / 60) + ' Std.';
+    return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }) + ', ' + d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+  }
+  function zeitMs(pub) { const d = new Date(String(pub || '').replace(' ', 'T') + (/Z|[+-]\d\d:?\d\d$/.test(pub || '') || String(pub || '').indexOf('T') !== -1 ? '' : 'Z')); return isNaN(d) ? 0 : d.getTime(); }
 
-  function erstelleKategorie(config) {
-    const { name, quellen, inhaltId, reiheId, einstellungenBoxId, einstellungenToggleId } = config;
-    const quelleKeyStorage = 'nachrichten_' + name + '_quelle';
-    const versrecktStorage = 'nachrichten_' + name + '_versteckt';
-    const keys = Object.keys(quellen);
-    let aktiveQuelle = keys[0] || null;
-    try {
-      const g = localStorage.getItem(quelleKeyStorage);
-      if (g && quellen[g]) aktiveQuelle = g;
-    } catch (e) {}
-
-    function versteckteQuellen() {
-      try { return JSON.parse(localStorage.getItem(versrecktStorage) || '[]'); } catch (e) { return []; }
-    }
-    function renderQuellenReihe() {
-      const box = document.getElementById(reiheId);
-      if (!box) return;
-      const versteckt = versteckteQuellen();
-      const sichtbareKeys = keys.filter(k => !versteckt.includes(k));
-      box.innerHTML = sichtbareKeys.map(k =>
-        '<button type="button" class="filter-chip' + (k === aktiveQuelle ? ' active' : '') + '" onclick="nachrichtenQuelleUmschalten(\'' + name + '\',\'' + k + '\')">' + escapeHtml(quellen[k].label) + '</button>'
-      ).join('');
-      if (versteckt.includes(aktiveQuelle) || !aktiveQuelle) {
-        if (sichtbareKeys.length) { aktiveQuelle = sichtbareKeys[0]; try { localStorage.setItem(quelleKeyStorage, aktiveQuelle); } catch (e) {} }
-        else aktiveQuelle = null;
-      }
-    }
-    function renderEinstellungenBox() {
-      const box = document.getElementById(einstellungenBoxId);
-      if (!box) return;
-      const versteckt = versteckteQuellen();
-      if (!keys.length) { box.innerHTML = '<div style="font-size:0.82rem;">Für diese Kategorie sind noch keine Quellen eingerichtet.</div>'; return; }
-      box.innerHTML = '<div style="font-weight:700;font-size:0.85rem;margin-bottom:6px;">Quellen anzeigen (nur auf diesem Gerät)</div>' +
-        keys.map(k => '<label><input type="checkbox" data-quelle="' + k + '" ' + (versteckt.includes(k) ? '' : 'checked') + ' onchange="nachrichtenSichtbarkeitAendern(\'' + name + '\',this)"> ' + escapeHtml(quellen[k].label) + '</label>').join('');
-    }
-    async function ladeFeed(forceRefresh) {
-      const el = document.getElementById(inhaltId);
-      if (!el) return;
-      if (!aktiveQuelle || !quellen[aktiveQuelle]) {
-        el.innerHTML = '<div class="leer-hinweis"><span class="em">🙈</span>Keine Quelle ausgewählt.</div>';
-        return;
-      }
-      const quelle = quellen[aktiveQuelle];
-      el.innerHTML = '<div class="leer-hinweis">Lädt…</div>';
-      try {
-        if (!forceRefresh) {
-          const cache = JSON.parse(localStorage.getItem(quelle.cacheKey) || 'null');
-          if (cache && cache.items && cache.items.length && (Date.now() - cache.fetchedAt) < 3 * 60 * 60 * 1000) { renderFeed(cache.items, quelle); return; }
-        }
-      } catch (e) {}
-      try {
-        let url = 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(quelle.url) + '&count=' + (quelle.count || 8);
-        if (RSS2JSON_KEY) url += '&api_key=' + encodeURIComponent(RSS2JSON_KEY);
-        const res = await fetch(url);
-        const data = await res.json();
-        if (data.status !== 'ok') throw new Error(data.message || 'Fehler');
-        const items = data.items.map(i => {
-          let bild = i.thumbnail || (i.enclosure && i.enclosure.link) || i.image;
-          if (!bild) {
-            const txt = i.description || i.content || '';
-            const treffer = txt.match(/<img[^>]+src=["']([^"']+)["']/i);
-            if (treffer) bild = treffer[1];
-          }
-          return { title: entitiesDekodieren(i.title), link: i.link, pubDate: i.pubDate, thumbnail: bild };
-        });
-        try { localStorage.setItem(quelle.cacheKey, JSON.stringify({ items, fetchedAt: Date.now() })); } catch (e) {}
-        renderFeed(items, quelle);
-      } catch (e) {
-        el.innerHTML = '<div style="padding:8px 0;">⚠ News konnten gerade nicht geladen werden (' + escapeHtml(String(e.message || e)) + '). <a href="' + quelle.linkZielseite + '" target="_blank" rel="noopener">Direkt zu ' + escapeHtml(quelle.label) + ' →</a> <button type="button" onclick="nachrichtenFeedAktualisieren(\'' + name + '\')" style="margin-left:6px;background:none;border:1px solid var(--sage);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:0.78rem;">🔄 erneut versuchen</button></div>';
-      }
-    }
-    function renderFeed(items, quelle) {
-      const el = document.getElementById(inhaltId);
-      if (!el) return;
-      if (!items || !items.length) { el.innerHTML = '<div class="leer-hinweis">Aktuell keine News verfügbar.</div>'; return; }
-      el.innerHTML = items.map(i => {
-        const datum = i.pubDate ? new Date(i.pubDate.replace(' ', 'T')).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '';
-        const bild = i.thumbnail ? '<img src="' + i.thumbnail + '" alt="" onerror="this.remove()">' : '';
-        const gemerkt = istGemerkt(i.link);
-        return '<div class="news-eintrag' + (istGelesen(i.link) ? ' gelesen' : '') + '">' + bild +
-          '<div class="news-inhalt"><a href="' + i.link + '" target="_blank" rel="noopener" data-link="' + escapeHtml(i.link) + '">' + escapeHtml(i.title) + '</a>' +
-          (datum ? '<div class="datum">' + datum + '</div>' : '') + '</div>' +
-          '<button type="button" class="news-merk-btn' + (gemerkt ? ' aktiv' : '') + '" data-merk-link="' + escapeHtml(i.link) + '" data-merk-titel="' + escapeHtml(i.title) + '" data-merk-datum="' + escapeHtml(i.pubDate || '') + '" title="Merken">' + (gemerkt ? '🔖' : '🔗') + '</button>' +
-        '</div>';
-      }).join('') + '<div class="quelle-fuszeile">Quelle: ' + escapeHtml(quelle.label) + ' · <button type="button" onclick="nachrichtenFeedAktualisieren(\'' + name + '\')">aktualisieren</button></div>';
-      el.querySelectorAll('a[data-link]').forEach(a => a.addEventListener('click', () => {
-        alsGelesenMarkieren(a.dataset.link);
-        a.closest('.news-eintrag').classList.add('gelesen');
-      }));
-      el.querySelectorAll('[data-merk-link]').forEach(btn => btn.addEventListener('click', () => {
-        merklisteUmschalten({ link: btn.dataset.merkLink, title: btn.dataset.merkTitel, pubDate: btn.dataset.merkDatum }, quelle.label);
-        const nunGemerkt = istGemerkt(btn.dataset.merkLink);
-        btn.classList.toggle('aktiv', nunGemerkt);
-        btn.textContent = nunGemerkt ? '🔖' : '🔗';
-      }));
-    }
-
-    renderQuellenReihe();
-    renderEinstellungenBox();
-    if (keys.length) ladeFeed();
-
-    document.getElementById(einstellungenToggleId).addEventListener('click', () => {
-      const box = document.getElementById(einstellungenBoxId);
-      box.style.display = box.style.display === 'none' || !box.style.display ? 'block' : 'none';
-    });
-
-    return {
-      umschalten: (k) => { if (k === aktiveQuelle) return; aktiveQuelle = k; try { localStorage.setItem(quelleKeyStorage, k); } catch (e) {} renderQuellenReihe(); ladeFeed(); },
-      sichtbarkeitAendern: (checkbox) => {
-        const k = checkbox.dataset.quelle;
-        let versteckt = versteckteQuellen();
-        if (checkbox.checked) versteckt = versteckt.filter(x => x !== k);
-        else if (!versteckt.includes(k)) versteckt.push(k);
-        try { localStorage.setItem(versrecktStorage, JSON.stringify(versteckt)); } catch (e) {}
-        renderQuellenReihe();
-        if (!versteckteQuellen().includes(aktiveQuelle)) ladeFeed();
-      },
-      aktualisieren: () => ladeFeed(true),
-    };
+  // Gelesen & Merkliste (nur auf diesem Gerät)
+  function gelesenListe() { return lies(KEY_GELESEN, []); }
+  function istGelesen(link) { return gelesenListe().includes(link); }
+  function alsGelesenMarkieren(links) {
+    let liste = gelesenListe();
+    [].concat(links).forEach(l => { if (l && !liste.includes(l)) liste.push(l); });
+    if (liste.length > 800) liste = liste.slice(liste.length - 800);
+    schreib(KEY_GELESEN, liste);
+  }
+  function merklisteListe() { return lies(KEY_MERKLISTE, []); }
+  function istGemerkt(link) { return merklisteListe().some(m => m.link === link); }
+  function merklisteUmschalten(item) {
+    let liste = merklisteListe();
+    if (liste.some(m => m.link === item.link)) liste = liste.filter(m => m.link !== item.link);
+    else liste.unshift({ link: item.link, title: item.title, quelle: item.quelle || '', datum: item.pubDate || '', gemerktAm: new Date().toISOString() });
+    schreib(KEY_MERKLISTE, liste);
   }
 
-  // ==================== QUELLEN je Kategorie (werden in den nächsten Etappen befüllt) ====================
-  const REGIONAL_QUELLEN = {
-    pforzheim: { url: 'https://news.google.com/rss/search?q=Pforzheim&hl=de&gl=DE&ceid=DE:de', cacheKey: 'nachrichten_regional_pforzheim', label: 'Pforzheim', linkZielseite: 'https://news.google.com/search?q=Pforzheim&hl=de&gl=DE' },
-    calw: { url: 'https://news.google.com/rss/search?q=Calw&hl=de&gl=DE&ceid=DE:de', cacheKey: 'nachrichten_regional_calw', label: 'Calw', linkZielseite: 'https://news.google.com/search?q=Calw&hl=de&gl=DE' },
-    karlsruhe: { url: 'https://news.google.com/rss/search?q=Karlsruhe&hl=de&gl=DE&ceid=DE:de', cacheKey: 'nachrichten_regional_karlsruhe', label: 'Karlsruhe', linkZielseite: 'https://news.google.com/search?q=Karlsruhe&hl=de&gl=DE' },
-    stuttgart: { url: 'https://news.google.com/rss/search?q=Stuttgart&hl=de&gl=DE&ceid=DE:de', cacheKey: 'nachrichten_regional_stuttgart', label: 'Stuttgart', linkZielseite: 'https://news.google.com/search?q=Stuttgart&hl=de&gl=DE' },
-  };
+  // ============================================================
+  // Quellen
+  // ============================================================
+  const gn = (q) => 'https://news.google.com/rss/search?q=' + encodeURIComponent(q) + '&hl=de&gl=DE&ceid=DE:de';
+  const STANDARD_ORTE = [{ id: 'pforzheim', label: 'Pforzheim', q: 'Pforzheim' }, { id: 'calw', label: 'Calw', q: 'Calw' }, { id: 'karlsruhe', label: 'Karlsruhe', q: 'Karlsruhe' }, { id: 'stuttgart', label: 'Stuttgart', q: 'Stuttgart' }];
+  function themenDaten() {
+    const d = lies(KEY_THEMEN, null) || {};
+    return { orte: Array.isArray(d.orte) ? d.orte : STANDARD_ORTE.slice(), themen: Array.isArray(d.themen) ? d.themen : [], dwd: Array.isArray(d.dwd) ? d.dwd : ['Pforzheim', 'Enzkreis', 'Calw'] };
+  }
+  let sync = null;
+  function themenSpeichern(d) { schreib(KEY_THEMEN, d); if (sync) sync.melde(); }
   const NATIONAL_QUELLEN = {
-    tagesschau: { url: 'https://www.tagesschau.de/xml/rss2', cacheKey: 'nachrichten_national_tagesschau', label: 'Tagesschau', linkZielseite: 'https://www.tagesschau.de' },
-    spiegel: { url: 'https://www.spiegel.de/schlagzeilen/index.rss', cacheKey: 'nachrichten_national_spiegel', label: 'Spiegel', linkZielseite: 'https://www.spiegel.de' },
-    faz: { url: 'https://www.faz.net/rss/aktuell/', cacheKey: 'nachrichten_national_faz', label: 'FAZ', linkZielseite: 'https://www.faz.net' },
-    welt: { url: 'https://www.welt.de/feeds/latest.rss', cacheKey: 'nachrichten_national_welt', label: 'Welt', linkZielseite: 'https://www.welt.de' },
+    tagesschau: { url: 'https://www.tagesschau.de/xml/rss2', label: 'Tagesschau', linkZielseite: 'https://www.tagesschau.de' },
+    spiegel: { url: 'https://www.spiegel.de/schlagzeilen/index.rss', label: 'Spiegel', linkZielseite: 'https://www.spiegel.de' },
+    faz: { url: 'https://www.faz.net/rss/aktuell/', label: 'FAZ', linkZielseite: 'https://www.faz.net' },
+    welt: { url: 'https://www.welt.de/feeds/latest.rss', label: 'Welt', linkZielseite: 'https://www.welt.de' },
   };
   const INTERNATIONAL_QUELLEN = {
-    bbc: { url: 'https://feeds.bbci.co.uk/news/rss.xml', cacheKey: 'nachrichten_international_bbc', label: '🇬🇧 BBC (Englisch)', linkZielseite: 'https://www.bbc.com/news' },
-    aljazeera: { url: 'https://www.aljazeera.com/xml/rss/all.xml', cacheKey: 'nachrichten_international_aljazeera', label: '🇶🇦 Al Jazeera (Englisch)', linkZielseite: 'https://www.aljazeera.com' },
-    xinhua: { url: 'http://www.xinhuanet.com/english/rss/worldrss.xml', cacheKey: 'nachrichten_international_xinhua', label: '🇨🇳 Xinhua', linkZielseite: 'https://english.news.cn' },
-    cgtn: { url: 'https://www.cgtn.com/subscribe/rss/section/china.xml', cacheKey: 'nachrichten_international_cgtn', label: '🇨🇳 CGTN', linkZielseite: 'https://www.cgtn.com' },
-    ria: { url: 'https://ria.ru/export/rss2/index.xml', cacheKey: 'nachrichten_international_ria', label: '🇷🇺 RIA Nowosti', linkZielseite: 'https://ria.ru' },
-    rt: { url: 'https://russian.rt.com/rss', cacheKey: 'nachrichten_international_rt', label: '🇷🇺 RT', linkZielseite: 'https://russian.rt.com' },
-    sputnik: { url: 'https://sputnikglobe.com/export/rss2/index.xml', cacheKey: 'nachrichten_international_sputnik', label: '🇷🇺 Sputnik (Englisch)', linkZielseite: 'https://sputnikglobe.com' },
-    nhk: { url: 'https://www3.nhk.or.jp/rss/news/cat0.xml', cacheKey: 'nachrichten_international_nhk', label: '🇯🇵 NHK', linkZielseite: 'https://www3.nhk.or.jp/news/' },
+    bbc: { url: 'https://feeds.bbci.co.uk/news/rss.xml', label: '🇬🇧 BBC (Englisch)', linkZielseite: 'https://www.bbc.com/news' },
+    aljazeera: { url: 'https://www.aljazeera.com/xml/rss/all.xml', label: '🇶🇦 Al Jazeera (Englisch)', linkZielseite: 'https://www.aljazeera.com' },
+    xinhua: { url: 'http://www.xinhuanet.com/english/rss/worldrss.xml', label: '🇨🇳 Xinhua', linkZielseite: 'https://english.news.cn' },
+    cgtn: { url: 'https://www.cgtn.com/subscribe/rss/section/china.xml', label: '🇨🇳 CGTN', linkZielseite: 'https://www.cgtn.com' },
+    ria: { url: 'https://ria.ru/export/rss2/index.xml', label: '🇷🇺 RIA Nowosti', linkZielseite: 'https://ria.ru' },
+    rt: { url: 'https://russian.rt.com/rss', label: '🇷🇺 RT', linkZielseite: 'https://russian.rt.com' },
+    sputnik: { url: 'https://sputnikglobe.com/export/rss2/index.xml', label: '🇷🇺 Sputnik (Englisch)', linkZielseite: 'https://sputnikglobe.com' },
+    nhk: { url: 'https://www3.nhk.or.jp/rss/news/cat0.xml', label: '🇯🇵 NHK', linkZielseite: 'https://www3.nhk.or.jp/news/' },
   };
+  // Quellenliste je Kategorie (Orte/Themen kommen aus den Familien-Einstellungen)
+  function quellenVon(kat) {
+    if (kat === 'national') return Object.keys(NATIONAL_QUELLEN).map(k => Object.assign({ id: k, cacheKey: 'nachrichten_national_' + k }, NATIONAL_QUELLEN[k]));
+    if (kat === 'international') return Object.keys(INTERNATIONAL_QUELLEN).map(k => Object.assign({ id: k, cacheKey: 'nachrichten_international_' + k }, INTERNATIONAL_QUELLEN[k]));
+    const liste = kat === 'regional' ? themenDaten().orte : themenDaten().themen;
+    return liste.map(o => ({ id: o.id, label: o.label, url: gn(o.q || o.label), cacheKey: 'nachrichten_' + kat + '_' + o.id + '_' + String(o.q || o.label).toLowerCase().replace(/[^a-z0-9äöüß]+/g, '-'), linkZielseite: 'https://news.google.com/search?q=' + encodeURIComponent(o.q || o.label) + '&hl=de&gl=DE', google: true }));
+  }
 
-  const kategorien = {
-    regional: erstelleKategorie({ name: 'regional', quellen: REGIONAL_QUELLEN, inhaltId: 'regionalInhalt', reiheId: 'regionalQuellenReihe', einstellungenBoxId: 'regionalEinstellungenBox', einstellungenToggleId: 'btnRegionalEinstellungenToggle' }),
-    national: erstelleKategorie({ name: 'national', quellen: NATIONAL_QUELLEN, inhaltId: 'nationalInhalt', reiheId: 'nationalQuellenReihe', einstellungenBoxId: 'nationalEinstellungenBox', einstellungenToggleId: 'btnNationalEinstellungenToggle' }),
-    international: erstelleKategorie({ name: 'international', quellen: INTERNATIONAL_QUELLEN, inhaltId: 'internationalInhalt', reiheId: 'internationalQuellenReihe', einstellungenBoxId: 'internationalEinstellungenBox', einstellungenToggleId: 'btnInternationalEinstellungenToggle' }),
-  };
-  window.nachrichtenQuelleUmschalten = (name, k) => kategorien[name].umschalten(k);
-  window.nachrichtenSichtbarkeitAendern = (name, cb) => kategorien[name].sichtbarkeitAendern(cb);
-  window.nachrichtenFeedAktualisieren = (name) => kategorien[name].aktualisieren();
+  // ============================================================
+  // Laden (rss2json, 3 Std. zwischengespeichert)
+  // ============================================================
+  function googleTitelAufteilen(titel) {
+    const i = titel.lastIndexOf(' - ');
+    return i > 10 ? { titel: titel.slice(0, i).trim(), quelle: titel.slice(i + 3).trim() } : { titel, quelle: '' };
+  }
+  async function quelleLaden(q, erzwingen) {
+    if (!erzwingen) {
+      const cache = lies(q.cacheKey, null);
+      if (cache && cache.items && cache.items.length && (Date.now() - cache.fetchedAt) < 3 * 3600e3) return cache.items;
+    }
+    let url = 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(q.url) + '&count=' + (q.count || 10);
+    if (RSS2JSON_KEY) url += '&api_key=' + encodeURIComponent(RSS2JSON_KEY);
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.status !== 'ok') throw new Error(data.message || 'Fehler');
+    const items = (data.items || []).map(i => {
+      let bild = i.thumbnail || (i.enclosure && i.enclosure.link) || i.image;
+      if (!bild) { const t = (i.description || i.content || '').match(/<img[^>]+src=["']([^"']+)["']/i); if (t) bild = t[1]; }
+      let titel = entitiesDekodieren(i.title || ''), quelle = q.label;
+      if (q.google) { const g = googleTitelAufteilen(titel); titel = g.titel; if (g.quelle) quelle = g.quelle; }
+      return { title: titel, link: sichererLink(i.link), pubDate: i.pubDate, thumbnail: sichererLink(bild), quelle };
+    }).filter(i => i.link);
+    schreib(q.cacheKey, { items, fetchedAt: Date.now() });
+    return items;
+  }
+
+  // ============================================================
+  // Anzeige je Kategorie
+  // ============================================================
+  const KATEGORIEN = ['regional', 'national', 'international', 'themen'];
+  const aktiveQuelle = {};
+  KATEGORIEN.forEach(k => { aktiveQuelle[k] = lies('nachrichten_' + k + '_quelle', 'alle') || 'alle'; });
+  const geladen = {}; // kat -> items der aktuellen Auswahl
+  let suchtext = '', gelesenAus = !!lies(KEY_GELESEN_AUS, false);
+  let aktiveAnsicht = 'regional';
+  function versteckt(kat) { return lies('nachrichten_' + kat + '_versteckt', []); }
+  function sichtbareQuellen(kat) { const v = versteckt(kat); return quellenVon(kat).filter(q => !v.includes(q.id)); }
+
+  function quellenReiheRendern(kat) {
+    const box = document.getElementById(kat + 'QuellenReihe');
+    const q = sichtbareQuellen(kat);
+    if (aktiveQuelle[kat] !== 'alle' && !q.some(x => x.id === aktiveQuelle[kat])) aktiveQuelle[kat] = 'alle';
+    box.innerHTML = q.length ? ['<button type="button" class="filter-chip' + (aktiveQuelle[kat] === 'alle' ? ' active' : '') + '" data-q="alle">📰 Alle</button>']
+      .concat(q.map(x => '<button type="button" class="filter-chip' + (x.id === aktiveQuelle[kat] ? ' active' : '') + '" data-q="' + escapeHtml(x.id) + '">' + escapeHtml(x.label) + '</button>')).join('') : '';
+    box.querySelectorAll('[data-q]').forEach(b => b.addEventListener('click', () => {
+      aktiveQuelle[kat] = b.dataset.q; schreib('nachrichten_' + kat + '_quelle', b.dataset.q);
+      quellenReiheRendern(kat); kategorieLaden(kat);
+    }));
+  }
+  function einstellungenRendern(kat) {
+    const box = document.getElementById(kat + 'EinstellungenBox');
+    const v = versteckt(kat);
+    const eigen = kat === 'regional' || kat === 'themen';
+    const liste = quellenVon(kat);
+    let html = '<div style="font-weight:700;font-size:0.85rem;margin-bottom:6px;">' + (kat === 'themen' ? 'Eure Themen (für die ganze Familie)' : kat === 'regional' ? 'Orte (für die ganze Familie) – Häkchen nur auf diesem Gerät' : 'Quellen anzeigen (nur auf diesem Gerät)') + '</div>';
+    html += liste.map(q => '<label><input type="checkbox" data-sicht="' + escapeHtml(q.id) + '"' + (v.includes(q.id) ? '' : ' checked') + '> ' + escapeHtml(q.label) +
+      (eigen ? '<button type="button" class="weg" data-weg="' + escapeHtml(q.id) + '" title="Entfernen">✕</button>' : '') + '</label>').join('') || '<div style="font-size:0.82rem;">Noch nichts eingetragen.</div>';
+    if (eigen) html += '<div class="eigen-zeile"><input type="text" id="' + kat + 'Neu" placeholder="' + (kat === 'themen' ? 'z.B. Dacia Jogger, REACH Verordnung' : 'z.B. Enzkreis, Mühlacker') + '"><button type="button" data-neu="1">＋</button></div>';
+    if (kat === 'regional') {
+      const d = themenDaten();
+      html += '<div style="font-weight:700;font-size:0.85rem;margin:12px 0 4px;">🚨 Unwetterwarnungen (DWD) für</div><div style="font-size:0.75rem;color:var(--bark);margin-bottom:4px;">Kreis- oder Stadtnamen, mit Komma getrennt</div>' +
+        '<div class="eigen-zeile"><input type="text" id="dwdKreise" value="' + escapeHtml(d.dwd.join(', ')) + '"><button type="button" id="btnDwdSpeichern">✓</button></div>';
+    }
+    box.innerHTML = html;
+    box.querySelectorAll('[data-sicht]').forEach(cb => cb.addEventListener('change', () => {
+      let vv = versteckt(kat);
+      if (cb.checked) vv = vv.filter(x => x !== cb.dataset.sicht); else if (!vv.includes(cb.dataset.sicht)) vv.push(cb.dataset.sicht);
+      schreib('nachrichten_' + kat + '_versteckt', vv);
+      quellenReiheRendern(kat); kategorieLaden(kat);
+    }));
+    box.querySelectorAll('[data-weg]').forEach(b => b.addEventListener('click', (e) => {
+      e.preventDefault();
+      const d = themenDaten(), feld = kat === 'regional' ? 'orte' : 'themen';
+      d[feld] = d[feld].filter(x => x.id !== b.dataset.weg);
+      themenSpeichern(d); einstellungenRendern(kat); quellenReiheRendern(kat); kategorieLaden(kat);
+    }));
+    const neuBtn = box.querySelector('[data-neu]');
+    if (neuBtn) {
+      const feld = document.getElementById(kat + 'Neu');
+      const neu = () => {
+        const teile = feld.value.split(',').map(t => t.trim()).filter(Boolean);
+        if (!teile.length) return;
+        const d = themenDaten(), f = kat === 'regional' ? 'orte' : 'themen';
+        teile.forEach(t => { if (!d[f].some(x => x.label.toLowerCase() === t.toLowerCase())) d[f].push({ id: neueId(f.slice(0, 2)), label: t, q: t }); });
+        themenSpeichern(d); feld.value = '';
+        einstellungenRendern(kat); quellenReiheRendern(kat); kategorieLaden(kat);
+      };
+      neuBtn.addEventListener('click', neu);
+      feld.addEventListener('keydown', (e) => { if (e.key === 'Enter') neu(); });
+    }
+    const dwdBtn = document.getElementById('btnDwdSpeichern');
+    if (dwdBtn) dwdBtn.addEventListener('click', () => {
+      const d = themenDaten(); d.dwd = document.getElementById('dwdKreise').value.split(',').map(t => t.trim()).filter(Boolean);
+      themenSpeichern(d); try { localStorage.removeItem('nachrichten_dwdCache'); } catch (e) {} dwdLaden(true);
+    });
+  }
+  async function kategorieLaden(kat, erzwingen) {
+    const el = document.getElementById(kat + 'Inhalt');
+    const quellen = sichtbareQuellen(kat);
+    if (!quellen.length) {
+      el.innerHTML = '<div class="leer-hinweis"><span class="em">' + (kat === 'themen' ? '⭐' : '🙈') + '</span>' + (kat === 'themen' ? 'Noch keine Themen. Unter „⚙️ Themen verwalten“ eigene Suchbegriffe eintragen, z.B. „Dacia Jogger“ oder „Kita Pforzheim“.' : 'Keine Quelle ausgewählt.') + '</div>';
+      geladen[kat] = []; return;
+    }
+    const auswahl = aktiveQuelle[kat] === 'alle' ? quellen : quellen.filter(q => q.id === aktiveQuelle[kat]);
+    if (!el.innerHTML || !geladen[kat]) el.innerHTML = '<div class="leer-hinweis">Lädt…</div>';
+    const fehler = [];
+    const ergebnisse = await Promise.all(auswahl.map(q => quelleLaden(q, erzwingen).catch(e => { fehler.push({ q, e }); return []; })));
+    let items = [].concat(...ergebnisse);
+    // Doppelte Meldungen (gleicher Link oder Titel) nur einmal
+    const gesehen = new Set();
+    items = items.filter(i => { const k = i.link + '|' + i.title.toLowerCase().slice(0, 60); const t = i.title.toLowerCase().slice(0, 60); if (gesehen.has(i.link) || gesehen.has(t)) return false; gesehen.add(i.link); gesehen.add(t); return true; });
+    if (auswahl.length > 1) items.sort((a, b) => zeitMs(b.pubDate) - zeitMs(a.pubDate));
+    geladen[kat] = items.slice(0, auswahl.length > 1 ? 60 : 30);
+    geladen[kat]._fehler = fehler;
+    geladen[kat]._auswahl = auswahl;
+    feedRendern(kat);
+  }
+  function feedRendern(kat) {
+    const el = document.getElementById(kat + 'Inhalt');
+    const alle = geladen[kat] || [];
+    const fehler = alle._fehler || [], auswahl = alle._auswahl || [];
+    const letzterBesuch = (lies(KEY_BESUCH, {}) || {})[kat] || 0;
+    let items = alle.filter(i => (!suchtext || i.title.toLowerCase().includes(suchtext) || (i.quelle || '').toLowerCase().includes(suchtext)) && (!gelesenAus || !istGelesen(i.link)));
+    let html = '';
+    if (!alle.length && fehler.length) {
+      el.innerHTML = '<div style="padding:8px 0;">⚠ News konnten gerade nicht geladen werden (' + escapeHtml(String(fehler[0].e.message || fehler[0].e)) + '). <a href="' + escapeHtml(sichererLink(fehler[0].q.linkZielseite)) + '" target="_blank" rel="noopener">Direkt zur Quelle →</a></div>';
+      return;
+    }
+    if (!items.length) html = '<div class="leer-hinweis">' + (alle.length ? 'Nichts gefunden' + (gelesenAus ? ' – oder schon alles gelesen 🎉' : '.') : 'Aktuell keine News verfügbar.') + '</div>';
+    html += items.map((i, idx) => {
+      const neu = letzterBesuch && zeitMs(i.pubDate) > letzterBesuch && !istGelesen(i.link);
+      return '<div class="news-eintrag' + (istGelesen(i.link) ? ' gelesen' : '') + '">' + (i.thumbnail ? '<img src="' + escapeHtml(i.thumbnail) + '" alt="" loading="lazy" onerror="this.remove()">' : '') +
+        '<div class="news-inhalt"><a href="' + escapeHtml(i.link) + '" target="_blank" rel="noopener noreferrer" data-idx="' + idx + '">' + (neu ? '<span class="neu-marke">🆕</span>' : '') + escapeHtml(i.title) + '</a>' +
+        '<div class="datum">' + (auswahl.length > 1 || i.quelle !== (auswahl[0] || {}).label ? '<span class="quelle-label">' + escapeHtml(i.quelle || '') + '</span> · ' : '') + escapeHtml(zeitText(i.pubDate)) + '</div></div>' +
+        '<div class="news-aktionen"><button type="button" class="na-btn' + (istGemerkt(i.link) ? ' aktiv' : '') + '" data-merk="' + idx + '" title="Merken">🔖</button>' +
+        '<button type="button" class="na-btn" data-tipp="' + idx + '" title="Als Familien-Lesetipp teilen">👪</button><button type="button" class="na-btn" data-teilen="' + idx + '" title="Teilen">📤</button></div></div>';
+    }).join('');
+    html += '<div class="quelle-fuszeile">' + (auswahl.length > 1 ? auswahl.length + ' Quellen' : 'Quelle: ' + escapeHtml((auswahl[0] || {}).label || '')) + (fehler.length && alle.length ? ' · ⚠ ' + fehler.length + ' nicht erreichbar' : '') +
+      ' · <button type="button" class="na-link" id="btnAktualisieren_' + kat + '">aktualisieren</button></div>';
+    el.innerHTML = html;
+    el.querySelectorAll('a[data-idx]').forEach(a => a.addEventListener('click', () => { alsGelesenMarkieren(items[+a.dataset.idx].link); a.closest('.news-eintrag').classList.add('gelesen'); }));
+    el.querySelectorAll('[data-merk]').forEach(b => b.addEventListener('click', () => { merklisteUmschalten(items[+b.dataset.merk]); b.classList.toggle('aktiv', istGemerkt(items[+b.dataset.merk].link)); }));
+    el.querySelectorAll('[data-tipp]').forEach(b => b.addEventListener('click', () => tippTeilen(items[+b.dataset.tipp])));
+    el.querySelectorAll('[data-teilen]').forEach(b => b.addEventListener('click', () => normalTeilen(items[+b.dataset.teilen])));
+    const akt = document.getElementById('btnAktualisieren_' + kat);
+    if (akt) akt.addEventListener('click', () => kategorieLaden(kat, true));
+  }
+
+  // ============================================================
+  // 👪 Familien-Lesetipps & Teilen
+  // ============================================================
+  function tippsListe() { return lies(KEY_TIPPS, []) || []; }
+  function tippTeilen(item) {
+    const tipps = tippsListe();
+    if (tipps.some(t => t.link === item.link)) { showTempStatus('👪 Steht schon bei den Lesetipps', 3); return; }
+    const kommentar = prompt('Lesetipp für die Familie – kurzer Kommentar (optional):', '');
+    if (kommentar === null) return;
+    tipps.unshift({ id: neueId('tp'), link: item.link, title: item.title, quelle: item.quelle || '', kommentar: kommentar.trim(), von: ichBin(), am: new Date().toISOString() });
+    schreib(KEY_TIPPS, tipps.slice(0, 60));
+    if (sync) sync.melde();
+    tippsBadge();
+    showTempStatus('👪 Als Lesetipp geteilt', 3);
+  }
+  async function normalTeilen(item) {
+    try { if (navigator.share) { await navigator.share({ title: item.title, url: item.link }); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
+    try { await navigator.clipboard.writeText(item.title + '\n' + item.link); showTempStatus('🔗 Link kopiert', 2); } catch (e) { prompt('Link zum Kopieren:', item.link); }
+  }
+  function tippsBadge() {
+    const gesehen = lies(KEY_TIPPS_GESEHEN, 0) || 0, ich = ichBin();
+    const n = tippsListe().filter(t => new Date(t.am).getTime() > gesehen && t.von !== ich).length;
+    const b = document.getElementById('tippsBadge');
+    b.style.display = n ? '' : 'none'; b.textContent = n;
+  }
+  function tippsRendern() {
+    const box = document.getElementById('tippsInhalt');
+    const tipps = tippsListe().filter(t => !suchtext || (t.title + ' ' + (t.kommentar || '')).toLowerCase().includes(suchtext));
+    schreib(KEY_TIPPS_GESEHEN, Date.now()); tippsBadge();
+    if (!tipps.length) { box.innerHTML = '<div class="leer-hinweis"><span class="em">👪</span>Noch keine Lesetipps. Mit 👪 an einer Meldung teilst du sie mit der Familie.</div>'; return; }
+    box.innerHTML = tipps.map(t => '<div class="tipp"><a href="' + escapeHtml(sichererLink(t.link)) + '" target="_blank" rel="noopener noreferrer" data-l="' + escapeHtml(t.link) + '">' + escapeHtml(t.title) + '</a>' +
+      (t.kommentar ? '<div class="t-kommentar">💬 ' + escapeHtml(t.kommentar) + '</div>' : '') +
+      '<div class="t-meta"><span>' + escapeHtml(personName(t.von)) + ' · ' + escapeHtml(zeitText(t.am)) + (t.quelle ? ' · ' + escapeHtml(t.quelle) : '') + '</span><button type="button" class="na-btn" data-weg="' + escapeHtml(t.id) + '" title="Entfernen">✕</button></div></div>').join('');
+    box.querySelectorAll('a[data-l]').forEach(a => a.addEventListener('click', () => alsGelesenMarkieren(a.dataset.l)));
+    box.querySelectorAll('[data-weg]').forEach(b => b.addEventListener('click', () => {
+      const alle = tippsListe(); const i = alle.findIndex(x => x.id === b.dataset.weg); if (i === -1) return;
+      const weg = alle.splice(i, 1)[0]; schreib(KEY_TIPPS, alle); if (sync) sync.melde(); tippsRendern();
+      showTempStatus('Lesetipp entfernt', 5, { rueckgaengig: () => { const a2 = tippsListe(); a2.splice(i, 0, weg); schreib(KEY_TIPPS, a2); if (sync) sync.melde(); tippsRendern(); } });
+    }));
+  }
+
+  // ============================================================
+  // 🔖 Merkliste
+  // ============================================================
+  function renderMerkliste() {
+    const box = document.getElementById('gemerktInhalt');
+    const liste = merklisteListe().filter(m => !suchtext || (m.title || '').toLowerCase().includes(suchtext));
+    if (!liste.length) { box.innerHTML = '<div class="leer-hinweis"><span class="em">🔖</span>Noch nichts gemerkt. Mit 🔖 an einer Meldung kannst du sie hier sammeln (nur auf diesem Gerät).</div>'; return; }
+    box.innerHTML = liste.map((m, idx) => '<div class="news-eintrag' + (istGelesen(m.link) ? ' gelesen' : '') + '">' +
+      '<div class="news-inhalt"><a href="' + escapeHtml(sichererLink(m.link)) + '" target="_blank" rel="noopener noreferrer" data-l="' + escapeHtml(m.link) + '">' + escapeHtml(m.title) + '</a>' +
+      '<div class="datum">' + escapeHtml(m.quelle || '') + (m.datum ? ' · ' + escapeHtml(zeitText(m.datum)) : '') + '</div></div>' +
+      '<div class="news-aktionen"><button type="button" class="na-btn aktiv" data-unmerk="' + idx + '" title="Aus Merkliste entfernen">🔖</button><button type="button" class="na-btn" data-tipp="' + idx + '" title="Als Lesetipp teilen">👪</button></div></div>').join('');
+    box.querySelectorAll('a[data-l]').forEach(a => a.addEventListener('click', () => { alsGelesenMarkieren(a.dataset.l); a.closest('.news-eintrag').classList.add('gelesen'); }));
+    box.querySelectorAll('[data-unmerk]').forEach(b => b.addEventListener('click', () => { schreib(KEY_MERKLISTE, merklisteListe().filter(m => m.link !== liste[+b.dataset.unmerk].link)); renderMerkliste(); }));
+    box.querySelectorAll('[data-tipp]').forEach(b => b.addEventListener('click', () => { const m = liste[+b.dataset.tipp]; tippTeilen({ link: m.link, title: m.title, quelle: m.quelle }); }));
+  }
+
+  // ============================================================
+  // 🚨 DWD-Unwetterwarnungen (JSONP: warnWetter.loadWarnings)
+  // ============================================================
+  const DWD_STUFE = { 1: 'Wetterwarnung', 2: 'Markante Wetterwarnung', 3: 'Unwetterwarnung', 4: 'Extreme Unwetterwarnung' };
+  function dwdLaden(erzwingen) {
+    const box = document.getElementById('dwdBox');
+    const begriffe = themenDaten().dwd.map(b => b.toLowerCase()).filter(Boolean);
+    if (!begriffe.length) { box.innerHTML = ''; return; }
+    const cache = lies('nachrichten_dwdCache', null);
+    if (!erzwingen && cache && Date.now() - cache.zeit < 15 * 60e3) { dwdRendern(cache.warnungen); return; }
+    let fertig = false;
+    window.warnWetter = { loadWarnings: (d) => {
+      fertig = true;
+      const liste = [];
+      const alle = Object.assign({}, (d && d.warnings) || {});
+      Object.keys(alle).forEach(id => (alle[id] || []).forEach(w => {
+        const name = String(w.regionName || '').toLowerCase();
+        if (begriffe.some(b => name.includes(b))) liste.push({ region: w.regionName, event: w.event, headline: w.headline, description: w.description, level: w.level, start: w.start, end: w.end });
+      }));
+      liste.sort((a, b) => (b.level || 0) - (a.level || 0));
+      schreib('nachrichten_dwdCache', { zeit: Date.now(), warnungen: liste, begriffe });
+      dwdRendern(liste);
+    } };
+    const sc = document.createElement('script');
+    sc.src = 'https://www.dwd.de/DWD/warnungen/warnapp/json/warnings.json?' + Date.now();
+    sc.onerror = () => { if (!fertig) box.innerHTML = cache ? '' : '<div class="warn-box ok">⚠ DWD-Warnungen gerade nicht erreichbar.</div>'; if (cache) dwdRendern(cache.warnungen); };
+    sc.onload = () => sc.remove();
+    document.head.appendChild(sc);
+  }
+  function dwdRendern(liste) {
+    const box = document.getElementById('dwdBox');
+    const begriffe = themenDaten().dwd;
+    const fmt = ms => ms ? new Date(ms).toLocaleString('de-DE', { weekday: 'short', day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+    if (!liste || !liste.length) { box.innerHTML = '<div class="warn-box ok">✅ Keine Wetterwarnungen für ' + escapeHtml(begriffe.join(', ')) + ' (DWD)</div>'; return; }
+    // gleiche Warnung für mehrere Kreise zusammenfassen
+    const gruppen = {};
+    liste.forEach(w => { const k = w.event + '|' + w.start + '|' + w.end + '|' + w.level; (gruppen[k] = gruppen[k] || Object.assign({ regionen: [] }, w)).regionen.push(w.region); });
+    box.innerHTML = '<div class="warn-box" style="padding:0;">' + Object.values(gruppen).map(w => '<div class="warnung s' + Math.min(4, Math.max(1, w.level || 1)) + '"><b>🚨 ' + escapeHtml(w.headline || w.event || 'Warnung') + '</b>' +
+      '<span class="w-zeit">' + escapeHtml(DWD_STUFE[w.level] || '') + ' · ' + escapeHtml(fmt(w.start)) + (w.end ? ' – ' + escapeHtml(fmt(w.end)) : '') + ' · ' + escapeHtml(w.regionen.join(', ')) + '</span>' +
+      (w.description ? '<details><summary>Details</summary>' + escapeHtml(w.description) + '</details>' : '') + '</div>').join('') + '<div style="font-size:0.66rem;color:var(--bark);">Quelle: Deutscher Wetterdienst</div></div>';
+  }
+
+  // ============================================================
+  // Ansichten
+  // ============================================================
+  const ANSICHTEN = ['regional', 'national', 'international', 'themen', 'tipps', 'gemerkt'];
+  const tabId = n => 'btnView' + n.charAt(0).toUpperCase() + n.slice(1);
+  const ansichtId = n => 'ansicht' + n.charAt(0).toUpperCase() + n.slice(1);
+  function besuchMerken(kat) { const b = lies(KEY_BESUCH, {}) || {}; b[kat] = Date.now(); schreib(KEY_BESUCH, b); }
+  function zeigeAnsicht(name) {
+    if (!ANSICHTEN.includes(name)) name = 'regional';
+    if (KATEGORIEN.includes(aktiveAnsicht) && aktiveAnsicht !== name) besuchMerken(aktiveAnsicht);
+    aktiveAnsicht = name;
+    ANSICHTEN.forEach(n => {
+      document.getElementById(ansichtId(n)).style.display = n === name ? '' : 'none';
+      const t = document.getElementById(tabId(n)); t.classList.toggle('active', n === name); t.setAttribute('aria-selected', n === name);
+    });
+    document.getElementById('btnAllesGelesen').style.display = KATEGORIEN.includes(name) ? '' : 'none';
+    document.getElementById('btnGelesenAusblenden').style.display = KATEGORIEN.includes(name) ? '' : 'none';
+    try { localStorage.setItem('nachrichten_aktiveAnsicht', name); } catch (e) {}
+    if (KATEGORIEN.includes(name)) { quellenReiheRendern(name); einstellungenRendern(name); if (!geladen[name]) kategorieLaden(name); else feedRendern(name); }
+    if (name === 'regional') dwdLaden(false);
+    if (name === 'tipps') tippsRendern();
+    if (name === 'gemerkt') renderMerkliste();
+  }
+  ANSICHTEN.forEach(n => document.getElementById(tabId(n)).addEventListener('click', () => zeigeAnsicht(n)));
+  KATEGORIEN.forEach(k => {
+    const btn = document.getElementById(k + 'EinstellungenToggle') || document.getElementById('btn' + k.charAt(0).toUpperCase() + k.slice(1) + 'EinstellungenToggle');
+    btn.addEventListener('click', () => { const box = document.getElementById(k + 'EinstellungenBox'); box.style.display = box.style.display === 'block' ? 'none' : 'block'; });
+  });
+  document.getElementById('fNewsSuche').addEventListener('input', (e) => {
+    suchtext = e.target.value.trim().toLowerCase();
+    if (KATEGORIEN.includes(aktiveAnsicht)) feedRendern(aktiveAnsicht); else if (aktiveAnsicht === 'tipps') tippsRendern(); else renderMerkliste();
+  });
+  function gelesenKnopf() { document.getElementById('btnGelesenAusblenden').classList.toggle('active', gelesenAus); }
+  document.getElementById('btnGelesenAusblenden').addEventListener('click', () => { gelesenAus = !gelesenAus; schreib(KEY_GELESEN_AUS, gelesenAus); gelesenKnopf(); if (KATEGORIEN.includes(aktiveAnsicht)) feedRendern(aktiveAnsicht); });
+  document.getElementById('btnAllesGelesen').addEventListener('click', () => {
+    const items = geladen[aktiveAnsicht] || [];
+    const vorher = gelesenListe();
+    alsGelesenMarkieren(items.map(i => i.link));
+    besuchMerken(aktiveAnsicht);
+    feedRendern(aktiveAnsicht);
+    showTempStatus('✓ ' + items.length + ' Meldungen als gelesen markiert', 5, { rueckgaengig: () => { schreib(KEY_GELESEN, vorher); feedRendern(aktiveAnsicht); } });
+  });
+  window.addEventListener('pagehide', () => { if (KATEGORIEN.includes(aktiveAnsicht)) besuchMerken(aktiveAnsicht); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden && KATEGORIEN.includes(aktiveAnsicht)) besuchMerken(aktiveAnsicht); });
+
+  gelesenKnopf();
+  if (window.PlanerSync) {
+    sync = window.PlanerSync.starteSync({ modul: 'nachrichten', keys: [KEY_THEMEN, KEY_TIPPS], onRemoteChange: () => {
+      tippsBadge();
+      if (aktiveAnsicht === 'tipps') tippsRendern();
+      if (aktiveAnsicht === 'regional' || aktiveAnsicht === 'themen') { einstellungenRendern(aktiveAnsicht); quellenReiheRendern(aktiveAnsicht); }
+    } });
+  }
+  tippsBadge();
+  zeigeAnsicht(lies('nachrichten_aktiveAnsicht_x', null) || (function () { try { return localStorage.getItem('nachrichten_aktiveAnsicht') || 'regional'; } catch (e) { return 'regional'; } })());
 })();
 </script>
 </body>
