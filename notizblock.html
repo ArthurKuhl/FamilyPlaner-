@@ -8,8 +8,10 @@
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-storage-compat.js"></script>
 <script src="personen.js"></script>
 <script src="sync.js"></script>
+<script src="fotospeicher.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap');
   :root {
@@ -130,6 +132,36 @@
   .checkliste-edit-zeile input[type="text"] { flex: 1; padding: 7px 10px; border: 1px solid var(--parchment); border-radius: var(--radius-sm); font-size: 0.85rem; }
   .checkliste-edit-zeile button { background: none; border: none; color: var(--terracotta-text); font-size: 1rem; cursor: pointer; padding: 2px 6px; }
 
+  .notiz-text a { color: var(--sky); text-decoration: underline; word-break: break-all; }
+  .notiz-karte.farbig .notiz-text a { color: #2f5f8a; }
+  .notiz-text .li { display: block; padding-left: 12px; text-indent: -10px; }
+  .notiz-chips { display: flex; gap: 4px; flex-wrap: wrap; }
+  .notiz-chip { font-size: 0.62rem; font-weight: 700; padding: 2px 7px; border-radius: 999px; background: rgba(91,139,181,0.16); color: var(--soil); }
+  .notiz-karte.farbig .notiz-chip { color: #3a2e22; }
+  .notiz-chip.ueber { background: rgba(196,107,65,0.25); color: var(--terracotta-text); }
+  .notiz-foto { width: 100%; max-height: 120px; object-fit: cover; border-radius: 8px; display: block; }
+  .schnell-punkt { width: 100%; border: none; border-bottom: 1px dashed var(--parchment); background: transparent; color: inherit; font-size: 0.8rem; padding: 4px 2px; font-family: inherit; }
+  .notiz-karte.farbig .schnell-punkt { color: #3a2e22; border-color: rgba(0,0,0,0.2); }
+  .ansicht-chips { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+  .ansicht-chip { border: 1px solid var(--parchment); background: var(--white); color: var(--bark); border-radius: 999px; padding: 5px 12px; font-size: 0.74rem; font-weight: 700; cursor: pointer; }
+  .ansicht-chip.aktiv { background: var(--moss); color: var(--on-moss, #fff); border-color: var(--moss); }
+  .zeile-2 { display: flex; gap: 8px; }
+  .zeile-2 > * { flex: 1; min-width: 0; }
+  .foto-reihe { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+  .foto-reihe .ft { position: relative; width: 70px; height: 70px; }
+  .foto-reihe .ft img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; display: block; }
+  .foto-reihe .ft button { position: absolute; top: -6px; right: -6px; width: 22px; height: 22px; border-radius: 50%; border: none; background: rgba(20,18,14,0.8); color: #fff; font-size: 0.7rem; cursor: pointer; }
+  .feld label.foto-hinzu, .foto-hinzu { margin: 0; text-transform: none; width: 70px; height: 70px; border: 1.5px dashed var(--parchment); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; cursor: pointer; position: relative; background: var(--white); }
+  .foto-hinzu input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .label-zeile { display: flex; align-items: center; justify-content: space-between; }
+  .diktat-btn { border: 1px solid var(--parchment); background: var(--white); color: var(--soil); border-radius: 999px; padding: 3px 10px; font-size: 0.75rem; font-weight: 700; cursor: pointer; text-transform: none; letter-spacing: 0; }
+  .diktat-btn.aktiv { background: #c0392b; color: #fff; border-color: #c0392b; animation: puls 1.2s infinite; }
+  @keyframes puls { 50% { opacity: 0.6; } }
+  .aktion-liste { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .aktion-liste button { padding: 12px 8px; border-radius: var(--radius-md); border: 1px solid var(--parchment); background: var(--white); color: var(--soil); font-weight: 700; font-size: 0.82rem; cursor: pointer; }
+  .ek-zeile { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--parchment); font-size: 0.86rem; }
+  .ek-zeile input { width: 18px; height: 18px; flex-shrink: 0; }
+  #modalAktionen, #modalEinkauf, #modalTermin { z-index: 110; }
   .leer-hinweis { text-align: center; color: var(--soil); font-size: 0.85rem; padding: 46px 16px; opacity: 1; font-weight: 500; }
   .leer-hinweis .em { font-size: 2.2rem; display: block; margin-bottom: 8px; }
 
@@ -239,6 +271,7 @@
   </div>
   <div class="privat-hinweis" id="privatHinweis" style="display:none;"></div>
   <input type="text" class="notiz-suche" id="notizSuche" placeholder="🔍 Notizen durchsuchen ...">
+  <div class="ansicht-chips" id="ansichtChips"></div>
   <div class="filter-reihe" id="tagFilterReihe" style="margin-bottom:10px;"></div>
   <div class="notiz-grid" id="notizGrid"></div>
   <div class="leer-hinweis" id="leerHinweis" style="display:none;">
@@ -246,6 +279,42 @@
     Noch keine Notizen. Tippe auf „＋ Neu", um loszulegen.
   </div>
 </main>
+
+<div class="modal-bg" id="modalAktionen">
+  <div class="modal" style="max-width:420px;">
+    <h2>➡️ Was soll mit der Notiz passieren?</h2>
+    <div class="aktion-liste">
+      <button type="button" data-aktion="einkauf">🛒 Auf die Einkaufsliste</button>
+      <button type="button" data-aktion="termin">📅 Als Termin</button>
+      <button type="button" data-aktion="haushalt">🧹 Als Haushaltsaufgabe</button>
+      <button type="button" data-aktion="handwerk">🔨 Als Handwerk-Projekt</button>
+      <button type="button" data-aktion="duplizieren">⧉ Duplizieren</button>
+      <button type="button" data-aktion="archiv" id="btnAktionArchiv">🗄️ Archivieren</button>
+    </div>
+    <div class="modal-btns"><button class="btn btn-secondary" id="btnAktionenZu">Schließen</button></div>
+  </div>
+</div>
+<div class="modal-bg" id="modalEinkauf">
+  <div class="modal" style="max-width:440px;">
+    <h2>🛒 Auf die Einkaufsliste</h2>
+    <div id="ekZeilen" style="max-height:50vh;overflow-y:auto;"></div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnEkAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnEkOk">Hinzufügen</button>
+    </div>
+  </div>
+</div>
+<div class="modal-bg" id="modalTermin">
+  <div class="modal" style="max-width:420px;">
+    <h2>📅 Als Termin</h2>
+    <div class="feld"><label for="fTerminTitel">Titel</label><input type="text" id="fTerminTitel"></div>
+    <div class="feld"><label>Wann</label><div class="zeile-2"><input type="date" id="fTerminDatum"><input type="time" id="fTerminZeit"></div></div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnTerminAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnTerminOk">Eintragen</button>
+    </div>
+  </div>
+</div>
 
 <!-- Neu / Bearbeiten -->
 <div class="modal-bg" id="modalEdit">
@@ -261,12 +330,16 @@
       <input type="text" id="fTitel" placeholder="z.B. Einkaufsideen, Gedanken zum Urlaub ...">
     </div>
     <div class="feld" id="feldText">
-      <label for="fText">Text</label>
-      <textarea id="fText" rows="8" placeholder="Stichpunkte oder ganze Sätze ..."></textarea>
+      <div class="label-zeile"><label for="fText">Text</label><button type="button" class="diktat-btn" id="btnDiktat" style="display:none;">🎤 Diktieren</button></div>
+      <textarea id="fText" rows="8" placeholder="Stichpunkte oder ganze Sätze … **fett**, - Aufzählung, Links und Telefonnummern werden antippbar"></textarea>
     </div>
     <div class="feld" id="feldCheckliste" style="display:none;">
       <label>Punkte</label>
       <div id="checklisteEditListe"></div>
+      <div style="display:flex;gap:6px;margin:4px 0 6px;">
+        <button type="button" class="opt klein" id="btnErledigteNachUnten">↓ Erledigte nach unten</button>
+        <button type="button" class="opt klein" id="btnErledigteLoeschen">🗑 Erledigte löschen</button>
+      </div>
       <button type="button" class="zeile-hinzufuegen" id="btnCheckpunktHinzufuegen" style="background:none;border:1px dashed var(--bark);color:var(--bark);border-radius:var(--radius-pill);padding:7px 14px;font-size:0.78rem;font-weight:700;cursor:pointer;width:100%;">＋ Punkt hinzufügen</button>
     </div>
     <div class="feld">
@@ -277,9 +350,18 @@
       </label>
     </div>
     <div class="feld">
+      <label>⏰ Erinnern (optional)</label>
+      <div class="zeile-2"><input type="date" id="fErinnerungDatum"><input type="time" id="fErinnerungZeit"></div>
+    </div>
+    <div class="feld">
+      <label>📷 Fotos</label>
+      <div class="foto-reihe" id="fotoReihe"></div>
+    </div>
+    <div class="feld">
       <label>Farbe</label>
       <div class="farbe-punkt-reihe" id="farbeReihe"></div>
     </div>
+    <button type="button" class="btn btn-secondary" id="btnAktionen" style="width:100%;display:none;">➡️ Weiterleiten, duplizieren, archivieren …</button>
 
     <div class="modal-btns">
       <button class="btn btn-secondary" id="btnEditAbbrechen">Abbrechen</button>
@@ -333,7 +415,7 @@
     el.appendChild(textSpan);
     if (typeof optionen.rueckgaengig === 'function') {
       const btn = document.createElement('button');
-      btn.textContent = 'Rückgängig';
+      btn.textContent = optionen.label || 'Rückgängig';
       btn.style.cssText = 'background:none;border:none;color:#e8c98a;font-weight:700;font-size:0.85rem;cursor:pointer;padding:2px 4px;flex-shrink:0;text-decoration:underline;';
       btn.addEventListener('click', () => {
         clearTimeout(el._timeout);
@@ -496,7 +578,7 @@
 
   function alleVorhandenenTags() {
     const set = new Set();
-    notizen.forEach(n => (n.tags || []).forEach(t => set.add(t)));
+    notizen.filter(n => !n.geloeschtAm).forEach(n => (n.tags || []).forEach(t => set.add(t)));
     return Array.from(set).sort((a,b) => a.localeCompare(b, 'de'));
   }
   function renderTagFilter() {
@@ -518,8 +600,9 @@
     });
   }
 
+  let ansicht = 'aktiv'; // aktiv | archiv | papierkorb
   function gefiltert() {
-    let liste = notizen;
+    let liste = notizen.filter(n => ansicht === 'papierkorb' ? !!n.geloeschtAm : (!n.geloeschtAm && (ansicht === 'archiv' ? !!n.archiviert : !n.archiviert)));
     if (aktiverTagFilter !== 'alle') liste = liste.filter(n => (n.tags || []).includes(aktiverTagFilter));
     if (suchtext) {
       const s = suchtext.toLowerCase();
@@ -532,7 +615,49 @@
     return liste;
   }
 
+  // ✍️ Einfache Formatierung: **fett**, - Aufzählung, Links, Telefonnummern, E-Mail
+  function textFormatieren(text) {
+    return String(text || '').split('\n').map(zeile => {
+      let z = escapeHtml(zeile);
+      z = z.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+      z = z.replace(/(https?:\/\/[^\s<]+[^\s<.,;:!?)])/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
+      z = z.replace(/(^|[\s(])([\w.+-]+@[\w-]+\.[\w.-]+\w)/g, '$1<a href="mailto:$2">$2</a>');
+      z = z.replace(/(^|[\s(:])((?:\+49|0)[\d][\d \/-]{5,}\d)(?=$|[\s),.;])/g, (m, vor, nr) => vor + '<a href="tel:' + nr.replace(/[^\d+]/g, '') + '">' + nr + '</a>');
+      if (/^\s*[-•*]\s+/.test(zeile)) z = '<span class="li">• ' + z.replace(/^\s*[-•*]\s+/, '') + '</span>';
+      return z;
+    }).join('\n').replace(/<\/span>\n/g, '</span>').replace(/\n<span class="li">/g, '<span class="li">');
+  }
+  function erinnerungText(e) {
+    if (!e || !e.datum) return '';
+    const d = new Date(e.datum + 'T' + (e.zeit || '09:00'));
+    const heute = new Date(); heute.setHours(0, 0, 0, 0);
+    const tage = Math.round((new Date(e.datum + 'T00:00') - heute) / 864e5);
+    const tag = tage === 0 ? 'heute' : tage === 1 ? 'morgen' : tage === -1 ? 'gestern' : d.toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'numeric' });
+    return tag + (e.zeit ? ' ' + e.zeit : '');
+  }
+  function erinnerungVorbei(e) { return e && e.datum && new Date(e.datum + 'T' + (e.zeit || '23:59')) < new Date(); }
+  function fotoSrc(f) { return (f && (f.url || f.bild)) || ''; }
+  function ansichtChipsRendern() {
+    const box = document.getElementById('ansichtChips');
+    const nArchiv = notizen.filter(n => n.archiviert && !n.geloeschtAm).length, nKorb = notizen.filter(n => n.geloeschtAm).length;
+    if (!nArchiv && !nKorb && ansicht === 'aktiv') { box.innerHTML = ''; return; }
+    box.innerHTML = [['aktiv', '📝 Notizen'], ['archiv', '🗄️ Archiv' + (nArchiv ? ' (' + nArchiv + ')' : '')], ['papierkorb', '🗑️ Papierkorb' + (nKorb ? ' (' + nKorb + ')' : '')]]
+      .map(([id, l]) => '<button type="button" class="ansicht-chip' + (ansicht === id ? ' aktiv' : '') + '" data-a="' + id + '">' + l + '</button>').join('') +
+      (ansicht === 'papierkorb' && nKorb ? '<button type="button" class="ansicht-chip" id="btnKorbLeeren">Papierkorb leeren</button>' : '');
+    box.querySelectorAll('[data-a]').forEach(b => b.addEventListener('click', () => { ansicht = b.dataset.a; renderTagFilter(); renderNotizen(); }));
+    const leeren = document.getElementById('btnKorbLeeren');
+    if (leeren) leeren.addEventListener('click', () => {
+      if (!confirm('Alle Notizen im Papierkorb endgültig löschen?')) return;
+      const weg = notizen.filter(n => n.geloeschtAm);
+      weg.forEach(n => (n.fotos || []).forEach(f => cloudFotoLoeschen(f)));
+      const behalten = notizen.filter(n => !n.geloeschtAm);
+      notizen.length = 0; behalten.forEach(n => notizen.push(n));
+      notizenSpeichern(); renderNotizen();
+    });
+  }
+
   function renderNotizen() {
+    ansichtChipsRendern();
     const box = document.getElementById('notizGrid');
     const leer = document.getElementById('leerHinweis');
     const liste = gefiltert().slice().sort((a, b) => {
@@ -542,25 +667,37 @@
     });
     box.innerHTML = '';
     leer.style.display = (liste.length || (bereich === 'privat' && !geraetPerson())) ? 'none' : '';
-    leer.innerHTML = '<span class="em">' + (bereich === 'privat' ? '🔒' : '📝') + '</span>' + (bereich === 'privat'
+    leer.innerHTML = ansicht === 'archiv' ? '<span class="em">🗄️</span>Das Archiv ist leer.' : ansicht === 'papierkorb' ? '<span class="em">🗑️</span>Der Papierkorb ist leer. Gelöschte Notizen bleiben hier 30 Tage.' :
+      '<span class="em">' + (bereich === 'privat' ? '🔒' : '📝') + '</span>' + (bereich === 'privat'
       ? 'Noch keine privaten Notizen. Was du hier anlegst, sieht nur ' + escapeHtml(personName(geraetPerson())) + '.'
       : 'Noch keine Notizen. Tippe auf „＋ Neu", um loszulegen.');
     liste.forEach(n => {
       const karte = document.createElement('div');
       karte.className = 'notiz-karte' + (n.farbe && n.farbe !== '#fffdf8' ? ' farbig' : '');
       if (n.farbe && n.farbe !== '#fffdf8') karte.style.background = n.farbe; // weiß = Standard-Kartenfarbe (passt sich dem Dunkelmodus an)
+      const punkte = (n.checkliste || []).map((p, i) => ({ p, i })).sort((a, b) => (a.p.erledigt ? 1 : 0) - (b.p.erledigt ? 1 : 0));
       const inhaltHtml = n.typ === 'checkliste'
-        ? '<div class="notiz-checkliste">' + (n.checkliste || []).slice(0, 8).map((p, i) =>
+        ? '<div class="notiz-checkliste">' + punkte.slice(0, 10).map(({ p, i }) =>
             '<div class="notiz-check-zeile' + (p.erledigt ? ' erledigt' : '') + '"><input type="checkbox" data-notizid="' + n.id + '" data-idx="' + i + '"' + (p.erledigt ? ' checked' : '') + '><span>' + escapeHtml(p.text) + '</span></div>'
-          ).join('') + '</div>'
-        : '<div class="notiz-text">' + escapeHtml(n.text || '') + '</div>';
+          ).join('') + (punkte.length > 10 ? '<div class="notiz-datum">+ ' + (punkte.length - 10) + ' weitere</div>' : '') +
+          (ansicht === 'aktiv' ? '<input type="text" class="schnell-punkt" data-schnell="' + n.id + '" placeholder="＋ Punkt" enterkeyhint="done">' : '') + '</div>'
+        : '<div class="notiz-text">' + textFormatieren(n.text || '') + '</div>';
+      const chips = [];
+      if (n.erinnerung && n.erinnerung.datum) chips.push('<span class="notiz-chip' + (erinnerungVorbei(n.erinnerung) ? ' ueber' : '') + '">⏰ ' + escapeHtml(erinnerungText(n.erinnerung)) + '</span>');
+      if ((n.fotos || []).length > 1) chips.push('<span class="notiz-chip">📷 ' + n.fotos.length + '</span>');
+      if (n.geloeschtAm) chips.push('<span class="notiz-chip ueber">🗑️ noch ' + Math.max(0, 30 - Math.floor((Date.now() - new Date(n.geloeschtAm)) / 864e5)) + ' Tage</span>');
       karte.innerHTML =
         '<button class="notiz-pin-btn' + (n.angeheftet ? ' aktiv' : '') + '" data-id="' + n.id + '" title="Anheften">📌</button>' +
         (n.titel ? '<div class="notiz-titel">' + escapeHtml(n.titel) + '</div>' : '') +
+        ((n.fotos || []).length ? '<img class="notiz-foto" src="' + escapeHtml(fotoSrc(n.fotos[0])) + '" alt="" loading="lazy">' : '') +
         inhaltHtml +
+        (chips.length ? '<div class="notiz-chips">' + chips.join('') + '</div>' : '') +
         (n.tags && n.tags.length ? '<div class="notiz-tag-reihe">' + n.tags.map(t => '<span class="notiz-tag">#' + escapeHtml(t) + '</span>').join('') + '</div>' : '') +
         '<div class="notiz-datum">' + zeitpunktAnzeige(n.geaendert) + '</div>';
       karte.addEventListener('click', (e) => {
+        if (e.target.closest('a')) { e.stopPropagation(); return; }
+        if (e.target.closest('.schnell-punkt')) { e.stopPropagation(); return; }
+        if (n.geloeschtAm) { korbAktion(n); return; }
         if (e.target.closest('.notiz-pin-btn')) {
           e.stopPropagation();
           n.angeheftet = !n.angeheftet;
@@ -577,10 +714,21 @@
             n.geaendert = new Date().toISOString();
             notizenSpeichern();
             renderNotizen();
+            if (n.checkliste.length > 1 && n.checkliste.every(p => p.erledigt) && !n.archiviert)
+              showTempStatus('✅ Alles erledigt!', 8, { label: '🗄️ Archivieren', rueckgaengig: () => { n.archiviert = true; n.geaendert = new Date().toISOString(); notizenSpeichern(); renderNotizen(); } });
           }
           return;
         }
         editOeffnen(n.id);
+      });
+      const schnell = karte.querySelector('[data-schnell]');
+      if (schnell) schnell.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter') return;
+        const t = schnell.value.trim(); if (!t) return;
+        n.checkliste = (n.checkliste || []).concat(t.split(/\s*[,;]\s+/).filter(Boolean).map(x => ({ text: x, erledigt: false })));
+        n.geaendert = new Date().toISOString();
+        notizenSpeichern(); renderNotizen();
+        const neu = document.querySelector('[data-schnell="' + n.id + '"]'); if (neu) neu.focus();
       });
       box.appendChild(karte);
     });
@@ -694,6 +842,12 @@
     checklisteBox.innerHTML = '';
     (n && n.checkliste && n.checkliste.length ? n.checkliste : []).forEach(p => checklisteBox.appendChild(checkpunktZeileErstellen(p.text, p.erledigt)));
     document.getElementById('editLoeschZeile').style.display = n ? '' : 'none';
+    document.getElementById('btnAktionen').style.display = n ? '' : 'none';
+    document.getElementById('fErinnerungDatum').value = n && n.erinnerung ? n.erinnerung.datum || '' : '';
+    document.getElementById('fErinnerungZeit').value = n && n.erinnerung ? n.erinnerung.zeit || '' : '';
+    editFotos = n && n.fotos ? n.fotos.map(f => Object.assign({}, f)) : [];
+    fotoReiheRendern();
+    diktatStoppen();
     document.getElementById('fPrivatZeile').style.display = geraetPerson() ? 'flex' : 'none';
     document.getElementById('fPrivat').checked = bereich === 'privat';
     document.getElementById('modalEdit').classList.add('zeigen');
@@ -709,6 +863,7 @@
   }
   document.getElementById('btnNeu').addEventListener('click', () => editOeffnen(null));
   document.getElementById('btnEditAbbrechen').addEventListener('click', () => {
+    diktatStoppen();
     document.getElementById('modalEdit').classList.remove('zeigen');
     entwurfUeberwachungStoppen(); entwurfLoeschen();
   });
@@ -740,6 +895,11 @@
     n.tags = tags;
     n.farbe = gewaehlteFarbe;
     n.geaendert = new Date().toISOString();
+    const entfernteFotos = (n.fotos || []).filter(f => !editFotos.some(x => x.id === f.id));
+    entfernteFotos.forEach(f => cloudFotoLoeschen(f));
+    if (editFotos.length) n.fotos = editFotos; else delete n.fotos;
+    const zielBereichVorab = (geraetPerson() && document.getElementById('fPrivat').checked) ? 'privat' : 'familie';
+    erinnerungUebernehmen(n, document.getElementById('fErinnerungDatum').value, document.getElementById('fErinnerungZeit').value, zielBereichVorab === 'privat');
     const zielBereich = (geraetPerson() && document.getElementById('fPrivat').checked) ? 'privat' : 'familie';
     if (zielBereich !== bereich) {
       // Notiz wandert in den anderen Bereich
@@ -756,27 +916,26 @@
     }
     document.getElementById('modalEdit').classList.remove('zeigen');
     entwurfUeberwachungStoppen(); entwurfLoeschen();
+    diktatStoppen();
     renderTagFilter();
     renderNotizen();
+    setTimeout(fotosHochladen, 300);
   });
   document.getElementById('btnEditLoeschen').addEventListener('click', () => {
     if (!editId) return;
     const index = notizen.findIndex(n => n.id === editId);
     if (index === -1) return;
     const entfernt = notizen[index];
-    notizen.splice(index, 1);
+    entfernt.geloeschtAm = new Date().toISOString();
+    erinnerungUebernehmen(entfernt, '', '', bereich === 'privat');
     notizenSpeichern();
     document.getElementById('modalEdit').classList.remove('zeigen');
     entwurfUeberwachungStoppen(); entwurfLoeschen();
+    diktatStoppen();
     renderTagFilter();
     renderNotizen();
-    showTempStatus('Notiz gelöscht', 6, {
-      rueckgaengig: () => {
-        notizen.splice(index, 0, entfernt);
-        notizenSpeichern();
-        renderTagFilter();
-        renderNotizen();
-      }
+    showTempStatus('🗑️ In den Papierkorb gelegt', 6, {
+      rueckgaengig: () => { delete entfernt.geloeschtAm; notizenSpeichern(); renderTagFilter(); renderNotizen(); }
     });
   });
 
@@ -861,6 +1020,250 @@
       if (popup.classList.contains('zeigen') && !popup.contains(e.target) && e.target.id !== 'btnThemeAuswahl') popup.classList.remove('zeigen');
     });
   })();
+
+  // ============================================================
+  // Sync-Anschlüsse für das Weiterleiten (früh starten, damit lokale Daten aktuell sind)
+  // ============================================================
+  const fremdSync = {};
+  if (window.PlanerSync) {
+    [['einkauf', ['einkauf_listen']], ['termine', ['termine_events_v1']], ['haushalt', ['haushalt_aufgaben']], ['handwerk', ['handwerk_projekte']]].forEach(([m, k]) => {
+      try { fremdSync[m] = window.PlanerSync.starteSync({ modul: m, keys: k }); } catch (e) {}
+    });
+  }
+  function fremdSpeichern(modul, key, wert) {
+    try { localStorage.setItem(key, JSON.stringify(wert)); } catch (e) { alert('Speichern fehlgeschlagen.'); return false; }
+    if (fremdSync[modul]) fremdSync[modul].melde();
+    return true;
+  }
+  function lokalIso(d) { d = d || new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+
+  // ---------- ⏰ Erinnerung → Termin mit Push ----------
+  function erinnerungUebernehmen(n, datum, zeit, privat) {
+    const events = (() => { try { return JSON.parse(localStorage.getItem('termine_events_v1') || '[]'); } catch (e) { return []; } })();
+    const alteId = n.erinnerung && n.erinnerung.terminId;
+    let liste = alteId ? events.filter(ev => ev.id !== alteId) : events;
+    if (!datum) {
+      delete n.erinnerung;
+      if (alteId) fremdSpeichern('termine', 'termine_events_v1', liste);
+      return;
+    }
+    const id = alteId || ('t_notiz_' + n.id);
+    const titel = privat ? '🔒 Private Erinnerung' : '📝 ' + (n.titel || (n.text || '').split('\n')[0] || (n.checkliste && n.checkliste[0] ? n.checkliste[0].text : 'Notiz')).slice(0, 60);
+    liste = liste.concat([{ id, title: titel, date: datum, allDay: !zeit, startTime: zeit || '', endTime: '', wer: privat ? (geraetPerson() || 'familie') : 'familie', location: '',
+      notes: privat ? 'Aus dem 🔒 privaten Notizblock' : 'Aus dem 📝 Notizblock', erinnerung: zeit ? 0 : 1440, recurrence: { freq: 'keine', until: null } }]);
+    n.erinnerung = { datum, zeit: zeit || '', terminId: id };
+    fremdSpeichern('termine', 'termine_events_v1', liste);
+  }
+
+  // ---------- 🗑️ Papierkorb ----------
+  function korbAktion(n) {
+    if (confirm('„' + (n.titel || 'Notiz') + '“ wiederherstellen?\n(Abbrechen = endgültig löschen fragen)')) {
+      delete n.geloeschtAm; notizenSpeichern(); renderTagFilter(); renderNotizen(); showTempStatus('♻️ Wiederhergestellt', 3); return;
+    }
+    if (!confirm('Endgültig löschen? Das lässt sich nicht rückgängig machen.')) return;
+    const i = notizen.indexOf(n); if (i !== -1) notizen.splice(i, 1);
+    (n.fotos || []).forEach(f => cloudFotoLoeschen(f));
+    notizenSpeichern(); renderNotizen();
+  }
+  function papierkorbAufraeumen(liste) {
+    const grenze = Date.now() - 30 * 864e5;
+    const alt = liste.filter(n => n.geloeschtAm && new Date(n.geloeschtAm).getTime() < grenze);
+    if (!alt.length) return false;
+    alt.forEach(n => { liste.splice(liste.indexOf(n), 1); (n.fotos || []).forEach(f => cloudFotoLoeschen(f)); });
+    return true;
+  }
+
+  // ---------- ✓ Checklisten-Werkzeuge im Bearbeiten ----------
+  document.getElementById('btnErledigteNachUnten').addEventListener('click', () => {
+    const box = document.getElementById('checklisteEditListe');
+    Array.from(box.children).filter(z => z.querySelector('input[type="checkbox"]').checked).forEach(z => box.appendChild(z));
+  });
+  document.getElementById('btnErledigteLoeschen').addEventListener('click', () => {
+    document.querySelectorAll('#checklisteEditListe .checkliste-edit-zeile').forEach(z => { if (z.querySelector('input[type="checkbox"]').checked) z.remove(); });
+  });
+
+  // ---------- 📷 Fotos (Familien-Fotospeicher) ----------
+  let editFotos = [];
+  function cloudBereit() { return !!(window.FotoSpeicher && window.FotoSpeicher.verfuegbar && window.FotoSpeicher.verfuegbar()); }
+  function cloudFotoLoeschen(f) { if (f && f.pfad && cloudBereit()) setTimeout(() => { const benutzt = familienNotizen.concat(privatNotizen).some(n => (n.fotos || []).some(x => x.pfad === f.pfad)); if (!benutzt) { try { window.FotoSpeicher.loeschen(f.pfad); } catch (e) {} } }, 9000); }
+  function fotoReiheRendern() {
+    const box = document.getElementById('fotoReihe');
+    box.innerHTML = editFotos.map((f, i) => '<div class="ft"><img src="' + escapeHtml(fotoSrc(f)) + '" alt=""><button type="button" data-weg="' + i + '" aria-label="Foto entfernen">✕</button></div>').join('') +
+      '<label class="foto-hinzu" title="Foto hinzufügen">📷<input type="file" accept="image/*" id="fFotoNeu"></label>';
+    box.querySelectorAll('[data-weg]').forEach(b => b.addEventListener('click', () => { editFotos.splice(+b.dataset.weg, 1); fotoReiheRendern(); }));
+    document.getElementById('fFotoNeu').addEventListener('change', (e) => {
+      const datei = e.target.files && e.target.files[0]; e.target.value = '';
+      if (!datei) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const img = new Image();
+        img.onload = () => {
+          const max = cloudBereit() ? 1400 : 700;
+          const f = Math.min(1, max / Math.max(img.width, img.height));
+          const c = document.createElement('canvas'); c.width = Math.round(img.width * f); c.height = Math.round(img.height * f);
+          c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+          editFotos.push({ id: neueId('nf'), bild: c.toDataURL('image/jpeg', cloudBereit() ? 0.8 : 0.65) });
+          fotoReiheRendern();
+        };
+        img.onerror = () => alert('Datei ist kein gültiges Bild.');
+        img.src = ev.target.result;
+      };
+      reader.readAsDataURL(datei);
+    });
+  }
+  function bildHash(t) { let h1 = 0x811c9dc5, h2 = 5381; for (let i = 0; i < t.length; i++) { const c = t.charCodeAt(i); h1 = Math.imul(h1 ^ c, 16777619); h2 = (Math.imul(h2, 33) + c) | 0; } return (h1 >>> 0).toString(36) + (h2 >>> 0).toString(36); }
+  async function vorhandeneCloudDatei(id) {
+    try { await window.PlanerSync.authBereit(); const pfad = 'planerFamilien/' + window.PlanerSync.familienId() + '/fotos/' + id + '.jpg'; return { url: await firebase.storage().ref(pfad).getDownloadURL(), pfad }; }
+    catch (e) { return null; }
+  }
+  let fotoUploadLaeuft = false;
+  async function fotosHochladen() {
+    if (fotoUploadLaeuft || !cloudBereit() || !navigator.onLine) return;
+    fotoUploadLaeuft = true;
+    const geaendert = new Set();
+    try {
+      for (const [welcher, liste] of [['familie', familienNotizen], ['privat', privatNotizen]]) {
+        for (const n of liste) for (const f of (n.fotos || [])) {
+          if (f.url || typeof f.bild !== 'string' || f.bild.indexOf('data:image') !== 0) continue;
+          const daten = f.bild;
+          let erg = null;
+          try { erg = await vorhandeneCloudDatei('nb' + bildHash(daten)) || await window.FotoSpeicher.hochladen('nb' + bildHash(daten), daten); }
+          catch (err) { console.warn('Notizblock: Foto-Upload', err); return; }
+          if (f.bild !== daten || !erg) continue;
+          f.url = erg.url; f.pfad = erg.pfad; delete f.bild;
+          geaendert.add(welcher);
+        }
+      }
+    } finally {
+      fotoUploadLaeuft = false;
+      geaendert.forEach(w => notizenSpeichern(w));
+      if (geaendert.size) renderNotizen();
+    }
+  }
+
+  // ---------- 🎤 Diktat (Web Speech API, wo vorhanden) ----------
+  const Spracherkennung = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let diktat = null;
+  function diktatStoppen() { if (diktat) { try { diktat.stop(); } catch (e) {} diktat = null; } document.getElementById('btnDiktat').classList.remove('aktiv'); document.getElementById('btnDiktat').textContent = '🎤 Diktieren'; }
+  if (Spracherkennung) {
+    const btn = document.getElementById('btnDiktat');
+    btn.style.display = '';
+    btn.addEventListener('click', () => {
+      if (diktat) { diktatStoppen(); return; }
+      const feld = document.getElementById('fText');
+      diktat = new Spracherkennung();
+      diktat.lang = 'de-DE'; diktat.continuous = true; diktat.interimResults = false;
+      diktat.onresult = (ev) => {
+        for (let i = ev.resultIndex; i < ev.results.length; i++) if (ev.results[i].isFinal) {
+          const t = ev.results[i][0].transcript.trim();
+          if (!t) continue;
+          feld.value = (feld.value && !/\s$/.test(feld.value) ? feld.value + ' ' : feld.value) + t.charAt(0).toUpperCase() + t.slice(1);
+        }
+      };
+      diktat.onerror = (ev) => { showTempStatus(ev.error === 'not-allowed' ? '🎤 Mikrofon nicht erlaubt' : '🎤 Diktat unterbrochen', 3); diktatStoppen(); };
+      diktat.onend = () => { if (diktat) diktatStoppen(); };
+      try { diktat.start(); btn.classList.add('aktiv'); btn.textContent = '⏹ Stopp'; } catch (e) { diktatStoppen(); }
+    });
+  }
+
+  // ---------- ➡️ Weiterleiten ----------
+  function aktuelleEditNotiz() { return editId ? notizen.find(x => x.id === editId) : null; }
+  function notizZeilen(n) {
+    if (n.typ === 'checkliste') return (n.checkliste || []).filter(p => !p.erledigt).map(p => p.text);
+    return String(n.text || '').split('\n').map(z => z.replace(/^\s*[-•*]\s+/, '').replace(/\*\*/g, '').trim()).filter(Boolean);
+  }
+  document.getElementById('btnAktionen').addEventListener('click', () => {
+    const n = aktuelleEditNotiz(); if (!n) return;
+    document.getElementById('btnAktionArchiv').textContent = n.archiviert ? '📤 Aus dem Archiv holen' : '🗄️ Archivieren';
+    document.getElementById('modalAktionen').classList.add('zeigen');
+  });
+  document.getElementById('btnAktionenZu').addEventListener('click', () => document.getElementById('modalAktionen').classList.remove('zeigen'));
+  ['modalAktionen', 'modalEinkauf', 'modalTermin'].forEach(id => document.getElementById(id).addEventListener('click', (e) => { if (e.target.id === id) e.currentTarget.classList.remove('zeigen'); }));
+  document.querySelectorAll('#modalAktionen [data-aktion]').forEach(b => b.addEventListener('click', () => {
+    const n = aktuelleEditNotiz(); if (!n) return;
+    const a = b.dataset.aktion;
+    document.getElementById('modalAktionen').classList.remove('zeigen');
+    const titel = n.titel || (n.typ === 'text' ? String(n.text || '').split('\n')[0] : '') || 'Notiz';
+    if (a === 'einkauf') {
+      const zeilen = notizZeilen(n);
+      if (!zeilen.length) { alert('Keine offenen Punkte bzw. Zeilen zum Übernehmen.'); return; }
+      document.getElementById('ekZeilen').innerHTML = zeilen.map((z, i) => '<label class="ek-zeile"><input type="checkbox" checked data-i="' + i + '"><span>' + escapeHtml(z) + '</span></label>').join('');
+      document.getElementById('modalEinkauf').dataset.zeilen = JSON.stringify(zeilen);
+      document.getElementById('modalEinkauf').classList.add('zeigen');
+    } else if (a === 'termin') {
+      document.getElementById('fTerminTitel').value = titel.slice(0, 80);
+      const morgen = new Date(); morgen.setDate(morgen.getDate() + 1);
+      document.getElementById('fTerminDatum').value = (n.erinnerung && n.erinnerung.datum) || lokalIso(morgen);
+      document.getElementById('fTerminZeit').value = (n.erinnerung && n.erinnerung.zeit) || '';
+      document.getElementById('modalTermin').classList.add('zeigen');
+    } else if (a === 'haushalt') {
+      const punkte = n.typ === 'checkliste' ? notizZeilen(n) : [titel];
+      if (!punkte.length) { alert('Keine offenen Punkte.'); return; }
+      const aufgaben = (() => { try { return JSON.parse(localStorage.getItem('haushalt_aufgaben') || '[]'); } catch (e) { return []; } })();
+      punkte.forEach(p => aufgaben.push({ id: neueId('ha'), titel: p.slice(0, 80), icon: '📝', turnus: 'einmalig', wochentage: [], zuweisung: 'offen', person: null, rotationPersonen: [], pausiert: false, erledigt: [], rotationIndex: 0, angelegt: new Date().toISOString() }));
+      if (fremdSpeichern('haushalt', 'haushalt_aufgaben', aufgaben)) showTempStatus('🧹 ' + punkte.length + (punkte.length === 1 ? ' Aufgabe' : ' Aufgaben') + ' im Haushalt angelegt', 4);
+    } else if (a === 'handwerk') {
+      const projekte = (() => { try { return JSON.parse(localStorage.getItem('handwerk_projekte') || '[]'); } catch (e) { return []; } })();
+      projekte.push({ id: neueId('p'), titel: titel.slice(0, 80), status: 'idee', person: null, budgetGeplant: null, fertigAm: null, erstelltAm: new Date().toISOString(),
+        notiz: n.typ === 'text' ? n.text : '', material: [], schritte: n.typ === 'checkliste' ? (n.checkliste || []).map(p => ({ text: p.text, erledigt: !!p.erledigt })) : [] });
+      if (fremdSpeichern('handwerk', 'handwerk_projekte', projekte)) showTempStatus('🔨 „' + titel.slice(0, 40) + '“ als Handwerk-Projekt angelegt', 4);
+    } else if (a === 'duplizieren') {
+      const kopie = JSON.parse(JSON.stringify(n));
+      kopie.id = neueId('notiz'); kopie.titel = (n.titel || 'Notiz') + ' (Kopie)'; kopie.erstellt = kopie.geaendert = new Date().toISOString();
+      delete kopie.erinnerung; delete kopie.archiviert; kopie.angeheftet = false;
+      (kopie.checkliste || []).forEach(p => { p.erledigt = false; });
+      notizen.push(kopie); notizenSpeichern();
+      document.getElementById('modalEdit').classList.remove('zeigen'); entwurfUeberwachungStoppen(); entwurfLoeschen();
+      ansicht = 'aktiv'; renderTagFilter(); renderNotizen();
+      showTempStatus('⧉ Kopie angelegt', 3);
+    } else if (a === 'archiv') {
+      n.archiviert = !n.archiviert; n.geaendert = new Date().toISOString();
+      notizenSpeichern();
+      document.getElementById('modalEdit').classList.remove('zeigen'); entwurfUeberwachungStoppen(); entwurfLoeschen();
+      renderNotizen();
+      showTempStatus(n.archiviert ? '🗄️ Archiviert' : '📤 Wieder bei den Notizen', 5, { rueckgaengig: () => { n.archiviert = !n.archiviert; notizenSpeichern(); renderNotizen(); } });
+    }
+  }));
+  document.getElementById('btnEkAbbrechen').addEventListener('click', () => document.getElementById('modalEinkauf').classList.remove('zeigen'));
+  document.getElementById('btnEkOk').addEventListener('click', () => {
+    const zeilen = JSON.parse(document.getElementById('modalEinkauf').dataset.zeilen || '[]');
+    const gewaehlt = Array.from(document.querySelectorAll('#ekZeilen input:checked')).map(cb => zeilen[+cb.dataset.i]);
+    document.getElementById('modalEinkauf').classList.remove('zeigen');
+    if (!gewaehlt.length) return;
+    let listen = (() => { try { return JSON.parse(localStorage.getItem('einkauf_listen') || '[]'); } catch (e) { return []; } })();
+    if (!listen.length) listen = [{ id: neueId('l'), name: 'Wocheneinkauf', items: [] }];
+    let aktivId = ''; try { aktivId = localStorage.getItem('einkauf_aktiveListe') || ''; } catch (e) {}
+    const liste = listen.find(l => l.id === aktivId) || listen[0];
+    if (!liste.items) liste.items = [];
+    const fav = (() => { try { return JSON.parse(localStorage.getItem('einkauf_favoriten') || '{}') || {}; } catch (e) { return {}; } })();
+    let neu = 0;
+    gewaehlt.forEach(t => {
+      const m = t.match(/^(\d+(?:[.,]\d+)?)\s*(g|kg|ml|l|Stk\.?|Pck\.?|x)?\s+(.+)$/i);
+      const name = (m ? m[3] : t).trim();
+      if (liste.items.some(i => !i.erledigt && String(i.name).trim().toLowerCase() === name.toLowerCase())) return;
+      liste.items.push({ id: neueId('i'), name, menge: m ? m[1] : '', einheit: m && m[2] ? m[2] : '', kategorie: (fav[name.toLowerCase()] || {}).kategorie || 'sonstiges', erledigt: false, hinzugefuegtVon: geraetPerson() || '' });
+      neu++;
+    });
+    if (fremdSpeichern('einkauf', 'einkauf_listen', listen)) showTempStatus('🛒 ' + neu + ' Artikel → „' + liste.name + '“' + (gewaehlt.length - neu ? ' (' + (gewaehlt.length - neu) + ' standen schon drauf)' : ''), 4);
+  });
+  document.getElementById('btnTerminAbbrechen').addEventListener('click', () => document.getElementById('modalTermin').classList.remove('zeigen'));
+  document.getElementById('btnTerminOk').addEventListener('click', () => {
+    const n = aktuelleEditNotiz();
+    const datum = document.getElementById('fTerminDatum').value, zeit = document.getElementById('fTerminZeit').value;
+    const titel = document.getElementById('fTerminTitel').value.trim() || 'Termin';
+    if (!datum) { document.getElementById('fTerminDatum').focus(); return; }
+    const events = (() => { try { return JSON.parse(localStorage.getItem('termine_events_v1') || '[]'); } catch (e) { return []; } })();
+    const notiztext = n ? (n.typ === 'checkliste' ? (n.checkliste || []).map(p => (p.erledigt ? '✓ ' : '• ') + p.text).join('\n') : n.text || '') : '';
+    events.push({ id: 't_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7), title: titel, date: datum, allDay: !zeit, startTime: zeit || '', endTime: '', wer: bereich === 'privat' ? (geraetPerson() || 'familie') : 'familie', location: '',
+      notes: notiztext.slice(0, 1500), erinnerung: zeit ? 60 : 1440, recurrence: { freq: 'keine', until: null } });
+    document.getElementById('modalTermin').classList.remove('zeigen');
+    if (fremdSpeichern('termine', 'termine_events_v1', events)) showTempStatus('📅 Termin am ' + new Date(datum + 'T12:00').toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'numeric' }) + ' eingetragen', 4);
+  });
+
+  if (papierkorbAufraeumen(familienNotizen)) notizenSpeichern('familie');
+  if (papierkorbAufraeumen(privatNotizen)) notizenSpeichern('privat');
+  setTimeout(fotosHochladen, 2500);
+  window.addEventListener('online', () => setTimeout(fotosHochladen, 1500));
 
   renderTagFilter();
   renderNotizen();

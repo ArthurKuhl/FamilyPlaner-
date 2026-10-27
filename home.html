@@ -1987,6 +1987,19 @@
       if (e && e.naechsteFolge && e.naechsteFolge.datum && tageBis(e.naechsteFolge.datum) >= 0 && tageBis(e.naechsteFolge.datum) <= 7 && e.status !== 'beendet' && e.status !== 'abgebrochen')
         add(e.naechsteFolge.datum, '📺', 'Neue Folge: ' + e.titel, 'medien', e.person);
     });
+    // 📝 Notiz-Erinnerungen (heute/morgen stehen schon bei den Terminen; überfällige bleiben bis 7 Tage sichtbar)
+    if (modulSichtbar('notizblock')) {
+      const nbListe = laden('notizblock_liste', []).concat(ichBin() ? laden('notizblock_privat_' + ichBin(), []).map(n => Object.assign({ privat: true }, n)) : []);
+      nbListe.forEach(n => {
+        if (!n || !n.erinnerung || !n.erinnerung.datum || n.archiviert || n.geloeschtAm) return;
+        const t = tageBis(n.erinnerung.datum);
+        if (t < -7 || t === 0 || t === 1 || t > bis) return;
+        const offen = n.typ === 'checkliste' ? (n.checkliste || []).filter(p => !p.erledigt).length : 0;
+        if (n.typ === 'checkliste' && !offen) return;
+        const titel = n.titel || (n.typ === 'checkliste' ? (n.checkliste[0] || {}).text : String(n.text || '').split('\n')[0]) || 'Notiz';
+        liste.push({ datum: n.erinnerung.datum, tage: t, icon: n.privat ? '🔒' : '📝', text: String(titel).replace(/\*\*/g, '').slice(0, 60) + (n.erinnerung.zeit ? ' · ' + n.erinnerung.zeit : '') + (offen ? ' (' + offen + ' offen)' : ''), ziel: 'notizblock' });
+      });
+    }
     // 🥫 Vorrat läuft ab (7 Tage)
     if (modulSichtbar('vorratskammer')) laden('vorratskammer_items', []).forEach(i => {
       const d = i.verfallsdatum || i.aufbrauchenBis;
@@ -2092,7 +2105,7 @@
       ['termine', 'termine', ['termine_events_v1']], ['einkauf', 'einkauf', ['einkauf_listen']], ['haushalt', 'haushalt', ['haushalt_aufgaben']],
       ['kochen', 'kochen', ['kochen_wochenplan']], ['gesundheit', 'gesundheit', ['gesundheit_sport']], ['vorratskammer', 'vorratskammer', ['vorratskammer_items']],
       ['finanzen', 'finanzen', ['finanzen_ausgaben', 'finanzen_abos', 'finanzen_einstellungen']], ['fahrzeuge', 'fahrzeuge', ['fahrzeuge_liste', 'fahrzeuge_werkstatt']],
-      ['kinder', 'kinder', ['kinder_einstellungen', 'kinder_sterne', 'kinder_wuensche']], ['gaming', 'gaming', ['gaming_sessions', 'gaming_limits']], ['handwerk', 'handwerk', ['handwerk_wartung']], ['medien', 'medien', ['medien_eintraege']], ['nachrichten', 'nachrichten', ['nachrichten_tipps', 'nachrichten_themen']],
+      ['kinder', 'kinder', ['kinder_einstellungen', 'kinder_sterne', 'kinder_wuensche']], ['gaming', 'gaming', ['gaming_sessions', 'gaming_limits']], ['handwerk', 'handwerk', ['handwerk_wartung']], ['medien', 'medien', ['medien_eintraege']], ['nachrichten', 'nachrichten', ['nachrichten_tipps', 'nachrichten_themen']], ['notizblock', 'notizblock', ['notizblock_liste']],
     ];
     LIVE.forEach(([name, modul, keys]) => {
       if (!modulSichtbar(name)) return;

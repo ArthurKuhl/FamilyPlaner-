@@ -2,6 +2,12 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
+## 2026-10-27 | 📝 Notizblock: Erinnern, Weiterleiten & Papierkorb
+Jede Notiz kann jetzt erinnern: Datum und Uhrzeit eintragen, dann kommt zur Zeit eine Push-Nachricht. Private Notizen erscheinen dabei nur als „🔒 Private Erinnerung“. Die Karte zeigt ⏰, überfällige in Rot, und die Startseite listet sie unter „Demnächst“. Über „➡️ Weiterleiten“ wird aus einer Notiz mit einem Tipp ein Einkauf (mit Vorschau), ein Termin, Haushaltsaufgaben oder ein Handwerk-Projekt mit Arbeitsschritten. Gelöschte Notizen liegen 30 Tage im 🗑️ Papierkorb. Fertige Listen wandern auf Wunsch ins 🗄️ Archiv. Ist eine Checkliste komplett abgehakt, bietet der Planer das gleich an.
+
+## 2026-10-27 | ✍️ Notizen: Fotos, Diktat & schnelle Punkte
+Notizen können Fotos enthalten, gespeichert im Familien-Fotospeicher. Mit 🎤 lässt sich Text diktieren, wo der Browser das kann. **Fett**, „- “-Aufzählungen sowie antippbare Links, Telefonnummern und E-Mail-Adressen machen Notizen übersichtlicher. Neue Punkte tippst du direkt in die Karte („＋ Punkt“). Erledigte Punkte rutschen nach unten oder lassen sich auf einmal löschen. Notizen lassen sich duplizieren, praktisch für wiederkehrende Packlisten.
+
 ## 2026-10-27 | 📰 Nachrichten: eigene Themen, „Alle“ & Unwetterwarnungen
 Neuer Reiter „⭐ Themen“ mit eigenen Suchbegriffen für die ganze Familie (z. B. „Dacia Jogger“, „Kita Pforzheim“). Auch die regionalen Orte lassen sich jetzt ergänzen oder entfernen. Der Chip „📰 Alle“ mischt die neuesten Meldungen aller Quellen ohne Doppelte, mit Quellenangabe und „vor 2 Std.“. Dazu kommen eine Suche, „Gelesene ausblenden“, „Alles gelesen“ und 🆕 für Neues seit dem letzten Besuch. Oben im Reiter „Regional“ stehen die amtlichen 🚨 Unwetterwarnungen des DWD für eure Kreise, bei einer Warnung auch auf der Startseite.
 
