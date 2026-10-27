@@ -360,6 +360,13 @@
   .kochmodus-nav button:disabled { opacity: 0.4; cursor: default; }
   #btnKochmodusZutaten { margin-top: 14px; width: 100%; background: var(--white); border: 1px solid var(--parchment); border-radius: var(--radius-pill); padding: 9px; font-size: 0.8rem; font-weight: 700; color: var(--bark); cursor: pointer; }
   #kochmodusZutatenListe { margin-top: 8px; max-height: 30vh; overflow-y: auto; }
+  /* Nichts im Koch-Modus darf zusammengedrückt werden – sonst schrumpfte die Zutatenliste bei langem
+     Schritt-Text + laufendem Timer auf 0 Höhe. Lieber scrollt das ganze Fenster. */
+  #modalKochmodus .modal > * { flex-shrink: 0; }
+  #modalKochmodus .kochmodus-schritt-box { flex: 1 0 auto; }
+  .kochmodus-schritt-zutaten { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin: -4px 0 6px; }
+  .kochmodus-schritt-zutaten span { background: var(--parchment); color: var(--soil); border-radius: var(--radius-pill); padding: 4px 11px; font-size: 0.82rem; font-weight: 600; }
+  .kochmodus-schritt-zutaten span b { color: var(--moss-text, var(--moss)); font-weight: 700; }
   .kochmodus-wachhinweis { font-size: 0.65rem; color: var(--bark); opacity: 0.7; text-align: center; margin-top: 10px; }
   .kochmodus-temperatur-hinweis { font-size: 0.75rem; color: var(--terracotta-text); text-align: center; margin-top: 6px; font-weight: 600; }
 
@@ -727,6 +734,7 @@
     <div class="kochmodus-schritt-box">
       <div class="kochmodus-schritt-text" id="kochmodusSchrittText"></div>
     </div>
+    <div class="kochmodus-schritt-zutaten" id="kochmodusSchrittZutaten" aria-label="Zutaten für diesen Schritt"></div>
     <div class="kochmodus-nav">
       <button class="btn-zurueck" id="btnKochmodusZurueck">← Zurück</button>
       <button class="btn-weiter" id="btnKochmodusWeiter">Weiter →</button>
@@ -1813,6 +1821,26 @@
     const weiterBtn = document.getElementById('btnKochmodusWeiter');
     weiterBtn.textContent = (kochmodusSchrittIndex >= gesamt - 1) ? '✓ Fertig' : 'Weiter →';
     kochmodusTimerVorschlagAktualisieren(r.schritte[kochmodusSchrittIndex]);
+    kochmodusSchrittZutatenRendern(r, r.schritte[kochmodusSchrittIndex]);
+  }
+  // Zutaten, die im aktuellen Schritt vorkommen, direkt unter dem Text zeigen (ohne Extra-Eingabe –
+  // erkannt über den Namen, z. B. „Karotten“ ↔ „Karotte raspeln“)
+  function zutatStaemme(name) {
+    return String(name || '').toLowerCase().replace(/\([^)]*\)/g, ' ').split(/[^a-zäöüß]+/)
+      .filter(w => w.length >= 4).map(w => w.replace(/(en|n|e|s)$/, '')).filter(w => w.length >= 4);
+  }
+  function kochmodusSchrittZutatenRendern(r, text) {
+    const box = document.getElementById('kochmodusSchrittZutaten');
+    const t = String(text || '').toLowerCase();
+    const faktor = r.portionenBasis ? detailPortionen / r.portionenBasis : 1;
+    const treffer = (r.zutaten || []).filter(z => z && z.name && zutatStaemme(z.name).some(st => t.includes(st)));
+    box.innerHTML = treffer.map(z => {
+      const zahl = z.menge ? parseFloat(String(z.menge).replace(',', '.')) : NaN;
+      const menge = !isNaN(zahl) ? formatZahl(zahl * faktor) : (z.menge || '');
+      const m = [menge, z.einheit].filter(Boolean).join(' ');
+      return '<span>' + (m ? '<b>' + escapeHtml(m) + '</b> ' : '') + escapeHtml(z.name) + '</span>';
+    }).join('');
+    box.style.display = treffer.length ? '' : 'none';
   }
 
   // ---------- TIMER im Koch-Modus ----------
@@ -2142,6 +2170,7 @@
     const zeigen = box.style.display === 'none';
     box.style.display = zeigen ? '' : 'none';
     document.getElementById('btnKochmodusZutaten').textContent = zeigen ? '🥕 Zutaten ausblenden' : '🥕 Zutaten anzeigen';
+    if (zeigen) setTimeout(() => { try { box.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch (e) {} }, 30);
   });
   document.getElementById('detailHerz').addEventListener('click', () => {
     const r = rezepte.find(x => x.id === detailId);
