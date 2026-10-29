@@ -2,6 +2,9 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
+## 2026-10-29 | 🔗 Garten: Wer frisst was? Beobachtungen an Pflanzen
+Neu unter 🦔 Tiere im Garten → 🔗 Wer frisst was?: Notiert, welches Tier an welcher Pflanze war und was es gemacht hat, z. B. 🌸 Nektar/Pollen, 🐛 Raupe frisst Blätter, 🥚 Eiablage, 🫐 Beeren, 🌾 Samen oder 🎯 jagt Schädlinge. Dazu kommen Datum, Anzahl, Notiz und Fotos. Die Auswertung zeigt die Beobachtungen nach Pflanze (mit 🏆 Insektenmagneten), nach Tier, als 🕸️ Netz und im 📅 Jahresverlauf. Der Jahresverlauf zeigt Monate ohne Beobachtungen und die Erstbeobachtungen des Jahres. Im Gartenplan steht bei jeder Pflanze „🦋 Tiere an dieser Pflanze“ mit ＋ zum direkten Eintragen, und jeder Tier-Steckbrief zeigt, wo im Garten das Tier gesehen wurde. Tiere aus der Liste zählen automatisch als „Gesehen“.
+
 ## 2026-10-27 | 📖 Bücher: Reihen als Ordner, Kindle+, Autor, Sprache & Inhalt
 Auf Caros Wunsch: Bücher einer Reihe landen in einem 📁 Ordner. Er zeigt Cover, Autor/in, „2 Bücher · 1 gelesen“ und das gerade gelesene Buch. Im Ordner sind die Bücher nach Band sortiert, und ＋ Neu trägt die Reihe gleich ein. Neu bei jedem Buch: Format „Kindle+“, ein eigenes Feld für Autor/in (die Online-Suche füllt es mit), „Gelesen am“ zum Eintragen oder Korrigieren, die Sprache (z. B. 🇬🇧 EN auf der Karte) und ein Feld „Inhalt“ für Klappentext oder eigene Zusammenfassung. Die Suche findet jetzt auch Autor, Reihe und Inhalt.
 

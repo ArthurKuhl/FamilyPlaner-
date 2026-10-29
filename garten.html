@@ -307,6 +307,43 @@
   .ws-zeile button, .ws-neu button { border: 1px solid var(--parchment); background: var(--cream); color: var(--soil); border-radius: 999px; padding: 4px 10px; font-size: 0.72rem; font-weight: 600; cursor: pointer; font-family: inherit; }
   .ws-zeile button.haupt { background: var(--moss); color: var(--on-moss, #fff); border-color: var(--moss); }
   .ws-neu { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .beob-kopfzeile { display: flex; gap: 6px; align-items: center; }
+  .beob-jahr { padding: 5px 8px; border-radius: 999px; border: 1px solid var(--parchment); background: var(--white); color: var(--soil); font-family: inherit; font-size: 0.74rem; flex-shrink: 0; }
+  .beob-karte { background: var(--white); border: 1px solid var(--parchment); border-radius: var(--radius-md); padding: 10px 12px; margin-bottom: 8px; }
+  .beob-karte-kopf { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 0.88rem; flex-wrap: wrap; }
+  .beob-sym { font-size: 1.3rem; line-height: 1; }
+  .beob-magnet { font-size: 0.66rem; font-weight: 700; background: rgba(201,154,58,0.2); color: var(--soil); border-radius: 999px; padding: 2px 8px; }
+  .beob-art-zeile { display: flex; gap: 10px; font-size: 0.76rem; padding: 4px 0; border-top: 1px solid var(--parchment); }
+  .beob-art-zeile span:first-child { flex: 0 0 42%; font-weight: 600; }
+  .beob-link { margin-top: 6px; background: none; border: none; color: var(--moss-text, var(--moss)); font-weight: 700; font-size: 0.76rem; cursor: pointer; padding: 0; font-family: inherit; }
+  .beob-netz { background: var(--white); border: 1px solid var(--parchment); border-radius: var(--radius-md); padding: 8px; }
+  .beob-netz svg { width: 100%; height: auto; display: block; color: var(--soil); }
+  .beob-legende { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 0.68rem; margin: 6px 0 4px; }
+  .beob-legende i { display: inline-block; width: 14px; height: 4px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
+  .beob-tabelle-wrap { overflow-x: auto; background: var(--white); border: 1px solid var(--parchment); border-radius: var(--radius-md); padding: 6px; }
+  .beob-tabelle { border-collapse: collapse; width: 100%; font-size: 0.7rem; }
+  .beob-tabelle th { text-align: left; font-weight: 600; white-space: nowrap; padding: 3px 4px; }
+  .beob-tabelle thead th { text-align: center; color: var(--bark); }
+  .beob-tabelle td { text-align: center; padding: 3px 1px; min-width: 18px; border-left: 1px solid rgba(0,0,0,0.04); }
+  .beob-tabelle tr.summe th, .beob-tabelle tr.summe td { border-top: 1px solid var(--parchment); color: var(--bark); font-weight: 700; }
+  .beob-punkt { display: inline-block; border-radius: 50%; background: var(--moss); opacity: 0.85; vertical-align: middle; }
+  .beob-erste { font-size: 0.78rem; }
+  .beob-erste div { padding: 3px 0; border-top: 1px solid var(--parchment); }
+  .beob-erste span { display: inline-block; min-width: 58px; color: var(--bark); font-size: 0.72rem; }
+  .beob-zeile { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; background: var(--white); border: 1px solid var(--parchment); border-radius: var(--radius-md); padding: 8px 10px; margin-bottom: 6px; cursor: pointer; font-family: inherit; color: var(--soil); font-size: 0.82rem; }
+  .beob-zeile img { width: 44px; height: 44px; object-fit: cover; border-radius: 8px; flex-shrink: 0; }
+  .beob-zeile-text small { display: block; color: var(--bark); font-size: 0.7rem; margin-top: 1px; }
+  .beob-pflanze-box { background: rgba(127,164,118,0.1); border: 1px solid var(--parchment); border-radius: var(--radius-md); padding: 9px 11px; margin-top: 12px; font-size: 0.8rem; }
+  .beob-pflanze-kopf { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+  .beob-pflanze-kopf button { border: 1px solid var(--moss); background: var(--moss); color: var(--on-moss, #fff); border-radius: 999px; padding: 4px 10px; font-size: 0.72rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .beob-arten { display: flex; flex-wrap: wrap; gap: 5px; }
+  .beob-foto-reihe { display: flex; gap: 6px; flex-wrap: wrap; }
+  .beob-foto { position: relative; width: 64px; height: 64px; }
+  .beob-foto img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
+  .beob-foto button { position: absolute; top: -6px; right: -6px; width: 22px; height: 22px; border-radius: 50%; border: none; background: rgba(20,18,14,0.8); color: #fff; font-size: 0.7rem; cursor: pointer; }
+  .beob-foto-neu, .form-row label.beob-foto-neu { position: relative; width: 64px; text-transform: none; height: 64px; border: 1.5px dashed var(--parchment); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; cursor: pointer; margin: 0; }
+  .beob-foto-neu input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  #beobModal { z-index: 1300; }
   .tier-tipp { background: rgba(201,154,58,0.13); border-radius: var(--radius-sm); padding: 8px 10px; font-size: 0.76rem; margin-top: 6px; }
   .tier-abschnitt-titel { font-weight: 700; font-size: 0.8rem; margin: 14px 0 6px; color: var(--moss-text, var(--moss)); }
   html[data-dark="1"] .tier-abschnitt-titel { color: var(--sage); }
@@ -1300,6 +1337,43 @@
   </div>
 </div>
 <!-- MODAL: Tier-Steckbrief -->
+<div class="modal-bg" id="beobModal" style="display:none" onclick="if(event.target===this)beobSchliessen()">
+  <div class="modal" style="width:min(480px,94vw);max-height:90vh;overflow-y:auto">
+    <h2 id="beobTitel" style="margin-top:0">📝 Beobachtung notieren</h2>
+    <div class="form-row">
+      <label for="beobTier">Welches Tier?</label>
+      <input type="text" id="beobTier" list="beobTierListe" placeholder="z. B. Hummel, Tagpfauenauge, Amsel, grüne Raupe …" autocomplete="off" oninput="beobTierHinweis()">
+      <datalist id="beobTierListe"></datalist>
+      <div class="tier-meta" id="beobTierInfo" style="margin-top:3px"></div>
+    </div>
+    <div class="form-row">
+      <label for="beobPflanze">An welcher Pflanze? (optional)</label>
+      <input type="text" id="beobPflanze" list="beobPflanzeListe" placeholder="z. B. Lavendel, Brennnessel, Holunder …" autocomplete="off">
+      <datalist id="beobPflanzeListe"></datalist>
+    </div>
+    <div class="form-row">
+      <label>Was hat es gemacht?</label>
+      <div class="beob-arten" id="beobArten"></div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <div class="form-row" style="flex:1"><label for="beobDatum">Datum</label><input type="date" id="beobDatum"></div>
+      <div class="form-row" style="flex:0 0 90px"><label for="beobAnzahl">Anzahl</label><input type="number" id="beobAnzahl" min="1" value="1" inputmode="numeric"></div>
+    </div>
+    <div class="form-row">
+      <label for="beobNotiz">Notiz (optional)</label>
+      <textarea id="beobNotiz" rows="2" placeholder="z. B. morgens bei Sonne, frisst nur an den jungen Blättern …"></textarea>
+    </div>
+    <div class="form-row">
+      <label>📷 Fotos (optional)</label>
+      <div class="beob-foto-reihe" id="beobFotos"></div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="beobSchliessen()">Abbrechen</button>
+      <button class="btn-primary" style="width:auto;flex:1" onclick="beobSpeichern()">Speichern</button>
+    </div>
+    <button type="button" class="btn-cancel" id="beobLoeschen" style="width:100%;margin-top:8px;color:var(--terracotta-text)" onclick="beobLoeschen()">🗑 Beobachtung löschen</button>
+  </div>
+</div>
 <div class="modal-bg" id="tierDetailModal" style="display:none" onclick="if(event.target===this)tierDetailSchliessen()">
   <div class="modal" style="width:min(520px,94vw);max-height:88vh;overflow-y:auto">
     <div id="tierDetailInhalt"></div>
@@ -1400,6 +1474,7 @@
     <div id="rueckschnittHint" style="display:none;margin-top:12px"></div>
     <div id="ppGiessInfo" style="display:none;margin-top:12px"></div>
     <div id="bedingungenHint" style="display:none;margin-top:12px"></div>
+    <div id="ppBeobBox"></div>
   </div>
 
   <!-- PP TAB: Nachbarn (Mischkultur) -->
@@ -1641,6 +1716,7 @@
     <div id="fpSowingHint" style="display:none;margin-top:12px"></div>
     <div id="fpRueckschnittHint" style="display:none;margin-top:12px"></div>
     <div id="fpBedingungenHint" style="display:none;margin-top:12px"></div>
+    <div id="fpBeobBox"></div>
   </div>
 
   <!-- FP TAB: Blatt-/Fruchtsymptome -->
@@ -7859,6 +7935,7 @@ function openFreiPflanzePanel(fp) {
   renderSowingHint(fp.name || '', 'fpSowingHint');
   renderRueckschnittHint(fp.name || '', 'fpRueckschnittHint');
   renderBedingungenHint(fp.name || '', 'fpBedingungenHint');
+  renderPflanzenBeobachtungen(fp.name || '', 'fpBeobBox');
   document.getElementById('fpHarvestDate').value = new Date().toISOString().slice(0,10);
   document.getElementById('fpHarvestAmount').value = '';
   document.getElementById('fpHarvestMethod').value = '';
@@ -7952,6 +8029,7 @@ function fpAutoSave() {
   renderSowingHint(fp.name || '', 'fpSowingHint');
   renderRueckschnittHint(fp.name || '', 'fpRueckschnittHint');
   renderBedingungenHint(fp.name || '', 'fpBedingungenHint');
+  renderPflanzenBeobachtungen(fp.name || '', 'fpBeobBox');
   if (document.getElementById('fpt-preserve')?.classList.contains('active')) renderPreservePlantTab(fp.name || '', 'fpPreserveResult');
 }
 function renderFreiPflanzePhoto(fp) {
@@ -8302,6 +8380,7 @@ function openPlantPanel(bed,idx) {
   renderSowingHint(plant.name||'');
   renderRueckschnittHint(plant.name||'', 'rueckschnittHint');
   renderBedingungenHint(plant.name||'', 'bedingungenHint');
+  renderPflanzenBeobachtungen(plant.name||'', 'ppBeobBox');
   renderGiessInfo(plant);
   renderVarietyDatalist(plant.name||'');
   document.getElementById('ppHarvestDate').value = new Date().toISOString().slice(0,10);
@@ -8571,6 +8650,7 @@ function alleFotoListenObjekte() {
       (b.plants || []).forEach(p => { if (Array.isArray(p.fotos)) liste.push(p); });
     });
     (g.freiPflanzen || []).forEach(fp => { if (Array.isArray(fp.fotos)) liste.push(fp); });
+    (g.beobachtungen || []).forEach(b => { if (Array.isArray(b.fotos)) liste.push(b); });
   });
   return liste;
 }
@@ -8959,6 +9039,7 @@ function savePlantInfo(){
   renderSowingHint(plant.name||'');
   renderRueckschnittHint(plant.name||'', 'rueckschnittHint');
   renderBedingungenHint(plant.name||'', 'bedingungenHint');
+  renderPflanzenBeobachtungen(plant.name||'', 'ppBeobBox');
   renderGiessInfo(plant);
   renderVarietyDatalist(plant.name||'');
   if (document.getElementById('ppt-preserve')?.classList.contains('active')) renderPreservePlantTab(plant.name||'');
@@ -10341,7 +10422,7 @@ function renderTiere() {
   const entdeckt = TIERE.filter(t => sicht[t.id]).length;
   const prozent = Math.round(entdeckt / TIERE.length * 100);
   const gartenName = (gardens[currentGardenId] && gardens[currentGardenId].name) || 'deinem Garten';
-  const reiter = [['tiere', '🔍 Tiere'], ['bauen', '🔨 Lebensräume bauen'], ['pflanzen', '🌼 Futterpflanzen'], ['regeln', '✅ Grundregeln']];
+  const reiter = [['tiere', '🔍 Tiere'], ['wer', '🔗 Wer frisst was?'], ['bauen', '🔨 Lebensräume bauen'], ['pflanzen', '🌼 Futterpflanzen'], ['regeln', '✅ Grundregeln']];
   let html = `<div class="home-intro" style="margin-bottom:14px"><h2>🦔 Tiere im Garten</h2>
       <p>Welche Tiere leben bei uns – und was brauchen sie, damit sie in den Garten kommen?</p></div>
     <div class="tier-fortschritt">
@@ -10351,6 +10432,7 @@ function renderTiere() {
     <div class="tier-reiter">${reiter.map(([k, t]) => `<button type="button" class="saat-chip${tierAnsicht === k ? ' an' : ''}" onclick="tierAnsichtSetzen('${k}')">${t}</button>`).join('')}</div>`;
   if (tierAnsicht === 'tiere') html += renderTiereListeHtml(sicht);
   else if (tierAnsicht === 'bauen') html += renderTierProjekteHtml();
+  else if (tierAnsicht === 'wer') html += renderBeobachtungenHtml();
   else if (tierAnsicht === 'pflanzen') html += renderTierPflanzenHtml();
   else html += renderTierRegelnHtml();
   box.innerHTML = html;
@@ -10659,6 +10741,7 @@ function tierDetailRendern() {
     <div class="tier-abschnitt-titel">✅ So lockst du es an</div>${liste(t.tun)}
     ${t.meiden.length ? `<div class="tier-abschnitt-titel">⛔ Lieber vermeiden</div>${liste(t.meiden)}` : ''}
     ${projekte.length ? `<div class="tier-abschnitt-titel">🔨 Passende Projekte</div><div class="tier-chips">${projekte.map(p => `<button type="button" class="tier-chip tier-chip-btn" onclick="tierProjektZeigen('${p.id}')">${p.icon} ${escapeHtml(p.titel)}</button>`).join('')}</div>` : ''}
+    ${beobTierDetailHtml(t.id)}
     <div class="tier-gesehen-box">
       ${s ? `<div>👀 Schon <b>${s.anzahl}×</b> gesehen · zuerst am ${datum(s.erst)}${s.zuletzt !== s.erst ? `, zuletzt am ${datum(s.zuletzt)}` : ''}</div>` : '<div>Habt ihr es im Garten beobachtet?</div>'}
       <div style="display:flex;gap:6px;margin-top:8px">
@@ -10697,6 +10780,312 @@ function tierGesehenZurueck(id) {
   renderTiere();
 }
 
+// ==================== 🔗 BEOBACHTUNGEN: Welches Tier an welcher Pflanze? ====================
+// gardens[id].beobachtungen = [{ id, datum, tierId|null, tierName, pflanze, art, anzahl, notiz, fotos: [] , von }]
+// Wird mit dem Garten synchronisiert; Fotos laufen wie Pflanzenfotos über den Familien-Fotospeicher.
+const BEOB_ARTEN = [
+  { id: 'nektar', icon: '🌸', label: 'Nektar/Pollen' },
+  { id: 'raupe', icon: '🐛', label: 'Raupe frisst Blätter' },
+  { id: 'eier', icon: '🥚', label: 'Eiablage' },
+  { id: 'beeren', icon: '🫐', label: 'frisst Beeren/Früchte' },
+  { id: 'samen', icon: '🌾', label: 'frisst Samen' },
+  { id: 'wohnt', icon: '🏠', label: 'wohnt/versteckt sich' },
+  { id: 'jagt', icon: '🎯', label: 'jagt Schädlinge' },
+  { id: 'sonst', icon: '✏️', label: 'Sonstiges' },
+];
+const MONATE_KURZ = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
+let beobAnsicht = 'pflanze';
+let beobJahr = new Date().getFullYear();
+let beobEditId = null, beobEditArt = 'nektar', beobEditFotos = [];
+function beobArt(id) { return BEOB_ARTEN.find(a => a.id === id) || BEOB_ARTEN[BEOB_ARTEN.length - 1]; }
+function gartenBeobachtungen() {
+  const g = gardens[currentGardenId];
+  if (!g) return [];
+  if (!Array.isArray(g.beobachtungen)) g.beobachtungen = [];
+  return g.beobachtungen;
+}
+function beobNorm(s) { return String(s || '').trim().toLowerCase(); }
+function beobTierInfo(b) { return b.tierId ? TIERE.find(t => t.id === b.tierId) : null; }
+function beobTierLabel(b) { const t = beobTierInfo(b); return t ? t.name : (b.tierName || 'Unbekanntes Tier'); }
+function beobTierIcon(b) { const t = beobTierInfo(b); return t ? t.icon : '🔎'; }
+function beobTierKey(b) { return b.tierId ? 't:' + b.tierId : 'f:' + beobNorm(b.tierName); }
+function beobPflanzeKey(b) { return beobNorm(b.pflanze); }
+// Pflanzennamen im aktuellen Garten (Beete + freistehend) – für Vorschläge
+function beobGartenPflanzenNamen() {
+  const set = new Map();
+  getCurrentBeds().forEach(bd => (bd.plants || []).forEach(p => { const n = (p.name || '').trim(); if (n) set.set(beobNorm(n), { name: n, sym: p.sym || '🌱' }); }));
+  getCurrentFreiPflanzen().forEach(p => { const n = (p.name || '').trim(); if (n) set.set(beobNorm(n), { name: n, sym: p.sym || '🌳' }); });
+  return set;
+}
+function beobPflanzeSym(name) {
+  const g = beobGartenPflanzenNamen().get(beobNorm(name));
+  if (g) return g.sym;
+  const p = (typeof PLANTS !== 'undefined') && PLANTS.find(x => beobNorm(x.name) === beobNorm(name));
+  return p ? p.sym : '🌿';
+}
+function beobDatumText(iso) { return new Date(iso + 'T12:00').toLocaleDateString('de-DE', { day: 'numeric', month: 'short', year: 'numeric' }); }
+
+// ---------- Erfassen / Bearbeiten ----------
+function beobachtungNeu(vorgabe) {
+  vorgabe = vorgabe || {};
+  beobEditId = null;
+  beobFormFuellen({ datum: heuteISO(), anzahl: 1, art: vorgabe.art || 'nektar', tierId: vorgabe.tierId || null, tierName: vorgabe.tierName || '', pflanze: vorgabe.pflanze || '', notiz: '', fotos: [] });
+}
+function beobachtungBearbeiten(id) {
+  const b = gartenBeobachtungen().find(x => x.id === id);
+  if (!b) return;
+  beobEditId = id;
+  beobFormFuellen(b);
+}
+function beobFormFuellen(b) {
+  document.getElementById('beobTitel').textContent = beobEditId ? '✏️ Beobachtung bearbeiten' : '📝 Beobachtung notieren';
+  document.getElementById('beobTier').value = b.tierId ? (TIERE.find(t => t.id === b.tierId) || {}).name || '' : (b.tierName || '');
+  document.getElementById('beobPflanze').value = b.pflanze || '';
+  document.getElementById('beobDatum').value = b.datum || heuteISO();
+  document.getElementById('beobAnzahl').value = b.anzahl || 1;
+  document.getElementById('beobNotiz').value = b.notiz || '';
+  beobEditArt = b.art || 'nektar';
+  beobEditFotos = (b.fotos || []).slice();
+  // Vorschläge: alle Tiere der Liste + bisher frei eingetragene; Pflanzen aus dem Garten + bisherige
+  const tiere = TIERE.map(t => t.name).concat(gartenBeobachtungen().filter(x => !x.tierId && x.tierName).map(x => x.tierName));
+  document.getElementById('beobTierListe').innerHTML = [...new Set(tiere)].map(n => `<option value="${escapeHtml(n)}">`).join('');
+  const pfl = [...beobGartenPflanzenNamen().values()].map(p => p.name).concat(gartenBeobachtungen().map(x => x.pflanze).filter(Boolean));
+  document.getElementById('beobPflanzeListe').innerHTML = [...new Set(pfl.map(n => n.trim()))].sort((a, c) => a.localeCompare(c, 'de')).map(n => `<option value="${escapeHtml(n)}">`).join('');
+  beobArtenRendern();
+  beobFotoRendern();
+  beobTierHinweis();
+  document.getElementById('beobLoeschen').style.display = beobEditId ? '' : 'none';
+  document.getElementById('beobModal').style.display = 'flex';
+}
+function beobArtenRendern() {
+  document.getElementById('beobArten').innerHTML = BEOB_ARTEN.map(a => `<button type="button" class="saat-chip${a.id === beobEditArt ? ' an' : ''}" onclick="beobEditArt='${a.id}';beobArtenRendern()">${a.icon} ${escapeHtml(a.label)}</button>`).join('');
+}
+function beobTierErkennen(text) {
+  const n = beobNorm(text);
+  if (!n) return null;
+  // genau → „Hummel“ ↔ „Hummeln“ → „Tagpfauenauge-Raupe“ enthält „Tagpfauenauge“
+  return TIERE.find(t => beobNorm(t.name) === n) || TIERE.find(t => beobNorm(t.name).includes(n) && n.length >= 4) ||
+    TIERE.find(t => beobNorm(t.name).length >= 5 && n.includes(beobNorm(t.name).replace(/(n|en)$/, ''))) || null;
+}
+function beobTierHinweis() {
+  const t = beobTierErkennen(document.getElementById('beobTier').value);
+  const box = document.getElementById('beobTierInfo');
+  box.innerHTML = t ? `${t.icon} <b>${escapeHtml(t.name)}</b> – zählt auch als „Gesehen“` : (document.getElementById('beobTier').value.trim() ? '🔎 Freier Eintrag (nicht in der Tierliste)' : '');
+}
+function beobFotoRendern() {
+  const box = document.getElementById('beobFotos');
+  box.innerHTML = beobEditFotos.map((f, i) => `<span class="beob-foto"><img src="${escapeHtml(fotoQuelle(f))}" alt=""><button type="button" onclick="beobEditFotos.splice(${i},1);beobFotoRendern()" aria-label="Foto entfernen">✕</button></span>`).join('') +
+    (beobEditFotos.length < 3 ? `<label class="beob-foto-neu">📷<input type="file" accept="image/*" onchange="beobFotoGewaehlt(event)"></label>` : '');
+}
+function beobFotoGewaehlt(ev) {
+  const datei = ev.target.files && ev.target.files[0];
+  ev.target.value = '';
+  if (!datei) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      const max = 1280, f = Math.min(1, max / Math.max(img.width, img.height));
+      const c = document.createElement('canvas'); c.width = Math.round(img.width * f); c.height = Math.round(img.height * f);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      beobEditFotos.push({ id: fotoNeueId(), data: c.toDataURL('image/jpeg', 0.8), datum: document.getElementById('beobDatum').value || heuteISO() });
+      beobFotoRendern();
+    };
+    img.onerror = () => showTempStatus('⚠ Datei ist kein gültiges Bild.', 4);
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(datei);
+}
+function beobSchliessen() { document.getElementById('beobModal').style.display = 'none'; }
+function beobSichtungAnpassen(tierId, datum, plus) {
+  if (!tierId) return;
+  const sicht = tierSichtungen();
+  if (plus) {
+    if (!sicht[tierId]) sicht[tierId] = { anzahl: 0, erst: datum, zuletzt: datum };
+    sicht[tierId].anzahl++;
+    if (datum < sicht[tierId].erst) sicht[tierId].erst = datum;
+    if (datum > sicht[tierId].zuletzt) sicht[tierId].zuletzt = datum;
+  } else if (sicht[tierId]) {
+    sicht[tierId].anzahl--;
+    if (sicht[tierId].anzahl <= 0) delete sicht[tierId];
+  }
+}
+function beobSpeichern() {
+  const tierText = document.getElementById('beobTier').value.trim();
+  const pflanze = document.getElementById('beobPflanze').value.trim();
+  if (!tierText) { showTempStatus('Bitte eintragen, welches Tier es war.', 3); document.getElementById('beobTier').focus(); return; }
+  const t = beobTierErkennen(tierText);
+  const datum = document.getElementById('beobDatum').value || heuteISO();
+  const liste = gartenBeobachtungen();
+  const daten = {
+    datum, tierId: t ? t.id : null, tierName: t ? '' : tierText, pflanze, art: beobEditArt,
+    anzahl: Math.max(1, Math.round(Number(document.getElementById('beobAnzahl').value) || 1)),
+    notiz: document.getElementById('beobNotiz').value.trim(), fotos: beobEditFotos.slice(),
+  };
+  let ersteImJahr = false;
+  if (beobEditId) {
+    const b = liste.find(x => x.id === beobEditId);
+    if (!b) return;
+    (b.fotos || []).filter(f => !daten.fotos.includes(f)).forEach(fotoCloudLoeschen);
+    if (b.tierId !== daten.tierId) { beobSichtungAnpassen(b.tierId, b.datum, false); beobSichtungAnpassen(daten.tierId, datum, true); }
+    Object.assign(b, daten);
+  } else {
+    const key = daten.tierId ? 't:' + daten.tierId : 'f:' + beobNorm(daten.tierName);
+    ersteImJahr = !liste.some(x => beobTierKey(x) === key && String(x.datum).slice(0, 4) === datum.slice(0, 4));
+    liste.push(Object.assign({ id: 'beob_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), von: (typeof gartenIchBin === 'function' && gartenIchBin()) || null }, daten));
+    beobSichtungAnpassen(daten.tierId, datum, true);
+  }
+  saveData();
+  beobSchliessen();
+  if (typeof familienFotosHochladen === 'function') familienFotosHochladen();
+  beobAnsichtenAktualisieren();
+  const name = t ? t.name : tierText;
+  showTempStatus(ersteImJahr ? `🎉 Erste Beobachtung ${datum.slice(0, 4)}: ${name}${pflanze ? ' an ' + pflanze : ''}!` : `📝 ${name}${pflanze ? ' an ' + pflanze : ''} notiert`, 4);
+}
+function beobLoeschen() {
+  const liste = gartenBeobachtungen();
+  const i = liste.findIndex(x => x.id === beobEditId);
+  if (i === -1) return;
+  const weg = liste.splice(i, 1)[0];
+  beobSichtungAnpassen(weg.tierId, weg.datum, false);
+  saveData();
+  beobSchliessen();
+  beobAnsichtenAktualisieren();
+  showTempStatus('🗑 Beobachtung gelöscht', 6, { label: 'Rückgängig', aktion: () => { liste.splice(i, 0, weg); beobSichtungAnpassen(weg.tierId, weg.datum, true); saveData(); beobAnsichtenAktualisieren(); } });
+  // Fotos erst endgültig entfernen, wenn nicht rückgängig gemacht wurde
+  setTimeout(() => { if (!liste.includes(weg)) (weg.fotos || []).forEach(fotoCloudLoeschen); }, 9000);
+}
+// Alles neu zeichnen, was Beobachtungen zeigt
+function beobAnsichtenAktualisieren() {
+  const wrap = document.getElementById('tiereWrap');
+  if (wrap && wrap.offsetParent) renderTiere();
+  if (tierDetailId) tierDetailRendern();
+  if (activePlantBedId) { const bd = getCurrentBeds().find(x => x.id === activePlantBedId.bedId); const p = bd && bd.plants[activePlantBedId.idx]; if (p) renderPflanzenBeobachtungen(p.name || '', 'ppBeobBox'); }
+  if (activeFreiPflanzeId) { const fp = getCurrentFreiPflanzen().find(x => x.id === activeFreiPflanzeId); if (fp) renderPflanzenBeobachtungen(fp.name || '', 'fpBeobBox'); }
+}
+
+// ---------- Auswertung ----------
+function beobGruppieren(liste, keyFn) {
+  const m = new Map();
+  liste.forEach(b => { const k = keyFn(b); if (!k) return; if (!m.has(k)) m.set(k, []); m.get(k).push(b); });
+  return m;
+}
+function beobZaehlen(liste) { return liste.reduce((s, b) => s + (b.anzahl || 1), 0); }
+function beobArtIcons(liste) { return [...new Set(liste.map(b => beobArt(b.art).icon))].join(''); }
+// Pflanzen im Garten → Beobachtungen (für das Pflanzen-Panel)
+function renderPflanzenBeobachtungen(name, boxId) {
+  const box = document.getElementById(boxId);
+  if (!box) return;
+  const n = beobNorm(name);
+  if (!n) { box.innerHTML = ''; return; }
+  const liste = gartenBeobachtungen().filter(b => beobPflanzeKey(b) === n);
+  const tiere = [...beobGruppieren(liste, beobTierKey).values()].sort((a, c) => beobZaehlen(c) - beobZaehlen(a));
+  box.innerHTML = `<div class="beob-pflanze-box"><div class="beob-pflanze-kopf"><b>🦋 Tiere an dieser Pflanze</b>
+      <button type="button" onclick="beobachtungNeu({ pflanze: ${escapeHtml(JSON.stringify(name.trim()))} })">＋ Beobachtung</button></div>
+    ${tiere.length ? `<div class="tier-chips">${tiere.map(g => `<button type="button" class="tier-chip tier-chip-btn" onclick="${g[0].tierId ? `tierDetailOeffnen('${g[0].tierId}')` : `beobachtungBearbeiten('${g[0].id}')`}">${beobTierIcon(g[0])} ${escapeHtml(beobTierLabel(g[0]))} ${beobArtIcons(g)} <b>${beobZaehlen(g)}×</b></button>`).join('')}</div>`
+      : '<div class="tier-meta">Noch nichts beobachtet. Wer trinkt hier Nektar, frisst an den Blättern oder holt sich die Beeren?</div>'}</div>`;
+}
+function beobJahrListe() { return gartenBeobachtungen().filter(b => String(b.datum).slice(0, 4) === String(beobJahr)); }
+function renderBeobachtungenHtml() {
+  const alle = gartenBeobachtungen();
+  const jahre = [...new Set(alle.map(b => Number(String(b.datum).slice(0, 4))).concat([new Date().getFullYear()]))].sort((a, c) => c - a);
+  const liste = beobJahrListe();
+  const ansichten = [['pflanze', '🌼 Nach Pflanze'], ['tier', '🐝 Nach Tier'], ['netz', '🕸️ Netz'], ['jahr', '📅 Jahresverlauf'], ['liste', '📋 Alle']];
+  let h = `<p class="tier-einleitung">Wer besucht welche Pflanze? Notiert, welche Insekten an welchen Blüten trinken, welche Raupen woran fressen und welche Vögel sich Beeren oder Samen holen.</p>
+    <button type="button" class="btn-primary" style="margin-bottom:10px" onclick="beobachtungNeu()">📝 Beobachtung notieren</button>
+    <div class="beob-kopfzeile"><div class="tier-filter" style="margin:0;flex:1">${ansichten.map(([k, t]) => `<button type="button" class="saat-chip${beobAnsicht === k ? ' an' : ''}" onclick="beobAnsicht='${k}';renderTiere()">${t}</button>`).join('')}</div>
+      <select class="beob-jahr" onchange="beobJahr=Number(this.value);renderTiere()" aria-label="Jahr">${jahre.map(j => `<option value="${j}"${j === beobJahr ? ' selected' : ''}>${j}</option>`).join('')}</select></div>`;
+  if (!liste.length) return h + `<div class="empty-state" style="margin-top:10px">🔎 ${beobJahr} noch keine Beobachtungen. Tipp: Bei einer Pflanze im Gartenplan gibt es ganz unten „＋ Beobachtung“.</div>`;
+  const nTiere = beobGruppieren(liste, beobTierKey).size, nPflanzen = beobGruppieren(liste, beobPflanzeKey).size;
+  h += `<div class="tier-meta" style="margin:8px 0 10px">${liste.length} Beobachtungen · ${nTiere} Tierarten · ${nPflanzen} Pflanzen</div>`;
+  if (beobAnsicht === 'pflanze') h += beobNachPflanzeHtml(liste);
+  else if (beobAnsicht === 'tier') h += beobNachTierHtml(liste);
+  else if (beobAnsicht === 'netz') h += beobNetzHtml(liste);
+  else if (beobAnsicht === 'jahr') h += beobJahrHtml(liste);
+  else h += beobListeHtml(liste);
+  return h;
+}
+function beobNachPflanzeHtml(liste) {
+  const gruppen = [...beobGruppieren(liste.filter(b => b.pflanze), beobPflanzeKey).values()]
+    .map(g => ({ g, tiere: [...beobGruppieren(g, beobTierKey).values()].sort((a, c) => beobZaehlen(c) - beobZaehlen(a)) }))
+    .sort((a, c) => c.tiere.length - a.tiere.length || beobZaehlen(c.g) - beobZaehlen(a.g));
+  const ohne = liste.filter(b => !b.pflanze).length;
+  return gruppen.map((x, i) => `<div class="beob-karte"><div class="beob-karte-kopf"><span class="beob-sym">${beobPflanzeSym(x.g[0].pflanze)}</span><b>${escapeHtml(x.g[0].pflanze)}</b>
+      ${i < 3 && x.tiere.length >= 2 ? `<span class="beob-magnet">🏆 Insektenmagnet${i === 0 ? ' Nr. 1' : ''}</span>` : ''}<span class="tier-meta" style="margin-left:auto">${x.tiere.length} ${x.tiere.length === 1 ? 'Art' : 'Arten'}</span></div>
+      <div class="tier-chips">${x.tiere.map(g => `<button type="button" class="tier-chip tier-chip-btn" onclick="${g[0].tierId ? `tierDetailOeffnen('${g[0].tierId}')` : `beobachtungBearbeiten('${g[0].id}')`}">${beobTierIcon(g[0])} ${escapeHtml(beobTierLabel(g[0]))} ${beobArtIcons(g)} <b>${beobZaehlen(g)}×</b></button>`).join('')}</div></div>`).join('') +
+    (ohne ? `<div class="tier-meta">+ ${ohne} Beobachtung(en) ohne Pflanze</div>` : '');
+}
+function beobNachTierHtml(liste) {
+  const gruppen = [...beobGruppieren(liste, beobTierKey).values()].sort((a, c) => beobZaehlen(c) - beobZaehlen(a));
+  return gruppen.map(g => {
+    const proArt = [...beobGruppieren(g, b => b.art).entries()];
+    return `<div class="beob-karte"><div class="beob-karte-kopf"><span class="beob-sym">${beobTierIcon(g[0])}</span><b>${escapeHtml(beobTierLabel(g[0]))}</b><span class="tier-meta" style="margin-left:auto">${beobZaehlen(g)}× · zuerst ${beobDatumText(g.map(b => b.datum).sort()[0])}</span></div>
+      ${proArt.map(([art, bs]) => { const pfl = [...beobGruppieren(bs.filter(b => b.pflanze), beobPflanzeKey).values()];
+        return `<div class="beob-art-zeile"><span>${beobArt(art).icon} ${escapeHtml(beobArt(art).label)}</span><span>${pfl.length ? pfl.map(p => `${beobPflanzeSym(p[0].pflanze)} ${escapeHtml(p[0].pflanze)} <b>${beobZaehlen(p)}×</b>`).join(' · ') : '<i>ohne Pflanze</i>'}</span></div>`; }).join('')}
+      ${g[0].tierId ? `<button type="button" class="beob-link" onclick="tierDetailOeffnen('${g[0].tierId}')">Steckbrief ›</button>` : ''}</div>`;
+  }).join('');
+}
+// 🕸️ Netz: links Pflanzen, rechts Tiere, Linienstärke = Anzahl
+function beobNetzHtml(liste) {
+  const mitPflanze = liste.filter(b => b.pflanze);
+  if (!mitPflanze.length) return '<div class="empty-state">Für das Netz braucht es Beobachtungen mit Pflanze.</div>';
+  const pfl = [...beobGruppieren(mitPflanze, beobPflanzeKey).values()].sort((a, c) => beobZaehlen(c) - beobZaehlen(a)).slice(0, 14);
+  const tie = [...beobGruppieren(mitPflanze, beobTierKey).values()].sort((a, c) => beobZaehlen(c) - beobZaehlen(a)).slice(0, 14);
+  const pIdx = new Map(pfl.map((g, i) => [beobPflanzeKey(g[0]), i])), tIdx = new Map(tie.map((g, i) => [beobTierKey(g[0]), i]));
+  const Z = 30, H = Math.max(pfl.length, tie.length) * Z + 20, B = 340;
+  const yP = i => 20 + i * Z + (Math.max(pfl.length, tie.length) - pfl.length) * Z / 2;
+  const yT = i => 20 + i * Z + (Math.max(pfl.length, tie.length) - tie.length) * Z / 2;
+  const kanten = new Map();
+  mitPflanze.forEach(b => { const p = pIdx.get(beobPflanzeKey(b)), t = tIdx.get(beobTierKey(b)); if (p === undefined || t === undefined) return; const k = p + '|' + t; const e = kanten.get(k) || { p, t, n: 0, art: b.art }; e.n += b.anzahl || 1; kanten.set(k, e); });
+  const maxN = Math.max(...[...kanten.values()].map(e => e.n));
+  const FARBE = { nektar: '#d9a033', raupe: '#6f9a5a', eier: '#b07ad0', beeren: '#8a4fa8', samen: '#b5894a', wohnt: '#8b7355', jagt: '#c0392b', sonst: '#7d8a99' };
+  const linien = [...kanten.values()].map(e => `<path d="M118 ${yP(e.p)} C170 ${yP(e.p)} 170 ${yT(e.t)} 222 ${yT(e.t)}" fill="none" stroke="${FARBE[e.art] || '#888'}" stroke-opacity="0.65" stroke-width="${1.5 + 6 * e.n / maxN}" stroke-linecap="round"><title>${escapeHtml(beobTierLabel(tie[e.t][0]) + ' an ' + pfl[e.p][0].pflanze + ': ' + e.n + '×')}</title></path>`).join('');
+  const kurz = s => s.length > 15 ? s.slice(0, 14) + '…' : s;
+  const links = pfl.map((g, i) => `<text x="114" y="${yP(i) + 4}" text-anchor="end">${beobPflanzeSym(g[0].pflanze)} ${escapeHtml(kurz(g[0].pflanze))}</text><circle cx="118" cy="${yP(i)}" r="3.5" fill="currentColor"/>`).join('');
+  const rechts = tie.map((g, i) => `<circle cx="222" cy="${yT(i)}" r="3.5" fill="currentColor"/><text x="226" y="${yT(i) + 4}">${beobTierIcon(g[0])} ${escapeHtml(kurz(beobTierLabel(g[0])))}</text>`).join('');
+  const legende = BEOB_ARTEN.filter(a => [...kanten.values()].some(e => e.art === a.id)).map(a => `<span><i style="background:${FARBE[a.id]}"></i>${a.icon} ${escapeHtml(a.label)}</span>`).join('');
+  return `<div class="beob-netz"><svg viewBox="0 0 ${B} ${H}" role="img" aria-label="Netz aus Pflanzen und Tieren">
+      <g font-size="10.5" font-family="Inter, sans-serif" fill="currentColor"><text x="114" y="11" text-anchor="end" font-weight="700" font-size="9.5" opacity="0.7">PFLANZEN</text><text x="226" y="11" font-weight="700" font-size="9.5" opacity="0.7">TIERE</text>${linien}${links}${rechts}</g></svg>
+    <div class="beob-legende">${legende}</div><div class="tier-meta">Je dicker die Linie, desto öfter beobachtet. Farbe = was das Tier gemacht hat.</div></div>`;
+}
+// 📅 Jahresverlauf: Pflanzen × Monate
+function beobJahrHtml(liste) {
+  const mitPflanze = liste.filter(b => b.pflanze);
+  const pfl = [...beobGruppieren(mitPflanze, beobPflanzeKey).values()].sort((a, c) => beobZaehlen(c) - beobZaehlen(a)).slice(0, 15);
+  const proMonat = Array(12).fill(0); liste.forEach(b => { proMonat[Number(String(b.datum).slice(5, 7)) - 1] += b.anzahl || 1; });
+  const maxM = Math.max(1, ...pfl.flatMap(g => { const m = Array(12).fill(0); g.forEach(b => { m[Number(String(b.datum).slice(5, 7)) - 1] += b.anzahl || 1; }); return m; }));
+  const zelle = n => n ? `<td><span class="beob-punkt" style="width:${6 + 12 * n / maxM}px;height:${6 + 12 * n / maxM}px" title="${n}×"></span></td>` : '<td></td>';
+  const zeilen = pfl.map(g => { const m = Array(12).fill(0); g.forEach(b => { m[Number(String(b.datum).slice(5, 7)) - 1] += b.anzahl || 1; });
+    return `<tr><th>${beobPflanzeSym(g[0].pflanze)} ${escapeHtml(g[0].pflanze.length > 14 ? g[0].pflanze.slice(0, 13) + '…' : g[0].pflanze)}</th>${m.map(zelle).join('')}</tr>`; }).join('');
+  // Lücken in der Saison (März–Oktober) im laufenden oder vergangenen Jahr
+  const jetzt = new Date(), bisMonat = beobJahr < jetzt.getFullYear() ? 12 : jetzt.getMonth() + 1;
+  const luecken = [3, 4, 5, 6, 7, 8, 9, 10].filter(m => m < bisMonat && !proMonat[m - 1]).map(m => MONATE_KURZ[m - 1]);
+  const ersteListe = [...beobGruppieren(liste, beobTierKey).values()].map(g => g.slice().sort((a, c) => String(a.datum).localeCompare(String(c.datum)))[0]).sort((a, c) => String(a.datum).localeCompare(String(c.datum)));
+  return `<div class="beob-tabelle-wrap"><table class="beob-tabelle"><thead><tr><th></th>${MONATE_KURZ.map(m => `<th>${m[0]}</th>`).join('')}</tr></thead><tbody>${zeilen}
+      <tr class="summe"><th>Alle</th>${proMonat.map(n => `<td>${n || ''}</td>`).join('')}</tr></tbody></table></div>
+    ${luecken.length ? `<div class="tier-tipp">💡 In ${luecken.join(', ')} wurde nichts beobachtet. Vielleicht fehlt da etwas Blühendes – früh helfen z. B. Krokus, Weide und Lungenkraut, spät Astern, Fetthenne und Efeu.</div>` : ''}
+    <div class="tier-abschnitt-titel">🎉 Erstbeobachtungen ${beobJahr}</div>
+    <div class="beob-erste">${ersteListe.map(b => `<div><span>${beobDatumText(b.datum).replace(/ \d{4}$/, '')}</span> ${beobTierIcon(b)} ${escapeHtml(beobTierLabel(b))}${b.pflanze ? ' <i>an ' + escapeHtml(b.pflanze) + '</i>' : ''}</div>`).join('')}</div>`;
+}
+function beobListeHtml(liste) {
+  return liste.slice().sort((a, c) => String(c.datum).localeCompare(String(a.datum))).map(b => {
+    const foto = (b.fotos || []).find(f => fotoQuelle(f));
+    return `<button type="button" class="beob-zeile" onclick="beobachtungBearbeiten('${b.id}')">
+      ${foto ? `<img src="${escapeHtml(fotoQuelle(foto))}" alt="" loading="lazy">` : `<span class="beob-sym">${beobTierIcon(b)}</span>`}
+      <span class="beob-zeile-text"><b>${escapeHtml(beobTierLabel(b))}</b>${(b.anzahl || 1) > 1 ? ' ×' + b.anzahl : ''} ${beobArt(b.art).icon}${b.pflanze ? ' an ' + escapeHtml(b.pflanze) : ''}
+        <small>${beobDatumText(b.datum)} · ${escapeHtml(beobArt(b.art).label)}${b.notiz ? ' · ' + escapeHtml(b.notiz) : ''}</small></span></button>`;
+  }).join('');
+}
+// Steckbrief: Wo im Garten beobachtet?
+function beobTierDetailHtml(tierId) {
+  const liste = gartenBeobachtungen().filter(b => b.tierId === tierId);
+  const t = TIERE.find(x => x.id === tierId);
+  const pfl = [...beobGruppieren(liste.filter(b => b.pflanze), beobPflanzeKey).values()].sort((a, c) => beobZaehlen(c) - beobZaehlen(a));
+  return `<div class="tier-abschnitt-titel">🔗 In deinem Garten beobachtet</div>
+    ${pfl.length ? `<div class="tier-chips">${pfl.map(g => `<span class="tier-chip">${beobPflanzeSym(g[0].pflanze)} ${escapeHtml(g[0].pflanze)} ${beobArtIcons(g)} <b>${beobZaehlen(g)}×</b></span>`).join('')}</div>` : '<div class="tier-meta">Noch keine Beobachtung an einer Pflanze.</div>'}
+    <button type="button" class="btn-secondary" style="margin-top:8px;width:100%" onclick="beobachtungNeu({ tierId: '${tierId}', tierName: ${escapeHtml(JSON.stringify(t ? t.name : ''))} })">📝 Beobachtung an einer Pflanze notieren</button>`;
+}
+
 
 // ==================== 📖 PFLANZENLEXIKON & SUCHE ====================
 // Eine Seite pro Pflanze, die alles zusammenführt, was die App über sie weiß
@@ -10720,6 +11109,7 @@ const LEX_FUNKTIONEN = [
   ['🧩', 'Beet-Vorlagen', 'vorlage vorlagen', () => openTemplateModal()],
   ['🥫', 'Verwertung & Haltbarmachen', 'einkochen einfrieren fermentieren trocknen verwertung', () => showView('preserve')],
   ['🦔', 'Tiere im Garten', 'tiere igel vögel bienen insekten naturgarten', () => showView('tiere')],
+  ['🔗', 'Wer frisst was? (Beobachtungen)', 'beobachtung beobachten raupe nektar insekten vögel beeren samen wer frisst', () => { showView('tiere'); tierAnsichtSetzen('wer'); }],
   ['💦', 'Mini-Wasserstelle anlegen', 'wasserstelle tränke traenke insektentränke bienentränke vogeltränke miniteich teich wasser wanne', () => { showView('tiere'); tierProjektZeigen('miniwasser'); }],
   ['📖', 'Tipps & Tricks', 'tipps tricks wissen', () => showView('tips')],
   ['📸', 'Fotoalbum', 'foto album bilder', () => showView('album')],
