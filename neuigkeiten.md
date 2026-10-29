@@ -2,6 +2,12 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
+## 2026-10-29 | 📊 Notfall: Wie lange reicht der Vorrat? & „Mir geht's gut“
+Unter 🎒 Vorrat schätzt der Planer jetzt aus der Vorratskammer, für wie viele Tage euer **Wasser** und euer **Essen** reichen, z. B. „💧 2 Tage · 🍽️ 7 Tage“. Die Aufschlüsselung zeigt jede BBK-Gruppe einzeln (am knappsten z. B. Fette & Öle), und wo die Vorratskammer daneben liegt, tragt ihr eine eigene Menge ein. Sachen aus Kühlschrank und Gefrierfach zählen nicht mit, weil sie bei Stromausfall schnell verderben. Die gleiche Übersicht steht als Kachel 🆘 Notfall-Vorrat auf der Startseite, zusammen mit Medikamenten, die keine 10 Tage mehr reichen.
+Neu im Chat: Über ＋ → 🙋 meldet ihr mit einem Tipp „✅ Mir geht's gut“, „🏠 Bin zu Hause“, „📍 Am Treffpunkt“ oder „🆘 Brauche Hilfe“ (mit Standort). Mit „Alle fragen“ geht eine Rückfrage an die Familie, und oben im Chat seht ihr, wer sich schon gemeldet hat. Ohne Netz wird die Meldung gesendet, sobald wieder Verbindung da ist.
+⚡ Kurzansicht: Der 🆘-Knopf oben auf der Startseite (oder ⚡ Kurz im Notfall-Modul, oder Homescreen-Icon lange drücken → Notfall) öffnet alles Wichtige auf einem schwarzen, akkusparenden Bildschirm: Notrufe, Treffpunkte, Kontakte zum Antippen, Hauptwasserhahn & Co., Medikamente, Wasserstellen und den Vorrat.
+In 📋 Unser Plan: die Medikamente aus Gesundheit mit Reichweite, der letzte Erste-Hilfe-Kurs jeder Person (mit Hinweis, wenn er mehr als 2 Jahre her ist) und die Datensicherung mit dem Tipp für den USB-Stick in der Notfallmappe.
+
 ## 2026-10-29 | 🛠️ Notfall: Selbermachen & unsere Wasserstellen
 Neuer Reiter 🛠️ Selbermachen im Notfall-Modul: Wasser aus Quelle, Bach und Teich sicher nutzen, einen Flaschen-Vorfilter bauen (mit Skizze), Sonnen-Entkeimung (SODIS), Dosenkocher, Hobo-Ofen und Kochkiste, ein Tontopf-Kühler ohne Strom, ein warmer Raum im Raum, eine Laterne aus Stirnlampe und Wasserkanister, Regenwasser auffangen, eine Eimer-Toilette, eine Notfall-Angel (mit rechtlichem Hinweis) und die wenigen unverwechselbaren Wildpflanzen. Neu in 📋 Unser Plan: „Unsere Wasserstellen“ für Quellen, Bäche und Notbrunnen mit Weg und Entfernung.
 

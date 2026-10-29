@@ -27,6 +27,7 @@
   html[data-farbschema="bernstein"] { --navbg: #1c1f24; --navbg2: #2b2f36; --sage: #e6c878; --leaf: #e6c878; --moss: #c9a24d; }
   html[data-dark="1"][data-farbschema] { --cream: #191b1f; --parchment: #24262c; --white: #2a2d33; --soil: #eceef0; --bark: #a7acb5; }
   html[data-dark="1"] { --moss-text: var(--sage); --on-moss: #16140f; }
+  html[data-dark="1"] input, html[data-dark="1"] select, html[data-dark="1"] textarea { color-scheme: dark; }
   html[data-dark="1"][data-farbschema="schnee"] { --on-moss: #f4f5f6; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Inter', sans-serif; background: var(--cream); color: var(--soil); min-height: 100vh; padding-bottom: 60px; }
@@ -120,11 +121,63 @@
   .ws-zeile input, .ws-zeile select { width: 100%; padding: 8px 9px; border: 1px solid var(--parchment); border-radius: var(--radius-sm); background: var(--cream); color: var(--soil); font-size: 0.84rem; }
   .ws-zeile button { border: none; background: none; cursor: pointer; font-size: 0.9rem; color: var(--terracotta-text); }
   .ws-notiz { width: 100%; padding: 7px 9px; border: 1px solid var(--parchment); border-radius: var(--radius-sm); background: var(--cream); color: var(--soil); font-size: 0.8rem; margin-bottom: 10px; }
+  /* 📊 Reichweite */
+  .rw-gross { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 8px 0 6px; }
+  .rw-wert { border-radius: var(--radius-md); padding: 10px 12px; background: var(--cream); border-left: 5px solid var(--bark); }
+  .rw-wert b { display: block; font-size: 1.5rem; line-height: 1.1; }
+  .rw-wert span { font-size: 0.76rem; color: var(--bark); }
+  .rw-wert.gut { border-left-color: #4f6f45; } .rw-wert.mittel { border-left-color: var(--gold); } .rw-wert.knapp { border-left-color: var(--rot); }
+  .rw-wert.knapp b { color: var(--rot); }
+  .rw-zeile { padding: 8px 0; border-top: 1px solid var(--parchment); }
+  .rw-zeile:first-child { border-top: none; }
+  .rw-kopf { display: flex; align-items: center; gap: 8px; font-size: 0.84rem; }
+  .rw-kopf .rw-tage { margin-left: auto; font-weight: 700; font-size: 0.78rem; white-space: nowrap; }
+  .rw-kopf .rw-tage.knapp { color: var(--rot); }
+  .rw-balken { height: 6px; border-radius: 3px; background: var(--parchment); overflow: hidden; margin: 5px 0 3px; }
+  .rw-balken span { display: block; height: 100%; background: var(--moss); }
+  .rw-balken span.knapp { background: var(--rot); } .rw-balken span.mittel { background: var(--gold); }
+  .rw-items { font-size: 0.72rem; color: var(--bark); line-height: 1.45; }
+  .rw-eigen { display: flex; align-items: center; gap: 6px; margin-top: 4px; font-size: 0.72rem; color: var(--bark); }
+  .rw-eigen input { width: 80px; padding: 4px 7px; border: 1px solid var(--parchment); border-radius: var(--radius-sm); background: var(--cream); color: var(--soil); font-size: 0.8rem; }
+  .med-zeile { display: flex; gap: 8px; align-items: baseline; padding: 6px 0; border-top: 1px solid var(--parchment); font-size: 0.84rem; }
+  .med-zeile:first-child { border-top: none; }
+  .med-zeile .wer { font-size: 0.72rem; font-weight: 700; color: var(--bark); min-width: 54px; }
+  .med-zeile .rest { margin-left: auto; font-size: 0.74rem; white-space: nowrap; color: var(--moss-text, var(--moss)); font-weight: 700; }
+  .med-zeile .rest.knapp { color: var(--rot); }
+  .med-zeile .rest.offen { color: var(--bark); font-weight: 500; }
+  .eh-zeile { display: grid; grid-template-columns: 70px 150px 1fr; gap: 8px; align-items: center; padding: 6px 0; border-top: 1px solid var(--parchment); font-size: 0.84rem; }
+  .eh-zeile:first-child { border-top: none; }
+  .eh-zeile input { width: 100%; padding: 6px 8px; border: 1px solid var(--parchment); border-radius: var(--radius-sm); background: var(--cream); color: var(--soil); font-size: 0.82rem; }
+  .eh-zeile small { font-size: 0.72rem; color: var(--bark); }
+  .eh-zeile small.alt { color: var(--rot); font-weight: 700; }
+  .eh-zeile small.ok { color: var(--moss-text, var(--moss)); font-weight: 700; }
+  @media (max-width: 420px) { .eh-zeile { grid-template-columns: 62px 1fr; } .eh-zeile small { grid-column: 1 / -1; } }
+
+  /* ⚡ Kurzansicht: schwarz (spart auf OLED-Displays Akku), große Schrift */
+  .kurz { position: fixed; inset: 0; z-index: 200; background: #000; color: #e9e9e9; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0 14px 40px; }
+  .kurz[hidden] { display: none; }
+  .kurz-kopf { position: sticky; top: 0; background: #000; display: flex; align-items: center; gap: 8px; padding: 12px 0 10px; border-bottom: 1px solid #333; margin-bottom: 10px; z-index: 1; }
+  .kurz-kopf b { flex: 1; font-size: 1.05rem; color: #ff8a80; }
+  .kurz-kopf button { background: #1a1a1a; color: #e9e9e9; border: 1px solid #444; border-radius: 999px; padding: 7px 13px; font-size: 0.82rem; font-weight: 700; cursor: pointer; }
+  .kurz h4 { font-size: 0.74rem; text-transform: uppercase; letter-spacing: .06em; color: #9a9a9a; margin: 16px 0 6px; }
+  .kurz-nummern { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .kurz-nummern a { display: block; background: #1a0b0a; border: 1px solid #5a1f1b; color: #ff8a80; border-radius: 12px; padding: 11px 12px; text-decoration: none; }
+  .kurz-nummern a b { display: block; font-size: 1.45rem; }
+  .kurz-nummern a span { font-size: 0.74rem; color: #c9c9c9; }
+  .kurz-zeile { display: flex; justify-content: space-between; gap: 10px; padding: 9px 0; border-bottom: 1px solid #222; font-size: 0.95rem; line-height: 1.4; }
+  .kurz-zeile span:first-child { color: #9a9a9a; font-size: 0.82rem; flex-shrink: 0; }
+  .kurz-zeile span:last-child { text-align: right; overflow-wrap: anywhere; }
+  .kurz-zeile a { color: #8fd0ff; text-decoration: none; font-weight: 700; }
+  .kurz-status { display: block; width: 100%; margin: 12px 0 4px; padding: 14px; border-radius: 14px; border: 1px solid #2f5a2a; background: #0d1a0b; color: #b6e3a8; font-size: 1rem; font-weight: 700; cursor: pointer; }
+  .kurz-text { font-size: 0.86rem; color: #c9c9c9; line-height: 1.5; }
+  .kurz-text b { color: #fff; }
+  .kurz-knapp { color: #ff8a80; font-weight: 700; }
+
   .nur-druck { display: none; }
   @media print {
     @page { margin: 14mm 12mm; }
     html, body { background: #fff !important; color: #000 !important; font-size: 10.5pt; }
-    header.top, .kein-druck, .check-zeile button, .knopf-reihe, #tempStatus { display: none !important; }
+    header.top, .kein-druck, .check-zeile button, .knopf-reihe, #tempStatus, #kurz, .rw-eigen { display: none !important; }
     .nur-druck { display: block; }
     main { max-width: none; padding: 0; }
     .seite { display: block !important; page-break-before: always; }
@@ -143,12 +196,18 @@
 <script src="personen.js"></script>
 <script src="sync.js"></script>
 <script src="gemeinsam.js"></script>
+<script src="notfalllogik.js"></script>
 </head>
 <body>
 <div id="tempStatus"></div>
+<div class="kurz" id="kurz" hidden role="dialog" aria-label="Notfall-Kurzansicht">
+  <div class="kurz-kopf"><b>⚡ Notfall – das Wichtigste</b><button type="button" id="btnKurzZu">✕ Schließen</button></div>
+  <div id="kurzInhalt"></div>
+</div>
 <header class="top">
   <div class="titel-zeile">
     <h1>🆘 Notfall</h1>
+    <button type="button" class="kopf-btn" id="btnKurz" title="Das Wichtigste auf einen Blick – dunkel und akkusparend">⚡ Kurz</button>
     <button type="button" class="kopf-btn" id="btnDrucken" title="Alles für die Notfallmappe ausdrucken">🖨️ Drucken</button>
   </div>
   <nav class="reiter" id="reiter" role="tablist">
@@ -239,6 +298,7 @@
       </div>
       <div class="gespeichert" id="letzterCheck" style="margin-top:6px"></div>
     </div>
+    <div class="karte" id="reichweite"></div>
     <div id="checklisten"></div>
     <div class="info">ℹ️ Die Mengen sind die Richtwerte des BBK für einen Erwachsenen (ca. 2.200 kcal am Tag). Kinder brauchen weniger, dafür braucht es passende Babynahrung, Windeln usw. Individuell rechnen lässt sich auch mit dem Vorratskalkulator auf ernaehrungsvorsorge.de. Tipp: Vorräte <b>im Alltag mitbenutzen</b> und Neues nach hinten stellen („rollierender Vorrat“) – dann verdirbt nichts.</div>
   </section>
@@ -687,6 +747,16 @@
       <div class="feld"><label for="p_tiere">Haustiere (Futter, Transportbox, Tierarzt)</label><textarea id="p_tiere" data-plan="tiere"></textarea></div>
     </div>
     <div class="karte">
+      <h3>💊 Medikamente aus Gesundheit</h3>
+      <div id="planMedis"></div>
+    </div>
+    <div class="karte">
+      <h3>🩹 Erste-Hilfe-Kurs</h3>
+      <div id="ehKurse"></div>
+      <div class="knopf-reihe kein-druck"><button type="button" class="btn btn-secondary" id="btnEhTermin">📅 Kurs als Termin eintragen</button></div>
+      <div class="tipp kein-druck">💡 Kurse gibt es z. B. beim DRK, ASB, den Johannitern und Maltesern – meist ein Tag (9 Unterrichtseinheiten). Für Eltern gibt es eigene Kurse „Erste Hilfe am Kind“. Empfohlen ist, das Wissen etwa <b>alle 2 Jahre</b> aufzufrischen (für betriebliche Ersthelfer ist das Pflicht). Als Familienprojekt macht's mehr Spaß – Kinder können ab dem Grundschulalter eigene Kinderkurse besuchen.</div>
+    </div>
+    <div class="karte">
       <h3>🏠 Wo ist was im Haus?</h3>
       <div class="zwei">
         <div class="feld"><label for="p_wasserhahn">Hauptwasserhahn</label><input type="text" id="p_wasserhahn" data-plan="wasserhahn"></div>
@@ -698,6 +768,12 @@
       </div>
       <div class="feld"><label for="p_sonst">Sonstiges</label><textarea id="p_sonst" data-plan="sonst" placeholder="z. B. Ersatzschlüssel bei …, Campingkocher im Keller …"></textarea></div>
       <div class="gespeichert" id="planGespeichert"></div>
+    </div>
+    <div class="karte kein-druck">
+      <h3>💾 Datensicherung</h3>
+      <p id="sicherungText" style="font-size:0.84rem"></p>
+      <p style="font-size:0.8rem;color:var(--bark)">Fast alles im Planer liegt in der Cloud und auf euren Handys. Eine Sicherungsdatei ab und zu auf einen <b>USB-Stick in die Dokumentenmappe</b> legen – und dieses Handbuch ausdrucken (🖨️ oben): Papier funktioniert auch, wenn kein Handy mehr Akku hat. Wie oft der Planer erinnert, stellst du unter ⚙️ → „Backup-Erinnerung nach …“ ein.</p>
+      <div class="knopf-reihe"><button type="button" class="btn btn-secondary" id="btnSichern">💾 Jetzt sichern</button></div>
     </div>
   </section>
 
@@ -797,7 +873,9 @@
     ] },
   ];
   function punktKey(liste, p) { return liste.id + ':' + p.id; }
+  const NL = window.NotfallLogik;
   function vorratTreffer(p) {
+    if (NL && NL.KATEGORIEN.some(k => k.id === p.id)) return laden('vorratskammer_items', []).filter(v => v && v.name && v.bestand !== 'leer' && NL.kategorieVon(v) === p.id).map(v => v.name);
     if (!p.such || !p.such.length) return [];
     const vorrat = laden('vorratskammer_items', []).filter(v => v && v.name && v.bestand !== 'leer');
     const woerter = p.such.map(w => w.toLowerCase());
@@ -822,6 +900,7 @@
           return `<label class="check-zeile${c ? ' erledigt' : ''}"><input type="checkbox" data-k="${escapeHtml(k)}" ${c ? 'checked' : ''}>
             <span class="check-text"><span>${menge ? '<b class="menge">' + menge + '</b> ' : ''}${escapeHtml(p.text)}</span>
               ${p.tipp ? `<small>${escapeHtml(p.tipp)}</small>` : ''}
+              ${k === 'apotheke:medis' ? mediHinweisHtml() : ''}
               ${vorrat.length ? `<small class="vorrat">🥫 In der Vorratskammer: ${escapeHtml(vorrat.slice(0, 4).join(', '))}${vorrat.length > 4 ? ' …' : ''}</small>` : ''}
               ${c ? `<small>✓ ${escapeHtml(new Date(c.datum + 'T12:00').toLocaleDateString('de-DE'))}${c.von ? ' · ' + escapeHtml(personName(c.von)) : ''}</small>` : ''}</span>
             ${c ? '' : `<button type="button" data-ek="${escapeHtml(k)}" title="Auf die Einkaufsliste" aria-label="Auf die Einkaufsliste">🛒</button>`}</label>`;
@@ -839,6 +918,7 @@
     }));
     box.querySelectorAll('[data-ek]').forEach(b => b.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); zumEinkauf(b.dataset.ek); }));
     renderWasserMenge();
+    renderReichweite();
     const lc = einst.letzterCheck;
     document.getElementById('letzterCheck').textContent = (lc ? '🗓️ Letzter Neustart des Checks: ' + new Date(lc + 'T12:00').toLocaleDateString('de-DE') + ' · ' : '') + (einst.erinnerungId ? '🔔 Erinnerung alle 6 Monate ist eingetragen.' : '');
     document.getElementById('btnErinnerung').textContent = einst.erinnerungId ? '🔕 Erinnerung entfernen' : '🔔 Alle 6 Monate an den Vorrats-Check erinnern';
@@ -881,7 +961,7 @@
   }
   fPers.addEventListener('change', () => { const v = Math.max(1, Math.min(20, Math.round(Number(fPers.value) || 1))); einst.personen = v === personenAusPlaner() ? undefined : v; speichernEinst(); rechnerFuellen(); renderChecklisten(); });
   fTiere.addEventListener('change', () => { einst.tiere = Math.max(0, Math.min(20, Math.round(Number(fTiere.value) || 0))); speichernEinst(); renderChecklisten(); });
-  document.querySelectorAll('#tageWahl button').forEach(b => b.addEventListener('click', () => { einst.tage = Number(b.dataset.tage); speichernEinst(); rechnerFuellen(); renderChecklisten(); }));
+  document.querySelectorAll('#tageWahl button').forEach(b => b.addEventListener('click', () => { einst.tage = Number(b.dataset.tage); speichernEinst(); rechnerFuellen(); renderChecklisten(); renderPlanMedis(); }));
   document.getElementById('btnAlleZurueck').addEventListener('click', () => {
     if (!Object.keys(checks).length) return;
     const vorher = checks, vorherDatum = einst.letzterCheck;
@@ -919,6 +999,9 @@
     document.querySelectorAll('[data-plan]').forEach(el => { if (document.activeElement !== el) el.value = plan[el.dataset.plan] || ''; });
     renderKontakte();
     renderWasserstellen();
+    renderPlanMedis();
+    renderEhKurse();
+    renderSicherung();
   }
   function planSpeichernSpaeter() {
     clearTimeout(planTimer);
@@ -963,6 +1046,144 @@
     }, 50);
   });
 
+
+  // ---------- 📊 Reichweite: für wie viele Tage reicht der Vorrat? ----------
+  function stufe(t) { return t >= tage() ? 'gut' : t >= 3 ? 'mittel' : 'knapp'; }
+  function reichweiteBerechnen() { return NL ? NL.reichweite(laden('vorratskammer_items', []), personen(), einst.eigeneMengen || {}) : null; }
+  function renderReichweite() {
+    const box = document.getElementById('reichweite');
+    const r = reichweiteBerechnen();
+    if (!r) { box.style.display = 'none'; return; }
+    const ziel = tage();
+    const wert = (icon, t, was) => `<div class="rw-wert ${stufe(t)}"><span>${icon} ${was}</span><b>${t > 60 ? '60+' : t} ${t === 1 ? 'Tag' : 'Tage'}</b></div>`;
+    const knappste = r.kategorien.slice(1).slice().sort((a, b) => a.tage - b.tage)[0];
+    const offen = box.querySelector('details') && box.querySelector('details').open;
+    box.innerHTML = `<h3>📊 So lange reicht euer Vorrat</h3>
+      <div style="font-size:0.76rem;color:var(--bark)">Geschätzt aus der Vorratskammer für ${r.personen} ${r.personen === 1 ? 'Person' : 'Personen'} · Ziel: ${ziel} Tage</div>
+      <div class="rw-gross">${wert('💧', r.wasserTage, 'Wasser')}${wert('🍽️', r.essenTage, 'Essen')}</div>
+      ${r.essenTage >= 1 && knappste && knappste.tage < Math.min(ziel, r.essenTage) ? `<div style="font-size:0.78rem">⚖️ Am knappsten: <b>${escapeHtml(knappste.text)}</b> (${Math.floor(knappste.tage)} ${Math.floor(knappste.tage) === 1 ? 'Tag' : 'Tage'})</div>` : ''}
+      <details${offen ? ' open' : ''} style="margin-top:8px"><summary style="cursor:pointer;font-size:0.8rem;font-weight:700;color:var(--terracotta-text)">Aufschlüsselung &amp; eigene Angaben</summary>
+        <div style="margin-top:6px">${r.kategorien.map(k => {
+          const t = Math.floor(k.tage + 1e-9), pr = Math.min(100, k.tage / ziel * 100);
+          const namen = k.eintraege.slice(0, 5).map(e => escapeHtml(e.name) + ' ' + (e.geschaetzt ? '≈' : '') + NL.mengeText(e.menge, k.einheit)).join(' · ') + (k.eintraege.length > 5 ? ' · …' : '');
+          return `<div class="rw-zeile"><div class="rw-kopf">${k.icon} ${escapeHtml(k.text)}<span class="rw-tage ${stufe(t) === 'knapp' ? 'knapp' : ''}">${NL.mengeText(k.menge, k.einheit)} · ${t > 60 ? '60+' : t} ${t === 1 ? 'Tag' : 'Tage'}</span></div>
+            <div class="rw-balken"><span class="${stufe(t)}" style="width:${pr}%"></span></div>
+            <div class="rw-items">${k.eigen ? '✏️ eigene Angabe' : (namen || 'Nichts in der Vorratskammer gefunden')} · Bedarf ${NL.mengeText(k.bedarfProTag * ziel, k.einheit)} für ${ziel} Tage</div>
+            <label class="rw-eigen">✏️ Eigene Angabe <input type="number" min="0" step="0.1" inputmode="decimal" data-eigen="${k.id}" value="${k.eigen ? escapeHtml(String(einst.eigeneMengen[k.id])) : ''}" placeholder="auto"> ${k.einheit}</label></div>`;
+        }).join('')}</div>
+      </details>
+      ${r.kuehl.length ? `<div class="info">❄️ Nicht mitgezählt: ${r.kuehl.length} ${r.kuehl.length === 1 ? 'Sache' : 'Sachen'} aus Kühlschrank und Gefrierfach – bei Stromausfall zuerst aufbrauchen (Kühlschrank ca. 4 Stunden, volle Gefriertruhe ca. 2 Tage).</div>` : ''}
+      ${r.geschaetzt ? '<div style="font-size:0.72rem;color:var(--bark);margin-top:6px">≈ Wo keine Menge eingetragen ist, wird geschätzt (z. B. Dose ≈ 400 g, Kiste Wasser ≈ 9 l). Genauer wird es mit Stückzahl und Menge („500 g“) in der Vorratskammer – oder mit einer eigenen Angabe.</div>' : ''}`;
+    box.querySelectorAll('[data-eigen]').forEach(inp => inp.addEventListener('change', () => {
+      einst.eigeneMengen = einst.eigeneMengen || {};
+      const v = parseFloat(String(inp.value).replace(',', '.'));
+      if (inp.value === '' || isNaN(v)) delete einst.eigeneMengen[inp.dataset.eigen]; else einst.eigeneMengen[inp.dataset.eigen] = Math.max(0, v);
+      if (!Object.keys(einst.eigeneMengen).length) delete einst.eigeneMengen;
+      speichernEinst(); renderReichweite();
+    }));
+  }
+
+  // ---------- 💊 Medikamente aus Gesundheit ----------
+  function medisLaden() { return NL ? NL.medikamente(laden('gesundheit_medikamente', [])) : []; }
+  function mediHinweisHtml() {
+    const m = medisLaden();
+    if (!m.length) return '';
+    const knapp = m.filter(x => x.tage !== null && x.tage < tage());
+    const offen = m.filter(x => x.tage === null).length;
+    return `<small class="vorrat">💊 Aus Gesundheit: ${m.length} ${m.length === 1 ? 'Medikament' : 'Medikamente'}${knapp.length ? ` · <b style="color:var(--rot)">⚠ ${escapeHtml(knapp.map(x => x.name).join(', '))} reicht keine ${tage()} Tage</b>` : ''}${offen ? ` · bei ${offen} ist kein Vorrat erfasst` : ''}</small>`;
+  }
+  function renderPlanMedis() {
+    const box = document.getElementById('planMedis');
+    const m = medisLaden();
+    if (!m.length) { box.innerHTML = '<div style="font-size:0.8rem;color:var(--bark)">In 🏃 Gesundheit sind keine Medikamente eingetragen. Wichtiges könnt ihr auch unten bei „Kinder &amp; Familie“ notieren.</div>'; return; }
+    box.innerHTML = m.slice().sort((a, b) => personName(a.person).localeCompare(personName(b.person), 'de')).map(x => `<div class="med-zeile"><span class="wer">${escapeHtml(personName(x.person) || '–')}</span><span>${escapeHtml(x.name)}${x.hinweis ? ' <small style="color:var(--bark)">· ' + escapeHtml(x.hinweis) + '</small>' : ''}</span>
+      <span class="rest ${x.tage === null ? 'offen' : x.tage < tage() ? 'knapp' : ''}">${x.tage === null ? 'Vorrat nicht erfasst' : (x.tage < tage() ? '⚠ ' : '✓ ') + 'reicht ' + x.tage + (x.tage === 1 ? ' Tag' : ' Tage')}</span></div>`).join('') +
+      `<div class="kein-druck" style="font-size:0.72rem;color:var(--bark);margin-top:6px">Ziel: Vorrat für mindestens ${tage()} Tage. Den Vorrat (📦) tragt ihr in Gesundheit ein. <a href="#" id="lnkGesundheit" style="color:var(--terracotta-text)">Zu Gesundheit →</a></div>`;
+    const l = document.getElementById('lnkGesundheit');
+    if (l) l.addEventListener('click', (e) => { e.preventDefault(); navigiere('gesundheit'); });
+  }
+  function navigiere(modul, aktion, text) { try { parent.postMessage({ type: 'navigiere', modul, aktion: aktion || '', text: text || '' }, location.origin); } catch (e) {} }
+
+  // ---------- 🩹 Erste-Hilfe-Kurs ----------
+  function monateSeit(ym) {
+    const [y, m] = String(ym).split('-').map(Number); const d = new Date();
+    return (d.getFullYear() - y) * 12 + (d.getMonth() + 1 - m);
+  }
+  function ehStatus(ym) {
+    if (!/^\d{4}-\d{2}$/.test(ym || '')) return '<small>noch nicht eingetragen</small>';
+    const mo = monateSeit(ym);
+    if (mo < 0) return '<small class="ok">📅 geplant</small>';
+    const j = Math.floor(mo / 12);
+    const wann = mo < 12 ? (mo <= 1 ? 'gerade erst' : 'vor ' + mo + ' Monaten') : 'vor ' + (j === 1 ? 'einem Jahr' : j + ' Jahren');
+    return mo >= 24 ? `<small class="alt">⚠ ${wann} – Auffrischung empfohlen</small>` : `<small class="ok">✓ ${wann}</small>`;
+  }
+  function renderEhKurse() {
+    const box = document.getElementById('ehKurse');
+    const leute = (window.PLANER_PERSONEN || []).filter(p => p.id !== 'familie');
+    plan.ehKurse = plan.ehKurse || {};
+    if (!leute.length) { box.innerHTML = '<div style="font-size:0.8rem;color:var(--bark)">Legt zuerst Personen an (👪 oben in der App).</div>'; return; }
+    box.innerHTML = leute.map(p => `<div class="eh-zeile"><b>${escapeHtml(p.label)}</b><input type="month" data-eh="${escapeHtml(p.id)}" value="${escapeHtml(plan.ehKurse[p.id] || '')}" aria-label="Letzter Erste-Hilfe-Kurs ${escapeHtml(p.label)}">${ehStatus(plan.ehKurse[p.id])}</div>`).join('');
+    box.querySelectorAll('[data-eh]').forEach(inp => inp.addEventListener('change', () => {
+      plan.ehKurse = plan.ehKurse || {};
+      if (inp.value) plan.ehKurse[inp.dataset.eh] = inp.value; else delete plan.ehKurse[inp.dataset.eh];
+      speichern(KEY_PLAN, plan); renderEhKurse();
+    }));
+  }
+  document.getElementById('btnEhTermin').addEventListener('click', () => navigiere('termine', 'neu', '🩹 Erste-Hilfe-Kurs '));
+
+  // ---------- 💾 Datensicherung ----------
+  function renderSicherung() {
+    let iso = ''; try { iso = localStorage.getItem('planer_letztesGesamtBackup') || ''; } catch (e) {}
+    const el = document.getElementById('sicherungText');
+    if (!iso) { el.innerHTML = 'ℹ️ Auf diesem Gerät wurde noch <b>keine Gesamt-Sicherung</b> erstellt.'; return; }
+    const tg = Math.floor((Date.now() - new Date(iso).getTime()) / 864e5);
+    el.innerHTML = (tg > 90 ? '⏰ ' : '✓ ') + 'Letzte Gesamt-Sicherung auf diesem Gerät: <b>' + (tg <= 0 ? 'heute' : tg === 1 ? 'gestern' : 'vor ' + tg + ' Tagen') + '</b> (' + new Date(iso).toLocaleDateString('de-DE') + ').';
+  }
+  document.getElementById('btnSichern').addEventListener('click', () => { try { parent.postMessage({ type: 'oeffneDialog', dialog: 'backup' }, location.origin); } catch (e) {} });
+
+  // ---------- ⚡ Kurzansicht ----------
+  function telLink(t) { const n = String(t || '').replace(/[^\d+]/g, ''); return n ? `<a href="tel:${escapeHtml(n)}">${escapeHtml(t)}</a>` : escapeHtml(t || ''); }
+  function kurzZeile(label, wert, html) { return wert ? `<div class="kurz-zeile"><span>${escapeHtml(label)}</span><span>${html ? wert : escapeHtml(wert)}</span></div>` : ''; }
+  function renderKurz() {
+    const r = reichweiteBerechnen();
+    const kontakte = (plan.kontakte || []).filter(k => k && (k.tel || '').trim());
+    const ws = (plan.wasserstellen || []).filter(w => w && (w.name || w.notiz));
+    const medis = medisLaden();
+    const haus = [['💧 Hauptwasserhahn', plan.wasserhahn], ['⚡ Sicherungskasten', plan.sicherung], ['🔥 Gas-Absperrhahn', plan.gas], ['🛡️ Schutzraum', plan.schutzraum], ['🎒 Notgepäck', plan.notgepaeck], ['📁 Dokumente', plan.dokumente]].filter(x => (x[1] || '').trim());
+    const treff = [['📍 In der Nähe', plan.treffNah], ['🚗 Außerhalb', plan.treffFern], ['🏛️ Gemeinde', plan.gemeinde]].filter(x => (x[1] || '').trim());
+    const leer = !kontakte.length && !haus.length && !treff.length;
+    document.getElementById('kurzInhalt').innerHTML = `
+      <div class="kurz-nummern">
+        <a href="tel:112"><b>112</b><span>Feuerwehr &amp; Rettung</span></a>
+        <a href="tel:110"><b>110</b><span>Polizei</span></a>
+        <a href="tel:116117"><b>116 117</b><span>Ärztl. Bereitschaft</span></a>
+        <a href="tel:076119240"><b>Giftnotruf</b><span>0761 19240</span></a>
+      </div>
+      <button type="button" class="kurz-status" id="btnKurzStatus">🙋 Der Familie melden: „Mir geht's gut“</button>
+      <div class="kurz-text" style="font-size:0.74rem;color:#8a8a8a">Ohne Netz wird die Nachricht gesendet, sobald wieder Verbindung da ist.</div>
+      ${treff.length ? '<h4>Treffpunkte</h4>' + treff.map(x => kurzZeile(x[0], x[1])).join('') : ''}
+      ${kontakte.length ? '<h4>Kontakte</h4>' + kontakte.map(k => kurzZeile(k.name || 'Kontakt', telLink(k.tel), true)).join('') : ''}
+      ${haus.length ? '<h4>Wo ist was?</h4>' + haus.map(x => kurzZeile(x[0], x[1])).join('') : ''}
+      ${medis.length || (plan.medikamente || '').trim() ? '<h4>Medikamente</h4>' + medis.map(m => kurzZeile(personName(m.person) || '–', escapeHtml(m.name) + (m.tage !== null ? ' · <span class="' + (m.tage < tage() ? 'kurz-knapp' : '') + '">' + m.tage + ' T.</span>' : ''), true)).join('') + ((plan.medikamente || '').trim() ? `<div class="kurz-text" style="white-space:pre-wrap;padding:8px 0">${escapeHtml(plan.medikamente)}</div>` : '') : ''}
+      ${ws.length ? '<h4>Wasserstellen</h4>' + ws.map(w => kurzZeile((w.art || '💧'), (w.name || '') + (w.notiz ? ' – ' + w.notiz : ''))).join('') + '<div class="kurz-text" style="font-size:0.78rem">Wasser aus der Natur immer filtern und abkochen.</div>' : ''}
+      ${r ? `<h4>Vorrat reicht</h4>${kurzZeile('💧 Wasser', '<span class="' + (r.wasserTage < 3 ? 'kurz-knapp' : '') + '">ca. ' + r.wasserTage + (r.wasserTage === 1 ? ' Tag' : ' Tage') + '</span>', true)}${kurzZeile('🍽️ Essen', '<span class="' + (r.essenTage < 3 ? 'kurz-knapp' : '') + '">ca. ' + r.essenTage + (r.essenTage === 1 ? ' Tag' : ' Tage') + '</span>', true)}` : ''}
+      <h4>Merken</h4>
+      <div class="kurz-text">📻 <b>Radio an</b> (Batterie, Kurbel, Auto) – und Warn-App NINA.<br>☠️ Grill, Gaskocher, Generator <b>nur draußen</b> – Kohlenmonoxid!<br>☢️ Sirene/Warnung: <b>rein, drinnen bleiben, Fenster zu, Lüftung aus</b>.<br>💧 2 l Trinkwasser pro Person und Tag. Unsicheres Wasser abkochen.<br>🔋 Akku sparen: Helligkeit runter, Flugmodus, wenn nicht gebraucht.</div>
+      ${leer ? '<div class="kurz-text" style="margin-top:14px;color:#ffcc80">ℹ️ Noch kein Notfallplan eingetragen – unter „📋 Unser Plan“ Treffpunkte, Kontakte und „Wo ist was“ ausfüllen, dann steht es hier.</div>' : ''}`;
+    document.getElementById('btnKurzStatus').addEventListener('click', () => navigiere('chat', 'status', ''));
+  }
+  function kurzOeffnen() { renderKurz(); document.getElementById('kurz').hidden = false; document.getElementById('kurz').scrollTop = 0; document.getElementById('btnKurzZu').focus(); }
+  function kurzZu() { document.getElementById('kurz').hidden = true; }
+  document.getElementById('btnKurz').addEventListener('click', kurzOeffnen);
+  document.getElementById('btnKurzZu').addEventListener('click', kurzZu);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !document.getElementById('kurz').hidden) kurzZu(); });
+  window.addEventListener('message', (e) => {
+    if (e.origin !== location.origin || !e.data || e.data.type !== 'shortcutAktion') return;
+    if (e.data.aktion === 'kurz') kurzOeffnen();
+    if (e.data.aktion === 'vorrat') { seiteZeigen('vorrat'); }
+  });
+  try { if (new URLSearchParams(location.search).get('kurz') === '1') setTimeout(kurzOeffnen, 0); } catch (e) {}
+
   rechnerFuellen();
   renderChecklisten();
   planFuellen();
@@ -974,12 +1195,15 @@
       onRemoteChange: function () {
         checks = laden(KEY_CHECKS, {}) || {}; plan = laden(KEY_PLAN, {}) || {}; einst = laden(KEY_EINST, {}) || {};
         rechnerFuellen(); renderChecklisten(); planFuellen();
+        if (!document.getElementById('kurz').hidden) renderKurz();
       },
     });
     einkaufSync = window.PlanerSync.starteSync({ modul: 'einkauf', keys: ['einkauf_listen'] });
     termineSync = window.PlanerSync.starteSync({ modul: 'termine', keys: ['termine_events_v1'] });
     // Vorratskammer nur mitlesen (Hinweis „In der Vorratskammer“)
     window.PlanerSync.starteSync({ modul: 'vorratskammer', keys: ['vorratskammer_items'], onRemoteChange: renderChecklisten });
+    // Medikamente aus Gesundheit nur mitlesen
+    window.PlanerSync.starteSync({ modul: 'gesundheit', keys: ['gesundheit_medikamente'], onRemoteChange: () => { renderChecklisten(); renderPlanMedis(); } });
   }
 })();
 </script>

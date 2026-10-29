@@ -186,6 +186,23 @@
 
   /* Karten mit zweitem Knopf (Route) */
   .karte-knoepfe { display: flex; gap: 6px; }
+  /* 🙋 Status-Meldungen („Mir geht's gut“) */
+  .karte.status { border-left: 4px solid #4f6f45; }
+  .karte.status .karte-titel { font-size: 1rem; }
+  .karte.status-hilfe { border-left-color: #b3261e; background: rgba(179,38,30,0.18) !important; }
+  .karte.status-frage { border-left-color: #c99a3a; }
+  #statusLeiste { display: none; flex-shrink: 0; align-items: center; gap: 5px; flex-wrap: wrap; padding: 7px 10px; background: var(--white); border-bottom: 1px solid var(--parchment); font-size: 0.76rem; }
+  #statusLeiste.an { display: flex; }
+  #statusLeiste .st-titel { font-weight: 800; margin-right: 2px; }
+  .st-chip { border-radius: 999px; padding: 3px 9px; background: rgba(127,127,127,0.14); font-weight: 600; white-space: nowrap; }
+  .st-chip.gut { background: rgba(79,111,69,0.2); }
+  .st-chip.hilfe { background: rgba(179,38,30,0.22); color: #b3261e; font-weight: 800; }
+  html[data-dark="1"] .st-chip.hilfe { color: #ff8a80; }
+  .st-chip.wartet { opacity: 0.75; }
+  #statusLeiste button { margin-left: auto; border: none; border-radius: 999px; padding: 5px 11px; background: var(--moss); color: var(--on-moss, #fff); font: 700 0.74rem 'Inter', sans-serif; cursor: pointer; }
+  .st-ort { display: flex; align-items: center; gap: 8px; margin: 10px 2px 4px; font-size: 0.84rem; }
+  .st-ort input { width: 18px; height: 18px; }
+  .st-hinweis { font-size: 0.74rem; opacity: 0.75; margin: 0 2px 8px; line-height: 1.45; }
   .karte-knoepfe button { flex: 1; }
   .karte button.zweit { background: rgba(127,127,127,0.22); color: inherit; }
 
@@ -221,6 +238,7 @@
     <button type="button" id="btnSuchZu" aria-label="Suche schließen" title="Suche schließen">✕</button>
   </div>
 
+  <div id="statusLeiste" aria-live="polite"></div>
   <div id="einrichtung"></div>
   <div id="verlauf" aria-live="polite"></div>
 
@@ -435,7 +453,7 @@
     let h = '';
     if (m.typ === 'bild') h += medienCache.has(m.id) ? '<img class="bild" src="' + medienCache.get(m.id).bild + '" alt="Foto">' : '<div class="platzhalter" data-medien="' + esc(m.id) + '">📷 Foto wird geladen …</div>';
     if (m.typ === 'sprache') h += '<div class="sprache" data-sprache="' + esc(m.id) + '"><button type="button" aria-label="Abspielen">▶</button><div class="balken"><span></span></div><span class="dauer">' + dauerText(m.dauer || 0) + '</span></div>';
-    if (m.typ === 'karte' && m.karte) h += karteHtml(m.karte);
+    if (m.typ === 'karte' && m.karte) h += karteHtml(m.karte, m);
     if (m.typ === 'umfrage' && m.umfrage) h += umfrageHtml(m);
     if (m.text) h += '<div class="text">' + linkify(m.text) + '</div>';
     return h;
@@ -501,9 +519,81 @@
     return h + '</div></div>';
   }
   const dauerText = (s) => Math.floor(s / 60) + ':' + String(Math.round(s % 60)).padStart(2, '0');
-  const KARTE_ICON = { termin: '🗓️', rezept: '🍳', wunsch: '🎁', einkauf: '🛒', ausflug: '🧭', standort: '📍' };
+  const KARTE_ICON = { termin: '🗓️', rezept: '🍳', wunsch: '🎁', einkauf: '🛒', ausflug: '🧭', standort: '📍', status: '🙋' };
+  // 🙋 Status-Meldungen für Unwetter, Stromausfall & Co.
+  const STATUS = {
+    gut: { em: '✅', titel: 'Mir geht\u2019s gut' },
+    zuhause: { em: '🏠', titel: 'Bin zu Hause und in Sicherheit' },
+    treffpunkt: { em: '📍', titel: 'Bin am Treffpunkt' },
+    hilfe: { em: '🆘', titel: 'Brauche Hilfe!' },
+    frage: { em: '🙋', titel: 'Geht es allen gut? Bitte kurz melden' },
+  };
+  function statusKarteHtml(k, m) {
+    const s = STATUS[k.code] || STATUS.gut;
+    const eigen = m && m.von === ich();
+    let knoepfe = '';
+    if (k.code === 'frage' && !eigen) knoepfe = '<div class="karte-knoepfe"><button type="button" data-st="gut">✅ Mir geht\u2019s gut</button><button type="button" class="zweit" data-st="mehr">Anderes …</button></div>';
+    else if (k.lat != null) knoepfe = '<div class="karte-knoepfe"><button type="button" data-karte=\'' + esc(JSON.stringify({ art: 'standort', lat: k.lat, lon: k.lon })) + '\'>🗺️ Standort ansehen</button></div>';
+    return '<div class="karte status status-' + esc(k.code || 'gut') + '"><div class="karte-titel">' + s.em + ' ' + esc(k.titel || s.titel) + '</div>' +
+      (k.info ? '<div class="karte-info">' + esc(k.info) + '</div>' : '') + knoepfe + '</div>';
+  }
+  function statusBlatt() {
+    const treff = (lies('notfall_plan', {}) || {}).treffNah || '';
+    blatt('<h3>🙋 Wie geht\u2019s dir?</h3><div class="st-hinweis">Die Familie bekommt sofort eine Nachricht. Ohne Netz wird sie gesendet, sobald wieder Verbindung da ist (🕓).</div><div class="blatt-raster">' +
+      '<button type="button" data-st="gut"><span class="em">✅</span>Mir geht\u2019s gut</button>' +
+      '<button type="button" data-st="zuhause"><span class="em">🏠</span>Bin zu Hause</button>' +
+      '<button type="button" data-st="treffpunkt"><span class="em">📍</span>Am Treffpunkt' + (treff ? '<small style="display:block;font-size:0.66rem;opacity:0.75;font-weight:500">' + esc(treff) + '</small>' : '') + '</button>' +
+      '<button type="button" data-st="hilfe"><span class="em">🆘</span>Brauche Hilfe</button>' +
+      '<button type="button" data-st="frage"><span class="em">🙋</span>Alle fragen, ob es ihnen gut geht</button></div>' +
+      '<label class="st-ort"><input type="checkbox" id="stOrt"> 📍 Meinen Standort mitsenden</label>' +
+      '<div class="st-hinweis">Bei „Brauche Hilfe“ wird der Standort automatisch mitgeschickt, wenn das Handy ihn ermitteln kann. Im echten Notfall immer zuerst <b>112</b> anrufen.</div>');
+    $('blatt').querySelectorAll('[data-st]').forEach(b => b.addEventListener('click', () => statusSenden(b.dataset.st, b.dataset.st === 'hilfe' || $('stOrt').checked)));
+  }
+  function statusSenden(code, mitOrt) {
+    const s = STATUS[code]; if (!s) return;
+    blattZu();
+    const treff = code === 'treffpunkt' ? ((lies('notfall_plan', {}) || {}).treffNah || '') : '';
+    const karte = { art: 'status', code, titel: s.titel, info: 'Stand ' + zeitText(Date.now()) + ' Uhr' + (treff ? ' · ' + treff : '') };
+    const los = (extra) => {
+      senden({ typ: 'karte', karte: Object.assign(karte, extra || {}), status: code }).catch(e => alert('Senden fehlgeschlagen: ' + fehlerText(e)));
+      if (navigator.onLine === false) toast('📶 Kein Netz – wird gesendet, sobald wieder Verbindung da ist');
+      else toast(s.em + ' Gesendet');
+    };
+    if (!mitOrt || !navigator.geolocation || code === 'frage') { los(); return; }
+    toast('📍 Standort wird ermittelt …');
+    let fertig = false;
+    const ohne = setTimeout(() => { if (!fertig) { fertig = true; los(); } }, 12000);
+    navigator.geolocation.getCurrentPosition(pos => {
+      if (fertig) return; fertig = true; clearTimeout(ohne);
+      const lat = Math.round(pos.coords.latitude * 100000) / 100000, lon = Math.round(pos.coords.longitude * 100000) / 100000;
+      los({ lat, lon, info: karte.info + ' · 📍 Standort dabei' });
+    }, () => { if (fertig) return; fertig = true; clearTimeout(ohne); los(); }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 120000 });
+  }
+  // Leiste oben: Wer hat sich seit der letzten Frage (bzw. in den letzten 24 h) gemeldet?
+  function statusLeisteRendern() {
+    const el = $('statusLeiste'); if (!el) return;
+    const grenze = Date.now() - 24 * 3600e3;
+    const st = nachrichten.filter(m => !m._kaputt && m.typ === 'karte' && m.karte && m.karte.art === 'status' && m._ms >= grenze);
+    if (!st.length) { el.classList.remove('an'); el.innerHTML = ''; return; }
+    const fragen = st.filter(m => m.karte.code === 'frage');
+    const frage = fragen[fragen.length - 1];
+    const ab = frage ? frage._ms : grenze;
+    const letzte = {};
+    st.forEach(m => { if (m.karte.code !== 'frage' && m._ms >= ab) letzte[m.von] = m; });
+    const chips = personen().map(p => {
+      const m = letzte[p.id];
+      if (m) { const s = STATUS[m.karte.code] || STATUS.gut; return '<span class="st-chip ' + (m.karte.code === 'hilfe' ? 'hilfe' : 'gut') + '">' + s.em + ' ' + esc(p.label) + ' ' + zeitText(m._ms) + '</span>'; }
+      return frage && frage.von !== p.id ? '<span class="st-chip wartet">⏳ ' + esc(p.label) + '</span>' : '';
+    }).join('');
+    if (!chips) { el.classList.remove('an'); el.innerHTML = ''; return; }
+    const ichGemeldet = !!letzte[ich()] || (frage && frage.von === ich());
+    el.innerHTML = '<span class="st-titel">🙋 ' + (frage ? 'Rückmeldungen seit ' + zeitText(ab) + ':' : 'Heute gemeldet:') + '</span>' + chips + (ichGemeldet ? '' : '<button type="button" id="btnStLeiste">Ich melde mich</button>');
+    el.classList.add('an');
+    const b = $('btnStLeiste'); if (b) b.addEventListener('click', statusBlatt);
+  }
   const KARTE_KNOPF = { termin: 'Im Kalender öffnen', rezept: 'Rezept öffnen', wunsch: 'In der Wunschliste öffnen', einkauf: 'Einkaufsliste öffnen', ausflug: 'Öffnen', standort: '🗺️ In der Karten-App öffnen' };
-  function karteHtml(k) {
+  function karteHtml(k, m) {
+    if (k.art === 'status') return statusKarteHtml(k, m);
     const daten = esc(JSON.stringify({ art: k.art, id: k.id, datum: k.datum, ort: k.ort, lat: k.lat, lon: k.lon }));
     const route = k.art === 'ausflug' && k.ort ? '<button type="button" class="zweit" data-karte-route=\'' + daten + '\'>🧭 Route</button>' : '';
     return '<div class="karte"><div class="karte-titel">' + (KARTE_ICON[k.art] || '📎') + ' ' + esc(k.titel || '') + '</div>' +
@@ -517,6 +607,7 @@
     const vorherHoehe = box.scrollHeight, vorherOben = box.scrollTop;
     const v = status.verschluesselung;
     $('kopfInfo').textContent = v && v.aktiv ? '🔒 verschlüsselt' : '';
+    statusLeisteRendern();
     if (!nachrichten.length) {
       box.innerHTML = '<div class="leer">Noch keine Nachrichten.<br>Schreib etwas – oder teile über ＋ einen Termin, ein Rezept oder ein Foto. 👋</div>';
       return;
@@ -613,6 +704,7 @@
     const p = person(ich()) || {};
     const ref = chatCol().doc();
     const doc = { von: ich(), name: p.label || '', geraet: geraet(), zeit: Date.now(), erstellt: firebase.firestore.FieldValue.serverTimestamp(), typ: inhalt.typ, dauer: inhalt.dauer || null };
+    if (inhalt.status) doc.status = inhalt.status; // nur der Code (z. B. „gut“), damit die Push-Nachricht auch bei Verschlüsselung passt
     const antwort = inhalt.antwort !== undefined ? inhalt.antwort : antwortAuf;
     const geheim = { text: inhalt.text || '', karte: inhalt.karte || null, umfrage: inhalt.umfrage || null, antwort: antwort || null };
     antwortBeenden();
@@ -750,6 +842,7 @@
   $('blattBg').addEventListener('click', e => { if (e.target.id === 'blattBg') blattZu(); });
   $('btnPlus').addEventListener('click', () => {
     blatt('<h3>Teilen</h3><div class="blatt-raster">' +
+      '<button type="button" data-t="status"><span class="em">🙋</span>Mir geht\u2019s gut / Status</button>' +
       '<button type="button" data-t="kamera"><span class="em">📸</span>Kamera</button>' +
       '<button type="button" data-t="foto"><span class="em">🖼️</span>Galerie</button>' +
       '<button type="button" data-t="termin"><span class="em">🗓️</span>Termin</button>' +
@@ -802,6 +895,7 @@
     }
     if (was === 'unterwegs') { blattZu(); senden({ typ: 'text', text: '🚗 Bin unterwegs – bis gleich!' }).catch(e => alert(fehlerText(e))); }
     if (was === 'umfrage') { umfrageBlatt(); return; }
+    if (was === 'status') { statusBlatt(); return; }
     if (was === 'ausflug') {
       const h = heuteISO();
       const alle = lies('ausfluege_planung', []).filter(a => a && (a.titel || a.ort));
@@ -964,6 +1058,8 @@
 
   // ---------------------------------------------------------------- Klicks im Verlauf
   $('verlauf').addEventListener('click', (e) => {
+    const sb = e.target.closest('[data-st]');
+    if (sb) { if (sb.dataset.st === 'mehr') statusBlatt(); else statusSenden(sb.dataset.st, false); return; }
     const kb = e.target.closest('[data-karte]');
     if (kb) { karteOeffnen(JSON.parse(kb.getAttribute('data-karte'))); return; }
     const kr = e.target.closest('[data-karte-route]');
@@ -1160,6 +1256,12 @@
   window.addEventListener('message', (e) => {
     if (e.origin !== location.origin || !e.data || e.data.type !== 'shortcutAktion') return;
     if (e.data.aktion === 'neu' && e.data.text) { $('eingabe').value = e.data.text; eingabeAnpassen(); $('eingabe').focus(); }
+    if (e.data.aktion === 'status') {
+      // erst öffnen, wenn der Chat eingerichtet ist (Person gewählt, ggf. Passwort)
+      let versuche = 0;
+      const oeffnen = () => { if (db && $('eingabeLeiste').style.display !== 'none' && !$('einrichtung').classList.contains('zeigen')) statusBlatt(); else if (++versuche < 40) setTimeout(oeffnen, 300); };
+      oeffnen();
+    }
   });
 
   if (window.PlanerSync) {

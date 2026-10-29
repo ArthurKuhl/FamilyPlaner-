@@ -233,6 +233,17 @@
   .fin-balken > div.ueber { background: var(--terracotta, #c46b41); }
   .fin-zahl { font-size: 1.15rem; font-weight: 800; color: var(--moss-text, var(--moss)); }
   .fin-klein { font-size: 0.75rem; color: var(--bark); }
+  .kopf-sos { background: #b3261e; color: #fff; border: none; border-radius: 999px; font-size: 0.72rem; font-weight: 800; padding: 6px 10px; margin-top: 1px; cursor: pointer; letter-spacing: .02em; }
+  .kopf-sos:focus-visible { outline: 2px solid var(--leaf); outline-offset: 2px; }
+  .nf-werte { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px; }
+  .nf-wert { background: var(--cream); border-radius: var(--radius-sm); padding: 7px 10px; border-left: 4px solid var(--bark); font-size: 0.74rem; color: var(--bark); }
+  .nf-wert b { display: block; font-size: 1.1rem; color: var(--soil); }
+  .nf-wert.gut { border-left-color: #4f6f45; } .nf-wert.mittel { border-left-color: #c99a3a; } .nf-wert.knapp { border-left-color: #b3261e; }
+  .nf-wert.knapp b { color: #b3261e; }
+  html[data-dark="1"] .nf-wert.knapp b { color: #ff8a80; }
+  .nf-zeile { font-size: 0.78rem; margin-top: 6px; line-height: 1.4; }
+  .nf-zeile.warn { color: #b3261e; font-weight: 600; }
+  html[data-dark="1"] .nf-zeile.warn { color: #ff8a80; }
   .kind-zeile { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-top: 1px solid var(--parchment); font-size: 0.85rem; }
   .kind-zeile:first-child { border-top: none; }
   .kind-punkt { width: 26px; height: 26px; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.75rem; flex-shrink: 0; }
@@ -284,6 +295,7 @@
 <script src="sync.js"></script>
 <script src="haushaltlogik.js"></script>
 <script src="terminlogik.js"></script>
+<script src="notfalllogik.js"></script>
 </head>
 <body>
 
@@ -298,6 +310,7 @@
     </div>
   </div>
   <div style="display:flex;align-items:flex-start;gap:4px;">
+    <button class="kopf-zahnrad" id="btnKopfSos" title="Notfall: das Wichtigste auf einen Blick" aria-label="Notfall-Kurzansicht öffnen" style="display:none;">🆘</button>
     <button class="kopf-zahnrad" id="btnKachelnAnordnen" title="Kacheln anordnen" aria-label="Kacheln anordnen">↕️</button>
     <button class="kopf-zahnrad" id="btnKopfEinstellungen" title="Einstellungen" aria-label="Einstellungen öffnen">⚙️</button>
   </div>
@@ -429,6 +442,14 @@
       <span class="kachel-pfeil">→</span>
     </div>
     <div id="gamingInfo"></div>
+  </div>
+
+  <div class="kachel" id="kachelNotfall" style="cursor:pointer;display:none;">
+    <div class="kachel-kopf">
+      <div class="kachel-titel">🆘 Notfall-Vorrat</div>
+      <span class="kachel-pfeil">→</span>
+    </div>
+    <div id="notfallInfo"></div>
   </div>
 
   <div class="kachel" id="kachelNeuigkeiten" style="cursor:pointer;display:none;">
@@ -2124,6 +2145,31 @@
   }
   document.getElementById('kachelGaming').addEventListener('click', () => navigiere('gaming'));
 
+  // 🆘 Notfall: Reichweite des Vorrats + knappe Medikamente; 🆘-Knopf oben öffnet die Kurzansicht
+  function renderNotfall() {
+    const kachel = document.getElementById('kachelNotfall'), sos = document.getElementById('btnKopfSos');
+    const sichtbar = modulSichtbar('notfall');
+    sos.style.display = sichtbar ? '' : 'none';
+    const NL = window.NotfallLogik;
+    const einst = laden('notfall_einstellungen', {}) || {};
+    const items = laden('vorratskammer_items', []);
+    if (!sichtbar || !NL || !(Array.isArray(items) && items.length) || !modulSichtbar('vorratskammer')) { kachel.style.display = 'none'; return; }
+    const personen = Math.max(1, Number(einst.personen) || (window.PLANER_PERSONEN || []).filter(p => p.id !== 'familie').length || 1);
+    const ziel = [3, 5, 10].includes(Number(einst.tage)) ? Number(einst.tage) : 10;
+    const r = NL.reichweite(items, personen, einst.eigeneMengen || {});
+    const stufe = t => t >= ziel ? 'gut' : t >= 3 ? 'mittel' : 'knapp';
+    const wert = (icon, was, t) => '<div class="nf-wert ' + stufe(t) + '">' + icon + ' ' + was + '<b>' + (t > 60 ? '60+' : t) + (t === 1 ? ' Tag' : ' Tage') + '</b></div>';
+    const medis = modulSichtbar('gesundheit') ? NL.medikamente(laden('gesundheit_medikamente', [])).filter(m => m.tage !== null && m.tage < ziel) : [];
+    const pName = id => ((window.PLANER_PERSONEN || []).find(p => p.id === id) || { label: '' }).label;
+    kachel.style.display = '';
+    document.getElementById('notfallInfo').innerHTML = '<div class="nf-werte">' + wert('💧', 'Wasser', r.wasserTage) + wert('🍽️', 'Essen', r.essenTage) + '</div>' +
+      '<div class="nf-zeile" style="color:var(--bark)">Geschätzt für ' + personen + ' ' + (personen === 1 ? 'Person' : 'Personen') + ' · Ziel ' + ziel + ' Tage</div>' +
+      medis.slice(0, 3).map(m => '<div class="nf-zeile warn">💊 ' + escapeHtml(m.name) + (pName(m.person) ? ' (' + escapeHtml(pName(m.person)) + ')' : '') + ' reicht nur noch ' + m.tage + (m.tage === 1 ? ' Tag' : ' Tage') + '</div>').join('');
+  }
+  document.getElementById('kachelNotfall').addEventListener('click', () => { try { window.parent.postMessage({ type: 'navigiere', modul: 'notfall', aktion: 'vorrat' }, window.location.origin); } catch (e) {} });
+  document.getElementById('btnKopfSos').addEventListener('click', () => { try { window.parent.postMessage({ type: 'navigiere', modul: 'notfall', aktion: 'kurz' }, window.location.origin); } catch (e) {} });
+  renderNotfall();
+
   // ============================================================
   // 🔄 LIVE: Änderungen anderer Geräte sofort anzeigen (nur lesen; geschrieben wird
   // nur beim Abhaken/Hinzufügen direkt auf der Startseite)
@@ -2131,7 +2177,7 @@
   window.homeAllesRendern = function () {
     begruessungAktualisieren(); ansichtSchalterRendern();
     renderHeuteZeile(); renderTermine(); renderDemnaechst(); renderEinkauf(); renderSport(); renderKochenHeute(); renderHaushalt();
-    renderFinanzen(); renderKinder(); renderGaming(); renderDieseWoche();
+    renderFinanzen(); renderKinder(); renderGaming(); renderDieseWoche(); renderNotfall();
   };
   let liveTimer = null;
   function liveNeuZeichnen() { clearTimeout(liveTimer); liveTimer = setTimeout(() => { try { window.homeAllesRendern(); } catch (e) { console.warn('Übersicht: Neuzeichnen', e); } }, 300); }
@@ -2139,9 +2185,9 @@
   if (window.PlanerSync) {
     const LIVE = [
       ['termine', 'termine', ['termine_events_v1']], ['einkauf', 'einkauf', ['einkauf_listen']], ['haushalt', 'haushalt', ['haushalt_aufgaben']],
-      ['kochen', 'kochen', ['kochen_wochenplan']], ['gesundheit', 'gesundheit', ['gesundheit_sport']], ['vorratskammer', 'vorratskammer', ['vorratskammer_items']],
+      ['kochen', 'kochen', ['kochen_wochenplan']], ['gesundheit', 'gesundheit', ['gesundheit_sport', 'gesundheit_medikamente']], ['vorratskammer', 'vorratskammer', ['vorratskammer_items']],
       ['finanzen', 'finanzen', ['finanzen_ausgaben', 'finanzen_abos', 'finanzen_einstellungen']], ['fahrzeuge', 'fahrzeuge', ['fahrzeuge_liste', 'fahrzeuge_werkstatt']],
-      ['kinder', 'kinder', ['kinder_einstellungen', 'kinder_sterne', 'kinder_wuensche']], ['gaming', 'gaming', ['gaming_sessions', 'gaming_limits']], ['handwerk', 'handwerk', ['handwerk_wartung']], ['medien', 'medien', ['medien_eintraege']], ['nachrichten', 'nachrichten', ['nachrichten_tipps', 'nachrichten_themen']], ['notizblock', 'notizblock', ['notizblock_liste']], ['wunschliste', 'termine', ['termine_wunschliste']],
+      ['kinder', 'kinder', ['kinder_einstellungen', 'kinder_sterne', 'kinder_wuensche']], ['gaming', 'gaming', ['gaming_sessions', 'gaming_limits']], ['handwerk', 'handwerk', ['handwerk_wartung']], ['medien', 'medien', ['medien_eintraege']], ['nachrichten', 'nachrichten', ['nachrichten_tipps', 'nachrichten_themen']], ['notizblock', 'notizblock', ['notizblock_liste']], ['wunschliste', 'termine', ['termine_wunschliste']], ['notfall', 'notfall', ['notfall_einstellungen']],
     ];
     LIVE.forEach(([name, modul, keys]) => {
       if (!modulSichtbar(name)) return;
@@ -2197,7 +2243,7 @@
 
   // Bei Rückkehr auf die Startseite (z.B. nach Bearbeitung in einem anderen Modul) neu laden
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) { renderDemnaechst(); renderFinanzen(); renderKinder(); renderGaming(); begruessungAktualisieren(); ansichtSchalterRendern(); renderHeuteZeile(); renderTermine(); renderEinkauf(); renderSport(); renderGartenWarnungen(); renderGartenPflanzErnte(); renderKochenHeute(); renderHaushalt(); renderDieseWoche(); renderErfolge(); feedbackEintraege = laden(KEY_FEEDBACK, feedbackEintraege); feedbackListeRendern(); versteckteKachelnAnwenden(); }
+    if (!document.hidden) { renderDemnaechst(); renderFinanzen(); renderKinder(); renderGaming(); begruessungAktualisieren(); ansichtSchalterRendern(); renderHeuteZeile(); renderTermine(); renderEinkauf(); renderSport(); renderGartenWarnungen(); renderGartenPflanzErnte(); renderKochenHeute(); renderHaushalt(); renderDieseWoche(); renderErfolge(); renderNotfall(); feedbackEintraege = laden(KEY_FEEDBACK, feedbackEintraege); feedbackListeRendern(); versteckteKachelnAnwenden(); }
   });
 })();
 </script>

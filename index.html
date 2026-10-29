@@ -340,6 +340,7 @@
       <button class="btn btn-secondary" id="btnImportOeffnen">⬆ Aus Datei wiederherstellen</button>
       <input type="file" id="fileImport" accept="application/json">
       <div class="status-text" id="backupStatus"></div>
+      <div class="status-text" style="font-size:0.74rem;opacity:0.8;margin-top:4px;">💡 Tipp: Die Datei ab und zu auf einen USB-Stick kopieren und in die Notfall-Dokumentenmappe legen.</div>
       <button class="btn btn-secondary" id="btnBackupSpaeter" style="display:none;">In 7 Tagen erneut erinnern</button>
       <button class="btn btn-secondary" id="btnBackupSchliessen" style="margin-top:6px;">Schließen</button>
       <div id="versionStatus" style="margin-top:12px;opacity:0.6;font-size:0.72rem;text-align:center;"></div>
@@ -1579,7 +1580,7 @@
       }
       // Startseite kann Personenverwaltung und Einstellungen direkt öffnen (Einrichtungs-Karte, Zahnrad im Kopf)
       if (e.data && e.data.type === 'oeffneDialog') {
-        const btnId = { personen: 'btnPersonen', einstellungen: 'btnEinstellungen', suche: 'btnSuche' }[e.data.dialog];
+        const btnId = { personen: 'btnPersonen', einstellungen: 'btnEinstellungen', suche: 'btnSuche', backup: 'btnBackup' }[e.data.dialog];
         if (btnId) document.getElementById(btnId).click();
       }
     });

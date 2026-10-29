@@ -57,6 +57,13 @@
       "description": "Direkt eine neue Notiz anlegen",
       "url": "./index.html?bereich=notizblock&aktion=neu",
       "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Notfall – das Wichtigste",
+      "short_name": "Notfall",
+      "description": "Notrufe, Treffpunkte, Kontakte und Wasserstellen auf einen Blick",
+      "url": "./index.html?bereich=notfall&aktion=kurz",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
     }
   ]
 }
