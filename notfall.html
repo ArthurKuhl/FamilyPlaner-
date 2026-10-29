@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<script>(function(){try{var m=localStorage.getItem('planer_darkMode');if(m==='dunkel'||(m==='auto'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.setAttribute('data-dark','1');}var s=localStorage.getItem('planer_schriftgroesse');if(s==='gross'){document.documentElement.style.fontSize='19px';}var f=localStorage.getItem('planer_farbschema');if(f&&f!=='wald'){document.documentElement.setAttribute('data-farbschema',f);}}catch(e){}})();</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Notfall</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap');
+  :root {
+    --soil: #3a2e1f; --moss: #4f6f45; --sage: #7fa476; --leaf: #bcd196;
+    --cream: #faf6ec; --parchment: #ece0c7; --bark: #7d6339;
+    --terracotta: #c46b41; --terracotta-text: #a8532e; --sky: #5b8bb5; --gold: #c99a3a;
+    --white: #fffdf8; --navbg: #2a2016; --navbg2: #3a2e1f; --rot: #b3261e; --rot-bg: #fbe4e1;
+    --radius-sm: 8px; --radius-md: 12px; --radius-lg: 18px; --radius-pill: 22px;
+    --shadow-soft: 0 2px 10px rgba(59,47,30,0.08); --shadow-md: 0 8px 26px rgba(59,47,30,0.2);
+  }
+  html[data-dark="1"] {
+    --soil: #f0e8d8; --moss: #6fae5e; --sage: #9bc98a; --leaf: #cfe3b8;
+    --cream: #1e1b16; --parchment: #2b261e; --bark: #c2b393;
+    --terracotta: #d9855a; --terracotta-text: #e8a37e; --sky: #7fa8cc; --gold: #dcb158;
+    --white: #2f2a22; --navbg: #14100c; --navbg2: #221a12; --rot: #ff8a80; --rot-bg: rgba(179,38,30,0.22);
+  }
+  html[data-farbschema="ozean"] { --navbg: #1c1f24; --navbg2: #2b2f36; --sage: #8fd4c9; --leaf: #8fd4c9; --moss: #4fa89c; }
+  html[data-farbschema="schnee"] { --navbg: #1c1f24; --navbg2: #2b2f36; --sage: #c9cdd3; --leaf: #f0f0f2; --moss: #5b5f66; }
+  html[data-farbschema="fjord"] { --navbg: #1c1f24; --navbg2: #2b2f36; --sage: #9cc0ec; --leaf: #9cc0ec; --moss: #5b8bc9; }
+  html[data-farbschema="bernstein"] { --navbg: #1c1f24; --navbg2: #2b2f36; --sage: #e6c878; --leaf: #e6c878; --moss: #c9a24d; }
+  html[data-dark="1"][data-farbschema] { --cream: #191b1f; --parchment: #24262c; --white: #2a2d33; --soil: #eceef0; --bark: #a7acb5; }
+  html[data-dark="1"] { --moss-text: var(--sage); --on-moss: #16140f; }
+  html[data-dark="1"][data-farbschema="schnee"] { --on-moss: #f4f5f6; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--cream); color: var(--soil); min-height: 100vh; padding-bottom: 60px; }
+  button, input, select, textarea { font-family: inherit; -webkit-tap-highlight-color: transparent; }
+  :focus-visible { outline: 2px solid var(--terracotta); outline-offset: 2px; border-radius: 4px; }
+
+  header.top { position: sticky; top: 0; z-index: 20; background: linear-gradient(135deg, var(--navbg2), var(--navbg)); color: var(--leaf); padding: 6px 12px 8px; }
+  header.top::after { content: ''; position: absolute; left: 0; right: 0; bottom: -3px; height: 3px; background: linear-gradient(90deg, #b3261e, var(--terracotta) 40%, var(--gold) 70%, #b3261e); opacity: 0.9; }
+  .titel-zeile { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+  .titel-zeile h1 { font-family: 'Playfair Display', serif; font-size: 1.15rem; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .kopf-btn { background: transparent; border: 1px solid #4a3a28; color: var(--sage); border-radius: var(--radius-pill); padding: 5px 11px; font-size: 0.74rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
+  .reiter { display: flex; gap: 5px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+  .reiter::-webkit-scrollbar { display: none; }
+  .reiter button { flex: 0 0 auto; background: transparent; border: 1px solid #4a3a28; color: var(--sage); font-size: 0.75rem; font-weight: 700; padding: 6px 12px; border-radius: var(--radius-pill); cursor: pointer; white-space: nowrap; }
+  .reiter button.aktiv { background: var(--terracotta); border-color: var(--terracotta); color: #fff; }
+
+  main { padding: 14px; max-width: 760px; margin: 0 auto; }
+  .seite { display: none; }
+  .seite.aktiv { display: block; }
+  h2 { font-family: 'Playfair Display', serif; font-size: 1.2rem; margin: 4px 0 8px; }
+  h3 { font-size: 0.95rem; margin: 0 0 6px; }
+  p, li { font-size: 0.86rem; line-height: 1.55; }
+  ul, ol { padding-left: 20px; margin: 4px 0 6px; }
+  li { margin-bottom: 4px; }
+  .einleitung { font-size: 0.82rem; color: var(--bark); margin-bottom: 12px; line-height: 1.5; }
+  .karte { background: var(--white); border-radius: var(--radius-md); padding: 13px 14px; box-shadow: var(--shadow-soft); margin-bottom: 12px; }
+  details.karte > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 0.92rem; }
+  details.karte > summary::-webkit-details-marker { display: none; }
+  details.karte > summary::after { content: '▸'; margin-left: auto; color: var(--terracotta); transition: transform 0.15s; }
+  details.karte[open] > summary::after { transform: rotate(90deg); }
+  details.karte[open] > summary { margin-bottom: 8px; }
+  .warnung { background: var(--rot-bg); border-left: 4px solid var(--rot); border-radius: var(--radius-sm); padding: 10px 12px; margin: 8px 0; font-size: 0.84rem; line-height: 1.5; }
+  .warnung b { color: var(--rot); }
+  .tipp { background: rgba(201,154,58,0.14); border-radius: var(--radius-sm); padding: 9px 11px; margin: 8px 0; font-size: 0.82rem; line-height: 1.5; }
+  .info { background: rgba(91,139,181,0.13); border-radius: var(--radius-sm); padding: 9px 11px; margin: 8px 0; font-size: 0.82rem; line-height: 1.5; }
+  .nummern { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+  .nummer { display: flex; flex-direction: column; background: var(--white); border-radius: var(--radius-md); padding: 10px 12px; box-shadow: var(--shadow-soft); text-decoration: none; color: var(--soil); border-left: 4px solid var(--rot); }
+  .nummer b { font-size: 1.3rem; color: var(--rot); }
+  .nummer span { font-size: 0.74rem; color: var(--bark); }
+  .schnell-raster { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin-bottom: 12px; }
+  .schnell-raster button { background: var(--white); border: 1px solid var(--parchment); border-radius: var(--radius-md); padding: 12px 10px; text-align: left; cursor: pointer; color: var(--soil); box-shadow: var(--shadow-soft); }
+  .schnell-raster button b { display: block; font-size: 0.88rem; }
+  .schnell-raster button span { font-size: 0.72rem; color: var(--bark); }
+  .schnell-raster button .em { font-size: 1.5rem; display: block; margin-bottom: 4px; }
+  .schritte-titel { font-size: 0.74rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--terracotta-text); margin: 10px 0 2px; }
+
+  /* Vorrat */
+  .rechner { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
+  .rechner label { font-size: 0.7rem; font-weight: 700; color: var(--bark); text-transform: uppercase; letter-spacing: .03em; display: block; margin-bottom: 3px; }
+  .rechner input, .rechner select { width: 86px; padding: 8px 10px; border: 1px solid var(--parchment); border-radius: var(--radius-sm); background: var(--cream); color: var(--soil); font-size: 0.9rem; }
+  .tage-wahl { display: flex; gap: 5px; }
+  .tage-wahl button { border: 1px solid var(--parchment); background: var(--cream); color: var(--soil); border-radius: var(--radius-pill); padding: 7px 12px; font-size: 0.8rem; font-weight: 700; cursor: pointer; }
+  .tage-wahl button.aktiv { background: var(--moss); border-color: var(--moss); color: var(--on-moss, #fff); }
+  .fortschritt { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; color: var(--bark); margin: 4px 0 8px; }
+  .balken { flex: 1; height: 8px; border-radius: 4px; background: var(--parchment); overflow: hidden; }
+  .balken span { display: block; height: 100%; background: var(--moss); }
+  .check-zeile { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-top: 1px solid var(--parchment); }
+  .check-zeile:first-of-type { border-top: none; }
+  .check-zeile input { width: 20px; height: 20px; margin-top: 1px; flex-shrink: 0; accent-color: #4f6f45; }
+  .check-text { flex: 1; min-width: 0; font-size: 0.86rem; line-height: 1.4; }
+  .check-text b.menge { color: var(--moss-text, var(--moss)); white-space: nowrap; }
+  .check-text small { display: block; font-size: 0.72rem; color: var(--bark); margin-top: 1px; }
+  .check-text small.vorrat { color: var(--sky); }
+  .check-zeile.erledigt .check-text > span { text-decoration: line-through; opacity: 0.6; }
+  .check-zeile button { border: 1px solid var(--parchment); background: var(--cream); border-radius: 999px; padding: 3px 8px; font-size: 0.8rem; cursor: pointer; flex-shrink: 0; }
+  .liste-kopf { display: flex; align-items: center; gap: 8px; }
+  .liste-kopf .anzahl { margin-left: auto; font-size: 0.72rem; font-weight: 700; color: var(--bark); background: var(--parchment); border-radius: 999px; padding: 2px 9px; }
+  .liste-kopf .anzahl.fertig { background: var(--moss); color: var(--on-moss, #fff); }
+  .btn { border: none; border-radius: var(--radius-pill); padding: 10px 14px; font-weight: 700; font-size: 0.84rem; cursor: pointer; }
+  .btn-primary { background: var(--moss); color: var(--on-moss, #fff); }
+  .btn-secondary { background: var(--white); color: var(--soil); border: 1px solid var(--parchment); }
+  .knopf-reihe { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+
+  /* Plan */
+  .feld { margin-bottom: 10px; }
+  .feld label { display: block; font-size: 0.7rem; font-weight: 700; color: var(--bark); margin-bottom: 3px; text-transform: uppercase; letter-spacing: .03em; }
+  .feld input, .feld textarea { width: 100%; padding: 9px 11px; border: 1px solid var(--parchment); border-radius: var(--radius-sm); background: var(--cream); color: var(--soil); font-size: 0.88rem; }
+  .feld textarea { resize: vertical; min-height: 44px; }
+  .zwei { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .kontakt-zeile { display: grid; grid-template-columns: 1fr 1fr 34px; gap: 6px; margin-bottom: 6px; }
+  .kontakt-zeile input { width: 100%; padding: 8px 9px; border: 1px solid var(--parchment); border-radius: var(--radius-sm); background: var(--cream); color: var(--soil); font-size: 0.84rem; }
+  .kontakt-zeile button { border: none; background: none; cursor: pointer; font-size: 0.9rem; color: var(--terracotta-text); }
+  .gespeichert { font-size: 0.72rem; color: var(--moss-text, var(--moss)); min-height: 1em; }
+  .fusszeile { font-size: 0.7rem; color: var(--bark); text-align: center; margin-top: 18px; line-height: 1.5; }
+  .offline-hinweis { font-size: 0.72rem; color: var(--bark); display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
+
+  /* Druck: alles untereinander, ohne Knöpfe */
+  .nur-druck { display: none; }
+  @media print {
+    @page { margin: 14mm 12mm; }
+    html, body { background: #fff !important; color: #000 !important; font-size: 10.5pt; }
+    header.top, .kein-druck, .check-zeile button, .knopf-reihe, #tempStatus { display: none !important; }
+    .nur-druck { display: block; }
+    main { max-width: none; padding: 0; }
+    .seite { display: block !important; page-break-before: always; }
+    .seite:first-of-type { page-break-before: avoid; }
+    .karte, .nummer { box-shadow: none !important; border: 1px solid #bbb; background: #fff !important; break-inside: avoid; }
+    details.karte > summary::after { display: none; }
+    .warnung, .tipp, .info { background: #f3f3f3 !important; border-left: 4px solid #000; }
+    a { color: #000; text-decoration: none; }
+    input[type=checkbox] { accent-color: #000; }
+    .feld input, .feld textarea, .kontakt-zeile input { border: none; border-bottom: 1px solid #999; background: #fff; padding: 3px 0; }
+  }
+</style>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
+<script src="personen.js"></script>
+<script src="sync.js"></script>
+<script src="gemeinsam.js"></script>
+</head>
+<body>
+<div id="tempStatus"></div>
+<header class="top">
+  <div class="titel-zeile">
+    <h1>🆘 Notfall</h1>
+    <button type="button" class="kopf-btn" id="btnDrucken" title="Alles für die Notfallmappe ausdrucken">🖨️ Drucken</button>
+  </div>
+  <nav class="reiter" id="reiter" role="tablist">
+    <button type="button" data-seite="sofort" class="aktiv">🚨 Sofort</button>
+    <button type="button" data-seite="vorrat">🎒 Vorrat</button>
+    <button type="button" data-seite="wasser">💧 Wasser</button>
+    <button type="button" data-seite="strom">🔦 Ohne Strom</button>
+    <button type="button" data-seite="atom">☢️ Atomarer Ernstfall</button>
+    <button type="button" data-seite="tipps">🧭 Durchhalten</button>
+    <button type="button" data-seite="plan">📋 Unser Plan</button>
+  </nav>
+</header>
+
+<main>
+  <div class="nur-druck"><h2>🆘 Notfall-Handbuch der Familie</h2><p id="druckStand"></p></div>
+
+  <!-- ===================== SOFORT ===================== -->
+  <section class="seite aktiv" id="seite-sofort">
+    <div class="offline-hinweis kein-druck">📶 Diese Seite funktioniert auch ohne Internet – solange der Akku hält. Tipp: oben „🖨️ Drucken“ für die Notfallmappe.</div>
+    <h2>🚨 Notrufnummern</h2>
+    <div class="nummern">
+      <a class="nummer" href="tel:112"><b>112</b><span>Feuerwehr &amp; Rettungsdienst</span></a>
+      <a class="nummer" href="tel:110"><b>110</b><span>Polizei</span></a>
+      <a class="nummer" href="tel:116117"><b>116 117</b><span>Ärztlicher Bereitschaftsdienst (nachts, Wochenende)</span></a>
+      <a class="nummer" href="tel:076119240"><b>0761 19240</b><span>Giftnotruf (Vergiftungs-Informations-Zentrale Freiburg)</span></a>
+    </div>
+    <div class="info">📻 <b>Fallen Handy und Internet aus, ist das Radio die wichtigste Informationsquelle</b> – batterie-, solar- oder kurbelbetrieben oder das Autoradio. Behörden warnen außerdem über die Warn-App <b>NINA</b>, Sirenen, Handy-Warnmeldungen (Cell Broadcast) und Lautsprecherwagen.</div>
+    <div class="karte">
+      <h3>📢 Sirenensignale</h3>
+      <ul>
+        <li><b>1 Minute auf- und abschwellender Heulton:</b> Warnung – Radio einschalten, Informationen beachten, ggf. Schutz in Gebäuden suchen.</li>
+        <li><b>1 Minute Dauerton:</b> Entwarnung – die Gefahr ist vorbei.</li>
+      </ul>
+    </div>
+    <h2>⚡ Was ist passiert?</h2>
+    <div class="schnell-raster kein-druck">
+      <button type="button" data-ziel="strom"><span class="em">🔦</span><b>Stromausfall</b><span>Licht, Wärme, Kochen, Kühlschrank</span></button>
+      <button type="button" data-ziel="wasser"><span class="em">💧</span><b>Kein Wasser</b><span>Vorrat, Aufbereiten, Toilette</span></button>
+      <button type="button" data-ziel="sturm"><span class="em">🌪️</span><b>Unwetter</b><span>Sturm, Hochwasser</span></button>
+      <button type="button" data-ziel="evak"><span class="em">🚗</span><b>Evakuierung</b><span>Haus verlassen müssen</span></button>
+      <button type="button" data-ziel="atom"><span class="em">☢️</span><b>Atomarer Ernstfall</b><span>Unfall oder Angriff</span></button>
+      <button type="button" data-ziel="plan"><span class="em">📋</span><b>Unser Plan</b><span>Treffpunkte, Kontakte</span></button>
+    </div>
+    <details class="karte" id="sturm">
+      <summary>🌪️ Unwetter &amp; Hochwasser</summary>
+      <div class="schritte-titel">Bei Unwetterwarnung</div>
+      <ul>
+        <li>Lose Gegenstände von Balkon und Garten sichern, Fenster und Türen schließen, Auto möglichst nicht unter Bäumen parken.</li>
+        <li>Akkus und Powerbank laden, Taschenlampe und Radio bereitlegen.</li>
+        <li>Bei Sturm im Haus bleiben, Abstand zu Fenstern halten. Draußen: weg von Bäumen, Gerüsten und Stromleitungen.</li>
+      </ul>
+      <div class="schritte-titel">Bei Hochwasser</div>
+      <ul>
+        <li>Wertsachen, Dokumente und Vorräte in obere Stockwerke bringen.</li>
+        <li><b>Keller und Tiefgaragen bei steigendem Wasser nicht mehr betreten</b> – Lebensgefahr durch Strömung, Türen, die sich nicht mehr öffnen lassen, und Strom.</li>
+        <li>Strom und Heizung in gefährdeten Räumen abschalten, sofern das gefahrlos möglich ist.</li>
+        <li>Nicht durch überflutete Straßen fahren oder gehen. Hochwasser ist oft verschmutzt – Leitungswasser erst wieder trinken, wenn es freigegeben ist.</li>
+      </ul>
+    </details>
+    <details class="karte" id="evak">
+      <summary>🚗 Evakuierung – das Haus verlassen müssen</summary>
+      <ol>
+        <li>Anweisungen von Behörden, Feuerwehr und Polizei folgen – Radio an.</li>
+        <li><b>Notgepäck</b> und <b>Dokumentenmappe</b> mitnehmen (Checkliste unter 🎒 Vorrat), dazu Medikamente, Handy und Ladekabel, Bargeld.</li>
+        <li>Wenn Zeit bleibt und angeordnet: Gas, Wasser und Strom abstellen (Orte stehen in „Unser Plan“), Fenster und Türen schließen, Haustiere mitnehmen.</li>
+        <li>Nachbarn Bescheid geben, vor allem Älteren oder Hilfebedürftigen.</li>
+        <li>Zum vereinbarten Treffpunkt bzw. zur angegebenen Sammelstelle. Angehörigen kurz Bescheid geben, wo ihr seid.</li>
+      </ol>
+    </details>
+    <div class="tipp">💡 Viele Gemeinden richten bei großen Ausfällen <b>Notfall-Treffpunkte</b> ein (oft Rathaus, Feuerwehrhaus oder Schule), an denen man Hilfe bekommt und Notrufe absetzen kann. Fragt bei eurer Gemeinde nach und tragt ihn unter „📋 Unser Plan“ ein.</div>
+  </section>
+
+  <!-- ===================== VORRAT ===================== -->
+  <section class="seite" id="seite-vorrat">
+    <h2>🎒 Vorrat für eure Familie</h2>
+    <p class="einleitung">Empfehlung des Bundesamts für Bevölkerungsschutz (BBK): Vorräte für <b>10 Tage</b> – ein Vorrat für 3 Tage ist ein guter erster Schritt. Abgehakte Punkte sind für die ganze Familie sichtbar.</p>
+    <div class="karte kein-druck">
+      <div class="rechner">
+        <div><label for="fPersonen">Personen</label><input type="number" id="fPersonen" min="1" max="20" inputmode="numeric"></div>
+        <div><label for="fTiere">Haustiere</label><input type="number" id="fTiere" min="0" max="20" inputmode="numeric" value="0"></div>
+        <div><label>Für</label><div class="tage-wahl" id="tageWahl"><button type="button" data-tage="3">3 Tage</button><button type="button" data-tage="5">5 Tage</button><button type="button" data-tage="10">10 Tage</button></div></div>
+      </div>
+      <div class="fortschritt" style="margin-top:12px"><span id="gesamtText"></span><div class="balken"><span id="gesamtBalken"></span></div></div>
+      <div class="knopf-reihe">
+        <button type="button" class="btn btn-secondary" id="btnErinnerung">🔔 Alle 6 Monate an den Vorrats-Check erinnern</button>
+        <button type="button" class="btn btn-secondary" id="btnAlleZurueck">↺ Häkchen zurücksetzen (neuer Check)</button>
+      </div>
+      <div class="gespeichert" id="letzterCheck" style="margin-top:6px"></div>
+    </div>
+    <div id="checklisten"></div>
+    <div class="info">ℹ️ Die Mengen sind die Richtwerte des BBK für einen Erwachsenen (ca. 2.200 kcal am Tag). Kinder brauchen weniger, dafür braucht es passende Babynahrung, Windeln usw. Individuell rechnen lässt sich auch mit dem Vorratskalkulator auf ernaehrungsvorsorge.de. Tipp: Vorräte <b>im Alltag mitbenutzen</b> und Neues nach hinten stellen („rollierender Vorrat“) – dann verdirbt nichts.</div>
+  </section>
+
+  <!-- ===================== WASSER ===================== -->
+  <section class="seite" id="seite-wasser">
+    <h2>💧 Wasser</h2>
+    <p class="einleitung">Fällt der Strom länger aus, können auch die Pumpen der Wasserversorgung ausfallen. Ohne Wasser hält man es nur wenige Tage aus – Wasser ist darum der wichtigste Vorrat.</p>
+    <div class="karte">
+      <h3>🫙 Wie viel?</h3>
+      <p><b>2 Liter pro Person und Tag</b> zum Trinken und Kochen (davon etwa 0,5 l zum Kochen) – für eure Familie <b id="wasserMenge"></b>. Haustiere brauchen zusätzlich Wasser. Für Hygiene und Toilette kommt Brauchwasser dazu.</p>
+      <ul>
+        <li>Gekauftes Wasser in Flaschen ist bis zum Mindesthaltbarkeitsdatum haltbar – kühl und dunkel lagern.</li>
+        <li>Selbst abgefülltes Leitungswasser nur in sauberen, lebensmittelechten und gut verschlossenen Kanistern, kühl und dunkel lagern und regelmäßig erneuern.</li>
+        <li><b>Kündigt sich ein Ausfall an:</b> Badewanne, Eimer und Töpfe mit Leitungswasser füllen (Brauchwasser für Toilette und Waschen).</li>
+      </ul>
+    </div>
+    <div class="karte">
+      <h3>🏠 Wasser im Haus – was geht, was nicht</h3>
+      <ul>
+        <li>✅ <b>Warmwasserspeicher/Boiler:</b> enthält oft viele Liter – zum Trinken nur abgekocht.</li>
+        <li>✅ <b>Toilettenspülkasten, Badewanne, Regentonne:</b> als Brauchwasser für Toilette und Putzen. Zum Trinken nur nach Aufbereitung.</li>
+        <li>⛔ <b>Heizungswasser niemals trinken oder zum Kochen nehmen</b> – es enthält Zusätze und Korrosionsschutz.</li>
+        <li>⛔ Wasser aus Hochwasser oder mit Öl-/Chemiegeruch nicht trinken – <b>Abkochen und Tabletten entfernen keine Chemikalien</b>.</li>
+      </ul>
+    </div>
+    <div class="karte">
+      <h3>🔥 Wasser trinkbar machen – Schritt für Schritt</h3>
+      <ol>
+        <li><b>Vorfiltern:</b> Trübes Wasser stehen lassen, bis sich Schwebstoffe absetzen, dann durch ein sauberes Tuch oder einen Kaffeefilter gießen. Das macht es klarer, aber noch nicht keimfrei.</li>
+        <li><b>Abkochen (sicherste Methode):</b> Wasser sprudelnd aufkochen und einige Minuten (mindestens 1, besser 3–5 Minuten) kochen lassen. Abgedeckt abkühlen lassen und in saubere Gefäße füllen.</li>
+        <li><b>Ohne Kochmöglichkeit – Entkeimungstabletten:</b> Mittel auf <b>Chlorbasis</b> (z. B. Chlordioxid) töten Bakterien und Viren. Dosierung und Einwirkzeit genau nach Packung (oft 30 Minuten bis einige Stunden). Kein Poolchlor verwenden!</li>
+        <li><b>Silber-Tabletten</b> (Silberionen) machen bereits <b>sauberes</b> Wasser länger haltbar – zum Entkeimen von verschmutztem Wasser reichen sie nicht.</li>
+        <li><b>Outdoor-Wasserfilter:</b> Gute Filter (ca. 0,1–0,2 µm) halten Bakterien und Parasiten zurück, Viren meist nicht. Danach am besten zusätzlich abkochen oder mit Tabletten entkeimen. Filter regelmäßig reinigen, Herstellerangaben beachten.</li>
+      </ol>
+      <div class="warnung"><b>Für Säuglingsnahrung</b> nur abgepacktes Wasser (Eignung für Säuglingsernährung beachten) oder abgekochtes Wasser verwenden – keine Tabletten.</div>
+    </div>
+    <div class="karte">
+      <h3>🚽 Toilette &amp; Hygiene ohne fließendes Wasser</h3>
+      <ul>
+        <li>Läuft die Spülung nicht: Toilette mit Wasser aus einem Eimer spülen – solange das Abwasser funktioniert.</li>
+        <li><b>Notfall-Toilette:</b> Eimer oder Toilettenschüssel mit einem stabilen Müllbeutel auskleiden, nach jeder Benutzung etwas Katzenstreu, Sägemehl oder Erde darüber, Beutel gut verschließen und kühl lagern.</li>
+        <li>Hände vor dem Essen und nach der Toilette waschen oder desinfizieren – Durchfall ist in solchen Lagen eine der größten Gefahren.</li>
+        <li>Wasser sparen: Waschlappen statt Dusche, Pappteller und Feuchttücher, Zähneputzen mit einem Becher.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ===================== STROM ===================== -->
+  <section class="seite" id="seite-strom">
+    <h2>🔦 Ohne Strom</h2>
+    <p class="einleitung">Bei einem längeren Stromausfall fallen auch Heizung (Pumpe und Steuerung brauchen Strom), Festnetz und Internet, Kartenzahlung und Geldautomaten aus – das Handynetz meist nach einigen Stunden ebenfalls.</p>
+    <div class="warnung">☠️ <b>Lebensgefahr durch Kohlenmonoxid (CO):</b> Grill, Gaskartuschen-Kocher, Heizpilz, Campingkocher und Stromgeneratoren <b>nur im Freien</b> betreiben – nie in Wohnung, Keller oder Garage, auch nicht bei offenem Fenster. CO riecht man nicht. Drinnen nur ausdrücklich für Innenräume zugelassene Geräte nutzen und einen CO-Melder aufstellen.</div>
+    <div class="karte">
+      <h3>🕯️ Licht</h3>
+      <ul>
+        <li>Taschenlampen und Stirnlampen mit Ersatzbatterien, LED-Laternen – Kinder bekommen eine eigene Lampe.</li>
+        <li>Kerzen und Teelichter nur unter Aufsicht, standfest und weit weg von Vorhängen – Brandgefahr! Löschmittel bereithalten.</li>
+      </ul>
+    </div>
+    <div class="karte">
+      <h3>🧣 Wärme</h3>
+      <ul>
+        <li><b>Einen Raum</b> gemeinsam nutzen, am besten einen kleinen auf der sonnigen Seite. Türen geschlossen halten, Rollläden und Vorhänge nachts zu.</li>
+        <li>Zwiebelprinzip: mehrere Schichten, Mütze und dicke Socken, Decken und Schlafsäcke. Gemeinsam unter Decken wärmt.</li>
+        <li>Warme Getränke und Wärmflaschen, wenn ihr Wasser erhitzen könnt.</li>
+        <li>Mehrmals am Tag für wenige Minuten <b>stoßlüften</b> (Fenster ganz auf) – gegen Feuchtigkeit und verbrauchte Luft.</li>
+      </ul>
+    </div>
+    <div class="karte">
+      <h3>🍲 Essen &amp; Kühlschrank</h3>
+      <ul>
+        <li><b>Reihenfolge:</b> zuerst Verderbliches aus dem Kühlschrank, dann aus dem Tiefkühler, zuletzt den Vorrat.</li>
+        <li>Kühlschrank und Gefriertruhe <b>geschlossen halten</b>. Faustregel: Der Kühlschrank bleibt etwa 4 Stunden kühl, eine volle Gefriertruhe etwa 2 Tage (halb voll etwa 1 Tag).</li>
+        <li>Aufgetautes nicht wieder einfrieren – lieber durchgaren und bald essen. Im Zweifel wegwerfen.</li>
+        <li>Kochen drinnen nur mit zugelassenen Geräten (Teelicht-Stövchen, Fondue mit Brennpaste, für Innenräume zugelassener Gaskocher). Gaskocher mit Kartusche und Grill nur draußen.</li>
+        <li>Viele Vorräte gehen auch kalt: Konserven, Knäckebrot, Nüsse, Müsli mit H-Milch.</li>
+      </ul>
+    </div>
+    <div class="karte">
+      <h3>📱 Handy, Informationen, Geld</h3>
+      <ul>
+        <li>Akku sparen: Energiesparmodus, Helligkeit runter, Flugmodus, wenn ihr es gerade nicht braucht, und nur kurz telefonieren – lieber SMS.</li>
+        <li>Powerbanks immer geladen halten. Das Auto lädt das Handy – aber den Motor <b>nur im Freien</b> laufen lassen.</li>
+        <li>Radio für Informationen, eine ausgedruckte Liste wichtiger Telefonnummern (siehe „📋 Unser Plan“).</li>
+        <li>Bargeld in kleinen Scheinen zu Hause haben – Karten und Geldautomaten funktionieren nicht.</li>
+      </ul>
+    </div>
+    <div class="karte">
+      <h3>🔌 Wenn der Strom zurückkommt</h3>
+      <ul>
+        <li>Geräte nach und nach einschalten, nicht alles auf einmal.</li>
+        <li>Lebensmittel aus Kühlschrank und Tiefkühler prüfen, Heizung und Warmwasser kontrollieren.</li>
+        <li>Verbrauchte Vorräte, Batterien und Gas wieder auffüllen.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ===================== ATOM ===================== -->
+  <section class="seite" id="seite-atom">
+    <h2>☢️ Atomarer Ernstfall</h2>
+    <p class="einleitung">Gemeint sind ein schwerer Unfall in einem Atomkraftwerk mit Freisetzung von Radioaktivität oder im schlimmsten Fall eine Atomwaffe. Beides ist sehr unwahrscheinlich – aber gerade hier zählen die ersten Minuten und Stunden, und das richtige Verhalten schützt sehr wirksam.</p>
+    <div class="warnung"><b>Die wichtigste Regel:</b> Rein ins Gebäude – drinnen bleiben – Radio an. Massive Wände und Abstand zu Dach und Außenwänden schützen vor radioaktivem Niederschlag („Fallout“).</div>
+    <div class="karte">
+      <h3>💥 Bei einer Explosion / einem grellen Lichtblitz</h3>
+      <ol>
+        <li><b>Nicht in den Blitz schauen.</b> Sofort hinter etwas Festes werfen und <b>flach auf den Boden legen</b>, Gesicht nach unten, Haut möglichst bedecken. Im Auto: anhalten und unter die Fensterkante ducken.</li>
+        <li>Liegen bleiben, bis die Druckwelle vorbei ist – sie kann einige Sekunden später kommen.</li>
+        <li>Danach <b>so schnell wie möglich in das beste Gebäude in der Nähe</b> – der Fallout kommt erst nach einigen Minuten. Wenige Minuten draußen machen einen großen Unterschied.</li>
+      </ol>
+    </div>
+    <div class="karte">
+      <h3>🏠 Drinnen: Schutz suchen</h3>
+      <ul>
+        <li>Am besten in den <b>Keller</b> oder einen <b>innenliegenden Raum</b> ohne Fenster in der Mitte des Gebäudes – weg von Dach und Außenwänden. In einem Hochhaus: mittlere Etagen, Gebäudemitte.</li>
+        <li>Fenster und Türen schließen, <b>Lüftung, Klimaanlage und Dunstabzug ausschalten</b>, Lüftungsschlitze schließen. Undichte Stellen mit Klebeband und Folie abdichten.</li>
+        <li>Haustiere hereinholen, Passanten aufnehmen.</li>
+        <li><b>Mindestens 24 Stunden drinnen bleiben</b> – oder so lange, bis die Behörden etwas anderes sagen. Die Strahlung des Fallouts nimmt in den ersten Stunden und Tagen stark ab; darum sind die ersten 24 Stunden am wichtigsten.</li>
+        <li>Erst nach offizieller Entwarnung (Radio, NINA) das Gebäude verlassen oder Fenster öffnen. Ggf. folgt eine Anweisung zur Evakuierung.</li>
+        <li>Nur im Notfall telefonieren, damit die Netze frei bleiben.</li>
+      </ul>
+    </div>
+    <div class="karte">
+      <h3>🚿 Wer von draußen hereinkommt</h3>
+      <ol>
+        <li>Schuhe und äußere Kleidung <b>schon im Eingang ausziehen</b>, in einen Plastiksack stecken, verschließen und abseits ablegen – damit entfernt man einen großen Teil der Belastung.</li>
+        <li><b>Duschen</b> mit Seife und Haare mit Shampoo waschen – <b>keine Spülung/Conditioner</b> (bindet Partikel an die Haare). Haut nicht wund schrubben.</li>
+        <li>Ohne Dusche: Gesicht, Hände, Haare und unbedeckte Haut mit einem feuchten Tuch abwischen. Desinfektionsmittel hilft nicht gegen Fallout.</li>
+        <li>Saubere Kleidung anziehen. Haustiere, die draußen waren, abbürsten und waschen.</li>
+      </ol>
+    </div>
+    <div class="karte">
+      <h3>🍞 Essen &amp; Trinken</h3>
+      <ul>
+        <li>Nur <b>verpackte oder drinnen gelagerte</b> Lebensmittel und Getränke – deshalb ist der Vorrat hier besonders wichtig. Verpackungen vor dem Öffnen abwischen.</li>
+        <li>Kein Obst und Gemüse aus dem Garten, kein Regenwasser, keine Milch von draußen gehaltenen Tieren, bis die Behörden Entwarnung geben.</li>
+        <li>Leitungswasser: auf Durchsagen achten, im Zweifel zuerst den Wasservorrat verwenden.</li>
+      </ul>
+    </div>
+    <div class="karte">
+      <h3>💊 Jodtabletten – nur auf Aufforderung!</h3>
+      <ul>
+        <li>Jodtabletten schützen <b>nur die Schilddrüse</b> vor radioaktivem Jod – nicht vor anderer Strahlung.</li>
+        <li><b>Nur einnehmen, wenn die Behörden ausdrücklich dazu auffordern</b> – zur angegebenen Zeit und in der angegebenen Dosis. Keine Selbstmedikation, keine Jod-Nahrungsergänzungsmittel.</li>
+        <li>Verteilt werden sie im Ernstfall über Ausgabestellen, die die Behörden bekannt geben – vor allem an Kinder, Jugendliche, Schwangere und Erwachsene bis 45 Jahre.</li>
+        <li><b>Über 45-Jährigen wird von der Einnahme abgeraten</b> (Risiko einer gefährlichen Schilddrüsen-Überfunktion).</li>
+        <li>Wer eine Schilddrüsenerkrankung oder Jod-Überempfindlichkeit hat, klärt am besten jetzt schon mit dem Arzt, was im Ernstfall gilt.</li>
+      </ul>
+    </div>
+    <div class="karte">
+      <h3>🛠️ Jetzt schon vorbereiten</h3>
+      <ul>
+        <li>Festlegen, welcher Raum im Haus der beste Schutzraum ist (Keller oder innen liegender Raum) – und ihn unter „📋 Unser Plan“ eintragen. Öffentliche Schutzräume gibt es in Deutschland derzeit kaum.</li>
+        <li>Einen Teil des Wasser- und Lebensmittelvorrats dort lagern, dazu Radio mit Batterien, Taschenlampe, Decken, Notfall-Toilette.</li>
+        <li>Paketklebeband und Folie zum Abdichten, FFP2-Masken, Müllsäcke für Kleidung.</li>
+        <li>Mit den Kindern ruhig und altersgerecht darüber sprechen: „Wenn die Sirene heult, gehen wir alle rein und bleiben zusammen.“</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ===================== DURCHHALTEN ===================== -->
+  <section class="seite" id="seite-tipps">
+    <h2>🧭 Durchhalten – mehrere Tage gut überstehen</h2>
+    <div class="karte">
+      <h3>🧠 Ruhe &amp; Tagesablauf</h3>
+      <ul>
+        <li>Einen festen Tagesablauf beibehalten: Aufstehen, gemeinsame Mahlzeiten, Aufgaben verteilen, Schlafenszeiten. Das gibt allen Halt.</li>
+        <li>Informationen nur aus offiziellen Quellen (Radio, Behörden) – Gerüchte nicht weitertragen.</li>
+        <li>Auf Nachbarn achten: Ältere, Kranke, Alleinlebende, Familien mit Babys. Gemeinsam ist vieles leichter (Kochen, Wärme, Informationen).</li>
+      </ul>
+    </div>
+    <div class="karte">
+      <h3>🧒 Mit Kindern</h3>
+      <ul>
+        <li>Ehrlich und altersgerecht erklären, was los ist – und was ihr tut, damit alle sicher sind. Fragen ernst nehmen.</li>
+        <li>Beschäftigung ohne Strom: Karten- und Brettspiele, Vorlesen, Malen, Basteln, Taschenlampen-Schattentheater, Höhle bauen.</li>
+        <li>Kinder kleine Aufgaben übernehmen lassen (z. B. Lampen verteilen, Wasser einteilen) – das gibt Sicherheit.</li>
+        <li>Kuscheltier, Lieblingsbuch und Snacks gehören ins Notgepäck.</li>
+      </ul>
+    </div>
+    <div class="karte">
+      <h3>🩹 Erste Hilfe – das Wichtigste</h3>
+      <ul>
+        <li><b>Notruf 112</b>, wenn möglich. Fällt das Netz aus: Notfall-Treffpunkt der Gemeinde oder Feuerwehrhaus.</li>
+        <li><b>Bewusstlos, atmet normal:</b> stabile Seitenlage, warm halten, Atmung beobachten. <b>Atmet nicht normal:</b> Herzdruckmassage (fest und schnell in der Brustmitte, etwa 100–120-mal pro Minute), bis Hilfe kommt.</li>
+        <li><b>Starke Blutung:</b> fest draufdrücken, Druckverband, betroffenen Arm/Bein hochhalten.</li>
+        <li><b>Wunden:</b> mit sauberem (abgekochtem) Wasser spülen, desinfizieren, abdecken, täglich kontrollieren – Rötung, Wärme, Eiter sind Warnzeichen.</li>
+        <li><b>Unterkühlung:</b> ins Warme, nasse Kleidung aus, in Decken hüllen, warme gesüßte Getränke (kein Alkohol), langsam aufwärmen.</li>
+        <li><b>Durchfall/Erbrechen, besonders bei Kindern:</b> viel trinken, Elektrolytlösung aus der Hausapotheke. Bei Teilnahmslosigkeit, trockenen Windeln über viele Stunden oder Blut im Stuhl ärztliche Hilfe suchen.</li>
+      </ul>
+      <div class="tipp">💡 Ein Erste-Hilfe-Kurs (z. B. beim DRK, ASB, den Johannitern oder Maltesern) – auch speziell für Kinder-Notfälle – ist die beste Vorbereitung.</div>
+    </div>
+    <div class="karte">
+      <h3>🔥 Brandschutz</h3>
+      <ul>
+        <li>Rauchmelder in Schlafräumen, Kinderzimmern und Fluren – Batterien prüfen.</li>
+        <li>Feuerlöscher (oder Löschspray) griffbereit und wissen, wie er funktioniert.</li>
+        <li><b>Brennendes Fett oder Öl nie mit Wasser löschen</b> – Deckel drauf oder Fettbrand-Löschspray.</li>
+        <li>Brennt es: nur löschen, wenn es gefahrlos geht. Sonst raus, Tür schließen, andere warnen, 112. Nie durch Rauch flüchten.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ===================== PLAN ===================== -->
+  <section class="seite" id="seite-plan">
+    <h2>📋 Unser Notfallplan</h2>
+    <p class="einleitung">Füllt das einmal gemeinsam aus – es wird für die ganze Familie gespeichert und kommt mit in den Ausdruck.</p>
+    <div class="karte">
+      <h3>📍 Treffpunkte</h3>
+      <div class="feld"><label for="p_treffNah">In der Nähe (z. B. vor dem Haus, bei Nachbarn)</label><input type="text" id="p_treffNah" data-plan="treffNah"></div>
+      <div class="feld"><label for="p_treffFern">Außerhalb (z. B. bei Verwandten in einem anderen Ort)</label><input type="text" id="p_treffFern" data-plan="treffFern"></div>
+      <div class="feld"><label for="p_gemeinde">Notfall-Treffpunkt der Gemeinde</label><input type="text" id="p_gemeinde" data-plan="gemeinde" placeholder="z. B. Feuerwehrhaus, Rathaus"></div>
+    </div>
+    <div class="karte">
+      <h3>☎️ Wichtige Kontakte</h3>
+      <div id="kontakte"></div>
+      <button type="button" class="btn btn-secondary kein-druck" id="btnKontaktNeu" style="margin-top:4px">＋ Kontakt</button>
+      <div class="tier-meta" style="font-size:0.72rem;color:var(--bark);margin-top:6px">z. B. Hausarzt, Kinderarzt, Nachbarn, Großeltern, Arbeitgeber, Schule/Kita, Tierarzt, Versicherung.</div>
+    </div>
+    <div class="karte">
+      <h3>🧒 Kinder &amp; Familie</h3>
+      <div class="feld"><label for="p_kinder">Wer holt die Kinder von Schule/Kita? (und Ersatz)</label><textarea id="p_kinder" data-plan="kinder"></textarea></div>
+      <div class="feld"><label for="p_medikamente">Wichtige Medikamente, Allergien, Hilfsmittel – pro Person</label><textarea id="p_medikamente" data-plan="medikamente" placeholder="z. B. Brille, Asthmaspray, Allergie gegen …"></textarea></div>
+      <div class="feld"><label for="p_tiere">Haustiere (Futter, Transportbox, Tierarzt)</label><textarea id="p_tiere" data-plan="tiere"></textarea></div>
+    </div>
+    <div class="karte">
+      <h3>🏠 Wo ist was im Haus?</h3>
+      <div class="zwei">
+        <div class="feld"><label for="p_wasserhahn">Hauptwasserhahn</label><input type="text" id="p_wasserhahn" data-plan="wasserhahn"></div>
+        <div class="feld"><label for="p_sicherung">Sicherungskasten</label><input type="text" id="p_sicherung" data-plan="sicherung"></div>
+        <div class="feld"><label for="p_gas">Gas-Absperrhahn</label><input type="text" id="p_gas" data-plan="gas"></div>
+        <div class="feld"><label for="p_schutzraum">Bester Schutzraum</label><input type="text" id="p_schutzraum" data-plan="schutzraum" placeholder="z. B. Keller, Abstellraum"></div>
+        <div class="feld"><label for="p_notgepaeck">Notgepäck</label><input type="text" id="p_notgepaeck" data-plan="notgepaeck"></div>
+        <div class="feld"><label for="p_dokumente">Dokumentenmappe</label><input type="text" id="p_dokumente" data-plan="dokumente"></div>
+      </div>
+      <div class="feld"><label for="p_sonst">Sonstiges</label><textarea id="p_sonst" data-plan="sonst" placeholder="z. B. Ersatzschlüssel bei …, Campingkocher im Keller …"></textarea></div>
+      <div class="gespeichert" id="planGespeichert"></div>
+    </div>
+  </section>
+
+  <p class="fusszeile">Inhalte nach den Empfehlungen des Bundesamts für Bevölkerungsschutz und Katastrophenhilfe (BBK, Ratgeber „Vorsorgen für Krisen und Katastrophen“, Stand 11/2025) und weiteren offiziellen Hinweisen. Im Ernstfall gelten immer die Anweisungen der Behörden.</p>
+</main>
+
+<script>
+(function(){
+  'use strict';
+  const KEY_CHECKS = 'notfall_checks';   // { punktId: { datum, von } }
+  const KEY_PLAN = 'notfall_plan';       // { feld: text, kontakte: [{ name, tel }] }
+  const KEY_EINST = 'notfall_einstellungen'; // { personen, tiere, tage, letzterCheck, erinnerungId }
+  let checks = laden(KEY_CHECKS, {}) || {};
+  let plan = laden(KEY_PLAN, {}) || {};
+  let einst = laden(KEY_EINST, {}) || {};
+  const ich = (() => { try { return localStorage.getItem('planer_geraetIdentitaet') || ''; } catch (e) { return ''; } })();
+  function personenAusPlaner() { return Math.max(1, (window.PLANER_PERSONEN || []).filter(p => p.id !== 'familie').length || 1); }
+  function personen() { return Math.max(1, Number(einst.personen) || personenAusPlaner()); }
+  function tage() { return [3, 5, 10].includes(Number(einst.tage)) ? Number(einst.tage) : 10; }
+  function zahl(x, st) { return x.toLocaleString('de-DE', { maximumFractionDigits: st === undefined ? 1 : st }); }
+
+  // ---------- Reiter ----------
+  function seiteZeigen(id, scroll) {
+    document.querySelectorAll('.seite').forEach(s => s.classList.toggle('aktiv', s.id === 'seite-' + id));
+    document.querySelectorAll('#reiter button').forEach(b => b.classList.toggle('aktiv', b.dataset.seite === id));
+    try { localStorage.setItem('notfall_reiter', id); } catch (e) {}
+    if (scroll !== false) window.scrollTo({ top: 0 });
+  }
+  document.querySelectorAll('#reiter button').forEach(b => b.addEventListener('click', () => seiteZeigen(b.dataset.seite)));
+  document.querySelectorAll('.schnell-raster [data-ziel]').forEach(b => b.addEventListener('click', () => {
+    const z = b.dataset.ziel;
+    if (z === 'sturm' || z === 'evak') { const d = document.getElementById(z); d.open = true; d.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+    seiteZeigen(z);
+  }));
+  try { const r = localStorage.getItem('notfall_reiter'); if (r && document.getElementById('seite-' + r)) seiteZeigen(r, false); } catch (e) {}
+
+  // ---------- Checklisten (BBK) ----------
+  // m: Menge pro Person für 10 Tage (wird auf Personen und Tage umgerechnet); such: Wörter, an denen ein Vorrat erkannt wird
+  const LISTEN = [
+    { id: 'essen', icon: '🥫', titel: 'Lebensmittel & Getränke', punkte: [
+      { id: 'wasser', text: 'Trinkwasser & Getränke', m: 20, einheit: 'l', tipp: '2 l pro Person und Tag – Wasser, Saft, Tee', such: ['wasser', 'saft', 'tee', 'sprudel'] },
+      { id: 'getreide', text: 'Getreide, Brot, Kartoffeln, Nudeln, Reis', m: 3.5, einheit: 'kg', tipp: 'z. B. Knäckebrot, Zwieback, Nudeln, Reis, Haferflocken', such: ['nudel', 'reis', 'kartoffel', 'brot', 'zwieback', 'knäcke', 'hafer', 'müsli', 'couscous', 'mehl', 'spaghetti', 'penne'] },
+      { id: 'gemuese', text: 'Gemüse & Hülsenfrüchte', m: 4.0, einheit: 'kg', tipp: 'z. B. Konserven, Linsen, Bohnen, Erbsen, Mais, Sauerkraut', such: ['bohne', 'linse', 'erbse', 'kichererbse', 'mais', 'tomate', 'sauerkraut', 'gemüse', 'karotte', 'rote bete', 'gurke'] },
+      { id: 'obst', text: 'Obst & Nüsse', m: 2.5, einheit: 'kg', tipp: 'z. B. Obstkonserven, Apfelmus, Trockenobst, Nüsse', such: ['obst', 'apfelmus', 'pfirsich', 'ananas', 'mandarine', 'nuss', 'nüsse', 'mandel', 'rosine', 'trockenobst', 'birne'] },
+      { id: 'milch', text: 'Milch & Milchprodukte', m: 2.6, einheit: 'kg', tipp: 'z. B. H-Milch, Milchpulver, Hartkäse', such: ['milch', 'käse', 'kaese'] },
+      { id: 'eiweiss', text: 'Fisch, Fleisch, Eier', m: 1.5, einheit: 'kg', tipp: 'z. B. Thunfisch, Fleisch- und Wurstkonserven, Volleipulver', such: ['thunfisch', 'fisch', 'wurst', 'fleisch', 'ei', 'eier', 'sardine', 'corned'] },
+      { id: 'fett', text: 'Fette & Öle', m: 0.357, einheit: 'kg', tipp: 'z. B. Speiseöl, Butterschmalz, Margarine', such: ['öl', 'oel', 'butter', 'margarine', 'schmalz'] },
+      { id: 'sonstiges', text: 'Sonstiges nach Geschmack', tipp: 'Zucker, Honig, Marmelade, Salz, Brühe, Fertiggerichte, Schokolade, Kekse, Kaffee/Tee', such: ['zucker', 'honig', 'marmelade', 'salz', 'brühe', 'schokolade', 'keks'] },
+      { id: 'besonders', text: 'Babynahrung, Diät- und Allergie-Lebensmittel', tipp: 'falls jemand in der Familie sie braucht' },
+      { id: 'tierfutter', text: 'Futter für Haustiere', tipp: 'für die gleiche Zeit wie euer Vorrat', nurTiere: true },
+    ] },
+    { id: 'hygiene', icon: '🧼', titel: 'Hygiene', punkte: [
+      { id: 'zahn', text: 'Zahnbürsten, Zahnpasta, Seife, Shampoo' },
+      { id: 'monat', text: 'Binden/Tampons, Windeln (falls nötig)' },
+      { id: 'klopapier', text: 'Toilettenpapier, Küchenrolle, Feuchttücher' },
+      { id: 'muell', text: 'Stabile Müllbeutel (auch große für die Notfall-Toilette)', tipp: 'dazu Katzenstreu oder Sägemehl; ggf. Campingtoilette' },
+      { id: 'desinf', text: 'Hand- und Flächendesinfektionsmittel' },
+      { id: 'waschmittel', text: 'Waschmittel, Spülmittel, Haushaltshandschuhe' },
+    ] },
+    { id: 'apotheke', icon: '💊', titel: 'Hausapotheke', punkte: [
+      { id: 'medis', text: 'Persönliche Medikamente für mindestens 10 Tage', such: [] },
+      { id: 'schmerz', text: 'Schmerz- und Fiebermittel, Fieberthermometer' },
+      { id: 'magen', text: 'Mittel gegen Durchfall, Übelkeit, Erkältung; Elektrolytlösung' },
+      { id: 'wunde', text: 'Desinfektion für Wunden, Pflaster, Verbandmaterial, Brandwunden-Verband, Einmalhandschuhe' },
+      { id: 'salben', text: 'Wund-/Brandsalbe, Mittel gegen Sonnenbrand und Insektenstiche, Nasenspray' },
+      { id: 'werkzeug', text: 'Pinzette, Schere, Kühlkompresse' },
+    ] },
+    { id: 'energie', icon: '🔦', titel: 'Stromausfall', punkte: [
+      { id: 'lampe', text: 'Taschenlampen/Stirnlampen und Ersatzbatterien' },
+      { id: 'radio', text: 'Radio mit Batterie, Solar oder Kurbel', tipp: 'wichtigste Informationsquelle ohne Handynetz' },
+      { id: 'powerbank', text: 'Geladene Powerbanks und Ladekabel' },
+      { id: 'kerzen', text: 'Kerzen, Teelichter, Feuerzeug, Streichhölzer' },
+      { id: 'kochen', text: 'Kochmöglichkeit ohne Strom + Brennstoff', tipp: 'Campingkocher/Grill nur draußen! Drinnen nur zugelassene Geräte' },
+      { id: 'waerme', text: 'Warme Decken, Schlafsäcke, warme Kleidung' },
+      { id: 'bargeld', text: 'Bargeld in kleinen Scheinen' },
+      { id: 'kanister', text: 'Wasserkanister, Entkeimungstabletten (Chlor) oder Wasserfilter' },
+      { id: 'co', text: 'Rauchmelder, CO-Melder, Feuerlöscher/Löschspray' },
+    ] },
+    { id: 'notgepaeck', icon: '🎒', titel: 'Notgepäck (pro Person ein Rucksack)', punkte: [
+      { id: 'kleidung', text: 'Warme Kleidung, Regenschutz, feste Schuhe, Wechselwäsche' },
+      { id: 'ng_apotheke', text: 'Erste-Hilfe-Set, persönliche Medikamente, Hygieneartikel' },
+      { id: 'ng_essen', text: 'Haltbare Lebensmittel, Trinkflasche, Besteck, Dosenöffner' },
+      { id: 'ng_technik', text: 'Powerbank, Taschenlampe, Radio, Feuerzeug' },
+      { id: 'ng_schlaf', text: 'Schlafsack oder Decke' },
+      { id: 'ng_sonst', text: 'Taschenmesser, Arbeitshandschuhe, Sonnenschutz, Notizblock und Stift' },
+      { id: 'ng_hilfsmittel', text: 'Ersatzbrille, Hörgeräte-Batterien o. Ä., Bargeld' },
+      { id: 'ng_kinder', text: 'Für Kinder: Kuscheltier, Lieblingsbuch, Snacks' },
+    ] },
+    { id: 'dokumente', icon: '📁', titel: 'Dokumentenmappe (wasser- und feuerfest)', punkte: [
+      { id: 'ausweise', text: 'Personalausweise/Reisepässe, Geburts- und Heiratsurkunden' },
+      { id: 'gesundheit', text: 'Impfpässe, Medikamentenpläne, wichtige Befunde, Versichertenkarten-Kopien' },
+      { id: 'finanzen', text: 'Versicherungen, Grundbuch/Mietvertrag, Kontoverbindungen' },
+      { id: 'vollmacht', text: 'Vorsorgevollmachten, Patientenverfügungen, Testament' },
+      { id: 'zeugnisse', text: 'Zeugnisse und Nachweise' },
+      { id: 'telefon', text: 'Ausgedruckte Liste wichtiger Telefonnummern (siehe „Unser Plan“)' },
+      { id: 'kopien', text: 'Digitale Kopien (USB-Stick/Cloud) und einige Fotos der Familie' },
+    ] },
+  ];
+  function punktKey(liste, p) { return liste.id + ':' + p.id; }
+  function vorratTreffer(p) {
+    if (!p.such || !p.such.length) return [];
+    const vorrat = laden('vorratskammer_items', []).filter(v => v && v.name && v.bestand !== 'leer');
+    const woerter = p.such.map(w => w.toLowerCase());
+    return vorrat.filter(v => { const n = v.name.toLowerCase(); return woerter.some(w => w.length <= 2 ? new RegExp('(^|\\s)' + w + '(\\s|$)').test(n) : n.includes(w)); }).map(v => v.name);
+  }
+  function mengeText(p) {
+    if (!p.m) return '';
+    const wert = p.m * personen() * tage() / 10;
+    return p.einheit === 'l' ? zahl(Math.ceil(wert), 0) + ' l' : wert < 1 ? zahl(Math.round(wert * 1000), 0) + ' g' : zahl(wert, 1) + ' kg';
+  }
+  function renderChecklisten() {
+    const box = document.getElementById('checklisten');
+    const tiere = Number(einst.tiere) || 0;
+    let alle = 0, ok = 0;
+    box.innerHTML = LISTEN.map(l => {
+      const punkte = l.punkte.filter(p => !p.nurTiere || tiere > 0);
+      const erledigt = punkte.filter(p => checks[punktKey(l, p)]).length;
+      alle += punkte.length; ok += erledigt;
+      return `<details class="karte" ${l.id === 'essen' ? 'open' : ''}><summary><span class="liste-kopf" style="flex:1">${l.icon} ${escapeHtml(l.titel)}<span class="anzahl${erledigt === punkte.length ? ' fertig' : ''}">${erledigt}/${punkte.length}</span></span></summary>
+        ${punkte.map(p => {
+          const k = punktKey(l, p), c = checks[k], menge = mengeText(p), vorrat = c ? [] : vorratTreffer(p);
+          return `<label class="check-zeile${c ? ' erledigt' : ''}"><input type="checkbox" data-k="${escapeHtml(k)}" ${c ? 'checked' : ''}>
+            <span class="check-text"><span>${menge ? '<b class="menge">' + menge + '</b> ' : ''}${escapeHtml(p.text)}</span>
+              ${p.tipp ? `<small>${escapeHtml(p.tipp)}</small>` : ''}
+              ${vorrat.length ? `<small class="vorrat">🥫 In der Vorratskammer: ${escapeHtml(vorrat.slice(0, 4).join(', '))}${vorrat.length > 4 ? ' …' : ''}</small>` : ''}
+              ${c ? `<small>✓ ${escapeHtml(new Date(c.datum + 'T12:00').toLocaleDateString('de-DE'))}${c.von ? ' · ' + escapeHtml(personName(c.von)) : ''}</small>` : ''}</span>
+            ${c ? '' : `<button type="button" data-ek="${escapeHtml(k)}" title="Auf die Einkaufsliste" aria-label="Auf die Einkaufsliste">🛒</button>`}</label>`;
+        }).join('')}</details>`;
+    }).join('');
+    document.getElementById('gesamtText').textContent = ok + ' von ' + alle + ' erledigt';
+    document.getElementById('gesamtBalken').style.width = Math.round(ok / Math.max(1, alle) * 100) + '%';
+    box.querySelectorAll('input[data-k]').forEach(cb => cb.addEventListener('change', () => {
+      if (cb.checked) checks[cb.dataset.k] = { datum: heuteISO(), von: ich || '' }; else delete checks[cb.dataset.k];
+      speichernChecks();
+      const offen = cb.closest('details');
+      const idx = [...box.querySelectorAll('details')].indexOf(offen);
+      renderChecklisten();
+      const neu = box.querySelectorAll('details')[idx]; if (neu) neu.open = true;
+    }));
+    box.querySelectorAll('[data-ek]').forEach(b => b.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); zumEinkauf(b.dataset.ek); }));
+    renderWasserMenge();
+    const lc = einst.letzterCheck;
+    document.getElementById('letzterCheck').textContent = (lc ? '🗓️ Letzter Neustart des Checks: ' + new Date(lc + 'T12:00').toLocaleDateString('de-DE') + ' · ' : '') + (einst.erinnerungId ? '🔔 Erinnerung alle 6 Monate ist eingetragen.' : '');
+    document.getElementById('btnErinnerung').textContent = einst.erinnerungId ? '🔕 Erinnerung entfernen' : '🔔 Alle 6 Monate an den Vorrats-Check erinnern';
+  }
+  function personName(id) { const p = (window.PLANER_PERSONEN || []).find(x => x.id === id); return p ? p.label : ''; }
+  function renderWasserMenge() {
+    const n = personen();
+    document.getElementById('wasserMenge').textContent = n + (n === 1 ? ' Person' : ' Personen') + ': ' + (n * 6) + ' l für 3 Tage, ' + (n * 20) + ' l für 10 Tage';
+  }
+  function speichernChecks() { speichern(KEY_CHECKS, checks); }
+  function speichernEinst() { speichern(KEY_EINST, einst); }
+
+  // ---------- Einkauf ----------
+  let einkaufSync = null;
+  function zumEinkauf(k) {
+    const [lid, pid] = k.split(':');
+    const l = LISTEN.find(x => x.id === lid), p = l && l.punkte.find(x => x.id === pid);
+    if (!p) return;
+    let listen = laden('einkauf_listen', []);
+    if (!listen.length) listen = [{ id: neueId('l'), name: 'Wocheneinkauf', items: [] }];
+    let aktivId = ''; try { aktivId = localStorage.getItem('einkauf_aktiveListe') || ''; } catch (e) {}
+    const liste = listen.find(x => x.id === aktivId) || listen[0];
+    if (!liste.items) liste.items = [];
+    const name = '🆘 ' + p.text;
+    if (liste.items.some(i => !i.erledigt && i.name === name)) { showTempStatus('Steht schon auf „' + liste.name + '“', 3); return; }
+    const item = { id: neueId('i'), name, menge: p.m ? mengeText(p).split(' ')[0] : '', einheit: p.m ? mengeText(p).split(' ')[1] : '', kategorie: 'sonstiges', erledigt: false, hinzugefuegtVon: 'notfall' };
+    liste.items.push(item);
+    try { localStorage.setItem('einkauf_listen', JSON.stringify(listen)); } catch (e) { alert('Speichern fehlgeschlagen.'); return; }
+    if (einkaufSync) einkaufSync.melde();
+    showTempStatus('🛒 Auf „' + liste.name + '“: ' + p.text, 5, { rueckgaengig: () => {
+      const ls = laden('einkauf_listen', []); const z = ls.find(x => x.id === liste.id); if (z) { z.items = z.items.filter(i => i.id !== item.id); localStorage.setItem('einkauf_listen', JSON.stringify(ls)); if (einkaufSync) einkaufSync.melde(); }
+    } });
+  }
+
+  // ---------- Rechner-Eingaben ----------
+  const fPers = document.getElementById('fPersonen'), fTiere = document.getElementById('fTiere');
+  function rechnerFuellen() {
+    fPers.value = personen(); fTiere.value = Number(einst.tiere) || 0;
+    document.querySelectorAll('#tageWahl button').forEach(b => b.classList.toggle('aktiv', Number(b.dataset.tage) === tage()));
+  }
+  fPers.addEventListener('change', () => { const v = Math.max(1, Math.min(20, Math.round(Number(fPers.value) || 1))); einst.personen = v === personenAusPlaner() ? undefined : v; speichernEinst(); rechnerFuellen(); renderChecklisten(); });
+  fTiere.addEventListener('change', () => { einst.tiere = Math.max(0, Math.min(20, Math.round(Number(fTiere.value) || 0))); speichernEinst(); renderChecklisten(); });
+  document.querySelectorAll('#tageWahl button').forEach(b => b.addEventListener('click', () => { einst.tage = Number(b.dataset.tage); speichernEinst(); rechnerFuellen(); renderChecklisten(); }));
+  document.getElementById('btnAlleZurueck').addEventListener('click', () => {
+    if (!Object.keys(checks).length) return;
+    const vorher = checks, vorherDatum = einst.letzterCheck;
+    checks = {}; einst.letzterCheck = heuteISO();
+    speichernChecks(); speichernEinst(); renderChecklisten();
+    showTempStatus('↺ Neuer Check – alle Häkchen entfernt', 6, { rueckgaengig: () => { checks = vorher; einst.letzterCheck = vorherDatum; speichernChecks(); speichernEinst(); renderChecklisten(); } });
+  });
+
+  // ---------- 🔔 Erinnerung alle 6 Monate (Termin mit Push am Vorabend) ----------
+  let termineSync = null;
+  document.getElementById('btnErinnerung').addEventListener('click', () => {
+    const events = laden('termine_events_v1', []);
+    if (einst.erinnerungId) {
+      const rest = events.filter(e => e.id !== einst.erinnerungId);
+      try { localStorage.setItem('termine_events_v1', JSON.stringify(rest)); } catch (e) {}
+      if (termineSync) termineSync.melde();
+      delete einst.erinnerungId; speichernEinst(); renderChecklisten();
+      showTempStatus('🔕 Erinnerung entfernt', 3); return;
+    }
+    const d = new Date(); d.setMonth(d.getMonth() + 6);
+    const datum = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    const id = 't_notfall_check';
+    events.push({ id, title: '🆘 Notfallvorrat prüfen', date: datum, allDay: true, startTime: '', endTime: '', wer: 'familie', location: '',
+      notes: 'Haltbarkeit prüfen, Verbrauchtes ersetzen, Batterien & Powerbanks laden, Wasser erneuern – Checkliste im Modul 🆘 Notfall.',
+      erinnerung: 0, erinnerungVorabend: true, recurrence: { freq: 'monatlich', interval: 6, until: null } });
+    try { localStorage.setItem('termine_events_v1', JSON.stringify(events.filter((e, i, a) => a.findIndex(x => x.id === e.id) === i))); } catch (e) { alert('Speichern fehlgeschlagen.'); return; }
+    if (termineSync) termineSync.melde();
+    einst.erinnerungId = id; speichernEinst(); renderChecklisten();
+    showTempStatus('🔔 Eingetragen: alle 6 Monate, zuerst am ' + d.toLocaleDateString('de-DE'), 4);
+  });
+
+  // ---------- 📋 Plan ----------
+  let planTimer = null;
+  function planFuellen() {
+    document.querySelectorAll('[data-plan]').forEach(el => { if (document.activeElement !== el) el.value = plan[el.dataset.plan] || ''; });
+    renderKontakte();
+  }
+  function planSpeichernSpaeter() {
+    clearTimeout(planTimer);
+    planTimer = setTimeout(() => { speichern(KEY_PLAN, plan); document.getElementById('planGespeichert').textContent = '✓ Gespeichert'; setTimeout(() => { document.getElementById('planGespeichert').textContent = ''; }, 2000); }, 600);
+  }
+  document.querySelectorAll('[data-plan]').forEach(el => el.addEventListener('input', () => { plan[el.dataset.plan] = el.value; planSpeichernSpaeter(); }));
+  function renderKontakte() {
+    const box = document.getElementById('kontakte');
+    if (!Array.isArray(plan.kontakte) || !plan.kontakte.length) plan.kontakte = [{ name: 'Hausarzt', tel: '' }, { name: 'Kinderarzt', tel: '' }, { name: 'Nachbarn', tel: '' }];
+    box.innerHTML = plan.kontakte.map((k, i) => `<div class="kontakt-zeile"><input type="text" data-ki="${i}" data-kf="name" value="${escapeHtml(k.name || '')}" placeholder="Wer?" aria-label="Name"><input type="tel" data-ki="${i}" data-kf="tel" value="${escapeHtml(k.tel || '')}" placeholder="Telefon" aria-label="Telefon"><button type="button" class="kein-druck" data-kweg="${i}" aria-label="Kontakt entfernen">✕</button></div>`).join('');
+    box.querySelectorAll('input[data-ki]').forEach(inp => inp.addEventListener('input', () => { plan.kontakte[+inp.dataset.ki][inp.dataset.kf] = inp.value; planSpeichernSpaeter(); }));
+    box.querySelectorAll('[data-kweg]').forEach(b => b.addEventListener('click', () => { plan.kontakte.splice(+b.dataset.kweg, 1); speichern(KEY_PLAN, plan); renderKontakte(); }));
+  }
+  document.getElementById('btnKontaktNeu').addEventListener('click', () => {
+    plan.kontakte = plan.kontakte || []; plan.kontakte.push({ name: '', tel: '' }); renderKontakte();
+    const inputs = document.querySelectorAll('#kontakte input[data-kf="name"]'); if (inputs.length) inputs[inputs.length - 1].focus();
+  });
+
+  // ---------- 🖨️ Drucken ----------
+  document.getElementById('btnDrucken').addEventListener('click', () => {
+    document.querySelectorAll('details').forEach(d => { d.dataset.warOffen = d.open ? '1' : ''; d.open = true; });
+    document.getElementById('druckStand').textContent = 'Stand: ' + new Date().toLocaleDateString('de-DE') + ' · für ' + personen() + ' Personen, ' + tage() + ' Tage';
+    setTimeout(() => {
+      window.print();
+      document.querySelectorAll('details').forEach(d => { d.open = d.dataset.warOffen === '1'; });
+    }, 50);
+  });
+
+  rechnerFuellen();
+  renderChecklisten();
+  planFuellen();
+
+  if (window.PlanerSync) {
+    window._sync = window.PlanerSync.starteSync({
+      modul: 'notfall',
+      keys: [KEY_CHECKS, KEY_PLAN, KEY_EINST],
+      onRemoteChange: function () {
+        checks = laden(KEY_CHECKS, {}) || {}; plan = laden(KEY_PLAN, {}) || {}; einst = laden(KEY_EINST, {}) || {};
+        rechnerFuellen(); renderChecklisten(); planFuellen();
+      },
+    });
+    einkaufSync = window.PlanerSync.starteSync({ modul: 'einkauf', keys: ['einkauf_listen'] });
+    termineSync = window.PlanerSync.starteSync({ modul: 'termine', keys: ['termine_events_v1'] });
+    // Vorratskammer nur mitlesen (Hinweis „In der Vorratskammer“)
+    window.PlanerSync.starteSync({ modul: 'vorratskammer', keys: ['vorratskammer_items'], onRemoteChange: renderChecklisten });
+  }
+})();
+</script>
+</body>
+</html>

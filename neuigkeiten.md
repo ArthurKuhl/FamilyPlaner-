@@ -2,6 +2,9 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
+## 2026-10-29 | 🆘 Neues Modul: Notfall
+Für Stromausfall, Wasserausfall und andere Krisen: Alle wichtigen Infos funktionieren auch **ohne Internet** und lassen sich für die Notfallmappe ausdrucken. Unter 🚨 Sofort stehen Notrufnummern, Sirenensignale, was bei Unwetter und Evakuierung zu tun ist und der Hinweis auf Radio und NINA. Unter 🎒 Vorrat berechnet der Planer den Vorrat für 3, 5 oder 10 Tage nach den BBK-Mengen für eure Personenzahl. Die abhakbaren Checklisten (Lebensmittel, Hygiene, Hausapotheke, Stromausfall, Notgepäck, Dokumente) gelten für die ganze Familie. Fehlendes kommt mit einem Tipp auf die Einkaufsliste, Vorhandenes aus der Vorratskammer wird erkannt, und auf Wunsch erinnert ein Termin alle 6 Monate an den Check. Dazu: 💧 Wasser trinkbar machen, 🔦 ohne Strom (mit Warnung vor Kohlenmonoxid), ☢️ atomarer Ernstfall (Schutz suchen, Dekontamination, Jodtabletten nur auf Aufforderung), 🧭 Durchhalte-Tipps mit Erste Hilfe und 📋 euer eigener Notfallplan mit Treffpunkten, Kontakten und „wo ist was im Haus“.
+
 ## 2026-10-29 | 🔗 Garten: Wer frisst was? Beobachtungen an Pflanzen
 Neu unter 🦔 Tiere im Garten → 🔗 Wer frisst was?: Notiert, welches Tier an welcher Pflanze war und was es gemacht hat, z. B. 🌸 Nektar/Pollen, 🐛 Raupe frisst Blätter, 🥚 Eiablage, 🫐 Beeren, 🌾 Samen oder 🎯 jagt Schädlinge. Dazu kommen Datum, Anzahl, Notiz und Fotos. Die Auswertung zeigt die Beobachtungen nach Pflanze (mit 🏆 Insektenmagneten), nach Tier, als 🕸️ Netz und im 📅 Jahresverlauf. Der Jahresverlauf zeigt Monate ohne Beobachtungen und die Erstbeobachtungen des Jahres. Im Gartenplan steht bei jeder Pflanze „🦋 Tiere an dieser Pflanze“ mit ＋ zum direkten Eintragen, und jeder Tier-Steckbrief zeigt, wo im Garten das Tier gesehen wurde. Tiere aus der Liste zählen automatisch als „Gesehen“.
 
