@@ -114,6 +114,12 @@
   .offline-hinweis { font-size: 0.72rem; color: var(--bark); display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
 
   /* Druck: alles untereinander, ohne Knöpfe */
+  .skizze { background: var(--cream); border: 1px solid var(--parchment); border-radius: var(--radius-md); padding: 8px; margin: 8px 0; }
+  .skizze svg { width: 100%; height: auto; display: block; color: var(--soil); max-width: 460px; margin: 0 auto; }
+  .ws-zeile { display: grid; grid-template-columns: 1fr 110px 34px; gap: 6px; margin-bottom: 4px; }
+  .ws-zeile input, .ws-zeile select { width: 100%; padding: 8px 9px; border: 1px solid var(--parchment); border-radius: var(--radius-sm); background: var(--cream); color: var(--soil); font-size: 0.84rem; }
+  .ws-zeile button { border: none; background: none; cursor: pointer; font-size: 0.9rem; color: var(--terracotta-text); }
+  .ws-notiz { width: 100%; padding: 7px 9px; border: 1px solid var(--parchment); border-radius: var(--radius-sm); background: var(--cream); color: var(--soil); font-size: 0.8rem; margin-bottom: 10px; }
   .nur-druck { display: none; }
   @media print {
     @page { margin: 14mm 12mm; }
@@ -152,6 +158,7 @@
     <button type="button" data-seite="strom">🔦 Ohne Strom</button>
     <button type="button" data-seite="atom">☢️ Atomarer Ernstfall</button>
     <button type="button" data-seite="tipps">🧭 Durchhalten</button>
+    <button type="button" data-seite="selber">🛠️ Selbermachen</button>
     <button type="button" data-seite="plan">📋 Unser Plan</button>
   </nav>
 </header>
@@ -257,6 +264,7 @@
         <li>⛔ <b>Heizungswasser niemals trinken oder zum Kochen nehmen</b> – es enthält Zusätze und Korrosionsschutz.</li>
         <li>⛔ Wasser aus Hochwasser oder mit Öl-/Chemiegeruch nicht trinken – <b>Abkochen und Tabletten entfernen keine Chemikalien</b>.</li>
       </ul>
+      <p style="font-size:0.8rem">Wasser aus Quelle, Bach oder Teich, einen Flaschenfilter und die Sonnen-Entkeimung findet ihr unter <b>🛠️ Selbermachen</b>.</p>
     </div>
     <div class="karte">
       <h3>🔥 Wasser trinkbar machen – Schritt für Schritt</h3>
@@ -435,6 +443,221 @@
     </div>
   </section>
 
+  <!-- ===================== SELBERMACHEN ===================== -->
+  <section class="seite" id="seite-selber">
+    <h2>🛠️ Selbermachen</h2>
+    <p class="einleitung">Einfache Dinge, die man mit Haushaltsmitteln bauen kann, wenn Strom oder Wasser länger fehlen. Am besten einmal in Ruhe ausprobieren – zusammen mit den Kindern ist das ein gutes Wochenend-Projekt.</p>
+
+    <details class="karte" open>
+      <summary>💧 Wasser aus Quelle, Bach und Teich</summary>
+      <div class="warnung"><b>Nie direkt trinken</b> – auch klares Wasser kann Keime und Parasiten von Wildtieren, Weidevieh oder Abwasser enthalten.</div>
+      <div class="schritte-titel">Welches Wasser zuerst?</div>
+      <ol>
+        <li><b>Quelle</b> – direkt an der Austrittsstelle, meist am saubersten.</li>
+        <li><b>Fließender Bach</b> – oberhalb von Ortschaften, Straßen, Feldern und Weiden schöpfen.</li>
+        <li><b>Teich, Tümpel</b> – nur im Notfall. Kein Wasser mit grünlichen Schlieren, Schaum oder Algenteppich (Blaualgen – auch abgekocht giftig).</li>
+      </ol>
+      <div class="warnung">⛔ <b>Nicht nehmen:</b> Hochwasser, Wasser unterhalb von Kläranlagen oder Industrie, mit Öl-/Chemiegeruch oder buntem Schimmer. Abkochen und Tabletten entfernen keine Chemikalien.</div>
+      <div class="schritte-titel">So geht's</div>
+      <ol>
+        <li>Saubere Kanister oder Flaschen mit Deckel mitnehmen. 10 Liter wiegen 10 kg – ein Bollerwagen oder Rucksack hilft.</li>
+        <li>An einer fließenden Stelle schöpfen, ohne den Grund aufzuwirbeln.</li>
+        <li>Zu Hause: Behälter für „<b>Rohwasser</b>“ und „<b>Trinkwasser</b>“ deutlich beschriften und nie vertauschen.</li>
+        <li>Einige Stunden stehen lassen, damit sich Schwebstoffe absetzen. Das klare Wasser oben abgießen.</li>
+        <li>Durch ein sauberes Tuch oder den Flaschenfilter (unten) gießen.</li>
+        <li><b>Abkochen</b> (sprudelnd, mindestens 1, besser 3–5 Minuten) – oder mit Chlor-Tabletten nach Packungsangabe entkeimen.</li>
+        <li>Abgedeckt aufbewahren und am besten innerhalb eines Tages verbrauchen.</li>
+      </ol>
+      <div class="tipp">💡 Tragt eure Wasserstellen – Quellen im Wald, Bäche, einen städtischen Notbrunnen – unter „📋 Unser Plan → Unsere Wasserstellen“ ein, mit Weg und Entfernung.</div>
+    </details>
+
+    <details class="karte">
+      <summary>🪣 Flaschen-Vorfilter bauen</summary>
+      <p>Macht trübes Wasser klar und nimmt etwas Geruch – <b>aber nicht keimfrei</b>. Danach immer abkochen oder entkeimen.</p>
+      <div class="skizze">
+        <svg viewBox="0 0 345 230" role="img" aria-label="Skizze: umgedrehte PET-Flasche mit Schichten aus Tuch, Holzkohle, feinem Sand, grobem Sand und Kies über einem Auffanggefäß">
+          <g font-size="10" font-family="Inter, sans-serif" fill="currentColor">
+            <path d="M70 18 H150 V150 L128 178 V196 H92 V178 L70 150 Z" fill="none" stroke="currentColor" stroke-width="1.6"/>
+            <rect x="72" y="26" width="76" height="22" fill="rgba(140,140,140,0.55)"/>
+            <rect x="72" y="48" width="76" height="26" fill="rgba(200,170,110,0.65)"/>
+            <rect x="72" y="74" width="76" height="34" fill="rgba(230,205,150,0.75)"/>
+            <path d="M72 108 H148 V140 H72 Z" fill="rgba(40,40,40,0.75)"/>
+            <path d="M72 140 H148 V150 L128 178 H92 L72 150 Z" fill="rgba(240,240,235,0.9)" stroke="currentColor" stroke-width="0.6"/>
+            <path d="M84 20 L136 20" stroke="rgba(91,139,181,0.9)" stroke-width="3"/>
+            <path d="M110 200 v10" stroke="rgba(91,139,181,0.9)" stroke-width="3" stroke-dasharray="3 3"/>
+            <path d="M80 210 h60 v18 h-60 z" fill="rgba(91,139,181,0.35)" stroke="currentColor"/>
+            <g font-size="9.5">
+              <text x="160" y="22">↓ Wasser langsam eingießen</text>
+              <text x="160" y="40">grober Kies (ca. 3 cm)</text>
+              <text x="160" y="64">grober Sand/feiner Kies (5 cm)</text>
+              <text x="160" y="94">feiner Sand (5–8 cm)</text>
+              <text x="160" y="128">Holzkohle, zerkleinert (3–5 cm)</text>
+              <text x="160" y="162">Baumwolltuch / Kaffeefilter</text>
+              <text x="160" y="222">Auffanggefäß → danach abkochen!</text>
+            </g>
+          </g>
+        </svg>
+      </div>
+      <div class="schritte-titel">Material</div>
+      <p>1,5-l-PET-Flasche, Messer, Baumwolltuch oder Kaffeefilter, Gummiband, reine Holzkohle (ausgekühlt aus dem Feuer, keine Grillbriketts mit Zusätzen), feiner Sand, grober Sand oder feiner Kies, grober Kies – alles vorher mit möglichst sauberem Wasser ausgespült.</p>
+      <div class="schritte-titel">So geht's</div>
+      <ol>
+        <li>Den Boden der Flasche abschneiden, Deckel abnehmen und ein Tuch mit dem Gummiband über die Öffnung spannen.</li>
+        <li>Flasche umgedreht in ein Glas oder eine Halterung stellen (Öffnung nach unten).</li>
+        <li>Von unten nach oben einfüllen: Tuch/Kaffeefilter, Holzkohle, feiner Sand, grober Sand, grober Kies. Oben noch ein Stück Tuch als „Verteiler“ auflegen.</li>
+        <li>Zuerst einige Liter durchlaufen lassen und wegschütten, bis das Wasser klar herauskommt.</li>
+        <li>Dann langsam eingießen – je langsamer es durchläuft, desto besser.</li>
+        <li>Gefiltertes Wasser <b>abkochen</b>. Sand und Kohle regelmäßig erneuern.</li>
+      </ol>
+    </details>
+
+    <details class="karte">
+      <summary>☀️ Sonnen-Entkeimung (SODIS)</summary>
+      <p>UV-Licht und Wärme der Sonne töten in klarem Wasser viele Keime ab. Das Verfahren wurde für sonnenreiche Länder entwickelt – <b>bei uns nur im Sommer bei voller Sonne als Notbehelf</b>. Abkochen ist sicherer.</p>
+      <ol>
+        <li>Klare, unzerkratzte <b>PET-Flaschen</b> (1–2 l) nehmen – kein Glas, keine bunten Flaschen.</li>
+        <li>Nur klares Wasser verwenden (vorher absetzen lassen oder filtern). Test: Große Schrift muss durch die volle Flasche lesbar sein.</li>
+        <li>Flasche zu drei Vierteln füllen, 20 Sekunden schütteln, dann ganz auffüllen und zuschrauben.</li>
+        <li>Flach in die <b>volle Sonne</b> legen, am besten auf ein Blech oder Wellblech – nie in den Schatten.</li>
+        <li>Bei voller Sonne <b>mindestens 6 Stunden</b>, bei mehr als halb bewölktem Himmel <b>2 Tage</b>. Bei Dauerregen funktioniert es nicht.</li>
+        <li>Direkt aus der Flasche trinken. Entfernt keine Chemikalien und keine Trübung.</li>
+      </ol>
+    </details>
+
+    <details class="karte">
+      <summary>🔥 Kochen mit wenig Brennstoff</summary>
+      <div class="warnung"><b>Nur im Freien</b> und auf nicht brennbarem Untergrund (Steine, Erde) – nie auf dem Balkon unter Dachüberständen, nie drinnen. In Baden-Württemberg ist Feuer im Wald und in weniger als 100 m Abstand zum Wald nur an eingerichteten Feuerstellen erlaubt. Löschwasser bereitstellen.</div>
+      <div class="schritte-titel">Dosenkocher für Brennspiritus</div>
+      <ol>
+        <li>Eine kleine, leere Konservendose (z. B. Katzenfutterdose) gut auswaschen.</li>
+        <li>Mit einem Nagel rundum knapp unter dem Rand Löcher stechen.</li>
+        <li>Auf einen Stein stellen, 1–2 cm Brennspiritus einfüllen und vorsichtig anzünden. <b>Die Flamme ist bei Tageslicht kaum sichtbar!</b></li>
+        <li>Den Topf auf drei gleich hohe Steine oder ein Grillrost darüber stellen.</li>
+        <li><b>Nie nachfüllen, solange es brennt oder heiß ist.</b> Zum Löschen einen Topfdeckel oder eine Dose darüberstülpen.</li>
+      </ol>
+      <div class="schritte-titel">Hobo-Ofen (Holzkocher aus einer großen Dose)</div>
+      <ol>
+        <li>Große Konservendose (z. B. 1-kg-Dose) ohne Deckel nehmen.</li>
+        <li>Unten seitlich eine Öffnung (ca. 5 × 5 cm) zum Nachlegen schneiden und rundum unten kleine Luftlöcher stechen; oben am Rand ebenfalls Löcher für den Abzug.</li>
+        <li>Mit trockenen, fingerdicken Zweigen, Tannenzapfen und etwas Papier befeuern – wenig Holz reicht für einen Topf Wasser.</li>
+        <li>Topf direkt obendrauf stellen. Die Dose wird sehr heiß – Handschuhe!</li>
+      </ol>
+      <div class="schritte-titel">🧺 Kochkiste – spart viel Brennstoff</div>
+      <div class="skizze">
+        <svg viewBox="0 0 300 150" role="img" aria-label="Skizze: Topf in einer Kiste, rundum dick mit Decken und Kissen ausgestopft">
+          <g font-size="9.5" font-family="Inter, sans-serif" fill="currentColor">
+            <rect x="40" y="20" width="160" height="118" rx="6" fill="rgba(160,120,80,0.35)" stroke="currentColor" stroke-width="1.4"/>
+            <rect x="50" y="28" width="140" height="102" rx="16" fill="rgba(201,154,58,0.35)"/>
+            <rect x="85" y="62" width="70" height="48" rx="4" fill="rgba(110,110,110,0.75)" stroke="currentColor"/>
+            <rect x="80" y="56" width="80" height="7" rx="3" fill="rgba(80,80,80,0.9)"/>
+            <path d="M100 52 c0 -8 8 -8 8 -16 M120 52 c0 -8 8 -8 8 -16 M140 52 c0 -8 8 -8 8 -16" stroke="#d9855a" stroke-width="2" fill="none"/>
+            <text x="210" y="40">Kiste, Kühlbox</text><text x="210" y="52">oder Wäschekorb</text>
+            <text x="210" y="78">Decken, Kissen,</text><text x="210" y="90">Schlafsack ringsum</text>
+            <text x="210" y="116">heißer Topf</text><text x="210" y="128">mit Deckel</text>
+          </g>
+        </svg>
+      </div>
+      <ol>
+        <li>Eine Kiste, Kühlbox oder einen Wäschekorb dick mit Decken, Kissen oder einem Schlafsack auspolstern.</li>
+        <li>Eintopf, Reis, Linsen oder Kartoffeln mit Deckel aufkochen und etwa 5–10 Minuten sprudelnd kochen lassen.</li>
+        <li>Topf <b>sofort</b> in die Kiste stellen, oben dick abdecken, nicht zwischendurch öffnen.</li>
+        <li>Das Essen gart von selbst weiter – etwa doppelt bis dreimal so lange wie normal (Reis ca. 45 Minuten, Kartoffeln ca. 1 Stunde).</li>
+        <li>Bald essen, nicht über viele Stunden lauwarm stehen lassen. <b>Zum Entkeimen von Wasser ist die Kochkiste nicht geeignet</b> – Wasser die volle Zeit sprudelnd kochen.</li>
+      </ol>
+    </details>
+
+    <details class="karte">
+      <summary>🧊 Kühlen ohne Strom</summary>
+      <div class="schritte-titel">Tontopf-Kühler („Topf im Topf“)</div>
+      <div class="skizze">
+        <svg viewBox="0 0 300 150" role="img" aria-label="Skizze: kleiner Tontopf in größerem Tontopf, dazwischen nasser Sand, oben ein feuchtes Tuch">
+          <g font-size="9.5" font-family="Inter, sans-serif" fill="currentColor">
+            <path d="M40 30 H190 L172 136 H58 Z" fill="rgba(196,107,65,0.55)" stroke="currentColor" stroke-width="1.4"/>
+            <path d="M48 34 H182 L166 130 H64 Z" fill="rgba(190,160,110,0.85)"/>
+            <path d="M70 38 H160 L148 122 H82 Z" fill="rgba(196,107,65,0.6)" stroke="currentColor" stroke-width="1.2"/>
+            <path d="M76 42 H154 L144 118 H86 Z" fill="rgba(255,255,255,0.5)"/>
+            <path d="M36 28 Q115 14 194 28" fill="none" stroke="rgba(91,139,181,0.9)" stroke-width="4"/>
+            <circle cx="104" cy="96" r="9" fill="#d24a3c"/><circle cx="122" cy="102" r="8" fill="#e3a23a"/><path d="M110 80 l10 -8" stroke="#6f9a5a" stroke-width="4"/>
+            <text x="200" y="26">feuchtes Tuch als Deckel</text>
+            <text x="200" y="60">nasser Sand,</text><text x="200" y="72">2× täglich gießen</text>
+            <text x="200" y="104">innerer Topf:</text><text x="200" y="116">Gemüse, Obst</text>
+          </g>
+        </svg>
+      </div>
+      <ol>
+        <li>Zwei <b>unglasierte Tontöpfe</b> (Blumentöpfe): Der kleine soll mit 2–3 cm Abstand in den großen passen. Abflusslöcher mit Korken oder Ton verschließen.</li>
+        <li>Etwas Sand in den großen Topf, den kleinen hineinstellen, den Zwischenraum mit Sand füllen.</li>
+        <li>Sand gut durchnässen und morgens und abends nachgießen. Oben ein feuchtes Tuch auflegen.</li>
+        <li>An einen schattigen, luftigen Platz stellen. Durch Verdunstung wird es innen einige Grad kühler – am besten bei warmer, trockener Luft.</li>
+        <li>Gut für Gemüse, Obst, Butter. Fleisch, Fisch und Milchprodukte damit nicht lange lagern.</li>
+      </ol>
+      <div class="tipp">💡 Im Winter sind Keller, Garage oder ein schattiger Balkon der beste „Kühlschrank“ – Lebensmittel gut verschließen (Tiere) und vor Frost schützen, wo nötig.</div>
+    </details>
+
+    <details class="karte">
+      <summary>🧣 Wärme &amp; Licht</summary>
+      <div class="schritte-titel">Warmer Raum im Raum</div>
+      <ul>
+        <li>Im kleinsten Raum ein Zelt aufbauen – oder eine Decken-Höhle über Tisch und Stühle. Darin hält sich Körperwärme viel besser.</li>
+        <li><b>Gegen Bodenkälte</b> Isomatten, Teppiche oder Pappe unter Schlafsäcke und Matratzen legen.</li>
+        <li>Fenster nachts mit Decken oder Rollläden zuhängen, Türschlitze mit Handtüchern abdichten – aber mehrmals täglich kurz stoßlüften.</li>
+      </ul>
+      <div class="schritte-titel">Rettungsdecke richtig nutzen</div>
+      <ul>
+        <li>Eng um den Körper wickeln, darüber Jacke oder Decke, Kopf und Nacken mit einbeziehen (Gesicht frei).</li>
+        <li>Die Kälte vom Boden ist meist schlimmer als die Luft – immer etwas unterlegen. Welche Seite außen ist, spielt kaum eine Rolle.</li>
+      </ul>
+      <div class="schritte-titel">Laterne aus Stirnlampe und Wasser</div>
+      <p>Stirnlampe um einen gefüllten Wasserkanister oder eine volle Wasserflasche spannen, Licht nach innen: Das Wasser verteilt das Licht im ganzen Raum. Sparsamer und sicherer als Kerzen.</p>
+      <div class="warnung"><b>Teelicht-Ofen?</b> Die beliebten Blumentopf-„Heizungen“ mit Teelichtern wärmen kaum: Vier Teelichter geben zusammen nur etwa 100–150 Watt ab – ein Heizkörper ein Vielfaches. Dafür sind sie brandgefährlich (Wachsbrand bei Überhitzung) und verbrauchen Sauerstoff. Lieber warm anziehen und zusammenrücken.</div>
+    </details>
+
+    <details class="karte">
+      <summary>🌧️ Regenwasser auffangen &amp; 🚽 Notfall-Toilette bauen</summary>
+      <div class="schritte-titel">Regenwasser</div>
+      <ol>
+        <li>Regentonne ans Fallrohr der Dachrinne, oder eine Plane/Folie schräg aufspannen, sodass das Wasser an einer tiefen Stelle in einen Eimer läuft.</li>
+        <li>Die ersten Minuten eines Regens nicht auffangen – sie spülen Staub, Blätter und Vogelkot vom Dach.</li>
+        <li>Regenwasser ist gutes <b>Brauchwasser</b> (Toilette, Waschen). Zum Trinken nur gefiltert und abgekocht – und nicht von alten Teerpappe- oder Asbestdächern.</li>
+      </ol>
+      <div class="schritte-titel">Eimer-Toilette</div>
+      <ol>
+        <li>Stabilen Eimer (10–20 l) mit Deckel nehmen, mit zwei Müllbeuteln ineinander auskleiden.</li>
+        <li>Eine alte Klobrille oder zwei Bretter als Sitz auflegen.</li>
+        <li>Nach jeder Benutzung eine Handvoll Katzenstreu, Sägespäne, Rindenmulch oder Erde darüberstreuen – bindet Feuchtigkeit und Geruch.</li>
+        <li>Beutel zu etwa zwei Dritteln füllen, gut verknoten und draußen in einer verschlossenen Mülltonne lagern.</li>
+        <li>Danach immer Hände waschen oder desinfizieren.</li>
+      </ol>
+    </details>
+
+    <details class="karte">
+      <summary>🎣 Notfall-Angel</summary>
+      <div class="warnung"><b>Rechtlicher Hinweis:</b> Angeln ist in Deutschland nur mit Fischereischein und Erlaubnis (Angelkarte) für das jeweilige Gewässer erlaubt – sonst ist es Fischwilderei, auch im Notfall. Fische dürfen nur von Sachkundigen betäubt und getötet werden (Tierschutzgesetz). <b>Fallen und Schlingen</b> für Wildtiere sind für Nicht-Jäger verboten und gehören deshalb nicht in diese Anleitung.</div>
+      <ol>
+        <li><b>Rute:</b> gerader, 2–3 m langer Hasel- oder Weidenstock.</li>
+        <li><b>Schnur:</b> Angelschnur, notfalls Zahnseide oder fester Nähfaden, etwas länger als die Rute; am Stockende festknoten.</li>
+        <li><b>Haken:</b> Am besten ein paar echte Angelhaken ins Notgepäck legen. Behelf: eine kleine Sicherheitsnadel aufbiegen.</li>
+        <li><b>Schwimmer:</b> Ein Stück Korken auf die Schnur fädeln, etwa 50 cm über dem Haken. <b>Gewicht:</b> kleine Schraubenmutter oder ein Steinchen knapp über dem Haken.</li>
+        <li><b>Köder:</b> Regenwürmer, Maden, Brotteig.</li>
+        <li>Ruhig an ruhigen Stellen am Ufer oder unter überhängenden Bäumen auswerfen und Geduld haben.</li>
+      </ol>
+      <div class="info">ℹ️ Ehrlich gesagt: Für einige Tage Ausfall lohnt sich Angeln kaum – ein Vorrat ist um ein Vielfaches verlässlicher. Die Anleitung ist eher etwas für ein Angel-Wochenende mit Erlaubnis.</div>
+    </details>
+
+    <details class="karte">
+      <summary>🌿 Essbare Wildpflanzen – nur die unverwechselbaren</summary>
+      <div class="warnung"><b>Goldene Regel: Nur essen, was man zu 100 % sicher kennt.</b> Keine Pilze sammeln, nichts mit weißen Doldenblüten (Verwechslung mit dem tödlichen Schierling), keinen Bärlauch ohne Erfahrung (Verwechslung mit Maiglöckchen und Herbstzeitlose – beide giftig). Nicht an Straßenrändern, Feldern oder Hundewiesen sammeln; Bodennahes gründlich waschen und am besten kochen.</div>
+      <ul>
+        <li><b>Brennnessel</b> (März–Oktober): junge Triebspitzen mit Handschuhen pflücken, gekocht wie Spinat oder als Tee. Nach dem Kochen brennt nichts mehr.</li>
+        <li><b>Löwenzahn</b> (März–Juni): junge Blätter roh als Salat (etwas bitter), Blüten essbar.</li>
+        <li><b>Brombeeren &amp; Himbeeren</b> (Juli–September): reife Früchte roh; junge Blätter als Tee.</li>
+        <li><b>Schwarzer Holunder</b> (August–September): reife, schwarze Beeren <b>nur gekocht</b> (Saft, Mus) – roh sowie Blätter, Stiele und unreife Beeren verursachen Übelkeit und Erbrechen.</li>
+        <li><b>Bucheckern</b> (September–Oktober): geschält und <b>geröstet</b>, nur in kleinen Mengen – roh und in größeren Mengen verursachen sie Übelkeit.</li>
+      </ul>
+      <div class="tipp">💡 Am besten jetzt im Sommer gemeinsam mit den Kindern üben, diese wenigen Pflanzen sicher zu erkennen – im Notfall ist keine Zeit zum Ausprobieren.</div>
+    </details>
+  </section>
+
   <!-- ===================== PLAN ===================== -->
   <section class="seite" id="seite-plan">
     <h2>📋 Unser Notfallplan</h2>
@@ -450,6 +673,12 @@
       <div id="kontakte"></div>
       <button type="button" class="btn btn-secondary kein-druck" id="btnKontaktNeu" style="margin-top:4px">＋ Kontakt</button>
       <div class="tier-meta" style="font-size:0.72rem;color:var(--bark);margin-top:6px">z. B. Hausarzt, Kinderarzt, Nachbarn, Großeltern, Arbeitgeber, Schule/Kita, Tierarzt, Versicherung.</div>
+    </div>
+    <div class="karte">
+      <h3>💧 Unsere Wasserstellen</h3>
+      <div id="wasserstellen"></div>
+      <button type="button" class="btn btn-secondary kein-druck" id="btnWasserstelleNeu" style="margin-top:4px">＋ Wasserstelle</button>
+      <div style="font-size:0.72rem;color:var(--bark);margin-top:6px">z. B. Quelle im Wald (Weg, Entfernung), Bach oberhalb des Orts, städtischer Notbrunnen, Regentonne. Wasser aus der Natur immer aufbereiten – siehe 🛠️ Selbermachen.</div>
     </div>
     <div class="karte">
       <h3>🧒 Kinder &amp; Familie</h3>
@@ -689,6 +918,7 @@
   function planFuellen() {
     document.querySelectorAll('[data-plan]').forEach(el => { if (document.activeElement !== el) el.value = plan[el.dataset.plan] || ''; });
     renderKontakte();
+    renderWasserstellen();
   }
   function planSpeichernSpaeter() {
     clearTimeout(planTimer);
@@ -702,6 +932,22 @@
     box.querySelectorAll('input[data-ki]').forEach(inp => inp.addEventListener('input', () => { plan.kontakte[+inp.dataset.ki][inp.dataset.kf] = inp.value; planSpeichernSpaeter(); }));
     box.querySelectorAll('[data-kweg]').forEach(b => b.addEventListener('click', () => { plan.kontakte.splice(+b.dataset.kweg, 1); speichern(KEY_PLAN, plan); renderKontakte(); }));
   }
+  const WS_ARTEN = ['Quelle', 'Bach', 'Teich/See', 'Notbrunnen', 'Regentonne', 'Sonstiges'];
+  function renderWasserstellen() {
+    const box = document.getElementById('wasserstellen');
+    const liste = Array.isArray(plan.wasserstellen) ? plan.wasserstellen : (plan.wasserstellen = []);
+    box.innerHTML = liste.length ? liste.map((w, i) => `<div class="ws-zeile"><input type="text" data-wi="${i}" data-wf="name" value="${escapeHtml(w.name || '')}" placeholder="z. B. Quelle am Waldweg" aria-label="Name">
+        <select data-wi="${i}" data-wf="art" aria-label="Art">${WS_ARTEN.map(a => `<option${a === w.art ? ' selected' : ''}>${a}</option>`).join('')}</select>
+        <button type="button" class="kein-druck" data-wweg="${i}" aria-label="Wasserstelle entfernen">✕</button></div>
+      <input type="text" class="ws-notiz" data-wi="${i}" data-wf="notiz" value="${escapeHtml(w.notiz || '')}" placeholder="Weg, Entfernung, Hinweise (z. B. 15 Min. zu Fuß, Kanister mitnehmen)" aria-label="Notiz">`).join('')
+      : '<div style="font-size:0.8rem;color:var(--bark);margin-bottom:6px">Noch keine Wasserstellen eingetragen.</div>';
+    box.querySelectorAll('[data-wi]').forEach(el => el.addEventListener(el.tagName === 'SELECT' ? 'change' : 'input', () => { plan.wasserstellen[+el.dataset.wi][el.dataset.wf] = el.value; planSpeichernSpaeter(); }));
+    box.querySelectorAll('[data-wweg]').forEach(b => b.addEventListener('click', () => { plan.wasserstellen.splice(+b.dataset.wweg, 1); speichern(KEY_PLAN, plan); renderWasserstellen(); }));
+  }
+  document.getElementById('btnWasserstelleNeu').addEventListener('click', () => {
+    plan.wasserstellen = plan.wasserstellen || []; plan.wasserstellen.push({ name: '', art: 'Quelle', notiz: '' }); renderWasserstellen();
+    const inputs = document.querySelectorAll('#wasserstellen input[data-wf="name"]'); if (inputs.length) inputs[inputs.length - 1].focus();
+  });
   document.getElementById('btnKontaktNeu').addEventListener('click', () => {
     plan.kontakte = plan.kontakte || []; plan.kontakte.push({ name: '', tel: '' }); renderKontakte();
     const inputs = document.querySelectorAll('#kontakte input[data-kf="name"]'); if (inputs.length) inputs[inputs.length - 1].focus();

@@ -2,6 +2,9 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
+## 2026-10-29 | 🛠️ Notfall: Selbermachen & unsere Wasserstellen
+Neuer Reiter 🛠️ Selbermachen im Notfall-Modul: Wasser aus Quelle, Bach und Teich sicher nutzen, einen Flaschen-Vorfilter bauen (mit Skizze), Sonnen-Entkeimung (SODIS), Dosenkocher, Hobo-Ofen und Kochkiste, ein Tontopf-Kühler ohne Strom, ein warmer Raum im Raum, eine Laterne aus Stirnlampe und Wasserkanister, Regenwasser auffangen, eine Eimer-Toilette, eine Notfall-Angel (mit rechtlichem Hinweis) und die wenigen unverwechselbaren Wildpflanzen. Neu in 📋 Unser Plan: „Unsere Wasserstellen“ für Quellen, Bäche und Notbrunnen mit Weg und Entfernung.
+
 ## 2026-10-29 | 🆘 Neues Modul: Notfall
 Für Stromausfall, Wasserausfall und andere Krisen: Alle wichtigen Infos funktionieren auch **ohne Internet** und lassen sich für die Notfallmappe ausdrucken. Unter 🚨 Sofort stehen Notrufnummern, Sirenensignale, was bei Unwetter und Evakuierung zu tun ist und der Hinweis auf Radio und NINA. Unter 🎒 Vorrat berechnet der Planer den Vorrat für 3, 5 oder 10 Tage nach den BBK-Mengen für eure Personenzahl. Die abhakbaren Checklisten (Lebensmittel, Hygiene, Hausapotheke, Stromausfall, Notgepäck, Dokumente) gelten für die ganze Familie. Fehlendes kommt mit einem Tipp auf die Einkaufsliste, Vorhandenes aus der Vorratskammer wird erkannt, und auf Wunsch erinnert ein Termin alle 6 Monate an den Check. Dazu: 💧 Wasser trinkbar machen, 🔦 ohne Strom (mit Warnung vor Kohlenmonoxid), ☢️ atomarer Ernstfall (Schutz suchen, Dekontamination, Jodtabletten nur auf Aufforderung), 🧭 Durchhalte-Tipps mit Erste Hilfe und 📋 euer eigener Notfallplan mit Treffpunkten, Kontakten und „wo ist was im Haus“.
 
