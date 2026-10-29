@@ -652,6 +652,9 @@ function chatVorschau(m) {
   const typ = m.typ || 'text';
   if (typ === 'bild') return '📷 Foto';
   if (typ === 'sprache') return '🎤 Sprachnachricht' + (m.dauer ? ' (' + Math.floor(m.dauer / 60) + ':' + String(m.dauer % 60).padStart(2, '0') + ')' : '');
+  // 🙋 Status-Meldungen: nur der Code liegt unverschlüsselt vor
+  const STATUS = { gut: '✅ Mir geht’s gut', zuhause: '🏠 Bin zu Hause und in Sicherheit', treffpunkt: '📍 Bin am Treffpunkt', hilfe: '🆘 Brauche Hilfe!', frage: '🙋 Geht es allen gut? Bitte kurz melden' };
+  if (m.status && STATUS[m.status]) return STATUS[m.status];
   if (m.v) return typ === 'karte' ? '📎 Neue Nachricht' : (typ === 'umfrage' ? '📊 Neue Umfrage' : '🔒 Neue Nachricht');
   if (typ === 'umfrage' && m.umfrage) return '📊 Umfrage: ' + String(m.umfrage.frage || '').slice(0, 160);
   if (typ === 'karte' && m.karte) return ({ termin: '🗓️ ', rezept: '🍳 ', wunsch: '🎁 ', einkauf: '🛒 ', ausflug: '🧭 ', standort: '📍 ' }[m.karte.art] || '📎 ') + (m.karte.titel || '') + (m.text ? ' – ' + m.text : '');
