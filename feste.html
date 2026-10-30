@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<script>(function(){try{var m=localStorage.getItem('planer_darkMode');if(m==='dunkel'||(m==='auto'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.setAttribute('data-dark','1');}var s=localStorage.getItem('planer_schriftgroesse');if(s==='gross'){document.documentElement.style.fontSize='19px';}var f=localStorage.getItem('planer_farbschema');if(f&&f!=='wald'){document.documentElement.setAttribute('data-farbschema',f);}}catch(e){}})();</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Feste</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap');
+  :root {
+    --soil: #3a2e1f; --moss: #4f6f45; --sage: #7fa476; --leaf: #bcd196;
+    --cream: #faf6ec; --parchment: #ece0c7; --bark: #7d6339;
+    --terracotta: #c46b41; --terracotta-text: #a8532e; --sky: #5b8bb5; --gold: #c99a3a;
+    --white: #fffdf8; --navbg: #2a2016; --navbg2: #3a2e1f; --rot: #b3261e; --rot-bg: #fbe4e1; --fest: #b8467a;
+    --radius-sm: 8px; --radius-md: 12px; --radius-lg: 18px; --radius-pill: 22px;
+    --shadow-soft: 0 2px 10px rgba(59,47,30,0.08); --shadow-md: 0 8px 26px rgba(59,47,30,0.2);
+  }
+  html[data-dark="1"] {
+    --soil: #f0e8d8; --moss: #6fae5e; --sage: #9bc98a; --leaf: #cfe3b8;
+    --cream: #1e1b16; --parchment: #2b261e; --bark: #c2b393;
+    --terracotta: #d9855a; --terracotta-text: #e8a37e; --sky: #7fa8cc; --gold: #dcb158;
+    --white: #2f2a22; --navbg: #14100c; --navbg2: #221a12; --rot: #ff8a80; --rot-bg: rgba(179,38,30,0.22); --fest: #e48ab3;
+  }
+  html[data-farbschema="ozean"] { --navbg: #1c1f24; --navbg2: #2b2f36; --sage: #8fd4c9; --leaf: #8fd4c9; --moss: #4fa89c; }
+  html[data-farbschema="schnee"] { --navbg: #1c1f24; --navbg2: #2b2f36; --sage: #c9cdd3; --leaf: #f0f0f2; --moss: #5b5f66; }
+  html[data-farbschema="fjord"] { --navbg: #1c1f24; --navbg2: #2b2f36; --sage: #9cc0ec; --leaf: #9cc0ec; --moss: #5b8bc9; }
+  html[data-farbschema="bernstein"] { --navbg: #1c1f24; --navbg2: #2b2f36; --sage: #e6c878; --leaf: #e6c878; --moss: #c9a24d; }
+  html[data-dark="1"][data-farbschema] { --cream: #191b1f; --parchment: #24262c; --white: #2a2d33; --soil: #eceef0; --bark: #a7acb5; }
+  html[data-dark="1"] { --moss-text: var(--sage); --on-moss: #16140f; }
+  html[data-dark="1"][data-farbschema="schnee"] { --on-moss: #f4f5f6; }
+  html[data-dark="1"] input, html[data-dark="1"] select, html[data-dark="1"] textarea { color-scheme: dark; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--cream); color: var(--soil); min-height: 100vh; padding-bottom: 70px; }
+  button, input, select, textarea { font-family: inherit; -webkit-tap-highlight-color: transparent; }
+  :focus-visible { outline: 2px solid var(--terracotta); outline-offset: 2px; border-radius: 4px; }
+
+  header.top { position: sticky; top: 0; z-index: 20; background: linear-gradient(135deg, var(--navbg2), var(--navbg)); color: var(--leaf); padding: 8px 12px 8px; }
+  header.top::after { content: ''; position: absolute; left: 0; right: 0; bottom: -3px; height: 3px; background: linear-gradient(90deg, #b8467a, var(--gold) 35%, var(--sky) 65%, var(--moss)); opacity: 0.9; }
+  .titel-zeile { display: flex; align-items: center; gap: 6px; }
+  .titel-zeile h1 { font-family: 'Playfair Display', serif; font-size: 1.15rem; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .kopf-btn { background: transparent; border: 1px solid #4a3a28; color: var(--sage); border-radius: var(--radius-pill); padding: 5px 11px; font-size: 0.76rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
+  .kopf-btn.voll { background: var(--terracotta); border-color: var(--terracotta); color: #fff; }
+  .reiter { display: none; gap: 5px; overflow-x: auto; scrollbar-width: none; padding: 8px 0 2px; }
+  .reiter.an { display: flex; }
+  .reiter::-webkit-scrollbar { display: none; }
+  .reiter button { flex: 0 0 auto; background: transparent; border: 1px solid #4a3a28; color: var(--sage); font-size: 0.75rem; font-weight: 700; padding: 6px 11px; border-radius: var(--radius-pill); cursor: pointer; white-space: nowrap; }
+  .reiter button.aktiv { background: var(--terracotta); border-color: var(--terracotta); color: #fff; }
+
+  main { padding: 14px; max-width: 760px; margin: 0 auto; }
+  h2 { font-family: 'Playfair Display', serif; font-size: 1.2rem; margin: 4px 0 10px; }
+  h3 { font-size: 0.95rem; margin: 0 0 8px; display: flex; align-items: center; gap: 6px; }
+  h3 .rechts { margin-left: auto; font-size: 0.74rem; font-weight: 700; color: var(--bark); }
+  .karte { background: var(--white); border-radius: var(--radius-md); padding: 13px 14px; box-shadow: var(--shadow-soft); margin-bottom: 12px; }
+  .klein { font-size: 0.76rem; color: var(--bark); line-height: 1.45; }
+  .leer { text-align: center; color: var(--bark); font-size: 0.86rem; padding: 26px 12px; line-height: 1.6; }
+  .tipp { background: rgba(201,154,58,0.14); border-radius: var(--radius-sm); padding: 9px 11px; margin: 8px 0; font-size: 0.8rem; line-height: 1.5; }
+  .warn { background: var(--rot-bg); border-left: 4px solid var(--rot); border-radius: var(--radius-sm); padding: 8px 11px; margin: 8px 0; font-size: 0.8rem; line-height: 1.5; }
+  .warn b { color: var(--rot); }
+
+  .btn { border: none; border-radius: var(--radius-pill); padding: 10px 14px; font-weight: 700; font-size: 0.84rem; cursor: pointer; }
+  .btn-primary { background: var(--moss); color: var(--on-moss, #fff); }
+  .btn-secondary { background: var(--white); color: var(--soil); border: 1px solid var(--parchment); }
+  .btn-klein { padding: 6px 11px; font-size: 0.76rem; }
+  .btn-gefahr { background: transparent; color: var(--rot); border: 1px solid var(--rot); }
+  .knopf-reihe { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .icon-btn { border: 1px solid var(--parchment); background: var(--cream); color: var(--soil); border-radius: 999px; padding: 3px 8px; font-size: 0.8rem; cursor: pointer; flex-shrink: 0; line-height: 1.3; }
+  .weg-btn { border: none; background: none; color: var(--terracotta-text); cursor: pointer; font-size: 0.9rem; padding: 2px 4px; flex-shrink: 0; }
+
+  .feld { margin-bottom: 10px; }
+  .feld label, .label { display: block; font-size: 0.68rem; font-weight: 700; color: var(--bark); margin-bottom: 3px; text-transform: uppercase; letter-spacing: .03em; }
+  .feld input, .feld select, .feld textarea, .eingabe { width: 100%; padding: 9px 11px; border: 1px solid var(--parchment); border-radius: var(--radius-sm); background: var(--cream); color: var(--soil); font-size: 0.88rem; }
+  .feld textarea { resize: vertical; min-height: 54px; }
+  .zwei { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .drei { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 5px; }
+  .chip { border: 1px solid var(--parchment); background: var(--cream); color: var(--soil); border-radius: 999px; padding: 5px 10px; font-size: 0.76rem; font-weight: 600; cursor: pointer; }
+  .chip.aktiv { background: var(--moss); border-color: var(--moss); color: var(--on-moss, #fff); }
+
+  /* Liste der Feste */
+  .fest-karte { display: flex; gap: 12px; align-items: center; background: var(--white); border-radius: var(--radius-md); padding: 12px 14px; box-shadow: var(--shadow-soft); margin-bottom: 10px; cursor: pointer; border-left: 5px solid var(--fest); }
+  .fest-karte .em { font-size: 2rem; line-height: 1; }
+  .fest-karte .info { flex: 1; min-width: 0; }
+  .fest-karte b { display: block; font-size: 0.95rem; }
+  .fest-karte .unter { font-size: 0.76rem; color: var(--bark); margin-top: 2px; }
+  .fest-karte .countdown { text-align: center; font-size: 0.68rem; color: var(--bark); font-weight: 700; min-width: 52px; }
+  .fest-karte .countdown b { font-size: 1.3rem; color: var(--fest); }
+  .fest-karte.vorbei { opacity: 0.75; border-left-color: var(--parchment); }
+  .art-raster { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin-bottom: 12px; }
+  .art-raster button { border: 2px solid var(--parchment); background: var(--white); color: var(--soil); border-radius: var(--radius-md); padding: 12px 8px; cursor: pointer; font-size: 0.82rem; font-weight: 700; }
+  .art-raster button .em { display: block; font-size: 1.7rem; margin-bottom: 4px; }
+  .art-raster button.aktiv { border-color: var(--fest); background: rgba(184,70,122,0.1); }
+  .motto-raster { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 6px; }
+  .motto-raster button { border: 2px solid var(--parchment); background: var(--white); color: var(--soil); border-radius: var(--radius-sm); padding: 7px 4px; font-size: 0.72rem; font-weight: 600; cursor: pointer; }
+  .motto-raster button .em { display: block; font-size: 1.3rem; }
+  .motto-raster button.aktiv { border-color: var(--fest); background: rgba(184,70,122,0.1); }
+
+  /* Übersicht */
+  .held { text-align: center; padding: 16px 12px; background: linear-gradient(135deg, rgba(184,70,122,0.14), rgba(201,154,58,0.14)); border-radius: var(--radius-lg); margin-bottom: 12px; }
+  .held .em { font-size: 2.6rem; }
+  .held h2 { margin: 4px 0 2px; }
+  .held .unter { font-size: 0.82rem; color: var(--bark); }
+  .held .gross { font-size: 1.05rem; font-weight: 700; color: var(--fest); margin-top: 6px; }
+  .kacheln { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+  .kachel { background: var(--white); border-radius: var(--radius-md); padding: 10px 12px; box-shadow: var(--shadow-soft); cursor: pointer; text-align: left; border: none; color: var(--soil); }
+  .kachel span { display: block; font-size: 0.7rem; color: var(--bark); font-weight: 700; text-transform: uppercase; letter-spacing: .03em; }
+  .kachel b { display: block; font-size: 1.1rem; margin: 2px 0; }
+  .kachel small { font-size: 0.72rem; color: var(--bark); }
+  .jetzt { border: 2px solid var(--fest); }
+  .jetzt .label { color: var(--fest); }
+
+  /* Zeilen allgemein */
+  .zeile { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-top: 1px solid var(--parchment); }
+  .zeile:first-child { border-top: none; }
+  .zeile .haupt { flex: 1; min-width: 0; font-size: 0.86rem; line-height: 1.4; }
+  .zeile .haupt small { display: block; font-size: 0.72rem; color: var(--bark); }
+  .zeile input[type=checkbox] { width: 20px; height: 20px; accent-color: #4f6f45; flex-shrink: 0; }
+  .zeile.erledigt .haupt > span:first-child { text-decoration: line-through; opacity: 0.6; }
+  .status-btn { border: none; border-radius: 999px; padding: 4px 9px; font-size: 0.72rem; font-weight: 700; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+  .st-eingeladen { background: rgba(91,139,181,0.18); color: var(--sky); }
+  .st-zugesagt { background: rgba(79,111,69,0.2); color: var(--moss-text, var(--moss)); }
+  .st-abgesagt { background: rgba(127,127,127,0.18); color: var(--bark); }
+  .badge-allergie { display: inline-block; background: var(--rot-bg); color: var(--rot); border-radius: 999px; padding: 1px 7px; font-size: 0.68rem; font-weight: 700; margin-left: 4px; }
+  .zaehler { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+  .zaehler span { background: var(--cream); border: 1px solid var(--parchment); border-radius: 999px; padding: 3px 9px; font-size: 0.74rem; font-weight: 600; }
+  .zahl-input { width: 62px !important; text-align: center; }
+
+  /* Ablauf */
+  .ablauf-zeile { display: grid; grid-template-columns: 96px 1fr auto; gap: 8px; align-items: start; padding: 9px 0; border-top: 1px solid var(--parchment); }
+  .ablauf-zeile:first-child { border-top: none; }
+  .ablauf-zeile input[type=time] { width: 100%; padding: 6px 4px; border: 1px solid var(--parchment); border-radius: var(--radius-sm); background: var(--cream); color: var(--soil); font-size: 0.84rem; font-weight: 700; }
+  .ablauf-zeile .titel-input { width: 100%; padding: 6px 8px; border: 1px solid transparent; border-radius: var(--radius-sm); background: transparent; color: var(--soil); font-size: 0.88rem; font-weight: 600; }
+  .ablauf-zeile .titel-input:focus { border-color: var(--parchment); background: var(--cream); }
+  .ablauf-zeile .meta { display: flex; gap: 6px; align-items: center; font-size: 0.72rem; color: var(--bark); padding: 0 8px; flex-wrap: wrap; }
+  .ablauf-zeile .meta input { width: 52px; padding: 3px 5px; border: 1px solid var(--parchment); border-radius: 6px; background: var(--cream); color: var(--soil); font-size: 0.74rem; }
+  .ablauf-zeile .knoepfe { display: flex; flex-direction: column; gap: 4px; }
+  .ablauf-zeile.ist-jetzt { background: rgba(184,70,122,0.1); border-radius: var(--radius-sm); }
+  .ablauf-zeile.vorbei .titel-input { opacity: 0.55; }
+
+  /* Spiele */
+  .spiel { border-top: 1px solid var(--parchment); padding: 10px 0; }
+  .spiel:first-child { border-top: none; }
+  .spiel-kopf { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+  .spiel-kopf .em { font-size: 1.6rem; width: 34px; text-align: center; }
+  .spiel-kopf .info { flex: 1; min-width: 0; }
+  .spiel-kopf b { font-size: 0.9rem; }
+  .spiel-kopf small { display: block; font-size: 0.72rem; color: var(--bark); }
+  .spiel-text { font-size: 0.82rem; line-height: 1.5; margin: 6px 0 0 44px; display: none; }
+  .spiel.offen .spiel-text { display: block; }
+  .spiel-text .material { font-size: 0.76rem; color: var(--bark); margin-top: 4px; }
+  .geplant { font-size: 0.7rem; font-weight: 700; color: var(--moss-text, var(--moss)); white-space: nowrap; }
+  .suche { width: 100%; padding: 9px 12px; border-radius: var(--radius-pill); border: 1px solid var(--parchment); background: var(--white); color: var(--soil); font-size: 0.86rem; margin-bottom: 8px; }
+
+  /* Schnitzeljagd */
+  .station { background: var(--cream); border: 1px solid var(--parchment); border-radius: var(--radius-md); padding: 10px 11px; margin-bottom: 8px; }
+  .station-kopf { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .station-nr { width: 28px; height: 28px; border-radius: 50%; background: var(--fest); color: #fff; font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 0.84rem; flex-shrink: 0; }
+  .station-kopf b { flex: 1; font-size: 0.86rem; }
+  .station .eingabe { padding: 7px 9px; font-size: 0.84rem; margin-bottom: 6px; background: var(--white); }
+  .station .reihe { display: flex; gap: 6px; align-items: center; }
+  .station .reihe select { flex: 1; padding: 6px 8px; border: 1px solid var(--parchment); border-radius: var(--radius-sm); background: var(--white); color: var(--soil); font-size: 0.78rem; }
+  .vorschau { font-size: 0.78rem; background: var(--white); border: 1px dashed var(--parchment); border-radius: var(--radius-sm); padding: 6px 9px; margin-top: 6px; color: var(--soil); overflow-wrap: anywhere; }
+  .vorschau .spiegel { display: inline-block; transform: scaleX(-1); }
+  .vorschau .bild { font-size: 1.6rem; }
+  .pfeil { text-align: center; color: var(--bark); font-size: 0.8rem; margin: -2px 0 6px; }
+
+  /* Fotos */
+  .fotos { display: flex; gap: 8px; flex-wrap: wrap; }
+  .fotos .ft { position: relative; width: 84px; height: 84px; border-radius: var(--radius-sm); overflow: hidden; background: var(--parchment); }
+  .fotos .ft img { width: 100%; height: 100%; object-fit: cover; }
+  .fotos .ft button { position: absolute; top: 2px; right: 2px; border: none; border-radius: 50%; width: 22px; height: 22px; background: rgba(0,0,0,0.55); color: #fff; cursor: pointer; font-size: 0.7rem; }
+  .foto-hinzu { width: 84px; height: 84px; border-radius: var(--radius-sm); border: 2px dashed var(--parchment); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; cursor: pointer; }
+  .foto-hinzu input { display: none; }
+
+  /* Modal */
+  .modal-bg { position: fixed; inset: 0; background: rgba(42,32,22,0.45); display: none; align-items: flex-end; justify-content: center; z-index: 100; padding-top: 6vh; }
+  .modal-bg.zeigen { display: flex; }
+  .modal { background: var(--cream); border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding: 18px 18px 24px; width: 100%; max-width: 540px; max-height: 92vh; overflow-y: auto; box-shadow: var(--shadow-md); }
+  @media (min-width: 600px) { .modal-bg { align-items: center; } .modal { border-radius: var(--radius-lg); } }
+  .modal h2 { margin-top: 0; }
+  .modal-btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; flex-wrap: wrap; }
+
+  /* Druck */
+  #druck { display: none; }
+  @media print {
+    @page { margin: 10mm; }
+    body.druck-aktiv { background: #fff !important; color: #000 !important; padding: 0; }
+    body.druck-aktiv > *:not(#druck) { display: none !important; }
+    body.druck-aktiv #druck { display: block; }
+  }
+  #druck { font-family: 'Inter', sans-serif; color: #000; }
+  #druck h1 { font-family: 'Playfair Display', serif; font-size: 18pt; margin-bottom: 4mm; }
+  #druck h2 { font-family: 'Playfair Display', serif; font-size: 13pt; margin: 5mm 0 2mm; }
+  #druck table { width: 100%; border-collapse: collapse; font-size: 10pt; }
+  #druck td, #druck th { border-bottom: 1px solid #bbb; padding: 1.5mm 2mm; text-align: left; vertical-align: top; }
+  .karten { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+  .dk { border: 1.5px dashed #888; padding: 6mm 6mm; min-height: 88mm; position: relative; break-inside: avoid; page-break-inside: avoid; display: flex; flex-direction: column; }
+  .dk .wz { position: absolute; top: 4mm; right: 5mm; font-size: 22pt; opacity: 0.85; }
+  .dk .nr { font-family: 'Playfair Display', serif; font-size: 16pt; font-weight: 700; margin-bottom: 3mm; }
+  .dk .auf { font-size: 11pt; line-height: 1.45; margin-bottom: 4mm; }
+  .dk .anl { font-size: 9pt; font-style: italic; margin-bottom: 2mm; }
+  .dk .code { font-size: 15pt; font-weight: 700; letter-spacing: 0.04em; line-height: 1.55; overflow-wrap: anywhere; }
+  .dk .code.sym { font-size: 19pt; letter-spacing: 0.08em; }
+  .dk .spiegel { display: inline-block; transform: scaleX(-1); }
+  .dk .bild { font-size: 64pt; text-align: center; line-height: 1.1; margin: 2mm 0; }
+  .dk .fuss { margin-top: auto; font-size: 7.5pt; color: #666; padding-top: 3mm; }
+  .tabelle-code { display: grid; grid-template-columns: repeat(6, 1fr); gap: 1.5mm; font-size: 11pt; }
+  .tabelle-code div { border: 1px solid #bbb; border-radius: 2mm; padding: 1mm 0.5mm; text-align: center; white-space: nowrap; font-size: 10pt; }
+  .schatzkarte svg { width: 100%; height: auto; }
+</style>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-storage-compat.js"></script>
+<script src="personen.js"></script>
+<script src="sync.js"></script>
+<script src="fotospeicher.js"></script>
+<script src="gemeinsam.js"></script>
+<script src="festdaten.js"></script>
+</head>
+<body>
+<div id="tempStatus"></div>
+<header class="top">
+  <div class="titel-zeile">
+    <button type="button" class="kopf-btn" id="btnZurueck" style="display:none" aria-label="Zurück zur Übersicht">←</button>
+    <h1 id="kopfTitel">🎉 Feste</h1>
+    <button type="button" class="kopf-btn" id="btnSpieleSammlung">🎲 Spiele</button>
+    <button type="button" class="kopf-btn voll" id="btnNeu">＋ Neues Fest</button>
+  </div>
+  <nav class="reiter" id="reiter" role="tablist">
+    <button type="button" data-tab="uebersicht">📋 Übersicht</button>
+    <button type="button" data-tab="gaeste">👥 Gäste</button>
+    <button type="button" data-tab="ablauf">⏱️ Ablauf</button>
+    <button type="button" data-tab="spiele">🎲 Spiele</button>
+    <button type="button" data-tab="schnitzel">🗺️ Schnitzeljagd</button>
+    <button type="button" data-tab="essen">🍰 Essen</button>
+    <button type="button" data-tab="aufgaben">✅ Aufgaben</button>
+    <button type="button" data-tab="danach">📸 Danach</button>
+  </nav>
+</header>
+<main id="inhalt"></main>
+<div id="druck"></div>
+
+<!-- Neues Fest -->
+<div class="modal-bg" id="modalNeu">
+  <div class="modal">
+    <h2>🎉 Neues Fest planen</h2>
+    <div class="label">Was wird gefeiert?</div>
+    <div class="art-raster" id="neuArten"></div>
+    <div class="feld"><label for="nTitel">Name</label><input type="text" id="nTitel" placeholder="z. B. Levs 7. Geburtstag"></div>
+    <div class="zwei">
+      <div class="feld"><label for="nDatum">Datum</label><input type="date" id="nDatum"></div>
+      <div class="feld"><label for="nFuer">Für wen?</label><select id="nFuer"></select></div>
+    </div>
+    <div class="feld" id="nAlterFeld"><label for="nAlter">Wird … Jahre alt</label><input type="number" id="nAlter" min="1" max="120" inputmode="numeric" class="zahl-input" style="width:90px!important"></div>
+    <div id="nMottoFeld"><div class="label">Motto</div><div class="motto-raster" id="nMotto"></div></div>
+    <div class="klein" style="margin-top:10px">Ablauf, Aufgaben, Essen und Budget werden aus der Vorlage vorgeschlagen – alles lässt sich danach ändern.</div>
+    <div class="modal-btns"><button type="button" class="btn btn-secondary" id="btnNeuAbbrechen">Abbrechen</button><button type="button" class="btn btn-primary" id="btnNeuAnlegen">Fest anlegen</button></div>
+  </div>
+</div>
+
+<!-- Gast bearbeiten -->
+<div class="modal-bg" id="modalGast">
+  <div class="modal">
+    <h2 id="gastTitel">Gast</h2>
+    <div class="feld"><label for="gName">Name</label><input type="text" id="gName"></div>
+    <div class="zwei">
+      <div class="feld"><label for="gTyp">Kind oder erwachsen?</label><select id="gTyp"><option value="kind">🧒 Kind</option><option value="erw">🧑 Erwachsene/r</option></select></div>
+      <div class="feld"><label for="gStatus">Status</label><select id="gStatus"><option value="eingeladen">✉️ eingeladen</option><option value="zugesagt">✅ zugesagt</option><option value="abgesagt">❌ abgesagt</option></select></div>
+    </div>
+    <div class="feld"><label for="gAllergien">Allergien / Unverträglichkeiten</label><input type="text" id="gAllergien" placeholder="z. B. Nüsse, Laktose, vegetarisch"></div>
+    <div class="zwei">
+      <div class="feld"><label for="gAbholer">Wer bringt/holt ab?</label><input type="text" id="gAbholer" placeholder="z. B. Mama Sabine"></div>
+      <div class="feld"><label for="gTel">Telefon</label><input type="tel" id="gTel"></div>
+    </div>
+    <div class="feld"><label for="gGeschenk">Geschenk (für den Dank danach)</label><input type="text" id="gGeschenk"></div>
+    <div class="feld"><label for="gNotiz">Notiz</label><input type="text" id="gNotiz"></div>
+    <div class="modal-btns"><button type="button" class="btn btn-gefahr" id="btnGastLoeschen">Entfernen</button><span style="flex:1"></span><button type="button" class="btn btn-secondary" id="btnGastAbbrechen">Abbrechen</button><button type="button" class="btn btn-primary" id="btnGastSpeichern">Speichern</button></div>
+  </div>
+</div>
+
+<!-- Eigenes Spiel -->
+<div class="modal-bg" id="modalSpiel">
+  <div class="modal">
+    <h2>🎲 Eigenes Spiel</h2>
+    <div class="feld"><label for="spName">Name</label><input type="text" id="spName"></div>
+    <div class="drei">
+      <div class="feld"><label for="spMin">Ab (Jahre)</label><input type="number" id="spMin" min="1" max="99" value="4"></div>
+      <div class="feld"><label for="spMax">Bis (Jahre)</label><input type="number" id="spMax" min="1" max="99" value="12"></div>
+      <div class="feld"><label for="spDauer">Minuten</label><input type="number" id="spDauer" min="1" max="240" value="15"></div>
+    </div>
+    <div class="feld"><label for="spOrt">Wo?</label><select id="spOrt"><option value="beides">drinnen & draußen</option><option value="drinnen">drinnen</option><option value="draussen">draußen</option></select></div>
+    <div class="feld"><label for="spMaterial">Material</label><input type="text" id="spMaterial"></div>
+    <div class="feld"><label for="spText">So geht's</label><textarea id="spText" rows="4"></textarea></div>
+    <div class="modal-btns"><button type="button" class="btn btn-secondary" id="btnSpielAbbrechen">Abbrechen</button><button type="button" class="btn btn-primary" id="btnSpielSpeichern">Speichern</button></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  const FD = window.FestDaten;
+  const KEY = 'feste_liste';
+  const KEY_SPIELE = 'feste_spiele';
+  let feste = laden(KEY, []); if (!Array.isArray(feste)) feste = [];
+  let eigeneSpiele = laden(KEY_SPIELE, []); if (!Array.isArray(eigeneSpiele)) eigeneSpiele = [];
+  let ansicht = 'liste';          // liste | fest | spiele
+  let aktivId = null;
+  let tab = 'uebersicht';
+  const offeneSpiele = new Set();
+  let spielFilter = { alter: null, ort: 'alle', motto: false, suche: '' };
+  const $ = (id) => document.getElementById(id);
+  const esc = escapeHtml;
+
+  // ---------- Helfer ----------
+  function personen() { return (window.PLANER_PERSONEN || []).filter(p => p.id !== 'familie'); }
+  function personName(id) { const p = (window.PLANER_PERSONEN || []).find(x => x.id === id); return p ? p.label : ''; }
+  function plusTage(iso, n) { const d = ausISO(iso); d.setDate(d.getDate() + n); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+  function tageBis(iso) { return iso ? Math.round((ausISO(iso) - ausISO(heuteISO())) / 864e5) : null; }
+  function datumLang(iso) { return iso ? ausISO(iso).toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : 'Datum offen'; }
+  function datumKurz(iso) { return iso ? ausISO(iso).toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'numeric' }) : ''; }
+  function minuten(t) { const m = /^(\d{1,2}):(\d{2})$/.exec(t || ''); return m ? Number(m[1]) * 60 + Number(m[2]) : null; }
+  function uhrzeit(min) { min = ((min % 1440) + 1440) % 1440; return String(Math.floor(min / 60)).padStart(2, '0') + ':' + String(min % 60).padStart(2, '0'); }
+  function euro(x) { return (Number(x) || 0).toLocaleString('de-DE', { style: 'currency', currency: 'EUR' }); }
+  function zahlAus(v) { const n = parseFloat(String(v).replace(',', '.')); return isNaN(n) ? 0 : n; }
+  function countdownText(t) { return t === 0 ? 'heute' : t === 1 ? 'morgen' : t > 1 ? 'in ' + t + ' Tagen' : t === -1 ? 'gestern' : 'vor ' + (-t) + ' Tagen'; }
+  function aktiv() { return feste.find(f => f.id === aktivId) || null; }
+  function navigiere(modul, aktion, text, ziel) { try { parent.postMessage({ type: 'navigiere', modul, aktion: aktion || '', text: text || '', ziel: ziel || '' }, location.origin); } catch (e) {} }
+
+  function speichernFeste() { speichern(KEY, feste); }
+  let speicherTimer = null;
+  function spaeterSpeichern() { clearTimeout(speicherTimer); speicherTimer = setTimeout(speichernFeste, 500); }
+  function istKinderfest(f) { return f.art === 'kindergeburtstag'; }
+
+  // Wer kommt? (abgesagte zählen nicht; eingeladene ohne Antwort zählen als „vielleicht“)
+  function zahlen(f) {
+    const g = f.gaeste || [];
+    const z = { kinder: 0, erw: 0, zugesagt: 0, eingeladen: 0, abgesagt: 0, sicherKinder: 0, sicherErw: 0 };
+    g.forEach(x => {
+      z[x.status || 'eingeladen']++;
+      if (x.status === 'abgesagt') return;
+      const kind = x.typ !== 'erw';
+      if (kind) z.kinder++; else z.erw++;
+      if (x.status === 'zugesagt') { if (kind) z.sicherKinder++; else z.sicherErw++; }
+    });
+    z.eigeneKinder = Number(f.eigeneKinder) || 0; z.eigeneErw = Number(f.eigeneErw) || 0;
+    z.gesamtKinder = z.kinder + z.eigeneKinder; z.gesamtErw = z.erw + z.eigeneErw;
+    return z;
+  }
+
+  // ---------- 🗓️ Termine ----------
+  let termineSync = null;
+  function terminAktualisieren(f, entfernen) {
+    const events = laden('termine_events_v1', []);
+    const id = 't_fest_' + f.id;
+    let rest = events.filter(e => e.id !== id);
+    if (!entfernen && f.datum) {
+      const art = FD.art(f.art), m = FD.motto(f.motto);
+      rest.push({ id, title: (istKinderfest(f) && f.motto ? m.em : art.em) + ' ' + (f.titel || art.name), date: f.datum, allDay: !f.von, startTime: f.von || '', endTime: f.bis || '', wer: f.fuer || 'familie', location: f.ort || '',
+        notes: 'Planung im Modul 🎉 Feste', erinnerung: 0, erinnerungVorabend: true, recurrence: { freq: 'keine' } });
+    }
+    if (rest.length === events.length && entfernen) return;
+    try { localStorage.setItem('termine_events_v1', JSON.stringify(rest)); } catch (e) { return; }
+    if (termineSync) termineSync.melde();
+  }
+
+  // ---------- 🛒 Einkauf ----------
+  let einkaufSync = null;
+  function zumEinkauf(eintraege) {
+    let listen = laden('einkauf_listen', []);
+    if (!listen.length) listen = [{ id: neueId('l'), name: 'Wocheneinkauf', items: [] }];
+    let aktivListe = ''; try { aktivListe = localStorage.getItem('einkauf_aktiveListe') || ''; } catch (e) {}
+    const liste = listen.find(x => x.id === aktivListe) || listen[0];
+    liste.items = liste.items || [];
+    const neu = [];
+    eintraege.forEach(e => {
+      if (liste.items.some(i => !i.erledigt && i.name === e.name)) return;
+      const item = { id: neueId('i'), name: e.name, menge: e.menge ? String(e.menge).replace('.', ',') : '', einheit: e.einheit || '', kategorie: 'sonstiges', erledigt: false, hinzugefuegtVon: 'feste' };
+      liste.items.push(item); neu.push(item.id);
+    });
+    if (!neu.length) { showTempStatus('Steht schon alles auf „' + liste.name + '“', 3); return; }
+    try { localStorage.setItem('einkauf_listen', JSON.stringify(listen)); } catch (e) { alert('Speichern fehlgeschlagen.'); return; }
+    if (einkaufSync) einkaufSync.melde();
+    showTempStatus('🛒 ' + neu.length + (neu.length === 1 ? ' Artikel' : ' Artikel') + ' auf „' + liste.name + '“', 5, { rueckgaengig: () => {
+      const ls = laden('einkauf_listen', []); const z = ls.find(x => x.id === liste.id);
+      if (z) { z.items = (z.items || []).filter(i => !neu.includes(i.id)); localStorage.setItem('einkauf_listen', JSON.stringify(ls)); if (einkaufSync) einkaufSync.melde(); }
+    } });
+  }
+
+  // ---------- 💶 Finanzen ----------
+  let finanzSync = null;
+  function finanzSpeichern(key, wert) { try { localStorage.setItem(key, JSON.stringify(wert)); } catch (e) {} if (finanzSync) finanzSync.melde(); }
+  function finanzBuchen(f, b) {
+    const ausgaben = laden('finanzen_ausgaben', []) || [];
+    const kategorien = laden('finanzen_kategorien', []) || [];
+    if (!kategorien.some(k => k.id === 'kat_feste')) { kategorien.push({ id: 'kat_feste', name: 'Feste & Feiern', icon: '🎉', limit: 0 }); finanzSpeichern('finanzen_kategorien', kategorien); }
+    const id = 'fe_' + f.id + '_' + b.id;
+    const eintrag = { id, kategorieId: 'kat_feste', betrag: Math.round(zahlAus(b.ausgegeben) * 100) / 100, beschreibung: '🎉 ' + (b.text || 'Fest') + ' – ' + (f.titel || 'Fest'), datum: heuteISO(), quelle: 'feste' };
+    const vorhanden = ausgaben.find(a => a.id === id);
+    if (vorhanden) Object.assign(vorhanden, eintrag, { datum: vorhanden.datum }); else ausgaben.push(eintrag);
+    finanzSpeichern('finanzen_ausgaben', ausgaben);
+    b.finanzId = id;
+  }
+  function finanzLoeschen(id) { finanzSpeichern('finanzen_ausgaben', (laden('finanzen_ausgaben', []) || []).filter(a => a.id !== id)); }
+
+  // ---------- 🎁 Wunschliste (nur lesen) ----------
+  function offeneWuensche(f) {
+    if (!f.fuer) return [];
+    return (laden('termine_wunschliste', []) || []).filter(w => w && w.name && w.person === f.fuer && (w.status || (w.reserviert ? 'reserviert' : 'offen')) === 'offen' && !(w.versteckenVor && w.versteckenVor.length) && (!w.anlass || w.anlass === 'geburtstag'));
+  }
+
+  // ---------- Teilen ----------
+  async function teilen(titel, text) {
+    try { if (navigator.share) { await navigator.share({ title: titel, text }); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
+    try { await navigator.clipboard.writeText(text); showTempStatus('📋 Kopiert – jetzt z. B. in WhatsApp einfügen', 4); }
+    catch (e) { prompt('Zum Kopieren:', text); }
+  }
+  function wirdText(f) { return f.alter ? 'wird ' + f.alter : 'hat Geburtstag'; }
+  function einladungText(f) {
+    const art = FD.art(f.art), m = FD.motto(f.motto);
+    const name = personName(f.fuer) || '';
+    let intro;
+    if (istKinderfest(f)) intro = m.intro.replace('{name}', name || 'Unser Geburtstagskind').replace('{wird}', wirdText(f));
+    else intro = 'Wir feiern ' + (f.titel || art.name) + (name && f.art === 'geburtstag' ? ' – ' + name + (f.alter ? ' wird ' + f.alter : '') : '') + ' und möchten dich herzlich einladen!';
+    const em = istKinderfest(f) ? m.em : art.em;
+    const zusageBis = f.datum ? plusTage(f.datum, -7) : '';
+    const zeilen = [em + ' Einladung ' + em, '', intro, ''];
+    if (f.datum) zeilen.push('📅 ' + datumLang(f.datum) + (f.von ? ', ' + f.von + (f.bis ? '–' + f.bis : '') + ' Uhr' : ''));
+    if (f.ort) zeilen.push('📍 ' + f.ort);
+    if (istKinderfest(f) && m.kleidung) zeilen.push('🎭 ' + m.kleidung);
+    if (f.einladungZusatz) zeilen.push(f.einladungZusatz);
+    zeilen.push('', 'Bitte sagt ' + (zusageBis && tageBis(zusageBis) > 0 ? 'bis ' + ausISO(zusageBis).toLocaleDateString('de-DE', { day: 'numeric', month: 'long' }) + ' ' : '') + 'Bescheid, ob ihr kommen könnt' + (istKinderfest(f) ? ' – und ob es Allergien gibt.' : '.'), '', 'Wir freuen uns! 🎉');
+    return zeilen.join('\n');
+  }
+  function wunschzettelText(f) {
+    const w = offeneWuensche(f);
+    if (!w.length) return '';
+    return '🎁 Wunschzettel für ' + personName(f.fuer) + (f.datum ? ' (' + ausISO(f.datum).toLocaleDateString('de-DE', { day: 'numeric', month: 'long' }) + ')' : '') + '\n\n' +
+      w.map(x => '• ' + x.name + (x.preis ? ' (ca. ' + x.preis + ')' : '') + (x.notiz ? '\n   ' + x.notiz : '')).join('\n') + '\n\nBitte kurz Bescheid geben, was ihr besorgt – damit nichts doppelt kommt. 😊';
+  }
+
+  // ---------- Neues Fest ----------
+  let neuArt = 'kindergeburtstag', neuMotto = '';
+  function neuOeffnen() {
+    neuArt = 'kindergeburtstag'; neuMotto = '';
+    $('nTitel').value = ''; $('nDatum').value = ''; $('nAlter').value = '';
+    $('nFuer').innerHTML = '<option value="">– Familie / niemand Bestimmtes –</option>' + personen().map(p => `<option value="${esc(p.id)}">${esc(p.label)}</option>`).join('');
+    neuRendern();
+    $('modalNeu').classList.add('zeigen');
+  }
+  function neuRendern() {
+    $('neuArten').innerHTML = FD.ARTEN.map(a => `<button type="button" data-art="${a.id}" class="${a.id === neuArt ? 'aktiv' : ''}"><span class="em">${a.em}</span>${esc(a.name)}</button>`).join('');
+    const kinder = neuArt === 'kindergeburtstag';
+    $('nMottoFeld').style.display = kinder ? '' : 'none';
+    $('nAlterFeld').style.display = kinder || neuArt === 'geburtstag' ? '' : 'none';
+    $('nMotto').innerHTML = FD.MOTTOS.map(m => `<button type="button" data-motto="${m.id}" class="${m.id === neuMotto ? 'aktiv' : ''}"><span class="em">${m.em}</span>${esc(m.name)}</button>`).join('');
+    $('neuArten').querySelectorAll('[data-art]').forEach(b => b.addEventListener('click', () => { neuArt = b.dataset.art; neuRendern(); titelVorschlag(); }));
+    $('nMotto').querySelectorAll('[data-motto]').forEach(b => b.addEventListener('click', () => { neuMotto = b.dataset.motto; neuRendern(); }));
+  }
+  // Geburtstag aus Termine: Alter vorschlagen
+  function geburtsjahr(pid) {
+    const p = personName(pid); if (!p) return null;
+    const ev = (laden('termine_events_v1', []) || []).find(e => e && e.geburtsjahr && /geburtstag|🎂/i.test(e.title || '') && (e.wer === pid || String(e.title || '').toLowerCase().includes(p.toLowerCase())));
+    return ev ? { jahr: Number(ev.geburtsjahr), datum: ev.date } : null;
+  }
+  function titelVorschlag() {
+    const pid = $('nFuer').value, name = personName(pid);
+    const gj = geburtsjahr(pid);
+    if (gj && (neuArt === 'kindergeburtstag' || neuArt === 'geburtstag')) {
+      const jahr = $('nDatum').value ? Number($('nDatum').value.slice(0, 4)) : new Date().getFullYear() + (gj.datum && gj.datum.slice(5) < heuteISO().slice(5) ? 1 : 0);
+      if (!$('nAlter').value || $('nAlter').dataset.auto === '1') { $('nAlter').value = jahr - gj.jahr; $('nAlter').dataset.auto = '1'; }
+    }
+    if ($('nTitel').dataset.selbst === '1' && $('nTitel').value) return;
+    const a = FD.art(neuArt);
+    const alter = $('nAlter').value;
+    $('nTitel').value = (neuArt === 'kindergeburtstag' || neuArt === 'geburtstag') && name ? name + 's ' + (alter ? alter + '. ' : '') + 'Geburtstag' : a.name;
+  }
+  $('nFuer').addEventListener('change', titelVorschlag);
+  $('nDatum').addEventListener('change', titelVorschlag);
+  $('nAlter').addEventListener('input', () => { $('nAlter').dataset.auto = ''; titelVorschlag(); });
+  $('nTitel').addEventListener('input', () => { $('nTitel').dataset.selbst = '1'; });
+  $('btnNeuAbbrechen').addEventListener('click', () => $('modalNeu').classList.remove('zeigen'));
+  $('btnNeuAnlegen').addEventListener('click', () => {
+    const a = FD.art(neuArt);
+    const f = {
+      id: neueId('fe'), art: neuArt, titel: $('nTitel').value.trim() || a.name, datum: $('nDatum').value, von: a.von, bis: a.bis, ort: '',
+      fuer: $('nFuer').value, alter: Number($('nAlter').value) || null, motto: a.kinder ? neuMotto : '', notiz: '', erstellt: heuteISO(),
+      eigeneKinder: a.kinder ? 1 : 0, eigeneErw: a.kinder ? 2 : Math.max(1, personen().length),
+      gaeste: [], ablauf: a.ablauf.map(x => ({ id: neueId('a'), zeit: x[0], dauer: x[1], titel: x[2] })),
+      aufgaben: a.aufgaben.map(x => ({ id: neueId('t'), text: x[1], tageVorher: x[0], wer: '', erledigt: false })),
+      essen: a.essen.map(x => ({ id: neueId('e'), name: x[0], einheit: x[1], proKind: x[2], proErw: x[3] })),
+      budget: a.budget.map(x => ({ id: neueId('b'), text: x, geplant: '', ausgegeben: '' })),
+      mitgebsel: a.mitgebsel.map(x => ({ id: neueId('m'), text: x, erledigt: false })),
+      sj: { stufe: '', stationen: [], schatz: { ort: '', inhalt: [], versteckt: false } },
+      danach: { gut: '', besser: '', fotos: [] },
+    };
+    if (a.kinder) f.sj.stationen = [1, 2, 3, 4].map(() => ({ id: neueId('s'), ort: '', aufgabe: '', raetsel: '', hinweis: '', versteckt: false }));
+    feste.push(f); speichernFeste(); terminAktualisieren(f);
+    $('modalNeu').classList.remove('zeigen'); $('nTitel').dataset.selbst = '';
+    oeffnen(f.id, 'uebersicht');
+    showTempStatus('🎉 Angelegt' + (f.datum ? ' – steht auch in Termine' : ''), 3);
+  });
+
+  // ---------- Kopieren („wie letztes Mal“) ----------
+  function kopieren(f) {
+    const k = JSON.parse(JSON.stringify(f));
+    k.id = neueId('fe'); k.vorgaengerId = f.id; k.erstellt = heuteISO();
+    k.datum = '';
+    if (f.datum) { const d = ausISO(f.datum); d.setFullYear(d.getFullYear() + 1); k.datum = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+    if (k.alter) k.alter = Number(k.alter) + 1;
+    k.titel = String(f.titel || '').replace(/(\d+)\./, (m0, n) => (Number(n) + 1) + '.');
+    (k.gaeste || []).forEach(g => { g.status = 'eingeladen'; g.geschenk = ''; g.dankeGesagt = false; g.tuete = false; });
+    (k.aufgaben || []).forEach(a => { a.erledigt = false; delete a.erledigtAm; });
+    (k.budget || []).forEach(b => { b.ausgegeben = ''; delete b.finanzId; });
+    (k.mitgebsel || []).forEach(m => { m.erledigt = false; });
+    (k.essen || []).forEach(e => { delete e.erledigt; });
+    if (k.sj) { (k.sj.stationen || []).forEach(s => { s.versteckt = false; }); if (k.sj.schatz) { k.sj.schatz.versteckt = false; (k.sj.schatz.inhalt || []).forEach(i => { i.erledigt = false; }); } }
+    k.danach = { gut: '', besser: '', fotos: [] };
+    feste.push(k); speichernFeste(); terminAktualisieren(k);
+    oeffnen(k.id, 'uebersicht');
+    showTempStatus('📋 Kopiert – Datum und Motto jetzt anpassen', 4);
+  }
+
+  // ---------- Ansichten ----------
+  function oeffnen(id, t) { aktivId = id; ansicht = 'fest'; tab = t || 'uebersicht'; spielFilter = { alter: null, ort: 'alle', motto: false, suche: '' }; render(); window.scrollTo({ top: 0 }); }
+  function zurListe() { ansicht = 'liste'; aktivId = null; render(); window.scrollTo({ top: 0 }); }
+  $('btnZurueck').addEventListener('click', zurListe);
+  $('btnNeu').addEventListener('click', neuOeffnen);
+  $('btnSpieleSammlung').addEventListener('click', () => { ansicht = 'spiele'; aktivId = null; spielFilter = { alter: null, ort: 'alle', motto: false, suche: '' }; render(); window.scrollTo({ top: 0 }); });
+  document.querySelectorAll('#reiter button').forEach(b => b.addEventListener('click', () => { tab = b.dataset.tab; render(); window.scrollTo({ top: 0 }); }));
+
+  function render() {
+    const f = aktiv();
+    if (ansicht === 'fest' && !f) ansicht = 'liste';
+    $('btnZurueck').style.display = ansicht === 'liste' ? 'none' : '';
+    $('btnNeu').style.display = ansicht === 'liste' ? '' : 'none';
+    $('btnSpieleSammlung').style.display = ansicht === 'liste' ? '' : 'none';
+    $('reiter').classList.toggle('an', ansicht === 'fest');
+    if (ansicht === 'fest') {
+      const em = istKinderfest(f) && f.motto ? FD.motto(f.motto).em : FD.art(f.art).em;
+      $('kopfTitel').textContent = em + ' ' + (f.titel || 'Fest');
+      document.querySelectorAll('#reiter button').forEach(b => b.classList.toggle('aktiv', b.dataset.tab === tab));
+      const btn = document.querySelector('#reiter button.aktiv'); if (btn) btn.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      ({ uebersicht: renderUebersicht, gaeste: renderGaeste, ablauf: renderAblauf, spiele: renderSpiele, schnitzel: renderSchnitzel, essen: renderEssen, aufgaben: renderAufgaben, danach: renderDanach }[tab] || renderUebersicht)(f);
+    } else if (ansicht === 'spiele') {
+      $('kopfTitel').textContent = '🎲 Spiele-Sammlung';
+      renderSpiele(null);
+    } else {
+      $('kopfTitel').textContent = '🎉 Feste';
+      renderListe();
+    }
+  }
+
+  // ---------- Liste ----------
+  function festKarte(f) {
+    const t = tageBis(f.datum), z = zahlen(f);
+    const offen = (f.aufgaben || []).filter(a => !a.erledigt).length;
+    const em = istKinderfest(f) && f.motto ? FD.motto(f.motto).em : FD.art(f.art).em;
+    const vorbei = t !== null && t < 0;
+    return `<div class="fest-karte${vorbei ? ' vorbei' : ''}" data-oeffnen="${esc(f.id)}" role="button" tabindex="0"><div class="em">${em}</div>
+      <div class="info"><b>${esc(f.titel || 'Fest')}</b><div class="unter">${f.datum ? esc(datumKurz(f.datum)) + (f.von ? ' · ' + esc(f.von) + ' Uhr' : '') : 'Datum offen'}${(f.gaeste || []).length ? ' · 👥 ' + z.zugesagt + '/' + (f.gaeste.length - z.abgesagt) + ' zugesagt' : ''}${!vorbei && offen ? ' · ✅ ' + offen + ' offen' : ''}</div></div>
+      ${t !== null && !vorbei ? `<div class="countdown">${t === 0 ? '<b>🎉</b>heute' : `<b>${t}</b>${t === 1 ? 'Tag' : 'Tage'}`}</div>` : ''}</div>`;
+  }
+  function renderListe() {
+    const sortiert = feste.slice().sort((a, b) => (a.datum || '9999').localeCompare(b.datum || '9999'));
+    const h = heuteISO();
+    const kommend = sortiert.filter(f => !f.datum || f.datum >= h), vorbei = sortiert.filter(f => f.datum && f.datum < h).reverse();
+    $('inhalt').innerHTML = (kommend.length ? '<h2>Geplant</h2>' + kommend.map(festKarte).join('') :
+      `<div class="leer">🎈 Noch kein Fest geplant.<br>Mit <b>＋ Neues Fest</b> legst du einen Kindergeburtstag, eine Feier oder ein Grillfest an – mit Gästeliste, Ablauf, Spielen, Schnitzeljagd, Einkauf und Aufgaben.</div>`) +
+      (vorbei.length ? '<h2 style="margin-top:18px">Schon gefeiert</h2>' + vorbei.map(festKarte).join('') : '') +
+      `<div class="karte" style="margin-top:14px;cursor:pointer" id="kSpiele"><h3>🎲 Spiele-Sammlung<span class="rechts">${FD.SPIELE.length + eigeneSpiele.length} Spiele →</span></h3><div class="klein">Klassiker wie Topfschlagen und Stopptanz, Spiele zum Motto und ruhige Spiele für zwischendurch – nach Alter und drinnen/draußen filterbar.</div></div>`;
+    $('inhalt').querySelectorAll('[data-oeffnen]').forEach(el => { el.addEventListener('click', () => oeffnen(el.dataset.oeffnen)); el.addEventListener('keydown', e => { if (e.key === 'Enter') oeffnen(el.dataset.oeffnen); }); });
+    $('kSpiele').addEventListener('click', () => $('btnSpieleSammlung').click());
+  }
+
+  // ---------- 📋 Übersicht ----------
+  function jetztUndNaechstes(f) {
+    if (f.datum !== heuteISO()) return null;
+    const d = new Date(), jetzt = d.getHours() * 60 + d.getMinutes();
+    const a = (f.ablauf || []).filter(x => minuten(x.zeit) !== null).slice().sort((x, y) => minuten(x.zeit) - minuten(y.zeit));
+    let akt = null, naechst = null;
+    a.forEach(x => { if (minuten(x.zeit) <= jetzt) akt = x; else if (!naechst) naechst = x; });
+    return { akt, naechst };
+  }
+  function renderUebersicht(f) {
+    const art = FD.art(f.art), m = FD.motto(f.motto), t = tageBis(f.datum), z = zahlen(f);
+    const offeneAufg = (f.aufgaben || []).filter(a => !a.erledigt).sort((a, b) => (b.tageVorher || 0) - (a.tageVorher || 0));
+    const naechsteAufg = offeneAufg[0];
+    const budgetPlan = (f.budget || []).reduce((s, b) => s + zahlAus(b.geplant), 0), budgetIst = (f.budget || []).reduce((s, b) => s + zahlAus(b.ausgegeben), 0);
+    const jn = jetztUndNaechstes(f);
+    const wuensche = offeneWuensche(f);
+    const vorg = f.vorgaengerId ? feste.find(x => x.id === f.vorgaengerId) : null;
+    const kinder = istKinderfest(f);
+    $('inhalt').innerHTML = `
+      <div class="held"><div class="em">${kinder && f.motto ? m.em : art.em}</div><h2>${esc(f.titel || art.name)}</h2>
+        <div class="unter">${esc(datumLang(f.datum))}${f.von ? ' · ' + esc(f.von) + (f.bis ? '–' + esc(f.bis) : '') + ' Uhr' : ''}${f.ort ? ' · ' + esc(f.ort) : ''}</div>
+        ${t !== null ? `<div class="gross">${t >= 0 ? (t === 0 ? '🎉 Heute ist es so weit!' : 'Noch ' + t + (t === 1 ? ' Tag' : ' Tage')) : 'Gefeiert ' + countdownText(t)}</div>` : ''}</div>
+      ${jn && (jn.akt || jn.naechst) ? `<div class="karte jetzt"><div class="label">⏱️ Jetzt</div><div style="font-weight:700;margin-bottom:6px">${jn.akt ? esc(jn.akt.zeit + ' ' + jn.akt.titel) : '–'}</div><div class="label">Als Nächstes</div><div style="font-weight:600">${jn.naechst ? esc(jn.naechst.zeit + ' ' + jn.naechst.titel) : 'Nichts mehr – genießt den Rest! 🎉'}</div></div>` : ''}
+      ${vorg && vorg.danach && vorg.danach.besser ? `<div class="tipp">💡 <b>Notiz vom letzten Mal:</b> ${esc(vorg.danach.besser)}</div>` : ''}
+      <div class="kacheln">
+        <button type="button" class="kachel" data-tab="gaeste"><span>👥 Gäste</span><b>${z.zugesagt} zugesagt</b><small>${z.eingeladen} offen · ${z.abgesagt} abgesagt</small></button>
+        <button type="button" class="kachel" data-tab="aufgaben"><span>✅ Aufgaben</span><b>${offeneAufg.length} offen</b><small>${naechsteAufg ? esc(naechsteAufg.text.slice(0, 40)) + (naechsteAufg.text.length > 40 ? '…' : '') : 'Alles erledigt 🎉'}</small></button>
+        <button type="button" class="kachel" data-tab="ablauf"><span>⏱️ Ablauf</span><b>${(f.ablauf || []).length} Punkte</b><small>${(f.ablauf || []).filter(a => a.spielId).length} Spiele geplant</small></button>
+        <button type="button" class="kachel" data-tab="aufgaben"><span>💶 Budget</span><b>${euro(budgetIst)}</b><small>${budgetPlan ? 'von ' + euro(budgetPlan) + ' geplant' : 'noch nichts geplant'}</small></button>
+      </div>
+      <div class="karte">
+        <h3>📤 Teilen &amp; Drucken</h3>
+        <div class="knopf-reihe" style="margin-top:0">
+          <button type="button" class="btn btn-secondary btn-klein" id="btnEinladung">💌 Einladung teilen</button>
+          ${f.fuer && wuensche.length ? `<button type="button" class="btn btn-secondary btn-klein" id="btnWunschzettel">🎁 Wunschzettel (${wuensche.length})</button>` : ''}
+          <button type="button" class="btn btn-secondary btn-klein" id="btnFestplan">🖨️ Festplan drucken</button>
+        </div>
+        <div class="klein" style="margin-top:6px">Die Einladung wird passend ${kinder && f.motto ? 'zum Motto ' + esc(m.name) : 'zum Fest'} formuliert. Der Festplan enthält Ablauf, Spiele mit Material und die Gästeliste mit Telefon und Allergien – gut für den Kühlschrank.</div>
+      </div>
+      <div class="karte">
+        <h3>✏️ Eckdaten</h3>
+        <div class="feld"><label for="eTitel">Name</label><input type="text" id="eTitel" value="${esc(f.titel || '')}"></div>
+        <div class="zwei">
+          <div class="feld"><label for="eDatum">Datum</label><input type="date" id="eDatum" value="${esc(f.datum || '')}"></div>
+          <div class="feld"><label for="eOrt">Ort</label><input type="text" id="eOrt" value="${esc(f.ort || '')}" placeholder="z. B. bei uns im Garten"></div>
+          <div class="feld"><label for="eVon">Von</label><input type="time" id="eVon" value="${esc(f.von || '')}"></div>
+          <div class="feld"><label for="eBis">Bis</label><input type="time" id="eBis" value="${esc(f.bis || '')}"></div>
+          <div class="feld"><label for="eFuer">Für wen?</label><select id="eFuer"><option value="">– Familie –</option>${personen().map(p => `<option value="${esc(p.id)}"${p.id === f.fuer ? ' selected' : ''}>${esc(p.label)}</option>`).join('')}</select></div>
+          <div class="feld"><label for="eAlter">Wird … Jahre</label><input type="number" id="eAlter" min="1" max="120" value="${esc(f.alter || '')}"></div>
+        </div>
+        ${kinder ? `<div class="label">Motto</div><div class="motto-raster" id="eMotto">${FD.MOTTOS.map(x => `<button type="button" data-motto="${x.id}" class="${x.id === (f.motto || '') ? 'aktiv' : ''}"><span class="em">${x.em}</span>${esc(x.name)}</button>`).join('')}</div>` : ''}
+        <div class="feld" style="margin-top:10px"><label for="eZusatz">Zusatz für die Einladung</label><input type="text" id="eZusatz" value="${esc(f.einladungZusatz || '')}" placeholder="z. B. Bitte Gummistiefel mitbringen"></div>
+        <div class="feld"><label for="eNotiz">Notizen</label><textarea id="eNotiz" placeholder="Ideen, Absprachen …">${esc(f.notiz || '')}</textarea></div>
+        <div class="klein">📅 Das Fest steht automatisch in Termine (mit Erinnerung am Vorabend).</div>
+      </div>
+      <div class="knopf-reihe" style="margin-bottom:20px">
+        <button type="button" class="btn btn-secondary btn-klein" id="btnKopieren">📋 Als Vorlage für das nächste Mal kopieren</button>
+        <button type="button" class="btn btn-gefahr btn-klein" id="btnLoeschen">🗑️ Fest löschen</button>
+      </div>`;
+    $('inhalt').querySelectorAll('.kachel[data-tab]').forEach(b => b.addEventListener('click', () => { tab = b.dataset.tab; render(); window.scrollTo({ top: 0 }); }));
+    $('btnEinladung').addEventListener('click', () => teilen('Einladung', einladungText(f)));
+    if ($('btnWunschzettel')) $('btnWunschzettel').addEventListener('click', () => teilen('Wunschzettel', wunschzettelText(f)));
+    $('btnFestplan').addEventListener('click', () => festplanDrucken(f));
+    const feld = (id, key, umwandeln, termin) => $(id).addEventListener(['eDatum', 'eVon', 'eBis', 'eFuer'].includes(id) ? 'change' : 'input', () => {
+      f[key] = umwandeln ? umwandeln($(id).value) : $(id).value;
+      spaeterSpeichern();
+      if (termin) { terminAktualisieren(f); }
+      if (key === 'titel') $('kopfTitel').textContent = $('kopfTitel').textContent.split(' ')[0] + ' ' + (f.titel || 'Fest');
+    });
+    feld('eTitel', 'titel'); feld('eDatum', 'datum', null, true); feld('eOrt', 'ort'); feld('eVon', 'von', null, true); feld('eBis', 'bis', null, true);
+    feld('eFuer', 'fuer', null, true); feld('eAlter', 'alter', v => Number(v) || null); feld('eZusatz', 'einladungZusatz'); feld('eNotiz', 'notiz');
+    $('eTitel').addEventListener('change', () => { speichernFeste(); terminAktualisieren(f); });
+    $('eOrt').addEventListener('change', () => { speichernFeste(); terminAktualisieren(f); });
+    ['eDatum', 'eFuer'].forEach(id => $(id).addEventListener('change', () => { speichernFeste(); renderUebersicht(f); }));
+    if ($('eMotto')) $('eMotto').querySelectorAll('[data-motto]').forEach(b => b.addEventListener('click', () => { f.motto = b.dataset.motto; speichernFeste(); terminAktualisieren(f); render(); }));
+    $('btnKopieren').addEventListener('click', () => kopieren(f));
+    $('btnLoeschen').addEventListener('click', () => {
+      if (!confirm('„' + (f.titel || 'Fest') + '“ mit allen Gästen, Aufgaben und Fotos löschen?')) return;
+      const idx = feste.indexOf(f); feste.splice(idx, 1); speichernFeste(); terminAktualisieren(f, true);
+      zurListe();
+      showTempStatus('🗑️ Gelöscht', 6, { rueckgaengig: () => { feste.splice(idx, 0, f); speichernFeste(); terminAktualisieren(f); render(); } });
+    });
+  }
+
+  // ---------- 👥 Gäste & Mitgebsel ----------
+  let gastBearbeiten = null;
+  function gastOeffnen(f, g) {
+    gastBearbeiten = g;
+    $('gastTitel').textContent = g ? '✏️ ' + (g.name || 'Gast') : '＋ Gast';
+    $('gName').value = g ? g.name || '' : ''; $('gTyp').value = g ? g.typ || 'kind' : (istKinderfest(f) ? 'kind' : 'erw');
+    $('gStatus').value = g ? g.status || 'eingeladen' : 'eingeladen';
+    ['Allergien', 'Abholer', 'Tel', 'Geschenk', 'Notiz'].forEach(k => { $('g' + k).value = g ? g[k.charAt(0).toLowerCase() + k.slice(1)] || '' : ''; });
+    $('btnGastLoeschen').style.display = g ? '' : 'none';
+    $('modalGast').classList.add('zeigen');
+    setTimeout(() => $('gName').focus(), 50);
+  }
+  $('btnGastAbbrechen').addEventListener('click', () => $('modalGast').classList.remove('zeigen'));
+  $('btnGastSpeichern').addEventListener('click', () => {
+    const f = aktiv(); if (!f) return;
+    const name = $('gName').value.trim(); if (!name) { $('gName').focus(); return; }
+    const d = { name, typ: $('gTyp').value, status: $('gStatus').value, allergien: $('gAllergien').value.trim(), abholer: $('gAbholer').value.trim(), tel: $('gTel').value.trim(), geschenk: $('gGeschenk').value.trim(), notiz: $('gNotiz').value.trim() };
+    if (gastBearbeiten) Object.assign(gastBearbeiten, d); else (f.gaeste = f.gaeste || []).push(Object.assign({ id: neueId('g') }, d));
+    speichernFeste(); $('modalGast').classList.remove('zeigen'); render();
+  });
+  $('btnGastLoeschen').addEventListener('click', () => {
+    const f = aktiv(); if (!f || !gastBearbeiten) return;
+    const g = gastBearbeiten, idx = f.gaeste.indexOf(g);
+    f.gaeste.splice(idx, 1); speichernFeste(); $('modalGast').classList.remove('zeigen'); render();
+    showTempStatus('„' + g.name + '“ entfernt', 5, { rueckgaengig: () => { f.gaeste.splice(idx, 0, g); speichernFeste(); render(); } });
+  });
+  const STATUS_FOLGE = { eingeladen: 'zugesagt', zugesagt: 'abgesagt', abgesagt: 'eingeladen' };
+  const STATUS_TEXT = { eingeladen: '✉️ eingeladen', zugesagt: '✅ zugesagt', abgesagt: '❌ abgesagt' };
+  function telLink(t) { const n = String(t || '').replace(/[^\d+]/g, ''); return n ? `<a href="tel:${esc(n)}" style="color:var(--sky)">${esc(t)}</a>` : ''; }
+  function renderGaeste(f) {
+    const z = zahlen(f), kinder = istKinderfest(f);
+    const g = (f.gaeste || []).slice().sort((a, b) => ({ zugesagt: 0, eingeladen: 1, abgesagt: 2 }[a.status || 'eingeladen'] - { zugesagt: 0, eingeladen: 1, abgesagt: 2 }[b.status || 'eingeladen']) || a.name.localeCompare(b.name, 'de'));
+    const allergien = (f.gaeste || []).filter(x => x.status !== 'abgesagt' && x.allergien);
+    const tueten = z.gesamtKinder;
+    $('inhalt').innerHTML = `
+      <div class="karte">
+        <h3>👥 Gästeliste<span class="rechts">${(f.gaeste || []).length} eingeladen</span></h3>
+        <div class="zaehler"><span>✅ ${z.zugesagt} zugesagt</span><span>✉️ ${z.eingeladen} offen</span><span>❌ ${z.abgesagt} abgesagt</span></div>
+        <div id="gastListe">${g.length ? g.map(x => `<div class="zeile" data-gast="${esc(x.id)}">
+          <div class="haupt" style="cursor:pointer" data-edit="${esc(x.id)}"><span>${x.typ === 'erw' ? '🧑' : '🧒'} <b>${esc(x.name)}</b>${x.allergien ? `<span class="badge-allergie">⚠ ${esc(x.allergien)}</span>` : ''}</span>
+            ${x.abholer || x.tel || x.notiz ? `<small>${[x.abholer ? '🚗 ' + esc(x.abholer) : '', x.tel ? '☎ ' + telLink(x.tel) : '', x.notiz ? esc(x.notiz) : ''].filter(Boolean).join(' · ')}</small>` : ''}</div>
+          <button type="button" class="status-btn st-${x.status || 'eingeladen'}" data-status="${esc(x.id)}" title="Antippen zum Ändern">${STATUS_TEXT[x.status || 'eingeladen']}</button></div>`).join('') : '<div class="klein" style="padding:6px 0">Noch keine Gäste. Einzeln hinzufügen oder mehrere Namen auf einmal eintragen.</div>'}</div>
+        <div class="knopf-reihe">
+          <button type="button" class="btn btn-primary btn-klein" id="btnGastNeu">＋ Gast</button>
+          <button type="button" class="btn btn-secondary btn-klein" id="btnGastMehrere">＋ Mehrere auf einmal</button>
+        </div>
+        <div class="klein" style="margin-top:6px">Status antippen: eingeladen → zugesagt → abgesagt. Namen antippen für Allergien, Abholer und Telefon.</div>
+      </div>
+      ${allergien.length ? `<div class="warn"><b>⚠ Allergien &amp; Unverträglichkeiten:</b> ${allergien.map(x => esc(x.name) + ': ' + esc(x.allergien)).join(' · ')}</div>` : ''}
+      <div class="karte">
+        <h3>🏠 Von uns dabei</h3>
+        <div class="zwei">
+          <div class="feld"><label for="eigK">Kinder</label><input type="number" id="eigK" min="0" max="20" class="zahl-input" value="${z.eigeneKinder}"></div>
+          <div class="feld"><label for="eigE">Erwachsene</label><input type="number" id="eigE" min="0" max="50" class="zahl-input" value="${z.eigeneErw}"></div>
+        </div>
+        <div class="klein">Insgesamt erwartet: <b>${z.gesamtKinder} Kinder</b> und <b>${z.gesamtErw} Erwachsene</b> (Abgesagte nicht mitgezählt). Damit rechnet auch 🍰 Essen.</div>
+      </div>
+      ${kinder || (f.mitgebsel || []).length ? `<div class="karte">
+        <h3>🎁 Mitgebsel<span class="rechts">${tueten} ${tueten === 1 ? 'Tüte' : 'Tüten'}</span></h3>
+        <div id="mitgebselListe">${(f.mitgebsel || []).map(x => `<label class="zeile${x.erledigt ? ' erledigt' : ''}"><input type="checkbox" data-mg="${esc(x.id)}" ${x.erledigt ? 'checked' : ''}><span class="haupt"><span>${esc(x.text)}</span><small>${tueten} Stück</small></span><button type="button" class="icon-btn" data-mgek="${esc(x.id)}" title="Auf die Einkaufsliste">🛒</button><button type="button" class="weg-btn" data-mgweg="${esc(x.id)}" aria-label="Entfernen">✕</button></label>`).join('')}</div>
+        <div style="display:flex;gap:6px;margin-top:6px"><input type="text" class="eingabe" id="mgNeu" placeholder="＋ z. B. Flummi, Kreide, Mini-Buch" enterkeyhint="done"><button type="button" class="btn btn-secondary btn-klein" id="btnMgNeu">＋</button></div>
+        <div class="klein" style="margin-top:6px">Abgehakt = besorgt. Eine Tüte für jedes Kind, das kommt (inklusive eurer eigenen).</div>
+      </div>` : ''}`;
+    $('gastListe').querySelectorAll('[data-status]').forEach(b => b.addEventListener('click', () => { const x = f.gaeste.find(y => y.id === b.dataset.status); x.status = STATUS_FOLGE[x.status || 'eingeladen']; speichernFeste(); renderGaeste(f); }));
+    $('gastListe').querySelectorAll('[data-edit]').forEach(el => el.addEventListener('click', (e) => { if (e.target.closest('a')) return; gastOeffnen(f, f.gaeste.find(y => y.id === el.dataset.edit)); }));
+    $('btnGastNeu').addEventListener('click', () => gastOeffnen(f, null));
+    $('btnGastMehrere').addEventListener('click', () => {
+      const t = prompt('Namen eingeben – mit Komma oder Zeilenumbruch getrennt:\n(z. B. Emma, Paul, Mia)');
+      if (!t) return;
+      const namen = t.split(/[,\n;]+/).map(s => s.trim()).filter(Boolean);
+      namen.forEach(n => (f.gaeste = f.gaeste || []).push({ id: neueId('g'), name: n, typ: kinder ? 'kind' : 'erw', status: 'eingeladen' }));
+      speichernFeste(); renderGaeste(f); showTempStatus('👥 ' + namen.length + ' Gäste hinzugefügt', 3);
+    });
+    $('eigK').addEventListener('change', () => { f.eigeneKinder = Math.max(0, Number($('eigK').value) || 0); speichernFeste(); renderGaeste(f); });
+    $('eigE').addEventListener('change', () => { f.eigeneErw = Math.max(0, Number($('eigE').value) || 0); speichernFeste(); renderGaeste(f); });
+    if ($('mitgebselListe')) {
+      $('mitgebselListe').querySelectorAll('[data-mg]').forEach(cb => cb.addEventListener('change', () => { f.mitgebsel.find(x => x.id === cb.dataset.mg).erledigt = cb.checked; speichernFeste(); renderGaeste(f); }));
+      $('mitgebselListe').querySelectorAll('[data-mgweg]').forEach(b => b.addEventListener('click', (e) => { e.preventDefault(); f.mitgebsel = f.mitgebsel.filter(x => x.id !== b.dataset.mgweg); speichernFeste(); renderGaeste(f); }));
+      $('mitgebselListe').querySelectorAll('[data-mgek]').forEach(b => b.addEventListener('click', (e) => { e.preventDefault(); const x = f.mitgebsel.find(y => y.id === b.dataset.mgek); zumEinkauf([{ name: x.text + ' (Mitgebsel)', menge: tueten, einheit: 'Stück' }]); }));
+      const neu = () => { const v = $('mgNeu').value.trim(); if (!v) return; (f.mitgebsel = f.mitgebsel || []).push({ id: neueId('m'), text: v, erledigt: false }); speichernFeste(); renderGaeste(f); $('mgNeu').focus(); };
+      $('btnMgNeu').addEventListener('click', neu); $('mgNeu').addEventListener('keydown', e => { if (e.key === 'Enter') neu(); });
+    }
+  }
+
+  // ---------- ⏱️ Ablauf ----------
+  function ablaufSortiert(f) { return (f.ablauf || []).slice().sort((a, b) => (minuten(a.zeit) ?? 9999) - (minuten(b.zeit) ?? 9999)); }
+  // Spiele landen im „🎲 Spiele“-Block der Vorlage (falls vorhanden), sonst hinten an
+  function spielZeit(f, dauer) {
+    const slot = (f.ablauf || []).find(x => !x.spielId && /🎲/.test(x.titel || '') && minuten(x.zeit) !== null);
+    if (!slot) return naechsteZeit(f);
+    const start = minuten(slot.zeit), ende = start + (Number(slot.dauer) || 30);
+    const drin = (f.ablauf || []).filter(x => x.spielId && minuten(x.zeit) !== null && minuten(x.zeit) >= start && minuten(x.zeit) < ende);
+    const ab = drin.length ? Math.max(...drin.map(x => minuten(x.zeit) + (Number(x.dauer) || 10))) : start;
+    return ab < ende ? uhrzeit(ab) : naechsteZeit(f);
+  }
+  function naechsteZeit(f) {
+    const a = ablaufSortiert(f).filter(x => minuten(x.zeit) !== null);
+    if (!a.length) return f.von || '14:00';
+    const l = a[a.length - 1]; return uhrzeit(minuten(l.zeit) + (Number(l.dauer) || 15));
+  }
+  function renderAblauf(f) {
+    const a = ablaufSortiert(f), jn = jetztUndNaechstes(f);
+    const heute = f.datum === heuteISO(), jetzt = new Date().getHours() * 60 + new Date().getMinutes();
+    const ende = a.length ? Math.max(...a.map(x => (minuten(x.zeit) || 0) + (Number(x.dauer) || 0))) : null;
+    $('inhalt').innerHTML = `
+      <div class="karte">
+        <h3>⏱️ Ablauf am Festtag<span class="rechts">${a.length && ende !== null ? esc(a[0].zeit) + '–' + uhrzeit(ende) : ''}</span></h3>
+        <div id="ablaufListe">${a.length ? a.map(x => {
+          const ist = jn && jn.akt && jn.akt.id === x.id;
+          const vorbei = heute && !ist && minuten(x.zeit) !== null && minuten(x.zeit) + (Number(x.dauer) || 0) <= jetzt;
+          const sp = x.spielId ? alleSpiele().find(s => s.id === x.spielId) : null;
+          return `<div class="ablauf-zeile${ist ? ' ist-jetzt' : ''}${vorbei ? ' vorbei' : ''}" data-id="${esc(x.id)}">
+            <input type="time" data-af="zeit" value="${esc(x.zeit || '')}" aria-label="Uhrzeit">
+            <div><input type="text" class="titel-input" data-af="titel" value="${esc(x.titel || '')}" aria-label="Programmpunkt">
+              <div class="meta">⏳ <input type="number" min="0" max="600" data-af="dauer" value="${esc(x.dauer ?? '')}" aria-label="Dauer in Minuten"> Min.${ist ? ' · <b style="color:var(--fest)">● jetzt</b>' : ''}${sp ? ' · 🧺 ' + esc(sp.material) : ''}</div>
+</div>
+            <div class="knoepfe"><button type="button" class="icon-btn" data-schieben="${esc(x.id)}" title="Diesen und alle späteren Punkte 15 Min. nach hinten schieben">+15</button><button type="button" class="weg-btn" data-weg="${esc(x.id)}" aria-label="Entfernen">✕</button></div>
+          </div>`; }).join('') : '<div class="klein">Noch kein Ablauf. Füge Programmpunkte hinzu oder übernimm Spiele aus 🎲 Spiele.</div>'}</div>
+        <div style="display:flex;gap:6px;margin-top:8px"><input type="text" class="eingabe" id="abNeu" placeholder="＋ Programmpunkt, z. B. 🎂 Kuchen" enterkeyhint="done"><button type="button" class="btn btn-secondary btn-klein" id="btnAbNeu">＋</button></div>
+        <div class="klein" style="margin-top:6px">„+15“ schiebt diesen und alle späteren Punkte um 15 Minuten nach hinten – praktisch, wenn es am Festtag länger dauert.${heute ? ' Heute wird der aktuelle Punkt markiert.' : ''}</div>
+      </div>
+      ${materialListeHtml(f)}`;
+    const box = $('ablaufListe');
+    box.querySelectorAll('[data-af]').forEach(inp => inp.addEventListener(inp.type === 'time' ? 'change' : 'input', () => {
+      const x = f.ablauf.find(y => y.id === inp.closest('[data-id]').dataset.id);
+      x[inp.dataset.af] = inp.dataset.af === 'dauer' ? (inp.value === '' ? '' : Math.max(0, Number(inp.value) || 0)) : inp.value;
+      if (inp.type === 'time') { speichernFeste(); renderAblauf(f); } else spaeterSpeichern();
+    }));
+    box.querySelectorAll('[data-schieben]').forEach(b => b.addEventListener('click', () => {
+      const x = f.ablauf.find(y => y.id === b.dataset.schieben), ab = minuten(x.zeit); if (ab === null) return;
+      f.ablauf.forEach(y => { const m = minuten(y.zeit); if (m !== null && m >= ab) y.zeit = uhrzeit(m + 15); });
+      speichernFeste(); renderAblauf(f); showTempStatus('⏩ Ab ' + uhrzeit(ab) + ' alles 15 Min. später', 3);
+    }));
+    box.querySelectorAll('[data-weg]').forEach(b => b.addEventListener('click', () => {
+      const idx = f.ablauf.findIndex(y => y.id === b.dataset.weg), x = f.ablauf[idx];
+      f.ablauf.splice(idx, 1); speichernFeste(); renderAblauf(f);
+      showTempStatus('Entfernt', 5, { rueckgaengig: () => { f.ablauf.splice(idx, 0, x); speichernFeste(); renderAblauf(f); } });
+    }));
+    const neu = () => { const v = $('abNeu').value.trim(); if (!v) return; (f.ablauf = f.ablauf || []).push({ id: neueId('a'), zeit: naechsteZeit(f), dauer: 30, titel: v }); speichernFeste(); renderAblauf(f); $('abNeu').focus(); };
+    $('btnAbNeu').addEventListener('click', neu); $('abNeu').addEventListener('keydown', e => { if (e.key === 'Enter') neu(); });
+    materialListeBinden(f);
+  }
+  function materialListeHtml(f) {
+    const sp = (f.ablauf || []).filter(x => x.spielId).map(x => alleSpiele().find(s => s.id === x.spielId)).filter(Boolean);
+    if (!sp.length) return '';
+    f.materialOk = f.materialOk || {};
+    return `<div class="karte"><h3>🧺 Material für die Spiele</h3><div id="materialListe">${sp.map(s => `<label class="zeile${f.materialOk[s.id] ? ' erledigt' : ''}"><input type="checkbox" data-mat="${esc(s.id)}" ${f.materialOk[s.id] ? 'checked' : ''}><span class="haupt"><span>${esc(s.material)}</span><small>${s.em} ${esc(s.name)}</small></span></label>`).join('')}</div></div>`;
+  }
+  function materialListeBinden(f) {
+    const box = $('materialListe'); if (!box) return;
+    box.querySelectorAll('[data-mat]').forEach(cb => cb.addEventListener('change', () => { f.materialOk = f.materialOk || {}; if (cb.checked) f.materialOk[cb.dataset.mat] = true; else delete f.materialOk[cb.dataset.mat]; speichernFeste(); cb.closest('.zeile').classList.toggle('erledigt', cb.checked); }));
+  }
+
+  // ---------- 🎲 Spiele ----------
+  function alleSpiele() { return FD.SPIELE.concat(eigeneSpiele.map(s => Object.assign({ em: '⭐', eigen: true }, s))); }
+  const ORT_TEXT = { drinnen: '🏠 drinnen', draussen: '🌳 draußen', beides: '🏠🌳 drinnen & draußen' };
+  function renderSpiele(f) {
+    if (spielFilter.alter === null) spielFilter.alter = f && f.alter ? Number(f.alter) : (f && !istKinderfest(f) ? 18 : 0);
+    const mottoId = f && istKinderfest(f) ? f.motto : '';
+    const q = spielFilter.suche.trim().toLowerCase();
+    let liste = alleSpiele().filter(s => {
+      if (spielFilter.alter && !(s.min <= spielFilter.alter && spielFilter.alter <= s.max)) return false;
+      if (spielFilter.ort === 'drinnen' && s.ort === 'draussen') return false;
+      if (spielFilter.ort === 'draussen' && s.ort === 'drinnen') return false;
+      if (spielFilter.ort === 'ruhig' && !s.ruhig) return false;
+      if (spielFilter.motto && mottoId && !(s.motto || []).includes(mottoId)) return false;
+      if (q && ![s.name, s.text, s.material].join(' ').toLowerCase().includes(q)) return false;
+      return true;
+    });
+    // Motto-Spiele nach oben
+    liste.sort((a, b) => ((b.motto || []).includes(mottoId) - (a.motto || []).includes(mottoId)) || a.name.localeCompare(b.name, 'de'));
+    const geplant = f ? new Set((f.ablauf || []).map(x => x.spielId).filter(Boolean)) : new Set();
+    const altersChips = [[0, 'Alle Alter'], [4, '3–5'], [7, '6–8'], [10, '9–12'], [18, 'Erwachsene']];
+    if (spielFilter.alter && !altersChips.some(c => c[0] === spielFilter.alter)) altersChips.splice(1, 0, [spielFilter.alter, spielFilter.alter + ' Jahre']);
+    $('inhalt').innerHTML = `
+      <input type="search" class="suche" id="spSuche" placeholder="🔍 Spiel suchen …" value="${esc(spielFilter.suche)}">
+      <div class="chips" style="margin-bottom:6px">${altersChips.map(([w, t]) => `<button type="button" class="chip${spielFilter.alter === w ? ' aktiv' : ''}" data-alter="${w}">${esc(t)}</button>`).join('')}</div>
+      <div class="chips" style="margin-bottom:12px">${[['alle', 'Überall'], ['drinnen', '🏠 Drinnen'], ['draussen', '🌳 Draußen'], ['ruhig', '😌 Ruhig']].map(([w, t]) => `<button type="button" class="chip${spielFilter.ort === w ? ' aktiv' : ''}" data-ort="${w}">${t}</button>`).join('')}
+        ${mottoId ? `<button type="button" class="chip${spielFilter.motto ? ' aktiv' : ''}" data-mottofilter="1">${FD.motto(mottoId).em} Nur zum Motto</button>` : ''}</div>
+      <div class="karte"><h3>${liste.length} ${liste.length === 1 ? 'Spiel' : 'Spiele'}${f ? `<span class="rechts">${geplant.size} im Ablauf</span>` : ''}</h3>
+        <div id="spielListe">${liste.length ? liste.map(s => `<div class="spiel${offeneSpiele.has(s.id) ? ' offen' : ''}" data-spiel="${esc(s.id)}">
+          <div class="spiel-kopf" data-auf="${esc(s.id)}"><span class="em">${s.em}</span><div class="info"><b>${esc(s.name)}</b>${(s.motto || []).includes(mottoId) ? ' <span style="font-size:0.72rem">⭐ passt zum Motto</span>' : ''}<small>${s.max >= 99 ? 'ab ' + s.min : s.min + '–' + s.max} Jahre · ${ORT_TEXT[s.ort] || ''} · ${s.dauer} Min.</small></div>
+            ${f ? (geplant.has(s.id) ? '<span class="geplant">✓ im Ablauf</span>' : `<button type="button" class="icon-btn" data-plan="${esc(s.id)}" title="In den Ablauf übernehmen">＋ Ablauf</button>`) : ''}</div>
+          <div class="spiel-text">${esc(s.text)}<div class="material">🧺 ${esc(s.material)}</div>${s.eigen ? `<button type="button" class="btn btn-gefahr btn-klein" style="margin-top:6px" data-spielweg="${esc(s.id)}">Eigenes Spiel löschen</button>` : ''}</div></div>`).join('') : '<div class="klein">Kein Spiel passt zu den Filtern.</div>'}</div>
+        <div class="knopf-reihe"><button type="button" class="btn btn-secondary btn-klein" id="btnSpielNeu">＋ Eigenes Spiel</button></div>
+      </div>`;
+    $('spSuche').addEventListener('input', () => { spielFilter.suche = $('spSuche').value; const pos = $('spSuche').selectionStart; renderSpiele(f); $('spSuche').focus(); try { $('spSuche').setSelectionRange(pos, pos); } catch (e) {} });
+    $('inhalt').querySelectorAll('[data-alter]').forEach(b => b.addEventListener('click', () => { spielFilter.alter = Number(b.dataset.alter); renderSpiele(f); }));
+    $('inhalt').querySelectorAll('[data-ort]').forEach(b => b.addEventListener('click', () => { spielFilter.ort = b.dataset.ort; renderSpiele(f); }));
+    $('inhalt').querySelectorAll('[data-mottofilter]').forEach(b => b.addEventListener('click', () => { spielFilter.motto = !spielFilter.motto; renderSpiele(f); }));
+    $('spielListe').querySelectorAll('[data-auf]').forEach(k => k.addEventListener('click', (e) => { if (e.target.closest('[data-plan]')) return; const id = k.dataset.auf; if (offeneSpiele.has(id)) offeneSpiele.delete(id); else offeneSpiele.add(id); k.parentElement.classList.toggle('offen'); }));
+    $('spielListe').querySelectorAll('[data-plan]').forEach(b => b.addEventListener('click', () => {
+      const s = alleSpiele().find(x => x.id === b.dataset.plan);
+      const zeit = spielZeit(f, s.dauer);
+      (f.ablauf = f.ablauf || []).push({ id: neueId('a'), zeit, dauer: s.dauer, titel: s.em + ' ' + s.name, spielId: s.id });
+      speichernFeste(); renderSpiele(f); showTempStatus('⏱️ ' + s.name + ' um ' + zeit + ' im Ablauf', 3);
+    }));
+    $('spielListe').querySelectorAll('[data-spielweg]').forEach(b => b.addEventListener('click', () => { if (!confirm('Eigenes Spiel löschen?')) return; eigeneSpiele = eigeneSpiele.filter(x => x.id !== b.dataset.spielweg); speichern(KEY_SPIELE, eigeneSpiele); renderSpiele(f); }));
+    $('btnSpielNeu').addEventListener('click', () => { ['spName', 'spMaterial', 'spText'].forEach(id => { $(id).value = ''; }); $('modalSpiel').classList.add('zeigen'); setTimeout(() => $('spName').focus(), 50); });
+  }
+  $('btnSpielAbbrechen').addEventListener('click', () => $('modalSpiel').classList.remove('zeigen'));
+  $('btnSpielSpeichern').addEventListener('click', () => {
+    const name = $('spName').value.trim(); if (!name) { $('spName').focus(); return; }
+    eigeneSpiele.push({ id: neueId('sp'), name, min: Math.max(1, Number($('spMin').value) || 1), max: Math.max(1, Number($('spMax').value) || 99), dauer: Math.max(1, Number($('spDauer').value) || 15), ort: $('spOrt').value, material: $('spMaterial').value.trim() || '–', text: $('spText').value.trim() });
+    speichern(KEY_SPIELE, eigeneSpiele); $('modalSpiel').classList.remove('zeigen'); render();
+    showTempStatus('⭐ „' + name + '“ gespeichert – für alle Feste', 3);
+  });
+
+  // ---------- 🗺️ Schnitzeljagd ----------
+  function sjStufe(f) { return (f.sj && f.sj.stufe) || FD.stufeFuerAlter(f.alter); }
+  // Rätselart der Karte i (i = -1: Startkarte) – sie führt zur nächsten Station bzw. zum Schatz
+  function raetselFuer(f, i) {
+    const folge = FD.STUFEN[sjStufe(f)].folge, auto = folge[(i + 1) % folge.length];
+    return (i < 0 ? f.sj.startRaetsel : (f.sj.stationen[i] || {}).raetsel) || auto;
+  }
+  // Hinweis, der zur Station i führt (i = Anzahl → Schatz)
+  function zielOrt(f, i) { const st = f.sj.stationen; return i < st.length ? st[i].ort : f.sj.schatz.ort; }
+  function hinweisText(f, i) {
+    // Karte i (i = -1: Startkarte) zeigt den Weg zu Station i+1 bzw. zum Schatz
+    const ziel = i + 1 < f.sj.stationen.length ? f.sj.stationen[i + 1] : null;
+    const eigener = i >= 0 ? f.sj.stationen[i].hinweis : f.sj.startHinweis;
+    return (eigener || '').trim() || (ziel ? ziel.ort : f.sj.schatz.ort) || '';
+  }
+  function raetselKarte(f, i) {
+    // Rätselart für den Hinweis auf Karte i: Startkarte nutzt die Art von Station 0
+    const art = raetselFuer(f, i);
+    const text = hinweisText(f, i);
+    const ziel = i + 1 < f.sj.stationen.length ? f.sj.stationen[i + 1].ort : f.sj.schatz.ort;
+    return { art, text, ziel, kodiert: FD.kodieren(art, text, f.id + ':' + i) };
+  }
+  function vorschauHtml(r) {
+    if (!r.text) return '<span class="klein">Erst den Ort der nächsten Station eintragen.</span>';
+    if (r.art === 'bild') return `<span class="bild">${FD.ortBild(r.ziel || r.text)}</span> <span class="klein">${esc(r.text)}</span>`;
+    if (r.kodiert.spiegel) return `<span class="spiegel">${esc(r.kodiert.text)}</span>`;
+    return esc(r.kodiert.text);
+  }
+  function renderSchnitzel(f) {
+    f.sj = f.sj || { stufe: '', stationen: [], schatz: { ort: '', inhalt: [], versteckt: false } };
+    f.sj.schatz = f.sj.schatz || { ort: '', inhalt: [], versteckt: false };
+    const st = f.sj.stationen, stufe = sjStufe(f), m = FD.motto(f.motto);
+    const alter = Number(f.alter) || (stufe === 'klein' ? 5 : stufe === 'mittel' ? 8 : 11);
+    const optionen = (ausgewaehlt) => '<option value="">Automatisch</option>' + Object.entries(FD.RAETSEL).map(([k, r]) => `<option value="${k}"${k === ausgewaehlt ? ' selected' : ''}>${r.name}</option>`).join('');
+    const start = raetselKarte(f, -1);
+    const versteckt = st.filter(s => s.versteckt).length + (f.sj.schatz.versteckt ? 1 : 0);
+    $('inhalt').innerHTML = `
+      <div class="karte">
+        <h3>🗺️ Schnitzeljagd<span class="rechts">${st.length} Stationen</span></h3>
+        <div class="klein" style="margin-bottom:8px">So funktioniert's: Die Kinder bekommen die <b>Startkarte</b>. Darauf steht ein Rätsel, das zu Station 1 führt. An jeder Station liegt eine Karte mit einer <b>Aufgabe</b> – ist sie geschafft, führt das Rätsel auf der Karte zur nächsten Station und am Ende zum <b>Schatz</b>.</div>
+        <div class="label">Schwierigkeit</div>
+        <div class="chips" style="margin-bottom:4px">${Object.entries(FD.STUFEN).map(([k, s]) => `<button type="button" class="chip${k === stufe ? ' aktiv' : ''}" data-stufe="${k}">${esc(s.name)}</button>`).join('')}</div>
+        <div class="klein">${f.sj.stufe ? '' : 'Automatisch passend zum Alter gewählt. '}Rätsel: ${FD.STUFEN[stufe].folge.filter((x, i, a) => a.indexOf(x) === i).map(k => FD.RAETSEL[k].name).join(', ')}</div>
+      </div>
+
+      <div class="station">
+        <div class="station-kopf"><span class="station-nr">▶</span><b>Startkarte</b></div>
+        <div class="klein" style="margin-bottom:4px">„${esc(m.start)}“</div>
+        <div class="reihe" style="margin-bottom:6px"><span class="klein">Rätsel zu Station 1:</span><select id="sjStartRaetsel" aria-label="Rätselart">${optionen(f.sj.startRaetsel)}</select></div>
+        <input type="text" class="eingabe" id="sjStartHinweis" value="${esc(f.sj.startHinweis || '')}" placeholder="Eigener Hinweis (leer = Ort von Station 1)">
+        <div class="vorschau">${vorschauHtml(start)}</div>
+      </div>
+      <div class="pfeil">↓</div>
+      ${st.map((s, i) => { const r = raetselKarte(f, i); return `
+      <div class="station" data-st="${esc(s.id)}">
+        <div class="station-kopf"><span class="station-nr">${i + 1}</span><b>Station ${i + 1}</b>
+          <label class="klein" style="display:flex;align-items:center;gap:4px"><input type="checkbox" data-sf="versteckt" ${s.versteckt ? 'checked' : ''}> versteckt</label>
+          <button type="button" class="weg-btn" data-stweg="${esc(s.id)}" aria-label="Station entfernen">✕</button></div>
+        <input type="text" class="eingabe" data-sf="ort" value="${esc(s.ort || '')}" placeholder="Wo liegt die Karte? z. B. unter der Rutsche">
+        <div class="reihe" style="margin-bottom:6px"><input type="text" class="eingabe" style="margin:0" data-sf="aufgabe" value="${esc(s.aufgabe || '')}" placeholder="Aufgabe an dieser Station"><button type="button" class="icon-btn" data-idee="${esc(s.id)}" title="Aufgabe vorschlagen">🎲</button></div>
+        <div class="reihe"><span class="klein">Rätsel zur ${i + 1 < st.length ? 'Station ' + (i + 2) : 'Schatz'}:</span><select data-sf="raetsel" aria-label="Rätselart">${optionen(s.raetsel)}</select></div>
+        <input type="text" class="eingabe" style="margin-top:6px" data-sf="hinweis" value="${esc(s.hinweis || '')}" placeholder="Eigener Hinweis (leer = Ort ${i + 1 < st.length ? 'von Station ' + (i + 2) : 'des Schatzes'})">
+        <div class="vorschau">${vorschauHtml(r)}</div>
+      </div>
+      <div class="pfeil">↓</div>`; }).join('')}
+      <div class="knopf-reihe" style="margin:-2px 0 10px"><button type="button" class="btn btn-secondary btn-klein" id="btnStationNeu">＋ Station</button></div>
+
+      <div class="station" style="border-color:var(--gold)">
+        <div class="station-kopf"><span class="station-nr" style="background:var(--gold)">💰</span><b>Der Schatz</b>
+          <label class="klein" style="display:flex;align-items:center;gap:4px"><input type="checkbox" id="sjSchatzVersteckt" ${f.sj.schatz.versteckt ? 'checked' : ''}> versteckt</label></div>
+        <input type="text" class="eingabe" id="sjSchatzOrt" value="${esc(f.sj.schatz.ort || '')}" placeholder="Wo ist der Schatz? z. B. im Gartenhaus">
+        <div id="schatzInhalt">${(f.sj.schatz.inhalt || []).map(x => `<label class="zeile${x.erledigt ? ' erledigt' : ''}"><input type="checkbox" data-si="${esc(x.id)}" ${x.erledigt ? 'checked' : ''}><span class="haupt"><span>${esc(x.text)}</span></span><button type="button" class="weg-btn" data-siweg="${esc(x.id)}" aria-label="Entfernen">✕</button></label>`).join('')}</div>
+        <div style="display:flex;gap:6px;margin-top:6px"><input type="text" class="eingabe" style="margin:0" id="siNeu" placeholder="＋ Was kommt in die Schatzkiste?" enterkeyhint="done"><button type="button" class="btn btn-secondary btn-klein" id="btnSiNeu">＋</button></div>
+      </div>
+
+      <div class="karte">
+        <h3>🖨️ Drucken<span class="rechts">${versteckt}/${st.length + 1} versteckt</span></h3>
+        <div class="knopf-reihe" style="margin-top:0">
+          <button type="button" class="btn btn-primary btn-klein" id="btnKartenDrucken">🃏 Hinweiskarten</button>
+          <button type="button" class="btn btn-secondary btn-klein" id="btnSchatzkarte">🗺️ Schatzkarte</button>
+          <button type="button" class="btn btn-secondary btn-klein" id="btnVersteckliste">📝 Versteck-Liste</button>
+        </div>
+        <div class="klein" style="margin-top:6px">Die Karten werden auf A4 gedruckt (4 pro Seite, zum Ausschneiden). Braucht ein Rätsel eine Code-Tabelle, wird sie mitgedruckt. Die Versteck-Liste ist für die Erwachsenen.</div>
+      </div>
+      <div class="tipp">💡 Für ${alter <= 6 ? 'Kleine' : 'Kinder in diesem Alter'} eignen sich ${alter <= 6 ? '3–4 Stationen mit Bildern, die ein Erwachsener begleitet' : alter <= 9 ? '4–6 Stationen, etwa 45–60 Minuten' : '6–8 Stationen mit kniffligen Codes – gern mit Zahlenschloss am Schatz'}. Karten am besten erst kurz vorher verstecken und gegen Wind und Regen sichern (Klarsichthülle).</div>`;
+    $('inhalt').querySelectorAll('[data-stufe]').forEach(b => b.addEventListener('click', () => { f.sj.stufe = b.dataset.stufe === FD.stufeFuerAlter(f.alter) ? '' : b.dataset.stufe; speichernFeste(); renderSchnitzel(f); }));
+    const neuZeichnen = () => { const y = window.scrollY; renderSchnitzel(f); window.scrollTo({ top: y }); };
+    $('inhalt').querySelectorAll('[data-st]').forEach(box => {
+      const s = st.find(x => x.id === box.dataset.st);
+      box.querySelectorAll('[data-sf]').forEach(el => {
+        const k = el.dataset.sf;
+        if (el.type === 'checkbox') el.addEventListener('change', () => { s[k] = el.checked; speichernFeste(); neuZeichnen(); });
+        else if (el.tagName === 'SELECT') el.addEventListener('change', () => { s[k] = el.value; speichernFeste(); neuZeichnen(); });
+        else { el.addEventListener('input', () => { s[k] = el.value; spaeterSpeichern(); }); el.addEventListener('change', () => { speichernFeste(); neuZeichnen(); }); }
+      });
+    });
+    $('inhalt').querySelectorAll('[data-idee]').forEach(b => b.addEventListener('click', () => {
+      const s = st.find(x => x.id === b.dataset.idee);
+      const pool = FD.AUFGABEN.filter(a => a.min <= alter && alter <= a.max && (!a.motto || a.motto === f.motto) && !st.some(x => x.aufgabe === a.text));
+      const motto = pool.filter(a => a.motto === f.motto);
+      const wahl = (motto.length && Math.random() < 0.5 ? motto : pool)[Math.floor(Math.random() * (motto.length && Math.random() < 0.5 ? motto : pool).length)];
+      if (!wahl) { showTempStatus('Keine weiteren Ideen für dieses Alter', 3); return; }
+      s.aufgabe = wahl.text; speichernFeste(); neuZeichnen();
+    }));
+    $('inhalt').querySelectorAll('[data-stweg]').forEach(b => b.addEventListener('click', () => {
+      const idx = st.findIndex(x => x.id === b.dataset.stweg), s = st[idx];
+      st.splice(idx, 1); speichernFeste(); neuZeichnen();
+      showTempStatus('Station entfernt', 5, { rueckgaengig: () => { st.splice(idx, 0, s); speichernFeste(); neuZeichnen(); } });
+    }));
+    $('btnStationNeu').addEventListener('click', () => { st.push({ id: neueId('s'), ort: '', aufgabe: '', raetsel: '', hinweis: '', versteckt: false }); speichernFeste(); neuZeichnen(); });
+    $('sjStartRaetsel').addEventListener('change', () => { f.sj.startRaetsel = $('sjStartRaetsel').value; speichernFeste(); neuZeichnen(); });
+    $('sjStartHinweis').addEventListener('input', () => { f.sj.startHinweis = $('sjStartHinweis').value; spaeterSpeichern(); });
+    $('sjStartHinweis').addEventListener('change', () => { speichernFeste(); neuZeichnen(); });
+    $('sjSchatzOrt').addEventListener('input', () => { f.sj.schatz.ort = $('sjSchatzOrt').value; spaeterSpeichern(); });
+    $('sjSchatzOrt').addEventListener('change', () => { speichernFeste(); neuZeichnen(); });
+    $('sjSchatzVersteckt').addEventListener('change', () => { f.sj.schatz.versteckt = $('sjSchatzVersteckt').checked; speichernFeste(); neuZeichnen(); });
+    $('schatzInhalt').querySelectorAll('[data-si]').forEach(cb => cb.addEventListener('change', () => { f.sj.schatz.inhalt.find(x => x.id === cb.dataset.si).erledigt = cb.checked; speichernFeste(); cb.closest('.zeile').classList.toggle('erledigt', cb.checked); }));
+    $('schatzInhalt').querySelectorAll('[data-siweg]').forEach(b => b.addEventListener('click', (e) => { e.preventDefault(); f.sj.schatz.inhalt = f.sj.schatz.inhalt.filter(x => x.id !== b.dataset.siweg); speichernFeste(); neuZeichnen(); }));
+    const siNeu = () => { const v = $('siNeu').value.trim(); if (!v) return; (f.sj.schatz.inhalt = f.sj.schatz.inhalt || []).push({ id: neueId('si'), text: v, erledigt: false }); speichernFeste(); neuZeichnen(); $('siNeu').focus(); };
+    $('btnSiNeu').addEventListener('click', siNeu); $('siNeu').addEventListener('keydown', e => { if (e.key === 'Enter') siNeu(); });
+    $('btnKartenDrucken').addEventListener('click', () => kartenDrucken(f));
+    $('btnSchatzkarte').addEventListener('click', () => drucken(`<h1>${FD.motto(f.motto).em} Schatzkarte</h1><div class="schatzkarte">${schatzkarteSvg(f)}</div>`));
+    $('btnVersteckliste').addEventListener('click', () => drucken(`<h1>📝 Verstecke – ${esc(f.titel || '')}</h1><table><tr><th>#</th><th>Karte liegt …</th><th>Aufgabe dort</th><th>Lösung des Rätsels</th><th>✓</th></tr>
+      <tr><td>▶</td><td>wird den Kindern gegeben</td><td>–</td><td>${esc(hinweisText(f, -1))}</td><td>☐</td></tr>
+      ${st.map((s, i) => `<tr><td>${i + 1}</td><td>${esc(s.ort || '?')}</td><td>${esc(s.aufgabe || '–')}</td><td>${esc(hinweisText(f, i))}</td><td>${s.versteckt ? '☑' : '☐'}</td></tr>`).join('')}
+      <tr><td>💰</td><td>${esc(f.sj.schatz.ort || '?')}</td><td>Schatz: ${esc((f.sj.schatz.inhalt || []).map(x => x.text).join(', ') || '–')}</td><td></td><td>${f.sj.schatz.versteckt ? '☑' : '☐'}</td></tr></table>`));
+  }
+  function codeTabelle(art) {
+    const abc = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+    return `<div class="dk" style="min-height:auto"><div class="nr">🔑 Geheimcode-Tabelle</div><div class="tabelle-code">${abc.map((c, i) => `<div><b>${art === 'symbol' ? FD.SYMBOLE[i] : i + 1}</b> = ${c}</div>`).join('')}</div><div class="fuss">Ä = AE, Ö = OE, Ü = UE, ß = SS</div></div>`;
+  }
+  function karteHtml(f, titel, aufgabe, r, wz, mitAufgabe) {
+    const anl = FD.RAETSEL[r.art] ? FD.RAETSEL[r.art].anleitung : '';
+    let code;
+    if (!r.text) code = '<div class="code">?</div>';
+    else if (r.art === 'bild') code = `<div class="bild">${FD.ortBild(r.ziel || r.text)}</div>`;
+    else if (r.kodiert.spiegel) code = `<div class="code"><span class="spiegel">${esc(r.kodiert.text)}</span></div>`;
+    else code = `<div class="code${r.kodiert.code === 'symbol' ? ' sym' : ''}">${esc(r.kodiert.text)}</div>`;
+    return `<div class="dk"><span class="wz">${wz}</span><div class="nr">${esc(titel)}</div>${aufgabe ? `<div class="auf">${esc(aufgabe)}</div>` : ''}<div class="anl">${mitAufgabe ? 'Geschafft? Dann löst den Hinweis: ' : ''}${esc(anl)}</div>${code}<div class="fuss">${esc(f.titel || '')}</div></div>`;
+  }
+  function kartenDrucken(f) {
+    const st = f.sj.stationen, m = FD.motto(f.motto), wz = m.em;
+    if (!st.length) { showTempStatus('Erst Stationen anlegen', 3); return; }
+    const fehlt = st.filter(s => !s.ort).length + (f.sj.schatz.ort ? 0 : 1);
+    if (fehlt && !confirm('Bei ' + fehlt + ' Station(en) bzw. beim Schatz fehlt noch der Ort – trotzdem drucken?')) return;
+    const karten = [karteHtml(f, '▶ Los geht’s!', m.start, raetselKarte(f, -1), wz)];
+    st.forEach((s, i) => karten.push(karteHtml(f, 'Station ' + (i + 1), s.aufgabe || 'Super, ihr habt Station ' + (i + 1) + ' gefunden!', raetselKarte(f, i), wz, !!s.aufgabe)));
+    karten.push(`<div class="dk"><span class="wz">💰</span><div class="nr">Ihr habt es geschafft!</div><div class="bild">🏆</div><div class="auf" style="text-align:center">Herzlichen Glückwunsch – der Schatz gehört euch!</div><div class="fuss">${esc(f.titel || '')}</div></div>`);
+    const codes = new Set([-1].concat(st.map((s, i) => i)).map(i => raetselKarte(f, i).kodiert.code).filter(Boolean));
+    codes.forEach(c => karten.push(codeTabelle(c)));
+    drucken(`<div class="karten">${karten.join('')}</div>`);
+  }
+  function schatzkarteSvg(f) {
+    const n = f.sj.stationen.length, m = FD.motto(f.motto);
+    const pkt = [];
+    for (let i = 0; i <= n + 1; i++) { const t = i / (n + 1); pkt.push([70 + t * 460, 340 - t * 240 + Math.sin(i * 1.9) * 55]); }
+    const pfad = pkt.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(0) + ' ' + p[1].toFixed(0)).join(' ');
+    return `<svg viewBox="0 0 600 420" xmlns="http://www.w3.org/2000/svg" font-family="Georgia, serif">
+      <path d="M18 24 Q160 6 300 20 T582 18 L590 140 Q578 260 588 398 Q440 412 300 402 T14 404 Q4 300 16 200 T18 24 Z" fill="#f3e2b8" stroke="#8a6a3a" stroke-width="3"/>
+      <path d="${pfad}" fill="none" stroke="#8a3b2a" stroke-width="3" stroke-dasharray="9 8"/>
+      ${pkt.map((p, i) => i === 0 ? `<circle cx="${p[0]}" cy="${p[1]}" r="16" fill="#4f6f45"/><text x="${p[0]}" y="${p[1] + 6}" font-size="16" text-anchor="middle" fill="#fff">▶</text><text x="${p[0]}" y="${p[1] + 36}" font-size="15" text-anchor="middle" fill="#5a3d1e">Start</text>`
+        : i === n + 1 ? `<text x="${p[0]}" y="${p[1] + 14}" font-size="46" text-anchor="middle" fill="#b3261e" font-weight="bold">✕</text><text x="${p[0]}" y="${p[1] + 42}" font-size="15" text-anchor="middle" fill="#5a3d1e">Schatz</text>`
+        : `<circle cx="${p[0]}" cy="${p[1]}" r="15" fill="#fffaf0" stroke="#8a3b2a" stroke-width="2.5"/><text x="${p[0]}" y="${p[1] + 6}" font-size="16" text-anchor="middle" fill="#8a3b2a" font-weight="bold">${i}</text>`).join('')}
+      <g transform="translate(520 330)"><circle r="34" fill="none" stroke="#8a6a3a" stroke-width="2"/><path d="M0 -30 L7 0 L0 30 L-7 0 Z" fill="#8a6a3a"/><text y="-38" font-size="14" text-anchor="middle" fill="#5a3d1e">N</text></g>
+      <text x="60" y="78" font-size="38">${m.em}</text><text x="300" y="60" font-size="24" text-anchor="middle" fill="#5a3d1e" font-weight="bold">${esc(f.titel || 'Schatzkarte')}</text>
+      <text x="150" y="390" font-size="26">🌳</text><text x="430" y="170" font-size="26">🌳</text><text x="260" y="250" font-size="22">🪨</text>
+    </svg>`;
+  }
+  function drucken(html) {
+    $('druck').innerHTML = html;
+    document.body.classList.add('druck-aktiv');
+    const fertig = () => { document.body.classList.remove('druck-aktiv'); window.removeEventListener('afterprint', fertig); };
+    window.addEventListener('afterprint', fertig);
+    setTimeout(() => { window.print(); setTimeout(fertig, 500); }, 60);
+  }
+  function festplanDrucken(f) {
+    const z = zahlen(f), a = ablaufSortiert(f);
+    const sp = a.filter(x => x.spielId).map(x => alleSpiele().find(s => s.id === x.spielId)).filter(Boolean);
+    const g = (f.gaeste || []).filter(x => x.status !== 'abgesagt');
+    drucken(`<h1>${istKinderfest(f) && f.motto ? FD.motto(f.motto).em : FD.art(f.art).em} ${esc(f.titel || 'Fest')}</h1>
+      <p>${esc(datumLang(f.datum))}${f.von ? ', ' + esc(f.von) + (f.bis ? '–' + esc(f.bis) : '') + ' Uhr' : ''}${f.ort ? ' · ' + esc(f.ort) : ''} · ${z.gesamtKinder} Kinder, ${z.gesamtErw} Erwachsene</p>
+      ${a.length ? `<h2>⏱️ Ablauf</h2><table>${a.map(x => `<tr><td style="width:18mm"><b>${esc(x.zeit || '')}</b></td><td>${esc(x.titel || '')}</td><td style="width:20mm">${x.dauer ? esc(x.dauer) + ' Min.' : ''}</td></tr>`).join('')}</table>` : ''}
+      ${sp.length ? `<h2>🎲 Spiele &amp; Material</h2><table>${sp.map(s => `<tr><td><b>${s.em} ${esc(s.name)}</b><br>${esc(s.text)}</td><td style="width:55mm">🧺 ${esc(s.material)}</td></tr>`).join('')}</table>` : ''}
+      ${g.length ? `<h2>👥 Gäste</h2><table><tr><th>Name</th><th>Allergien</th><th>Bringt/holt ab</th><th>Telefon</th></tr>${g.map(x => `<tr><td>${esc(x.name)}${x.status === 'zugesagt' ? '' : ' (?)'}</td><td>${x.allergien ? '<b>⚠ ' + esc(x.allergien) + '</b>' : ''}</td><td>${esc(x.abholer || '')}</td><td>${esc(x.tel || '')}</td></tr>`).join('')}</table>` : ''}`);
+  }
+
+  // ---------- 🍰 Essen ----------
+  function gesamtMenge(e, z) {
+    const roh = zahlAus(e.proKind) * z.gesamtKinder + zahlAus(e.proErw) * z.gesamtErw;
+    if (!roh) return 0;
+    return /^(l|kg)$/.test(e.einheit || '') ? Math.ceil(roh * 2) / 2 : Math.ceil(roh);
+  }
+  function renderEssen(f) {
+    const z = zahlen(f);
+    const allergien = (f.gaeste || []).filter(x => x.status !== 'abgesagt' && x.allergien);
+    const rezepte = (laden('kochen_rezepte', []) || []).filter(r => r && r.titel).sort((a, b) => a.titel.localeCompare(b.titel, 'de'));
+    $('inhalt').innerHTML = `
+      <div class="karte"><div class="klein">Gerechnet mit <b>${z.gesamtKinder} Kindern</b> und <b>${z.gesamtErw} Erwachsenen</b> (alle, die nicht abgesagt haben, plus eure Familie – unter 👥 Gäste einstellbar).</div></div>
+      ${allergien.length ? `<div class="warn"><b>⚠ Beim Essen beachten:</b> ${allergien.map(x => esc(x.name) + ': ' + esc(x.allergien)).join(' · ')}</div>` : ''}
+      <div class="karte">
+        <h3>🍰 Essen &amp; Trinken</h3>
+        <div id="essenListe">${(f.essen || []).map(e => { const r = e.rezeptId ? rezepte.find(x => x.id === e.rezeptId) : null; const zahlFeld = (k) => `<input type="text" inputmode="decimal" class="eingabe" data-ef="${k}" value="${esc(String(e[k] ?? '').replace('.', ','))}" style="width:52px;padding:4px 6px;font-size:0.8rem;display:inline-block">`; return `<div class="zeile" data-id="${esc(e.id)}" style="flex-wrap:wrap;row-gap:4px">
+          <div class="haupt" style="flex:1 1 40%"><span><b>${esc(e.name)}</b></span>${r ? `<small><a href="#" data-rezept="${esc(r.id)}" style="color:var(--terracotta-text)">🍳 ${esc(r.titel)}</a></small>` : ''}</div>
+          <span style="display:flex;align-items:center;gap:6px;flex-shrink:0"><b style="color:var(--fest);white-space:nowrap">${gesamtMenge(e, z).toLocaleString('de-DE')} ${esc(e.einheit || '')}</b>
+          <button type="button" class="icon-btn" data-ek="${esc(e.id)}" title="Auf die Einkaufsliste">🛒</button><button type="button" class="weg-btn" data-eweg="${esc(e.id)}" aria-label="Entfernen">✕</button></span>
+          <div class="klein" style="flex:1 1 100%;display:flex;align-items:center;gap:5px;flex-wrap:wrap">🧒 ${zahlFeld('proKind')} 🧑 ${zahlFeld('proErw')} ${esc(e.einheit || '')}
+            <select data-ef="rezeptId" class="eingabe" style="width:auto;max-width:150px;padding:4px 6px;font-size:0.74rem;margin-left:auto" aria-label="Rezept verknüpfen"><option value="">🍳 Rezept …</option>${rezepte.map(x => `<option value="${esc(x.id)}"${x.id === e.rezeptId ? ' selected' : ''}>${esc(x.titel)}</option>`).join('')}</select></div>
+          </div>`; }).join('') || '<div class="klein">Noch nichts geplant.</div>'}</div>
+        <div class="drei" style="margin-top:8px;grid-template-columns:2fr 1fr auto"><input type="text" class="eingabe" id="esNeu" placeholder="＋ z. B. Pizza"><input type="text" class="eingabe" id="esEinheit" placeholder="Einheit" value="Stück"><button type="button" class="btn btn-secondary btn-klein" id="btnEsNeu">＋</button></div>
+        <div class="knopf-reihe"><button type="button" class="btn btn-primary btn-klein" id="btnAllesEinkauf">🛒 Alles auf die Einkaufsliste</button></div>
+        <div class="klein" style="margin-top:6px">Mengen pro Person anpassen – die Summe rechnet sich mit der Gästezahl mit. Rezepte kommen aus 🍳 Kochen (soweit auf diesem Gerät geladen).</div>
+      </div>`;
+    const box = $('essenListe');
+    box.querySelectorAll('[data-ef]').forEach(el => el.addEventListener('change', () => {
+      const e = f.essen.find(x => x.id === el.closest('[data-id]').dataset.id);
+      e[el.dataset.ef] = el.dataset.ef === 'rezeptId' ? el.value : zahlAus(el.value);
+      speichernFeste(); renderEssen(f);
+    }));
+    box.querySelectorAll('[data-rezept]').forEach(a => a.addEventListener('click', (ev) => { ev.preventDefault(); try { localStorage.setItem('kochen_oeffneRezeptId', a.dataset.rezept); } catch (x) {} navigiere('kochen'); }));
+    box.querySelectorAll('[data-ek]').forEach(b => b.addEventListener('click', () => { const e = f.essen.find(x => x.id === b.dataset.ek); zumEinkauf([{ name: e.name, menge: gesamtMenge(e, z) || '', einheit: e.einheit }]); }));
+    box.querySelectorAll('[data-eweg]').forEach(b => b.addEventListener('click', () => { const idx = f.essen.findIndex(x => x.id === b.dataset.eweg), e = f.essen[idx]; f.essen.splice(idx, 1); speichernFeste(); renderEssen(f); showTempStatus('Entfernt', 5, { rueckgaengig: () => { f.essen.splice(idx, 0, e); speichernFeste(); renderEssen(f); } }); }));
+    const neu = () => { const v = $('esNeu').value.trim(); if (!v) return; (f.essen = f.essen || []).push({ id: neueId('e'), name: v, einheit: $('esEinheit').value.trim() || 'Stück', proKind: 1, proErw: 1 }); speichernFeste(); renderEssen(f); };
+    $('btnEsNeu').addEventListener('click', neu); $('esNeu').addEventListener('keydown', e => { if (e.key === 'Enter') neu(); });
+    $('btnAllesEinkauf').addEventListener('click', () => zumEinkauf((f.essen || []).filter(e => gesamtMenge(e, z) > 0).map(e => ({ name: e.name, menge: gesamtMenge(e, z), einheit: e.einheit }))));
+  }
+
+  // ---------- ✅ Aufgaben & 💶 Budget ----------
+  const WANN = [[0, 'am Festtag'], [1, '1 Tag vorher'], [2, '2 Tage vorher'], [3, '3 Tage vorher'], [7, '1 Woche vorher'], [14, '2 Wochen vorher'], [21, '3 Wochen vorher'], [28, '4 Wochen vorher'], [42, '6 Wochen vorher'], [-1, 'danach']];
+  function wannText(n) { const w = WANN.find(x => x[0] === Number(n)); return w ? w[1] : n + ' Tage vorher'; }
+  function renderAufgaben(f) {
+    const personenListe = personen();
+    const mitDatum = (f.aufgaben || []).map(a => ({ a, datum: f.datum ? plusTage(f.datum, -(Number(a.tageVorher) || 0)) : null }));
+    mitDatum.sort((x, y) => (x.a.erledigt - y.a.erledigt) || ((Number(y.a.tageVorher) || 0) - (Number(x.a.tageVorher) || 0)));
+    const offen = mitDatum.filter(x => !x.a.erledigt).length;
+    const budget = f.budget || [];
+    const plan = budget.reduce((s, b) => s + zahlAus(b.geplant), 0), ist = budget.reduce((s, b) => s + zahlAus(b.ausgegeben), 0);
+    $('inhalt').innerHTML = `
+      <div class="karte">
+        <h3>✅ Aufgaben<span class="rechts">${offen} offen</span></h3>
+        <div id="aufgabenListe">${mitDatum.map(({ a, datum }) => { const t = datum ? tageBis(datum) : null; const ueberfaellig = !a.erledigt && t !== null && t < 0;
+          return `<div class="zeile${a.erledigt ? ' erledigt' : ''}" data-id="${esc(a.id)}"><input type="checkbox" data-af="erledigt" ${a.erledigt ? 'checked' : ''} aria-label="Erledigt">
+          <div class="haupt"><span>${esc(a.text)}</span><small style="${ueberfaellig ? 'color:var(--rot);font-weight:700' : ''}">${esc(wannText(a.tageVorher))}${datum ? ' · ' + esc(datumKurz(datum)) + (a.erledigt ? '' : ' (' + countdownText(t) + ')') : ''}${a.erledigt && a.erledigtVon ? ' · ✓ ' + esc(personName(a.erledigtVon)) : ''}</small></div>
+          <select data-af="wer" aria-label="Wer?" style="max-width:96px;padding:4px;border:1px solid var(--parchment);border-radius:6px;background:var(--cream);color:var(--soil);font-size:0.74rem"><option value="">👤 Wer?</option>${personenListe.map(p => `<option value="${esc(p.id)}"${p.id === a.wer ? ' selected' : ''}>${esc(p.label)}</option>`).join('')}</select>
+          <button type="button" class="weg-btn" data-aweg="${esc(a.id)}" aria-label="Entfernen">✕</button></div>`; }).join('') || '<div class="klein">Keine Aufgaben.</div>'}</div>
+        <div class="drei" style="margin-top:8px;grid-template-columns:1fr 140px auto"><input type="text" class="eingabe" id="auNeu" placeholder="＋ Aufgabe" enterkeyhint="done"><select class="eingabe" id="auWann">${WANN.map(([w, t]) => `<option value="${w}"${w === 3 ? ' selected' : ''}>${t}</option>`).join('')}</select><button type="button" class="btn btn-secondary btn-klein" id="btnAuNeu">＋</button></div>
+      </div>
+      <div class="karte">
+        <h3>💶 Budget<span class="rechts">${euro(ist)}${plan ? ' von ' + euro(plan) : ''}</span></h3>
+        ${plan ? `<div style="height:8px;border-radius:4px;background:var(--parchment);overflow:hidden;margin-bottom:8px"><div style="height:100%;width:${Math.min(100, ist / plan * 100)}%;background:${ist > plan ? 'var(--rot)' : 'var(--moss)'}"></div></div>` : ''}
+        <div id="budgetListe">${budget.map(b => `<div class="zeile" data-id="${esc(b.id)}" style="flex-wrap:wrap">
+          <input type="text" class="eingabe" data-bf="text" value="${esc(b.text || '')}" style="flex:1 1 100%;padding:6px 8px" aria-label="Posten">
+          <span class="klein" style="margin-left:auto">Plan</span><input type="text" inputmode="decimal" class="eingabe" data-bf="geplant" value="${esc(String(b.geplant ?? ''))}" placeholder="€" style="width:64px;padding:6px" aria-label="Geplant">
+          <span class="klein">Ist</span><input type="text" inputmode="decimal" class="eingabe" data-bf="ausgegeben" value="${esc(String(b.ausgegeben ?? ''))}" placeholder="€" style="width:64px;padding:6px" aria-label="Ausgegeben">
+          <button type="button" class="icon-btn" data-buchen="${esc(b.id)}" title="${b.finanzId ? 'In Finanzen gebucht – antippen zum Entfernen' : 'In Finanzen buchen'}">${b.finanzId ? '✓💶' : '💶'}</button>
+          <button type="button" class="weg-btn" data-bweg="${esc(b.id)}" aria-label="Entfernen">✕</button></div>`).join('')}</div>
+        <div class="knopf-reihe"><button type="button" class="btn btn-secondary btn-klein" id="btnBudgetNeu">＋ Posten</button></div>
+        <div class="klein" style="margin-top:6px">💶 bucht den ausgegebenen Betrag in Finanzen (Kategorie „🎉 Feste &amp; Feiern“).</div>
+      </div>`;
+    const box = $('aufgabenListe');
+    box.querySelectorAll('[data-af]').forEach(el => el.addEventListener('change', () => {
+      const a = f.aufgaben.find(x => x.id === el.closest('[data-id]').dataset.id);
+      if (el.dataset.af === 'erledigt') { a.erledigt = el.checked; if (el.checked) { a.erledigtAm = heuteISO(); try { a.erledigtVon = localStorage.getItem('planer_geraetIdentitaet') || ''; } catch (e) {} } else { delete a.erledigtAm; delete a.erledigtVon; } }
+      else a.wer = el.value;
+      speichernFeste(); renderAufgaben(f);
+    }));
+    box.querySelectorAll('[data-aweg]').forEach(b => b.addEventListener('click', () => { const idx = f.aufgaben.findIndex(x => x.id === b.dataset.aweg), a = f.aufgaben[idx]; f.aufgaben.splice(idx, 1); speichernFeste(); renderAufgaben(f); showTempStatus('Entfernt', 5, { rueckgaengig: () => { f.aufgaben.splice(idx, 0, a); speichernFeste(); renderAufgaben(f); } }); }));
+    const neu = () => { const v = $('auNeu').value.trim(); if (!v) return; (f.aufgaben = f.aufgaben || []).push({ id: neueId('t'), text: v, tageVorher: Number($('auWann').value), wer: '', erledigt: false }); speichernFeste(); renderAufgaben(f); $('auNeu').focus(); };
+    $('btnAuNeu').addEventListener('click', neu); $('auNeu').addEventListener('keydown', e => { if (e.key === 'Enter') neu(); });
+    const bbox = $('budgetListe');
+    bbox.querySelectorAll('[data-bf]').forEach(el => {
+      el.addEventListener('input', () => { const b = f.budget.find(x => x.id === el.closest('[data-id]').dataset.id); b[el.dataset.bf] = el.value; spaeterSpeichern(); });
+      el.addEventListener('change', () => { const b = f.budget.find(x => x.id === el.closest('[data-id]').dataset.id); if (b.finanzId && el.dataset.bf !== 'geplant') finanzBuchen(f, b); speichernFeste(); renderAufgaben(f); });
+    });
+    bbox.querySelectorAll('[data-buchen]').forEach(btn => btn.addEventListener('click', () => {
+      const b = f.budget.find(x => x.id === btn.dataset.buchen);
+      if (b.finanzId) { finanzLoeschen(b.finanzId); delete b.finanzId; speichernFeste(); renderAufgaben(f); showTempStatus('Aus Finanzen entfernt', 3); return; }
+      if (!(zahlAus(b.ausgegeben) > 0)) { showTempStatus('Erst bei „Ist“ den ausgegebenen Betrag eintragen', 3); return; }
+      finanzBuchen(f, b); speichernFeste(); renderAufgaben(f); showTempStatus('💶 ' + euro(zahlAus(b.ausgegeben)) + ' in Finanzen gebucht', 3);
+    }));
+    bbox.querySelectorAll('[data-bweg]').forEach(btn => btn.addEventListener('click', () => { const b = f.budget.find(x => x.id === btn.dataset.bweg); if (b.finanzId) finanzLoeschen(b.finanzId); f.budget = f.budget.filter(x => x !== b); speichernFeste(); renderAufgaben(f); }));
+    $('btnBudgetNeu').addEventListener('click', () => { (f.budget = f.budget || []).push({ id: neueId('b'), text: '', geplant: '', ausgegeben: '' }); speichernFeste(); renderAufgaben(f); const ins = $('budgetListe').querySelectorAll('[data-bf="text"]'); if (ins.length) ins[ins.length - 1].focus(); });
+  }
+
+  // ---------- 📸 Danach ----------
+  function cloudBereit() { return !!(window.FotoSpeicher && window.FotoSpeicher.verfuegbar && window.FotoSpeicher.verfuegbar()); }
+  function fotoSrc(x) { return (x && (x.url || x.bild)) || ''; }
+  function bildHash(t) { let h1 = 0x811c9dc5, h2 = 5381; for (let i = 0; i < t.length; i++) { const c = t.charCodeAt(i); h1 = Math.imul(h1 ^ c, 16777619); h2 = (Math.imul(h2, 33) + c) | 0; } return (h1 >>> 0).toString(36) + (h2 >>> 0).toString(36); }
+  async function vorhandeneCloudDatei(id) {
+    try { await window.PlanerSync.authBereit(); const pfad = 'planerFamilien/' + window.PlanerSync.familienId() + '/fotos/' + id + '.jpg'; return { url: await firebase.storage().ref(pfad).getDownloadURL(), pfad }; }
+    catch (e) { return null; }
+  }
+  let uploadLaeuft = false;
+  async function fotosHochladen() {
+    if (uploadLaeuft || !cloudBereit() || !navigator.onLine) return;
+    uploadLaeuft = true; let geaendert = false;
+    try {
+      for (const f of feste) for (const x of ((f.danach && f.danach.fotos) || [])) {
+        if (x.url || typeof x.bild !== 'string' || x.bild.indexOf('data:image') !== 0) continue;
+        const daten = x.bild; let erg = null;
+        try { erg = await vorhandeneCloudDatei('fe' + bildHash(daten)) || await window.FotoSpeicher.hochladen('fe' + bildHash(daten), daten); } catch (err) { console.warn('Feste: Foto-Upload', err); return; }
+        if (x.bild !== daten || !erg) continue;
+        x.url = erg.url; x.pfad = erg.pfad; delete x.bild; geaendert = true;
+      }
+    } finally { uploadLaeuft = false; if (geaendert) { speichernFeste(); if (tab === 'danach') render(); } }
+  }
+  function renderDanach(f) {
+    f.danach = f.danach || { gut: '', besser: '', fotos: [] };
+    const d = f.danach, g = (f.gaeste || []).filter(x => x.status !== 'abgesagt');
+    const mitGeschenk = g.filter(x => x.geschenk);
+    $('inhalt').innerHTML = `
+      <div class="karte">
+        <h3>📸 Fotos</h3>
+        <div class="fotos" id="fotoReihe">${(d.fotos || []).map((x, i) => `<div class="ft"><img src="${esc(fotoSrc(x))}" alt=""><button type="button" data-fweg="${i}" aria-label="Foto entfernen">✕</button></div>`).join('')}<label class="foto-hinzu" title="Foto hinzufügen">📷<input type="file" accept="image/*" id="fFoto" multiple></label></div>
+      </div>
+      <div class="karte">
+        <h3>🎁 Geschenke &amp; Danke<span class="rechts">${mitGeschenk.filter(x => x.dankeGesagt).length}/${mitGeschenk.length} bedankt</span></h3>
+        ${g.length ? `<div id="dankListe">${g.map(x => `<div class="zeile${x.dankeGesagt ? ' erledigt' : ''}" data-id="${esc(x.id)}"><input type="checkbox" data-danke ${x.dankeGesagt ? 'checked' : ''} aria-label="Bedankt"><div class="haupt"><span><b>${esc(x.name)}</b></span></div><input type="text" class="eingabe" data-geschenk value="${esc(x.geschenk || '')}" placeholder="Geschenk" style="max-width:52%;padding:6px 8px"></div>`).join('')}</div>
+          <div class="klein" style="margin-top:6px">Häkchen = Danke gesagt. Praktisch für Dankeskarten.</div>` : '<div class="klein">Keine Gäste eingetragen.</div>'}
+      </div>
+      <div class="karte">
+        <h3>📝 Rückblick</h3>
+        <div class="feld"><label for="dGut">👍 Was lief richtig gut?</label><textarea id="dGut" placeholder="z. B. Schnitzeljagd war der Hit">${esc(d.gut || '')}</textarea></div>
+        <div class="feld"><label for="dBesser">🔁 Was machen wir nächstes Mal anders?</label><textarea id="dBesser" placeholder="z. B. weniger Kuchen, mehr Würstchen; 2 Stationen weniger">${esc(d.besser || '')}</textarea></div>
+        <div class="klein">Wenn ihr das Fest unter 📋 Übersicht als Vorlage kopiert, erscheint diese Notiz beim nächsten Mal oben.</div>
+      </div>`;
+    $('fotoReihe').querySelectorAll('[data-fweg]').forEach(b => b.addEventListener('click', () => {
+      const idx = +b.dataset.fweg, x = d.fotos[idx]; d.fotos.splice(idx, 1); speichernFeste(); renderDanach(f);
+      showTempStatus('Foto entfernt', 6, { rueckgaengig: () => { d.fotos.splice(idx, 0, x); speichernFeste(); renderDanach(f); } });
+      if (x && x.pfad && cloudBereit()) setTimeout(() => { if (!feste.some(ff => ((ff.danach && ff.danach.fotos) || []).some(y => y.pfad === x.pfad))) { try { window.FotoSpeicher.loeschen(x.pfad); } catch (e) {} } }, 9000);
+    }));
+    $('fFoto').addEventListener('change', (e) => {
+      const dateien = Array.from(e.target.files || []); e.target.value = '';
+      let offen = dateien.length;
+      dateien.forEach(datei => {
+        const reader = new FileReader();
+        reader.onload = (ev) => { const img = new Image(); img.onload = () => {
+          const max = cloudBereit() ? 1400 : 700, k = Math.min(1, max / Math.max(img.width, img.height));
+          const c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+          c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+          (d.fotos = d.fotos || []).push({ id: neueId('ff'), bild: c.toDataURL('image/jpeg', cloudBereit() ? 0.8 : 0.6) });
+          if (--offen === 0) { speichernFeste(); renderDanach(f); fotosHochladen(); }
+        }; img.onerror = () => { if (--offen === 0) { speichernFeste(); renderDanach(f); } }; img.src = ev.target.result; };
+        reader.readAsDataURL(datei);
+      });
+    });
+    if ($('dankListe')) $('dankListe').querySelectorAll('[data-id]').forEach(z => {
+      const x = f.gaeste.find(y => y.id === z.dataset.id);
+      z.querySelector('[data-danke]').addEventListener('change', (e) => { x.dankeGesagt = e.target.checked; speichernFeste(); z.classList.toggle('erledigt', e.target.checked); });
+      z.querySelector('[data-geschenk]').addEventListener('input', (e) => { x.geschenk = e.target.value; spaeterSpeichern(); });
+    });
+    $('dGut').addEventListener('input', () => { d.gut = $('dGut').value; spaeterSpeichern(); });
+    $('dBesser').addEventListener('input', () => { d.besser = $('dBesser').value; spaeterSpeichern(); });
+  }
+
+  // ---------- Shell-Aufrufe ----------
+  window.addEventListener('message', (e) => {
+    if (e.origin !== location.origin || !e.data || e.data.type !== 'shortcutAktion') return;
+    if (e.data.aktion === 'neu') neuOeffnen();
+    if (e.data.aktion === 'zeige' && e.data.ziel && feste.some(f => f.id === e.data.ziel)) oeffnen(e.data.ziel);
+  });
+  // Escape schließt Dialoge
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') document.querySelectorAll('.modal-bg.zeigen').forEach(m => m.classList.remove('zeigen')); });
+  document.querySelectorAll('.modal-bg').forEach(m => m.addEventListener('click', (e) => { if (e.target === m) m.classList.remove('zeigen'); }));
+
+  render();
+
+  if (window.PlanerSync) {
+    window._sync = window.PlanerSync.starteSync({
+      modul: 'feste', keys: [KEY, KEY_SPIELE],
+      onRemoteChange: function () {
+        feste = laden(KEY, []); if (!Array.isArray(feste)) feste = [];
+        eigeneSpiele = laden(KEY_SPIELE, []); if (!Array.isArray(eigeneSpiele)) eigeneSpiele = [];
+        // Während jemand tippt, nicht neu zeichnen (sonst springt der Cursor)
+        const a = document.activeElement;
+        if (a && /INPUT|TEXTAREA|SELECT/.test(a.tagName) && !document.querySelector('.modal-bg.zeigen')) { setTimeout(() => { if (!/INPUT|TEXTAREA|SELECT/.test((document.activeElement || {}).tagName || '')) render(); }, 1500); return; }
+        render();
+      },
+    });
+    termineSync = window.PlanerSync.starteSync({ modul: 'termine', keys: ['termine_events_v1'] });
+    einkaufSync = window.PlanerSync.starteSync({ modul: 'einkauf', keys: ['einkauf_listen'] });
+    finanzSync = window.PlanerSync.starteSync({ modul: 'finanzen', keys: ['finanzen_kategorien', 'finanzen_ausgaben'], ersterAbgleichVereinen: true });
+    // Wunschliste nur mitlesen (Wunschzettel für das Geburtstagskind)
+    window.PlanerSync.starteSync({ modul: 'termine', keys: ['termine_wunschliste'] });
+    setTimeout(fotosHochladen, 3000);
+    window.addEventListener('online', fotosHochladen);
+  }
+})();
+</script>
+</body>
+</html>

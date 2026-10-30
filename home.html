@@ -2005,6 +2005,13 @@
         });
       }
     }
+    // 🎉 Feste: das Fest selbst und offene Aufgaben
+    if (modulSichtbar('feste')) laden('feste_liste', []).forEach(f => {
+      if (!f || !f.datum || tageBis(f.datum) < 0) return;
+      const offen = (f.aufgaben || []).filter(a => !a.erledigt).length;
+      const zu = (f.gaeste || []).filter(g => g.status === 'zugesagt').length;
+      add(f.datum, '🎉', (f.titel || 'Fest') + (zu ? ' · ' + zu + (zu === 1 ? ' Zusage' : ' Zusagen') : '') + (offen ? ' · ' + offen + ' Aufgaben offen' : ''), 'feste');
+    });
     // 🍿 Medien: Rückgabe ausgeliehener Bücher & Co., neue Folgen
     if (modulSichtbar('medien')) laden('medien_eintraege', []).forEach(e => {
       if (e && e.ausleihe && e.ausleihe.art && e.ausleihe.bis && tageBis(e.ausleihe.bis) >= -14)
@@ -2187,7 +2194,7 @@
       ['termine', 'termine', ['termine_events_v1']], ['einkauf', 'einkauf', ['einkauf_listen']], ['haushalt', 'haushalt', ['haushalt_aufgaben']],
       ['kochen', 'kochen', ['kochen_wochenplan']], ['gesundheit', 'gesundheit', ['gesundheit_sport', 'gesundheit_medikamente']], ['vorratskammer', 'vorratskammer', ['vorratskammer_items']],
       ['finanzen', 'finanzen', ['finanzen_ausgaben', 'finanzen_abos', 'finanzen_einstellungen']], ['fahrzeuge', 'fahrzeuge', ['fahrzeuge_liste', 'fahrzeuge_werkstatt']],
-      ['kinder', 'kinder', ['kinder_einstellungen', 'kinder_sterne', 'kinder_wuensche']], ['gaming', 'gaming', ['gaming_sessions', 'gaming_limits']], ['handwerk', 'handwerk', ['handwerk_wartung']], ['medien', 'medien', ['medien_eintraege']], ['nachrichten', 'nachrichten', ['nachrichten_tipps', 'nachrichten_themen']], ['notizblock', 'notizblock', ['notizblock_liste']], ['wunschliste', 'termine', ['termine_wunschliste']], ['notfall', 'notfall', ['notfall_einstellungen']],
+      ['kinder', 'kinder', ['kinder_einstellungen', 'kinder_sterne', 'kinder_wuensche']], ['gaming', 'gaming', ['gaming_sessions', 'gaming_limits']], ['handwerk', 'handwerk', ['handwerk_wartung']], ['medien', 'medien', ['medien_eintraege']], ['nachrichten', 'nachrichten', ['nachrichten_tipps', 'nachrichten_themen']], ['notizblock', 'notizblock', ['notizblock_liste']], ['wunschliste', 'termine', ['termine_wunschliste']], ['notfall', 'notfall', ['notfall_einstellungen']], ['feste', 'feste', ['feste_liste']],
     ];
     LIVE.forEach(([name, modul, keys]) => {
       if (!modulSichtbar(name)) return;
