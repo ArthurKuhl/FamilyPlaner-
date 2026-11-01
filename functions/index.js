@@ -90,8 +90,8 @@ function faelligeErinnerungen(geraet, daten) {
         if (!imFenster(er.minuten)) return;
         liste.push({
           schluessel: `t_${ev.id}_${er.vorkommen}_${er.minuten}`,
-          titel: '🗓️ ' + (ev.title || 'Termin'),
-          text: TerminLogik.vorlaufText(ev, er.tageVorher) + (ev.location ? ' · ' + ev.location : ''),
+          titel: ev.abfuhr ? '🗑️ ' + (er.tageVorher ? 'Morgen' : 'Heute') + ' ist Abfuhr' : '🗓️ ' + (ev.title || 'Termin'),
+          text: ev.abfuhr ? String(ev.title || '').replace(/^🗑️\s*/, '') + (er.tageVorher ? ' – heute Abend rausstellen' : '') : TerminLogik.vorlaufText(ev, er.tageVorher) + (ev.location ? ' · ' + ev.location : ''),
           seite: 'termine',
         });
       });
@@ -125,7 +125,7 @@ function faelligeErinnerungen(geraet, daten) {
   if (geraet.ganztaegig === 'tag' || geraet.ganztaegig === 'vortag') {
     const morgen = isoPlusTage(datum, 1);
     (daten.termine || []).forEach(ev => {
-      if (!ev || !ev.allDay || !fuerMich(ev.wer)) return;
+      if (!ev || !ev.allDay || ev.abfuhr || !fuerMich(ev.wer)) return; // Abfuhr hat eine eigene Erinnerung
       if (terminAmTag(ev, datum) && imFenster(tagesZiel)) {
         liste.push({ schluessel: `g_${ev.id}`, titel: '📅 Heute: ' + (TerminLogik.titelMitAlter(ev, datum) || 'Termin'), text: ev.notes ? String(ev.notes).slice(0, 120) : 'Ganztägiger Termin', seite: 'termine' });
       }
