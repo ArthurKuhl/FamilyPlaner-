@@ -774,7 +774,8 @@
       let metaHtml = '';
       if (faellig && st.ueberfaelligSeit) metaHtml += '<span class="mini-chip ueber">⚠️ überfällig ' + escapeHtml(ueberfaelligText(st.ueberfaelligSeit)) + '</span>';
       metaHtml += '<span class="mini-chip">' + escapeHtml(turnusText(a)) + '</span>';
-      if (!faellig && !erledigtHeute && st.naechstesAm && (a.turnus === 'intervall' || a.turnus === 'woechentlich')) metaHtml += '<span class="mini-chip">nächstes Mal ' + escapeHtml(kurzDatum(st.naechstesAm)) + '</span>';
+      if (a.turnus === 'termine' && a.hinweise && a.hinweise[HL.heute()]) metaHtml += '<span class="mini-chip">' + escapeHtml(a.hinweise[HL.heute()]) + '</span>';
+      if (!faellig && !erledigtHeute && st.naechstesAm && (a.turnus === 'intervall' || a.turnus === 'woechentlich' || a.turnus === 'termine')) metaHtml += '<span class="mini-chip">nächstes Mal ' + escapeHtml(kurzDatum(st.naechstesAm)) + '</span>';
       if (HL.heuteUebersprungen(a)) metaHtml += '<span class="mini-chip">⏭ übersprungen</span>';
       if (zustaendig) {
         metaHtml += '<span class="mini-chip person" style="background:' + escapeHtml(zustaendig.farbe || '#7d6339') + '">' + escapeHtml(zustaendig.label) + '</span>';
@@ -987,6 +988,13 @@
   function turnusReiheRendern() {
     const box = document.getElementById('turnusReihe');
     box.innerHTML = '';
+    if (gewaehlterTurnus === 'termine') {
+      // Termine kommen aus dem Abfuhrkalender (Termine → 🗑️) und werden dort gepflegt
+      box.innerHTML = '<span class="opt aktiv" style="cursor:default">🗑️ Nach Abfuhrkalender</span><span style="font-size:0.74rem;opacity:0.75;align-self:center">Tage kommen aus Termine → 🗑️</span>';
+      document.getElementById('wochentageFeld').style.display = 'none';
+      document.getElementById('intervallFeld').style.display = 'none';
+      return;
+    }
     TURNUS_OPTIONEN.forEach(t => {
       const btn = document.createElement('button');
       btn.type = 'button';

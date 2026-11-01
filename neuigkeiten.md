@@ -2,6 +2,12 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
+## 2026-11-01 | 🗑️ Abfuhrkalender importieren & „Tonne raus“
+Neu in Termine über den 🗑️-Knopf oben: Die Abfuhrtermine als .ics-Datei vom Abfallbetrieb importieren. Rest-, Bio-, Papier- und Gelbe Tonne, Weihnachtsbaum, Sperrmüll und Problemstoffe werden erkannt, und einzelne Tonnen lassen sich abwählen. Ein neuer Import (z. B. fürs nächste Jahr) ersetzt die alten Termine.
+🔔 Erinnerung am Vorabend oder am Morgen zur gewünschten Uhrzeit, als Handy-Benachrichtigung „🗑️ Morgen ist Abfuhr – Gelbe Tonne + Papier“. Im Kalender erscheinen die Tonnen nur klein als Symbol (oder gar nicht).
+🏠 Auf der Startseite steht abends „🟡🔵 Morgen: Gelbe Tonne + Papier raus“. Antippen heißt „steht draußen“, damit alle sehen, dass es erledigt ist. Auf Wunsch gibt es dazu im 🧹 Haushalt die Aufgabe „Tonne rausstellen“ an jedem Vorabend, auch reihum oder als Kinderaufgabe mit Sternen.
+📥 Andere Kalenderdateien (Schule, Verein, Kita) lassen sich über denselben Knopf als normale Termine importieren, ohne Doppelte bei erneutem Import.
+
 ## 2026-10-30 | 🎉 Neues Modul: Feste – Kindergeburtstag & Co. planen
 Mit ＋ Neues Fest legt ihr einen Kindergeburtstag, eine Geburtstagsfeier, ein Grillfest, ein Familientreffen oder ein eigenes Fest an. Ablauf, Aufgaben, Essen, Budget und Mitgebsel werden aus der Vorlage vorgeschlagen, und das Fest steht automatisch in Termine. Für Kinder gibt es 12 Mottos von 🏴‍☠️ Piraten bis 🪄 Zauberschule, und das Alter wird aus dem Geburtstag in Termine übernommen.
 👥 Gäste: Zusagen mit einem Tipp (eingeladen → zugesagt → abgesagt), Allergien, wer abholt und Telefon. Dazu die Mitgebsel-Liste mit der passenden Anzahl Tüten. 💌 Die Einladung wird passend zum Motto formuliert und lässt sich per WhatsApp teilen, und 🎁 der Wunschzettel des Geburtstagskinds kann für die Gäste-Eltern geteilt werden (ohne schon Reserviertes).

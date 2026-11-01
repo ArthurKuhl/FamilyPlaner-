@@ -194,6 +194,21 @@
   .tl-tag.feiertag .tl-nr, .tl-tag.feiertag .tl-wd { color: #c0392b; }
   .tl-inhalt { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 3px; }
   .tl-feiertag { font-size: 0.68rem; color: #c0392b; font-weight: 600; }
+  /* 🗑️ Abfuhr */
+  .cal-tonnen { font-size: 0.55rem; line-height: 1; margin-top: 2px; letter-spacing: -1px; text-align: center; }
+  .tl-abfuhr, .abfuhr-zeile { font-size: 0.72rem; color: var(--bark); font-weight: 600; }
+  .abfuhr-zeile { padding: 6px 10px; background: var(--white); border-radius: 10px; margin-bottom: 6px; display: flex; gap: 6px; align-items: center; }
+  .wo-ganztags .wo-abfuhr { font-size: 0.7rem; text-align: center; margin: 1px; }
+  .abf-karte { background: var(--white); border-radius: 12px; padding: 11px 12px; margin-bottom: 10px; font-size: 0.82rem; line-height: 1.45; }
+  .abf-karte h3 { font-size: 0.86rem; margin: 0 0 6px; }
+  .abf-zeile { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-top: 1px solid var(--parchment); font-size: 0.84rem; }
+  .abf-zeile:first-of-type { border-top: none; }
+  .abf-zeile input[type=checkbox] { width: 19px; height: 19px; accent-color: #4f6f45; }
+  .abf-zeile .rechts { margin-left: auto; font-size: 0.72rem; color: var(--bark); }
+  .abf-feld { display: flex; align-items: center; gap: 8px; margin: 6px 0; font-size: 0.82rem; flex-wrap: wrap; }
+  .abf-feld select, .abf-feld input { padding: 7px 9px; border-radius: 9px; border: 1px solid var(--parchment); background: var(--cream); color: var(--soil); font-family: inherit; font-size: 0.82rem; }
+  .abf-klein { font-size: 0.74rem; color: var(--bark); line-height: 1.45; }
+  .abf-farbe { width: 12px; height: 12px; border-radius: 3px; display: inline-block; flex-shrink: 0; }
   .tl-termin { display: flex; gap: 8px; align-items: baseline; font-size: 0.82rem; color: var(--soil); border-left: 3px solid var(--moss); padding: 2px 0 2px 7px; border-radius: 2px; }
   .tl-termin .tl-zeit { font-size: 0.7rem; font-weight: 700; color: var(--bark); min-width: 38px; flex-shrink: 0; }
   .tl-termin .tl-titel { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -283,6 +298,7 @@
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
 <script src="personen.js"></script>
 <script src="terminlogik.js"></script>
+<script src="abfalllogik.js"></script>
 <script src="sync.js"></script>
 </head>
 <body>
@@ -294,6 +310,7 @@
       <h1>🗓️ Termine</h1>
     <button class="theme-btn" id="btnThemeAuswahl" title="Hintergrundmuster wählen">🎨</button>
       <button class="ics-btn" id="btnSuche" title="Termine durchsuchen – auch vergangene" aria-label="Suchen" style="margin-right:6px;">🔎</button>
+      <button class="ics-btn" id="btnAbfall" title="Abfuhrkalender und .ics-Dateien importieren" aria-label="Abfuhrkalender" style="margin-right:6px;">🗑️</button>
       <button class="ics-btn" id="btnKalenderApp" title="Termine in Google Kalender, iPhone oder Outlook anzeigen">📲 Kalender-App</button>
     </div>
     <div class="view-toggle" role="tablist">
@@ -356,6 +373,15 @@
   <button class="fab" id="fabAdd" aria-label="Neuen Termin hinzufügen">+</button>
 
   <!-- Kalender-Abo / Export -->
+  <div class="modal-bg" id="modalAbfall">
+    <div class="modal">
+      <h2>🗑️ Abfuhrkalender &amp; Import</h2>
+      <div id="abfallInhalt"></div>
+      <input type="file" id="abfallDatei" accept=".ics,text/calendar,.ical,.ifb,.icalendar" style="display:none">
+      <button class="btn-secondary" data-close="modalAbfall" style="margin-top:8px;">Schließen</button>
+    </div>
+  </div>
+
   <div class="modal-bg" id="modalAbo">
     <div class="modal">
       <h2>📲 In der Kalender-App anzeigen</h2>
@@ -636,10 +662,24 @@
     const TL = window.TerminLogik;
     function vorkommenImBereich(ev, vonISO, bisISO) { return TL.vorkommen(ev, vonISO, bisISO); }
 
+    // 🗑️ Abfuhr an diesem Tag → { typen, text, symbole } oder null (ausgeblendet: null)
+    const AL = window.AbfallLogik;
+    const KEY_ABFALL = 'termine_abfall';
+    function abfallCfg() { let c = null; try { c = JSON.parse(localStorage.getItem(KEY_ABFALL) || 'null'); } catch (e) {} return AL.standard(c); }
+    function abfuhrAm(iso) {
+      if (!AL) return null;
+      const cfg = abfallCfg();
+      if (cfg.kalender === 'aus') return null;
+      const ev = events.find(e => e && e.abfuhr && e.date === iso);
+      if (!ev) return null;
+      return { typen: ev.abfuhr, symbole: AL.symbole(ev.abfuhr, cfg), text: AL.titel(ev.abfuhr, cfg), ev };
+    }
+
     // Ein Eintrag pro (Termin, Kalendertag) – mehrtägige Termine erscheinen an jedem ihrer Tage
     function alleVorkommen(vonISO, bisISO) {
       const liste = [];
       events.forEach(ev => {
+        if (ev.abfuhr) return; // 🗑️ Abfuhr wird klein als Tonnen-Symbol gezeigt (abfuhrAm)
         if (aktiverFilter !== 'alle' && ev.wer !== aktiverFilter) return;
         const dauer = TL.dauerTage(ev);
         vorkommenImBereich(ev, vonISO, bisISO).forEach(datum => {
@@ -850,6 +890,8 @@
         const inhalt = zeile.querySelector('.tl-inhalt');
         if (feiertag) { const f = document.createElement('div'); f.className = 'tl-feiertag'; f.textContent = '🎉 ' + feiertag; inhalt.appendChild(f); }
         if (ferien && (n === 1 || !ferienAm(toISO(new Date(kalenderJahr, kalenderMonat, n - 1))) || wt === 1)) { const f = document.createElement('div'); f.className = 'tl-ferien'; f.textContent = '🏖️ ' + ferien; inhalt.appendChild(f); }
+        const abf = abfuhrAm(iso);
+        if (abf) { const f = document.createElement('div'); f.className = 'tl-abfuhr'; f.textContent = abf.symbole + ' ' + abf.text; inhalt.appendChild(f); }
         termine.forEach(t => {
           const el = document.createElement('div'); el.className = 'tl-termin';
           el.style.borderLeftColor = farbeFuer(t.ev.wer);
@@ -858,9 +900,9 @@
           el.addEventListener('click', (e) => { e.stopPropagation(); terminModalOeffnen(t.ev, t.datum); });
           inhalt.appendChild(el);
         });
-        if (!termine.length && !feiertag && !ferien) { const l = document.createElement('div'); l.className = 'tl-leer'; l.textContent = '＋'; inhalt.appendChild(l); }
+        if (!termine.length && !feiertag && !ferien && !abf) { const l = document.createElement('div'); l.className = 'tl-leer'; l.textContent = '＋'; inhalt.appendChild(l); }
         // Leerer Tag: direkt neuen Termin anlegen; Tag mit Einträgen: Tagesübersicht wie im Raster
-        zeile.addEventListener('click', () => { if (termine.length) tagDetailOeffnen(iso); else terminModalOeffnen(null, iso); });
+        zeile.addEventListener('click', () => { if (termine.length || abf) tagDetailOeffnen(iso); else terminModalOeffnen(null, iso); });
         box.appendChild(zeile);
         if (iso === heuteISO) heuteZeile = zeile;
       }
@@ -913,6 +955,8 @@
           });
           zelle.appendChild(dots);
         }
+        const abfTag = abfuhrAm(tagISO);
+        if (abfTag) { const t = document.createElement('div'); t.className = 'cal-tonnen'; t.textContent = abfTag.symbole; t.title = '🗑️ ' + abfTag.text; zelle.appendChild(t); }
         if (mehrtaegig.length) {
           const baender = document.createElement('div'); baender.className = 'cal-baender';
           mehrtaegig.slice(0, 3).forEach(t => {
@@ -968,7 +1012,8 @@
       // Ganztägige & mehrtägige Termine oben
       html += '<div class="wo-ganztags"><div></div>' + isos.map(iso => '<div data-tag="' + iso + '">' +
         ganztags.filter(t => t.tag === iso).map(t => '<div class="wo-gt" data-ev="' + t.ev.id + '" data-datum="' + t.datum + '" style="background:' + farbeFuer(t.ev.wer) + '">' + escapeHtml(TL.titelMitAlter(t.ev, t.datum)) + '</div>').join('') +
-        (feiertage[iso] ? '<div class="wo-gt" style="background:#c0392b">' + escapeHtml(feiertage[iso]) + '</div>' : '') + '</div>').join('') + '</div>';
+        (feiertage[iso] ? '<div class="wo-gt" style="background:#c0392b">' + escapeHtml(feiertage[iso]) + '</div>' : '') +
+        (abfuhrAm(iso) ? '<div class="wo-abfuhr" title="' + escapeHtml(abfuhrAm(iso).text) + '">' + abfuhrAm(iso).symbole + '</div>' : '') + '</div>').join('') + '</div>';
       html += '<div class="wo-raster" style="height:' + ((bisH - vonH) * PX) + 'px"><div class="wo-stunden">' +
         Array.from({ length: bisH - vonH }, (_, i) => '<div style="height:' + PX + 'px">' + (i ? (vonH + i) + ':00' : '') + '</div>').join('') + '</div>' +
         isos.map(iso => {
@@ -1018,12 +1063,15 @@
       const von = heute();
       const bis = new Date(von.getFullYear(), von.getMonth(), von.getDate()+60);
       const treffer = alleVorkommen(toISO(von), toISO(bis));
-      if (!treffer.length) {
+      const abfuhrTage = {};
+      for (let i = 0; i <= 60; i++) { const iso = toISO(new Date(von.getFullYear(), von.getMonth(), von.getDate() + i)); const a = abfuhrAm(iso); if (a) abfuhrTage[iso] = a; }
+      if (!treffer.length && !Object.keys(abfuhrTage).length) {
         inhalt.innerHTML = `<div class="empty-state"><span class="em">📭</span>Keine anstehenden Termine.<br>Tippe auf + um einen anzulegen.</div>`;
         return;
       }
       const gruppen = {};
       treffer.forEach(t => { (gruppen[t.tag] = gruppen[t.tag] || []).push(t); });
+      Object.keys(abfuhrTage).forEach(d => { gruppen[d] = gruppen[d] || []; });
       inhalt.innerHTML = '';
       Object.keys(gruppen).sort().forEach(datum => {
         const gruppe = document.createElement('div'); gruppe.className='tag-gruppe';
@@ -1033,6 +1081,7 @@
         gruppe.appendChild(titel);
         const fe = ferienAm(datum);
         if (fe) titel.textContent += ' · 🏖️ ' + fe;
+        if (abfuhrTage[datum]) { const z = document.createElement('div'); z.className = 'abfuhr-zeile'; z.textContent = abfuhrTage[datum].symbole + ' ' + abfuhrTage[datum].text; z.addEventListener('click', abfallOeffnen); gruppe.appendChild(z); }
         gruppen[datum].forEach(t => gruppe.appendChild(terminCard(t.ev, t.datum, t)));
         inhalt.appendChild(gruppe);
       });
@@ -1155,8 +1204,11 @@
       }
       const liste = document.getElementById('tagModalListe');
       liste.innerHTML = '';
-      if (!treffer.length) {
+      const abfTag = abfuhrAm(tagISO);
+      if (abfTag) { const z = document.createElement('div'); z.className = 'abfuhr-zeile'; z.textContent = abfTag.symbole + ' Abfuhr: ' + abfTag.text; z.style.cursor = 'pointer'; z.addEventListener('click', () => { document.getElementById('modalTag').classList.remove('zeigen'); abfallOeffnen(); }); liste.appendChild(z); }
+      if (!treffer.length && !abfTag) {
         liste.innerHTML = '<p style="font-size:0.82rem;color:var(--bark);">Keine Termine an diesem Tag.</p>';
+      } else if (!treffer.length) {
       } else {
         treffer.forEach(t => liste.appendChild(terminCard(t.ev, t.datum, t)));
       }
@@ -1900,12 +1952,160 @@
       } catch (e) { aboRendern(navigator.onLine ? '⚠ ' + (e.code || e.message) : '⚠ Gerade offline.'); }
     });
 
+
+    // ============================================================
+    // 🗑️ ABFUHRKALENDER & .ics-IMPORT
+    // ============================================================
+    let haushaltSync = null, abfallVorschau = null;
+    function abfallSpeichern(cfg) {
+      try { localStorage.setItem(KEY_ABFALL, JSON.stringify(cfg)); } catch (e) { alert('Speichern fehlgeschlagen.'); return; }
+    }
+    // Einstellungen anwenden: Abfuhr-Termine neu erzeugen, Haushaltsaufgabe anpassen
+    function abfallAnwenden(cfg) {
+      abfallSpeichern(cfg);
+      events = AL.termineErzeugen(ladenAlle(), cfg, toISO(heute()));
+      speichernAlle(events); // meldet termine_events_v1 und termine_abfall
+      try {
+        const vorher = JSON.parse(localStorage.getItem('haushalt_aufgaben') || '[]');
+        const nachher = AL.haushaltAktualisieren(vorher, cfg, toISO(heute()));
+        if (JSON.stringify(vorher) !== JSON.stringify(nachher)) {
+          localStorage.setItem('haushalt_aufgaben', JSON.stringify(nachher));
+          if (haushaltSync) haushaltSync.melde();
+        }
+      } catch (e) { console.warn('Abfall → Haushalt', e); }
+      renderAktuelleAnsicht();
+    }
+    function abfallOeffnen() { abfallVorschau = null; abfallRendern(); document.getElementById('modalAbfall').classList.add('zeigen'); }
+    document.getElementById('btnAbfall').addEventListener('click', abfallOeffnen);
+    const datumKurzAbf = (iso) => new Date(iso + 'T12:00').toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'numeric' });
+    const datumLangAbf = (iso) => new Date(iso + 'T12:00').toLocaleDateString('de-DE', { day: 'numeric', month: 'numeric', year: 'numeric' });
+    function abfallRendern() {
+      const box = document.getElementById('abfallInhalt');
+      const cfg = abfallCfg();
+      const ex = s => escapeHtml(String(s == null ? '' : s));
+      if (abfallVorschau) {
+        const v = abfallVorschau;
+        if (v.abfall) {
+          const typen = Object.keys(v.typen).sort((a, b) => v.typen[b] - v.typen[a]);
+          const d = v.termine.map(x => x.d);
+          box.innerHTML = '<div class="abf-karte"><h3>📄 ' + ex(v.datei) + '</h3>' + v.termine.length + ' Abfuhrtermine vom ' + datumLangAbf(d[0]) + ' bis ' + datumLangAbf(d[d.length - 1]) + '.' +
+            (cfg.termine.length ? '<div class="abf-klein" style="margin-top:4px">Die bisherigen ' + cfg.termine.length + ' Abfuhrtermine werden dabei ersetzt.</div>' : '') + '</div>' +
+            '<div class="abf-karte"><h3>Welche Tonnen?</h3>' + typen.map(t => { const i = AL.tonneInfo(t, { namen: v.namen }); return '<label class="abf-zeile"><input type="checkbox" data-vt="' + ex(t) + '" ' + (cfg.tonnen[t] === false ? '' : 'checked') + '><span class="abf-farbe" style="background:' + i.farbe + '"></span>' + i.em + ' ' + ex(i.name) + '<span class="rechts">' + v.typen[t] + '×</span></label>'; }).join('') + '</div>' +
+            '<button class="btn-primary" id="btnAbfUebernehmen" style="margin:0 0 6px;">✓ Übernehmen</button><button class="btn-secondary" id="btnAbfAbbrechen" style="margin:0;">Abbrechen</button>';
+          document.getElementById('btnAbfUebernehmen').addEventListener('click', () => {
+            const neu = abfallCfg();
+            neu.termine = v.termine; neu.namen = Object.assign({}, neu.namen, v.namen);
+            box.querySelectorAll('[data-vt]').forEach(cb => { if (cb.checked) delete neu.tonnen[cb.dataset.vt]; else neu.tonnen[cb.dataset.vt] = false; });
+            neu.quelle = { datei: v.datei, am: new Date().toISOString(), von: localStorage.getItem('planer_geraetIdentitaet') || '', anzahl: v.termine.length };
+            abfallVorschau = null; abfallAnwenden(neu); abfallRendern();
+            showTempStatus('🗑️ ' + v.termine.length + ' Abfuhrtermine übernommen', 4);
+          });
+        } else {
+          const evs = v.events;
+          box.innerHTML = '<div class="abf-karte"><h3>📄 ' + ex(v.datei) + '</h3>Das sieht nicht nach einem Abfallkalender aus. Die Datei enthält <b>' + evs.length + ' Termine</b>' + (evs.length ? ' (z. B. „' + ex(evs[0].summary || '') + '“)' : '') + '.' +
+            '<div class="abf-feld">Eintragen für <select id="abfImportWer">' + WER_OPTIONEN.map(w => '<option value="' + ex(w.id) + '">' + ex(w.label) + '</option>').join('') + '</select></div>' +
+            '<div class="abf-klein">Termine, die schon einmal aus derselben Datei importiert wurden, werden aktualisiert statt doppelt angelegt.</div></div>' +
+            (evs.length ? '<button class="btn-primary" id="btnIcsTermine" style="margin:0 0 6px;">📥 Als normale Termine importieren</button>' : '') +
+            '<button class="btn-secondary" id="btnAbfAbbrechen" style="margin:0;">Abbrechen</button>';
+          const b = document.getElementById('btnIcsTermine');
+          if (b) b.addEventListener('click', () => icsAlsTermine(evs, document.getElementById('abfImportWer').value));
+        }
+        box.querySelector('#btnAbfAbbrechen').addEventListener('click', () => { abfallVorschau = null; abfallRendern(); });
+        return;
+      }
+      if (!cfg.termine.length) {
+        box.innerHTML = '<div class="abf-karte">Holt euch die Abfuhrtermine als <b>.ics-Datei</b> (Kalenderdatei) und importiert sie hier. Danach gibt es eine Erinnerung am Vorabend, die Tonnen erscheinen klein im Kalender und auf der Startseite steht „Morgen: Gelbe Tonne raus“.</div>' +
+          '<div class="abf-karte"><h3>So kommt ihr an die Datei</h3><ol style="padding-left:18px;font-size:0.8rem;line-height:1.5"><li>Beim Abfallbetrieb (z. B. abfallwirtschaft-pforzheim.de → Abfallkalender) Straße und Hausnummer wählen.</li><li>Export als <b>iCal / .ics</b> wählen und herunterladen – am Handy den Knopf ggf. lange drücken → „Link herunterladen“.</li><li>Hier „📥 Datei auswählen“ und die Datei aus „Downloads“ nehmen.</li></ol>' +
+          '<div class="abf-klein">Auch andere Kalenderdateien (Schule, Verein, Kita) lassen sich so als normale Termine importieren.</div></div>' +
+          '<button class="btn-primary" id="btnAbfDatei" style="margin:0;">📥 .ics-Datei auswählen</button>';
+        document.getElementById('btnAbfDatei').addEventListener('click', () => document.getElementById('abfallDatei').click());
+        return;
+      }
+      const h = toISO(heute());
+      const naechste = AL.naechste(cfg, h, 4);
+      const alleTage = Object.keys(AL.proTag(cfg)).sort();
+      const typen = [...new Set(cfg.termine.map(x => x.t))];
+      const q = cfg.quelle || {};
+      const personName = id => ((WER_OPTIONEN.find(w => w.id === id) || {}).label || '');
+      box.innerHTML =
+        '<div class="abf-karte"><h3>📅 Als Nächstes</h3>' + (naechste.length ? naechste.map(n => '<div class="abf-zeile"><b style="min-width:72px">' + datumKurzAbf(n.datum) + '</b>' + AL.symbole(n.typen, cfg) + ' ' + ex(AL.titel(n.typen, cfg)) + '</div>').join('') : '<div class="abf-klein">Keine weiteren Termine – Zeit für den Kalender fürs nächste Jahr.</div>') +
+        '<div class="abf-klein" style="margin-top:6px">' + cfg.termine.length + ' Termine' + (alleTage.length ? ' bis ' + datumLangAbf(alleTage[alleTage.length - 1]) : '') + (q.datei ? ' · aus „' + ex(q.datei) + '“' : '') + (q.am ? ', importiert am ' + new Date(q.am).toLocaleDateString('de-DE') + (q.von && personName(q.von) ? ' von ' + ex(personName(q.von)) : '') : '') + '</div></div>' +
+        '<div class="abf-karte"><h3>🗑️ Tonnen</h3>' + typen.map(t => { const i = AL.tonneInfo(t, cfg); const n = cfg.termine.filter(x => x.t === t && x.d >= h).length; return '<label class="abf-zeile"><input type="checkbox" data-t="' + ex(t) + '" ' + (AL.aktiv(cfg, t) ? 'checked' : '') + '><span class="abf-farbe" style="background:' + i.farbe + '"></span>' + i.em + ' ' + ex(i.name) + '<span class="rechts">noch ' + n + '×</span></label>'; }).join('') + '</div>' +
+        '<div class="abf-karte"><h3>🔔 Erinnerung</h3>' +
+          '<div class="abf-feld"><select id="abfErinnern"><option value="vorabend"' + (cfg.erinnern === 'vorabend' ? ' selected' : '') + '>Am Vorabend</option><option value="morgen"' + (cfg.erinnern === 'morgen' ? ' selected' : '') + '>Am Morgen der Abfuhr</option><option value="aus"' + (cfg.erinnern === 'aus' ? ' selected' : '') + '>Keine</option></select>' +
+          '<span id="abfUmBox"' + (cfg.erinnern === 'aus' ? ' style="display:none"' : '') + '>um <input type="time" id="abfUhrzeit" value="' + ex(cfg.uhrzeit || '18:00') + '"' + (cfg.erinnern === 'morgen' ? ' max="07:45"' : '') + '></span></div>' +
+          '<div class="abf-feld">Für <select id="abfWer">' + WER_OPTIONEN.map(w => '<option value="' + ex(w.id) + '"' + (w.id === cfg.wer ? ' selected' : '') + '>' + ex(w.label) + '</option>').join('') + '</select></div>' +
+          '<div class="abf-klein">Kommt als Benachrichtigung aufs Handy, wenn dort „Erinnerungen aufs Handy“ für Termine eingeschaltet ist (bei „meine Termine“ nur, wenn es für Familie oder diese Person eingetragen ist).' + (cfg.erinnern === 'morgen' ? ' Morgens geht es bis 7:45 Uhr.' : '') + '</div></div>' +
+        '<div class="abf-karte"><h3>👀 Anzeige &amp; Aufgaben</h3>' +
+          '<div class="abf-feld">Im Kalender <select id="abfKalender"><option value="klein"' + (cfg.kalender !== 'aus' ? ' selected' : '') + '>klein als Tonnen-Symbol</option><option value="aus"' + (cfg.kalender === 'aus' ? ' selected' : '') + '>ausblenden</option></select></div>' +
+          '<label class="abf-zeile" style="border:none"><input type="checkbox" id="abfHaushalt" ' + (cfg.haushalt ? 'checked' : '') + '> 🧹 Aufgabe „Tonne rausstellen“ am Vorabend im Haushalt</label>' +
+          '<div class="abf-klein">Wer zuständig ist – fest oder reihum, auch als Kinderaufgabe mit Sternen – stellst du im Haushalt bei der Aufgabe ein. Auf der Startseite steht abends „Morgen: … raus“ zum Abhaken.</div></div>' +
+        '<button class="btn-secondary" id="btnAbfDatei" style="margin:0 0 6px;">📥 Neue Datei importieren (ersetzt die Abfuhrtermine)</button>' +
+        '<button class="btn-secondary" id="btnAbfWeg" style="margin:0;color:#c0392b;">🗑️ Alle Abfuhrtermine entfernen</button>';
+      box.querySelectorAll('[data-t]').forEach(cb => cb.addEventListener('change', () => { const c = abfallCfg(); if (cb.checked) delete c.tonnen[cb.dataset.t]; else c.tonnen[cb.dataset.t] = false; abfallAnwenden(c); }));
+      document.getElementById('abfErinnern').addEventListener('change', (e) => {
+        const c = abfallCfg(); c.erinnern = e.target.value;
+        if (c.erinnern === 'morgen' && (!c.uhrzeit || c.uhrzeit > '07:45')) c.uhrzeit = '06:30';
+        if (c.erinnern === 'vorabend' && c.uhrzeit < '12:00') c.uhrzeit = '18:00';
+        abfallAnwenden(c); abfallRendern();
+      });
+      document.getElementById('abfUhrzeit').addEventListener('change', (e) => { const c = abfallCfg(); let u = e.target.value || '18:00'; if (c.erinnern === 'morgen' && u > '07:45') { u = '07:45'; showTempStatus('Morgens geht es bis 7:45 Uhr', 3); } c.uhrzeit = u; abfallAnwenden(c); abfallRendern(); });
+      document.getElementById('abfWer').addEventListener('change', (e) => { const c = abfallCfg(); c.wer = e.target.value; abfallAnwenden(c); });
+      document.getElementById('abfKalender').addEventListener('change', (e) => { const c = abfallCfg(); c.kalender = e.target.value; abfallSpeichern(c); if (window._sync) window._sync.melde(); renderAktuelleAnsicht(); });
+      document.getElementById('abfHaushalt').addEventListener('change', (e) => { const c = abfallCfg(); c.haushalt = e.target.checked; abfallAnwenden(c); showTempStatus(c.haushalt ? '🧹 Aufgabe im Haushalt angelegt' : 'Aufgabe aus dem Haushalt entfernt', 3); });
+      document.getElementById('btnAbfDatei').addEventListener('click', () => document.getElementById('abfallDatei').click());
+      document.getElementById('btnAbfWeg').addEventListener('click', () => {
+        if (!confirm('Alle Abfuhrtermine entfernen? (Die Einstellungen bleiben.)')) return;
+        const c = abfallCfg(), vorher = JSON.parse(JSON.stringify(c));
+        c.termine = []; c.haushalt = false; abfallAnwenden(c); abfallRendern();
+        showTempStatus('🗑️ Abfuhrtermine entfernt', 6, { rueckgaengig: () => { abfallAnwenden(vorher); abfallRendern(); } });
+      });
+    }
+    document.getElementById('abfallDatei').addEventListener('change', (e) => {
+      const datei = e.target.files && e.target.files[0]; e.target.value = '';
+      if (!datei) return;
+      const leser = new FileReader();
+      leser.onload = () => {
+        const text = String(leser.result || '');
+        if (!/BEGIN:VCALENDAR|BEGIN:VEVENT/i.test(text)) { alert('Das ist keine Kalenderdatei (.ics).'); return; }
+        const r = AL.abfuhrAusIcs(text);
+        if (!r.events.length) { alert('In der Datei wurden keine Termine gefunden.'); return; }
+        abfallVorschau = Object.assign({ datei: datei.name }, r);
+        abfallRendern();
+        document.getElementById('modalAbfall').classList.add('zeigen');
+      };
+      leser.onerror = () => alert('Die Datei konnte nicht gelesen werden.');
+      leser.readAsText(datei);
+    });
+    function icsHash(t) { let h = 5381; for (let i = 0; i < t.length; i++) h = (Math.imul(h, 33) + t.charCodeAt(i)) | 0; return (h >>> 0).toString(36); }
+    const FREQ = { DAILY: 'taeglich', WEEKLY: 'woechentlich', MONTHLY: 'monatlich', YEARLY: 'jaehrlich' };
+    function icsAlsTermine(evs, wer) {
+      const vorher = JSON.parse(JSON.stringify(events));
+      let neu = 0, aktualisiert = 0;
+      evs.forEach(x => {
+        const id = 't_ics_' + icsHash(x.uid || (x.summary + '|' + x.datum));
+        const ganz = !!x.allDay;
+        let endDate = '';
+        if (x.endDatum && x.endDatum > x.datum) { const e = ganz ? AL.plusTage(x.endDatum, -1) : x.endDatum; if (e > x.datum) endDate = e; }
+        const r = x.rrule && FREQ[x.rrule.FREQ] ? { freq: FREQ[x.rrule.FREQ], interval: Math.max(1, Number(x.rrule.INTERVAL) || 1), until: x.rrule.UNTIL ? ((AL.datumAus(x.rrule.UNTIL) || {}).datum || null) : null } : { freq: 'keine' };
+        const ev = { id, title: x.summary || 'Termin', date: x.datum, allDay: ganz, startTime: ganz ? '' : (x.zeit || ''), endTime: ganz ? '' : (x.endDatum === x.datum ? (x.endZeit || '') : ''), wer, location: x.location || '', notes: x.description || '', erinnerung: 0, recurrence: r };
+        if (endDate) ev.endDate = endDate;
+        if (x.exdates && x.exdates.length) ev.exdates = x.exdates;
+        const i = events.findIndex(e => e.id === id);
+        if (i !== -1) { events[i] = Object.assign({}, events[i], ev); aktualisiert++; } else { events.push(ev); neu++; }
+      });
+      speichernAlle(events); renderAktuelleAnsicht();
+      abfallVorschau = null; document.getElementById('modalAbfall').classList.remove('zeigen');
+      showTempStatus('📥 ' + neu + ' Termine importiert' + (aktualisiert ? ', ' + aktualisiert + ' aktualisiert' : ''), 6, { rueckgaengig: () => { events = vorher; speichernAlle(events); renderAktuelleAnsicht(); } });
+    }
+
     if (window.PlanerSync) {
       window._sync = window.PlanerSync.starteSync({
         modul: 'termine',
-        keys: [STORAGE_KEY],
-        onRemoteChange: function () { events = ladenAlle(); renderFilter(); renderAktuelleAnsicht(); },
+        keys: [STORAGE_KEY, KEY_ABFALL],
+        onRemoteChange: function () { events = ladenAlle(); renderFilter(); renderAktuelleAnsicht(); if (document.getElementById('modalAbfall').classList.contains('zeigen') && !abfallVorschau) abfallRendern(); },
       });
+      haushaltSync = window.PlanerSync.starteSync({ modul: 'haushalt', keys: ['haushalt_aufgaben'] });
     }
   })();
   </script>

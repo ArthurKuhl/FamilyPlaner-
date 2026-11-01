@@ -40,6 +40,7 @@
   L.planTagPasst = function (a, iso) {
     if (a.turnus === 'taeglich') return true;
     if (a.turnus === 'woechentlich') return (a.wochentage || []).includes(L.ausIso(iso).getDay());
+    if (a.turnus === 'termine') return (a.daten || []).includes(iso); // feste Tage, z. B. Vorabende der Müllabfuhr
     return false;
   };
 
@@ -69,6 +70,12 @@
       }
       if (erster) { erg.offen = true; if (erster < heute) erg.ueberfaelligSeit = erster; erg.naechstesAm = erster; return erg; }
       for (let i = 1; i <= 7; i++) { const d = L.plusTage(heute, i); if (L.planTagPasst(a, d)) { erg.naechstesAm = d; break; } }
+      return erg;
+    }
+    if (a.turnus === 'termine') {
+      const daten = (a.daten || []).slice().sort();
+      erg.offen = daten.includes(heute) && letzte !== heute;
+      erg.naechstesAm = erg.offen ? heute : (daten.find(d => d > heute) || null);
       return erg;
     }
     if (a.turnus === 'intervall') {
@@ -137,6 +144,7 @@
       return n === 1 ? 'Jeden Tag' : 'Alle ' + n + ' Tage';
     }
     if (a.turnus === 'monatlich') return 'Monatlich';
+    if (a.turnus === 'termine') return 'Nach Abfuhrkalender';
     return 'Einmalig';
   };
 

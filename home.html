@@ -296,6 +296,7 @@
 <script src="haushaltlogik.js"></script>
 <script src="terminlogik.js"></script>
 <script src="notfalllogik.js"></script>
+<script src="abfalllogik.js"></script>
 </head>
 <body>
 
@@ -774,7 +775,7 @@
   function vorkommenHeute(ev, heuteISO) {
     // Datum als lokalen Tag lesen – new Date('JJJJ-MM-TT') wäre UTC-Mitternacht und läge in
     // Deutschland bei 01:00/02:00 Uhr, wodurch heutige Termine nie als „heute“ erkannt wurden
-    if (!ev.date) return false;
+    if (!ev.date || ev.abfuhr) return false; // 🗑️ Abfuhr steht separat in der Heute-Zeile
     if (window.TerminLogik) return window.TerminLogik.amTag(ev, heuteISO);
     let d = ausISO(String(ev.date).slice(0, 10));
     const bisWiederholung = ev.recurrence && ev.recurrence.until ? ausISO(String(ev.recurrence.until).slice(0, 10)) : null;
@@ -994,6 +995,23 @@
         chips.push({ text: '🎂 ' + name + (tage === 0 ? ' heute!' : tage === 1 ? ' morgen' : ' in ' + tage + ' Tagen'), ziel: 'termine', wichtig: tage <= 1 });
       });
     }
+    // 🗑️ Abfuhr: abends „Morgen: … raus“, morgens bis 10 Uhr „Heute: …“ – antippen = steht draußen
+    if (sichtbar('termine') && window.AbfallLogik) {
+      try {
+        const AL = window.AbfallLogik, cfg = AL.standard(lies('termine_abfall', null));
+        const an = AL.anstehend(cfg);
+        if (an) {
+          const r = an.rausTypen.length ? an.rausTypen : an.typen;
+          const h = sichtbar('haushalt') ? lies('haushalt_aufgaben', []).find(a => a && a.id === 'h_abfall') : null;
+          const hErl = h && (h.erledigt || []).slice().reverse().find(e => window.HaushaltLogik && window.HaushaltLogik.tag(e.datum) === an.vorabend);
+          const raus = an.raus || (hErl ? { von: hErl.von } : null);
+          const pname = id => ((window.PLANER_PERSONEN || []).find(p => p.id === id) || { label: '' }).label;
+          if (!an.rausTypen.length) chips.push({ text: AL.symbole(an.typen, cfg) + ' ' + (an.wann === 'morgen' ? 'Morgen' : 'Heute') + ': ' + AL.titel(an.typen, cfg), ziel: 'termine' });
+          else if (raus) chips.push({ text: '✓ ' + AL.symbole(r, cfg) + ' steht draußen' + (pname(raus.von) ? ' (' + pname(raus.von) + ')' : ''), aktion: 'abfall', an });
+          else chips.push({ text: AL.symbole(r, cfg) + ' ' + (an.wann === 'morgen' ? 'Morgen' : 'Heute') + ': ' + AL.titel(r, cfg) + ' raus', aktion: 'abfall', an, wichtig: true });
+        }
+      } catch (e) { console.warn('Übersicht: Abfuhr', e); }
+    }
     if (sichtbar('nachrichten')) {
       const dwd = lies('nachrichten_dwdCache', null);
       if (dwd && Date.now() - dwd.zeit < 3 * 3600e3 && (dwd.warnungen || []).length) {
@@ -1029,7 +1047,28 @@
       if (bald.length) chips.push({ text: '⏳ ' + bald[0].name + (bald.length > 1 ? ' +' + (bald.length - 1) : '') + ' läuft ab', ziel: 'vorratskammer', wichtig: true });
     }
     box.innerHTML = chips.map((c, i) => '<button type="button" class="heute-chip' + (c.wichtig ? ' wichtig' : '') + '" data-i="' + i + '">' + escapeHtml(c.text) + '</button>').join('');
-    box.querySelectorAll('[data-i]').forEach(b => b.addEventListener('click', () => { const c = chips[+b.dataset.i]; if (c.ziel) navigiere(c.ziel); }));
+    box.querySelectorAll('[data-i]').forEach(b => b.addEventListener('click', () => { const c = chips[+b.dataset.i]; if (c.aktion === 'abfall') { abfallRausUmschalten(c.an); return; } if (c.ziel) navigiere(c.ziel); }));
+  }
+  // „Steht draußen“ abhaken – über die Haushaltsaufgabe (falls angelegt), sonst direkt im Abfuhrkalender
+  let abfallSync = null;
+  function abfallRausUmschalten(an) {
+    const cfg = window.AbfallLogik.standard(laden('termine_abfall', null));
+    const h = modulSichtbar('haushalt') ? laden('haushalt_aufgaben', []).find(a => a && a.id === 'h_abfall') : null;
+    if (h && !cfg.raus[an.datum] && (h.daten || []).includes(an.vorabend) && an.vorabend === toISODatum(heute())) {
+      if (!(window.HaushaltLogik && window.HaushaltLogik.heuteErledigt(h))) { haushaltAbhaken('h_abfall'); return; }
+    }
+    if (cfg.raus[an.datum]) {
+      if (!confirm('Doch noch nicht draußen?')) return;
+      delete cfg.raus[an.datum];
+    } else {
+      cfg.raus[an.datum] = { von: ichBin() || '', zeit: new Date().toISOString() };
+      // Alte Einträge aufräumen
+      Object.keys(cfg.raus).forEach(d => { if (d < toISODatum(new Date(Date.now() - 14 * 864e5))) delete cfg.raus[d]; });
+    }
+    try { localStorage.setItem('termine_abfall', JSON.stringify(cfg)); } catch (e) { return; }
+    if (abfallSync) abfallSync.melde();
+    renderHeuteZeile();
+    if (cfg.raus[an.datum]) showTempStatus('✓ Steht draußen – danke!', 3);
   }
 
 
@@ -2196,6 +2235,7 @@
       ['finanzen', 'finanzen', ['finanzen_ausgaben', 'finanzen_abos', 'finanzen_einstellungen']], ['fahrzeuge', 'fahrzeuge', ['fahrzeuge_liste', 'fahrzeuge_werkstatt']],
       ['kinder', 'kinder', ['kinder_einstellungen', 'kinder_sterne', 'kinder_wuensche']], ['gaming', 'gaming', ['gaming_sessions', 'gaming_limits']], ['handwerk', 'handwerk', ['handwerk_wartung']], ['medien', 'medien', ['medien_eintraege']], ['nachrichten', 'nachrichten', ['nachrichten_tipps', 'nachrichten_themen']], ['notizblock', 'notizblock', ['notizblock_liste']], ['wunschliste', 'termine', ['termine_wunschliste']], ['notfall', 'notfall', ['notfall_einstellungen']], ['feste', 'feste', ['feste_liste']],
     ];
+    if (modulSichtbar('termine')) try { abfallSync = window.PlanerSync.starteSync({ modul: 'termine', keys: ['termine_abfall'], onRemoteChange: liveNeuZeichnen }); } catch (e) {}
     LIVE.forEach(([name, modul, keys]) => {
       if (!modulSichtbar(name)) return;
       try { liveSync[name] = window.PlanerSync.starteSync({ modul, keys, onRemoteChange: liveNeuZeichnen }); } catch (e) { console.warn('Übersicht: Live-Sync', name, e); }
