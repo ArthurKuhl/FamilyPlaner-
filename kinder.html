@@ -151,6 +151,16 @@
   .plan-zeile b { font-size: 0.85rem; }
   .plan-zeile input, .mb-zeile input { width: 100%; }
   .mb-zeile { display: grid; grid-template-columns: 1fr 1fr 30px; gap: 5px; margin-bottom: 5px; }
+  /* 👶 Kleinkind-Modus: große Bilder, Vorlesen */
+  .sag { border: none; background: rgba(127,127,127,0.14); border-radius: 50%; width: 38px; height: 38px; font-size: 1.15rem; cursor: pointer; flex-shrink: 0; }
+  .kleinkind .r-punkt { padding: 12px 6px; }
+  .kleinkind .r-punkt .r-icon { font-size: 2.8rem; }
+  .kleinkind .aufgabe { padding: 14px 12px; }
+  .kleinkind .aufgabe .a-icon { font-size: 2.6rem; line-height: 1; }
+  .kleinkind .aufgabe .a-titel { font-size: 0.95rem; }
+  .stern-bilder { font-size: 1.7rem; line-height: 1.25; letter-spacing: 2px; word-break: break-all; margin: 4px 0 6px; }
+  .stern-bilder .leer { opacity: 0.25; filter: grayscale(1); }
+  .kleinkind .tuer { font-size: 1.25rem; }
   .konfetti { position: fixed; top: -20px; font-size: 1.6rem; z-index: 9999; pointer-events: none; animation: fallen 1.8s ease-in forwards; }
   @keyframes fallen { to { transform: translateY(105vh) rotate(540deg); opacity: 0.2; } }
 </style>
@@ -213,6 +223,7 @@
     <div style="display:flex;justify-content:space-between;align-items:center;"><strong style="font-size:1.05rem;">⚙️ Für Eltern</strong><button class="knopf-klein" id="btnEinstZu">Fertig</button></div>
     <h3>Wer sind die Kinder?</h3>
     <div id="einstKinder"></div>
+    <label class="check"><input type="checkbox" id="einstKleinkind"> 👶 Kleinkind-Modus (bis ca. 6 Jahre): große Bilder, 🔊 Vorlesen, Sterne zum Zählen, Advent-Ideen ohne Kleinteile</label>
     <h3>🎁 Belohnungen</h3>
     <p class="klein" style="margin-bottom:8px;">Für jede erledigte Haushaltsaufgabe gibt es Sterne (wie viele, legt ihr im 🧹 Haushalt pro Aufgabe fest). Mit Eltern-PIN wünschen sich die Kinder eine Belohnung, und ihr bestätigt sie.</p>
     <div id="einstBelohnungen"></div>
@@ -300,11 +311,22 @@
     return laden('planer_personenListe', []);
   }
   function person(id) { return personen().find(p => p.id === id) || { id, label: id, farbe: '#7d6339' }; }
+  // 👶 Kleinkind-Modus: automatisch an, wenn ein Kind laut Geburtstag in Termine höchstens 6 Jahre alt ist
+  function kleinkindVermutet(e) {
+    try {
+      const evs = laden('termine_events_v1', []);
+      return (e.kinder || []).some(id => {
+        const p = person(id), n = String(p.label || '').toLowerCase();
+        const ev = n && evs.find(x => x && x.geburtsjahr && /geburtstag|🎂/i.test(x.title || '') && (x.wer === id || String(x.title || '').toLowerCase().includes(n)));
+        return ev && new Date().getFullYear() - Number(ev.geburtsjahr) <= 6;
+      });
+    } catch (err) { return false; }
+  }
   function einstellungen() {
     const e = laden(KEY_EINST, {});
     const u = e.umrechnung || {};
     return { umrechnung: { aktiv: !!u.aktiv, sterne: Math.max(1, parseInt(u.sterne, 10) || 10), betrag: Math.max(0.01, Number(u.betrag) || 1) },
-      pinHash: e.pinHash || '', avatare: e.avatare || {}, routinen: e.routinen || {},
+      pinHash: e.pinHash || '', avatare: e.avatare || {}, routinen: e.routinen || {}, kleinkind: e.kleinkind === undefined ? kleinkindVermutet(e) : !!e.kleinkind,
       wochenziel: { sterne: Math.max(0, parseInt((e.wochenziel || {}).sterne, 10) || 0), bonus: Math.max(0, parseInt((e.wochenziel || {}).bonus, 10) || 0) },
       kinder: Array.isArray(e.kinder) ? e.kinder : [], belohnungen: Array.isArray(e.belohnungen) ? e.belohnungen : [
       { id: 'b1', text: 'Eis essen 🍦', sterne: 10 }, { id: 'b2', text: '30 Min. länger aufbleiben 🌙', sterne: 15 }, { id: 'b3', text: 'Ausflug aussuchen 🧭', sterne: 30 }] };
@@ -598,8 +620,25 @@
     }
   }
 
+  // 🔊 Vorlesen (Sprachausgabe des Geräts, deutsch)
+  const kannSprechen = typeof window.speechSynthesis !== 'undefined' && typeof window.SpeechSynthesisUtterance !== 'undefined';
+  function sag(text) {
+    if (!kannSprechen) return;
+    try {
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(String(text || '').replace(/\p{Extended_Pictographic}|\uFE0F|\u200D/gu, '').replace(/\s+/g, ' ').trim());
+      u.lang = 'de-DE'; u.rate = 0.9; u.pitch = 1.1;
+      const stimme = window.speechSynthesis.getVoices().find(v => /^de/i.test(v.lang));
+      if (stimme) u.voice = stimme;
+      window.speechSynthesis.speak(u);
+    } catch (err) {}
+  }
+  function sagKnopf(text) { return kannSprechen && einstellungen().kleinkind ? '<button type="button" class="sag" data-sag="' + esc(text) + '" aria-label="Vorlesen">🔊</button>' : ''; }
+  document.addEventListener('click', (ev) => { const b = ev.target.closest('[data-sag]'); if (!b) return; ev.preventDefault(); ev.stopPropagation(); sag(b.dataset.sag); }, true);
+
   function renderAlles() {
     const e = einstellungen();
+    document.getElementById('inhalt').classList.toggle('kleinkind', !!e.kleinkind);
     const kinder = e.kinder.map(person);
     const reihe = document.getElementById('kindReihe');
     const box = document.getElementById('inhalt');
@@ -633,9 +672,10 @@
     const stunde = new Date().getHours();
     const gruss = stunde < 11 ? 'Guten Morgen' : stunde < 18 ? 'Hallo' : 'Guten Abend';
 
-    let html = '<div class="karte"><div class="gruss-zeile">' + (avatar(kind) ? '<span class="avatar-gross">' + avatar(kind) + '</span>' : '') + '<div><div class="gruss">' + gruss + ', ' + esc(kind.label) + '! 👋</div><div class="gruss-sub">' +
+    const grussSag = gruss + ', ' + kind.label + '! ' + ((offen.length + beeteOffen.length) ? 'Heute ' + ((offen.length + beeteOffen.length) === 1 ? 'wartet eine Aufgabe' : 'warten ' + (offen.length + beeteOffen.length) + ' Aufgaben') + ' auf dich.' : (fertig.length ? 'Alles erledigt, super gemacht!' : 'Heute hast du frei.'));
+    let html = '<div class="karte"><div class="gruss-zeile">' + (avatar(kind) ? '<span class="avatar-gross">' + avatar(kind) + '</span>' : '') + '<div style="flex:1"><div class="gruss">' + gruss + ', ' + esc(kind.label) + '! 👋</div><div class="gruss-sub">' +
       ((offen.length + beeteOffen.length) ? 'Heute ' + ((offen.length + beeteOffen.length) === 1 ? 'wartet 1 Aufgabe' : 'warten ' + (offen.length + beeteOffen.length) + ' Aufgaben') + ' auf dich.' : (fertig.length ? 'Alles erledigt – super gemacht! 🎉' : 'Heute hast du frei. 😊')) +
-      (geb !== null ? (geb === 0 ? ' 🎂 Heute ist dein Geburtstag – alles Gute!' : ' 🎂 Noch ' + geb + (geb === 1 ? ' Tag' : ' Tage') + ' bis zu deinem Geburtstag.') : '') + '</div></div></div></div>';
+      (geb !== null ? (geb === 0 ? ' 🎂 Heute ist dein Geburtstag – alles Gute!' : ' 🎂 Noch ' + geb + (geb === 1 ? ' Tag' : ' Tage') + ' bis zu deinem Geburtstag.') : '') + '</div></div>' + sagKnopf(grussSag) + '</div></div>';
 
     html += adventKarteHtml(kind);
 
@@ -648,7 +688,7 @@
       html += '<div class="karte"><h2>☀️ Meine Routinen</h2>' + sortiert.map(r => {
         const erl = stand.erledigt[r.id] || [];
         const fertig = r.punkte.every(p => erl.includes(p.id));
-        return '<div class="routine"><div class="routine-kopf"><span>' + esc(r.icon || '📋') + ' ' + esc(r.name) + '</span><span class="klein">' + (fertig ? '🎉 geschafft' + (r.sterne ? ' · +' + r.sterne + ' ⭐' : '') : erl.filter(id => r.punkte.some(p => p.id === id)).length + ' von ' + r.punkte.length) + '</span></div>' +
+        return '<div class="routine"><div class="routine-kopf"><span>' + esc(r.icon || '📋') + ' ' + esc(r.name) + ' ' + sagKnopf(r.name + ': ' + r.punkte.filter(p => !erl.includes(p.id)).map(p => p.text).join(', ') + (fertig ? ' Alles geschafft!' : '')) + '</span><span class="klein">' + (fertig ? '🎉 geschafft' + (r.sterne ? ' · +' + r.sterne + ' ⭐' : '') : erl.filter(id => r.punkte.some(p => p.id === id)).length + ' von ' + r.punkte.length) + '</span></div>' +
           '<div class="routine-punkte">' + r.punkte.map(p => '<button type="button" class="r-punkt' + (erl.includes(p.id) ? ' fertig' : '') + '" data-routine="' + esc(r.id) + '" data-punkt="' + esc(p.id) + '"><span class="r-icon">' + esc(p.icon || '✔️') + '</span>' + esc(p.text) + '</button>').join('') + '</div></div>';
       }).join('') + '</div>';
     }
@@ -670,7 +710,7 @@
     // Aufgaben
     html += '<div class="karte"><h2>✅ Meine Aufgaben heute</h2>';
     if (!offen.length && !fertig.length) html += '<p class="klein">Keine Aufgaben für heute. Eltern können im 🧹 Haushalt Aufgaben für dich anlegen.</p>';
-    offen.forEach(a => { html += '<div class="aufgabe"><span class="a-titel">' + esc(a.titel) + '</span><button class="knopf-gross gold" data-erledigt="' + esc(a.id) + '">Erledigt! ' + (() => { const n = parseInt(a.sterne, 10); const z = isNaN(n) ? 1 : Math.max(0, n); return z === 0 ? '✓' : (z > 1 ? '+' + z + ' ' : '') + '⭐'; })() + '</button></div>'; });
+    offen.forEach(a => { html += '<div class="aufgabe">' + (e.kleinkind ? '<span class="a-icon">' + esc(a.icon || '✅') + '</span>' : '') + '<span class="a-titel">' + esc(a.titel) + '</span>' + sagKnopf(a.titel) + '<button class="knopf-gross gold" data-erledigt="' + esc(a.id) + '">Erledigt! ' + (() => { const n = parseInt(a.sterne, 10); const z = isNaN(n) ? 1 : Math.max(0, n); return z === 0 ? '✓' : (z > 1 ? '+' + z + ' ' : '') + '⭐'; })() + '</button></div>'; });
     fertig.forEach(a => { html += '<div class="aufgabe fertig"><span class="a-titel">' + esc(a.titel) + '</span><span>✅</span></div>'; });
     html += '</div>';
     // Garten-Beete
@@ -688,7 +728,8 @@
     // Sterne
     html += '<div class="karte"><h2>⭐ Meine Sterne <button class="knopf-klein" id="btnBonus" title="Für Eltern: einen Bonus-Stern vergeben">+⭐ Bonus</button></h2>' +
       '<div class="sterne-zeile"><span class="sterne-zahl">' + sterne + '</span><span>' + (ziel ? 'Noch <b>' + (ziel.sterne - sterne) + ' ⭐</b> bis:<br><b>' + esc(ziel.text) + '</b>' : (belohnungen.length ? 'Du kannst dir eine Belohnung aussuchen! 🎁' : '')) + '</span></div>';
-    if (ziel) html += '<div class="balken"><span style="width:' + Math.min(100, Math.round(sterne / ziel.sterne * 100)) + '%"></span></div>';
+    if (ziel && e.kleinkind && ziel.sterne <= 40) html += '<div class="stern-bilder" aria-hidden="true">' + '⭐'.repeat(Math.min(sterne, ziel.sterne)) + '<span class="leer">' + '⭐'.repeat(Math.max(0, ziel.sterne - sterne)) + '</span></div>' + sagKnopf('Du hast ' + sterne + (sterne === 1 ? ' Stern' : ' Sterne') + '. Noch ' + (ziel.sterne - sterne) + ' Sterne bis: ' + ziel.text);
+    else if (ziel) html += '<div class="balken"><span style="width:' + Math.min(100, Math.round(sterne / ziel.sterne * 100)) + '%"></span></div>';
     const woche = wochenSterne(kind.id);
     const wz = e.wochenziel;
     html += '<p class="klein" style="margin-top:8px;">📅 Diese Woche: <b>' + woche + ' ⭐</b>' + (wz.sterne && wz.bonus ? ' · 🎯 Ziel ' + wz.sterne + ' ⭐ = +' + wz.bonus + ' ⭐ extra' : '') + '</p>';
@@ -908,6 +949,7 @@
       e2.kinder = Array.from(document.querySelectorAll('#einstKinder input')).filter(i => i.checked).map(i => i.value);
       einstSpeichern(e2); renderAlles();
     }));
+    document.getElementById('einstKleinkind').checked = !!e.kleinkind;
     document.getElementById('einstBelohnungen').innerHTML = e.belohnungen.map(b =>
       '<div class="belohnung"><span class="b-text">' + esc(b.text) + '</span><span class="klein">' + b.sterne + ' ⭐</span><button class="knopf-klein" data-weg="' + esc(b.id) + '">🗑</button></div>').join('');
     document.querySelectorAll('[data-weg]').forEach(btn => btn.addEventListener('click', () => {
@@ -1004,6 +1046,7 @@
       betrag: Math.max(0.01, parseFloat(String(document.getElementById('umrBetrag').value).replace(',', '.')) || 1) };
     einstSpeichern(e); renderAlles();
   }));
+  document.getElementById('einstKleinkind').addEventListener('change', (ev) => { const e2 = einstellungen(); e2.kleinkind = ev.target.checked; einstSpeichern(e2); renderAlles(); });
   document.getElementById('btnEinstellungen').addEventListener('click', () => mitPin(einstOeffnen, 'Einstellungen nur für Eltern – bitte PIN eingeben.'));
   document.getElementById('btnEinstZu').addEventListener('click', () => document.getElementById('modalEinst').classList.remove('zeigen'));
   document.getElementById('modalEinst').addEventListener('click', (ev) => { if (ev.target.id === 'modalEinst') ev.currentTarget.classList.remove('zeigen'); });
@@ -1023,6 +1066,11 @@
     geschenk: ['🍫 Schokotaler', '🚗 Kleines Spielzeugauto', '✨ Sticker', '🎀 Haarspange', '🟢 Knete', '🧩 Mini-Puzzle', '🫧 Seifenblasen', '✏️ Glitzerstift', '🔦 Kleine Taschenlampe', '⭐ Leuchtsterne für die Decke', '📖 Mini-Buch', '🔴 Flummi', '🍪 Lebkuchen', '🛁 Badekugel', '🧦 Kuschelsocken'],
     aktion: ['🍪 Heute backen wir Plätzchen!', '🍿 Weihnachtsfilm mit Popcorn', '⛸️ Schlittschuhlaufen', '🎡 Ausflug auf den Weihnachtsmarkt', '🎄 Wir suchen zusammen den Tannenbaum aus', '✉️ Wunschzettel schreiben', '🏠 Lebkuchenhaus bauen', '🔦 Laternen-Spaziergang im Dunkeln', '🍎 Bratäpfel machen', '💌 Weihnachtskarten für Oma & Opa basteln', '☕ Kakao-Abend mit Vorlesen', '⛄ Schneemann bauen (oder Papier-Schneemann)', '🖼️ Fensterbilder malen', '🎲 Spieleabend – du suchst das Spiel aus', '🏕️ Höhle im Wohnzimmer bauen', '⭐ Strohsterne basteln'],
     aufgabe: ['🤝 Bring einem Nachbarn ein Plätzchen', '🎁 Such ein Spielzeug für Kinder aus, die nicht so viel haben', '👩‍🍳 Hilf heute beim Kochen', '📜 Lerne ein kleines Weihnachtsgedicht', '💛 Sag jedem in der Familie etwas Nettes', '🐦 Häng Vogelfutter für die Vögel auf'],
+  };
+  const ADVENT_IDEEN_KLEIN = {
+    geschenk: ['🎨 Fingerfarben', '✨ Große Sticker', '🧸 Kleines Kuscheltier', '📖 Pappbilderbuch', '🖍️ Dicke Wachsmalstifte', '🫧 Seifenblasen', '🧦 Kuschelsocken', '🍪 Lebkuchen', '🛁 Badespielzeug', '🦖 Große Spielfigur', '🧩 Holzpuzzle mit großen Teilen', '🌟 Stern-Nachtlicht', '🍫 Kleiner Schoko-Weihnachtsmann'],
+    aktion: ['🍪 Plätzchen ausstechen', '🎄 Tannenbaum schmücken helfen', '🔦 Laternen-Spaziergang im Dunkeln', '🦌 Tiere im Wildpark besuchen', '📚 Weihnachtsbuch vorlesen', '🎶 Weihnachtslieder singen und tanzen', '🖐️ Handabdruck-Bild für Oma & Opa', '🏕️ Kuschelhöhle bauen', '⛄ Watte-Schneemann basteln (oder echten bauen)', '🍿 Kinderfilm mit Popcorn', '🎠 Karussell fahren auf dem Weihnachtsmarkt', '☕ Kinderpunsch trinken', '⭐ Sterne aus Papier kleben', '🛁 Schaumbad mit Glitzer'],
+    aufgabe: ['🧸 Spielzeug aufräumen – wer ist schneller?', '🥕 Beim Kochen helfen: Gemüse waschen', '🐦 Vogelfutter verteilen', '💛 Jemanden ganz fest drücken'],
   };
   const ADVENT_FEST = { 5: { em: '👢', text: 'Heute Abend Stiefel putzen und rausstellen – morgen kommt der Nikolaus!', typ: 'aktion' }, 6: { em: '🎅', text: 'Der Nikolaus war da! Schau in deinen Stiefel.', typ: 'geschenk' }, 24: { em: '🎄', text: 'Heute ist Heiligabend – frohe Weihnachten!', typ: 'aktion' } };
   function adventJahr() { return String(new Date().getFullYear()); }
@@ -1066,6 +1114,7 @@
     const typText = { geschenk: 'Für dich:', aktion: 'Heute machen wir zusammen:', aufgabe: 'Deine kleine Aufgabe:' };
     document.getElementById('tuerInhalt').innerHTML = '<div class="tuer-gross"><span class="em">' + esc(x ? x.em || '🎁' : '🎄') + '</span><p class="klein">Türchen ' + n + (x && x.typ ? ' · ' + esc(typText[x.typ] || '') : '') + '</p><b>' + esc(x ? x.text : 'Heute ist dieses Türchen leer – frag mal Mama oder Papa! 😉') + '</b></div>';
     document.getElementById('modalTuer').classList.add('zeigen');
+    if (einstellungen().kleinkind) { sag('Türchen ' + n + '. ' + (x ? x.text : 'Heute ist es leer.')); document.getElementById('tuerInhalt').insertAdjacentHTML('beforeend', '<div style="text-align:center">' + sagKnopf('Türchen ' + n + '. ' + (x ? x.text : '')) + '</div>'); }
     if (neu) renderAlles();
   }
   document.getElementById('btnTuerZu').addEventListener('click', () => document.getElementById('modalTuer').classList.remove('zeigen'));
@@ -1098,7 +1147,8 @@
     const { alle, jahr } = adventDaten();
     const m = (jahr.inhalte[adventKind] = jahr.inhalte[adventKind] || {});
     const genutzt = new Set(Object.values(m).map(x => x && x.text));
-    const pool = { geschenk: ADVENT_IDEEN.geschenk.slice(), aktion: ADVENT_IDEEN.aktion.slice(), aufgabe: ADVENT_IDEEN.aufgabe.slice() };
+    const quelle = einstellungen().kleinkind ? ADVENT_IDEEN_KLEIN : ADVENT_IDEEN;
+    const pool = { geschenk: quelle.geschenk.slice(), aktion: quelle.aktion.slice(), aufgabe: quelle.aufgabe.slice() };
     const ziehe = (typ) => { const l = pool[typ].filter(t => !genutzt.has(emSplit(t).text)); if (!l.length) return null; const t = l[Math.floor(Math.random() * l.length)]; genutzt.add(emSplit(t).text); return Object.assign(emSplit(t), { typ }); };
     let n0 = 0;
     for (let n = 1; n <= 24; n++) {

@@ -2,6 +2,9 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
+## 2026-11-02 | 👶 Kinderecke für die Kleinen
+Neuer Kleinkind-Modus in der Kinderecke (⚙️ → „Kleinkind-Modus“). Er schaltet sich automatisch ein, wenn ein Kind laut Geburtstag in Termine höchstens 6 Jahre alt ist. 🔊 liest Begrüßung, Aufgaben, Routinen und Sterne laut vor, und die Adventstürchen werden beim Öffnen direkt vorgelesen. Aufgaben und Routinen zeigen große Bilder, und die Sterne sind zum Zählen als ⭐⭐⭐ zu sehen. Die Advent-Ideen sind dann für 3–6 Jahre ohne Kleinteile, z. B. Fingerfarben, Plätzchen ausstechen, Laternen-Spaziergang oder Handabdruck für Oma & Opa.
+
 ## 2026-11-02 | 🎄 Adventskalender, 👶 Betreuungsplan, 🎒 Schule, 📊 Zähler & 🧳 Urlaub
 🎄 **Adventskalender** in der Kinderecke: Unter ⚙️ (Eltern-PIN) befüllt ihr 24 Türchen pro Kind mit einer Kleinigkeit 🎁, einer gemeinsamen Aktion 🎈 oder einer kleinen Aufgabe ✍️. „✨ Mit Ideen füllen“ macht Vorschläge (Nikolaus am 6. und Heiligabend inklusive), „👫 Auf alle Kinder übertragen“ übernimmt den Kalender für die anderen Kinder, und 🛒 setzt die Kleinigkeiten auf die Einkaufsliste. Die Kinder öffnen ab dem 1. Dezember jeden Tag ihr Türchen, vorher bleibt alles verschlossen.
 🎒 **Schule** in der Kinderecke: Stundenplan pro Kind und Regeln wie „Sport → Turnbeutel“. Ab dem Nachmittag steht dort und auf der Startseite, was am nächsten Schultag ansteht, z. B. „🎒 Lev morgen: Turnbeutel, 1 Hausaufgabe“. Ferien und Feiertage werden übersprungen. Hausaufgaben und Elternbriefe lassen sich eintragen und abhaken.
