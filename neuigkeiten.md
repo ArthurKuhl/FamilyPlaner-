@@ -2,6 +2,13 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
+## 2026-11-02 | 🎄 Adventskalender, 👶 Betreuungsplan, 🎒 Schule, 📊 Zähler & 🧳 Urlaub
+🎄 **Adventskalender** in der Kinderecke: Unter ⚙️ (Eltern-PIN) befüllt ihr 24 Türchen pro Kind mit einer Kleinigkeit 🎁, einer gemeinsamen Aktion 🎈 oder einer kleinen Aufgabe ✍️. „✨ Mit Ideen füllen“ macht Vorschläge (Nikolaus am 6. und Heiligabend inklusive), „👫 Auf alle Kinder übertragen“ übernimmt den Kalender für die anderen Kinder, und 🛒 setzt die Kleinigkeiten auf die Einkaufsliste. Die Kinder öffnen ab dem 1. Dezember jeden Tag ihr Türchen, vorher bleibt alles verschlossen.
+🎒 **Schule** in der Kinderecke: Stundenplan pro Kind und Regeln wie „Sport → Turnbeutel“. Ab dem Nachmittag steht dort und auf der Startseite, was am nächsten Schultag ansteht, z. B. „🎒 Lev morgen: Turnbeutel, 1 Hausaufgabe“. Ferien und Feiertage werden übersprungen. Hausaufgaben und Elternbriefe lassen sich eintragen und abhaken.
+👶 **Betreuungsplan** in Termine (👶 oben): Alle Kita-Schließtage, Brückentage und auf Wunsch die Schulferien ohne Wochenenden und Feiertage. Pro Tag wählt ihr, wer betreut (auch Oma, Opa, Urlaubstag). Tage, an denen ein Kind krank ist, kommen dazu. Fehlt in den nächsten 3 Wochen noch die Betreuung, steht es auf der Startseite. Unten zeigt eine Übersicht, wer im Jahr wie viele Tage übernommen hat.
+📊 **Neues Modul Zähler**: Strom, Gas, Wasser und mehr monatlich ablesen, auf Wunsch mit Foto als Beleg. Angezeigt werden der Verbrauch pro Tag und pro Monat, ein Balkendiagramm mit Vorjahresvergleich und eine Prognose, ob Nachzahlung oder Guthaben droht. Mit 🔔 gibt es jeden 1. im Monat eine Erinnerung in Termine.
+🧳 **Urlaubsmodus** auf der Startseite: Zeitraum eintragen, dann ruhen Haushaltsaufgaben und Tonnen-Erinnerungen. Der Infozettel für die Nachbarn (Tonnen-Termine im Zeitraum, Gießen, Briefkasten, Schlüssel, Notfallkontakte) lässt sich per WhatsApp teilen, dazu gibt es eine Packliste mit Vorlage.
+
 ## 2026-11-02 | 🗑️ Abfuhrkalender: Restmüll-Varianten
 Restmüll wöchentlich, Restmüll 14-täglich und der Großmüllbehälter (1100 L) werden jetzt als eigene Tonnen erkannt, so wie im Pforzheimer Abfuhrkalender. So lässt sich beim Import genau die eigene Tonne auswählen.
 

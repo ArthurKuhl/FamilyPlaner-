@@ -12,6 +12,7 @@
 <script src="sync.js"></script>
 <script src="haushaltlogik.js"></script>
 <script src="terminlogik.js"></script>
+<script src="schullogik.js"></script>
 <script src="pflanzendaten.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap');
@@ -122,6 +123,34 @@
   .pin-eingabe { font-size: 1.6rem !important; letter-spacing: 0.5em; text-align: center; width: 100%; padding: 12px !important; }
   #kiToast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 0); background: #2a2016; color: #bcd196; padding: 10px 16px; border-radius: 22px; font: 600 0.88rem 'Inter', sans-serif; box-shadow: 0 4px 14px rgba(0,0,0,0.25); z-index: 9998; display: flex; gap: 12px; align-items: center; max-width: 90vw; transition: opacity .2s; }
   #kiToast button { background: none; border: none; color: #e8c98a; font-weight: 800; text-decoration: underline; cursor: pointer; font-size: 0.88rem; }
+  /* 🎄 Adventskalender */
+  .advent { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+  .tuer { aspect-ratio: 1; border-radius: 10px; border: 2px dashed rgba(201,154,58,0.7); background: linear-gradient(135deg, #8b2e2e, #b8452f); color: #fff6e0; font: 800 1.05rem 'Playfair Display', serif; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; padding: 0; }
+  .tuer:nth-child(3n) { background: linear-gradient(135deg, #2e5b3a, #3f7a4c); }
+  .tuer:nth-child(4n+1) { background: linear-gradient(135deg, #7a5a1e, #b8862f); }
+  .tuer.zu { opacity: 0.55; cursor: default; }
+  .tuer.zu::after { content: '🔒'; position: absolute; bottom: 2px; right: 3px; font-size: 0.6rem; }
+  .tuer.heute { box-shadow: 0 0 0 3px #f3c84b; animation: wackeln 1.6s ease-in-out infinite; }
+  .tuer.offen { background: var(--cream); color: var(--soil); border: 2px solid var(--parchment); font-size: 1.4rem; }
+  @keyframes wackeln { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-3deg); } 75% { transform: rotate(3deg); } }
+  .tuer-gross { text-align: center; padding: 10px 6px; }
+  .tuer-gross .em { font-size: 3.4rem; display: block; margin-bottom: 6px; }
+  .tuer-gross b { font-size: 1.15rem; display: block; margin-bottom: 4px; }
+  .adv-zeile { display: grid; grid-template-columns: 30px 46px 1fr 74px; gap: 5px; align-items: center; margin-bottom: 5px; }
+  .adv-zeile b { text-align: center; font-size: 0.85rem; }
+  .adv-zeile input, .adv-zeile select { padding: 7px 6px !important; font-size: 0.82rem !important; border-radius: 8px; border: 1px solid var(--parchment); background: var(--white); color: var(--soil); min-width: 0; width: 100%; }
+  /* 🎒 Schule */
+  .fach-chips { display: flex; flex-wrap: wrap; gap: 5px; margin: 4px 0 8px; }
+  .fach-chips span { background: var(--cream); border-radius: 999px; padding: 4px 10px; font-size: 0.82rem; font-weight: 700; }
+  .mitbringen { background: rgba(243,200,75,0.22); border-radius: 12px; padding: 8px 12px; font-weight: 700; margin-bottom: 8px; }
+  .todo { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; background: var(--cream); margin-bottom: 6px; }
+  .todo input[type=checkbox] { width: 22px; height: 22px; accent-color: #4f6f45; flex-shrink: 0; }
+  .todo .t-text { flex: 1; font-weight: 600; font-size: 0.92rem; }
+  .todo.fertig .t-text { text-decoration: line-through; opacity: 0.6; }
+  .plan-zeile { display: grid; grid-template-columns: 34px 1fr; gap: 6px; align-items: center; margin-bottom: 5px; }
+  .plan-zeile b { font-size: 0.85rem; }
+  .plan-zeile input, .mb-zeile input { width: 100%; }
+  .mb-zeile { display: grid; grid-template-columns: 1fr 1fr 30px; gap: 5px; margin-bottom: 5px; }
   .konfetti { position: fixed; top: -20px; font-size: 1.6rem; z-index: 9999; pointer-events: none; animation: fallen 1.8s ease-in forwards; }
   @keyframes fallen { to { transform: translateY(105vh) rotate(540deg); opacity: 0.2; } }
 </style>
@@ -149,6 +178,36 @@
   </div>
 </div>
 
+<div class="modal-bg" id="modalTuer">
+  <div class="modal" role="dialog" aria-label="Türchen" style="max-width:420px;"><div id="tuerInhalt"></div><button class="knopf-gross" id="btnTuerZu" style="width:100%;margin-top:10px;">Schön! 😊</button></div>
+</div>
+<div class="modal-bg" id="modalAdvent">
+  <div class="modal" role="dialog" aria-label="Adventskalender befüllen">
+    <div style="display:flex;justify-content:space-between;align-items:center;"><strong style="font-size:1.05rem;">🎄 Adventskalender befüllen</strong><button class="knopf-klein" id="btnAdventZu">Fertig</button></div>
+    <p class="klein" style="margin:6px 0 8px;">Pro Kind und Tag: eine Kleinigkeit 🎁, eine gemeinsame Aktion 🎈 oder eine kleine Aufgabe ✍️. Die Kinder sehen den Inhalt erst, wenn sie das Türchen öffnen – ab dem jeweiligen Tag.</p>
+    <div class="einst-zeile" id="adventKindWahl" style="margin-bottom:8px;"></div>
+    <div id="adventListe"></div>
+    <div class="einst-zeile" style="margin-top:8px;">
+      <button class="knopf-klein" id="btnAdventIdeen">✨ Leere Türchen mit Ideen füllen</button>
+      <button class="knopf-klein" id="btnAdventAlle">👫 Auf alle Kinder übertragen</button>
+      <button class="knopf-klein" id="btnAdventEinkauf">🛒 Kleinigkeiten auf die Einkaufsliste</button>
+    </div>
+  </div>
+</div>
+<div class="modal-bg" id="modalSchule">
+  <div class="modal" role="dialog" aria-label="Stundenplan">
+    <div style="display:flex;justify-content:space-between;align-items:center;"><strong style="font-size:1.05rem;">🎒 Stundenplan</strong><button class="knopf-klein" id="btnSchuleZu">Fertig</button></div>
+    <div class="einst-zeile" id="schuleKindWahl" style="margin:8px 0;"></div>
+    <h3>📅 Fächer pro Tag</h3>
+    <p class="klein" style="margin-bottom:6px;">Mit Komma getrennt, z. B. „Deutsch, Mathe, Sport“. Leer lassen = kein Schulkind.</p>
+    <div id="schulePlan"></div>
+    <h3>🧺 Was muss mit?</h3>
+    <div id="schuleMitbringen"></div>
+    <div class="einst-zeile"><button class="knopf-klein" id="btnMbNeu">＋ Regel</button><span class="klein">z. B. Sport → Turnbeutel</span></div>
+    <p class="klein" style="margin-top:10px;">Am Nachmittag zeigen Kinderecke und Startseite, was am nächsten Schultag ansteht. Ferien und Feiertage (Baden-Württemberg) werden übersprungen.</p>
+  </div>
+</div>
+
 <div class="modal-bg" id="modalEinst">
   <div class="modal" role="dialog" aria-label="Einstellungen Kinderecke">
     <div style="display:flex;justify-content:space-between;align-items:center;"><strong style="font-size:1.05rem;">⚙️ Für Eltern</strong><button class="knopf-klein" id="btnEinstZu">Fertig</button></div>
@@ -171,6 +230,8 @@
       <button class="knopf-klein" id="btnRoutineAbend">＋ 🌙 Abend-Routine</button>
       <button class="knopf-klein" id="btnRoutineEigen">＋ Eigene</button>
     </div>
+    <h3>🎄 Adventskalender &amp; 🎒 Schule</h3>
+    <div class="einst-zeile"><button class="knopf-klein" id="btnAdventOeffnen">🎄 Adventskalender befüllen</button><button class="knopf-klein" id="btnSchuleOeffnen">🎒 Stundenplan einstellen</button></div>
     <h3>🎯 Wochenziel</h3>
     <div class="einst-zeile" style="font-size:0.85rem;">
       Wer <input type="number" id="wzSterne" min="0" style="width:64px;"> ⭐ in einer Woche sammelt, bekommt <input type="number" id="wzBonus" min="0" style="width:56px;"> ⭐ extra
@@ -209,6 +270,8 @@
   const isoVon = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   const heuteISO = () => isoVon(new Date());
   const KEY_WUENSCHE = 'kinder_wuensche';      // [{ id, personId, belohnungId, text, sterne, datum, status: offen|erfuellt|abgelehnt }]
+  const KEY_ADVENT = 'kinder_advent';   // { 'JJJJ': { inhalte: { kindId: { n: { em, text, typ } } }, geoeffnet: { kindId: { n: iso } } } }
+  const KEY_SCHULE = 'kinder_schule';   // siehe schullogik.js
   const KEY_ROUTINE_STAND = 'kinder_routinen_stand'; // { kindId: { datum, erledigt: { routineId: [punktId] } } }
   const AVATARE = ['🦊', '🐼', '🦄', '🚀', '🐯', '🐸', '🦖', '🐱', '🐶', '🐰', '🦁', '🐧', '🐙', '🦋', '⚽', '🎨', '🌟', '🧚'];
   const ROUTINE_VORLAGEN = {
@@ -371,7 +434,7 @@
     return Array.isArray(w) ? (w.includes(kindId) || w.includes('familie')) : w === kindId;
   }
   function termineVon(kindId, iso) {
-    return laden('termine_events_v1', []).filter(ev => fuerKind(ev, kindId) && terminAm(ev, iso))
+    return laden('termine_events_v1', []).filter(ev => !ev.abfuhr && fuerKind(ev, kindId) && terminAm(ev, iso))
       .sort((a, b) => (a.allDay ? '' : a.startTime || '').localeCompare(b.allDay ? '' : b.startTime || ''));
   }
   // Nächstes „großes Ereignis“: Geburtstage, Ferien, Urlaub, Feste aus den Terminen – sonst Weihnachten
@@ -480,9 +543,10 @@
   const euro = (n) => (Number(n) || 0).toLocaleString('de-DE', { style: 'currency', currency: 'EUR' });
 
   // ---------- Sync ----------
-  let sync = null, haushaltSync = null, finanzenSync = null;
+  let sync = null, haushaltSync = null, finanzenSync = null, einkaufSync = null;
   if (window.PlanerSync) {
-    sync = window.PlanerSync.starteSync({ modul: 'kinder', keys: [KEY_EINST, KEY_STERNE, KEY_GARTEN_ERL, KEY_WUENSCHE, KEY_ROUTINE_STAND], onRemoteChange: () => renderAlles() });
+    sync = window.PlanerSync.starteSync({ modul: 'kinder', keys: [KEY_EINST, KEY_STERNE, KEY_GARTEN_ERL, KEY_WUENSCHE, KEY_ROUTINE_STAND, KEY_ADVENT, KEY_SCHULE], onRemoteChange: () => renderAlles() });
+    einkaufSync = window.PlanerSync.starteSync({ modul: 'einkauf', keys: ['einkauf_listen'] });
     haushaltSync = window.PlanerSync.starteSync({ modul: 'haushalt', keys: ['haushalt_aufgaben'], onRemoteChange: () => renderAlles() });
     // nur lesen, damit Taschengeld & Co. aktuell sind
     finanzenSync = window.PlanerSync.starteSync({ modul: 'finanzen', keys: ['finanzen_taschengeld_konten', 'finanzen_taschengeld_buchungen'], onRemoteChange: () => renderAlles() });
@@ -573,6 +637,8 @@
       ((offen.length + beeteOffen.length) ? 'Heute ' + ((offen.length + beeteOffen.length) === 1 ? 'wartet 1 Aufgabe' : 'warten ' + (offen.length + beeteOffen.length) + ' Aufgaben') + ' auf dich.' : (fertig.length ? 'Alles erledigt – super gemacht! 🎉' : 'Heute hast du frei. 😊')) +
       (geb !== null ? (geb === 0 ? ' 🎂 Heute ist dein Geburtstag – alles Gute!' : ' 🎂 Noch ' + geb + (geb === 1 ? ' Tag' : ' Tage') + ' bis zu deinem Geburtstag.') : '') + '</div></div></div></div>';
 
+    html += adventKarteHtml(kind);
+
     // ☀️ Routinen
     const routinen = (e.routinen[kind.id] || []).filter(r => (r.punkte || []).length);
     if (routinen.length) {
@@ -598,6 +664,8 @@
         (tMorgen.length ? '<p class="klein" style="font-weight:800;margin:10px 0 2px;">MORGEN</p>' + tMorgen.map(tz).join('') : '') +
         (cd ? '<div class="countdown">' + (cd.titel.match(/^\p{Extended_Pictographic}/u) ? '' : '⏳ ') + 'Noch ' + cd.tage + (cd.tage === 1 ? ' Tag' : ' Tage') + ' bis ' + esc(cd.titel.replace(/^(\p{Extended_Pictographic})\s*/u, '$1 ')) + '</div>' : '') + '</div>';
     }
+
+    html += schuleKarteHtml(kind);
 
     // Aufgaben
     html += '<div class="karte"><h2>✅ Meine Aufgaben heute</h2>';
@@ -695,6 +763,8 @@
 
     box.innerHTML = html;
     box.querySelectorAll('[data-erledigt]').forEach(b => b.addEventListener('click', () => aufgabeErledigt(b.dataset.erledigt, kind.id)));
+    box.querySelectorAll('[data-tuer]').forEach(b => b.addEventListener('click', () => tuerOeffnen(kind, Number(b.dataset.tuer))));
+    schuleBinden(box, kind);
     box.querySelectorAll('[data-gegossen]').forEach(b => b.addEventListener('click', () => gartenGegossen(b.dataset.gegossen, kind)));
     box.querySelectorAll('[data-einloesen]').forEach(b => b.addEventListener('click', () => einloesen(b.dataset.einloesen, kind)));
     box.querySelectorAll('[data-routine]').forEach(b => b.addEventListener('click', () => routinePunktUmschalten(kind, b.dataset.routine, b.dataset.punkt)));
@@ -945,6 +1015,191 @@
     document.getElementById('neuBelohnungText').value = '';
     einstRendern(); renderAlles();
   });
+
+  // ============================================================
+  // 🎄 ADVENTSKALENDER
+  // ============================================================
+  const ADVENT_IDEEN = {
+    geschenk: ['🍫 Schokotaler', '🚗 Kleines Spielzeugauto', '✨ Sticker', '🎀 Haarspange', '🟢 Knete', '🧩 Mini-Puzzle', '🫧 Seifenblasen', '✏️ Glitzerstift', '🔦 Kleine Taschenlampe', '⭐ Leuchtsterne für die Decke', '📖 Mini-Buch', '🔴 Flummi', '🍪 Lebkuchen', '🛁 Badekugel', '🧦 Kuschelsocken'],
+    aktion: ['🍪 Heute backen wir Plätzchen!', '🍿 Weihnachtsfilm mit Popcorn', '⛸️ Schlittschuhlaufen', '🎡 Ausflug auf den Weihnachtsmarkt', '🎄 Wir suchen zusammen den Tannenbaum aus', '✉️ Wunschzettel schreiben', '🏠 Lebkuchenhaus bauen', '🔦 Laternen-Spaziergang im Dunkeln', '🍎 Bratäpfel machen', '💌 Weihnachtskarten für Oma & Opa basteln', '☕ Kakao-Abend mit Vorlesen', '⛄ Schneemann bauen (oder Papier-Schneemann)', '🖼️ Fensterbilder malen', '🎲 Spieleabend – du suchst das Spiel aus', '🏕️ Höhle im Wohnzimmer bauen', '⭐ Strohsterne basteln'],
+    aufgabe: ['🤝 Bring einem Nachbarn ein Plätzchen', '🎁 Such ein Spielzeug für Kinder aus, die nicht so viel haben', '👩‍🍳 Hilf heute beim Kochen', '📜 Lerne ein kleines Weihnachtsgedicht', '💛 Sag jedem in der Familie etwas Nettes', '🐦 Häng Vogelfutter für die Vögel auf'],
+  };
+  const ADVENT_FEST = { 5: { em: '👢', text: 'Heute Abend Stiefel putzen und rausstellen – morgen kommt der Nikolaus!', typ: 'aktion' }, 6: { em: '🎅', text: 'Der Nikolaus war da! Schau in deinen Stiefel.', typ: 'geschenk' }, 24: { em: '🎄', text: 'Heute ist Heiligabend – frohe Weihnachten!', typ: 'aktion' } };
+  function adventJahr() { return String(new Date().getFullYear()); }
+  function adventDaten() { const a = laden(KEY_ADVENT, {}) || {}; const j = adventJahr(); a[j] = a[j] || { inhalte: {}, geoeffnet: {} }; a[j].inhalte = a[j].inhalte || {}; a[j].geoeffnet = a[j].geoeffnet || {}; return { alle: a, jahr: a[j] }; }
+  function adventSpeichern(alle) { speichern(KEY_ADVENT, alle, sync); }
+  function emSplit(t) { const m = String(t || '').match(/^(\p{Extended_Pictographic}(?:️|‍\p{Extended_Pictographic})*)\s*(.*)$/u); return m ? { em: m[1], text: m[2] || m[1] } : { em: '🎁', text: String(t || '') }; }
+  // Reihenfolge der Türchen: gemischt, aber für Kind und Jahr immer gleich
+  function tuerReihenfolge(kindId) {
+    let s = 0; for (const c of kindId + adventJahr()) s = (Math.imul(s, 31) + c.charCodeAt(0)) | 0;
+    const z = Array.from({ length: 24 }, (_, i) => i + 1);
+    for (let i = z.length - 1; i > 0; i--) { s = (Math.imul(s ^ (s >>> 15), 2246822507) + 0x6d2b79f5) | 0; const j = (s >>> 0) % (i + 1); [z[i], z[j]] = [z[j], z[i]]; }
+    return z;
+  }
+  function adventTag() { const d = new Date(); return d.getMonth() === 11 ? d.getDate() : 0; }
+  function adventKarteHtml(kind) {
+    const d = new Date(), monat = d.getMonth(), tag = d.getDate();
+    if (!(monat === 11 && tag <= 31) && !(monat === 10 && tag >= 20)) return '';
+    const { jahr } = adventDaten();
+    const inhalt = jahr.inhalte[kind.id] || {};
+    if (!Object.keys(inhalt).some(n => inhalt[n] && inhalt[n].text)) return '';
+    const auf = jahr.geoeffnet[kind.id] || {};
+    const heute = adventTag();
+    const bis = monat === 10 ? Math.round((new Date(d.getFullYear(), 11, 1) - new Date(d.getFullYear(), monat, tag)) / 864e5) : 0;
+    const offenHeute = heute && heute <= 24 && !auf[heute];
+    return '<div class="karte" style="border-top-color:#b8452f"><h2>🎄 Mein Adventskalender <span class="klein">' + Object.keys(auf).length + ' von 24</span></h2>' +
+      '<p class="klein" style="margin:-4px 0 8px;">' + (bis ? 'Noch ' + bis + (bis === 1 ? ' Tag' : ' Tage') + ' bis zum ersten Türchen! ✨' : offenHeute ? 'Heute darfst du Türchen ' + heute + ' öffnen! ✨' : heute > 24 ? 'Frohe Weihnachten! 🎄' : 'Morgen gibt es das nächste Türchen.') + '</p>' +
+      '<div class="advent">' + tuerReihenfolge(kind.id).map(n => {
+        const offen = !!auf[n], darf = heute && n <= heute;
+        const x = inhalt[n];
+        return '<button type="button" class="tuer' + (offen ? ' offen' : darf ? (n === heute ? ' heute' : '') : ' zu') + '" data-tuer="' + n + '" aria-label="Türchen ' + n + '">' + (offen && x ? esc(x.em || '🎁') : n) + '</button>';
+      }).join('') + '</div></div>';
+  }
+  function tuerOeffnen(kind, n) {
+    const heute = adventTag();
+    if (!heute || n > heute) { toast('🔒 Türchen ' + n + ' darfst du erst am ' + n + '. Dezember öffnen!', 3); return; }
+    const { alle, jahr } = adventDaten();
+    const x = (jahr.inhalte[kind.id] || {})[n];
+    jahr.geoeffnet[kind.id] = jahr.geoeffnet[kind.id] || {};
+    const neu = !jahr.geoeffnet[kind.id][n];
+    if (neu) { jahr.geoeffnet[kind.id][n] = heuteISO(); adventSpeichern(alle); konfetti(); }
+    const typText = { geschenk: 'Für dich:', aktion: 'Heute machen wir zusammen:', aufgabe: 'Deine kleine Aufgabe:' };
+    document.getElementById('tuerInhalt').innerHTML = '<div class="tuer-gross"><span class="em">' + esc(x ? x.em || '🎁' : '🎄') + '</span><p class="klein">Türchen ' + n + (x && x.typ ? ' · ' + esc(typText[x.typ] || '') : '') + '</p><b>' + esc(x ? x.text : 'Heute ist dieses Türchen leer – frag mal Mama oder Papa! 😉') + '</b></div>';
+    document.getElementById('modalTuer').classList.add('zeigen');
+    if (neu) renderAlles();
+  }
+  document.getElementById('btnTuerZu').addEventListener('click', () => document.getElementById('modalTuer').classList.remove('zeigen'));
+  let adventKind = null;
+  function adventEditor() {
+    const e = einstellungen(), kinder = e.kinder.map(person);
+    if (!kinder.length) { alert('Bitte zuerst die Kinder festlegen.'); return; }
+    if (!kinder.some(k => k.id === adventKind)) adventKind = kinder[0].id;
+    document.getElementById('adventKindWahl').innerHTML = kinder.map(k => '<button class="knopf-klein" data-ak="' + esc(k.id) + '" style="' + (k.id === adventKind ? 'background:var(--moss);color:var(--on-moss,#fff);border-color:var(--moss)' : '') + '">' + esc(k.label) + '</button>').join('');
+    document.querySelectorAll('[data-ak]').forEach(b => b.addEventListener('click', () => { adventKind = b.dataset.ak; adventEditor(); }));
+    const { jahr } = adventDaten();
+    const inh = jahr.inhalte[adventKind] || {}, auf = jahr.geoeffnet[adventKind] || {};
+    document.getElementById('adventListe').innerHTML = Array.from({ length: 24 }, (_, i) => i + 1).map(n => { const x = inh[n] || {}; return '<div class="adv-zeile" data-n="' + n + '"><b>' + n + (auf[n] ? '✓' : '') + '</b>' +
+      '<input type="text" data-f="em" value="' + esc(x.em || '') + '" placeholder="🎁" aria-label="Symbol">' +
+      '<input type="text" data-f="text" value="' + esc(x.text || '') + '" placeholder="' + (ADVENT_FEST[n] ? esc(ADVENT_FEST[n].text.slice(0, 30)) + '…' : 'Was ist drin?') + '" aria-label="Inhalt Tag ' + n + '">' +
+      '<select data-f="typ" aria-label="Art"><option value="geschenk"' + (x.typ === 'geschenk' || !x.typ ? ' selected' : '') + '>🎁</option><option value="aktion"' + (x.typ === 'aktion' ? ' selected' : '') + '>🎈</option><option value="aufgabe"' + (x.typ === 'aufgabe' ? ' selected' : '') + '>✍️</option></select></div>'; }).join('');
+    document.querySelectorAll('#adventListe [data-n]').forEach(z => z.querySelectorAll('[data-f]').forEach(inp => inp.addEventListener('change', () => {
+      const { alle, jahr } = adventDaten(); const n = z.dataset.n;
+      const m = (jahr.inhalte[adventKind] = jahr.inhalte[adventKind] || {});
+      const x = m[n] = m[n] || {};
+      x[inp.dataset.f] = inp.value.trim();
+      if (inp.dataset.f === 'text' && !x.em) { const sp = emSplit(x.text); if (sp.em !== '🎁' || /^\p{Extended_Pictographic}/u.test(x.text)) { x.em = sp.em; x.text = sp.text; } }
+      if (!x.text) delete m[n];
+      adventSpeichern(alle); adventEditor(); renderAlles();
+    })));
+  }
+  document.getElementById('btnAdventOeffnen').addEventListener('click', () => { document.getElementById('modalEinst').classList.remove('zeigen'); adventEditor(); document.getElementById('modalAdvent').classList.add('zeigen'); });
+  document.getElementById('btnAdventZu').addEventListener('click', () => document.getElementById('modalAdvent').classList.remove('zeigen'));
+  document.getElementById('btnAdventIdeen').addEventListener('click', () => {
+    const { alle, jahr } = adventDaten();
+    const m = (jahr.inhalte[adventKind] = jahr.inhalte[adventKind] || {});
+    const genutzt = new Set(Object.values(m).map(x => x && x.text));
+    const pool = { geschenk: ADVENT_IDEEN.geschenk.slice(), aktion: ADVENT_IDEEN.aktion.slice(), aufgabe: ADVENT_IDEEN.aufgabe.slice() };
+    const ziehe = (typ) => { const l = pool[typ].filter(t => !genutzt.has(emSplit(t).text)); if (!l.length) return null; const t = l[Math.floor(Math.random() * l.length)]; genutzt.add(emSplit(t).text); return Object.assign(emSplit(t), { typ }); };
+    let n0 = 0;
+    for (let n = 1; n <= 24; n++) {
+      if (m[n] && m[n].text) continue;
+      if (ADVENT_FEST[n]) { m[n] = Object.assign({}, ADVENT_FEST[n]); n0++; continue; }
+      const typ = n % 3 === 0 ? 'geschenk' : n % 4 === 0 ? 'aufgabe' : n % 2 ? 'aktion' : 'geschenk';
+      const x = ziehe(typ) || ziehe('aktion') || ziehe('geschenk'); if (x) { m[n] = x; n0++; }
+    }
+    adventSpeichern(alle); adventEditor(); renderAlles();
+    toast(n0 ? '✨ ' + n0 + ' Türchen gefüllt – einfach anpassen, was nicht passt' : 'Alle Türchen sind schon gefüllt', 4);
+  });
+  document.getElementById('btnAdventAlle').addEventListener('click', () => {
+    const e = einstellungen(), andere = e.kinder.filter(k => k !== adventKind);
+    if (!andere.length) { toast('Es gibt nur ein Kind.', 3); return; }
+    if (!confirm('Den Kalender von ' + person(adventKind).label + ' auf ' + andere.map(k => person(k).label).join(', ') + ' übertragen? Deren Inhalte werden ersetzt.')) return;
+    const { alle, jahr } = adventDaten();
+    andere.forEach(k => { jahr.inhalte[k] = JSON.parse(JSON.stringify(jahr.inhalte[adventKind] || {})); });
+    adventSpeichern(alle); renderAlles(); toast('👫 Übertragen', 3);
+  });
+  document.getElementById('btnAdventEinkauf').addEventListener('click', () => {
+    const { jahr } = adventDaten();
+    const zaehler = {};
+    Object.values(jahr.inhalte).forEach(m => Object.keys(m || {}).forEach(n => { const x = m[n]; if (x && x.typ === 'geschenk' && x.text && Number(n) !== 6 && Number(n) !== 24) zaehler[x.text] = (zaehler[x.text] || 0) + 1; }));
+    const namen = Object.keys(zaehler);
+    if (!namen.length) { toast('Keine Kleinigkeiten (🎁) eingetragen', 3); return; }
+    let listen = laden('einkauf_listen', []); if (!listen.length) listen = [{ id: neueId('l'), name: 'Wocheneinkauf', items: [] }];
+    let aktiv = ''; try { aktiv = localStorage.getItem('einkauf_aktiveListe') || ''; } catch (e) {}
+    const liste = listen.find(x => x.id === aktiv) || listen[0]; liste.items = liste.items || [];
+    let neu = 0;
+    namen.forEach(t => { const name = t + ' (Adventskalender)'; if (liste.items.some(i => !i.erledigt && i.name === name)) return; liste.items.push({ id: neueId('i'), name, menge: zaehler[t] > 1 ? String(zaehler[t]) : '', einheit: '', kategorie: 'sonstiges', erledigt: false, hinzugefuegtVon: 'kinder' }); neu++; });
+    speichern('einkauf_listen', listen, einkaufSync);
+    toast('🛒 ' + neu + ' Kleinigkeiten auf „' + liste.name + '“', 4);
+  });
+
+  // ============================================================
+  // 🎒 SCHULE: Stundenplan, Mitbringen, Hausaufgaben & Elternbriefe
+  // ============================================================
+  const SL = window.SchulLogik;
+  function schulDaten() { return laden(KEY_SCHULE, {}) || {}; }
+  const TODO_TYP = { ha: '✏️', brief: '✉️', sonst: '📌' };
+  function schuleKarteHtml(kind) {
+    if (!SL) return '';
+    const alle = schulDaten(), d = alle[kind.id];
+    if (!d || !d.plan || !Object.values(d.plan).some(Boolean)) return '';
+    const v = SL.vorschau(d);
+    const todos = (d.todos || []).filter(t => !t.erledigt || t.erledigtAm === heuteISO());
+    let h = '<div class="karte"><h2>🎒 Schule' + (v ? ' <span class="klein">' + esc(v.wann) + '</span>' : '') + '</h2>';
+    if (v) {
+      h += '<div class="fach-chips">' + v.faecher.map(f => '<span>' + esc(f) + '</span>').join('') + '</div>';
+      if (v.mitbringen.length) h += '<div class="mitbringen">🧺 Nicht vergessen: ' + v.mitbringen.map(m => esc(m.text)).join(', ') + '</div>';
+    } else h += '<p class="klein">Gerade ist schulfrei. 🎉</p>';
+    h += todos.map(t => '<label class="todo' + (t.erledigt ? ' fertig' : '') + '"><input type="checkbox" data-todo="' + esc(t.id) + '"' + (t.erledigt ? ' checked' : '') + '><span class="t-text">' + (TODO_TYP[t.typ] || '📌') + ' ' + esc(t.text) + (t.bis ? ' <span class="klein">bis ' + new Date(t.bis + 'T12:00').toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'numeric' }) + '</span>' : '') + '</span></label>').join('');
+    h += '<div class="einst-zeile" style="margin-top:6px;"><select id="todoTyp" style="padding:8px;border-radius:10px;border:1px solid var(--parchment);background:var(--white);color:var(--soil);"><option value="ha">✏️ Hausaufgabe</option><option value="brief">✉️ Elternbrief</option><option value="sonst">📌 Sonstiges</option></select>' +
+      '<input type="text" id="todoText" placeholder="z. B. Mathe S. 24" style="flex:1;min-width:120px;padding:9px 10px;border-radius:10px;border:1px solid var(--parchment);background:var(--white);color:var(--soil);"><button class="knopf-gross" id="btnTodoNeu" style="padding:8px 14px;">＋</button></div></div>';
+    return h;
+  }
+  function schuleBinden(box, kind) {
+    box.querySelectorAll('[data-todo]').forEach(cb => cb.addEventListener('change', () => {
+      const alle = schulDaten(), d = alle[kind.id]; const t = (d.todos || []).find(x => x.id === cb.dataset.todo); if (!t) return;
+      t.erledigt = cb.checked; if (cb.checked) t.erledigtAm = heuteISO(); else delete t.erledigtAm;
+      // Erledigtes nach 14 Tagen aufräumen
+      d.todos = d.todos.filter(x => !x.erledigt || !x.erledigtAm || x.erledigtAm >= SL.plus(heuteISO(), -14));
+      speichern(KEY_SCHULE, alle, sync); if (cb.checked) konfetti(); renderAlles();
+    }));
+    const btn = box.querySelector('#btnTodoNeu');
+    if (!btn) return;
+    const neu = () => {
+      const text = box.querySelector('#todoText').value.trim(); if (!text) return;
+      const alle = schulDaten(), d = alle[kind.id] = alle[kind.id] || {};
+      d.todos = (d.todos || []).concat([{ id: neueId('st'), text, typ: box.querySelector('#todoTyp').value, bis: SL.naechsterSchultag(SL.plus(heuteISO(), 1), 10) || '', erledigt: false }]);
+      speichern(KEY_SCHULE, alle, sync); renderAlles();
+    };
+    btn.addEventListener('click', neu);
+    box.querySelector('#todoText').addEventListener('keydown', ev => { if (ev.key === 'Enter') neu(); });
+  }
+  let schulKind = null;
+  function schuleEditor() {
+    const e = einstellungen(), kinder = e.kinder.map(person);
+    if (!kinder.length) { alert('Bitte zuerst die Kinder festlegen.'); return; }
+    if (!kinder.some(k => k.id === schulKind)) schulKind = kinder[0].id;
+    document.getElementById('schuleKindWahl').innerHTML = kinder.map(k => '<button class="knopf-klein" data-sk="' + esc(k.id) + '" style="' + (k.id === schulKind ? 'background:var(--moss);color:var(--on-moss,#fff);border-color:var(--moss)' : '') + '">' + esc(k.label) + '</button>').join('');
+    document.querySelectorAll('[data-sk]').forEach(b => b.addEventListener('click', () => { schulKind = b.dataset.sk; schuleEditor(); }));
+    const alle = schulDaten(), d = alle[schulKind] || {};
+    const plan = d.plan || {}, mb = d.mitbringen || [];
+    document.getElementById('schulePlan').innerHTML = [[1, 'Mo'], [2, 'Di'], [3, 'Mi'], [4, 'Do'], [5, 'Fr']].map(([n, t]) => '<div class="plan-zeile"><b>' + t + '</b><input type="text" data-wt="' + n + '" value="' + esc(plan[n] || '') + '" placeholder="z. B. Deutsch, Mathe, Sport"></div>').join('');
+    document.getElementById('schuleMitbringen').innerHTML = mb.map((m, i) => '<div class="mb-zeile"><input type="text" data-mb="' + i + '" data-mf="fach" value="' + esc(m.fach || '') + '" placeholder="Fach"><input type="text" data-mb="' + i + '" data-mf="text" value="' + esc(m.text || '') + '" placeholder="Was muss mit?"><button class="knopf-klein" data-mbweg="' + i + '" aria-label="Entfernen">✕</button></div>').join('') || '<p class="klein">Noch keine Regeln.</p>';
+    const aendern = (f) => { const a = schulDaten(); const x = a[schulKind] = a[schulKind] || {}; f(x); speichern(KEY_SCHULE, a, sync); renderAlles(); };
+    document.querySelectorAll('#schulePlan [data-wt]').forEach(inp => inp.addEventListener('change', () => aendern(x => { x.plan = x.plan || {}; x.plan[inp.dataset.wt] = inp.value.trim(); })));
+    document.querySelectorAll('#schuleMitbringen [data-mb]').forEach(inp => inp.addEventListener('change', () => aendern(x => { x.mitbringen[+inp.dataset.mb][inp.dataset.mf] = inp.value.trim(); })));
+    document.querySelectorAll('[data-mbweg]').forEach(b => b.addEventListener('click', () => { aendern(x => { x.mitbringen.splice(+b.dataset.mbweg, 1); }); schuleEditor(); }));
+  }
+  document.getElementById('btnMbNeu').addEventListener('click', () => {
+    const a = schulDaten(); const x = a[schulKind] = a[schulKind] || {};
+    const faecher = new Set(Object.values(x.plan || {}).join(',').split(',').map(f => f.trim().toLowerCase()).filter(Boolean));
+    const vorhanden = new Set((x.mitbringen || []).map(m => String(m.fach).toLowerCase()));
+    const vorschlag = SL.MITBRINGEN_VORSCHLAEGE.find(([f]) => faecher.has(f.toLowerCase()) && !vorhanden.has(f.toLowerCase()));
+    x.mitbringen = (x.mitbringen || []).concat([vorschlag ? { fach: vorschlag[0], text: vorschlag[1] } : { fach: '', text: '' }]);
+    speichern(KEY_SCHULE, a, sync); schuleEditor(); renderAlles();
+  });
+  document.getElementById('btnSchuleOeffnen').addEventListener('click', () => { document.getElementById('modalEinst').classList.remove('zeigen'); schuleEditor(); document.getElementById('modalSchule').classList.add('zeigen'); });
+  document.getElementById('btnSchuleZu').addEventListener('click', () => document.getElementById('modalSchule').classList.remove('zeigen'));
 
   renderAlles();
 })();

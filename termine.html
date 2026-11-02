@@ -208,6 +208,13 @@
   .abf-feld { display: flex; align-items: center; gap: 8px; margin: 6px 0; font-size: 0.82rem; flex-wrap: wrap; }
   .abf-feld select, .abf-feld input { padding: 7px 9px; border-radius: 9px; border: 1px solid var(--parchment); background: var(--cream); color: var(--soil); font-family: inherit; font-size: 0.82rem; }
   .abf-klein { font-size: 0.74rem; color: var(--bark); line-height: 1.45; }
+  .bt-zeile { display: grid; grid-template-columns: 74px 1fr 118px; gap: 6px; align-items: center; padding: 6px 0; border-top: 1px solid var(--parchment); font-size: 0.8rem; }
+  .bt-zeile:first-of-type { border-top: none; }
+  .bt-zeile select { padding: 6px; border-radius: 8px; border: 1px solid var(--parchment); background: var(--cream); color: var(--soil); font-family: inherit; font-size: 0.78rem; width: 100%; }
+  .bt-zeile.offen select { border-color: #c0392b; background: rgba(192,57,43,0.08); }
+  .bt-monat { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; color: var(--bark); margin: 10px 0 2px; }
+  .bt-statistik { display: flex; flex-wrap: wrap; gap: 6px; }
+  .bt-statistik span { background: var(--cream); border: 1px solid var(--parchment); border-radius: 999px; padding: 3px 10px; font-size: 0.76rem; font-weight: 600; }
   .abf-farbe { width: 12px; height: 12px; border-radius: 3px; display: inline-block; flex-shrink: 0; }
   .tl-termin { display: flex; gap: 8px; align-items: baseline; font-size: 0.82rem; color: var(--soil); border-left: 3px solid var(--moss); padding: 2px 0 2px 7px; border-radius: 2px; }
   .tl-termin .tl-zeit { font-size: 0.7rem; font-weight: 700; color: var(--bark); min-width: 38px; flex-shrink: 0; }
@@ -299,6 +306,7 @@
 <script src="personen.js"></script>
 <script src="terminlogik.js"></script>
 <script src="abfalllogik.js"></script>
+<script src="betreuunglogik.js"></script>
 <script src="sync.js"></script>
 </head>
 <body>
@@ -310,6 +318,7 @@
       <h1>🗓️ Termine</h1>
     <button class="theme-btn" id="btnThemeAuswahl" title="Hintergrundmuster wählen">🎨</button>
       <button class="ics-btn" id="btnSuche" title="Termine durchsuchen – auch vergangene" aria-label="Suchen" style="margin-right:6px;">🔎</button>
+      <button class="ics-btn" id="btnBetreuung" title="Betreuungsplan: Schließtage, Ferien, Krankheit – wer betreut?" aria-label="Betreuungsplan" style="margin-right:6px;">👶</button>
       <button class="ics-btn" id="btnAbfall" title="Abfuhrkalender und .ics-Dateien importieren" aria-label="Abfuhrkalender" style="margin-right:6px;">🗑️</button>
       <button class="ics-btn" id="btnKalenderApp" title="Termine in Google Kalender, iPhone oder Outlook anzeigen">📲 Kalender-App</button>
     </div>
@@ -373,6 +382,14 @@
   <button class="fab" id="fabAdd" aria-label="Neuen Termin hinzufügen">+</button>
 
   <!-- Kalender-Abo / Export -->
+  <div class="modal-bg" id="modalBetreuung">
+    <div class="modal">
+      <h2>👶 Betreuungsplan</h2>
+      <div id="betreuungInhalt"></div>
+      <button class="btn-secondary" data-close="modalBetreuung" style="margin-top:8px;">Schließen</button>
+    </div>
+  </div>
+
   <div class="modal-bg" id="modalAbfall">
     <div class="modal">
       <h2>🗑️ Abfuhrkalender &amp; Import</h2>
@@ -1204,9 +1221,11 @@
       }
       const liste = document.getElementById('tagModalListe');
       liste.innerHTML = '';
+      const btTag = BL ? BL.tage(events, betreuungCfg(), tagISO, tagISO)[0] : null;
+      if (btTag) { const z = document.createElement('div'); z.className = 'abfuhr-zeile'; z.style.cursor = 'pointer'; z.textContent = '👶 ' + btTag.grund + ': ' + (btTag.wer ? 'Betreuung ' + betreuerName(btTag.wer) : '⚠ Betreuung noch offen'); z.addEventListener('click', () => { document.getElementById('modalTag').classList.remove('zeigen'); betreuungOeffnen(); }); liste.appendChild(z); }
       const abfTag = abfuhrAm(tagISO);
       if (abfTag) { const z = document.createElement('div'); z.className = 'abfuhr-zeile'; z.textContent = abfTag.symbole + ' Abfuhr: ' + abfTag.text; z.style.cursor = 'pointer'; z.addEventListener('click', () => { document.getElementById('modalTag').classList.remove('zeigen'); abfallOeffnen(); }); liste.appendChild(z); }
-      if (!treffer.length && !abfTag) {
+      if (!treffer.length && !abfTag && !btTag) {
         liste.innerHTML = '<p style="font-size:0.82rem;color:var(--bark);">Keine Termine an diesem Tag.</p>';
       } else if (!treffer.length) {
       } else {
@@ -1817,6 +1836,8 @@
         tagDetailOeffnen(e.data.ziel);
         return;
       }
+      if (e.data && e.data.type === 'shortcutAktion' && e.data.aktion === 'betreuung') { betreuungOeffnen(); return; }
+      if (e.data && e.data.type === 'shortcutAktion' && e.data.aktion === 'abfall') { abfallOeffnen(); return; }
       if (e.data && e.data.type === 'shortcutAktion' && e.data.aktion === 'neu') {
         terminModalOeffnen(null);
         if (e.data.text) { document.getElementById('fSchnell').value = e.data.text; schnellUebernehmen(); } // aus „＋ Schnell festhalten“
@@ -1952,6 +1973,67 @@
       } catch (e) { aboRendern(navigator.onLine ? '⚠ ' + (e.code || e.message) : '⚠ Gerade offline.'); }
     });
 
+
+    // ============================================================
+    // 👶 BETREUUNGSPLAN
+    // ============================================================
+    const BL = window.BetreuungLogik, KEY_BETREUUNG = 'termine_betreuung';
+    function betreuungCfg() { let c = null; try { c = JSON.parse(localStorage.getItem(KEY_BETREUUNG) || 'null'); } catch (e) {} return BL.standard(c); }
+    function betreuungSpeichern(c) { try { localStorage.setItem(KEY_BETREUUNG, JSON.stringify(c)); } catch (e) {} if (window._sync) window._sync.melde(); }
+    function betreuerName(w) { const p = WER_OPTIONEN.find(x => x.id === w); return p ? p.label : String(w || '').replace(/^h:/, ''); }
+    function betreuungOeffnen() { betreuungRendern(); document.getElementById('modalBetreuung').classList.add('zeigen'); }
+    document.getElementById('btnBetreuung').addEventListener('click', betreuungOeffnen);
+    function betreuungRendern() {
+      const box = document.getElementById('betreuungInhalt'), cfg = betreuungCfg(), h = toISO(heute());
+      const ex = v => escapeHtml(String(v == null ? '' : v));
+      const liste = BL.tage(events, cfg, h, BL.plus(h, 400));
+      const jahr = h.slice(0, 4), stat = BL.statistik(events, cfg, jahr);
+      const leute = WER_OPTIONEN.filter(w => w.id !== 'familie');
+      const optionen = (wer) => '<option value="">⚠ noch offen</option>' + leute.map(p => '<option value="' + ex(p.id) + '"' + (p.id === wer ? ' selected' : '') + '>' + ex(p.label) + '</option>').join('') +
+        (cfg.helfer || []).map(n => '<option value="h:' + ex(n) + '"' + ('h:' + n === wer ? ' selected' : '') + '>' + ex(n) + '</option>').join('') + '<option value="__urlaub">🏖️ Urlaubstag (wer?)…</option><option value="__neu">＋ Andere Person…</option>';
+      let monat = '', html = '';
+      const offen = liste.filter(t => !t.wer).length;
+      html += '<div class="abf-karte">' + (liste.length ? '<b>' + liste.length + ' Tage</b> ohne Kita/Schule in den nächsten 12 Monaten' + (offen ? ' – <b style="color:#c0392b">' + offen + ' noch ohne Betreuung</b>' : ' – alle verteilt 🎉') : 'Keine Schließtage gefunden.') +
+        '<div class="abf-klein" style="margin-top:4px">Erkannt werden Termine wie „🏫 Kita zu: Teamtag“, „Schließtag“ oder „Brückentag“. Wochenenden und Feiertage zählen nicht.</div></div>';
+      if (liste.length) {
+        html += '<div class="abf-karte">';
+        liste.forEach(t => {
+          const m = new Date(t.datum + 'T12:00').toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
+          if (m !== monat) { html += '<div class="bt-monat">' + ex(m) + '</div>'; monat = m; }
+          html += '<div class="bt-zeile' + (t.wer ? '' : ' offen') + '" data-d="' + t.datum + '"><b>' + datumKurzAbf(t.datum) + '</b><span>' + (t.quelle === 'extra' ? '🤒 ' : t.quelle === 'ferien' ? '🏖️ ' : '🏫 ') + ex(t.grund) + (t.notiz ? '<br><span class="abf-klein">' + ex(t.notiz) + '</span>' : '') + '</span><select data-wer aria-label="Wer betreut?">' + optionen(t.wer) + '</select></div>';
+        });
+        html += '<div class="abf-klein" style="margin-top:6px">Tipp: Bei mehreren Tagen mit gleichem Grund (z. B. Ferien) fragt der Planer, ob die Auswahl für alle offenen Tage gelten soll – einzelne Tage lassen sich danach noch ändern.</div></div>';
+      }
+      html += '<div class="abf-karte"><h3>🤒 Tag ohne Betreuung eintragen</h3><div class="abf-feld"><input type="date" id="btVon" value="' + h + '"> bis <input type="date" id="btBis" value="' + h + '"></div>' +
+        '<div class="abf-feld"><input type="text" id="btGrund" placeholder="z. B. Kind krank, Streik" style="flex:1"><button class="btn-primary" id="btnBtExtra" style="margin:0;width:auto;padding:8px 14px">＋</button></div>' +
+        ((cfg.extra || []).length ? (cfg.extra || []).map(x => '<div class="abf-zeile">🤒 ' + datumKurzAbf(x.von) + (x.bis && x.bis !== x.von ? ' – ' + datumKurzAbf(x.bis) : '') + ' · ' + ex(x.grund || '') + '<button class="btn-secondary" data-extraweg="' + ex(x.id) + '" style="margin:0 0 0 auto;width:auto;padding:3px 9px">✕</button></div>').join('') : '') + '</div>';
+      html += '<div class="abf-karte"><h3>⚙️ Einstellungen</h3><label class="abf-zeile" style="border:none"><input type="checkbox" id="btSchulferien"' + (cfg.schulferien ? ' checked' : '') + '> 🏖️ Schulferien (Baden-Württemberg) mitzählen – für Schulkinder</label>' +
+        '<div class="abf-feld">Helfer: ' + (cfg.helfer || []).map(n => '<span class="bt-statistik"><span>' + ex(n) + ' <a href="#" data-helferweg="' + ex(n) + '" style="color:#c0392b;text-decoration:none">✕</a></span></span>').join(' ') + '<input type="text" id="btHelfer" placeholder="＋ z. B. Tante Anna" style="width:130px"></div></div>';
+      html += '<div class="abf-karte"><h3>📊 ' + jahr + ' – wer hat wie viele Tage?</h3><div class="bt-statistik">' + (Object.keys(stat).length ? Object.keys(stat).sort((a, b) => stat[b] - stat[a]).map(k => '<span>' + ex(k.indexOf('⚠') === 0 ? k : betreuerName(k)) + ': ' + stat[k] + '</span>').join('') : '<span>Noch keine Tage</span>') + '</div></div>';
+      box.innerHTML = html;
+      box.querySelectorAll('.bt-zeile [data-wer]').forEach(sel => sel.addEventListener('change', () => {
+        const d = sel.closest('[data-d]').dataset.d, c = betreuungCfg();
+        let w = sel.value;
+        if (w === '__neu') { const n = (prompt('Wer betreut? (z. B. Nachbarin Maria)') || '').trim(); if (!n) { betreuungRendern(); return; } if (!c.helfer.includes(n)) c.helfer.push(n); w = 'h:' + n; }
+        if (w === '__urlaub') { const opts = leute.map((p, i) => (i + 1) + ' = ' + p.label).join('\n'); const i = Number(prompt('Wer nimmt Urlaub?\n' + opts, '1')) - 1; if (!(i >= 0 && i < leute.length)) { betreuungRendern(); return; } w = leute[i].id; c.zuweisung[d] = { wer: w, notiz: '🏖️ Urlaubstag' }; betreuungSpeichern(c); betreuungRendern(); renderAktuelleAnsicht(); return; }
+        if (w) c.zuweisung[d] = { wer: w, notiz: (c.zuweisung[d] || {}).notiz || '' }; else delete c.zuweisung[d];
+        // Gleicher Grund an weiteren offenen Tagen (z. B. Ferien) → auf Wunsch gleich mit übernehmen
+        const t0 = liste.find(t => t.datum === d);
+        const gleiche = w && t0 ? liste.filter(t => t.datum !== d && !t.wer && t.grund === t0.grund && Math.abs(new Date(t.datum) - new Date(d)) < 21 * 864e5) : [];
+        if (gleiche.length && confirm('Auch die ' + gleiche.length + ' anderen offenen Tage „' + t0.grund + '“ an ' + betreuerName(w) + ' geben?')) gleiche.forEach(t => { c.zuweisung[t.datum] = { wer: w, notiz: '' }; });
+        betreuungSpeichern(c); betreuungRendern();
+      }));
+      document.getElementById('btnBtExtra').addEventListener('click', () => {
+        const von = document.getElementById('btVon').value, bis = document.getElementById('btBis').value || von;
+        if (!von) return;
+        const c = betreuungCfg(); c.extra = (c.extra || []).concat([{ id: 'bx' + Date.now().toString(36), von, bis: bis < von ? von : bis, grund: document.getElementById('btGrund').value.trim() || 'Ohne Betreuung' }]);
+        betreuungSpeichern(c); betreuungRendern(); renderAktuelleAnsicht();
+      });
+      box.querySelectorAll('[data-extraweg]').forEach(b => b.addEventListener('click', () => { const c = betreuungCfg(); c.extra = c.extra.filter(x => x.id !== b.dataset.extraweg); betreuungSpeichern(c); betreuungRendern(); renderAktuelleAnsicht(); }));
+      document.getElementById('btSchulferien').addEventListener('change', (e) => { const c = betreuungCfg(); c.schulferien = e.target.checked; if (c.schulferien) { ferienSofort(Number(h.slice(0, 4))); ferienSofort(Number(h.slice(0, 4)) + 1); } betreuungSpeichern(c); betreuungRendern(); });
+      document.getElementById('btHelfer').addEventListener('keydown', (e) => { if (e.key !== 'Enter') return; const n = e.target.value.trim(); if (!n) return; const c = betreuungCfg(); if (!c.helfer.includes(n)) c.helfer.push(n); betreuungSpeichern(c); betreuungRendern(); });
+      box.querySelectorAll('[data-helferweg]').forEach(a => a.addEventListener('click', (e) => { e.preventDefault(); const c = betreuungCfg(); c.helfer = c.helfer.filter(n => n !== a.dataset.helferweg); betreuungSpeichern(c); betreuungRendern(); }));
+    }
 
     // ============================================================
     // 🗑️ ABFUHRKALENDER & .ics-IMPORT
@@ -2102,7 +2184,7 @@
     if (window.PlanerSync) {
       window._sync = window.PlanerSync.starteSync({
         modul: 'termine',
-        keys: [STORAGE_KEY, KEY_ABFALL],
+        keys: [STORAGE_KEY, KEY_ABFALL, KEY_BETREUUNG],
         onRemoteChange: function () { events = ladenAlle(); renderFilter(); renderAktuelleAnsicht(); if (document.getElementById('modalAbfall').classList.contains('zeigen') && !abfallVorschau) abfallRendern(); },
       });
       haushaltSync = window.PlanerSync.starteSync({ modul: 'haushalt', keys: ['haushalt_aufgaben'] });

@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<script>(function(){try{var m=localStorage.getItem('planer_darkMode');if(m==='dunkel'||(m==='auto'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.setAttribute('data-dark','1');}var s=localStorage.getItem('planer_schriftgroesse');if(s==='gross'){document.documentElement.style.fontSize='19px';}var f=localStorage.getItem('planer_farbschema');if(f&&f!=='wald'){document.documentElement.setAttribute('data-farbschema',f);}}catch(e){}})();</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zähler</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap');
+  :root {
+    --soil: #3a2e1f; --moss: #4f6f45; --sage: #7fa476; --leaf: #bcd196;
+    --cream: #faf6ec; --parchment: #ece0c7; --bark: #7d6339;
+    --terracotta: #c46b41; --terracotta-text: #a8532e; --sky: #5b8bb5; --gold: #c99a3a;
+    --white: #fffdf8; --navbg: #2a2016; --navbg2: #3a2e1f; --rot: #b3261e; --rot-bg: #fbe4e1; --fest: #b8467a;
+    --radius-sm: 8px; --radius-md: 12px; --radius-lg: 18px; --radius-pill: 22px;
+    --shadow-soft: 0 2px 10px rgba(59,47,30,0.08); --shadow-md: 0 8px 26px rgba(59,47,30,0.2);
+  }
+  html[data-dark="1"] {
+    --soil: #f0e8d8; --moss: #6fae5e; --sage: #9bc98a; --leaf: #cfe3b8;
+    --cream: #1e1b16; --parchment: #2b261e; --bark: #c2b393;
+    --terracotta: #d9855a; --terracotta-text: #e8a37e; --sky: #7fa8cc; --gold: #dcb158;
+    --white: #2f2a22; --navbg: #14100c; --navbg2: #221a12; --rot: #ff8a80; --rot-bg: rgba(179,38,30,0.22); --fest: #e48ab3;
+  }
+  html[data-farbschema="ozean"] { --navbg: #1c1f24; --navbg2: #2b2f36; --sage: #8fd4c9; --leaf: #8fd4c9; --moss: #4fa89c; }
+  html[data-farbschema="schnee"] { --navbg: #1c1f24; --navbg2: #2b2f36; --sage: #c9cdd3; --leaf: #f0f0f2; --moss: #5b5f66; }
+  html[data-farbschema="fjord"] { --navbg: #1c1f24; --navbg2: #2b2f36; --sage: #9cc0ec; --leaf: #9cc0ec; --moss: #5b8bc9; }
+  html[data-farbschema="bernstein"] { --navbg: #1c1f24; --navbg2: #2b2f36; --sage: #e6c878; --leaf: #e6c878; --moss: #c9a24d; }
+  html[data-dark="1"][data-farbschema] { --cream: #191b1f; --parchment: #24262c; --white: #2a2d33; --soil: #eceef0; --bark: #a7acb5; }
+  html[data-dark="1"] { --moss-text: var(--sage); --on-moss: #16140f; }
+  html[data-dark="1"][data-farbschema="schnee"] { --on-moss: #f4f5f6; }
+  html[data-dark="1"] input, html[data-dark="1"] select, html[data-dark="1"] textarea { color-scheme: dark; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--cream); color: var(--soil); min-height: 100vh; padding-bottom: 70px; }
+  button, input, select, textarea { font-family: inherit; -webkit-tap-highlight-color: transparent; }
+  :focus-visible { outline: 2px solid var(--terracotta); outline-offset: 2px; border-radius: 4px; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--cream); color: var(--soil); min-height: 100vh; padding-bottom: 60px; }
+  button, input, select { font-family: inherit; }
+  header.top { position: sticky; top: 0; z-index: 20; background: linear-gradient(135deg, var(--navbg2), var(--navbg)); color: var(--leaf); padding: 8px 12px 10px; }
+  .titel-zeile { display: flex; align-items: center; gap: 6px; }
+  .titel-zeile h1 { font-family: 'Playfair Display', serif; font-size: 1.15rem; flex: 1; }
+  .kopf-btn { background: transparent; border: 1px solid #4a3a28; color: var(--sage); border-radius: var(--radius-pill); padding: 5px 11px; font-size: 0.76rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
+  .kopf-btn.voll { background: var(--terracotta); border-color: var(--terracotta); color: #fff; }
+  main { padding: 14px; max-width: 760px; margin: 0 auto; }
+  .karte { background: var(--white); border-radius: var(--radius-md); padding: 13px 14px; box-shadow: var(--shadow-soft); margin-bottom: 12px; border-left: 5px solid var(--zf, var(--moss)); }
+  .z-kopf { display: flex; align-items: center; gap: 10px; }
+  .z-kopf .em { font-size: 1.8rem; }
+  .z-kopf .info { flex: 1; min-width: 0; }
+  .z-kopf b { display: block; font-size: 0.98rem; }
+  .z-kopf small { font-size: 0.74rem; color: var(--bark); }
+  .z-werte { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 10px 0 8px; }
+  .z-wert { background: var(--cream); border-radius: var(--radius-sm); padding: 7px 8px; }
+  .z-wert span { display: block; font-size: 0.64rem; font-weight: 700; color: var(--bark); text-transform: uppercase; letter-spacing: .03em; }
+  .z-wert b { font-size: 0.95rem; }
+  .prognose { border-radius: var(--radius-sm); padding: 8px 11px; font-size: 0.82rem; line-height: 1.45; margin-bottom: 8px; }
+  .prognose.plus { background: rgba(79,111,69,0.15); }
+  .prognose.minus { background: var(--rot-bg); }
+  .prognose.neutral { background: var(--cream); }
+  .chart svg { width: 100%; height: auto; display: block; }
+  .btn { border: none; border-radius: var(--radius-pill); padding: 9px 14px; font-weight: 700; font-size: 0.82rem; cursor: pointer; }
+  .btn-primary { background: var(--moss); color: var(--on-moss, #fff); }
+  .btn-secondary { background: var(--white); color: var(--soil); border: 1px solid var(--parchment); }
+  .btn-gefahr { background: transparent; color: var(--rot); border: 1px solid var(--rot); }
+  .knopf-reihe { display: flex; gap: 6px; flex-wrap: wrap; }
+  details summary { cursor: pointer; font-size: 0.78rem; font-weight: 700; color: var(--terracotta-text); margin-top: 6px; }
+  .stand { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-top: 1px solid var(--parchment); font-size: 0.82rem; }
+  .stand:first-of-type { border-top: none; }
+  .stand img { width: 36px; height: 36px; object-fit: cover; border-radius: 6px; cursor: zoom-in; }
+  .stand .rechts { margin-left: auto; color: var(--bark); font-size: 0.74rem; }
+  .stand button { border: none; background: none; color: var(--terracotta-text); cursor: pointer; }
+  .leer { text-align: center; color: var(--bark); font-size: 0.88rem; padding: 26px 12px; line-height: 1.6; }
+  .schnell { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+  .schnell button { border: 1px solid var(--parchment); background: var(--white); color: var(--soil); border-radius: var(--radius-md); padding: 14px 6px; font-weight: 700; cursor: pointer; font-size: 0.84rem; }
+  .schnell button span { display: block; font-size: 1.6rem; }
+  .modal-bg { position: fixed; inset: 0; background: rgba(42,32,22,0.45); display: none; align-items: flex-end; justify-content: center; z-index: 100; }
+  .modal-bg.zeigen { display: flex; }
+  .modal { background: var(--cream); border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding: 18px; width: 100%; max-width: 540px; max-height: 92vh; overflow-y: auto; }
+  @media (min-width: 600px) { .modal-bg { align-items: center; } .modal { border-radius: var(--radius-lg); } }
+  .modal h2 { font-family: 'Playfair Display', serif; font-size: 1.15rem; margin-bottom: 10px; }
+  .feld { margin-bottom: 10px; }
+  .feld label { display: block; font-size: 0.68rem; font-weight: 700; color: var(--bark); margin-bottom: 3px; text-transform: uppercase; letter-spacing: .03em; }
+  .feld input, .feld select { width: 100%; padding: 9px 11px; border: 1px solid var(--parchment); border-radius: var(--radius-sm); background: var(--white); color: var(--soil); font-size: 0.9rem; }
+  .zwei { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .hinweis { font-size: 0.74rem; color: var(--bark); line-height: 1.45; }
+  .warn { color: var(--rot); font-weight: 700; font-size: 0.78rem; min-height: 1em; }
+  .modal-btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; flex-wrap: wrap; }
+  .foto-vorschau img { max-width: 100%; max-height: 180px; border-radius: var(--radius-sm); margin-top: 6px; }
+  #bildGross { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 300; }
+  #bildGross.zeigen { display: flex; }
+  #bildGross img { max-width: 95vw; max-height: 90vh; }
+</style>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-storage-compat.js"></script>
+<script src="personen.js"></script>
+<script src="sync.js"></script>
+<script src="fotospeicher.js"></script>
+<script src="gemeinsam.js"></script>
+</head>
+<body>
+<div id="tempStatus"></div>
+<header class="top">
+  <div class="titel-zeile">
+    <h1>📊 Zählerstände</h1>
+    <button type="button" class="kopf-btn" id="btnErinnerung">🔔</button>
+    <button type="button" class="kopf-btn voll" id="btnNeuZaehler">＋ Zähler</button>
+  </div>
+</header>
+<main id="inhalt"></main>
+<div id="bildGross"><img alt="Zählerfoto"></div>
+
+<div class="modal-bg" id="modalAblesen">
+  <div class="modal">
+    <h2 id="ablesenTitel">Ablesen</h2>
+    <div class="zwei">
+      <div class="feld"><label for="aDatum">Datum</label><input type="date" id="aDatum"></div>
+      <div class="feld"><label for="aWert" id="aWertLabel">Zählerstand</label><input type="text" inputmode="decimal" id="aWert" autocomplete="off"></div>
+    </div>
+    <div class="warn" id="aWarn"></div>
+    <div class="feld"><label>Foto vom Zähler (optional)</label><input type="file" accept="image/*" capture="environment" id="aFoto"><div class="foto-vorschau" id="aFotoVorschau"></div></div>
+    <div class="feld"><label for="aNotiz">Notiz</label><input type="text" id="aNotiz" placeholder="z. B. Zählerwechsel, Abrechnung"></div>
+    <div class="hinweis">Tipp: Am besten immer am gleichen Tag im Monat ablesen (z. B. am 1.). Das Foto ist ein Beleg, falls die Abrechnung nicht stimmt.</div>
+    <div class="modal-btns"><button type="button" class="btn btn-secondary" data-zu="modalAblesen">Abbrechen</button><button type="button" class="btn btn-primary" id="btnAblesenSpeichern">Speichern</button></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalZaehler">
+  <div class="modal">
+    <h2 id="zaehlerTitel">Zähler</h2>
+    <div class="zwei">
+      <div class="feld"><label for="zArt">Art</label><select id="zArt"></select></div>
+      <div class="feld"><label for="zName">Name</label><input type="text" id="zName" placeholder="z. B. Strom Haus"></div>
+      <div class="feld"><label for="zEinheit">Einheit</label><select id="zEinheit"><option>kWh</option><option>m³</option><option>MWh</option><option>Einheiten</option></select></div>
+      <div class="feld"><label for="zNummer">Zählernummer</label><input type="text" id="zNummer"></div>
+      <div class="feld"><label for="zPreis">Arbeitspreis (€ je Einheit)</label><input type="text" inputmode="decimal" id="zPreis" placeholder="z. B. 0,32"></div>
+      <div class="feld"><label for="zGrund">Grundpreis (€ im Monat)</label><input type="text" inputmode="decimal" id="zGrund" placeholder="z. B. 12,50"></div>
+      <div class="feld"><label for="zAbschlag">Abschlag (€ im Monat)</label><input type="text" inputmode="decimal" id="zAbschlag" placeholder="z. B. 95"></div>
+      <div class="feld"><label for="zBeginn">Abrechnungsjahr beginnt</label><select id="zBeginn"></select></div>
+    </div>
+    <div class="hinweis">Preise und Abschlag stehen auf der letzten Jahresabrechnung oder im Vertrag. Damit rechnet der Planer aus, ob eine Nachzahlung droht. Bei Gas in m³: Arbeitspreis je m³ eintragen (kWh-Preis × Brennwert, meist etwa × 10).</div>
+    <div class="modal-btns"><button type="button" class="btn btn-gefahr" id="btnZaehlerLoeschen">Löschen</button><span style="flex:1"></span><button type="button" class="btn btn-secondary" data-zu="modalZaehler">Abbrechen</button><button type="button" class="btn btn-primary" id="btnZaehlerSpeichern">Speichern</button></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  const KEY_Z = 'zaehler_liste', KEY_S = 'zaehler_staende';
+  let zaehler = laden(KEY_Z, []); if (!Array.isArray(zaehler)) zaehler = [];
+  let staende = laden(KEY_S, []); if (!Array.isArray(staende)) staende = [];
+  const $ = (id) => document.getElementById(id);
+  const esc = escapeHtml;
+  const ARTEN = {
+    strom: { em: '⚡', name: 'Strom', einheit: 'kWh', farbe: '#e0a81c', preis: 0.32, grund: 12 },
+    gas: { em: '🔥', name: 'Gas', einheit: 'm³', farbe: '#d9622b', preis: 1.1, grund: 15 },
+    wasser: { em: '💧', name: 'Wasser', einheit: 'm³', farbe: '#3d8fd1', preis: 4.8, grund: 8 },
+    waerme: { em: '🌡️', name: 'Wärme', einheit: 'kWh', farbe: '#c0392b', preis: 0.12, grund: 10 },
+    pv: { em: '☀️', name: 'Einspeisung (PV)', einheit: 'kWh', farbe: '#7cb342', preis: 0.08, grund: 0 },
+    sonst: { em: '🔢', name: 'Sonstiger Zähler', einheit: 'Einheiten', farbe: '#7d6339', preis: 0, grund: 0 },
+  };
+  const MONATE = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
+  function zahl(v) { const n = parseFloat(String(v == null ? '' : v).replace(/\s/g, '').replace(',', '.')); return isNaN(n) ? null : n; }
+  function fmt(x, st) { return (Math.round(x * Math.pow(10, st || 0)) / Math.pow(10, st || 0)).toLocaleString('de-DE'); }
+  function euro(x) { return x.toLocaleString('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }); }
+  function tage(a, b) { return Math.round((ausISO(b) - ausISO(a)) / 864e5); }
+  function plusTage(iso, n) { const d = ausISO(iso); d.setDate(d.getDate() + n); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+  function datumKurz(iso) { return ausISO(iso).toLocaleDateString('de-DE', { day: 'numeric', month: 'numeric', year: '2-digit' }); }
+  function staendeVon(id) { return staende.filter(s => s.zaehlerId === id && s.datum && zahl(s.wert) !== null).sort((a, b) => a.datum.localeCompare(b.datum)); }
+
+  // Verbrauch zwischen zwei Tagen (lineare Verteilung zwischen den Ablesungen); null, wenn nicht abgedeckt
+  function verbrauch(liste, von, bis) {
+    if (liste.length < 2 || von >= bis) return null;
+    if (von < liste[0].datum || bis > liste[liste.length - 1].datum) return null;
+    let summe = 0;
+    for (let i = 0; i < liste.length - 1; i++) {
+      const a = liste[i], b = liste[i + 1];
+      const s = a.datum > von ? a.datum : von, e = b.datum < bis ? b.datum : bis;
+      if (e <= s) continue;
+      const d = tage(a.datum, b.datum); if (d <= 0) continue;
+      summe += (zahl(b.wert) - zahl(a.wert)) * tage(s, e) / d;
+    }
+    return summe;
+  }
+  function monatsVerbrauch(liste, jahr, monat) {
+    const von = jahr + '-' + String(monat + 1).padStart(2, '0') + '-01';
+    const bisD = new Date(jahr, monat + 1, 1); const bis = bisD.getFullYear() + '-' + String(bisD.getMonth() + 1).padStart(2, '0') + '-01';
+    const l0 = liste[0], l1 = liste[liste.length - 1];
+    if (!l0 || l1.datum <= von || l0.datum >= bis) return null;
+    const v = verbrauch(liste, von < l0.datum ? l0.datum : von, bis > l1.datum ? l1.datum : bis);
+    if (v === null) return null;
+    const abgedeckt = tage(von < l0.datum ? l0.datum : von, bis > l1.datum ? l1.datum : bis), gesamt = tage(von, bis);
+    return { wert: v, voll: abgedeckt >= gesamt - 1, anteil: abgedeckt / gesamt };
+  }
+  // Prognose für das laufende Abrechnungsjahr
+  function prognose(z, liste) {
+    if (liste.length < 2) return null;
+    const heute = heuteISO();
+    const mm = String(z.beginn || '01').padStart(2, '0');
+    let start = heute.slice(0, 4) + '-' + mm + '-01';
+    if (start > heute) start = (Number(heute.slice(0, 4)) - 1) + '-' + mm + '-01';
+    const ende = (Number(start.slice(0, 4)) + 1) + start.slice(4);
+    const erst = liste[0].datum, letzt = liste[liste.length - 1].datum;
+    const bekanntVon = start > erst ? start : erst;
+    if (letzt <= bekanntVon) return null;
+    const bekannt = verbrauch(liste, bekanntVon, letzt);
+    let rest = 0, methode = 'trend';
+    // Für die Zeit vor der ersten Ablesung und nach der letzten: Vorjahreswerte, sonst Durchschnitt
+    const tagesSchnitt = bekannt / Math.max(1, tage(bekanntVon, letzt));
+    const lueckeVorne = tage(start, bekanntVon), lueckeHinten = tage(letzt, ende);
+    const vj = (a, b) => verbrauch(liste, (Number(a.slice(0, 4)) - 1) + a.slice(4), (Number(b.slice(0, 4)) - 1) + b.slice(4));
+    const vjHinten = lueckeHinten > 0 ? vj(letzt, ende) : 0, vjVorne = lueckeVorne > 0 ? vj(start, bekanntVon) : 0;
+    if (vjHinten !== null && vjVorne !== null) { rest = (vjHinten || 0) + (vjVorne || 0); methode = 'vorjahr'; }
+    else rest = tagesSchnitt * (lueckeVorne + lueckeHinten);
+    const gesamt = bekannt + rest;
+    const preis = zahl(z.preis) || 0, grund = zahl(z.grund) || 0, abschlag = zahl(z.abschlag) || 0;
+    const kosten = gesamt * preis + grund * 12;
+    return { start, ende, bekannt, gesamt, kosten, bezahlt: abschlag * 12, methode, unsicher: tage(bekanntVon, letzt) < 60 };
+  }
+
+  function chartSvg(z, liste) {
+    const a = ARTEN[z.art] || ARTEN.sonst;
+    const jetzt = new Date();
+    const monate = [];
+    for (let i = 11; i >= 0; i--) { const d = new Date(jetzt.getFullYear(), jetzt.getMonth() - i, 1); monate.push({ j: d.getFullYear(), m: d.getMonth() }); }
+    const werte = monate.map(x => ({ x, akt: monatsVerbrauch(liste, x.j, x.m), vj: monatsVerbrauch(liste, x.j - 1, x.m) }));
+    const max = Math.max(1, ...werte.map(w => Math.max(w.akt ? w.akt.wert : 0, w.vj ? w.vj.wert : 0)));
+    if (!werte.some(w => w.akt)) return '';
+    const B = 300, H = 120, bw = B / 12;
+    return '<svg viewBox="0 0 ' + B + ' ' + (H + 40) + '" role="img" aria-label="Verbrauch pro Monat"><g transform="translate(0 10)">' + werte.map((w, i) => {
+      const x = i * bw;
+      const vh = w.vj ? w.vj.wert / max * H : 0, ah = w.akt ? w.akt.wert / max * H : 0;
+      return (w.vj ? '<rect x="' + (x + 3) + '" y="' + (H - vh) + '" width="' + (bw - 6) + '" height="' + vh + '" fill="currentColor" opacity="0.15" rx="2"><title>' + MONATE[w.x.m] + ' ' + (w.x.j - 1) + ': ' + fmt(w.vj.wert, 1) + '</title></rect>' : '') +
+        (w.akt ? '<rect x="' + (x + 6) + '" y="' + (H - ah) + '" width="' + (bw - 12) + '" height="' + ah + '" fill="' + a.farbe + '" opacity="' + (w.akt.voll ? 1 : 0.5) + '" rx="2"><title>' + MONATE[w.x.m] + ' ' + w.x.j + ': ' + fmt(w.akt.wert, 1) + ' ' + esc(z.einheit || a.einheit) + (w.akt.voll ? '' : ' (teilweise)') + '</title></rect>' : '') +
+        '<text x="' + (x + bw / 2) + '" y="' + (H + 12) + '" font-size="8" text-anchor="middle" fill="currentColor" opacity="0.7">' + MONATE[w.x.m] + '</text>' +
+        (w.akt ? '<text x="' + (x + bw / 2) + '" y="' + (H - ah - 3) + '" font-size="7" text-anchor="middle" fill="currentColor">' + fmt(w.akt.wert, w.akt.wert < 10 ? 1 : 0) + '</text>' : '');
+    }).join('') + '<text x="0" y="' + (H + 26) + '" font-size="8" fill="currentColor" opacity="0.7">▮ dieses Jahr   ▯ heller: Vorjahr (pro Monat, ' + esc(z.einheit || a.einheit) + ')</text></g></svg>';
+  }
+
+  function render() {
+    const box = $('inhalt');
+    if (!zaehler.length) {
+      box.innerHTML = '<div class="leer">📊 Noch keine Zähler.<br>Einmal im Monat ablesen und eintippen – der Planer zeigt den Verbrauch pro Monat, den Vergleich zum Vorjahr und ob der Abschlag reicht.</div>' +
+        '<div class="schnell">' + ['strom', 'gas', 'wasser'].map(k => '<button type="button" data-schnell="' + k + '"><span>' + ARTEN[k].em + '</span>' + ARTEN[k].name + '</button>').join('') + '</div>';
+      box.querySelectorAll('[data-schnell]').forEach(b => b.addEventListener('click', () => zaehlerOeffnen(null, b.dataset.schnell)));
+      return;
+    }
+    box.innerHTML = zaehler.map(z => {
+      const a = ARTEN[z.art] || ARTEN.sonst, ein = z.einheit || a.einheit, liste = staendeVon(z.id);
+      const letzt = liste[liste.length - 1], vor = liste[liste.length - 2];
+      const seit = letzt ? tage(letzt.datum, heuteISO()) : null;
+      const proTag = letzt && vor && tage(vor.datum, letzt.datum) > 0 ? (zahl(letzt.wert) - zahl(vor.wert)) / tage(vor.datum, letzt.datum) : null;
+      const jahrVon = heuteISO().slice(0, 4) + '-01-01';
+      const diesesJahr = liste.length >= 2 ? verbrauch(liste, jahrVon > liste[0].datum ? jahrVon : liste[0].datum, letzt.datum) : null;
+      const p = prognose(z, liste);
+      let progHtml = '';
+      if (p && zahl(z.preis) && zahl(z.abschlag)) {
+        const diff = p.bezahlt - p.kosten;
+        progHtml = '<div class="prognose ' + (Math.abs(diff) < p.kosten * 0.03 ? 'neutral' : diff > 0 ? 'plus' : 'minus') + '">' + (diff >= 0 ? '👍 Voraussichtlich <b>' + euro(diff) + ' Guthaben</b>' : '⚠️ Voraussichtlich <b>' + euro(-diff) + ' Nachzahlung</b>') +
+          ' für ' + datumKurz(p.start) + '–' + datumKurz(plusTage(p.ende, -1)) + '<br><span class="hinweis">Hochgerechnet ' + fmt(p.gesamt) + ' ' + esc(ein) + ' ≈ ' + euro(p.kosten) + ', Abschläge ' + euro(p.bezahlt) + (p.methode === 'vorjahr' ? ' · Rest nach Vorjahr' : ' · Rest nach Durchschnitt') + (p.unsicher ? ' · noch ungenau (wenige Werte)' : '') + (diff < 0 ? ' · Abschlag ' + euro(Math.ceil(-diff / 12)) + ' höher würde es ausgleichen' : '') + '</span></div>';
+      } else if (p) progHtml = '<div class="prognose neutral">Hochgerechnet aufs Abrechnungsjahr: <b>' + fmt(p.gesamt) + ' ' + esc(ein) + '</b><br><span class="hinweis">Mit Arbeitspreis und Abschlag (⚙️) zeigt der Planer, ob eine Nachzahlung droht.</span></div>';
+      return '<div class="karte" style="--zf:' + a.farbe + '">' +
+        '<div class="z-kopf"><span class="em">' + a.em + '</span><div class="info"><b>' + esc(z.name || a.name) + '</b><small>' + (letzt ? 'Zuletzt ' + fmt(zahl(letzt.wert), 1) + ' ' + esc(ein) + ' am ' + datumKurz(letzt.datum) + (seit > 35 ? ' · <b style="color:var(--rot)">vor ' + seit + ' Tagen</b>' : '') : 'Noch nicht abgelesen') + (z.nummer ? ' · Nr. ' + esc(z.nummer) : '') + '</small></div>' +
+        '<button type="button" class="btn btn-primary" data-ablesen="' + esc(z.id) + '">📷 Ablesen</button></div>' +
+        (liste.length >= 2 ? '<div class="z-werte"><div class="z-wert"><span>pro Tag</span><b>' + (proTag !== null ? fmt(proTag, proTag < 10 ? 2 : 1) : '–') + '</b> ' + esc(ein) + '</div><div class="z-wert"><span>' + heuteISO().slice(0, 4) + ' bisher</span><b>' + (diesesJahr !== null ? fmt(diesesJahr) : '–') + '</b> ' + esc(ein) + '</div><div class="z-wert"><span>pro Monat Ø</span><b>' + (proTag !== null ? fmt(proTag * 30.4, proTag * 30.4 < 10 ? 1 : 0) : '–') + '</b> ' + esc(ein) + '</div></div>' : (liste.length === 1 ? '<p class="hinweis" style="margin:8px 0">Ab der zweiten Ablesung gibt es Verbrauch und Prognose.</p>' : '')) +
+        progHtml +
+        '<div class="chart">' + chartSvg(z, liste) + '</div>' +
+        (liste.length ? '<details><summary>📜 Ablesungen (' + liste.length + ')</summary>' + liste.slice().reverse().slice(0, 24).map((s, i, arr) => {
+          const prev = arr[i + 1];
+          const diff = prev ? zahl(s.wert) - zahl(prev.wert) : null;
+          const f = s.foto && (s.foto.url || s.foto.bild);
+          return '<div class="stand">' + (f ? '<img src="' + esc(f) + '" alt="Foto" data-gross="1">' : '') + '<span><b>' + fmt(zahl(s.wert), 1) + '</b> · ' + datumKurz(s.datum) + (s.notiz ? ' · ' + esc(s.notiz) : '') + '</span><span class="rechts">' + (diff !== null ? (diff >= 0 ? '+' : '') + fmt(diff, 1) : '') + '</span><button type="button" data-standweg="' + esc(s.id) + '" aria-label="Ablesung löschen">✕</button></div>';
+        }).join('') + '</details>' : '') +
+        '<div class="knopf-reihe" style="margin-top:8px"><button type="button" class="btn btn-secondary" data-einst="' + esc(z.id) + '">⚙️ Preise &amp; Einstellungen</button></div></div>';
+    }).join('');
+    box.querySelectorAll('[data-ablesen]').forEach(b => b.addEventListener('click', () => ablesenOeffnen(b.dataset.ablesen)));
+    box.querySelectorAll('[data-einst]').forEach(b => b.addEventListener('click', () => zaehlerOeffnen(zaehler.find(z => z.id === b.dataset.einst))));
+    box.querySelectorAll('[data-gross]').forEach(img => img.addEventListener('click', () => { $('bildGross').querySelector('img').src = img.src; $('bildGross').classList.add('zeigen'); }));
+    box.querySelectorAll('[data-standweg]').forEach(b => b.addEventListener('click', () => {
+      const i = staende.findIndex(s => s.id === b.dataset.standweg); if (i < 0) return;
+      const s = staende[i]; staende.splice(i, 1); speichern(KEY_S, staende); render();
+      showTempStatus('Ablesung gelöscht', 6, { rueckgaengig: () => { staende.splice(i, 0, s); speichern(KEY_S, staende); render(); } });
+    }));
+  }
+  $('bildGross').addEventListener('click', () => $('bildGross').classList.remove('zeigen'));
+  document.querySelectorAll('[data-zu]').forEach(b => b.addEventListener('click', () => $(b.dataset.zu).classList.remove('zeigen')));
+  document.querySelectorAll('.modal-bg').forEach(m => m.addEventListener('click', e => { if (e.target === m) m.classList.remove('zeigen'); }));
+
+  // ---------- Zähler anlegen/bearbeiten ----------
+  let zEdit = null;
+  $('zArt').innerHTML = Object.keys(ARTEN).map(k => '<option value="' + k + '">' + ARTEN[k].em + ' ' + ARTEN[k].name + '</option>').join('');
+  $('zBeginn').innerHTML = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'].map((m, i) => '<option value="' + String(i + 1).padStart(2, '0') + '">' + m + '</option>').join('');
+  function zaehlerOeffnen(z, art) {
+    zEdit = z;
+    const a = ARTEN[z ? z.art : art] || ARTEN.strom;
+    $('zaehlerTitel').textContent = z ? '⚙️ ' + (z.name || a.name) : a.em + ' Neuer Zähler';
+    $('zArt').value = z ? z.art : (art || 'strom');
+    $('zName').value = z ? z.name || '' : a.name;
+    $('zEinheit').value = z ? z.einheit || a.einheit : a.einheit;
+    $('zNummer').value = z ? z.nummer || '' : '';
+    $('zPreis').value = z && z.preis != null ? String(z.preis).replace('.', ',') : '';
+    $('zGrund').value = z && z.grund != null ? String(z.grund).replace('.', ',') : '';
+    $('zAbschlag').value = z && z.abschlag != null ? String(z.abschlag).replace('.', ',') : '';
+    $('zPreis').placeholder = 'z. B. ' + String(a.preis).replace('.', ',');
+    $('zBeginn').value = z ? z.beginn || '01' : '01';
+    $('btnZaehlerLoeschen').style.display = z ? '' : 'none';
+    $('modalZaehler').classList.add('zeigen');
+  }
+  $('zArt').addEventListener('change', () => { const a = ARTEN[$('zArt').value]; if (!zEdit) { $('zName').value = a.name; $('zEinheit').value = a.einheit; } $('zPreis').placeholder = 'z. B. ' + String(a.preis).replace('.', ','); });
+  $('btnNeuZaehler').addEventListener('click', () => zaehlerOeffnen(null, 'strom'));
+  $('btnZaehlerSpeichern').addEventListener('click', () => {
+    const d = { art: $('zArt').value, name: $('zName').value.trim(), einheit: $('zEinheit').value, nummer: $('zNummer').value.trim(), preis: zahl($('zPreis').value), grund: zahl($('zGrund').value), abschlag: zahl($('zAbschlag').value), beginn: $('zBeginn').value };
+    if (zEdit) Object.assign(zEdit, d); else zaehler.push(Object.assign({ id: neueId('z') }, d));
+    speichern(KEY_Z, zaehler); $('modalZaehler').classList.remove('zeigen'); render();
+  });
+  $('btnZaehlerLoeschen').addEventListener('click', () => {
+    if (!zEdit || !confirm('Zähler „' + (zEdit.name || '') + '“ mit allen Ablesungen löschen?')) return;
+    const z = zEdit, alt = staende.slice();
+    zaehler = zaehler.filter(x => x !== z); staende = staende.filter(s => s.zaehlerId !== z.id);
+    speichern(KEY_Z, zaehler); speichern(KEY_S, staende); $('modalZaehler').classList.remove('zeigen'); render();
+    showTempStatus('Zähler gelöscht', 6, { rueckgaengig: () => { zaehler.push(z); staende = alt; speichern(KEY_Z, zaehler); speichern(KEY_S, staende); render(); } });
+  });
+
+  // ---------- Ablesen ----------
+  let aZaehler = null, aFoto = null;
+  function ablesenOeffnen(id) {
+    aZaehler = zaehler.find(z => z.id === id); if (!aZaehler) return;
+    const a = ARTEN[aZaehler.art] || ARTEN.sonst, liste = staendeVon(id), letzt = liste[liste.length - 1];
+    $('ablesenTitel').textContent = a.em + ' ' + (aZaehler.name || a.name) + ' ablesen';
+    $('aDatum').value = heuteISO(); $('aWert').value = ''; $('aNotiz').value = ''; $('aWarn').textContent = '';
+    $('aWertLabel').textContent = 'Zählerstand (' + (aZaehler.einheit || a.einheit) + ')';
+    $('aWert').placeholder = letzt ? 'zuletzt ' + fmt(zahl(letzt.wert), 1) : 'z. B. 12345,6';
+    aFoto = null; $('aFotoVorschau').innerHTML = ''; $('aFoto').value = '';
+    $('modalAblesen').classList.add('zeigen');
+    setTimeout(() => $('aWert').focus(), 60);
+  }
+  function plausibel() {
+    const w = zahl($('aWert').value), d = $('aDatum').value;
+    if (w === null || !aZaehler) { $('aWarn').textContent = ''; return; }
+    const liste = staendeVon(aZaehler.id).filter(s => s.datum !== d);
+    const vorher = liste.filter(s => s.datum < d).pop(), nachher = liste.find(s => s.datum > d);
+    if (vorher && w < zahl(vorher.wert)) $('aWarn').textContent = '⚠ Kleiner als am ' + datumKurz(vorher.datum) + ' (' + fmt(zahl(vorher.wert), 1) + ') – Tippfehler oder Zählerwechsel?';
+    else if (nachher && w > zahl(nachher.wert)) $('aWarn').textContent = '⚠ Größer als die spätere Ablesung vom ' + datumKurz(nachher.datum) + '.';
+    else $('aWarn').textContent = '';
+  }
+  $('aWert').addEventListener('input', plausibel); $('aDatum').addEventListener('change', plausibel);
+  function cloudBereit() { return !!(window.FotoSpeicher && window.FotoSpeicher.verfuegbar && window.FotoSpeicher.verfuegbar()); }
+  $('aFoto').addEventListener('change', (e) => {
+    const datei = e.target.files && e.target.files[0]; if (!datei) return;
+    const r = new FileReader();
+    r.onload = (ev) => { const img = new Image(); img.onload = () => {
+      const max = cloudBereit() ? 1200 : 600, k = Math.min(1, max / Math.max(img.width, img.height));
+      const c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      aFoto = { bild: c.toDataURL('image/jpeg', cloudBereit() ? 0.78 : 0.55) };
+      $('aFotoVorschau').innerHTML = '<img src="' + aFoto.bild + '" alt="Vorschau">';
+    }; img.src = ev.target.result; };
+    r.readAsDataURL(datei);
+  });
+  $('btnAblesenSpeichern').addEventListener('click', () => {
+    const w = zahl($('aWert').value), d = $('aDatum').value;
+    if (w === null || !d) { $('aWarn').textContent = 'Bitte Datum und Zählerstand eintragen.'; return; }
+    const alt = staende.find(s => s.zaehlerId === aZaehler.id && s.datum === d);
+    const eintrag = { id: alt ? alt.id : neueId('s'), zaehlerId: aZaehler.id, datum: d, wert: w, notiz: $('aNotiz').value.trim(), von: (function () { try { return localStorage.getItem('planer_geraetIdentitaet') || ''; } catch (e) { return ''; } })() };
+    if (aFoto) eintrag.foto = aFoto; else if (alt && alt.foto) eintrag.foto = alt.foto;
+    if (alt) Object.assign(alt, eintrag); else staende.push(eintrag);
+    speichern(KEY_S, staende); $('modalAblesen').classList.remove('zeigen'); render();
+    showTempStatus('📊 ' + fmt(w, 1) + ' gespeichert', 3);
+    if (aFoto) setTimeout(fotosHochladen, 300);
+  });
+
+  // ---------- Fotos in den Familien-Fotospeicher ----------
+  function bildHash(t) { let h1 = 0x811c9dc5, h2 = 5381; for (let i = 0; i < t.length; i++) { const c = t.charCodeAt(i); h1 = Math.imul(h1 ^ c, 16777619); h2 = (Math.imul(h2, 33) + c) | 0; } return (h1 >>> 0).toString(36) + (h2 >>> 0).toString(36); }
+  let laeuft = false;
+  async function fotosHochladen() {
+    if (laeuft || !cloudBereit() || !navigator.onLine) return;
+    laeuft = true; let geaendert = false;
+    try {
+      for (const s of staende) {
+        if (!s.foto || s.foto.url || typeof s.foto.bild !== 'string') continue;
+        const daten = s.foto.bild;
+        let erg = null;
+        try { erg = await window.FotoSpeicher.hochladen('zs' + bildHash(daten), daten); } catch (e) { console.warn('Zähler: Foto-Upload', e); return; }
+        if (!erg || !s.foto || s.foto.bild !== daten) continue;
+        s.foto = { url: erg.url, pfad: erg.pfad }; geaendert = true;
+      }
+    } finally { laeuft = false; if (geaendert) { speichern(KEY_S, staende); render(); } }
+  }
+
+  // ---------- 🔔 Monatliche Erinnerung (Termin am 1. jedes Monats) ----------
+  let termineSync = null;
+  function erinnerungAn() { return laden('termine_events_v1', []).some(e => e && e.id === 't_zaehler'); }
+  function erinnerungKnopf() { $('btnErinnerung').textContent = erinnerungAn() ? '🔔 an' : '🔔'; $('btnErinnerung').title = erinnerungAn() ? 'Monatliche Ablese-Erinnerung ist eingetragen – antippen zum Entfernen' : 'Jeden Monat ans Ablesen erinnern'; }
+  $('btnErinnerung').addEventListener('click', () => {
+    let ev = laden('termine_events_v1', []);
+    if (erinnerungAn()) { ev = ev.filter(e => e.id !== 't_zaehler'); showTempStatus('🔕 Erinnerung entfernt', 3); }
+    else {
+      const d = new Date(); const n = new Date(d.getFullYear(), d.getMonth() + 1, 1);
+      const iso = n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0') + '-01';
+      ev.push({ id: 't_zaehler', title: '📊 Zählerstände ablesen', date: iso, allDay: true, startTime: '', endTime: '', wer: 'familie', location: '', notes: 'Strom, Gas, Wasser – im Bereich 📊 Zähler eintragen.', erinnerung: 0, recurrence: { freq: 'monatlich', interval: 1, until: null } });
+      showTempStatus('🔔 Ab ' + n.toLocaleDateString('de-DE') + ' jeden 1. im Monat in Termine', 4);
+    }
+    try { localStorage.setItem('termine_events_v1', JSON.stringify(ev)); } catch (e) {}
+    if (termineSync) termineSync.melde();
+    erinnerungKnopf();
+  });
+
+  window.addEventListener('message', (e) => {
+    if (e.origin !== location.origin || !e.data || e.data.type !== 'shortcutAktion') return;
+    if (e.data.aktion === 'neu' && zaehler.length) ablesenOeffnen(zaehler[0].id);
+  });
+
+  render(); erinnerungKnopf();
+  if (window.PlanerSync) {
+    window._sync = window.PlanerSync.starteSync({ modul: 'zaehler', keys: [KEY_Z, KEY_S], onRemoteChange: () => {
+      zaehler = laden(KEY_Z, []); if (!Array.isArray(zaehler)) zaehler = [];
+      staende = laden(KEY_S, []); if (!Array.isArray(staende)) staende = [];
+      if (!document.querySelector('.modal-bg.zeigen')) render();
+    } });
+    termineSync = window.PlanerSync.starteSync({ modul: 'termine', keys: ['termine_events_v1'], onRemoteChange: erinnerungKnopf });
+    setTimeout(fotosHochladen, 3000);
+    window.addEventListener('online', fotosHochladen);
+  }
+})();
+</script>
+</body>
+</html>

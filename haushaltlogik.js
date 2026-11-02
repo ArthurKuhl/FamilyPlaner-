@@ -45,10 +45,18 @@
   };
 
   // Status für heute: { offen, ueberfaelligSeit (ISO|null), naechstesAm (ISO|null), heuteErledigt }
+  // 🧳 Urlaubsmodus (termine_urlaub): Haushaltsaufgaben ruhen in dieser Zeit
+  L.imUrlaub = function (iso) {
+    try {
+      const u = JSON.parse(localStorage.getItem('termine_urlaub') || 'null');
+      return !!(u && u.von && u.bis && u.haushaltPausieren !== false && iso >= u.von && iso <= u.bis);
+    } catch (e) { return false; }
+  };
   L.status = function (a, heuteIso) {
     const heute = heuteIso || L.heute();
     const erg = { offen: false, ueberfaelligSeit: null, naechstesAm: null, heuteErledigt: L.heuteErledigt(a) };
     if (a.pausiert) return erg;
+    if (typeof localStorage !== 'undefined' && L.imUrlaub(heute)) { erg.urlaub = true; return erg; }
     const letzte = L.letzteAktionTag(a);
     const angelegt = a.angelegt ? L.tag(a.angelegt) : '';
     if (a.turnus === 'taeglich') {

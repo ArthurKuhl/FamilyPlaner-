@@ -235,6 +235,15 @@
   .fin-klein { font-size: 0.75rem; color: var(--bark); }
   .kopf-sos { background: #b3261e; color: #fff; border: none; border-radius: 999px; font-size: 0.72rem; font-weight: 800; padding: 6px 10px; margin-top: 1px; cursor: pointer; letter-spacing: .02em; }
   .kopf-sos:focus-visible { outline: 2px solid var(--leaf); outline-offset: 2px; }
+  .ur-feld { margin-bottom: 8px; }
+  .ur-feld label { display: block; font-size: 0.7rem; font-weight: 700; color: var(--bark); text-transform: uppercase; letter-spacing: .03em; margin-bottom: 2px; }
+  .ur-feld input, .ur-feld textarea { width: 100%; padding: 8px 10px; border-radius: 9px; border: 1px solid var(--parchment); background: var(--cream); color: var(--soil); font-family: inherit; font-size: 0.86rem; }
+  .ur-zwei { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .ur-check { display: flex; align-items: center; gap: 8px; font-size: 0.84rem; padding: 4px 0; }
+  .ur-check input { width: 18px; height: 18px; accent-color: #4f6f45; }
+  .ur-pack { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 0.84rem; border-top: 1px solid var(--parchment); }
+  .ur-pack.fertig span { text-decoration: line-through; opacity: 0.6; }
+  .ur-pack button { margin-left: auto; border: none; background: none; color: #a8532e; cursor: pointer; }
   .nf-werte { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px; }
   .nf-wert { background: var(--cream); border-radius: var(--radius-sm); padding: 7px 10px; border-left: 4px solid var(--bark); font-size: 0.74rem; color: var(--bark); }
   .nf-wert b { display: block; font-size: 1.1rem; color: var(--soil); }
@@ -297,6 +306,8 @@
 <script src="terminlogik.js"></script>
 <script src="notfalllogik.js"></script>
 <script src="abfalllogik.js"></script>
+<script src="schullogik.js"></script>
+<script src="betreuunglogik.js"></script>
 </head>
 <body>
 
@@ -453,6 +464,14 @@
     <div id="notfallInfo"></div>
   </div>
 
+  <div class="kachel" id="kachelUrlaub" style="cursor:pointer">
+    <div class="kachel-kopf">
+      <div class="kachel-titel">🧳 Urlaub</div>
+      <span class="kachel-pfeil">→</span>
+    </div>
+    <div id="urlaubInfo"></div>
+  </div>
+
   <div class="kachel" id="kachelNeuigkeiten" style="cursor:pointer;display:none;">
     <div class="kachel-kopf">
       <div class="kachel-titel">🆕 Was ist neu</div>
@@ -531,6 +550,14 @@
 
 <div class="modal-bg" id="modalCommunityBild" style="z-index:120;">
   <img id="communityBildGross" alt="Bild" style="max-width:100%;max-height:88vh;border-radius:12px;">
+</div>
+
+<div class="modal-bg" id="modalUrlaub">
+  <div class="modal" style="max-height:88vh;overflow-y:auto;">
+    <h2>🧳 Urlaubsmodus</h2>
+    <div id="urlaubInhalt"></div>
+    <div class="modal-btns" style="margin-top:10px;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap"><button class="btn btn-secondary" id="btnUrlaubZu">Schließen</button></div>
+  </div>
 </div>
 
 <div class="modal-bg" id="modalWetter">
@@ -995,8 +1022,32 @@
         chips.push({ text: '🎂 ' + name + (tage === 0 ? ' heute!' : tage === 1 ? ' morgen' : ' in ' + tage + ' Tagen'), ziel: 'termine', wichtig: tage <= 1 });
       });
     }
+    // 🧳 Urlaub
+    const urlaub = lies('termine_urlaub', null);
+    const imUrlaub = !!(urlaub && urlaub.von && urlaub.bis && heuteISO >= urlaub.von && heuteISO <= urlaub.bis);
+    if (imUrlaub) chips.push({ text: '🧳 Urlaub bis ' + ausISO(urlaub.bis).toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'numeric' }) + (urlaub.haushaltPausieren !== false ? ' · Haushalt ruht' : ''), aktion: 'urlaub' });
+    // 👶 Betreuung fehlt (nächste 3 Wochen)
+    if (sichtbar('termine') && window.BetreuungLogik) {
+      try {
+        const BL = window.BetreuungLogik, offen = BL.offeneBald(events, BL.standard(lies('termine_betreuung', null)), heuteISO, 21);
+        if (offen.length) chips.push({ text: '👶 Betreuung fehlt: ' + ausISO(offen[0].datum).toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'numeric' }) + ' ' + offen[0].grund + (offen.length > 1 ? ' +' + (offen.length - 1) : ''), aktion: 'betreuung', wichtig: true });
+      } catch (e) { console.warn('Übersicht: Betreuung', e); }
+    }
+    // 🎒 Schule: was muss morgen mit? (nur wenn etwas mit muss oder Hausaufgaben offen sind)
+    if (sichtbar('kinder') && window.SchulLogik) {
+      try {
+        const schule = lies('kinder_schule', {}) || {};
+        const pname = id => ((window.PLANER_PERSONEN || []).find(p => p.id === id) || { label: id }).label;
+        Object.keys(schule).forEach(kid => {
+          const v = window.SchulLogik.vorschau(schule[kid]);
+          if (!v || v.wann === 'heute') return;
+          const teile = v.mitbringen.map(m => m.text).concat(v.todos.length ? [v.todos.length + (v.todos.length === 1 ? ' Hausaufgabe/Brief' : ' Hausaufgaben/Briefe')] : []);
+          if (teile.length) chips.push({ text: '🎒 ' + pname(kid) + ' ' + v.wann + ': ' + teile.join(', '), ziel: 'kinder' });
+        });
+      } catch (e) { console.warn('Übersicht: Schule', e); }
+    }
     // 🗑️ Abfuhr: abends „Morgen: … raus“, morgens bis 10 Uhr „Heute: …“ – antippen = steht draußen
-    if (sichtbar('termine') && window.AbfallLogik) {
+    if (sichtbar('termine') && window.AbfallLogik && !(imUrlaub && urlaub.abfallNachbar !== false)) {
       try {
         const AL = window.AbfallLogik, cfg = AL.standard(lies('termine_abfall', null));
         const an = AL.anstehend(cfg);
@@ -1047,7 +1098,7 @@
       if (bald.length) chips.push({ text: '⏳ ' + bald[0].name + (bald.length > 1 ? ' +' + (bald.length - 1) : '') + ' läuft ab', ziel: 'vorratskammer', wichtig: true });
     }
     box.innerHTML = chips.map((c, i) => '<button type="button" class="heute-chip' + (c.wichtig ? ' wichtig' : '') + '" data-i="' + i + '">' + escapeHtml(c.text) + '</button>').join('');
-    box.querySelectorAll('[data-i]').forEach(b => b.addEventListener('click', () => { const c = chips[+b.dataset.i]; if (c.aktion === 'abfall') { abfallRausUmschalten(c.an); return; } if (c.ziel) navigiere(c.ziel); }));
+    box.querySelectorAll('[data-i]').forEach(b => b.addEventListener('click', () => { const c = chips[+b.dataset.i]; if (c.aktion === 'abfall') { abfallRausUmschalten(c.an); return; } if (c.aktion === 'urlaub') { urlaubOeffnen(); return; } if (c.aktion === 'betreuung') { try { window.parent.postMessage({ type: 'navigiere', modul: 'termine', aktion: 'betreuung' }, window.location.origin); } catch (e) {} return; } if (c.ziel) navigiere(c.ziel); }));
   }
   // „Steht draußen“ abhaken – über die Haushaltsaufgabe (falls angelegt), sonst direkt im Abfuhrkalender
   let abfallSync = null;
@@ -2191,6 +2242,92 @@
   }
   document.getElementById('kachelGaming').addEventListener('click', () => navigiere('gaming'));
 
+
+  // ============================================================
+  // 🧳 URLAUBSMODUS (termine_urlaub, synchronisiert mit Termine)
+  // { von, bis, ziel, haushaltPausieren, abfallNachbar, nachbar, giessen, briefkasten, schluessel, erreichbar, sonst, packliste: [{ id, text, erledigt }] }
+  // ============================================================
+  let urlaubSync = null;
+  const PACK_VORLAGE = ['Ausweise & Krankenkassenkarten', 'Ladekabel & Powerbank', 'Medikamente & Reiseapotheke', 'Sonnencreme', 'Kuscheltiere', 'Kinder-Beschäftigung fürs Auto', 'Snacks & Getränke für die Fahrt', 'Kühlschrank leeren', 'Fenster zu, Herd aus, Wasser ab (Waschmaschine)', 'Pflanzen wässern / Schlüssel abgeben', 'Müll rausbringen'];
+  function urlaubLaden() { return laden('termine_urlaub', null) || {}; }
+  function urlaubSpeichern(u) { try { localStorage.setItem('termine_urlaub', JSON.stringify(u)); } catch (e) {} if (urlaubSync) urlaubSync.melde(); renderUrlaubKachel(); renderHeuteZeile(); }
+  function kurz(iso) { return ausISO(iso).toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'numeric' }); }
+  function renderUrlaubKachel() {
+    const u = urlaubLaden(), h = toISODatum(heute()), info = document.getElementById('urlaubInfo');
+    if (!info) return;
+    if (u.von && u.bis && u.bis >= h) {
+      const aktiv = h >= u.von, tage = Math.round((ausISO(u.von) - ausISO(h)) / 864e5);
+      const pack = (u.packliste || []), fertig = pack.filter(p => p.erledigt).length;
+      info.innerHTML = '<div style="font-size:0.88rem;font-weight:700">' + (u.ziel ? escapeHtml(u.ziel) + ' · ' : '') + kurz(u.von) + ' – ' + kurz(u.bis) + '</div>' +
+        '<div style="font-size:0.78rem;color:var(--bark);margin-top:3px">' + (aktiv ? '🏖️ Schönen Urlaub!' + (u.haushaltPausieren !== false ? ' Haushalt ruht.' : '') : 'Noch ' + tage + (tage === 1 ? ' Tag' : ' Tage')) + (pack.length ? ' · 🧳 ' + fertig + '/' + pack.length + ' gepackt' : '') + '</div>';
+    } else info.innerHTML = '<div style="font-size:0.82rem;color:var(--bark)">Wegfahren? Zeitraum eintragen – Haushalt und Tonnen-Erinnerung ruhen, Infozettel für die Nachbarn und Packliste inklusive.</div>';
+  }
+  function urlaubOeffnen() { urlaubRendern(); document.getElementById('modalUrlaub').classList.add('zeigen'); }
+  document.getElementById('kachelUrlaub').addEventListener('click', urlaubOeffnen);
+  document.getElementById('btnUrlaubZu').addEventListener('click', () => document.getElementById('modalUrlaub').classList.remove('zeigen'));
+  function urlaubRendern() {
+    const u = urlaubLaden(), ex = (v) => escapeHtml(String(v == null ? '' : v));
+    const box = document.getElementById('urlaubInhalt');
+    const feld = (id, label, wert, ph, typ) => '<div class="ur-feld"><label for="u_' + id + '">' + label + '</label>' + (typ === 'area' ? '<textarea id="u_' + id + '" data-u="' + id + '" rows="2" placeholder="' + ex(ph || '') + '">' + ex(wert) + '</textarea>' : '<input type="' + (typ || 'text') + '" id="u_' + id + '" data-u="' + id + '" value="' + ex(wert) + '" placeholder="' + ex(ph || '') + '">') + '</div>';
+    const pack = u.packliste || [];
+    box.innerHTML =
+      '<div class="ur-zwei">' + feld('von', 'Von', u.von, '', 'date') + feld('bis', 'Bis', u.bis, '', 'date') + '</div>' + feld('ziel', 'Wohin?', u.ziel, 'z. B. Ostsee') +
+      '<label class="ur-check"><input type="checkbox" data-uc="haushaltPausieren"' + (u.haushaltPausieren !== false ? ' checked' : '') + '> 🧹 Haushaltsaufgaben ruhen lassen</label>' +
+      '<label class="ur-check"><input type="checkbox" data-uc="abfallNachbar"' + (u.abfallNachbar !== false ? ' checked' : '') + '> 🗑️ Keine Tonnen-Erinnerung (Nachbarn übernehmen)</label>' +
+      '<h3 style="font-size:0.92rem;margin:12px 0 6px">📝 Infozettel für die Nachbarn</h3>' +
+      feld('nachbar', 'Für wen?', u.nachbar, 'z. B. Familie Maier') + feld('giessen', '🪴 Pflanzen gießen', u.giessen, 'z. B. Tomaten im Gewächshaus alle 2 Tage', 'area') +
+      feld('briefkasten', '📬 Briefkasten', u.briefkasten, 'z. B. alle 2–3 Tage leeren, Pakete in die Garage') + feld('schluessel', '🔑 Schlüssel', u.schluessel, 'z. B. Ersatzschlüssel bei …') +
+      feld('erreichbar', '📞 Wir sind erreichbar unter', u.erreichbar, 'Handynummer') + feld('sonst', 'Sonstiges', u.sonst, 'z. B. Katze füttern, Rollläden', 'area') +
+      '<div style="display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 10px"><button class="btn btn-secondary" id="btnUrlaubTeilen">📤 Infozettel teilen</button></div>' +
+      '<h3 style="font-size:0.92rem;margin:12px 0 6px">🧳 Packliste ' + (pack.length ? '<span style="font-size:0.74rem;color:var(--bark)">' + pack.filter(p => p.erledigt).length + '/' + pack.length + '</span>' : '') + '</h3>' +
+      pack.map(p => '<label class="ur-pack' + (p.erledigt ? ' fertig' : '') + '"><input type="checkbox" data-pk="' + ex(p.id) + '"' + (p.erledigt ? ' checked' : '') + '><span>' + ex(p.text) + '</span><button type="button" data-pkweg="' + ex(p.id) + '" aria-label="Entfernen">✕</button></label>').join('') +
+      '<div style="display:flex;gap:6px;margin-top:6px"><input type="text" id="u_packNeu" placeholder="＋ z. B. Badesachen" style="flex:1;padding:8px 10px;border-radius:9px;border:1px solid var(--parchment);background:var(--cream);color:var(--soil);font-family:inherit"><button class="btn btn-secondary" id="btnPackNeu">＋</button></div>' +
+      (pack.length ? '' : '<button class="btn btn-secondary" id="btnPackVorlage" style="margin-top:6px">📋 Vorlage übernehmen</button>') +
+      (u.von ? '<div style="margin-top:14px"><button class="btn btn-secondary" id="btnUrlaubWeg" style="color:#a8532e">🗑️ Urlaub entfernen</button></div>' : '');
+    box.querySelectorAll('[data-u]').forEach(el => el.addEventListener('change', () => {
+      const x = urlaubLaden(); x[el.dataset.u] = el.value.trim();
+      if (x.von && x.bis && x.bis < x.von) x.bis = x.von;
+      urlaubSpeichern(x); if (el.type === 'date') urlaubRendern();
+    }));
+    box.querySelectorAll('[data-uc]').forEach(el => el.addEventListener('change', () => { const x = urlaubLaden(); x[el.dataset.uc] = el.checked; urlaubSpeichern(x); }));
+    box.querySelectorAll('[data-pk]').forEach(el => el.addEventListener('change', () => { const x = urlaubLaden(); const p = (x.packliste || []).find(y => y.id === el.dataset.pk); if (p) p.erledigt = el.checked; urlaubSpeichern(x); el.closest('.ur-pack').classList.toggle('fertig', el.checked); }));
+    box.querySelectorAll('[data-pkweg]').forEach(b => b.addEventListener('click', (e) => { e.preventDefault(); const x = urlaubLaden(); x.packliste = (x.packliste || []).filter(y => y.id !== b.dataset.pkweg); urlaubSpeichern(x); urlaubRendern(); }));
+    const packNeu = () => { const t = document.getElementById('u_packNeu').value.trim(); if (!t) return; const x = urlaubLaden(); x.packliste = (x.packliste || []).concat([{ id: 'pk' + Date.now().toString(36), text: t, erledigt: false }]); urlaubSpeichern(x); urlaubRendern(); document.getElementById('u_packNeu').focus(); };
+    document.getElementById('btnPackNeu').addEventListener('click', packNeu);
+    document.getElementById('u_packNeu').addEventListener('keydown', (e) => { if (e.key === 'Enter') packNeu(); });
+    const vorl = document.getElementById('btnPackVorlage');
+    if (vorl) vorl.addEventListener('click', () => { const x = urlaubLaden(); x.packliste = PACK_VORLAGE.map((t, i) => ({ id: 'pk' + Date.now().toString(36) + i, text: t, erledigt: false })); urlaubSpeichern(x); urlaubRendern(); });
+    document.getElementById('btnUrlaubTeilen').addEventListener('click', urlaubTeilen);
+    const weg = document.getElementById('btnUrlaubWeg');
+    if (weg) weg.addEventListener('click', () => { if (!confirm('Urlaub entfernen? (Haushalt und Erinnerungen laufen dann wieder normal.)')) return; const alt = urlaubLaden(); try { localStorage.removeItem('termine_urlaub'); } catch (e) {} urlaubSpeichern({}); urlaubRendern(); showTempStatus('Urlaub entfernt', 5, { rueckgaengig: () => { urlaubSpeichern(alt); urlaubRendern(); } }); });
+  }
+  function urlaubText() {
+    const u = urlaubLaden();
+    const z = ['🏡 Danke, dass ihr nach unserem Haus schaut' + (u.nachbar ? ', ' + u.nachbar : '') + '!', ''];
+    if (u.von && u.bis) z.push('📅 Wir sind weg: ' + kurz(u.von) + ' – ' + kurz(u.bis));
+    if (u.erreichbar) z.push('📞 Erreichbar: ' + u.erreichbar);
+    // Tonnen im Zeitraum (aus dem Abfuhrkalender)
+    if (u.von && u.bis && window.AbfallLogik) {
+      const AL = window.AbfallLogik, cfg = AL.standard(laden('termine_abfall', null)), tage = AL.proTag(cfg);
+      const liste = Object.keys(tage).sort().filter(d => d >= u.von && d <= AL.plusTage(u.bis, 1)).map(d => ({ d, r: AL.rausTypen(tage[d], cfg) })).filter(x => x.r.length);
+      if (liste.length) { z.push('', '🗑️ Tonnen bitte am Vorabend rausstellen:'); liste.forEach(x => z.push('• ' + kurz(AL.plusTage(x.d, -1)) + ' abends → ' + AL.titel(x.r, cfg) + ' (Abfuhr ' + kurz(x.d) + ')')); }
+    }
+    if (u.giessen) z.push('', '🪴 Gießen: ' + u.giessen);
+    if (u.briefkasten) z.push('📬 Briefkasten: ' + u.briefkasten);
+    if (u.schluessel) z.push('🔑 Schlüssel: ' + u.schluessel);
+    if (u.sonst) z.push('', u.sonst);
+    const kontakte = ((laden('notfall_plan', {}) || {}).kontakte || []).filter(k => k && k.tel);
+    if (kontakte.length) { z.push('', '☎️ Im Notfall:'); kontakte.slice(0, 5).forEach(k => z.push('• ' + (k.name || '') + ': ' + k.tel)); }
+    z.push('', 'Vielen Dank! 💛');
+    return z.join('\n');
+  }
+  async function urlaubTeilen() {
+    const text = urlaubText();
+    try { if (navigator.share) { await navigator.share({ title: 'Infozettel', text }); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
+    try { await navigator.clipboard.writeText(text); showTempStatus('📋 Kopiert – z. B. in WhatsApp einfügen', 4); } catch (e) { prompt('Zum Kopieren:', text); }
+  }
+  renderUrlaubKachel();
+
   // 🆘 Notfall: Reichweite des Vorrats + knappe Medikamente; 🆘-Knopf oben öffnet die Kurzansicht
   function renderNotfall() {
     const kachel = document.getElementById('kachelNotfall'), sos = document.getElementById('btnKopfSos');
@@ -2236,6 +2373,9 @@
       ['kinder', 'kinder', ['kinder_einstellungen', 'kinder_sterne', 'kinder_wuensche']], ['gaming', 'gaming', ['gaming_sessions', 'gaming_limits']], ['handwerk', 'handwerk', ['handwerk_wartung']], ['medien', 'medien', ['medien_eintraege']], ['nachrichten', 'nachrichten', ['nachrichten_tipps', 'nachrichten_themen']], ['notizblock', 'notizblock', ['notizblock_liste']], ['wunschliste', 'termine', ['termine_wunschliste']], ['notfall', 'notfall', ['notfall_einstellungen']], ['feste', 'feste', ['feste_liste']],
     ];
     if (modulSichtbar('termine')) try { abfallSync = window.PlanerSync.starteSync({ modul: 'termine', keys: ['termine_abfall'], onRemoteChange: liveNeuZeichnen }); } catch (e) {}
+    try { urlaubSync = window.PlanerSync.starteSync({ modul: 'termine', keys: ['termine_urlaub'], onRemoteChange: () => { renderUrlaubKachel(); liveNeuZeichnen(); } }); } catch (e) {}
+    try { window.PlanerSync.starteSync({ modul: 'termine', keys: ['termine_betreuung'], onRemoteChange: liveNeuZeichnen }); } catch (e) {}
+    try { window.PlanerSync.starteSync({ modul: 'kinder', keys: ['kinder_schule'], onRemoteChange: liveNeuZeichnen }); } catch (e) {}
     LIVE.forEach(([name, modul, keys]) => {
       if (!modulSichtbar(name)) return;
       try { liveSync[name] = window.PlanerSync.starteSync({ modul, keys, onRemoteChange: liveNeuZeichnen }); } catch (e) { console.warn('Übersicht: Live-Sync', name, e); }

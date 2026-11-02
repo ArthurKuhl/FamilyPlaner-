@@ -470,7 +470,7 @@
       { id: 'garten',      label: 'Garten',    emoji: '🌱', src: 'garten.html',
         syncKeys: ['gartenplaner_v3','gartenplaner_varieties','gartenplaner_bedTemplates','gartenplaner_recentPlants','gartenplaner_seedInventory','gartenplaner_costs','gartenplaner_pantry','gartenplaner_shops','gartenplaner_careDone','gartenplaner_customPlants','gartenplaner_pilzlog','gartenplaner_wishlist','garten_pushPlan'],
         syncTransform: (werte) => window.PlanerSync ? window.PlanerSync.entferneFotosTief(werte) : werte },
-      { id: 'termine',     label: 'Termine',   emoji: '🗓️', src: 'termine.html', syncKeys: ['termine_events_v1', 'termine_abfall'] },
+      { id: 'termine',     label: 'Termine',   emoji: '🗓️', src: 'termine.html', syncKeys: ['termine_events_v1', 'termine_abfall', 'termine_betreuung', 'termine_urlaub'] },
       // syncModul: Cloud-Dokument, falls es anders heißt als das Modul – die Wunschliste war bis v413 Teil von „Termine“
       { id: 'chat',        label: 'Chat',      emoji: '💬', src: 'chat.html' }, // Familien-Chat: eigene Cloud-Sammlung, kein syncKeys-Dokument
       { id: 'wunschliste', label: 'Wunschliste', emoji: '🎁', src: 'wunschliste.html', syncModul: 'termine', syncKeys: ['termine_wunschliste', 'wunschliste_budgets'] },
@@ -488,13 +488,14 @@
       { id: 'handwerk',    label: 'Handwerk',  emoji: '🔨', src: 'handwerk.html', syncKeys: ['handwerk_projekte', 'handwerk_wartung', 'handwerk_werkzeug'] },
       { id: 'haushalt',    label: 'Haushalt',  emoji: '🧹', src: 'haushalt.html', syncKeys: ['haushalt_aufgaben'] },
       { id: 'fahrzeuge',   label: 'Fahrzeuge', emoji: '🚗', src: 'fahrzeuge.html', syncKeys: ['fahrzeuge_liste', 'fahrzeuge_tanken', 'fahrzeuge_werkstatt'] },
-      { id: 'kinder',      label: 'Kinderecke', emoji: '🧒', src: 'kinder.html', syncKeys: ['kinder_einstellungen', 'kinder_sterne', 'garten_kinderErledigt', 'kinder_wuensche', 'kinder_routinen_stand'] },
+      { id: 'kinder',      label: 'Kinderecke', emoji: '🧒', src: 'kinder.html', syncKeys: ['kinder_einstellungen', 'kinder_sterne', 'garten_kinderErledigt', 'kinder_wuensche', 'kinder_routinen_stand', 'kinder_advent', 'kinder_schule'] },
       { id: 'geldgeschenke', label: 'Geldgeschenke', emoji: '💶', src: 'geldgeschenke.html', syncKeys: ['geldgeschenke_liste'] },
       { id: 'notizblock',  label: 'Notizblock', emoji: '📝', src: 'notizblock.html', syncKeys: ['notizblock_liste'] },
       { id: 'ausfluege',   label: 'Ausflüge', emoji: '🧭', src: 'ausfluege.html', syncKeys: ['ausfluege_planung', 'ausfluege_erlebt', 'ausfluege_ideen', 'ausfluege_packVorlagen'] },
       { id: 'nachrichten', label: 'Nachrichten', emoji: '📰', src: 'nachrichten.html', syncKeys: ['nachrichten_themen', 'nachrichten_tipps'] },
       { id: 'finanzen', label: 'Finanzen', emoji: '💶', src: 'finanzen.html', syncKeys: ['finanzen_kategorien', 'finanzen_ausgaben', 'finanzen_taschengeld_konten', 'finanzen_taschengeld_buchungen', 'finanzen_abos', 'finanzen_preisbeobachtung', 'finanzen_einstellungen'] },
       { id: 'hausplan', label: 'Hausplan', emoji: '📐', src: 'hausplan.html', syncKeys: ['hausplan_daten_v1'] },
+      { id: 'zaehler', label: 'Zähler', emoji: '📊', src: 'zaehler.html', syncKeys: ['zaehler_liste', 'zaehler_staende'] },
       { id: 'feste', label: 'Feste', emoji: '🎉', src: 'feste.html', syncKeys: ['feste_liste', 'feste_spiele'] },
       { id: 'notfall', label: 'Notfall', emoji: '🆘', src: 'notfall.html', syncKeys: ['notfall_checks', 'notfall_plan', 'notfall_einstellungen'] },
     ];
