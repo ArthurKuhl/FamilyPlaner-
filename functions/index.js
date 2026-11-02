@@ -88,6 +88,9 @@ function faelligeErinnerungen(geraet, daten) {
       // Mit Vorlauf – auch über Tagesgrenzen (1 Tag, 2 Tage, 1 Woche) und „am Vorabend“
       TerminLogik.erinnerungenAm(ev, datum).forEach(er => {
         if (!imFenster(er.minuten)) return;
+        // 🧳 Urlaubsmodus: keine Tonnen-Erinnerung, wenn die Nachbarn das übernehmen
+        const u = daten.urlaub;
+        if (ev.abfuhr && u && u.von && u.bis && u.abfallNachbar !== false && er.vorkommen >= u.von && er.vorkommen <= TerminLogik.plusTage(u.bis, 1)) return;
         liste.push({
           schluessel: `t_${ev.id}_${er.vorkommen}_${er.minuten}`,
           titel: ev.abfuhr ? '🗑️ ' + (er.tageVorher ? 'Morgen' : 'Heute') + ' ist Abfuhr' : '🗓️ ' + (ev.title || 'Termin'),
@@ -308,6 +311,7 @@ exports.erinnerungen = onSchedule(
       const tw = werteVon(terminDoc), gw = werteVon(gesundheitDoc);
       const daten = {
         termine: tw.termine_events_v1 || [],
+        urlaub: tw.termine_urlaub || null,
         medikamente: gw.gesundheit_medikamente || [],
         medErledigt: gw.gesundheit_medErledigt || {},
         vorrat: werteVon(vorratDoc).vorratskammer_items || [],
