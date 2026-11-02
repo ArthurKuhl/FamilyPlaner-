@@ -243,6 +243,9 @@
     </div>
     <h3>🎄 Adventskalender &amp; 🎒 Schule</h3>
     <div class="einst-zeile"><button class="knopf-klein" id="btnAdventOeffnen">🎄 Adventskalender befüllen</button><button class="knopf-klein" id="btnSchuleOeffnen">🎒 Stundenplan einstellen</button></div>
+    <h3>📱 Kinder-Tablet</h3>
+    <p class="klein" style="margin-bottom:6px;" id="tabletText"></p>
+    <div class="einst-zeile"><button class="knopf-klein" id="btnTablet"></button></div>
     <h3>🎯 Wochenziel</h3>
     <div class="einst-zeile" style="font-size:0.85rem;">
       Wer <input type="number" id="wzSterne" min="0" style="width:64px;"> ⭐ in einer Woche sammelt, bekommt <input type="number" id="wzBonus" min="0" style="width:56px;"> ⭐ extra
@@ -824,6 +827,7 @@
     }, 'Bonus-Stern vergeben? Bitte Eltern-PIN eingeben.'));
     const geldBtn = document.getElementById('btnSterneGeld');
     if (geldBtn) geldBtn.addEventListener('click', () => mitPin(() => sterneInGeld(kind), 'Sterne in Taschengeld tauschen? Bitte Eltern-PIN eingeben.'));
+    if (istKinderTablet()) { const bt = document.getElementById('btnTiere'); if (bt) bt.style.display = 'none'; }
     document.getElementById('btnTiere').addEventListener('click', () => {
       try { localStorage.setItem('garten_aktiveAnsicht', 'tiere'); } catch (err) {}
       try { window.parent.postMessage({ type: 'navigiere', modul: 'garten' }, window.location.origin); } catch (err) {}
@@ -950,6 +954,9 @@
       einstSpeichern(e2); renderAlles();
     }));
     document.getElementById('einstKleinkind').checked = !!e.kleinkind;
+    const tab = istKinderTablet();
+    document.getElementById('tabletText').textContent = tab ? '✓ Dieses Gerät ist ein Kinder-Tablet: Es zeigt nur die Kinderecke. Beenden geht nur hier – mit der Eltern-PIN.' : 'Für ein gemeinsames Tablet der Kinder: Dieses Gerät zeigt dann nur noch die Kinderecke – ohne Menü, Finanzen, Chat oder Wunschliste. Zurück nur mit der Eltern-PIN.';
+    document.getElementById('btnTablet').textContent = tab ? '🔓 Kinder-Tablet-Modus beenden' : '📱 Dieses Gerät als Kinder-Tablet einrichten';
     document.getElementById('einstBelohnungen').innerHTML = e.belohnungen.map(b =>
       '<div class="belohnung"><span class="b-text">' + esc(b.text) + '</span><span class="klein">' + b.sterne + ' ⭐</span><button class="knopf-klein" data-weg="' + esc(b.id) + '">🗑</button></div>').join('');
     document.querySelectorAll('[data-weg]').forEach(btn => btn.addEventListener('click', () => {
@@ -1046,6 +1053,16 @@
       betrag: Math.max(0.01, parseFloat(String(document.getElementById('umrBetrag').value).replace(',', '.')) || 1) };
     einstSpeichern(e); renderAlles();
   }));
+  function istKinderTablet() { try { const k = JSON.parse(localStorage.getItem('planer_kindertablet') || 'null'); return !!(k && k.aktiv); } catch (err) { return false; } }
+  document.getElementById('btnTablet').addEventListener('click', () => {
+    const an = !istKinderTablet();
+    if (an && !einstellungen().pinHash) { alert('Bitte zuerst unten eine Eltern-PIN festlegen – sonst könnten die Kinder den Tablet-Modus selbst beenden.'); return; }
+    if (an && !confirm('Dieses Gerät als Kinder-Tablet einrichten?\n\nEs zeigt dann nur noch die Kinderecke. Zum Beenden: ⚙️ oben rechts → Eltern-PIN → „Kinder-Tablet-Modus beenden“.\n\nTipp: „Erinnerungen aufs Handy“ auf diesem Gerät vorher ausschalten.')) return;
+    try { window.parent.postMessage({ type: 'kindertablet', an }, window.location.origin); } catch (err) {}
+    document.getElementById('modalEinst').classList.remove('zeigen');
+    setTimeout(() => { einstRendern(); renderAlles(); }, 100);
+    toast(an ? '📱 Kinder-Tablet eingerichtet' : '🔓 Kinder-Tablet-Modus beendet', 4);
+  });
   document.getElementById('einstKleinkind').addEventListener('change', (ev) => { const e2 = einstellungen(); e2.kleinkind = ev.target.checked; einstSpeichern(e2); renderAlles(); });
   document.getElementById('btnEinstellungen').addEventListener('click', () => mitPin(einstOeffnen, 'Einstellungen nur für Eltern – bitte PIN eingeben.'));
   document.getElementById('btnEinstZu').addEventListener('click', () => document.getElementById('modalEinst').classList.remove('zeigen'));

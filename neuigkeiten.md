@@ -2,6 +2,9 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
+## 2026-11-02 | 📱 Kinder-Tablet-Modus
+Für ein gemeinsames Tablet der Kinder: In der Kinderecke unter ⚙️ → „📱 Dieses Gerät als Kinder-Tablet einrichten“ (dafür braucht es die Eltern-PIN). Danach zeigt das Gerät nur noch die Kinderecke, ohne Menü und ohne Zugang zu Finanzen, Chat, Wunschliste & Co., auch nach einem Neustart der App. Oben wechseln die Kinder zwischen ihren Namen. Das Tablet zählt nicht als Person. Beenden geht nur über ⚙️ und die Eltern-PIN.
+
 ## 2026-11-02 | 👶 Kinderecke für die Kleinen
 Neuer Kleinkind-Modus in der Kinderecke (⚙️ → „Kleinkind-Modus“). Er schaltet sich automatisch ein, wenn ein Kind laut Geburtstag in Termine höchstens 6 Jahre alt ist. 🔊 liest Begrüßung, Aufgaben, Routinen und Sterne laut vor, und die Adventstürchen werden beim Öffnen direkt vorgelesen. Aufgaben und Routinen zeigen große Bilder, und die Sterne sind zum Zählen als ⭐⭐⭐ zu sehen. Die Advent-Ideen sind dann für 3–6 Jahre ohne Kleinteile, z. B. Fingerfarben, Plätzchen ausstechen, Laternen-Spaziergang oder Handabdruck für Oma & Opa.
 

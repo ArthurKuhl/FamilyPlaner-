@@ -191,6 +191,8 @@
   .modul-btn.active { background: var(--moss); color: var(--on-moss, var(--leaf)); }
 
   .modul-frame-wrap { flex: 1; position: relative; min-height: 0; }
+  /* 📱 Kinder-Tablet: nur die Kinderecke, keine Leisten */
+  body.kinder-tablet #modulNav, body.kinder-tablet #untereLeiste { display: none !important; }
   iframe.modul-frame {
     width: 100%; height: 100%; border: none; display: block; background: var(--cream);
   }
@@ -1500,7 +1502,14 @@
       initApp();
     }
 
+    // 📱 Kinder-Tablet-Modus (nur dieses Gerät): zeigt ausschließlich die Kinderecke
+    // (Funktionsdeklarationen statt const, weil bereichLaden schon beim Start aufgerufen wird)
+    function kinderTablet() { try { const k = JSON.parse(localStorage.getItem('planer_kindertablet') || 'null'); return !!(k && k.aktiv); } catch (e) { return false; } }
+    function kinderTabletAnwenden() { document.body.classList.toggle('kinder-tablet', kinderTablet()); }
+
     function bereichLaden(id, { schreiben = true, aktion = '', text = '', ziel = '' } = {}) {
+      kinderTabletAnwenden();
+      if (kinderTablet() && id !== 'kinder') { id = 'kinder'; aktion = ''; }
       const mod = MODULE.find(m => m.id === id) || MODULE[0];
       frame.src = mod.src;
       nav.querySelectorAll('.modul-btn').forEach(btn => {
@@ -1580,6 +1589,23 @@
         decke.style.height = Math.max(0, document.getElementById('modulFrame').getBoundingClientRect().top) + 'px';
         decke.style.display = e.data.an ? 'block' : 'none';
       }
+      // 📱 Kinder-Tablet ein/aus (aus der Kinderecke, dort mit Eltern-PIN geschützt)
+      if (e.data && e.data.type === 'kindertablet') {
+        try {
+          if (e.data.an) {
+            localStorage.setItem('planer_kindertablet', JSON.stringify({ aktiv: true, seit: new Date().toISOString(), vorherIdentitaet: localStorage.getItem('planer_geraetIdentitaet') || '' }));
+            localStorage.removeItem('planer_geraetIdentitaet'); // das Tablet ist keine Person
+          } else {
+            const k = JSON.parse(localStorage.getItem('planer_kindertablet') || 'null');
+            if (k && k.vorherIdentitaet) localStorage.setItem('planer_geraetIdentitaet', k.vorherIdentitaet);
+            localStorage.removeItem('planer_kindertablet');
+          }
+        } catch (err) {}
+        kinderTabletAnwenden();
+        if (!e.data.an) bereichLaden('home');
+        return;
+      }
+      if (kinderTablet() && e.data && (e.data.type === 'oeffneDialog' || e.data.type === 'navigiere')) return;
       // Startseite kann Personenverwaltung und Einstellungen direkt öffnen (Einrichtungs-Karte, Zahnrad im Kopf)
       if (e.data && e.data.type === 'oeffneDialog') {
         const btnId = { personen: 'btnPersonen', einstellungen: 'btnEinstellungen', suche: 'btnSuche', backup: 'btnBackup' }[e.data.dialog];
@@ -1624,7 +1650,7 @@
     // ============================================================
     // Schlüssel, die bewusst NICHT exportiert/importiert werden: geräte-/sitzungsspezifisch,
     // würden auf einem anderen Gerät keinen Sinn ergeben oder sich automatisch neu bilden.
-    const BACKUP_AUSSCHLUSS = ['planer_geraeteId', 'planer_syncStatus', 'planer_geraetIdentitaet', 'planer_fotoSicherung'];
+    const BACKUP_AUSSCHLUSS = ['planer_geraeteId', 'planer_syncStatus', 'planer_geraetIdentitaet', 'planer_fotoSicherung', 'planer_kindertablet'];
 
     function alleBackupSchluessel() {
       const keys = [];
