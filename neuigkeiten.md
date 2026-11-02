@@ -2,6 +2,9 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
+## 2026-11-02 | 🗑️ Abfuhrkalender: Restmüll-Varianten
+Restmüll wöchentlich, Restmüll 14-täglich und der Großmüllbehälter (1100 L) werden jetzt als eigene Tonnen erkannt, so wie im Pforzheimer Abfuhrkalender. So lässt sich beim Import genau die eigene Tonne auswählen.
+
 ## 2026-11-01 | 🗑️ Abfuhrkalender importieren & „Tonne raus“
 Neu in Termine über den 🗑️-Knopf oben: Die Abfuhrtermine als .ics-Datei vom Abfallbetrieb importieren. Rest-, Bio-, Papier- und Gelbe Tonne, Weihnachtsbaum, Sperrmüll und Problemstoffe werden erkannt, und einzelne Tonnen lassen sich abwählen. Ein neuer Import (z. B. fürs nächste Jahr) ersetzt die alten Termine.
 🔔 Erinnerung am Vorabend oder am Morgen zur gewünschten Uhrzeit, als Handy-Benachrichtigung „🗑️ Morgen ist Abfuhr – Gelbe Tonne + Papier“. Im Kalender erscheinen die Tonnen nur klein als Symbol (oder gar nicht).

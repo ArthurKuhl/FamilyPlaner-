@@ -25,12 +25,17 @@
   ];
   function tonneErkennen(text) {
     const t = String(text || '');
+    if (/großmüll|grossmüll|1100/i.test(t)) return 'gross';
     const x = TONNEN.find(k => k.re.test(t));
+    if (x && x.id === 'rest') { const n = /\b(7|14|28)\b/.exec(t); if (n) return 'rest' + n[1]; } // z. B. Pforzheim: Restmüll 7 / 14
     return x ? x.id : null;
   }
   function tonneInfo(id, cfg) {
     const x = TONNEN.find(k => k.id === id);
     if (x) return x;
+    const r = /^rest(\d+)$/.exec(id);
+    if (r) return Object.assign({}, TONNEN.find(k => k.id === 'rest'), { id, name: 'Restmüll ' + (r[1] === '7' ? 'wöchentlich' : r[1] + '-täglich') });
+    if (id === 'gross') return { id, em: '⬛', name: 'Großmüllbehälter', farbe: '#3d3d3d' };
     const name = (cfg && cfg.namen && cfg.namen[id]) || String(id).replace(/^x:/, '');
     return { id, em: '🗑️', name, farbe: '#7d6339', nichtRaus: true };
   }
