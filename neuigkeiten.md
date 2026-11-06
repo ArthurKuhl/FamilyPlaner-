@@ -2,6 +2,9 @@
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
+## 2026-11-06 | 🔨 Handwerk: Bilder auf den Projektkarten
+Die Projektkarten zeigen jetzt oben ein kleines Bild: das neueste „Nachher“-Foto, sonst das neueste Foto oder die erste Skizze. Mit ⭐ wählt ihr selbst ein Titelbild, bei Fotos in der Großansicht („⭐ Als Titelbild“), bei Skizzen über den Stern an der Skizze. Nochmal tippen stellt es wieder auf automatisch.
+
 ## 2026-11-02 | 📱 Kinder-Tablet-Modus
 Für ein gemeinsames Tablet der Kinder: In der Kinderecke unter ⚙️ → „📱 Dieses Gerät als Kinder-Tablet einrichten“ (dafür braucht es die Eltern-PIN). Danach zeigt das Gerät nur noch die Kinderecke, ohne Menü und ohne Zugang zu Finanzen, Chat, Wunschliste & Co., auch nach einem Neustart der App. Oben wechseln die Kinder zwischen ihren Namen. Das Tablet zählt nicht als Person. Beenden geht nur über ⚙️ und die Eltern-PIN.
 

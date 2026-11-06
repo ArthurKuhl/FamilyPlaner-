@@ -133,6 +133,11 @@
 
   .projekt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 10px; }
   .projekt-karte { background: var(--white); border-radius: var(--radius-md); padding: 12px; box-shadow: var(--shadow-soft); cursor: pointer; display: flex; flex-direction: column; gap: 6px; border-top: 3px solid var(--moss); }
+  .projekt-bild { margin: -12px -12px 2px; height: 104px; overflow: hidden; background: var(--cream); border-radius: var(--radius-md) var(--radius-md) 0 0; }
+  .projekt-bild img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .projekt-bild.skizze img { object-fit: contain; background: #fff; }
+  .titelbild-btn { position: absolute; right: 4px; top: 4px; border: none; border-radius: 10px; padding: 1px 6px; font-size: 0.75rem; cursor: pointer; background: rgba(255,255,255,0.85); }
+  .titelbild-btn.an { background: #f3c84b; }
   .projekt-titel { font-size: 0.88rem; font-weight: 700; line-height: 1.25; }
   .projekt-chips { display: flex; gap: 4px; flex-wrap: wrap; }
   .mini-chip { font-size: 0.6rem; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-pill); white-space: nowrap; }
@@ -247,7 +252,7 @@
   .saison-btn { width: 100%; margin-bottom: 10px; }
   #modalFoto { z-index: 120; align-items: center; background: rgba(20,15,10,0.88); padding: 12px; }
   #modalFoto .foto-gross { max-width: 100%; max-height: 78vh; border-radius: 10px; display: block; margin: 0 auto; }
-  #modalFoto .foto-leiste { display: flex; gap: 8px; margin-top: 12px; }
+  #modalFoto .foto-leiste { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; justify-content: center; }
   .detail-notiz-box { background: var(--parchment); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 0.82rem; margin-top: 10px; color: var(--bark); white-space: pre-wrap; }
 
   /* Sehr breite Bildschirme: Content etwas breiter + dezente Deko-Streifen im Rand */
@@ -726,6 +731,7 @@
       <button type="button" class="opt" data-typ="nachher">Nachher ➡️</button>
     </div>
     <div class="foto-leiste">
+      <button class="btn btn-secondary" id="btnFotoTitel">⭐ Als Titelbild</button>
       <button class="btn btn-danger" id="btnFotoLoeschen" style="background:var(--cream);">Foto löschen</button>
       <button class="btn btn-secondary" id="btnFotoSchliessen">Schließen</button>
     </div>
@@ -931,7 +937,9 @@
     const karte = document.createElement('div');
     karte.className = 'projekt-karte';
     karte.style.borderTopColor = stat.farbe;
+    const tb = titelbild(p);
     karte.innerHTML =
+      (tb ? '<div class="projekt-bild' + (tb.skizze ? ' skizze' : '') + '"><img src="' + escapeHtml(tb.src) + '" alt="" loading="lazy"></div>' : '') +
       '<div class="projekt-titel">' + escapeHtml(p.titel) + '</div>' +
       '<div class="projekt-chips">' +
         '<span class="mini-chip" style="background:' + stat.farbe + '22; color:' + stat.farbe + ';">' + stat.icon + ' ' + stat.label + '</span>' +
@@ -943,6 +951,26 @@
       '</div>';
     karte.addEventListener('click', () => detailOeffnen(p.id));
     return karte;
+  }
+
+  // 🖼️ Titelbild der Karte: selbst gewählt (⭐), sonst das neueste Nachher-Foto, das neueste Foto oder die erste Skizze
+  function titelbild(p) {
+    const fotos = (p.fotos || []).filter(f => fotoSrc(f)), skizzen = (p.skizzen || []).filter(s => s.thumb);
+    const w = p.titelbild || null;
+    if (w && w.art === 'foto') { const f = fotos.find(x => x.id === w.id); if (f) return { src: fotoSrc(f) }; }
+    if (w && w.art === 'skizze') { const k = skizzen.find(x => x.id === w.id); if (k) return { src: k.thumb, skizze: true }; }
+    const nachher = fotos.filter(f => f.typ === 'nachher');
+    if (nachher.length) return { src: fotoSrc(nachher[nachher.length - 1]) };
+    if (fotos.length) return { src: fotoSrc(fotos[fotos.length - 1]) };
+    if (skizzen.length) return { src: skizzen[0].thumb, skizze: true };
+    return null;
+  }
+  function titelbildSetzen(p, art, id) {
+    const istEs = p.titelbild && p.titelbild.art === art && p.titelbild.id === id;
+    if (istEs) delete p.titelbild; else p.titelbild = { art, id };
+    speichernProjekte(); renderGrid();
+    showTempStatus(istEs ? 'Titelbild wieder automatisch' : '⭐ Als Titelbild gesetzt', 3);
+    return !istEs;
   }
 
   function materialSumme(p) {
@@ -1645,9 +1673,12 @@
     grid.innerHTML = '';
     (p.skizzen || []).forEach(s => {
       const el = document.createElement('div');
-      el.style.cssText = 'border:1px solid var(--parchment);border-radius:8px;overflow:hidden;cursor:pointer;text-align:center';
+      el.style.cssText = 'border:1px solid var(--parchment);border-radius:8px;overflow:hidden;cursor:pointer;text-align:center;position:relative';
+      const an = p.titelbild && p.titelbild.art === 'skizze' && p.titelbild.id === s.id;
       el.innerHTML = '<img src="' + s.thumb + '" style="width:100%;display:block;aspect-ratio:8/5;object-fit:cover;background:#fff">' +
-        '<div style="font-size:0.62rem;padding:3px;color:var(--bark)">' + (s.name ? escapeHtml(s.name) : 'Skizze') + '</div>';
+        '<div style="font-size:0.62rem;padding:3px;color:var(--bark)">' + (s.name ? escapeHtml(s.name) : 'Skizze') + '</div>' +
+        '<button type="button" class="titelbild-btn' + (an ? ' an' : '') + '" title="Als Titelbild auf der Projektkarte">⭐</button>';
+      el.querySelector('.titelbild-btn').addEventListener('click', (ev) => { ev.stopPropagation(); titelbildSetzen(p, 'skizze', s.id); detailSkizzenRendern(p); detailFotosRendern(p); });
       el.addEventListener('click', () => skizzeOeffnen(p.id, s.id));
       grid.appendChild(el);
     });
@@ -1668,7 +1699,8 @@
       el.className = 'foto-kachel';
       el.innerHTML = '<img src="' + escapeHtml(fotoSrc(f)) + '" alt="Projektfoto" loading="lazy">' +
         (f.typ ? '<span class="foto-typ ' + f.typ + '">' + (f.typ === 'vorher' ? 'VORHER' : 'NACHHER') + '</span>' : '') +
-        (!f.url && cloudBereit() ? '<span class="foto-wolke" title="Wird hochgeladen …">⏳</span>' : '');
+        (!f.url && cloudBereit() ? '<span class="foto-wolke" title="Wird hochgeladen …">⏳</span>' : '') +
+        (p.titelbild && p.titelbild.art === 'foto' && p.titelbild.id === f.id ? '<span class="foto-wolke" style="left:4px;right:auto;background:#f3c84b" title="Titelbild">⭐</span>' : '');
       el.addEventListener('click', () => fotoGrossZeigen(f.id));
       grid.appendChild(el);
     });
@@ -1851,8 +1883,15 @@
     grossFotoId = fotoId;
     document.getElementById('fotoGross').src = fotoSrc(f);
     fotoTypReiheRendern(f);
+    fotoTitelKnopf(p, f);
     document.getElementById('modalFoto').classList.add('zeigen');
   }
+  function fotoTitelKnopf(p, f) { const an = p.titelbild && p.titelbild.art === 'foto' && p.titelbild.id === f.id; document.getElementById('btnFotoTitel').textContent = an ? '⭐ Ist Titelbild' : '⭐ Als Titelbild'; }
+  document.getElementById('btnFotoTitel').addEventListener('click', () => {
+    const p = projekte.find(x => x.id === detailId), f = p && (p.fotos || []).find(x => x.id === grossFotoId);
+    if (!f) return;
+    titelbildSetzen(p, 'foto', f.id); fotoTitelKnopf(p, f); detailFotosRendern(p); detailSkizzenRendern(p);
+  });
   function fotoTypReiheRendern(f) {
     document.querySelectorAll('#fotoTypReihe .opt').forEach(b => b.classList.toggle('aktiv', (f.typ || '') === b.dataset.typ));
   }
