@@ -1374,6 +1374,27 @@
     <button type="button" class="btn-cancel" id="beobLoeschen" style="width:100%;margin-top:8px;color:var(--terracotta-text)" onclick="beobLoeschen()">🗑 Beobachtung löschen</button>
   </div>
 </div>
+<div class="modal-bg" id="eigTierModal" style="display:none;z-index:1100" onclick="if(event.target===this)eigenesTierSchliessen()">
+  <div class="modal" style="width:min(480px,94vw);max-height:88vh;overflow-y:auto">
+    <h2 id="eigTierTitel" style="margin-top:0">＋ Eigenes Tier</h2>
+    <div style="display:grid;grid-template-columns:72px 1fr;gap:8px;align-items:end">
+      <div><div class="form-row"><label for="eigTierIcon">Symbol</label><input type="text" id="eigTierIcon" placeholder="🐾" maxlength="4" style="width:100%;text-align:center;font-size:1.2rem"></div></div>
+      <div><div class="form-row"><label for="eigTierName">Name</label><input type="text" id="eigTierName" placeholder="z. B. Waldmaus" style="width:100%"></div></div>
+    </div>
+    <div class="form-row"><label for="eigTierKat">Gruppe</label><select id="eigTierKat" style="width:100%"></select></div>
+    <div class="form-row"><label for="eigTierLatein">Wissenschaftlicher Name (optional)</label><input type="text" id="eigTierLatein" style="width:100%"></div>
+    <div class="form-row"><label for="eigTierKurz">Kurz beschrieben</label><input type="text" id="eigTierKurz" placeholder="z. B. Kleine Maus mit großen Ohren" style="width:100%"></div>
+    <div class="form-row"><label for="eigTierNahrung">Was frisst es? (optional)</label><input type="text" id="eigTierNahrung" style="width:100%"></div>
+    <div class="form-row"><label for="eigTierWohnung">Wo wohnt es? (optional)</label><input type="text" id="eigTierWohnung" style="width:100%"></div>
+    <div class="form-row"><label for="eigTierNotiz">Notizen (optional)</label><textarea id="eigTierNotiz" rows="2" placeholder="z. B. wohnt unter dem Holzstapel" style="width:100%"></textarea></div>
+    <label id="eigTierGesehenZeile" style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:0.85rem"><input type="checkbox" id="eigTierGesehen" checked> 👀 Heute gesehen eintragen</label>
+    <div class="modal-btns">
+      <button class="btn-cancel" id="eigTierLoeschen" style="color:#c0392b;margin-right:auto" onclick="eigenesTierLoeschen()">Löschen</button>
+      <button class="btn-cancel" onclick="eigenesTierSchliessen()">Abbrechen</button>
+      <button class="btn-primary" style="width:auto" onclick="eigenesTierSpeichern()">Speichern</button>
+    </div>
+  </div>
+</div>
 <div class="modal-bg" id="tierDetailModal" style="display:none" onclick="if(event.target===this)tierDetailSchliessen()">
   <div class="modal" style="width:min(520px,94vw);max-height:88vh;overflow-y:auto">
     <div id="tierDetailInhalt"></div>
@@ -10377,6 +10398,72 @@ let tierKategorie = 'alle';
 let tierSuche = '';
 let tierDetailId = null;
 
+// ✍️ Eigene Tiere (pro Garten, synchronisiert): gardens[id].eigeneTiere = [{ id: 'eig_…', icon, name, latein, kat, kurz, nahrung, wohnung, notiz }]
+function eigeneTiere() {
+  const g = gardens[currentGardenId];
+  if (!g) return [];
+  if (!Array.isArray(g.eigeneTiere)) g.eigeneTiere = [];
+  return g.eigeneTiere;
+}
+function alleTiere() {
+  return TIERE.concat(eigeneTiere().filter(t => t && t.name).map(t => ({
+    id: t.id, icon: t.icon || '🐾', name: t.name, latein: t.latein || '', kat: TIER_KATEGORIEN[t.kat] ? t.kat : 'saeuger', aufwand: 1, monate: Array.isArray(t.monate) && t.monate.length ? t.monate : [],
+    kurz: t.kurz || 'Eigenes Tier', wusstest: '', nahrung: t.nahrung || '', wohnung: t.wohnung || '', notiz: t.notiz || '', pflanzen: [], tun: [], meiden: [], projekte: [], eigen: true,
+  })));
+}
+let eigenesTierBearbeiten = null;
+function eigenesTierOeffnen(id, vorname) {
+  const t = id ? eigeneTiere().find(x => x.id === id) : null;
+  eigenesTierBearbeiten = t ? t.id : null;
+  document.getElementById('eigTierTitel').textContent = t ? '✏️ ' + t.name : '＋ Eigenes Tier';
+  document.getElementById('eigTierName').value = t ? t.name : (vorname || '');
+  document.getElementById('eigTierIcon').value = t ? t.icon || '' : '';
+  document.getElementById('eigTierLatein').value = t ? t.latein || '' : '';
+  document.getElementById('eigTierKat').innerHTML = Object.entries(TIER_KATEGORIEN).map(([k, v]) => `<option value="${k}"${(t ? t.kat : 'saeuger') === k ? ' selected' : ''}>${escapeHtml(v)}</option>`).join('');
+  document.getElementById('eigTierKurz').value = t ? t.kurz || '' : '';
+  document.getElementById('eigTierNahrung').value = t ? t.nahrung || '' : '';
+  document.getElementById('eigTierWohnung').value = t ? t.wohnung || '' : '';
+  document.getElementById('eigTierNotiz').value = t ? t.notiz || '' : '';
+  document.getElementById('eigTierGesehenZeile').style.display = t ? 'none' : '';
+  document.getElementById('eigTierGesehen').checked = !t;
+  document.getElementById('eigTierLoeschen').style.display = t ? '' : 'none';
+  document.getElementById('eigTierModal').style.display = 'flex';
+  setTimeout(() => document.getElementById('eigTierName').focus(), 60);
+}
+function eigenesTierSchliessen() { document.getElementById('eigTierModal').style.display = 'none'; }
+function eigenesTierSpeichern() {
+  const name = document.getElementById('eigTierName').value.trim();
+  if (!name) { document.getElementById('eigTierName').focus(); return; }
+  const daten = {
+    name, icon: document.getElementById('eigTierIcon').value.trim() || '🐾', latein: document.getElementById('eigTierLatein').value.trim(),
+    kat: document.getElementById('eigTierKat').value, kurz: document.getElementById('eigTierKurz').value.trim(),
+    nahrung: document.getElementById('eigTierNahrung').value.trim(), wohnung: document.getElementById('eigTierWohnung').value.trim(), notiz: document.getElementById('eigTierNotiz').value.trim(),
+  };
+  const liste = eigeneTiere();
+  let id = eigenesTierBearbeiten;
+  if (id) Object.assign(liste.find(x => x.id === id) || {}, daten);
+  else {
+    const doppelt = alleTiere().find(t => t.name.trim().toLowerCase() === name.toLowerCase());
+    if (doppelt && !confirm('„' + doppelt.name + '“ gibt es schon. Trotzdem ein eigenes Tier anlegen?')) return;
+    id = 'eig_' + Date.now().toString(36);
+    liste.push(Object.assign({ id, angelegt: new Date().toISOString().slice(0, 10) }, daten));
+  }
+  const gesehen = !eigenesTierBearbeiten && document.getElementById('eigTierGesehen').checked;
+  eigenesTierSchliessen();
+  tierSuche = ''; 
+  if (gesehen) tierGesehen(id); else { saveData(); renderTiere(); showTempStatus('✍️ ' + name + ' gespeichert', 3); }
+  if (tierDetailId === id) tierDetailRendern();
+}
+function eigenesTierLoeschen() {
+  const id = eigenesTierBearbeiten; if (!id) return;
+  const liste = eigeneTiere(), i = liste.findIndex(x => x.id === id); if (i < 0) return;
+  if (!confirm('„' + liste[i].name + '“ löschen? Die Sichtungen dazu werden ebenfalls entfernt.')) return;
+  const weg = liste.splice(i, 1)[0], sicht = tierSichtungen(), altSicht = sicht[id];
+  delete sicht[id];
+  saveData(); eigenesTierSchliessen(); tierDetailSchliessen(); renderTiere();
+  showTempStatus('🗑️ ' + weg.name + ' gelöscht', 6, { label: 'Rückgängig', aktion: () => { eigeneTiere().splice(i, 0, weg); if (altSicht) tierSichtungen()[id] = altSicht; saveData(); renderTiere(); } });
+}
+
 function tierSichtungen() {
   const g = gardens[currentGardenId];
   if (!g) return {};
@@ -10419,14 +10506,14 @@ function renderTiere() {
   const box = document.getElementById('tiereWrap');
   if (!box) return;
   const sicht = tierSichtungen();
-  const entdeckt = TIERE.filter(t => sicht[t.id]).length;
-  const prozent = Math.round(entdeckt / TIERE.length * 100);
+  const entdeckt = alleTiere().filter(t => sicht[t.id]).length;
+  const prozent = Math.round(entdeckt / alleTiere().length * 100);
   const gartenName = (gardens[currentGardenId] && gardens[currentGardenId].name) || 'deinem Garten';
   const reiter = [['tiere', '🔍 Tiere'], ['wer', '🔗 Wer frisst was?'], ['bauen', '🔨 Lebensräume bauen'], ['pflanzen', '🌼 Futterpflanzen'], ['regeln', '✅ Grundregeln']];
   let html = `<div class="home-intro" style="margin-bottom:14px"><h2>🦔 Tiere im Garten</h2>
       <p>Welche Tiere leben bei uns – und was brauchen sie, damit sie in den Garten kommen?</p></div>
     <div class="tier-fortschritt">
-      <div class="tier-fortschritt-text">👀 Entdeckt in „${escapeHtml(gartenName)}“: <b>${entdeckt} von ${TIERE.length}</b></div>
+      <div class="tier-fortschritt-text">👀 Entdeckt in „${escapeHtml(gartenName)}“: <b>${entdeckt} von ${alleTiere().length}</b></div>
       <div class="tier-balken"><span style="width:${prozent}%"></span></div>
     </div>
     <div class="tier-reiter">${reiter.map(([k, t]) => `<button type="button" class="saat-chip${tierAnsicht === k ? ' an' : ''}" onclick="tierAnsichtSetzen('${k}')">${t}</button>`).join('')}</div>`;
@@ -10454,13 +10541,15 @@ function renderTiereListeHtml(sicht) {
 }
 function tierListeInhaltHtml(sicht) {
   const q = tierSuche.trim().toLowerCase();
-  const liste = TIERE.filter(t => {
+  const liste = alleTiere().filter(t => {
     if (tierKategorie === 'entdeckt' && !sicht[t.id]) return false;
     if (tierKategorie !== 'alle' && tierKategorie !== 'entdeckt' && t.kat !== tierKategorie) return false;
     if (!q) return true;
     return [t.name, t.latein, t.kurz, t.nahrung, t.wohnung, t.pflanzen.join(' ')].join(' ').toLowerCase().includes(q);
   });
-  if (!liste.length) return `<div class="empty-state">${tierKategorie === 'entdeckt' ? 'Noch keine Tiere entdeckt – öffne ein Tier und tippe auf „👀 Gesehen!“, wenn ihr es im Garten beobachtet habt.' : 'Nichts gefunden.'}</div>`;
+  const vorname = liste.some(t => t.name.trim().toLowerCase() === q) ? '' : tierSuche.trim();
+  const neuKnopf = `<button type="button" class="btn-secondary" style="width:100%;margin-top:12px" onclick='eigenesTierOeffnen(null, ${escapeHtml(JSON.stringify(vorname))})'>＋ ${vorname ? '„' + escapeHtml(vorname) + '“ als eigenes Tier eintragen' : 'Eigenes Tier eintragen'}</button>`;
+  if (!liste.length) return `<div class="empty-state">${tierKategorie === 'entdeckt' && !q ? 'Noch keine Tiere entdeckt – öffne ein Tier und tippe auf „👀 Gesehen!“, wenn ihr es im Garten beobachtet habt.' : 'Nicht im Lexikon? Dann trag es einfach selbst ein:'}</div>${neuKnopf}`;
   return `<div class="tier-grid">${liste.map(t => {
     const s = sicht[t.id];
     return `<button type="button" class="tier-karte${s ? ' entdeckt' : ''}" onclick="tierDetailOeffnen('${t.id}')">
@@ -10468,10 +10557,10 @@ function tierListeInhaltHtml(sicht) {
       <span class="tier-karte-text">
         <span class="tier-name">${escapeHtml(t.name)}${s ? ' <span class="tier-gesehen-mark" title="Schon entdeckt">👀</span>' : ''}</span>
         <span class="tier-kurz">${escapeHtml(t.kurz)}</span>
-        <span class="tier-meta">${TIER_KATEGORIEN[t.kat].split(' ')[0]} · ${TIER_AUFWAND[t.aufwand]}</span>
+        <span class="tier-meta">${TIER_KATEGORIEN[t.kat].split(' ')[0]} · ${t.eigen ? '✍️ selbst eingetragen' : TIER_AUFWAND[t.aufwand]}</span>
       </span>
     </button>`;
-  }).join('')}</div>`;
+  }).join('')}</div>${neuKnopf}`;
 }
 
 
@@ -10502,7 +10591,7 @@ function nistBauplanOeffnen(id) {
     window.location.href = 'handwerk.html';
   }
 }
-function TIER_ID_TIERE(pid) { return TIERE.filter(t => (t.projekte || []).includes(pid)); }
+function TIER_ID_TIERE(pid) { return alleTiere().filter(t => (t.projekte || []).includes(pid)); }
 // Varianten, Material, Skizze, Pflanzen, Pflege & Fehler (z. B. Mini-Wasserstelle)
 function renderProjektExtrasHtml(p) {
   let h = (p.varianten || []).map(v => `<div class="ws-variante"><h4>${escapeHtml(v.titel)}</h4><div class="ws-info">${escapeHtml(v.info || '')}</div>
@@ -10719,11 +10808,31 @@ function tierDetailSchliessen() {
   tierDetailId = null;
 }
 function tierDetailRendern() {
-  const t = TIERE.find(x => x.id === tierDetailId);
+  const t = alleTiere().find(x => x.id === tierDetailId);
   if (!t) return;
   const set = tierGartenPflanzenSet();
   const s = tierSichtungen()[t.id];
   const projekte = t.projekte.map(pid => TIER_PROJEKTE.find(p => p.id === pid)).filter(Boolean);
+  if (t.eigen) {
+    const ab = (titel, text) => text ? `<div class="tier-abschnitt-titel">${titel}</div><p class="tier-p">${escapeHtml(text).replace(/\n/g, '<br>')}</p>` : '';
+    const datumE = d => new Date(d + 'T00:00').toLocaleDateString('de-DE');
+    document.getElementById('tierDetailInhalt').innerHTML = `
+      <div class="tier-detail-kopf"><span class="tier-detail-icon">${escapeHtml(t.icon)}</span>
+        <div><h2 style="margin:0">${escapeHtml(t.name)}</h2>${t.latein ? `<div class="tier-meta"><i>${escapeHtml(t.latein)}</i></div>` : ''}
+          <div class="tier-meta">${TIER_KATEGORIEN[t.kat]} · ✍️ selbst eingetragen</div></div></div>
+      ${t.kurz && t.kurz !== 'Eigenes Tier' ? `<p class="tier-p">${escapeHtml(t.kurz)}</p>` : ''}
+      ${ab('🍽️ Was frisst es?', t.nahrung)}${ab('🏠 Wo wohnt es?', t.wohnung)}${ab('📝 Notizen', t.notiz)}
+      ${beobTierDetailHtml(t.id)}
+      <div class="tier-gesehen-box">
+        ${s ? `<div>👀 Schon <b>${s.anzahl}×</b> gesehen · zuerst am ${datumE(s.erst)}${s.zuletzt !== s.erst ? `, zuletzt am ${datumE(s.zuletzt)}` : ''}</div>` : '<div>Habt ihr es im Garten beobachtet?</div>'}
+        <div style="display:flex;gap:6px;margin-top:8px">
+          <button type="button" class="btn-primary" style="flex:1" onclick="tierGesehen('${t.id}')">👀 Gesehen!</button>
+          ${s ? `<button type="button" class="btn-secondary" style="width:auto;margin:0" onclick="tierGesehenZurueck('${t.id}')" title="Letzte Sichtung zurücknehmen">↩</button>` : ''}
+        </div>
+      </div>
+      <button type="button" class="btn-secondary" style="width:100%;margin-top:8px" onclick="eigenesTierOeffnen('${t.id}')">✏️ Bearbeiten</button>`;
+    return;
+  }
   const liste = (arr) => `<ul class="tier-liste">${arr.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul>`;
   const datum = d => new Date(d + 'T00:00').toLocaleDateString('de-DE');
   document.getElementById('tierDetailInhalt').innerHTML = `
@@ -10767,7 +10876,7 @@ function tierGesehen(id) {
   saveData();
   tierDetailRendern();
   renderTiere();
-  const t = TIERE.find(x => x.id === id);
+  const t = alleTiere().find(x => x.id === id);
   showTempStatus(neu ? `🎉 Neu entdeckt: ${t ? t.name : ''}!` : '👀 Sichtung eingetragen', 3);
 }
 function tierGesehenZurueck(id) {
@@ -10805,7 +10914,7 @@ function gartenBeobachtungen() {
   return g.beobachtungen;
 }
 function beobNorm(s) { return String(s || '').trim().toLowerCase(); }
-function beobTierInfo(b) { return b.tierId ? TIERE.find(t => t.id === b.tierId) : null; }
+function beobTierInfo(b) { return b.tierId ? alleTiere().find(t => t.id === b.tierId) : null; }
 function beobTierLabel(b) { const t = beobTierInfo(b); return t ? t.name : (b.tierName || 'Unbekanntes Tier'); }
 function beobTierIcon(b) { const t = beobTierInfo(b); return t ? t.icon : '🔎'; }
 function beobTierKey(b) { return b.tierId ? 't:' + b.tierId : 'f:' + beobNorm(b.tierName); }
@@ -10839,7 +10948,7 @@ function beobachtungBearbeiten(id) {
 }
 function beobFormFuellen(b) {
   document.getElementById('beobTitel').textContent = beobEditId ? '✏️ Beobachtung bearbeiten' : '📝 Beobachtung notieren';
-  document.getElementById('beobTier').value = b.tierId ? (TIERE.find(t => t.id === b.tierId) || {}).name || '' : (b.tierName || '');
+  document.getElementById('beobTier').value = b.tierId ? (alleTiere().find(t => t.id === b.tierId) || {}).name || '' : (b.tierName || '');
   document.getElementById('beobPflanze').value = b.pflanze || '';
   document.getElementById('beobDatum').value = b.datum || heuteISO();
   document.getElementById('beobAnzahl').value = b.anzahl || 1;
@@ -10847,7 +10956,7 @@ function beobFormFuellen(b) {
   beobEditArt = b.art || 'nektar';
   beobEditFotos = (b.fotos || []).slice();
   // Vorschläge: alle Tiere der Liste + bisher frei eingetragene; Pflanzen aus dem Garten + bisherige
-  const tiere = TIERE.map(t => t.name).concat(gartenBeobachtungen().filter(x => !x.tierId && x.tierName).map(x => x.tierName));
+  const tiere = alleTiere().map(t => t.name).concat(gartenBeobachtungen().filter(x => !x.tierId && x.tierName).map(x => x.tierName));
   document.getElementById('beobTierListe').innerHTML = [...new Set(tiere)].map(n => `<option value="${escapeHtml(n)}">`).join('');
   const pfl = [...beobGartenPflanzenNamen().values()].map(p => p.name).concat(gartenBeobachtungen().map(x => x.pflanze).filter(Boolean));
   document.getElementById('beobPflanzeListe').innerHTML = [...new Set(pfl.map(n => n.trim()))].sort((a, c) => a.localeCompare(c, 'de')).map(n => `<option value="${escapeHtml(n)}">`).join('');
@@ -10864,8 +10973,8 @@ function beobTierErkennen(text) {
   const n = beobNorm(text);
   if (!n) return null;
   // genau → „Hummel“ ↔ „Hummeln“ → „Tagpfauenauge-Raupe“ enthält „Tagpfauenauge“
-  return TIERE.find(t => beobNorm(t.name) === n) || TIERE.find(t => beobNorm(t.name).includes(n) && n.length >= 4) ||
-    TIERE.find(t => beobNorm(t.name).length >= 5 && n.includes(beobNorm(t.name).replace(/(n|en)$/, ''))) || null;
+  return alleTiere().find(t => beobNorm(t.name) === n) || alleTiere().find(t => beobNorm(t.name).includes(n) && n.length >= 4) ||
+    alleTiere().find(t => beobNorm(t.name).length >= 5 && n.includes(beobNorm(t.name).replace(/(n|en)$/, ''))) || null;
 }
 function beobTierHinweis() {
   const t = beobTierErkennen(document.getElementById('beobTier').value);
@@ -11079,7 +11188,7 @@ function beobListeHtml(liste) {
 // Steckbrief: Wo im Garten beobachtet?
 function beobTierDetailHtml(tierId) {
   const liste = gartenBeobachtungen().filter(b => b.tierId === tierId);
-  const t = TIERE.find(x => x.id === tierId);
+  const t = alleTiere().find(x => x.id === tierId);
   const pfl = [...beobGruppieren(liste.filter(b => b.pflanze), beobPflanzeKey).values()].sort((a, c) => beobZaehlen(c) - beobZaehlen(a));
   return `<div class="tier-abschnitt-titel">🔗 In deinem Garten beobachtet</div>
     ${pfl.length ? `<div class="tier-chips">${pfl.map(g => `<span class="tier-chip">${beobPflanzeSym(g[0].pflanze)} ${escapeHtml(g[0].pflanze)} ${beobArtIcons(g)} <b>${beobZaehlen(g)}×</b></span>`).join('')}</div>` : '<div class="tier-meta">Noch keine Beobachtung an einer Pflanze.</div>'}
@@ -11272,7 +11381,7 @@ function lexSucheHtml(q) {
   const fnZeilen = LEX_FUNKTIONEN.map((f, i) => (lexTreffer(f[1] + ' ' + f[2], qn) ? zeile(f[0], escapeHtml(f[1]), 'Funktion öffnen', `lexFunktion(${i})`) : '')).filter(Boolean);
   const tippZeilen = [];
   TIPS_TOPICS.forEach((t, ti) => t.subs.forEach((s, si) => { if (lexTreffer(s.t + ' ' + s.c, qn)) tippZeilen.push(zeile(t.icon, escapeHtml(s.t), escapeHtml(t.title), `lexTippOeffnen(${ti},${si})`)); }));
-  const tierZeilen = TIERE.filter(t => lexTreffer([t.name, t.latein, t.kurz, (t.pflanzen || []).join(' ')].join(' '), qn))
+  const tierZeilen = alleTiere().filter(t => lexTreffer([t.name, t.latein, t.kurz, (t.pflanzen || []).join(' ')].join(' '), qn))
     .map(t => zeile(t.icon, escapeHtml(t.name), escapeHtml(t.kurz), `lexAusfuehren(()=>tierDetailOeffnen('${t.id}'))`));
   const projZeilen = TIER_PROJEKTE.filter(p => lexTreffer(p.titel + ' ' + p.kurz + ' ' + p.schritte.join(' '), qn))
     .map(p => zeile(p.icon, escapeHtml(p.titel), escapeHtml(p.kurz), `lexAusfuehren(()=>{showView('tiere');tierProjektZeigen('${p.id}')})`));
@@ -11379,7 +11488,7 @@ function lexPflanzeHtml(name) {
   }
   // Tiere, denen die Pflanze hilft
   const nn = lexNorm(name);
-  const tiere = TIERE.filter(t => (t.pflanzen || []).some(p => { const pn = lexNorm(p); return pn === nn || pn.includes(nn) || nn.includes(pn) && pn.length > 3; }));
+  const tiere = alleTiere().filter(t => (t.pflanzen || []).some(p => { const pn = lexNorm(p); return pn === nn || pn.includes(nn) || nn.includes(pn) && pn.length > 3; }));
   if (tiere.length) h += `<div class="lex-abschnitt">🦔 Hilft diesen Tieren</div><div class="lex-karte"><div class="lex-pchips">${tiere.map(t => `<button type="button" class="lex-pchip" onclick="lexAusfuehren(()=>tierDetailOeffnen('${t.id}'))">${t.icon} ${escapeHtml(t.name)}</button>`).join('')}</div></div>`;
   // Rezepte aus dem Kochen-Modul
   const rez = rezepteMit({ [name]: 1 }).slice(0, 5);

@@ -1136,6 +1136,15 @@ const TIERE = [
     tun: ['Haselnusssträucher oder einen Walnussbaum pflanzen', 'In heißen Sommern eine Wasserschale erhöht aufstellen', 'Im Winter ungesalzene Haselnüsse und Walnüsse in einem Futterkasten anbieten', 'Bäume als Kletterwege erhalten'],
     meiden: ['Gesalzene oder gewürzte Nüsse', 'Offene Regentonnen – Ertrinkungsgefahr! Deckel oder Ausstiegsbrett'],
     projekte: ['traenke', 'miniwasser', 'hecke'] },
+  { id: 'waldmaus', icon: '🐭', name: 'Waldmaus', latein: 'Apodemus sylvaticus', kat: 'saeuger', aufwand: 1, monate: TIER_GANZJAEHRIG,
+    kurz: 'Flinke Springerin mit großen Ohren, Knopfaugen und langem Schwanz.',
+    wusstest: 'Die Waldmaus hüpft auf den Hinterbeinen wie ein kleines Känguru. Packt sie ein Feind am Schwanz, kann sie die Schwanzhaut abstreifen und entwischen. Winterschlaf hält sie nicht – sie legt sich lieber Vorräte an.',
+    nahrung: 'Samen, Nüsse, Bucheckern, Beeren und Obst, dazu Insekten, Raupen und kleine Schnecken. Im Herbst legt sie Futterlager an.',
+    wohnung: 'Unterirdische Gänge unter Hecken, Wurzeln und Steinen, in Trockenmauern, Holz- und Laubhaufen. Im Herbst kommt sie manchmal in Gartenhaus, Garage oder Keller.',
+    pflanzen: ['Haselnuss', 'Weißdorn', 'Holunder', 'Sonnenblume'],
+    tun: ['Eine wilde Ecke mit Hecke, Laub- oder Reisighaufen stehen lassen', 'Steinhaufen oder Trockenmauer als Versteck anlegen', 'In der Dämmerung leise beobachten – nachts ist sie am aktivsten', 'Vorräte im Gartenhaus (Saatgut, Vogelfutter, Zwiebeln) in Dosen oder Kisten aufbewahren, dann bleibt sie draußen'],
+    meiden: ['Gift und Giftköder – sie treffen auch Igel, Katzen, Eulen und Greifvögel', 'Offene Regentonnen ohne Ausstiegshilfe'],
+    projekte: ['hecke', 'laubhaufen', 'steinhaufen', 'totholz'] },
 
   // ---------- Amphibien & Reptilien ----------
   { id: 'amphibien', icon: '🐸', name: 'Frösche, Kröten & Molche', latein: 'z. B. Erdkröte, Grasfrosch, Bergmolch', kat: 'amphibien', aufwand: 2, monate: [3, 4, 5, 6, 7, 8, 9, 10],

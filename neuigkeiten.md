@@ -1,5 +1,10 @@
 # Neuigkeiten im Familienplaner
-# Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
+# Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## 2026-11-11 | 🦔 Garten: Waldmaus & eigene Tiere
+- Die **Waldmaus** 🐭 ist jetzt fest im Tier-Lexikon (Säugetiere) – mit Steckbrief, Tipps und passenden Projekten.
+- Neu: **„＋ Eigenes Tier eintragen“** unter der Tierliste. Findet die Suche nichts, wird der Name gleich übernommen.
+- Eigene Tiere bekommen Symbol, Gruppe, Kurzbeschreibung, Nahrung, Wohnort und Notizen, lassen sich als gesehen markieren, bearbeiten und löschen und tauchen in den Beobachtungen auf.
+
+## JJJJ-MM-TT | Titel
 # Darunter beliebig viele Zeilen Text. Zeilen mit "# " am Anfang sind nur Kommentare.
 
 ## 2026-11-06 | 🔨 Handwerk: Bilder auf den Projektkarten
