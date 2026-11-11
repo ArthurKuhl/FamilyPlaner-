@@ -1,5 +1,12 @@
 # Neuigkeiten im Familienplaner
-# Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## 2026-11-11 | 🔴 Seltene Funde im Tier-Lexikon
+# Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## 2026-11-11 | 🐝 22 neue Bienen, Hummeln & Wespen
+- **Hummeln:** Dunkle Erdhummel, Steinhummel, Ackerhummel, Baumhummel, Wiesenhummel, Gartenhummel. Die bisherige Karte heißt jetzt „Hummeln (Art unbekannt)“, eure Sichtungen bleiben erhalten.
+- **Wildbienen:** Gehörnte Mauerbiene, Frühlings-Pelzbiene, Fuchsrote Sandbiene, Garten-Wollbiene, Blattschneiderbienen, Glockenblumen-Scherenbiene, Natternkopf-Mauerbiene, Löcherbiene, Maskenbienen, dazu die Honigbiene.
+- **Wespen:** Gemeine & Deutsche Wespe, Hornisse, Feldwespen, Pillenwespe, Goldwespen.
+- Bei den Nützlingen: der Große Wollschweber, eine Fliege, die wie eine Mini-Hummel aussieht.
+- Die Gruppe heißt jetzt „🐝 Bienen, Hummeln & Wespen“.
+
+## 2026-11-11 | 🔴 Seltene Funde im Tier-Lexikon
 - Neue Stufe **„🔴 sehr schwer“** für Tiere, die vor allem von der Umgebung abhängen: Steinkauz, Wendehals, Gartenschläfer, Feuersalamander, Laubfrosch und Ringelnatter.
 - Im Steckbrief erklärt ein roter Kasten ehrlich, **woran es hängt** und was man trotzdem tun kann.
 - Neuer Filter „🔴 Seltene Funde“. Sie zählen nicht zum Entdeckt-Ziel, werden aber als Bonus angezeigt („· 🔴 1 seltener Fund“) und mit einer eigenen Meldung gefeiert.
