@@ -10460,10 +10460,20 @@ function eigenesTierLoeschen() {
   if (!confirm('„' + liste[i].name + '“ löschen? Die Sichtungen dazu werden ebenfalls entfernt.')) return;
   const weg = liste.splice(i, 1)[0], sicht = tierSichtungen(), altSicht = sicht[id];
   delete sicht[id];
+  const g = gardens[currentGardenId], altLog = (g && g.tierLog) ? g.tierLog.slice() : null;
+  if (altLog) g.tierLog = altLog.filter(x => x.tierId !== id);
   saveData(); eigenesTierSchliessen(); tierDetailSchliessen(); renderTiere();
-  showTempStatus('🗑️ ' + weg.name + ' gelöscht', 6, { label: 'Rückgängig', aktion: () => { eigeneTiere().splice(i, 0, weg); if (altSicht) tierSichtungen()[id] = altSicht; saveData(); renderTiere(); } });
+  showTempStatus('🗑️ ' + weg.name + ' gelöscht', 6, { label: 'Rückgängig', aktion: () => { eigeneTiere().splice(i, 0, weg); if (altSicht) tierSichtungen()[id] = altSicht; if (altLog && gardens[currentGardenId]) gardens[currentGardenId].tierLog = altLog; saveData(); renderTiere(); } });
 }
 
+// gardens[id].tierLog = [{ datum, tierId, name, icon, neu, von }] – die letzten Sichtungen (max. 80)
+function tierLog() {
+  const g = gardens[currentGardenId];
+  if (!g) return [];
+  if (!Array.isArray(g.tierLog)) g.tierLog = [];
+  if (g.tierLog.length > 80) g.tierLog.splice(0, g.tierLog.length - 80);
+  return g.tierLog;
+}
 function tierSichtungen() {
   const g = gardens[currentGardenId];
   if (!g) return {};
@@ -10503,6 +10513,9 @@ function tierMonateHtml(monate) {
 }
 
 function renderTiere() {
+  // Namen/Symbole an ältere Sichtungen hängen, damit die Übersicht sie anzeigen kann
+  const sichtAlt = tierSichtungen();
+  Object.keys(sichtAlt).forEach(id => { if (!sichtAlt[id].name) { const t = alleTiere().find(x => x.id === id); if (t) { sichtAlt[id].name = t.name; sichtAlt[id].icon = t.icon; } } });
   const box = document.getElementById('tiereWrap');
   if (!box) return;
   const sicht = tierSichtungen();
@@ -10873,6 +10886,10 @@ function tierGesehen(id) {
   if (neu) sicht[id] = { anzahl: 0, erst: heute, zuletzt: heute };
   sicht[id].anzahl++;
   sicht[id].zuletzt = heute;
+  const tt = alleTiere().find(x => x.id === id);
+  if (tt) { sicht[id].name = tt.name; sicht[id].icon = tt.icon; }
+  // Kurzes Tagebuch der Sichtungen – die Übersicht zeigt daraus die Highlights der Woche
+  tierLog().push({ datum: heute, tierId: id, name: tt ? tt.name : '', icon: tt ? tt.icon : '🐾', neu, von: (typeof gartenIchBin === 'function' && gartenIchBin()) || null });
   saveData();
   tierDetailRendern();
   renderTiere();
@@ -10884,6 +10901,8 @@ function tierGesehenZurueck(id) {
   if (!sicht[id]) return;
   sicht[id].anzahl--;
   if (sicht[id].anzahl <= 0) delete sicht[id];
+  const log = tierLog();
+  for (let i = log.length - 1; i >= 0; i--) if (log[i].tierId === id) { log.splice(i, 1); break; }
   saveData();
   tierDetailRendern();
   renderTiere();
@@ -11754,6 +11773,17 @@ function urlaubDrucken() {
 
 // Treffer aus der appweiten Suche („🔍 In allen Bereichen suchen“): statt nur irgendwo im Garten
 // zu scrollen, öffnet sich die Garten-Suche mit dem Begriff – bei einer Pflanze direkt ihre Lexikon-Seite.
+// Aus der Übersicht („Highlights der Woche“): direkt zu den Gartentieren springen
+window.addEventListener('message', (e) => {
+  if (e.origin !== window.location.origin || !e.data || e.data.type !== 'shortcutAktion' || e.data.aktion !== 'tiere') return;
+  setTimeout(() => {
+    try {
+      tierAnsicht = 'tiere'; showView('tiere');
+      const id = String(e.data.text || '');
+      if (id && alleTiere().some(t => t.id === id)) tierDetailOeffnen(id);
+    } catch (err) { console.warn('Tiere aus der Übersicht', err); }
+  }, 150);
+});
 window.addEventListener('message', (e) => {
   if (e.origin !== window.location.origin || !e.data || e.data.type !== 'shortcutAktion' || e.data.aktion !== 'suche') return;
   const begriff = String(e.data.text || '').trim();

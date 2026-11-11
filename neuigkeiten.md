@@ -1,5 +1,10 @@
 # Neuigkeiten im Familienplaner
-# Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## 2026-11-11 | 🦔 Garten: Waldmaus & eigene Tiere
+# Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## 2026-11-11 | 🦔 Garten-Highlights der Woche auf der Übersicht
+- Neue Kachel in der Übersicht: Welche Tiere wurden in den letzten 7 Tagen im Garten **neu entdeckt** (mit Tag und wer sie eingetragen hat), welche wurden **außerdem gesehen** und welche **Beobachtungen** gab es („Hummel an Lavendel“).
+- Antippen springt direkt zu den Gartentieren, ein Tier antippen öffnet gleich seinen Steckbrief.
+- Die Kachel erscheint nur, wenn in der Woche etwas eingetragen wurde, und verschwindet, wenn der Garten ausgeblendet ist.
+
+## 2026-11-11 | 🦔 Garten: Waldmaus & eigene Tiere
 - Die **Waldmaus** 🐭 ist jetzt fest im Tier-Lexikon (Säugetiere) – mit Steckbrief, Tipps und passenden Projekten.
 - Neu: **„＋ Eigenes Tier eintragen“** unter der Tierliste. Findet die Suche nichts, wird der Name gleich übernommen.
 - Eigene Tiere bekommen Symbol, Gruppe, Kurzbeschreibung, Nahrung, Wohnort und Notizen, lassen sich als gesehen markieren, bearbeiten und löschen und tauchen in den Beobachtungen auf.
