@@ -487,7 +487,9 @@
     ['florfliege','💚','Florfliege'],['ohrwurm','✂️','Ohrwurm'],['gluehwuermchen','✨','Glühwürmchen'],['hirschkaefer','🪲','Hirschkäfer'],['tagpfauenauge','🦋','Tagpfauenauge'],
     ['zitronenfalter','🦋','Zitronenfalter'],['schwalbenschwanz','🦋','Schwalbenschwanz'],['taubenschwaenzchen','🦋','Taubenschwänzchen'],['meisen','🐦','Meisen'],['rotkehlchen','🐦','Rotkehlchen'],
     ['amsel','🐦','Amsel'],['hausrotschwanz','🐦','Hausrotschwanz'],['spatz','🐦','Spatz'],['stieglitz','🐦','Stieglitz'],['mauersegler','🐦','Mauersegler'],['igel','🦔','Igel'],
-    ['fledermaus','🦇','Fledermaus'],['eichhoernchen','🐿️','Eichhörnchen'],['amphibien','🐸','Frosch & Co.'],['eidechse','🦎','Eidechse'],['blindschleiche','🐍','Blindschleiche']];
+    ['fledermaus','🦇','Fledermaus'],['eichhoernchen','🐿️','Eichhörnchen'],['amphibien','🐸','Frosch & Co.'],['eidechse','🦎','Eidechse'],['blindschleiche','🐍','Blindschleiche'],['waldmaus','🐭','Waldmaus']];
+  // Seltene Funde erscheinen nur, wenn sie wirklich entdeckt wurden (Bonus, zählen nicht zum Ziel)
+  const SELTENE_TIERE = [['steinkauz','🦉','Steinkauz'],['wendehals','🐦','Wendehals'],['gartenschlaefer','🐭','Gartenschläfer'],['feuersalamander','🦎','Feuersalamander'],['laubfrosch','🐸','Laubfrosch'],['ringelnatter','🐍','Ringelnatter']];
   function tierSichtungen() {
     const g = laden('gartenplaner_v3', null);
     const garten = g && g.gardens && g.gardens[g.currentGardenId];
@@ -803,6 +805,7 @@
     const entdeckt = TIERE.filter(t => sicht[t[0]]);
     html += '<div class="karte"><h2>🦔 Tier-Entdeckungen <span class="klein">' + entdeckt.length + ' von ' + TIERE.length + '</span></h2>' +
       '<div class="tiere">' + TIERE.map(t => '<div class="tier' + (sicht[t[0]] ? '' : ' unbekannt') + '"><span class="t-icon">' + t[1] + '</span>' + (sicht[t[0]] ? esc(t[2]) : '???') + '</div>').join('') + '</div>' +
+      (SELTENE_TIERE.some(t => sicht[t[0]]) ? '<p class="klein" style="margin-top:8px">🌟 Seltene Funde</p><div class="tiere">' + SELTENE_TIERE.filter(t => sicht[t[0]]).map(t => '<div class="tier"><span class="t-icon">' + t[1] + '</span>' + esc(t[2]) + ' 🌟</div>').join('') + '</div>' : '') +
       '<button class="knopf-gross" id="btnTiere">🔍 Tiere entdecken</button></div>';
 
     box.innerHTML = html;

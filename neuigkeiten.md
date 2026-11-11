@@ -1,5 +1,11 @@
 # Neuigkeiten im Familienplaner
-# Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## 2026-11-11 | 📷 Tierfotos sichtbar
+# Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## 2026-11-11 | 🔴 Seltene Funde im Tier-Lexikon
+- Neue Stufe **„🔴 sehr schwer“** für Tiere, die vor allem von der Umgebung abhängen: Steinkauz, Wendehals, Gartenschläfer, Feuersalamander, Laubfrosch und Ringelnatter.
+- Im Steckbrief erklärt ein roter Kasten ehrlich, **woran es hängt** und was man trotzdem tun kann.
+- Neuer Filter „🔴 Seltene Funde“. Sie zählen nicht zum Entdeckt-Ziel, werden aber als Bonus angezeigt („· 🔴 1 seltener Fund“) und mit einer eigenen Meldung gefeiert.
+- Kinderecke: Die Waldmaus ist bei den Tier-Entdeckungen dabei, seltene Funde erscheinen dort als 🌟 Bonus.
+
+## 2026-11-11 | 📷 Tierfotos sichtbar
 - Fotos aus Beobachtungen erscheinen jetzt direkt beim Tier: als Bild auf der Karte in der Tierliste, oben im Steckbrief und als Fotoleiste „📷 Eure Fotos“ (antippen = groß).
 - Auch die Garten-Highlights in der Übersicht zeigen das Foto statt des Symbols.
 - Behoben: In den Highlights stand bei Beobachtungen „Tier an …“ statt des Tiernamens.

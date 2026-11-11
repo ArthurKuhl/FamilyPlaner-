@@ -915,7 +915,8 @@ const TIER_KATEGORIEN = {
   amphibien: '🐸 Amphibien & Reptilien',
 };
 
-const TIER_AUFWAND = { 1: '🟢 leicht', 2: '🟡 mittel', 3: '🟠 aufwendig' };
+const TIER_AUFWAND = { 1: '🟢 leicht', 2: '🟡 mittel', 3: '🟠 aufwendig', 4: '🔴 sehr schwer' };
+// Stufe 4 = „seltener Fund“: hängt vor allem von der Umgebung ab – Feld `woranEsHaengt` erklärt, warum.
 
 const TIER_GANZJAEHRIG = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
@@ -1108,6 +1109,27 @@ const TIERE = [
     meiden: ['Gerüste oder Abdeckungen über besetzten Brutplätzen während der Brutzeit'],
     projekte: ['nistkasten'] },
 
+  { id: 'steinkauz', icon: '🦉', name: 'Steinkauz', latein: 'Athene noctua', kat: 'voegel', aufwand: 4, monate: TIER_GANZJAEHRIG,
+    kurz: 'Kleine Eule mit gelben Augen, die auch tagsüber auf Pfosten sitzt.',
+    wusstest: 'Der Steinkauz ist kaum größer als eine Amsel. Er jagt oft zu Fuß im kurzen Gras nach Käfern und Regenwürmern – und „knickst“ mit dem ganzen Körper, wenn er aufgeregt ist.',
+    nahrung: 'Mäuse, große Käfer, Regenwürmer, Heuschrecken.',
+    wohnung: 'Alte Streuobstwiesen und Kopfweiden mit Baumhöhlen; nimmt auch spezielle Steinkauz-Niströhren an.',
+    woranEsHaengt: 'Er braucht offene Landschaft: Streuobstwiesen mit kurz gemähtem oder beweidetem Gras und alten Höhlenbäumen. Ein Hausgarten allein reicht nicht – aber wer an Streuobst grenzt, kann mit einer Niströhre helfen (am besten mit dem örtlichen NABU absprechen).',
+    pflanzen: ['Apfelbaum', 'Birnbaum', 'Kirschbaum'],
+    tun: ['Alte Obstbäume mit Höhlen erhalten', 'Am Rand zur Streuobstwiese Teile kurz halten, damit er Beute sieht', 'Mit dem NABU oder einer Steinkauz-Gruppe eine Niströhre aufhängen'],
+    meiden: ['Gift gegen Mäuse', 'Offene Regentonnen, Kamine und Rohre – junge Käuze fallen hinein', 'Alte Obstbäume fällen'],
+    projekte: ['nistkasten', 'bluehwiese'] },
+  { id: 'wendehals', icon: '🐦', name: 'Wendehals', latein: 'Jynx torquilla', kat: 'voegel', aufwand: 4, monate: [4, 5, 6, 7, 8],
+    kurz: 'Gut getarnter Specht, der fast nur Ameisen frisst.',
+    wusstest: 'Bei Gefahr dreht er den Kopf schlangenartig hin und her und zischt – daher sein Name. Anders als andere Spechte hämmert er keine eigenen Höhlen, sondern zieht in alte Spechthöhlen oder Nistkästen. Den Winter verbringt er in Afrika.',
+    nahrung: 'Fast nur Ameisen und ihre Puppen, die er mit seiner langen Klebezunge aus dem Boden holt.',
+    wohnung: 'Lichte Streuobstwiesen, Weinberge und naturnahe Gärten mit Baumhöhlen.',
+    woranEsHaengt: 'Er braucht viele Ameisennester auf mageren, lückigen Wiesen in der Umgebung und ist sehr selten geworden. Mit Nistkasten und Ameisen-freundlichem Garten kann man ihm helfen, wenn er in der Nähe brütet.',
+    pflanzen: ['Apfelbaum', 'Thymian', 'Dost'],
+    tun: ['Ameisennester im Garten in Ruhe lassen', 'Magere, kurze Wiesenstellen mit offenen Bodenstellen erhalten', 'Einen Nistkasten mit etwa 32 mm Flugloch aufhängen'],
+    meiden: ['Ameisengift und Ameisenköder', 'Dünger auf Wiesenflächen'],
+    projekte: ['nistkasten', 'bluehwiese'] },
+
   // ---------- Säugetiere ----------
   { id: 'igel', icon: '🦔', name: 'Igel', latein: 'Erinaceus europaeus', kat: 'saeuger', aufwand: 1, monate: [3, 4, 5, 6, 7, 8, 9, 10, 11],
     kurz: 'Stacheliger Nachtwanderer – braucht Durchgänge und Verstecke.',
@@ -1146,6 +1168,17 @@ const TIERE = [
     meiden: ['Gift und Giftköder – sie treffen auch Igel, Katzen, Eulen und Greifvögel', 'Offene Regentonnen ohne Ausstiegshilfe'],
     projekte: ['hecke', 'laubhaufen', 'steinhaufen', 'totholz'] },
 
+  { id: 'gartenschlaefer', icon: '🐭', name: 'Gartenschläfer', latein: 'Eliomys quercinus', kat: 'saeuger', aufwand: 4, monate: [4, 5, 6, 7, 8, 9, 10],
+    kurz: 'Kleiner Bilch mit schwarzer „Zorro-Maske“ und Pinselschwanz.',
+    wusstest: 'Der Gartenschläfer schläft rund ein halbes Jahr lang Winterschlaf. Er ist in Deutschland stark zurückgegangen – Forscher bitten deshalb, jede Sichtung zu melden (z. B. bei der „Spurensuche Gartenschläfer“ von BUND und Senckenberg).',
+    nahrung: 'Vor allem Insekten, Käfer, Schnecken und Spinnen, dazu Obst, Beeren und Samen.',
+    wohnung: 'Felsige, steinige Orte, Trockenmauern, Obstgärten und Waldränder; schläft in Baumhöhlen, Nistkästen, Mauerritzen oder Gartenhütten.',
+    woranEsHaengt: 'Ob es in deiner Umgebung überhaupt noch Gartenschläfer gibt – im Schwarzwald kommen sie vor, vielerorts sind sie aber verschwunden. Man kann ihn nicht „holen“, nur gute Plätze anbieten.',
+    pflanzen: ['Haselnuss', 'Holunder', 'Weißdorn', 'Apfelbaum'],
+    tun: ['Trockenmauern und Steinhaufen mit vielen Ritzen anlegen', 'Dichte Hecken und Obstbäume stehen lassen', 'Einen Bilch-Schlafkasten (Einflugloch zum Baumstamm hin) aufhängen', 'Sichtungen mit Foto melden – das hilft der Forschung'],
+    meiden: ['Gift und Rattenköder', 'Offene Regentonnen ohne Ausstiegshilfe', 'Tiere anfassen oder fangen – sie sind geschützt'],
+    projekte: ['steinhaufen', 'hecke', 'nistkasten'] },
+
   // ---------- Amphibien & Reptilien ----------
   { id: 'amphibien', icon: '🐸', name: 'Frösche, Kröten & Molche', latein: 'z. B. Erdkröte, Grasfrosch, Bergmolch', kat: 'amphibien', aufwand: 2, monate: [3, 4, 5, 6, 7, 8, 9, 10],
     kurz: 'Wo fischfreies Wasser ist, kommen sie oft ganz von allein.',
@@ -1174,6 +1207,36 @@ const TIERE = [
     tun: ['Ein altes Brett oder eine Steinplatte in eine ruhige, halbschattige Ecke legen – darunter wärmen sie sich gern', 'Kompost- und Laubhaufen nicht vor April umsetzen (Winterruhe)', 'Ungemähte Säume am Rand stehen lassen'],
     meiden: ['Rasentrimmer und Mähroboter an Rändern', 'Schneckenkorn – es vergiftet ihr Futter'],
     projekte: ['laubhaufen', 'steinhaufen'] },
+  { id: 'feuersalamander', icon: '🦎', name: 'Feuersalamander', latein: 'Salamandra salamandra', kat: 'amphibien', aufwand: 4, monate: [3, 4, 5, 6, 7, 8, 9, 10],
+    kurz: 'Schwarz-gelber Waldbewohner, der nach Regen unterwegs ist.',
+    wusstest: 'Das Weibchen legt keine Eier, sondern setzt fertige Larven in kühle Quellbäche. Feuersalamander können über 20 Jahre alt werden. Ein eingeschleppter Hautpilz („Salamanderfresser“) bedroht sie inzwischen.',
+    nahrung: 'Schnecken, Regenwürmer, Asseln, Spinnen und Insekten.',
+    wohnung: 'Feuchte Laub- und Mischwälder mit sauberen, kühlen Bächen; tagsüber unter Steinen, Totholz und in Erdlöchern.',
+    woranEsHaengt: 'Er braucht Wald mit Quellbächen für die Larven. Am Rand des Nordschwarzwalds gibt es ihn – im Garten taucht er aber höchstens direkt am Waldrand auf. Ein Gartenteich ersetzt den Bach nicht.',
+    pflanzen: [],
+    tun: ['Feuchte, schattige Verstecke aus Totholz, Steinen und Laub am Waldrand-Zaun anlegen', 'Lichtschächte und Kellerabgänge mit Gitter oder Ausstiegshilfe sichern', 'Bei regnerischen Abenden auf Wegen achtsam sein'],
+    meiden: ['Tiere anfassen oder umsetzen – wegen des Hautpilzes nur mit sauberen, feuchten Händen und nur zur Rettung', 'Schuhe und Geräte von anderen Gewässern unbehandelt mitbringen (Pilz kann übertragen werden)', 'Schneckenkorn'],
+    projekte: ['totholz', 'laubhaufen', 'steinhaufen'] },
+  { id: 'laubfrosch', icon: '🐸', name: 'Laubfrosch', latein: 'Hyla arborea', kat: 'amphibien', aufwand: 4, monate: [4, 5, 6, 7, 8, 9],
+    kurz: 'Kleiner, leuchtend grüner Kletterfrosch mit Haftscheiben.',
+    wusstest: 'Er kann mit den Haftscheiben an Fingern und Zehen sogar an Glas hochklettern. Ein einzelnes Männchen ist bei Nacht über einen Kilometer weit zu hören.',
+    nahrung: 'Fliegen, Käfer, Spinnen, Raupen – erbeutet in Büschen und Hochstauden.',
+    wohnung: 'Sonnige, fischfreie, flache Weiher mit dichtem Schilf und Gebüsch drumherum; überwintert an Land.',
+    woranEsHaengt: 'Er lebt in Gruppen aus mehreren Teichen, die nicht zu weit auseinander liegen. Ein einzelner Gartenteich reicht ihm selten – nur wenn ganz in der Nähe schon Laubfrösche rufen.',
+    pflanzen: ['Brombeere', 'Schilf'],
+    tun: ['Einen sonnigen, flachen Teich ohne Fische anlegen', 'Rund um den Teich Brombeeren, Sträucher und Hochstauden wachsen lassen', 'Im Frühsommer abends lauschen – das „äpp-äpp-äpp“ verrät ihn'],
+    meiden: ['Fische und Wasserpumpen im Teich', 'Frösche aus der Natur umsetzen oder Laich holen – verboten'],
+    projekte: ['teich', 'hecke'] },
+  { id: 'ringelnatter', icon: '🐍', name: 'Ringelnatter', latein: 'Natrix natrix', kat: 'amphibien', aufwand: 4, monate: [4, 5, 6, 7, 8, 9],
+    kurz: 'Harmlose Schlange mit gelben „Halbmonden“ am Hinterkopf.',
+    wusstest: 'Die Ringelnatter ist völlig ungiftig und schwimmt hervorragend. Bei Gefahr stellt sie sich tot – mit offenem Maul und heraushängender Zunge.',
+    nahrung: 'Vor allem Frösche, Kröten, Molche und Fische.',
+    wohnung: 'Gewässernahe, sonnige Säume, Uferböschungen und Gärten am Wasser.',
+    woranEsHaengt: 'Sie braucht Gewässer mit vielen Amphibien in der Nähe. Gibt es die, kann ein Garten sehr wertvoll sein: Große, warme Kompost- oder Misthaufen nutzt sie gern zur Eiablage.',
+    pflanzen: [],
+    tun: ['Einen großen, ungestörten Kompost-, Laub- oder Schnitthaufen in Sonne anlegen und von Juni bis September nicht umsetzen', 'Einen naturnahen Teich mit flachem Ufer anlegen', 'Sonnige Steinhaufen als Wärmeplatz'],
+    meiden: ['Schlangen erschlagen oder vertreiben – sie sind geschützt und harmlos', 'Mähroboter und Freischneider in Teichnähe'],
+    projekte: ['teich', 'laubhaufen', 'steinhaufen'] },
 ];
 
 const TIER_PROJEKTE = [

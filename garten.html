@@ -371,6 +371,7 @@
   .tier-regel b { font-size: 0.86rem; }
   .tier-detail-kopf { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; }
   .tier-detail-icon { font-size: 2.6rem; width: 64px; height: 64px; flex-shrink: 0; border-radius: 50%; background: rgba(127,164,118,0.15); display: flex; align-items: center; justify-content: center; }
+  .tier-selten { background: rgba(196,80,60,0.12); border-left: 4px solid #c4503c; border-radius: var(--radius-sm); padding: 10px 12px; font-size: 0.82rem; line-height: 1.45; margin-bottom: 10px; }
   .tier-wusstest { background: rgba(201,154,58,0.13); border-left: 4px solid var(--gold); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 0.82rem; line-height: 1.45; }
   .tier-monate { display: grid; grid-template-columns: repeat(12, 1fr); gap: 3px; }
   .tier-monate span { text-align: center; font-size: 0.66rem; padding: 4px 0; border-radius: 4px; background: var(--parchment); color: var(--bark); }
@@ -10525,14 +10526,18 @@ function renderTiere() {
   const box = document.getElementById('tiereWrap');
   if (!box) return;
   const sicht = tierSichtungen();
-  const entdeckt = alleTiere().filter(t => sicht[t.id]).length;
-  const prozent = Math.round(entdeckt / alleTiere().length * 100);
+  // Seltene Funde (Stufe 4) zählen nur, wenn sie entdeckt wurden – sonst wäre 100 % kaum erreichbar
+  const zielTiere = alleTiere().filter(t => t.aufwand < 4 || sicht[t.id]);
+  const entdeckt = zielTiere.filter(t => sicht[t.id] && t.aufwand < 4).length;
+  const selten = alleTiere().filter(t => t.aufwand === 4 && sicht[t.id]).length;
+  const basis = alleTiere().filter(t => t.aufwand < 4).length;
+  const prozent = Math.min(100, Math.round(entdeckt / Math.max(1, basis) * 100));
   const gartenName = (gardens[currentGardenId] && gardens[currentGardenId].name) || 'deinem Garten';
   const reiter = [['tiere', '🔍 Tiere'], ['wer', '🔗 Wer frisst was?'], ['bauen', '🔨 Lebensräume bauen'], ['pflanzen', '🌼 Futterpflanzen'], ['regeln', '✅ Grundregeln']];
   let html = `<div class="home-intro" style="margin-bottom:14px"><h2>🦔 Tiere im Garten</h2>
       <p>Welche Tiere leben bei uns – und was brauchen sie, damit sie in den Garten kommen?</p></div>
     <div class="tier-fortschritt">
-      <div class="tier-fortschritt-text">👀 Entdeckt in „${escapeHtml(gartenName)}“: <b>${entdeckt} von ${alleTiere().length}</b></div>
+      <div class="tier-fortschritt-text">👀 Entdeckt in „${escapeHtml(gartenName)}“: <b>${entdeckt} von ${basis}</b>${selten ? ` · 🔴 ${selten} seltene${selten === 1 ? 'r' : ''} Fund${selten === 1 ? '' : 'e'}` : ''}</div>
       <div class="tier-balken"><span style="width:${prozent}%"></span></div>
     </div>
     <div class="tier-reiter">${reiter.map(([k, t]) => `<button type="button" class="saat-chip${tierAnsicht === k ? ' an' : ''}" onclick="tierAnsichtSetzen('${k}')">${t}</button>`).join('')}</div>`;
@@ -10553,7 +10558,7 @@ function tierSucheSetzen(v) {
 }
 
 function renderTiereListeHtml(sicht) {
-  const kats = [['alle', 'Alle']].concat(Object.entries(TIER_KATEGORIEN), [['entdeckt', '👀 Entdeckt']]);
+  const kats = [['alle', 'Alle']].concat(Object.entries(TIER_KATEGORIEN), [['selten', '🔴 Seltene Funde'], ['entdeckt', '👀 Entdeckt']]);
   return `<input type="search" id="tierSucheInput" class="tier-suche" placeholder="🔍 Tier oder Pflanze suchen …" value="${escapeHtml(tierSuche)}" oninput="tierSucheSetzen(this.value)">
     <div class="tier-filter">${kats.map(([k, t]) => `<button type="button" class="saat-chip${tierKategorie === k ? ' an' : ''}" onclick="tierKategorieSetzen('${k}')">${t}</button>`).join('')}</div>
     <div id="tierListe">${tierListeInhaltHtml(sicht)}</div>`;
@@ -10562,7 +10567,8 @@ function tierListeInhaltHtml(sicht) {
   const q = tierSuche.trim().toLowerCase();
   const liste = alleTiere().filter(t => {
     if (tierKategorie === 'entdeckt' && !sicht[t.id]) return false;
-    if (tierKategorie !== 'alle' && tierKategorie !== 'entdeckt' && t.kat !== tierKategorie) return false;
+    if (tierKategorie === 'selten' && t.aufwand !== 4) return false;
+    if (tierKategorie !== 'alle' && tierKategorie !== 'entdeckt' && tierKategorie !== 'selten' && t.kat !== tierKategorie) return false;
     if (!q) return true;
     return [t.name, t.latein, t.kurz, t.nahrung, t.wohnung, t.pflanzen.join(' ')].join(' ').toLowerCase().includes(q);
   });
@@ -10863,6 +10869,7 @@ function tierDetailRendern() {
         <div class="tier-meta">${TIER_KATEGORIEN[t.kat]} · Ansiedeln: ${TIER_AUFWAND[t.aufwand]}</div></div>
     </div>
     ${tierFotosHtml(t.id)}
+    ${t.woranEsHaengt ? `<div class="tier-selten"><b>🔴 Seltener Fund – woran es hängt</b><br>${escapeHtml(t.woranEsHaengt)}</div>` : ''}
     <div class="tier-wusstest"><b>🧒 Wusstest du?</b><br>${escapeHtml(t.wusstest)}</div>
     <div class="tier-abschnitt-titel">📅 Wann zu sehen</div>${tierMonateHtml(t.monate)}
     <div class="tier-abschnitt-titel">🍽️ Was frisst es?</div><p class="tier-p">${escapeHtml(t.nahrung)}</p>
@@ -10902,7 +10909,7 @@ function tierGesehen(id) {
   tierDetailRendern();
   renderTiere();
   const t = alleTiere().find(x => x.id === id);
-  showTempStatus(neu ? `🎉 Neu entdeckt: ${t ? t.name : ''}!` : '👀 Sichtung eingetragen', 3);
+  showTempStatus(neu ? (t && t.aufwand === 4 ? `🔴✨ Seltener Fund: ${t.name}! Wow!` : `🎉 Neu entdeckt: ${t ? t.name : ''}!`) : '👀 Sichtung eingetragen', 3);
 }
 function tierGesehenZurueck(id) {
   const sicht = tierSichtungen();
