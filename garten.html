@@ -264,6 +264,12 @@
   .tier-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
   .tier-karte { display: flex; gap: 12px; align-items: flex-start; text-align: left; background: var(--white); border: 1px solid var(--parchment); border-radius: var(--radius-md); padding: 12px; cursor: pointer; font-family: inherit; color: var(--soil); box-shadow: var(--shadow-soft); touch-action: manipulation; }
   .tier-karte.entdeckt { border-color: var(--sage); }
+  .tier-icon img, .tier-detail-icon img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
+  .tier-icon, .tier-detail-icon { overflow: hidden; }
+  .tier-fotos { display: flex; gap: 8px; overflow-x: auto; padding: 2px 0 6px; margin: 4px 0 6px; }
+  .tier-fotos button { flex: 0 0 auto; width: 92px; height: 92px; padding: 0; border: none; border-radius: 12px; overflow: hidden; cursor: pointer; background: rgba(127,164,118,0.15); position: relative; }
+  .tier-fotos img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .tier-fotos small { position: absolute; left: 0; right: 0; bottom: 0; padding: 2px 4px; font-size: 0.66rem; color: #fff; background: linear-gradient(transparent, rgba(0,0,0,0.65)); text-align: left; }
   .tier-icon { font-size: 2rem; line-height: 1; flex-shrink: 0; width: 48px; height: 48px; border-radius: 50%; background: rgba(127,164,118,0.15); display: flex; align-items: center; justify-content: center; }
   .tier-karte-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
   .tier-name { font-weight: 700; font-size: 0.9rem; }
@@ -10566,7 +10572,7 @@ function tierListeInhaltHtml(sicht) {
   return `<div class="tier-grid">${liste.map(t => {
     const s = sicht[t.id];
     return `<button type="button" class="tier-karte${s ? ' entdeckt' : ''}" onclick="tierDetailOeffnen('${t.id}')">
-      <span class="tier-icon">${t.icon}</span>
+      <span class="tier-icon">${tierIconHtml(t)}</span>
       <span class="tier-karte-text">
         <span class="tier-name">${escapeHtml(t.name)}${s ? ' <span class="tier-gesehen-mark" title="Schon entdeckt">👀</span>' : ''}</span>
         <span class="tier-kurz">${escapeHtml(t.kurz)}</span>
@@ -10830,10 +10836,11 @@ function tierDetailRendern() {
     const ab = (titel, text) => text ? `<div class="tier-abschnitt-titel">${titel}</div><p class="tier-p">${escapeHtml(text).replace(/\n/g, '<br>')}</p>` : '';
     const datumE = d => new Date(d + 'T00:00').toLocaleDateString('de-DE');
     document.getElementById('tierDetailInhalt').innerHTML = `
-      <div class="tier-detail-kopf"><span class="tier-detail-icon">${escapeHtml(t.icon)}</span>
+      <div class="tier-detail-kopf"><span class="tier-detail-icon">${tierIconHtml(t)}</span>
         <div><h2 style="margin:0">${escapeHtml(t.name)}</h2>${t.latein ? `<div class="tier-meta"><i>${escapeHtml(t.latein)}</i></div>` : ''}
           <div class="tier-meta">${TIER_KATEGORIEN[t.kat]} · ✍️ selbst eingetragen</div></div></div>
       ${t.kurz && t.kurz !== 'Eigenes Tier' ? `<p class="tier-p">${escapeHtml(t.kurz)}</p>` : ''}
+      ${tierFotosHtml(t.id)}
       ${ab('🍽️ Was frisst es?', t.nahrung)}${ab('🏠 Wo wohnt es?', t.wohnung)}${ab('📝 Notizen', t.notiz)}
       ${beobTierDetailHtml(t.id)}
       <div class="tier-gesehen-box">
@@ -10850,11 +10857,12 @@ function tierDetailRendern() {
   const datum = d => new Date(d + 'T00:00').toLocaleDateString('de-DE');
   document.getElementById('tierDetailInhalt').innerHTML = `
     <div class="tier-detail-kopf">
-      <span class="tier-detail-icon">${t.icon}</span>
+      <span class="tier-detail-icon">${tierIconHtml(t)}</span>
       <div><h2 style="margin:0">${escapeHtml(t.name)}</h2>
         <div class="tier-meta"><i>${escapeHtml(t.latein)}</i></div>
         <div class="tier-meta">${TIER_KATEGORIEN[t.kat]} · Ansiedeln: ${TIER_AUFWAND[t.aufwand]}</div></div>
     </div>
+    ${tierFotosHtml(t.id)}
     <div class="tier-wusstest"><b>🧒 Wusstest du?</b><br>${escapeHtml(t.wusstest)}</div>
     <div class="tier-abschnitt-titel">📅 Wann zu sehen</div>${tierMonateHtml(t.monate)}
     <div class="tier-abschnitt-titel">🍽️ Was frisst es?</div><p class="tier-p">${escapeHtml(t.nahrung)}</p>
@@ -11205,6 +11213,23 @@ function beobListeHtml(liste) {
   }).join('');
 }
 // Steckbrief: Wo im Garten beobachtet?
+// Alle Fotos aus Beobachtungen zu einem Tier, neueste zuerst
+function tierFotos(tierId) {
+  const fotos = [];
+  gartenBeobachtungen().filter(b => b.tierId === tierId).sort((a, b) => String(b.datum).localeCompare(String(a.datum)))
+    .forEach(b => (b.fotos || []).forEach(f => { if (fotoQuelle(f)) fotos.push({ src: fotoQuelle(f), datum: b.datum, pflanze: b.pflanze }); }));
+  return fotos;
+}
+function tierFotosHtml(tierId) {
+  const fotos = tierFotos(tierId);
+  if (!fotos.length) return '';
+  return `<div class="tier-abschnitt-titel">📷 Eure Fotos (${fotos.length})</div>
+    <div class="tier-fotos">${fotos.map(f => `<button type="button" onclick='fotoLightboxOeffnen(${escapeHtml(JSON.stringify(f.src))})'><img src="${escapeHtml(f.src)}" alt="" loading="lazy"><small>${escapeHtml(beobDatumText(f.datum))}${f.pflanze ? ' · ' + escapeHtml(f.pflanze) : ''}</small></button>`).join('')}</div>`;
+}
+function tierIconHtml(t) {
+  const f = tierFotos(t.id)[0];
+  return f ? `<img src="${escapeHtml(f.src)}" alt="${escapeHtml(t.name)}" loading="lazy">` : escapeHtml(t.icon);
+}
 function beobTierDetailHtml(tierId) {
   const liste = gartenBeobachtungen().filter(b => b.tierId === tierId);
   const t = alleTiere().find(x => x.id === tierId);

@@ -1,5 +1,10 @@
 # Neuigkeiten im Familienplaner
-# Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## 2026-11-11 | 🦔 Garten-Highlights der Woche auf der Übersicht
+# Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## 2026-11-11 | 📷 Tierfotos sichtbar
+- Fotos aus Beobachtungen erscheinen jetzt direkt beim Tier: als Bild auf der Karte in der Tierliste, oben im Steckbrief und als Fotoleiste „📷 Eure Fotos“ (antippen = groß).
+- Auch die Garten-Highlights in der Übersicht zeigen das Foto statt des Symbols.
+- Behoben: In den Highlights stand bei Beobachtungen „Tier an …“ statt des Tiernamens.
+
+## 2026-11-11 | 🦔 Garten-Highlights der Woche auf der Übersicht
 - Neue Kachel in der Übersicht: Welche Tiere wurden in den letzten 7 Tagen im Garten **neu entdeckt** (mit Tag und wer sie eingetragen hat), welche wurden **außerdem gesehen** und welche **Beobachtungen** gab es („Hummel an Lavendel“).
 - Antippen springt direkt zu den Gartentieren, ein Tier antippen öffnet gleich seinen Steckbrief.
 - Die Kachel erscheint nur, wenn in der Woche etwas eingetragen wurde, und verschwindet, wenn der Garten ausgeblendet ist.
