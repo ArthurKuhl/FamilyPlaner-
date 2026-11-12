@@ -1,6 +1,12 @@
 # Neuigkeiten im Familienplaner
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 
+## 2026-11-12 | 🌷 Symbole in echter Größe, Bündel & Pflanzgruppen
+- **Symbole passend zur Pflanze:** Die Größe richtet sich jetzt nach dem echten Pflanzabstand. Zwiebeln und Kräuter sind klein, Tomaten oder Kürbis größer, Bäume bleiben wie bisher. Beim Herauszoomen wachsen die Symbole bis zu einer Mindestgröße mit, damit man sie noch sieht.
+- **Kronen in echter Größe:** Bäume und große Sträucher zeigen auch auf dem Luftbild einen gestrichelten Kreis in Kronengröße, z. B. etwa 3,4 m beim Birnbaum.
+- **Bündel beim Herauszoomen:** Pflanzen, die sich überlappen würden, werden zu einem Kreis mit Zahl zusammengefasst (z. B. 🌷 ×5). Antippen zeigt eine Auswahlliste, „Hineinzoomen“ löst das Bündel wieder auf.
+- **Pflanzgruppen (Tuffs):** Im Pflanzen-Info gibt es das neue Feld „Anzahl“. Ab 2 Stück wird die Pflanze als Tuff gezeichnet, also als farbige Fläche mit den einzelnen Pflanzen darin und „×15“. Die Flächengröße ergibt sich automatisch aus dem Pflanzabstand oder kann selbst eingetragen werden. Das klappt im Beet und bei Einzelpflanzen, z. B. Krokusse im Rasen.
+
 ## 2026-11-12 | 🔍 Zoom bleibt beim Verschieben erhalten
 - Wer in die Gartenkarte hineinzoomt und dann herumwischt, wird nicht mehr auf die Gesamtansicht zurückgeworfen.
 - Grund war das „Zum Neuladen nach unten ziehen“: Wischen nach unten auf der Karte hat die Seite neu geladen. In der Karte ist das jetzt aus.
