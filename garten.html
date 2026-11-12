@@ -1032,6 +1032,7 @@
         <button type="button" onclick="gartenZoomAnpassen(1.25)" title="Vergrößern" aria-label="Vergrößern" style="width:38px;height:38px;background:none;border:none;color:#fff;font-size:1.2rem;cursor:pointer;line-height:1;">＋</button>
         <div id="gartenZoomWidgetWert" style="color:#fff;font-size:0.6rem;text-align:center;padding:2px 0;border-top:1px solid rgba(255,255,255,0.15);border-bottom:1px solid rgba(255,255,255,0.15);">100%</div>
         <button type="button" onclick="gartenZoomAnpassen(0.8)" title="Verkleinern" aria-label="Verkleinern" style="width:38px;height:38px;background:none;border:none;color:#fff;font-size:1.2rem;cursor:pointer;line-height:1;">－</button>
+        <button type="button" id="kartenStilBtn" onclick="kartenStilSetzen(kartenStil() === 'plan' ? 'foto' : 'plan')" title="Gezeichnete Plan-Ansicht" aria-label="Foto- oder Plan-Ansicht" style="width:38px;height:38px;background:none;border:none;border-top:1px solid rgba(255,255,255,0.15);color:#fff;font-size:1rem;cursor:pointer;line-height:1;">✏️</button>
         <button type="button" id="nordWidgetBtn" onclick="nordModalOeffnen()" title="Norden festlegen" aria-label="Nordpfeil" style="width:38px;height:42px;background:none;border:none;border-top:1px solid rgba(255,255,255,0.15);color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:2px 0;">
           <span id="nordWidgetPfeil" style="display:flex;flex-direction:column;align-items:center;transition:transform .3s;opacity:.45"><span style="font-size:0.55rem;font-weight:700;line-height:1">N</span><span style="font-size:0.95rem;line-height:1;color:#e05a4a">▲</span></span>
         </button>
@@ -1039,6 +1040,7 @@
       <div id="plantTooltip" style="position:absolute;display:none;pointer-events:none;background:var(--soil);color:#fff;font-size:0.72rem;padding:4px 8px;border-radius:6px;z-index:80;white-space:nowrap;box-shadow:0 3px 10px rgba(0,0,0,0.3)"></div>
       <div id="freehandControls" style="position:absolute;bottom:14px;left:50%;transform:translateX(-50%);display:none;align-items:center;gap:8px;z-index:90;background:rgba(58,46,31,0.94);padding:8px 12px;border-radius:12px;box-shadow:0 3px 12px rgba(0,0,0,0.35)">
         <span style="color:#fff;font-size:0.75rem">Punkte: <span id="freehandPointCount">0</span></span>
+        <button class="tool-btn" style="padding:5px 10px;font-size:0.72rem" onclick="freehandPunktZurueck()" title="Letzten Punkt entfernen">↩ Punkt</button>
         <button class="tool-btn" style="padding:5px 10px;font-size:0.72rem" onclick="finishFreehand()" title="Umriss schließen (mind. 3 Punkte)">✓ Fertig</button>
         <button class="tool-btn danger" style="padding:5px 10px;font-size:0.72rem" onclick="cancelFreehand()" title="Zeichnung verwerfen">✕ Abbrechen</button>
       </div>
@@ -1083,6 +1085,13 @@
             <option value="weg">🚶 Weg</option>
             <option value="mauer">🧱 Mauer</option>
             <option value="gebaeude">🏠 Gebäude</option>
+            <option value="terrasse">🪵 Terrasse</option>
+            <option value="pflaster">🔲 Pflaster/Platten</option>
+            <option value="kies">🪨 Kiesfläche</option>
+            <option value="rasen">🌱 Rasen</option>
+            <option value="hecke">🌳 Hecke</option>
+            <option value="zaun">🪜 Zaun</option>
+            <option value="wasser">💧 Teich/Wasser</option>
             <option value="sonstiges">⬛ Sonstiges (Struktur)</option>
           </select>
         </div>
@@ -1093,7 +1102,7 @@
             <option value="rect">Rechteck</option>
             <option value="tri">Dreieck</option>
             <option value="lshape">L-Form</option>
-            <option value="freehand">Freiform (Punkte klicken)</option>
+            <option value="freehand">Freiform – Umriss nachzeichnen (Punkte tippen)</option>
           </select>
         </div>
         <div class="form-row">
@@ -1208,14 +1217,33 @@
         </div>
 
         <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--parchment)">
+          <div class="sidebar-title">✏️ Kartenansicht</div>
+          <select id="kartenStilWahl" onchange="kartenStilSetzen(this.value)" style="width:100%">
+            <option value="foto">🗺️ Foto – Luftbild als Vorlage im Hintergrund</option>
+            <option value="plan">✏️ Plan – gezeichnete Oberflächen, Foto ausgeblendet</option>
+          </select>
+          <p style="font-size:0.7rem;color:var(--bark);margin-top:6px">Tipp: Erst im Foto-Modus Haus, Terrasse, Wege, Rasen und Hecken nachzeichnen (Form „Freiform“ für schräge Umrisse), dann auf „Plan“ umschalten. Umschalten geht auch über ✏️ unter dem Zoom.</p>
+        </div>
+
+        <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--parchment)">
           <div class="sidebar-title">🖼 Gartenfoto (Draufsicht)</div>
           <p style="font-size:0.72rem;color:var(--bark);margin-bottom:8px">Lade ein Foto oder einen Lageplan deines Gartens von oben hoch. Es wird transparent als Hintergrund unter den Beeten angezeigt, damit du die Beete passgenau danach ausrichten kannst. Tipp: Nutze oben 📏 Gartengröße, damit der Maßstab grob passt.</p>
           <input type="file" id="bgImageInput" accept="image/*" onchange="handleBgImageUpload(event)"/>
+          <details style="font-size:0.72rem;margin:6px 0 8px;background:rgba(127,164,118,0.1);border-radius:8px;padding:6px 8px">
+            <summary style="cursor:pointer;font-weight:600">💡 Schärferes Luftbild besorgen</summary>
+            <div style="margin-top:6px;line-height:1.45">Baden-Württemberg stellt amtliche Luftbilder (DOP, senkrecht aufgenommen – Gebäude „kippen“ nicht) und die Flurkarte mit exakten Grundstücks- und Gebäudeumrissen kostenlos bereit: <b>geoportal-bw.de</b> bzw. <b>opengeodata.lgl-bw.de</b>. Ausschnitt suchen, Screenshot machen und hier hochladen. Danach mit „Drehen“ so ausrichten, dass Haus und Zaun gerade liegen.</div>
+          </details>
           <div id="bgImageControls" style="display:none;margin-top:8px">
             <div class="form-row">
               <label>Transparenz</label>
               <input type="range" id="bgImageOpacity" min="0.1" max="1" step="0.05" value="0.5" oninput="updateBgImageOpacity(this.value)">
             </div>
+            <div class="form-row"><label>Drehen <span id="bgRotWert" style="opacity:.7"></span></label><input type="range" id="bgRot" min="-180" max="180" step="0.5" value="0" oninput="bgTransSetzen('rot', this.value)"></div>
+            <label style="display:flex;gap:6px;align-items:center;font-size:0.7rem;margin:-2px 0 6px"><input type="checkbox" id="bgMitdrehen"> Eingezeichnete Beete &amp; Objekte mitdrehen</label>
+            <div class="form-row"><label>Größe <span id="bgScaleWert" style="opacity:.7"></span></label><input type="range" id="bgScale" min="0.25" max="4" step="0.01" value="1" oninput="bgTransSetzen('scale', this.value)"></div>
+            <div class="form-row"><label>Links/rechts <span id="bgXWert" style="opacity:.7"></span></label><input type="range" id="bgX" min="-3000" max="3000" step="5" value="0" oninput="bgTransSetzen('x', this.value)"></div>
+            <div class="form-row"><label>Hoch/runter <span id="bgYWert" style="opacity:.7"></span></label><input type="range" id="bgY" min="-3000" max="3000" step="5" value="0" oninput="bgTransSetzen('y', this.value)"></div>
+            <button class="btn-secondary" onclick="bgTransZuruecksetzen()" style="margin-bottom:6px">↺ Ausrichtung zurücksetzen</button>
             <button class="btn-secondary" onclick="removeBgImage()" style="color:#c05030;border-color:#c05030">🗑 Foto entfernen</button>
           </div>
         </div>
@@ -1269,6 +1297,10 @@
           <div class="form-row">
             <label>Name</label>
             <input type="text" id="editName" oninput="updateSelectedBed()" />
+          </div>
+          <div class="form-row" id="editStrukturTypRow" style="display:none">
+            <label>Art</label>
+            <select id="editStrukturTyp" onchange="strukturTypAendern(this.value)"></select>
           </div>
           <div class="form-row" id="editBeetFotoRow">
             <label>Beet-Foto</label>
@@ -4795,6 +4827,7 @@ function schattenWerfer(ausser) {
     const form = b.shape === 'circle' ? { r: Math.max(b.rx ?? b.r ?? 60, b.ry ?? b.r ?? 60) } : { w: b.w || 100, h: b.h || 100, rot: b.rotation || 0 };
     if (b.strukturTyp === 'gebaeude') liste.push(Object.assign({ x: b.x, y: b.y, weite: 600, dicht: 1, icon: '🏠', name: b.name || 'Gebäude' }, form));
     else if (b.strukturTyp === 'mauer') liste.push(Object.assign({ x: b.x, y: b.y, weite: 250, dicht: 0.9, icon: '🧱', name: b.name || 'Mauer' }, form));
+    else if (b.strukturTyp === 'hecke') liste.push(Object.assign({ x: b.x, y: b.y, weite: 300, dicht: 0.7, icon: '🌳', name: b.name || 'Hecke' }, form));
   });
   getCurrentFreiPflanzen().forEach(fp => {
     const n = (fp.name || '').trim(), abst = SPACING[n] || 0;
@@ -6331,6 +6364,7 @@ function refreshSettingsUI() {
     bgImgControls.style.display = bgImg ? 'block' : 'none';
     if (bgImg) document.getElementById('bgImageOpacity').value = getBgImageOpacity();
   }
+  try { bgTransAnzeigen(); kartenStilKnopfAktualisieren(); } catch (e) {}
   const loc = getWeatherSettings();
   if (loc) { if (weatherCache) renderWeatherUI(weatherCache); else fetchWeather(loc, false); }
   else { const wsb5 = document.getElementById('weatherSettingsBox'); if (wsb5) wsb5.textContent = 'Noch kein Standort hinterlegt.'; }
@@ -6575,6 +6609,7 @@ function wendeZoomAn() {
   if (anzeige) anzeige.textContent = prozentText;
   const widgetAnzeige = document.getElementById('gartenZoomWidgetWert');
   if (widgetAnzeige) widgetAnzeige.textContent = prozentText;
+  clearTimeout(wendeZoomAn._t); wendeZoomAn._t = setTimeout(() => { try { draw(); } catch (e) {} }, 60); // Schilder an Zoom anpassen
 }
 // Das Zoom-Widget schwebt fest über der sichtbaren Garten-Fläche (position:fixed), damit
 // es beim Verschieben/Scrollen im gezoomten Garten nicht mit aus dem Bild wandert.
@@ -6680,6 +6715,19 @@ function draw() {
 }
 function drawFreiPflanze(fp) {
   if (dragFreiPflanze && dragFreiPflanze.item === fp) return; // wird als Drag-Vorschau gezeichnet
+  // Plan-Ansicht: Bäume und große Sträucher bekommen eine Krone mit Schatten
+  const kroneCm = SPACING[(fp.name || '').trim()] || 0;
+  if (kartenStil() === 'plan' && kroneCm >= 150) {
+    const r = kroneCm / 2 * 0.85, v = schattenVersatz(12);
+    ctx.save();
+    ctx.shadowColor = 'rgba(0,0,0,0.35)'; ctx.shadowBlur = 16; ctx.shadowOffsetX = v.x * (gartenZoom || 1); ctx.shadowOffsetY = v.y * (gartenZoom || 1);
+    ctx.globalAlpha = 0.62; // halbtransparent, damit Beschriftungen darunter lesbar bleiben
+    ctx.fillStyle = strukturMuster('hecke', '#4f7d3a');
+    ctx.beginPath(); ctx.arc(fp.x, fp.y, r, 0, Math.PI * 2); ctx.fill();
+    ctx.shadowColor = 'transparent'; ctx.globalAlpha = 1;
+    ctx.strokeStyle = 'rgba(40,70,30,0.7)'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.restore();
+  }
   ctx.save();
   ctx.beginPath();
   ctx.arc(fp.x, fp.y, 18, 0, Math.PI*2);
@@ -6702,13 +6750,169 @@ function drawFreiPflanze(fp) {
     ctx.restore();
   }
 }
+
+// ==================== ✏️ PLAN-ANSICHT: gezeichnete Oberflächen statt Einfarbflächen ====================
+// gardens[id].kartenStil = 'foto' (Luftbild als Hintergrund) | 'plan' (gezeichneter Plan, Foto ausgeblendet)
+// Die Muster werden einmal je Typ+Farbe als kleine Kachel gezeichnet und als CanvasPattern wiederverwendet.
+function kartenStil() { return (gardens[currentGardenId] && gardens[currentGardenId].kartenStil) || 'foto'; }
+function kartenStilSetzen(stil) {
+  const g = gardens[currentGardenId]; if (!g) return;
+  g.kartenStil = stil; saveData(); draw(); kartenStilKnopfAktualisieren(); try { refreshSettingsUI(); } catch (e) {}
+  showTempStatus(stil === 'plan' ? '✏️ Plan-Ansicht – das Foto ist ausgeblendet' : '🗺️ Foto-Ansicht – das Luftbild dient als Vorlage', 3);
+}
+function kartenStilKnopfAktualisieren() {
+  const b = document.getElementById('kartenStilBtn'); if (!b) return;
+  const plan = kartenStil() === 'plan';
+  b.textContent = plan ? '🗺️' : '✏️';
+  b.title = plan ? 'Luftbild als Vorlage zeigen' : 'Gezeichnete Plan-Ansicht';
+}
+const musterCache = {};
+function zufallsFolge(seed) { let x = seed; return () => { x = (x * 9301 + 49297) % 233280; return x / 233280; }; }
+function farbeMischen(hex, f) {
+  const h = (hex || '#888888').replace('#', ''); const v = h.length === 3 ? h.split('').map(c => c + c).join('') : h.padEnd(6, '0');
+  const c = [0, 2, 4].map(i => parseInt(v.slice(i, i + 2), 16) || 0);
+  const z = f >= 0 ? c.map(x => Math.round(x + (255 - x) * f)) : c.map(x => Math.round(x * (1 + f)));
+  return '#' + z.map(x => Math.max(0, Math.min(255, x)).toString(16).padStart(2, '0')).join('');
+}
+function strukturMuster(typ, farbe) {
+  const key = typ + '|' + farbe;
+  if (musterCache[key]) return musterCache[key];
+  const g = 48;
+  const c = document.createElement('canvas'); c.width = g; c.height = g;
+  const m = c.getContext('2d'), r = zufallsFolge(typ.length * 97 + 13);
+  const hell = farbeMischen(farbe, 0.18), dunkel = farbeMischen(farbe, -0.22);
+  m.fillStyle = farbe; m.fillRect(0, 0, g, g);
+  if (typ === 'gebaeude') { // Dachziegel
+    for (let y = 0; y < g; y += 12) { m.fillStyle = dunkel; m.fillRect(0, y + 10, g, 2);
+      for (let x = (y / 12) % 2 ? 6 : 0; x < g + 12; x += 12) { m.fillStyle = hell; m.beginPath(); m.arc(x, y + 10, 6, Math.PI, 0); m.fill(); m.strokeStyle = dunkel; m.lineWidth = 1; m.stroke(); } }
+  } else if (typ === 'mauer') { // Ziegel
+    m.strokeStyle = hell; m.lineWidth = 1.5;
+    for (let y = 0; y < g; y += 12) { m.beginPath(); m.moveTo(0, y); m.lineTo(g, y); m.stroke();
+      for (let x = (y / 12) % 2 ? 12 : 0; x < g; x += 24) { m.beginPath(); m.moveTo(x, y); m.lineTo(x, y + 12); m.stroke(); } }
+  } else if (typ === 'terrasse') { // Holzdielen
+    for (let x = 0; x < g; x += 12) { m.fillStyle = (x / 12) % 2 ? hell : farbe; m.fillRect(x, 0, 11, g); m.fillStyle = dunkel; m.fillRect(x + 11, 0, 1, g);
+      m.strokeStyle = farbeMischen(farbe, -0.1); m.lineWidth = 0.7; m.beginPath(); m.moveTo(x + 3, 0); m.bezierCurveTo(x + 6, 16, x + 2, 32, x + 5, g); m.stroke(); }
+  } else if (typ === 'sonstiges' || typ === 'pflaster') { // Platten
+    m.strokeStyle = dunkel; m.lineWidth = 1.2;
+    for (let y = 0; y <= g; y += 24) for (let x = 0; x <= g; x += 24) { m.fillStyle = r() > 0.5 ? hell : farbe; m.fillRect(x + 1, y + 1, 22, 22); m.strokeRect(x + 0.5, y + 0.5, 23, 23); }
+  } else if (typ === 'weg' || typ === 'kies') { // Kies
+    for (let i = 0; i < 70; i++) { m.fillStyle = r() > 0.5 ? hell : dunkel; m.beginPath(); m.ellipse(r() * g, r() * g, 1.2 + r() * 2, 1 + r() * 1.6, r() * 3, 0, Math.PI * 2); m.fill(); }
+  } else if (typ === 'rasen' || typ === 'plangrund') { // Rasen
+    for (let i = 0; i < 110; i++) { const x = r() * g, y = r() * g; m.strokeStyle = r() > 0.5 ? hell : dunkel; m.lineWidth = 1; m.beginPath(); m.moveTo(x, y); m.lineTo(x + (r() - 0.5) * 3, y - 3 - r() * 3); m.stroke(); }
+  } else if (typ === 'hecke') { // Blattwerk
+    for (let i = 0; i < 26; i++) { m.fillStyle = r() > 0.4 ? hell : dunkel; m.beginPath(); m.arc(r() * g, r() * g, 4 + r() * 5, 0, Math.PI * 2); m.fill(); }
+  } else if (typ === 'wasser') { // Wellen
+    m.strokeStyle = hell; m.lineWidth = 1.5;
+    for (let y = 6; y < g; y += 12) { m.beginPath(); for (let x = 0; x <= g; x += 4) m.lineTo(x, y + Math.sin((x + y) / 6) * 2); m.stroke(); }
+  } else if (typ === 'zaun') { // Latten
+    for (let x = 0; x < g; x += 8) { m.fillStyle = hell; m.fillRect(x + 1, 0, 6, g); m.fillStyle = dunkel; m.fillRect(x + 7, 0, 1, g); }
+  } else if (typ === 'erde') { // Beet-Erde
+    for (let i = 0; i < 60; i++) { m.fillStyle = r() > 0.5 ? hell : dunkel; m.beginPath(); m.arc(r() * g, r() * g, 0.8 + r() * 1.6, 0, Math.PI * 2); m.fill(); }
+  }
+  const p = ctx.createPattern(c, 'repeat');
+  musterCache[key] = p;
+  return p;
+}
+// Schatten für Gebäude, Mauern, Hecken und Bäume (Sonne von Süden – mit Nordpfeil, sonst nach rechts unten)
+function schattenVersatz(staerke) {
+  const n = nordGrad();
+  if (n === null) return { x: staerke * 0.6, y: staerke * 0.8 };
+  const v = kartenRichtung(0); // Schatten fällt nach Norden
+  return { x: v.x * staerke, y: v.y * staerke };
+}
+function planBeschriftung(text, x, y, icon, struktur) {
+  // Lesbare Namensschilder: Schrift wächst beim Herauszoomen mit, damit sie am Handy lesbar bleibt
+  const fs = Math.max(11, Math.min(42, 12 / Math.max(0.15, gartenZoom || 1)));
+  ctx.save();
+  ctx.font = `600 ${fs}px Inter,sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  const t = (icon ? icon + ' ' : '') + text;
+  const w = ctx.measureText(t).width + fs * 0.9, h = fs * 1.6;
+  ctx.fillStyle = struktur ? 'rgba(30,26,20,0.62)' : 'rgba(255,253,246,0.88)';
+  ctx.beginPath(); ctx.roundRect(x - w / 2, y - h / 2, w, h, h / 2); ctx.fill();
+  ctx.fillStyle = struktur ? '#fffaf0' : '#2c2415';
+  ctx.fillText(t, x, y + fs * 0.05);
+  ctx.restore();
+}
+function planGrundZeichnen() {
+  ctx.save();
+  ctx.fillStyle = strukturMuster('plangrund', '#8fb36b');
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.restore();
+}
+
+// ==================== 🖼 HINTERGRUND DREHEN, SKALIEREN, VERSCHIEBEN ====================
+// gardens[id].bgTrans = { rot (Grad), scale, x, y (Verschiebung in cm) }
+function bgTrans() { const g = gardens[currentGardenId] || {}; return Object.assign({ rot: 0, scale: 1, x: 0, y: 0 }, g.bgTrans || {}); }
+let bgRotLetzter = null;
+function bgTransSetzen(feld, wert) {
+  const g = gardens[currentGardenId]; if (!g) return;
+  const t = bgTrans();
+  const alt = t.rot;
+  t[feld] = Number(wert);
+  g.bgTrans = t;
+  if (feld === 'rot') {
+    const delta = t.rot - alt;
+    // Nordpfeil hängt am Luftbild – er dreht mit
+    if (typeof g.nordGrad === 'number') g.nordGrad = ((g.nordGrad + delta) % 360 + 360) % 360;
+    if (document.getElementById('bgMitdrehen') && document.getElementById('bgMitdrehen').checked) objekteDrehen(delta);
+    try { nordWidgetAktualisieren(); } catch (e) {}
+  }
+  bgTransAnzeigen();
+  draw();
+  clearTimeout(bgTransSetzen._t); bgTransSetzen._t = setTimeout(() => saveData(), 400);
+}
+function objekteDrehen(delta) {
+  const cx = canvas.width / 2, cy = canvas.height / 2, a = delta * Math.PI / 180, c = Math.cos(a), s = Math.sin(a);
+  const dreh = o => { const dx = o.x - cx, dy = o.y - cy; o.x = cx + dx * c - dy * s; o.y = cy + dx * s + dy * c; };
+  getCurrentBeds().forEach(b => { dreh(b); b.rotation = (((b.rotation || 0) + delta) % 360 + 360) % 360; });
+  getCurrentFreiPflanzen().forEach(dreh);
+}
+function bgTransZuruecksetzen() {
+  const g = gardens[currentGardenId]; if (!g) return;
+  const alt = bgTrans().rot;
+  if (alt) bgTransSetzen('rot', 0);
+  delete g.bgTrans; saveData(); bgTransAnzeigen(); draw();
+}
+function bgTransAnzeigen() {
+  const t = bgTrans();
+  const set = (id, v, txt) => { const el = document.getElementById(id); if (el) el.value = v; const l = document.getElementById(id + 'Wert'); if (l) l.textContent = txt; };
+  set('bgRot', t.rot, (Math.round(t.rot * 10) / 10).toString().replace('.', ',') + '°');
+  set('bgScale', t.scale, Math.round(t.scale * 100) + ' %');
+  set('bgX', t.x, zahlDe(Math.round(t.x) / 100) + ' m');
+  set('bgY', t.y, zahlDe(Math.round(t.y) / 100) + ' m');
+  const st = document.getElementById('kartenStilWahl'); if (st) st.value = kartenStil();
+}
+
+// ==================== ✏️ FREIFORM-PUNKTE NACHTRÄGLICH VERSCHIEBEN ====================
+let dragPunkt = null;
+function freiformPunktTreffer(bed, x, y) {
+  if (!bed || bed.shape !== 'freehand' || bed.locked || !bed.points) return -1;
+  const a = -(bed.rotation || 0) * Math.PI / 180, dx = x - bed.x, dy = y - bed.y;
+  const lx = dx * Math.cos(a) - dy * Math.sin(a), ly = dx * Math.sin(a) + dy * Math.cos(a);
+  const radius = 14 / Math.max(0.15, gartenZoom || 1);
+  let best = -1, bd = radius;
+  bed.points.forEach((p, i) => { const d = Math.hypot(p.x - lx, p.y - ly); if (d < bd) { bd = d; best = i; } });
+  return best;
+}
+function freehandPunktZurueck() {
+  if (!freehandDrawing || freehandPoints.length <= 1) { cancelFreehand(); return; }
+  freehandPoints.pop();
+  document.getElementById('freehandPointCount').textContent = String(freehandPoints.length);
+  draw();
+}
+
 function drawBgImage() {
+  if (kartenStil() === 'plan') { planGrundZeichnen(); return; }
   const url = getBgImage();
   if (!url) return;
   if (bgImageLoadedFor !== currentGardenId || !bgImageEl) { loadBgImageEl(url); return; }
+  const t = bgTrans();
   ctx.save();
   ctx.globalAlpha = getBgImageOpacity();
-  ctx.drawImage(bgImageEl, 0, 0, canvas.width, canvas.height);
+  ctx.translate(canvas.width / 2 + t.x, canvas.height / 2 + t.y);
+  ctx.rotate(t.rot * Math.PI / 180);
+  ctx.scale(t.scale, t.scale);
+  ctx.drawImage(bgImageEl, -canvas.width / 2, -canvas.height / 2, canvas.width, canvas.height);
   ctx.restore();
 }
 function drawGardenBoundary() {
@@ -6733,9 +6937,14 @@ function drawBed(bed, selected) {
   ctx.save();
   ctx.translate(bed.x, bed.y);
   ctx.rotate((bed.rotation || 0) * Math.PI / 180);
-  ctx.fillStyle = bed.kind === 'struktur' ? bed.color : bed.color + 'aa';
-  ctx.strokeStyle = selected ? '#3b2f1e' : bed.color;
-  ctx.lineWidth = selected ? 2.5 : 1.5;
+  const plan = kartenStil() === 'plan';
+  const typ = bed.kind === 'struktur' ? (bed.strukturTyp || 'sonstiges') : 'beet';
+  // Fläche: Struktur mit Muster, Beet in der Plan-Ansicht als Erde mit farbigem Rand
+  ctx.fillStyle = typ === 'beet' ? (plan ? strukturMuster('erde', '#6b4f33') : bed.color + 'aa') : strukturMuster(typ, bed.color);
+  ctx.strokeStyle = selected ? '#3b2f1e' : (typ === 'beet' ? (plan ? '#8b6a43' : bed.color) : farbeMischen(bed.color, -0.3));
+  ctx.lineWidth = selected ? 2.5 : (typ === 'beet' && plan ? 4 : 1.5);
+  const mitSchatten = ['gebaeude', 'mauer', 'hecke'].includes(typ);
+  if (mitSchatten) { const v = schattenVersatz(typ === 'gebaeude' ? 14 : 6); ctx.shadowColor = 'rgba(0,0,0,0.35)'; ctx.shadowBlur = typ === 'gebaeude' ? 14 : 6; ctx.shadowOffsetX = v.x * (gartenZoom || 1); ctx.shadowOffsetY = v.y * (gartenZoom || 1); }
   ctx.beginPath();
   if (bed.shape === 'circle') {
     const radX = bed.rx ?? bed.r ?? 60, radY = bed.ry ?? bed.r ?? 60;
@@ -6759,12 +6968,32 @@ function drawBed(bed, selected) {
     for (let k=1;k<bed.points.length;k++) ctx.lineTo(bed.points[k].x, bed.points[k].y);
     ctx.closePath();
   }
-  ctx.fill(); ctx.stroke();
+  ctx.fill();
+  ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
+  ctx.stroke();
+  // Dachfirst bei rechteckigen Gebäuden
+  if (typ === 'gebaeude' && bed.shape === 'rect') {
+    ctx.save(); ctx.strokeStyle = farbeMischen(bed.color, 0.35); ctx.lineWidth = 3;
+    ctx.beginPath(); if (bed.w >= bed.h) { ctx.moveTo(-bed.w / 2 + bed.h / 2, 0); ctx.lineTo(bed.w / 2 - bed.h / 2, 0); } else { ctx.moveTo(0, -bed.h / 2 + bed.w / 2); ctx.lineTo(0, bed.h / 2 - bed.w / 2); }
+    ctx.stroke(); ctx.restore();
+  }
+  // Zaunpfosten
+  if (typ === 'zaun' && bed.shape === 'rect') {
+    ctx.save(); ctx.fillStyle = farbeMischen(bed.color, -0.4);
+    const lang = Math.max(bed.w, bed.h), quer = Math.min(bed.w, bed.h), n = Math.max(2, Math.round(lang / 200));
+    for (let i = 0; i <= n; i++) { const p = -lang / 2 + lang * i / n; const q = quer * 1.6; if (bed.w >= bed.h) ctx.fillRect(p - q / 2, -q / 2, q, q); else ctx.fillRect(-q / 2, p - q / 2, q, q); }
+    ctx.restore();
+  }
   if (bed.name) {
-    ctx.fillStyle = bed.kind === 'struktur' ? '#f5f0e6' : '#3b2f1e'; ctx.font = '500 11px Inter,sans-serif';
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     const ty = bed.shape === 'tri' ? bed.h/6 : 0;
-    ctx.fillText(bed.name, 0, ty);
+    const preset = STRUKTUR_PRESETS[typ] || STRUKTUR_PRESETS.beet;
+    if (typ === 'beet' && (bed.plants || []).length) {
+      // Beet mit Pflanzen: Schild an den oberen Rand, damit die Pflanzen sichtbar bleiben
+      const oben = bed.shape === 'circle' ? -(bed.ry ?? bed.r ?? 60) : -(bed.h || 80) / 2;
+      ctx.save(); ctx.rotate(-(bed.rotation || 0) * Math.PI / 180); planBeschriftung(bed.name, 0, oben, '', false); ctx.restore();
+    } else {
+      ctx.save(); ctx.rotate(-(bed.rotation || 0) * Math.PI / 180); planBeschriftung(bed.name, 0, ty, typ === 'beet' ? '' : preset.icon, bed.kind === 'struktur'); ctx.restore();
+    }
   }
   const conflictIdx = new Set(getBedConflicts(bed).flat());
   for (const plant of (bed.plants||[])) {
@@ -6783,6 +7012,10 @@ function drawBed(bed, selected) {
       ctx.fillStyle='#fff';
       ctx.fillText('!', plant.rx+9, plant.ry-9);
     }
+  }
+  if (selected && bed.shape === 'freehand' && bed.points && !bed.locked) {
+    const r = 6 / Math.max(0.15, gartenZoom || 1);
+    bed.points.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI * 2); ctx.fillStyle = '#fff'; ctx.fill(); ctx.lineWidth = r / 3; ctx.strokeStyle = '#c0633a'; ctx.stroke(); });
   }
   if (selected) {
     ctx.strokeStyle='#3b2f1e'; ctx.setLineDash([4,3]); ctx.lineWidth=1;
@@ -6920,6 +7153,10 @@ function onDown(e) {
     const beetFest = hitTest(x, y);
     if (beetFest && beetFest.locked) festMerken({ typ: 'beet', bed: beetFest });
   }
+  if (mode==='select' && selectedBed) {
+    const pi = freiformPunktTreffer(selectedBed, x, y);
+    if (pi >= 0) { pushUndo(); dragPunkt = { bed: selectedBed, idx: pi }; return; }
+  }
   if (mode==='select') {
     const fpHit = hitTestFreiPflanze(x, y);
     if (fpHit && !fpHit.locked) {
@@ -7033,6 +7270,13 @@ function onDown(e) {
 }
 
 function onMove(e) {
+  if (dragPunkt) {
+    const {x,y}=getPos(e);
+    const b = dragPunkt.bed, a = -(b.rotation || 0) * Math.PI / 180, dx = x - b.x, dy = y - b.y;
+    b.points[dragPunkt.idx] = { x: dx * Math.cos(a) - dy * Math.sin(a), y: dx * Math.sin(a) + dy * Math.cos(a) };
+    draw();
+    return;
+  }
   if (zoneDrawing) {
     const {x,y}=getPos(e);
     zoneDrawCur = {x,y};
@@ -7133,6 +7377,7 @@ function festTippAuswerten(e) {
 }
 canvas.addEventListener('touchcancel', () => { festTipp = null; });
 function onUp(e) {
+  if (dragPunkt) { dragPunkt = null; saveData(); renderBedList(); return; }
   if (festTippAuswerten(e)) return;
   if (zoneDrawing) {
     zoneDrawing = false;
@@ -7602,7 +7847,14 @@ const STRUKTUR_PRESETS = {
   weg: { farbe: '#7d7466', icon: '🚶', label: 'Weg', platzhalter: 'z.B. Gartenweg' },
   mauer: { farbe: '#5c4f3f', icon: '🧱', label: 'Mauer', platzhalter: 'z.B. Gartenmauer' },
   gebaeude: { farbe: '#7a3a12', icon: '🏠', label: 'Gebäude', platzhalter: 'z.B. Gartenhaus' },
-  sonstiges: { farbe: '#4a545e', icon: '⬛', label: 'Sonstiges', platzhalter: 'z.B. Terrasse' },
+  terrasse: { farbe: '#a07850', icon: '🪵', label: 'Terrasse', platzhalter: 'z.B. Holzterrasse' },
+  pflaster: { farbe: '#9a948a', icon: '🔲', label: 'Pflaster/Platten', platzhalter: 'z.B. Hofeinfahrt' },
+  kies: { farbe: '#b8ab92', icon: '🪨', label: 'Kiesfläche', platzhalter: 'z.B. Kiesbeet' },
+  rasen: { farbe: '#7fa35a', icon: '🌱', label: 'Rasen', platzhalter: 'z.B. Spielwiese' },
+  hecke: { farbe: '#3f6b35', icon: '🌳', label: 'Hecke', platzhalter: 'z.B. Hainbuchenhecke' },
+  zaun: { farbe: '#b08a55', icon: '🪜', label: 'Zaun', platzhalter: 'z.B. Zaun hinten' },
+  wasser: { farbe: '#5b8fb5', icon: '💧', label: 'Teich/Wasser', platzhalter: 'z.B. Gartenteich' },
+  sonstiges: { farbe: '#4a545e', icon: '⬛', label: 'Sonstiges', platzhalter: 'z.B. Spielturm' },
 };
 function applyElementTypPreset() {
   const typ = document.getElementById('newElementTyp').value;
@@ -7699,6 +7951,10 @@ function showBedEditor(bed) {
   switchBedEditorTab('eigenschaften');
   document.getElementById('btnDeleteSelected').textContent = istStruktur ? '🗑 Element löschen' : '🗑 Beet löschen';
   document.getElementById('editName').value=bed.name||'';
+  const typRow = document.getElementById('editStrukturTypRow');
+  typRow.style.display = istStruktur ? '' : 'none';
+  if (istStruktur) document.getElementById('editStrukturTyp').innerHTML = Object.entries(STRUKTUR_PRESETS).filter(([k]) => k !== 'beet')
+    .map(([k, v]) => `<option value="${k}"${bed.strukturTyp === k ? ' selected' : ''}>${v.icon} ${escapeHtml(v.label)}</option>`).join('');
   renderBeetFotoEditor(bed);
   document.getElementById('editRot').value=bed.rotation||0;
   document.getElementById('rotVal').textContent=(bed.rotation||0)+'°';
@@ -7733,6 +7989,15 @@ function showBedEditor(bed) {
   document.getElementById('bedPhotoNote').value = '';
   renderBedPhotoLog(bed);
   aktualisiereRealMasseAnzeige();
+}
+function strukturTypAendern(typ) {
+  if (!selectedBed || selectedBed.kind !== 'struktur' || !STRUKTUR_PRESETS[typ]) return;
+  pushUndo();
+  const altPreset = STRUKTUR_PRESETS[selectedBed.strukturTyp];
+  // Farbe mitwechseln, solange noch die Standardfarbe des alten Typs gesetzt war
+  if (!altPreset || selectedBed.color === altPreset.farbe) selectedBed.color = STRUKTUR_PRESETS[typ].farbe;
+  selectedBed.strukturTyp = typ;
+  showBedEditor(selectedBed); draw(); renderBedList(); saveData();
 }
 function setzeRechtwinkligesDreieck() {
   if (!selectedBed || selectedBed.shape!=='tri') return;

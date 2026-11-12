@@ -1,5 +1,14 @@
 # Neuigkeiten im Familienplaner
-# Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## 2026-11-12 | 🧭 Nordpfeil, Sonnenstunden, Tiere je Beet & Winterschutz
+# Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## 2026-11-12 | ✏️ Schönere Gartenkarte: Plan-Ansicht, Texturen & Ausrichten
+- **✏️ Plan-Ansicht:** Neuer Knopf unter dem Zoom (oder ⚙️ Optionen → Kartenansicht). Das Luftbild wird ausgeblendet und die Karte als gezeichneter Plan auf Rasen angezeigt. Mit 🗺️ geht es zurück zum Foto als Vorlage.
+- **Gezeichnete Oberflächen:** Gebäude mit Dachziegeln, First und Schatten, Terrasse als Holzdielen, Kies, Platten, Rasen, Hecke mit Blattwerk, Teich mit Wellen, Zaun mit Pfosten. Beete erscheinen im Plan als Erde mit Holzrand, Bäume mit Krone.
+- **Neue Element-Arten:** Terrasse, Pflaster/Platten, Kiesfläche, Rasen, Hecke, Zaun, Teich/Wasser. Bei vorhandenen Elementen lässt sich die Art im Editor ändern (z. B. „Sonstiges“ → „Terrasse“).
+- **Lesbare Namensschilder:** Sie wachsen beim Herauszoomen mit und stehen bei bepflanzten Beeten am Rand.
+- **🖼 Luftbild ausrichten:** Drehen, vergrößern und verschieben (⚙️ Optionen → Gartenfoto). Auf Wunsch drehen eingezeichnete Objekte mit, der Nordpfeil immer. Dazu ein Tipp, wo es schärfere amtliche Luftbilder und die Flurkarte gibt.
+- **Freiform verbessert:** „↩ Punkt“ entfernt den letzten Punkt beim Zeichnen. Bei einem ausgewählten Freiform-Element lassen sich die Eckpunkte nachträglich verschieben.
+- Hecken zählen jetzt bei der Sonnenschätzung als Schattenwerfer.
+
+## 2026-11-12 | 🧭 Nordpfeil, Sonnenstunden, Tiere je Beet & Winterschutz
 - **🧭 Nordpfeil:** Neuer Knopf unter dem Zoom auf der Gartenkarte. Dort legst du fest, welche Himmelsrichtung auf der Karte oben ist (auch per Handy-Kompass).
 - **☀️ Sonne & Lage je Beet:** Im Beet-Editor schätzt die App die Sonnenstunden. Eingezeichnete Gebäude, Mauern und Bäume im Osten, Süden und Westen nehmen Morgen-, Mittags- oder Abendsonne. Plätze vor einer Südwand werden als „warm“ erkannt. Die Lage lässt sich von Hand korrigieren.
 - Die App warnt, wenn Pflanzen nicht zur Lage passen („Tomate wünscht volle Sonne“), und führt direkt zu passenden Blumenbeet-Vorschlägen.
