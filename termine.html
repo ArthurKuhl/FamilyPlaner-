@@ -299,6 +299,8 @@
      Text auf Akzent-Knöpfen dunkel – außer bei „Schnee“, dort ist der Knopf selbst dunkel. */
   html[data-dark="1"] { --moss-text: var(--sage); --on-moss: #16140f; }
   html[data-dark="1"][data-farbschema="schnee"] { --on-moss: #f4f5f6; }
+
+  html[data-dark="1"] .cal-day.feiertag { background: rgba(196,80,60,0.18); }
 </style>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
@@ -352,7 +354,7 @@
   <div class="such-leiste" id="suchLeiste"><input type="search" id="fSuche" placeholder="Suchen: Zahnarzt, Ort, Notiz …" autocomplete="off"><button type="button" id="btnSucheZu" aria-label="Suche schließen">✕</button></div>
   <div class="filter-row" id="filterRow"></div>
 
-  <div id="serieBanner" style="display:none;background:#fdf3e0;border-bottom:1px solid #e8c98a;padding:8px 16px;flex-direction:column;gap:6px;font-size:0.78rem;color:var(--soil);"></div>
+  <div id="serieBanner" style="display:none;background:#fdf3e0;border-bottom:1px solid #e8c98a;padding:8px 16px;flex-direction:column;gap:6px;font-size:0.78rem;color:#2c2415;"></div>
 
   <main>
     <section id="kalenderView">

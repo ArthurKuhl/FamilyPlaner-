@@ -1755,7 +1755,7 @@
       const inhalt = document.createElement('span');
       inhalt.style.flex = '1';
       inhalt.innerHTML = '<span class="z-menge">' + escapeHtml([menge, z.einheit].filter(Boolean).join(' ')) + '</span> <span>' + escapeHtml(z.name) + '</span>' +
-        (istVorrat ? ' <span style="font-size:0.65rem;background:#e4efe0;color:var(--moss);padding:1px 7px;border-radius:10px;font-weight:600;" title="Steht laut Vorratskammer schon bei euch bereit">📦 vorrätig</span>' : '');
+        (istVorrat ? ' <span style="font-size:0.65rem;background:#e4efe0;color:#2c2415;padding:1px 7px;border-radius:10px;font-weight:600;" title="Steht laut Vorratskammer schon bei euch bereit">📦 vorrätig</span>' : '');
       li.appendChild(inhalt);
       zutBox.appendChild(li);
     });

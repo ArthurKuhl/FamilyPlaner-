@@ -1675,7 +1675,7 @@
       const el = document.createElement('div');
       el.style.cssText = 'border:1px solid var(--parchment);border-radius:8px;overflow:hidden;cursor:pointer;text-align:center;position:relative';
       const an = p.titelbild && p.titelbild.art === 'skizze' && p.titelbild.id === s.id;
-      el.innerHTML = '<img src="' + s.thumb + '" style="width:100%;display:block;aspect-ratio:8/5;object-fit:cover;background:#fff">' +
+      el.innerHTML = '<img src="' + s.thumb + '" style="width:100%;display:block;aspect-ratio:8/5;object-fit:cover;background:#fff;color:#2c2415">' +
         '<div style="font-size:0.62rem;padding:3px;color:var(--bark)">' + (s.name ? escapeHtml(s.name) : 'Skizze') + '</div>' +
         '<button type="button" class="titelbild-btn' + (an ? ' an' : '') + '" title="Als Titelbild auf der Projektkarte">⭐</button>';
       el.querySelector('.titelbild-btn').addEventListener('click', (ev) => { ev.stopPropagation(); titelbildSetzen(p, 'skizze', s.id); detailSkizzenRendern(p); detailFotosRendern(p); });

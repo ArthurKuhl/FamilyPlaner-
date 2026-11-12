@@ -1,5 +1,9 @@
 # Neuigkeiten im Familienplaner
-# Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## 2026-11-12 | 🦔📸 Sammelalbum und Tiere im Garten zusammengeführt
+# Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## 2026-11-12 | 🌙 Besser lesbar im Dunkelmodus
+- Behoben: Der Hinweis „❄️ Frost erwartet“ im Garten war im Dunkelmodus kaum zu lesen (heller Text auf hellem Grund).
+- Bei der Gelegenheit die ganze App durchsucht und weitere Stellen mit demselben Problem korrigiert: Hitze-, Regen- und Hagelhinweise, „Heute gießen“, Krankheits- und Schädlingskarten, Tabellenköpfe, Feiertage im Kalender und einige Hinweisboxen.
+
+## 2026-11-12 | 🦔📸 Sammelalbum und Tiere im Garten zusammengeführt
 - Tiere gibt es jetzt nur noch an einer Stelle: **Tiere im Garten**. Jedes Tier hat dort „📷 Foto hinzufügen“. Ein Foto zählt automatisch als „gesehen“ und wird mit der Familie geteilt.
 - Neue Ansicht **🗂️ Sammelkarten** in „Tiere im Garten“: Fotos statt Symbole, wie im Sammelalbum.
 - Im **Garten-Sammelalbum** ersetzt die Seite „🦔 Tiere“ die früheren Seiten „Nützlinge“ und „Gartentierwelt“. Sie zeigt dieselben Tiere als Sammelkarten. Pflanzen, Schädlinge und Sonstiges bleiben wie bisher.

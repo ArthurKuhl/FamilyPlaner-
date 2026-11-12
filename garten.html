@@ -874,6 +874,16 @@
      Text auf Akzent-Knöpfen dunkel – außer bei „Schnee“, dort ist der Knopf selbst dunkel. */
   html[data-dark="1"] { --moss-text: var(--sage); --on-moss: #16140f; }
   html[data-dark="1"][data-farbschema="schnee"] { --on-moss: #f4f5f6; }
+
+  /* Dunkelmodus: helle Sonderflächen abdunkeln, damit der Text lesbar bleibt */
+  html[data-dark="1"] .overview-pill.ov-frost { background: rgba(74,111,165,0.32); color: #dce8ff; }
+  html[data-dark="1"] .gb-daumen.aktiv-ja { background: rgba(127,164,118,0.25); }
+  html[data-dark="1"] .symptom-card { background: rgba(212,136,10,0.12); }
+  html[data-dark="1"] .pest-card { background: rgba(127,164,118,0.12); }
+  html[data-dark="1"] .disclaimer-box { background: rgba(201,154,58,0.15); }
+  html[data-dark="1"] .seed-age-badge.old { background: rgba(212,136,10,0.22); }
+  html[data-dark="1"] th { background: rgba(255,255,255,0.06); }
+  html[data-dark="1"] .legend { background: var(--white); }
 </style>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
@@ -3430,21 +3440,21 @@ function wetterWarnBanner() {
   let heatBanner = '';
   if (heatWarn) {
     const dayList = heatWarn.days.map(d => `${d.label} ${Math.round(d.tmax)}°C`).join(', ');
-    heatBanner = `<div style="font-size:0.74rem;padding:6px 9px;border-radius:7px;background:#fdf3e0;border-left:3px solid #d4880a;margin-bottom:8px">
+    heatBanner = `<div style="font-size:0.74rem;padding:6px 9px;border-radius:7px;background:#fdf3e0;border-left:3px solid #d4880a;margin-bottom:8px;color:#2c2415">
       🌡️ <strong>Hitze erwartet:</strong> ${dayList} – morgens/abends gießen statt mittags, Mulch hilft gegen Austrocknung, empfindliche Pflanzen ggf. beschatten. Tränken für Insekten, Vögel &amp; Igel täglich frisch füllen.
     </div>`;
   }
   let heavyRainBanner = '';
   if (heavyRainWarn) {
     const dayList = heavyRainWarn.days.map(d => `${d.label} ${Math.round(d.sum)}mm`).join(', ');
-    heavyRainBanner = `<div style="font-size:0.74rem;padding:6px 9px;border-radius:7px;background:#e3f0fb;border-left:3px solid #5b8bb5;margin-bottom:8px">
+    heavyRainBanner = `<div style="font-size:0.74rem;padding:6px 9px;border-radius:7px;background:#e3f0fb;border-left:3px solid #5b8bb5;margin-bottom:8px;color:#2c2415">
       🌧️ <strong>Starkregen erwartet:</strong> ${dayList} – hohe Beete/Töpfe auf Staunässe prüfen, empfindliche Jungpflanzen ggf. schützen.
     </div>`;
   }
   let hailBanner = '';
   if (hailWarn) {
     const dayList = hailWarn.days.map(d => d.label).join(', ');
-    hailBanner = `<div style="font-size:0.74rem;padding:6px 9px;border-radius:7px;background:#e3f0fb;border-left:3px solid #5b8bb5;margin-bottom:8px">
+    hailBanner = `<div style="font-size:0.74rem;padding:6px 9px;border-radius:7px;background:#e3f0fb;border-left:3px solid #5b8bb5;margin-bottom:8px;color:#2c2415">
       🧊 <strong>Hagelgefahr:</strong> ${dayList} – Vlies, Kisten oder Folie zum Abdecken empfindlicher Pflanzen bereitlegen.
     </div>`;
   }
@@ -4127,10 +4137,10 @@ function renderCarePlan(items, undated, weather, rainSoon, bedWaterStatus, hotDr
     if (needToday.length || skippedByRain.length) {
       bedBanner += `<div style="margin-bottom:12px">`;
       if (needToday.length) {
-        bedBanner += `<div style="font-size:0.78rem;padding:6px 9px;border-radius:7px;background:#fff3e0;border-left:3px solid #d4880a;margin-bottom:5px">🚿 <strong>Heute gießen:</strong> ${needToday.map(escapeHtml).join(', ')}</div>`;
+        bedBanner += `<div style="font-size:0.78rem;padding:6px 9px;border-radius:7px;background:#fff3e0;border-left:3px solid #d4880a;margin-bottom:5px;color:#2c2415">🚿 <strong>Heute gießen:</strong> ${needToday.map(escapeHtml).join(', ')}</div>`;
       }
       if (skippedByRain.length) {
-        bedBanner += `<div style="font-size:0.78rem;padding:6px 9px;border-radius:7px;background:#e3f0fb;border-left:3px solid #5b8bb5">🌧 <strong>Durch Regen versorgt:</strong> ${skippedByRain.map(escapeHtml).join(', ')} (${recentRain.toFixed(0)}mm in 2 Tagen)</div>`;
+        bedBanner += `<div style="font-size:0.78rem;padding:6px 9px;border-radius:7px;background:#e3f0fb;border-left:3px solid #5b8bb5;color:#2c2415">🌧 <strong>Durch Regen versorgt:</strong> ${skippedByRain.map(escapeHtml).join(', ')} (${recentRain.toFixed(0)}mm in 2 Tagen)</div>`;
       }
       bedBanner += `</div>`;
     }
