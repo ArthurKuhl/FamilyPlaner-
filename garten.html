@@ -269,6 +269,13 @@
   .tier-fotos { display: flex; gap: 8px; overflow-x: auto; padding: 2px 0 6px; margin: 4px 0 6px; }
   .tier-fotos button { flex: 0 0 auto; width: 92px; height: 92px; padding: 0; border: none; border-radius: 12px; overflow: hidden; cursor: pointer; background: rgba(127,164,118,0.15); position: relative; }
   .tier-fotos img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .tier-foto-wrap { position: relative; flex: 0 0 auto; }
+  .tier-foto-weg { position: absolute !important; top: 4px; right: 4px; width: 24px !important; height: 24px !important; border-radius: 50% !important; background: rgba(0,0,0,0.55) !important; color: #fff; font-size: 0.7rem; }
+  .tier-fotos .tier-foto-neu { border: 2px dashed var(--parchment); background: transparent; color: inherit; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 1.6rem; gap: 2px; }
+  .tier-fotos .tier-foto-neu small { position: static; background: none; color: inherit; font-size: 0.66rem; text-align: center; padding: 0; }
+  .tier-slot-gesehen { border-style: solid !important; }
+  .tier-slot-mark { font-size: 0.62rem; opacity: 0.75; margin-top: 2px; }
+  .tier-modus { display: flex; gap: 6px; justify-content: flex-end; margin: 0 0 8px; }
   .tier-fotos small { position: absolute; left: 0; right: 0; bottom: 0; padding: 2px 4px; font-size: 0.66rem; color: #fff; background: linear-gradient(transparent, rgba(0,0,0,0.65)); text-align: left; }
   .tier-icon { font-size: 2rem; line-height: 1; flex-shrink: 0; width: 48px; height: 48px; border-radius: 50%; background: rgba(127,164,118,0.15); display: flex; align-items: center; justify-content: center; }
   .tier-karte-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
@@ -8914,6 +8921,7 @@ function alleFotoListenObjekte() {
     });
     (g.freiPflanzen || []).forEach(fp => { if (Array.isArray(fp.fotos)) liste.push(fp); });
     (g.beobachtungen || []).forEach(b => { if (Array.isArray(b.fotos)) liste.push(b); });
+    Object.values(g.tierAlbum || {}).forEach(e => { if (e && Array.isArray(e.fotos)) liste.push(e); });
   });
   return liste;
 }
@@ -10755,6 +10763,7 @@ function tierMonateHtml(monate) {
 }
 
 function renderTiere() {
+  albumTiereMigrieren();
   // Namen/Symbole an ältere Sichtungen hängen, damit die Übersicht sie anzeigen kann
   const sichtAlt = tierSichtungen();
   Object.keys(sichtAlt).forEach(id => { if (!sichtAlt[id].name) { const t = alleTiere().find(x => x.id === id); if (t) { sichtAlt[id].name = t.name; sichtAlt[id].icon = t.icon; } } });
@@ -10950,6 +10959,8 @@ function renderTiereListeHtml(sicht) {
     <div class="tier-filter">${kats.map(([k, t]) => `<button type="button" class="saat-chip${tierKategorie === k ? ' an' : ''}" onclick="tierKategorieSetzen('${k}')">${t}</button>`).join('')}</div>
     <div id="tierListe">${tierListeInhaltHtml(sicht)}</div>`;
 }
+let tierListeModus = (() => { try { return localStorage.getItem('garten_tierModus') || 'liste'; } catch (e) { return 'liste'; } })();
+function tierListeModusSetzen(m) { tierListeModus = m; try { localStorage.setItem('garten_tierModus', m); } catch (e) {} renderTiere(); }
 function tierListeInhaltHtml(sicht) {
   const q = tierSuche.trim().toLowerCase();
   const liste = alleTiere().filter(t => {
@@ -10962,7 +10973,9 @@ function tierListeInhaltHtml(sicht) {
   const vorname = liste.some(t => t.name.trim().toLowerCase() === q) ? '' : tierSuche.trim();
   const neuKnopf = `<button type="button" class="btn-secondary" style="width:100%;margin-top:12px" onclick='eigenesTierOeffnen(null, ${escapeHtml(JSON.stringify(vorname))})'>＋ ${vorname ? '„' + escapeHtml(vorname) + '“ als eigenes Tier eintragen' : 'Eigenes Tier eintragen'}</button>`;
   if (!liste.length) return `<div class="empty-state">${tierKategorie === 'entdeckt' && !q ? 'Noch keine Tiere entdeckt – öffne ein Tier und tippe auf „👀 Gesehen!“, wenn ihr es im Garten beobachtet habt.' : 'Nicht im Lexikon? Dann trag es einfach selbst ein:'}</div>${neuKnopf}`;
-  return `<div class="tier-grid">${liste.map(t => {
+  const modus = `<div class="tier-modus"><button type="button" class="saat-chip${tierListeModus === 'liste' ? ' an' : ''}" onclick="tierListeModusSetzen('liste')">📋 Liste</button><button type="button" class="saat-chip${tierListeModus === 'album' ? ' an' : ''}" onclick="tierListeModusSetzen('album')">🗂️ Sammelkarten</button></div>`;
+  if (tierListeModus === 'album') return modus + tierAlbumGridHtml(liste, sicht) + neuKnopf;
+  return modus + `<div class="tier-grid">${liste.map(t => {
     const s = sicht[t.id];
     return `<button type="button" class="tier-karte${s ? ' entdeckt' : ''}" onclick="tierDetailOeffnen('${t.id}')">
       <span class="tier-icon">${tierIconHtml(t)}</span>
@@ -11617,15 +11630,17 @@ function beobListeHtml(liste) {
 // Alle Fotos aus Beobachtungen zu einem Tier, neueste zuerst
 function tierFotos(tierId) {
   const fotos = [];
+  const album = tierAlbumEintrag(tierId, false);
+  if (album) album.fotos.forEach(f => { if (fotoQuelle(f)) fotos.push({ src: fotoQuelle(f), datum: f.datum, eigen: true, id: f.id }); });
   gartenBeobachtungen().filter(b => b.tierId === tierId).sort((a, b) => String(b.datum).localeCompare(String(a.datum)))
     .forEach(b => (b.fotos || []).forEach(f => { if (fotoQuelle(f)) fotos.push({ src: fotoQuelle(f), datum: b.datum, pflanze: b.pflanze }); }));
   return fotos;
 }
 function tierFotosHtml(tierId) {
   const fotos = tierFotos(tierId);
-  if (!fotos.length) return '';
-  return `<div class="tier-abschnitt-titel">📷 Eure Fotos (${fotos.length})</div>
-    <div class="tier-fotos">${fotos.map(f => `<button type="button" onclick='fotoLightboxOeffnen(${escapeHtml(JSON.stringify(f.src))})'><img src="${escapeHtml(f.src)}" alt="" loading="lazy"><small>${escapeHtml(beobDatumText(f.datum))}${f.pflanze ? ' · ' + escapeHtml(f.pflanze) : ''}</small></button>`).join('')}</div>`;
+  return `<div class="tier-abschnitt-titel">📷 Eure Fotos${fotos.length ? ' (' + fotos.length + ')' : ''}</div>
+    <div class="tier-fotos">${fotos.map(f => `<span class="tier-foto-wrap"><button type="button" onclick='fotoLightboxOeffnen(${escapeHtml(JSON.stringify(f.src))})'><img src="${escapeHtml(f.src)}" alt="" loading="lazy"><small>${escapeHtml(beobDatumText(f.datum))}${f.pflanze ? ' · ' + escapeHtml(f.pflanze) : ''}</small></button>${f.eigen ? `<button type="button" class="tier-foto-weg" onclick="tierFotoLoeschen('${tierId}','${f.id}')" aria-label="Foto löschen">✕</button>` : ''}</span>`).join('')}
+      <button type="button" class="tier-foto-neu" onclick="tierFotoHinzufuegen('${tierId}')">📷<small>Foto hinzufügen</small></button></div>`;
 }
 function tierIconHtml(t) {
   const f = tierFotos(t.id)[0];
@@ -12741,12 +12756,124 @@ function pilzLoeschen(id) {
   });
 }
 
+
+// ==================== 🦔📸 TIER-ALBUM: Fotos direkt beim Tier ====================
+// gardens[id].tierAlbum = { [tierId]: { fotos: [{ id, data|url, pfad, datum }] } }
+// Fotos laufen über den Familien-Fotospeicher (alleFotoListenObjekte) wie Pflanzen- und Beobachtungsfotos.
+function tierAlbumEintrag(tierId, anlegen) {
+  const g = gardens[currentGardenId];
+  if (!g) return null;
+  if (!g.tierAlbum) { if (!anlegen) return null; g.tierAlbum = {}; }
+  if (!g.tierAlbum[tierId] && anlegen) g.tierAlbum[tierId] = { fotos: [] };
+  return g.tierAlbum[tierId] || null;
+}
+function tierFotoHinzufuegen(tierId) {
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = 'image/*';
+  inp.onchange = () => {
+    const datei = inp.files && inp.files[0];
+    if (!datei) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const f = Math.min(1, 1280 / Math.max(img.width, img.height));
+        const c = document.createElement('canvas'); c.width = Math.round(img.width * f); c.height = Math.round(img.height * f);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        const eintrag = tierAlbumEintrag(tierId, true);
+        eintrag.fotos.unshift({ id: fotoNeueId(), data: c.toDataURL('image/jpeg', 0.8), datum: heuteISO() });
+        if (!tierSichtungen()[tierId]) tierGesehen(tierId); // Foto = gesehen
+        else { saveData(); renderTiere(); if (tierDetailId === tierId) tierDetailRendern(); }
+        try { if (typeof renderAlbum === 'function') renderAlbum(); } catch (err) {}
+        familienFotosHochladen();
+        showTempStatus('📸 Foto im Tier-Album gespeichert', 3);
+      };
+      img.onerror = () => showTempStatus('⚠ Datei ist kein gültiges Bild.', 4);
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(datei);
+  };
+  inp.click();
+}
+function tierFotoLoeschen(tierId, fotoId) {
+  const eintrag = tierAlbumEintrag(tierId, false);
+  if (!eintrag) return;
+  const i = eintrag.fotos.findIndex(f => f.id === fotoId);
+  if (i < 0) return;
+  const [weg] = eintrag.fotos.splice(i, 1);
+  saveData(); renderTiere(); if (tierDetailId === tierId) tierDetailRendern();
+  try { renderAlbum(); } catch (e) {}
+  showTempStatus('Foto gelöscht', 5, { label: 'Rückgängig', aktion: () => {
+    tierAlbumEintrag(tierId, true).fotos.splice(i, 0, weg); saveData(); renderTiere(); if (tierDetailId === tierId) tierDetailRendern(); try { renderAlbum(); } catch (e) {}
+  } });
+  setTimeout(() => { if (!(tierAlbumEintrag(tierId, false) || { fotos: [] }).fotos.includes(weg)) fotoCloudLoeschen(weg); }, 8000);
+}
+
+// Sammelkarten-Ansicht (für „Tiere im Garten“ und das Sammelalbum)
+function tierAlbumGridHtml(liste, sicht) {
+  return `<div class="album-grid">${liste.map(t => {
+    const f = tierFotos(t.id)[0], s = sicht[t.id];
+    if (f) return `<div class="album-slot gefuellt" onclick="tierDetailOeffnen('${t.id}')"><img src="${escapeHtml(f.src)}" alt="${escapeHtml(t.name)}" loading="lazy">
+      ${tierFotos(t.id).length > 1 ? `<span class="as-badge">${tierFotos(t.id).length}</span>` : ''}<span class="as-label">${escapeHtml(t.name)}</span></div>`;
+    return `<div class="album-slot${s ? ' tier-slot-gesehen' : ''}" onclick="tierDetailOeffnen('${t.id}')">
+      <span class="as-icon">${escapeHtml(t.icon)}</span><span class="as-name">${escapeHtml(t.name)}</span>
+      ${s ? '<span class="tier-slot-mark">👀 gesehen · 📷 fehlt</span>' : ''}</div>`;
+  }).join('')}</div>`;
+}
+
+// Einmalige Übernahme: Nützlinge & Gartentierwelt aus dem alten Sammelalbum → Tiere im Garten
+const ALBUM_TIER_ZUORDNUNG = { 'marienkäfer': 'marienkaefer', 'honigbiene': 'honigbiene', 'hummel': 'hummel', 'florfliege': 'florfliege', 'schwebfliege': 'schwebfliege',
+  'ohrwurm': 'ohrwurm', 'laufkäfer': 'laufkaefer', 'regenwurm': 'regenwurm', 'wildbiene': 'sandbiene', 'schmetterling': 'tagpfauenauge', 'igel': 'igel', 'amsel': 'amsel',
+  'rotkehlchen': 'rotkehlchen', 'eichhörnchen': 'eichhoernchen', 'zauneidechse': 'eidechse', 'erdkröte': 'amphibien', 'blindschleiche': 'blindschleiche',
+  'star': 'star', 'zaunkönig': 'zaunkoenig', 'meise': 'meisen' };
+function albumTiereMigrieren() {
+  let geaendert = false;
+  const altGarten = currentGardenId;
+  Object.keys(gardens || {}).forEach(gid => {
+    const g = gardens[gid];
+    if (!g || !g.album || g.album.tiereUebernommen) return;
+    currentGardenId = gid;
+    const album = g.album;
+    ['nuetzlinge', 'tierwelt'].forEach(seite => {
+      const namen = new Set();
+      Object.keys(album.entries || {}).forEach(k => { if (k.startsWith(seite + '::')) namen.add(k.slice(seite.length + 2)); });
+      (album.custom && album.custom[seite] || []).forEach(e => namen.add(typeof e === 'string' ? e : e.name));
+      namen.forEach(name => {
+        const key = seite + '::' + name;
+        const fotos = (album.entries[key] || []).filter(f => f && f.photo);
+        const custom = (album.custom && album.custom[seite] || []).find(e => (typeof e === 'string' ? e : e.name) === name);
+        const lname = name.trim().toLowerCase();
+        let id = ALBUM_TIER_ZUORDNUNG[lname];
+        if (!id) { const t = alleTiere().find(x => x.name.toLowerCase() === lname) || alleTiere().find(x => x.name.toLowerCase().split(/[\s\-&(),]+/).includes(lname)); if (t) id = t.id; }
+        if (!id) {
+          if (!fotos.length && !custom) return;
+          id = 'eig_' + Date.now().toString(36) + Math.floor(Math.random() * 1000);
+          eigeneTiere().push({ id, name: name.trim(), icon: seite === 'nuetzlinge' ? '🐞' : '🐾', kat: seite === 'nuetzlinge' ? 'insekten' : 'saeuger', latein: '', kurz: '',
+            nahrung: '', wohnung: '', notiz: custom && typeof custom === 'object' ? custom.notiz || '' : '', angelegt: heuteISO() });
+        }
+        if (fotos.length) {
+          const eintrag = tierAlbumEintrag(id, true);
+          fotos.forEach(f => eintrag.fotos.push({ id: fotoNeueId(), data: f.photo, datum: f.date || heuteISO() }));
+          const sicht = tierSichtungen();
+          const erst = fotos.map(f => f.date).filter(Boolean).sort()[0] || heuteISO();
+          if (!sicht[id]) sicht[id] = { anzahl: fotos.length, erst, zuletzt: fotos.map(f => f.date).filter(Boolean).sort().pop() || erst };
+        }
+        delete album.entries[key];
+      });
+      if (album.custom) delete album.custom[seite];
+    });
+    album.tiereUebernommen = true;
+    geaendert = true;
+  });
+  currentGardenId = altGarten;
+  if (geaendert) { try { saveData(); familienFotosHochladen(); } catch (e) {} }
+}
+
 // ==================== FOTOALBUM ====================
 const ALBUM_SEITEN = [
   { id: 'pflanzen', icon: '🌷', label: 'Pflanzen', dynamic: true },
-  { id: 'nuetzlinge', icon: '🐝', label: 'Nützlinge', vorschlaege: ['Marienkäfer','Honigbiene','Hummel','Florfliege','Schwebfliege','Ohrwurm','Laufkäfer','Regenwurm','Wildbiene','Schmetterling'] },
+  { id: 'tiere', icon: '🦔', label: 'Tiere', tiere: true },
   { id: 'schaedlinge', icon: '🐛', label: 'Schädlinge', vorschlaege: ['Blattlaus','Kohlweißling-Raupe','Nacktschnecke','Wühlmaus','Kartoffelkäfer','Spinnmilbe','Dickmaulrüssler','Wollläuse'] },
-  { id: 'tierwelt', icon: '🦔', label: 'Gartentierwelt', vorschlaege: ['Igel','Amsel','Rotkehlchen','Eichhörnchen','Zauneidechse','Erdkröte','Blindschleiche','Star','Zaunkönig','Meise'] },
   { id: 'sonstiges', icon: '✨', label: 'Sonstige Entdeckungen', vorschlaege: [] },
 ];
 let albumAktiveSeite = 'pflanzen';
@@ -12783,6 +12910,7 @@ function albumPflanzenListe() {
 function albumSlotsFuerSeite(seiteId) {
   const album = getAlbum();
   if (!album) return [];
+  if (seiteId === 'tiere') return []; // eigene Darstellung (Tiere im Garten)
   if (seiteId === 'pflanzen') {
     const teile = ['Gesamtpflanze', 'Blüte', 'Frucht'];
     const slots = [];
@@ -12821,6 +12949,7 @@ function renderAlbum() {
     box.innerHTML = '<div class="empty-state">Lege zuerst einen Garten an.</div>';
     return;
   }
+  albumTiereMigrieren();
   const album = getAlbum();
   let gesamtSlots = 0, gesamtGefuellt = 0;
   ALBUM_SEITEN.forEach(s => {
@@ -12828,6 +12957,11 @@ function renderAlbum() {
     gesamtSlots += slots.length;
     gesamtGefuellt += slots.filter(sl => (album.entries[sl.key] || []).length > 0).length;
   });
+  // Tiere zählen mit einem Foto als „entdeckt“ (seltene Funde nur, wenn vorhanden)
+  const tierSicht = tierSichtungen();
+  const albumTiere = alleTiere().filter(t => t.aufwand < 4 || tierFotos(t.id).length || tierSicht[t.id]);
+  const tiereMitFoto = albumTiere.filter(t => tierFotos(t.id).length).length;
+  gesamtSlots += albumTiere.length; gesamtGefuellt += tiereMitFoto;
   const pct = gesamtSlots ? Math.round(gesamtGefuellt / gesamtSlots * 100) : 0;
   let html = `<div class="album-progress-hd">
     <div class="ap-title">📸 Garten-Sammelalbum</div>
@@ -12839,6 +12973,18 @@ function renderAlbum() {
     html += `<button class="album-seiten-tab${albumAktiveSeite === s.id ? ' active' : ''}" onclick="switchAlbumSeite('${s.id}')">${s.icon} ${escapeHtml(s.label)}</button>`;
   });
   html += `</div>`;
+  if (albumAktiveSeite === 'tiere') {
+    html += `<div class="album-seiten-sub">${tiereMitFoto} / ${albumTiere.length} Tiere mit Foto · ${albumTiere.filter(t => tierSicht[t.id]).length} gesehen</div>`;
+    html += `<div class="tier-werkzeuge" style="margin:4px 0 10px"><button type="button" class="btn-secondary" onclick="showView('tiere')">🦔 Zu „Tiere im Garten“ (Steckbriefe, Bestimmung, Tierjahr) ›</button></div>`;
+    const gruppen = {};
+    albumTiere.forEach(t => (gruppen[t.kat] = gruppen[t.kat] || []).push(t));
+    Object.keys(TIER_KATEGORIEN).forEach(k => {
+      if (!gruppen[k]) return;
+      html += `<div class="album-gruppe-titel">${escapeHtml(TIER_KATEGORIEN[k])}</div>` + tierAlbumGridHtml(gruppen[k], tierSicht);
+    });
+    box.innerHTML = html;
+    return;
+  }
   const slots = albumSlotsFuerSeite(albumAktiveSeite);
   const seiteGefuellt = slots.filter(sl => (album.entries[sl.key] || []).length > 0).length;
   html += `<div class="album-seiten-sub">${seiteGefuellt} / ${slots.length || 0} auf dieser Seite entdeckt</div>`;

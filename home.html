@@ -942,6 +942,10 @@
         t.n++;
         if (inWoche(si.erst)) { t.neu = true; t.neuDatum = si.erst; }
       });
+      Object.entries(g.tierAlbum || {}).forEach(([tid, e]) => {
+        const f = (e && e.fotos || []).find(x => x && (x.data || x.url));
+        if (f && String(f.datum || '') >= (fotoDatum[tid] || '')) { fotos[tid] = f.data || f.url; fotoDatum[tid] = String(f.datum || ''); }
+      });
       (g.beobachtungen || []).forEach(b => {
         if (!b) return;
         const f = (b.fotos || []).find(x => x && (x.data || x.url));

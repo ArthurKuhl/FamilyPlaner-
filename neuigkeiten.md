@@ -1,5 +1,12 @@
 # Neuigkeiten im Familienplaner
-# Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## 2026-11-12 | 🌸 Blumen- & Staudenbeete mit Pflanzplan
+# Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## 2026-11-12 | 🦔📸 Sammelalbum und Tiere im Garten zusammengeführt
+- Tiere gibt es jetzt nur noch an einer Stelle: **Tiere im Garten**. Jedes Tier hat dort „📷 Foto hinzufügen“. Ein Foto zählt automatisch als „gesehen“ und wird mit der Familie geteilt.
+- Neue Ansicht **🗂️ Sammelkarten** in „Tiere im Garten“: Fotos statt Symbole, wie im Sammelalbum.
+- Im **Garten-Sammelalbum** ersetzt die Seite „🦔 Tiere“ die früheren Seiten „Nützlinge“ und „Gartentierwelt“. Sie zeigt dieselben Tiere als Sammelkarten. Pflanzen, Schädlinge und Sonstiges bleiben wie bisher.
+- Vorhandene Fotos und eigene Felder aus „Nützlinge“ und „Gartentierwelt“ wurden automatisch übernommen. Unbekannte Tiere werden zu eigenen Tieren.
+- Neu im Lexikon: Schwebfliegen, Laufkäfer, Regenwurm, Star und Zaunkönig, die vorher nur im Album standen.
+
+## 2026-11-12 | 🌸 Blumen- & Staudenbeete mit Pflanzplan
 - **Lexikon:** 55 neue Stauden, Wildblumen, Gräser und Frühblüher, z. B. Wasserdost, Wald-Storchschnabel, Witwenblumen, Natternkopf, Wiesen-Salbei, Funkie und Christrose. Jeweils mit lateinischem Namen, Höhe, Blütezeit, Standort, Boden und Pflege. Kennzeichnung „🌿 heimisch“ und „☠️ giftig“. Neuer Filter „🌼 Stauden & Wildblumen“.
 - **12 Beet-Vorschläge** (Lexikon → Blumen- & Staudenbeete oder 🧩 Beet-Vorlagen): Filter nach Sonne (☀️ über 6 h · ⛅ 3–6 h · ☁️ unter 3 h) und Boden (trocken, normal, feucht), mit Himmelsrichtung.
 - Jeder Vorschlag hat einen **Pflanzplan als Bild** (hohe Pflanzen hinten bzw. in der Mitte), einen Blühkalender übers Jahr und den Anteil heimischer Arten. „➕ Einfügen“ legt das Beet mit allen Pflanzen in deinem Garten an.
