@@ -759,6 +759,7 @@
           ${w.dauerwunsch ? '<span class="wk-chip" title="Dauerwunsch">🔁</span>' : ''}
           ${st === 'reserviert' ? '<span class="wk-chip reserviert">🙋 ' + (w.reserviertVon && w.reserviertVon !== 'familie' ? escapeHtml(personLabel(w.reserviertVon)) + ' kümmert sich' : 'reserviert') + '</span>' : ''}
           ${st === 'besorgt' ? '<span class="wk-chip besorgt">🛍️ besorgt' + (w.reserviertVon && w.reserviertVon !== 'familie' ? ' von ' + escapeHtml(personLabel(w.reserviertVon)) : '') + (Number(w.preisIst) > 0 ? ' · ' + Number(w.preisIst).toLocaleString('de-DE', { style: 'currency', currency: 'EUR' }) : '') + '</span>' : ''}
+          ${w.quelle === 'kind' ? '<span class="wk-chip">🖍️ selbst gemalt</span>' : ''}
           ${!fuerMich(w) && w.versteckenVor && w.versteckenVor.length ? '<span class="wk-chip versteckt">🔒 versteckt vor ' + w.versteckenVor.map(personLabel).map(escapeHtml).join(', ') + '</span>' : ''}
         </div>
         <div class="wk-inhalt">

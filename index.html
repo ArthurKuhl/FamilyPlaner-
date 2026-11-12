@@ -468,7 +468,7 @@
     // Zentrale Liste aller Bereiche. Neue Bereiche später einfach hier ergänzen:
     // src auf die fertige Modul-Datei zeigen lassen, sobald sie existiert.
     const MODULE = [
-      { id: 'home',        label: 'Übersicht', emoji: '🏠', src: 'home.html', syncKeys: ['app_feedback'] },
+      { id: 'home',        label: 'Übersicht', emoji: '🏠', src: 'home.html', syncKeys: ['app_feedback', 'home_frost'] },
       { id: 'garten',      label: 'Garten',    emoji: '🌱', src: 'garten.html',
         syncKeys: ['gartenplaner_v3','gartenplaner_varieties','gartenplaner_bedTemplates','gartenplaner_recentPlants','gartenplaner_seedInventory','gartenplaner_costs','gartenplaner_pantry','gartenplaner_shops','gartenplaner_careDone','gartenplaner_customPlants','gartenplaner_pilzlog','gartenplaner_wishlist','garten_pushPlan'],
         syncTransform: (werte) => window.PlanerSync ? window.PlanerSync.entferneFotosTief(werte) : werte },
@@ -490,7 +490,7 @@
       { id: 'handwerk',    label: 'Handwerk',  emoji: '🔨', src: 'handwerk.html', syncKeys: ['handwerk_projekte', 'handwerk_wartung', 'handwerk_werkzeug'] },
       { id: 'haushalt',    label: 'Haushalt',  emoji: '🧹', src: 'haushalt.html', syncKeys: ['haushalt_aufgaben'] },
       { id: 'fahrzeuge',   label: 'Fahrzeuge', emoji: '🚗', src: 'fahrzeuge.html', syncKeys: ['fahrzeuge_liste', 'fahrzeuge_tanken', 'fahrzeuge_werkstatt'] },
-      { id: 'kinder',      label: 'Kinderecke', emoji: '🧒', src: 'kinder.html', syncKeys: ['kinder_einstellungen', 'kinder_sterne', 'garten_kinderErledigt', 'kinder_wuensche', 'kinder_routinen_stand', 'kinder_advent', 'kinder_schule'] },
+      { id: 'kinder',      label: 'Kinderecke', emoji: '🧒', src: 'kinder.html', syncKeys: ['kinder_einstellungen', 'kinder_sterne', 'garten_kinderErledigt', 'kinder_wuensche', 'kinder_routinen_stand', 'kinder_advent', 'kinder_schule', 'bilderrahmen_album'] },
       { id: 'geldgeschenke', label: 'Geldgeschenke', emoji: '💶', src: 'geldgeschenke.html', syncKeys: ['geldgeschenke_liste'] },
       { id: 'notizblock',  label: 'Notizblock', emoji: '📝', src: 'notizblock.html', syncKeys: ['notizblock_liste'] },
       { id: 'ausfluege',   label: 'Ausflüge', emoji: '🧭', src: 'ausfluege.html', syncKeys: ['ausfluege_planung', 'ausfluege_erlebt', 'ausfluege_ideen', 'ausfluege_packVorlagen'] },
@@ -2235,5 +2235,136 @@
       });
     }
   </script>
+<!-- 🖼️ BILDERRAHMEN – Diashow mit Familienfotos, Uhrzeit, Wetter und Terminen, wenn das Gerät eine Weile nicht benutzt wird.
+     Eingestellt in der Kinderecke (⚙️ → Bilderrahmen), gespeichert geräte-lokal in planer_bilderrahmen. -->
+<div id="bilderrahmen" aria-hidden="true">
+  <img class="br-bild" id="brBildA" alt=""><img class="br-bild" id="brBildB" alt="">
+  <div class="br-leer" id="brLeer">🖼️<br>Noch keine Fotos.<br><small>Fotos fügt ihr in der Kinderecke unter ⚙️ → Bilderrahmen hinzu.</small></div>
+  <div class="br-info">
+    <div class="br-uhr" id="brUhr"></div>
+    <div class="br-datum" id="brDatum"></div>
+    <div class="br-zeile" id="brWetter"></div>
+    <div class="br-termine" id="brTermine"></div>
+  </div>
+</div>
+<style>
+  #bilderrahmen { position: fixed; inset: 0; z-index: 99999; background: #000; display: none; cursor: none; overflow: hidden; color: #fff; font-family: 'Inter', sans-serif; }
+  #bilderrahmen.zeigen { display: block; }
+  .br-bild { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; opacity: 0; transition: opacity 1.6s ease; }
+  .br-bild.sichtbar { opacity: 1; }
+  .br-leer { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; font-size: 1.4rem; opacity: 0.8; gap: 6px; }
+  .br-leer small { font-size: 0.9rem; opacity: 0.8; }
+  .br-info { position: absolute; left: 0; right: 0; bottom: 0; padding: 60px 28px 22px; background: linear-gradient(transparent, rgba(0,0,0,0.72)); text-shadow: 0 1px 4px rgba(0,0,0,0.6); }
+  .br-uhr { font-size: clamp(3rem, 11vw, 6rem); font-weight: 300; line-height: 1; letter-spacing: -1px; }
+  .br-datum { font-size: clamp(1rem, 3vw, 1.5rem); opacity: 0.9; margin-top: 4px; }
+  .br-zeile { font-size: clamp(1rem, 3vw, 1.4rem); margin-top: 8px; }
+  .br-termine { margin-top: 8px; font-size: clamp(0.9rem, 2.4vw, 1.15rem); line-height: 1.5; opacity: 0.95; }
+</style>
+<script>
+(function () {
+  'use strict';
+  const box = document.getElementById('bilderrahmen');
+  const lies = (k, f) => { try { const r = localStorage.getItem(k); return r === null ? f : JSON.parse(r); } catch (e) { return f; } };
+  function einst() { const e = lies('planer_bilderrahmen', null) || {}; return { aktiv: !!e.aktiv, minuten: e.minuten || 3, quellen: Object.assign({ album: true, ausfluege: true, garten: true }, e.quellen || {}) }; }
+  // Fotos sammeln (nur Bild-Adressen, keine Kopien)
+  function fotoAdresse(f) {
+    if (!f) return '';
+    if (typeof f === 'string') return /^(data:image|https?:)/.test(f) ? f : '';
+    return f.url || f.bild || f.data || (typeof f.photo === 'string' ? f.photo : '') || '';
+  }
+  function fotosSammeln() {
+    const q = einst().quellen, set = new Set();
+    if (q.album) (lies('bilderrahmen_album', []) || []).concat(lies('bilderrahmen_album_lokal', []) || []).forEach(f => { const a = fotoAdresse(f); if (a) set.add(a); });
+    if (q.ausfluege) (lies('ausfluege_erlebt', []) || []).forEach(e => (e && e.fotos || []).forEach(f => { const a = fotoAdresse(f); if (a) set.add(a); }));
+    if (q.garten) {
+      const g = lies('gartenplaner_v3', null);
+      const lauf = (o, tiefe) => {
+        if (!o || typeof o !== 'object' || tiefe > 6) return;
+        if (Array.isArray(o)) { o.forEach(x => lauf(x, tiefe + 1)); return; }
+        ['photoLog', 'fotos'].forEach(k => { if (Array.isArray(o[k])) o[k].forEach(f => { const a = fotoAdresse(f); if (a) set.add(a); }); });
+        Object.keys(o).forEach(k => { if (k !== 'photoLog' && k !== 'fotos' && o[k] && typeof o[k] === 'object') lauf(o[k], tiefe + 1); });
+      };
+      if (g) lauf(g.gardens, 0);
+    }
+    const liste = [...set];
+    for (let i = liste.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [liste[i], liste[j]] = [liste[j], liste[i]]; }
+    return liste;
+  }
+  const WETTER = (c) => c === 0 ? '☀️' : c <= 2 ? '🌤️' : c === 3 ? '☁️' : c <= 48 ? '🌫️' : c <= 57 ? '🌦️' : c <= 67 ? '🌧️' : c <= 77 ? '🌨️' : c <= 82 ? '🌧️' : c <= 86 ? '🌨️' : '⛈️';
+  const iso = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  const esc = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  function infoRendern() {
+    const jetzt = new Date();
+    document.getElementById('brUhr').textContent = jetzt.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+    document.getElementById('brDatum').textContent = jetzt.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' });
+    const w = lies('planer_wetterCache', null);
+    document.getElementById('brWetter').textContent = w && w.current ? WETTER(w.current.weather_code) + ' ' + Math.round(w.current.temperature_2m) + '°' +
+      (w.daily ? '  ·  ' + Math.round(w.daily.temperature_2m_min[0]) + '° / ' + Math.round(w.daily.temperature_2m_max[0]) + '°' : '') : '';
+    let html = '';
+    try {
+      const events = lies('termine_events_v1', []) || [];
+      [0, 1].forEach(plus => {
+        const d = new Date(); d.setDate(d.getDate() + plus);
+        const tag = iso(d);
+        const heute = events.filter(ev => ev && ev.date && !ev.abfuhr && window.TerminLogik && window.TerminLogik.amTag(ev, tag))
+          .filter(ev => plus > 0 || ev.allDay || !ev.endTime || ev.endTime >= jetzt.toTimeString().slice(0, 5))
+          .sort((a, b) => (a.allDay ? '' : a.startTime || '').localeCompare(b.allDay ? '' : b.startTime || '')).slice(0, 3);
+        heute.forEach(ev => { html += '<div>' + (plus ? 'Morgen ' : 'Heute ') + (ev.allDay || !ev.startTime ? '' : esc(ev.startTime) + ' ') + '· ' + esc(ev.title || 'Termin') + '</div>'; });
+      });
+    } catch (e) {}
+    document.getElementById('brTermine').innerHTML = html;
+  }
+  let fotos = [], index = 0, aktivBild = 'A', bildTimer = null, uhrTimer = null, ruheTimer = null;
+  function naechstesBild() {
+    if (!fotos.length) return;
+    const neu = document.getElementById('brBild' + (aktivBild === 'A' ? 'B' : 'A'));
+    const alt = document.getElementById('brBild' + aktivBild);
+    const src = fotos[index % fotos.length]; index++;
+    neu.onload = () => { neu.classList.add('sichtbar'); alt.classList.remove('sichtbar'); aktivBild = aktivBild === 'A' ? 'B' : 'A'; };
+    neu.onerror = () => { fotos = fotos.filter(f => f !== src); setTimeout(naechstesBild, 100); };
+    neu.src = src;
+  }
+  function starten() {
+    if (box.classList.contains('zeigen')) return;
+    fotos = fotosSammeln(); index = 0;
+    document.getElementById('brLeer').style.display = fotos.length ? 'none' : '';
+    box.classList.add('zeigen');
+    infoRendern(); naechstesBild();
+    uhrTimer = setInterval(infoRendern, 20000);
+    bildTimer = setInterval(naechstesBild, 12000);
+    try { if (navigator.wakeLock) navigator.wakeLock.request('screen').then(l => { box._lock = l; }).catch(() => {}); } catch (e) {}
+  }
+  function beenden() {
+    if (!box.classList.contains('zeigen')) return;
+    box.classList.remove('zeigen');
+    clearInterval(uhrTimer); clearInterval(bildTimer);
+    document.querySelectorAll('.br-bild').forEach(b => { b.classList.remove('sichtbar'); b.removeAttribute('src'); });
+    try { box._lock && box._lock.release(); } catch (e) {}
+    ruheNeu();
+  }
+  function ruheNeu() {
+    clearTimeout(ruheTimer);
+    const e = einst();
+    if (!e.aktiv) return;
+    ruheTimer = setTimeout(() => { if (document.visibilityState === 'visible') starten(); else ruheNeu(); }, e.minuten * 60000);
+  }
+  // Antippen beendet die Diashow – der Tipp landet nicht in der App darunter
+  ['pointerdown', 'keydown'].forEach(t => box.addEventListener(t, (ev) => { ev.preventDefault(); ev.stopPropagation(); beenden(); }, true));
+  const aktiv = () => { if (!box.classList.contains('zeigen')) ruheNeu(); };
+  ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(t => document.addEventListener(t, aktiv, { passive: true, capture: true }));
+  // Auch Eingaben im Modul (iframe) zählen als Benutzung
+  const frame = document.getElementById('modulFrame');
+  function frameBeobachten() { try { const d = frame.contentDocument; ['pointerdown', 'keydown', 'wheel', 'touchstart', 'scroll'].forEach(t => d.addEventListener(t, aktiv, { passive: true, capture: true })); } catch (e) {} }
+  if (frame) { frame.addEventListener('load', frameBeobachten); frameBeobachten(); }
+  window.addEventListener('message', (e) => {
+    if (e.origin !== window.location.origin || !e.data || e.data.type !== 'bilderrahmen') return;
+    if (e.data.aktion === 'start') setTimeout(starten, 300); else ruheNeu();
+  });
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') ruheNeu(); });
+  window.Bilderrahmen = { starten, beenden };
+  ruheNeu();
+})();
+</script>
+
 </body>
 </html>

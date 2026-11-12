@@ -372,6 +372,35 @@
   .tier-detail-kopf { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; }
   .tier-detail-icon { font-size: 2.6rem; width: 64px; height: 64px; flex-shrink: 0; border-radius: 50%; background: rgba(127,164,118,0.15); display: flex; align-items: center; justify-content: center; }
   .tier-selten { background: rgba(196,80,60,0.12); border-left: 4px solid #c4503c; border-radius: var(--radius-sm); padding: 10px 12px; font-size: 0.82rem; line-height: 1.45; margin-bottom: 10px; }
+  .tier-werkzeuge { display: flex; gap: 8px; margin: -4px 0 12px; }
+  .tier-werkzeuge button { flex: 1; }
+  .bestimm-frage { font-size: 1.05rem; font-weight: 600; margin: 4px 0 12px; }
+  .bestimm-option { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 12px 14px; margin-bottom: 8px; border-radius: var(--radius-md); border: 1px solid var(--parchment); background: var(--white); color: inherit; font: inherit; cursor: pointer; }
+  .bestimm-option:active { transform: scale(0.99); }
+  .bestimm-farbe { flex-shrink: 0; display: flex; width: 44px; height: 28px; border-radius: 14px; overflow: hidden; border: 1px solid rgba(0,0,0,0.2); }
+  .bestimm-farbe span { flex: 1; }
+  .bestimm-option small { display: block; opacity: 0.7; font-size: 0.78rem; margin-top: 2px; }
+  .bestimm-pfad { font-size: 0.75rem; opacity: 0.7; margin-bottom: 6px; }
+  .bestimm-treffer { border: 1px solid var(--parchment); border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 10px; background: var(--white); }
+  .bestimm-treffer h3 { margin: 0 0 4px; font-size: 1rem; }
+  .bestimm-treffer .tier-p { margin: 4px 0 10px; }
+  .bestimm-knoepfe { display: flex; gap: 8px; }
+  .bestimm-knoepfe button { flex: 1; }
+  .tj-zahlen { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 8px 0 14px; }
+  .tj-zahl { background: var(--white); border: 1px solid var(--parchment); border-radius: var(--radius-md); padding: 10px 6px; text-align: center; }
+  .tj-zahl b { display: block; font-size: 1.4rem; }
+  .tj-zahl small { font-size: 0.72rem; opacity: 0.75; }
+  .tj-monat { font-weight: 700; margin: 14px 0 6px; font-size: 0.9rem; }
+  .tj-eintrag { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px dashed var(--parchment); cursor: pointer; }
+  .tj-eintrag:last-child { border-bottom: none; }
+  .tj-bild { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; background: rgba(127,164,118,0.15); overflow: hidden; flex-shrink: 0; }
+  .tj-bild img { width: 100%; height: 100%; object-fit: cover; }
+  .tj-text { flex: 1; min-width: 0; font-size: 0.86rem; }
+  .tj-text small { display: block; opacity: 0.7; font-size: 0.74rem; }
+  .tj-vergleich { font-size: 0.72rem; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+  .tj-vergleich.frueh { background: rgba(127,164,118,0.25); }
+  .tj-vergleich.spaet { background: rgba(201,154,58,0.25); }
+  .tj-jahre { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
   .tier-wusstest { background: rgba(201,154,58,0.13); border-left: 4px solid var(--gold); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 0.82rem; line-height: 1.45; }
   .tier-monate { display: grid; grid-template-columns: repeat(12, 1fr); gap: 3px; }
   .tier-monate span { text-align: center; font-size: 0.66rem; padding: 4px 0; border-radius: 4px; background: var(--parchment); color: var(--bark); }
@@ -1379,6 +1408,16 @@
       <button class="btn-primary" style="width:auto;flex:1" onclick="beobSpeichern()">Speichern</button>
     </div>
     <button type="button" class="btn-cancel" id="beobLoeschen" style="width:100%;margin-top:8px;color:var(--terracotta-text)" onclick="beobLoeschen()">🗑 Beobachtung löschen</button>
+  </div>
+</div>
+<div class="modal-bg" id="bestimmModal" style="display:none;z-index:1050" onclick="if(event.target===this)bestimmSchliessen()">
+  <div class="modal" style="width:min(480px,94vw);max-height:88vh;overflow-y:auto">
+    <div id="bestimmInhalt"></div>
+  </div>
+</div>
+<div class="modal-bg" id="tierjahrModal" style="display:none;z-index:1050" onclick="if(event.target===this)tierjahrSchliessen()">
+  <div class="modal" style="width:min(560px,96vw);max-height:90vh;overflow-y:auto">
+    <div id="tierjahrInhalt"></div>
   </div>
 </div>
 <div class="modal-bg" id="eigTierModal" style="display:none;z-index:1100" onclick="if(event.target===this)eigenesTierSchliessen()">
@@ -10540,6 +10579,10 @@ function renderTiere() {
       <div class="tier-fortschritt-text">👀 Entdeckt in „${escapeHtml(gartenName)}“: <b>${entdeckt} von ${basis}</b>${selten ? ` · 🔴 ${selten} seltene${selten === 1 ? 'r' : ''} Fund${selten === 1 ? '' : 'e'}` : ''}</div>
       <div class="tier-balken"><span style="width:${prozent}%"></span></div>
     </div>
+    <div class="tier-werkzeuge">
+      <button type="button" class="btn-secondary" onclick="bestimmOeffnen()">🔎 Hummel bestimmen</button>
+      <button type="button" class="btn-secondary" onclick="tierjahrOeffnen()">📅 Euer Tierjahr</button>
+    </div>
     <div class="tier-reiter">${reiter.map(([k, t]) => `<button type="button" class="saat-chip${tierAnsicht === k ? ' an' : ''}" onclick="tierAnsichtSetzen('${k}')">${t}</button>`).join('')}</div>`;
   if (tierAnsicht === 'tiere') html += renderTiereListeHtml(sicht);
   else if (tierAnsicht === 'bauen') html += renderTierProjekteHtml();
@@ -10548,6 +10591,154 @@ function renderTiere() {
   else html += renderTierRegelnHtml();
   box.innerHTML = html;
 }
+
+// ============================================================
+// 🔎 HUMMEL-BESTIMMUNG – kleiner Bestimmungsschlüssel nach Farben (Arbeiterinnen/Königinnen)
+// Knoten: { frage, optionen: [{ text, hinweis, farben:[...], weiter | treffer:[ids] }] }
+// ============================================================
+const HUMMEL_SCHLUESSEL = {
+  start: { frage: 'Welche Farbe hat das Hinterende („der Po“)?', optionen: [
+    { text: 'Weiß', hinweis: 'weißes oder cremefarbenes Hinterende', farben: ['#222', '#e8c43a', '#f4f1ea'], weiter: 'weiss' },
+    { text: 'Rot oder orange', hinweis: 'leuchtend rotes bis orangefarbenes Hinterende', farben: ['#222', '#222', '#d9532b'], weiter: 'rot' },
+    { text: 'Ganz braun / fuchsrot', hinweis: 'pelzig braun, kein heller Po', farben: ['#b0703a', '#c98a4b', '#b0703a'], weiter: 'braun' },
+    { text: 'Ganz schwarz', hinweis: 'schwarz, evtl. mit farbigen Beinen oder Flügeln', farben: ['#1b1b1b', '#2a2a2a', '#1b1b1b'], weiter: 'schwarz' },
+  ] },
+  weiss: { frage: 'Wie sieht die Brust (vorderer Teil) aus?', optionen: [
+    { text: 'Rotbraun – Hinterleib schwarz', hinweis: 'kein Gelb, nur Rotbraun, Schwarz und Weiß', farben: ['#a0522d', '#222', '#f4f1ea'], treffer: ['baumhummel'] },
+    { text: 'Schwarz mit gelben Bändern', hinweis: 'gelb-schwarz geringelt', farben: ['#e8c43a', '#222', '#e8c43a'], weiter: 'baender' },
+  ] },
+  baender: { frage: 'Wie viele gelbe Bänder zählst du?', optionen: [
+    { text: 'Zwei', hinweis: 'eins vorn an der Brust, eins am Hinterleib – kräftige, große Hummel', farben: ['#e8c43a', '#222', '#e8c43a', '#222', '#f4f1ea'], treffer: ['erdhummel'] },
+    { text: 'Drei – und ein auffällig langer Kopf', hinweis: 'zwei Bänder an der Brust, eins am Hinterleib', farben: ['#e8c43a', '#222', '#e8c43a', '#e8c43a', '#f4f1ea'], treffer: ['gartenhummel'] },
+  ] },
+  rot: { frage: 'Hat sie gelbe Bänder?', optionen: [
+    { text: 'Nein, sonst ganz schwarz', hinweis: 'samtschwarz, eher groß', farben: ['#222', '#222', '#d9532b'], treffer: ['steinhummel'] },
+    { text: 'Ja, gelbe Bänder – eher klein', hinweis: 'gelber Kragen, oft ein gelbes Band, orangeroter Po', farben: ['#e8c43a', '#222', '#e8c43a', '#e08a2e'], treffer: ['wiesenhummel'] },
+    { text: 'Gelber Kragen, sonst schwarz', hinweis: 'oft ein Männchen der Steinhummel', farben: ['#e8c43a', '#222', '#d9532b'], treffer: ['steinhummel', 'wiesenhummel'] },
+  ] },
+  braun: { frage: 'Wie verhält sie sich an der Blüte?', optionen: [
+    { text: 'Landet und krabbelt in die Blüte', hinweis: 'ganz normale Hummel', farben: ['#b0703a', '#c98a4b', '#b0703a'], treffer: ['ackerhummel'] },
+    { text: 'Steht in der Luft, langer, gerader Rüssel', hinweis: 'sehr flauschig, schwirrt wie ein Kolibri, März–Mai', farben: ['#c98a4b', '#e0b07a', '#c98a4b'], treffer: ['wollschweber'] },
+  ] },
+  schwarz: { frage: 'Was fällt dir noch auf?', optionen: [
+    { text: 'Blau-violett schimmernde Flügel, sehr groß', hinweis: 'brummt laut, oft an Salbei und Blauregen', farben: ['#1b1b1b', '#4b3c8f', '#1b1b1b'], treffer: ['holzbiene'] },
+    { text: 'Orange behaarte Hinterbeine, schwirrt vor Blüten', hinweis: 'pfeilschnell, hoher Flugton, Frühling', farben: ['#1b1b1b', '#e08a2e', '#1b1b1b'], treffer: ['pelzbiene'] },
+    { text: 'Roter Po ist doch zu sehen', hinweis: 'zurück zu den roten', farben: ['#222', '#222', '#d9532b'], weiter: 'rot' },
+  ] },
+};
+let bestimmPfad = [];
+function bestimmOeffnen() { bestimmPfad = []; bestimmRendern('start'); document.getElementById('bestimmModal').style.display = 'flex'; }
+function bestimmSchliessen() { document.getElementById('bestimmModal').style.display = 'none'; }
+function bestimmZurueck() { bestimmPfad.pop(); const vor = bestimmPfad.length ? bestimmPfad[bestimmPfad.length - 1].ziel : 'start'; bestimmRendern(vor, true); }
+function bestimmWahl(knoten, i) {
+  const o = HUMMEL_SCHLUESSEL[knoten].optionen[i];
+  bestimmPfad.push({ text: o.text, ziel: o.weiter || null, treffer: o.treffer || null });
+  if (o.weiter) bestimmRendern(o.weiter); else bestimmTrefferRendern(o.treffer);
+}
+function bestimmFarbenHtml(farben) { return `<span class="bestimm-farbe">${farben.map(f => `<span style="background:${f}"></span>`).join('')}</span>`; }
+function bestimmKopfHtml() {
+  return `<h2 style="margin-top:0">🔎 Hummel bestimmen</h2>` +
+    (bestimmPfad.length ? `<div class="bestimm-pfad">${bestimmPfad.map(p => escapeHtml(p.text)).join(' → ')}</div>` : '<p class="tier-p" style="margin-top:0">Schau dir die Hummel genau an – am besten, wenn sie gerade an einer Blüte sitzt. Ein Handyfoto hilft!</p>');
+}
+function bestimmFussHtml() {
+  return `<div class="bestimm-knoepfe" style="margin-top:12px">${bestimmPfad.length ? '<button type="button" class="btn-secondary" onclick="bestimmZurueck()">← Zurück</button>' : ''}<button type="button" class="btn-secondary" onclick="bestimmSchliessen()">Schließen</button></div>`;
+}
+function bestimmRendern(knoten, zurueck) {
+  if (zurueck && bestimmPfad.length && !bestimmPfad[bestimmPfad.length - 1].ziel) { bestimmPfad.pop(); }
+  const k = HUMMEL_SCHLUESSEL[knoten];
+  document.getElementById('bestimmInhalt').innerHTML = bestimmKopfHtml() +
+    `<div class="bestimm-frage">${escapeHtml(k.frage)}</div>` +
+    k.optionen.map((o, i) => `<button type="button" class="bestimm-option" onclick="bestimmWahl('${knoten}', ${i})">${bestimmFarbenHtml(o.farben)}<span><b>${escapeHtml(o.text)}</b><small>${escapeHtml(o.hinweis)}</small></span></button>`).join('') +
+    bestimmFussHtml();
+}
+function bestimmTrefferRendern(ids) {
+  const sicht = tierSichtungen();
+  const tiere = ids.map(id => alleTiere().find(t => t.id === id)).filter(Boolean);
+  document.getElementById('bestimmInhalt').innerHTML = bestimmKopfHtml() +
+    `<div class="bestimm-frage">${tiere.length > 1 ? 'Das könnte es sein:' : 'Das ist wahrscheinlich die …'}</div>` +
+    tiere.map(t => `<div class="bestimm-treffer">
+      <h3>${tierIconHtml(t).startsWith('<img') ? '' : escapeHtml(t.icon) + ' '}${escapeHtml(t.name)}${sicht[t.id] ? ' 👀' : ''}</h3>
+      <div class="tier-meta"><i>${escapeHtml(t.latein || '')}</i></div>
+      <p class="tier-p">${escapeHtml(t.kurz)}</p>
+      <div class="bestimm-knoepfe">
+        <button type="button" class="btn-primary" onclick="bestimmGesehen('${t.id}')">👀 Gesehen!</button>
+        <button type="button" class="btn-secondary" onclick="bestimmSchliessen(); tierDetailOeffnen('${t.id}')">📖 Steckbrief</button>
+      </div></div>`).join('') +
+    `<p class="tier-p" style="font-size:0.8rem;opacity:0.8">Nicht sicher? Dann trag sie einfach als <a href="#" style="color:inherit;font-weight:600;text-decoration:underline" onclick="bestimmGesehen('hummel');return false">„Hummel (Art unbekannt)“</a> ein. Männchen und junge Tiere sehen manchmal anders aus.</p>` +
+    bestimmFussHtml();
+}
+function bestimmGesehen(id) { bestimmSchliessen(); tierGesehen(id); }
+
+// ============================================================
+// 📅 EUER TIERJAHR – Erstsichtungen je Jahr (sicht[id].jahre[JJJJ] = { erst, anzahl })
+// ============================================================
+let tierjahrJahr = null;
+function sichtJahre(si) {
+  // ältere Einträge ohne Jahresdaten: aus erst/zuletzt ableiten
+  if (si.jahre && typeof si.jahre === 'object') return si.jahre;
+  const j = {};
+  if (si.erst) j[si.erst.slice(0, 4)] = { erst: si.erst, anzahl: si.zuletzt && si.zuletzt.slice(0, 4) === si.erst.slice(0, 4) ? si.anzahl || 1 : 1 };
+  if (si.zuletzt && si.zuletzt.slice(0, 4) !== (si.erst || '').slice(0, 4)) j[si.zuletzt.slice(0, 4)] = { erst: si.zuletzt, anzahl: Math.max(1, (si.anzahl || 1) - 1) };
+  return j;
+}
+function tagImJahr(iso) { const d = new Date(iso + 'T12:00'); return Math.round((d - new Date(d.getFullYear(), 0, 1, 12)) / 864e5); }
+function tierjahrOeffnen(jahr) {
+  tierjahrJahr = jahr || String(new Date().getFullYear());
+  tierjahrRendern();
+  document.getElementById('tierjahrModal').style.display = 'flex';
+}
+function tierjahrSchliessen() { document.getElementById('tierjahrModal').style.display = 'none'; }
+function tierjahrRendern() {
+  const sicht = tierSichtungen();
+  const jahr = tierjahrJahr, vorjahr = String(Number(jahr) - 1);
+  const jahreSet = new Set([String(new Date().getFullYear())]);
+  Object.values(sicht).forEach(si => Object.keys(sichtJahre(si)).forEach(j => jahreSet.add(j)));
+  const jahre = [...jahreSet].sort();
+  const eintraege = [];
+  let sichtungen = 0;
+  Object.entries(sicht).forEach(([id, si]) => {
+    const j = sichtJahre(si);
+    if (!j[jahr]) return;
+    const t = alleTiere().find(x => x.id === id) || { id, name: si.name || id, icon: si.icon || '🐾', aufwand: 1 };
+    sichtungen += j[jahr].anzahl || 1;
+    const vj = j[vorjahr];
+    eintraege.push({ t, erst: j[jahr].erst, anzahl: j[jahr].anzahl || 1, neu: si.erst && si.erst.slice(0, 4) === jahr, diff: vj ? tagImJahr(j[jahr].erst) - tagImJahr(vj.erst) : null });
+  });
+  eintraege.sort((a, b) => a.erst.localeCompare(b.erst));
+  const beobJahr = gartenBeobachtungen().filter(b => String(b.datum || '').startsWith(jahr));
+  const fotos = beobJahr.reduce((n, b) => n + (b.fotos || []).length, 0);
+  const neuArten = eintraege.filter(e => e.neu).length;
+  const monate = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+  let html = `<h2 style="margin-top:0">📅 Euer Tierjahr ${escapeHtml(jahr)}</h2>`;
+  if (jahre.length > 1) html += `<div class="tj-jahre">${jahre.map(j => `<button type="button" class="saat-chip${j === jahr ? ' an' : ''}" onclick="tierjahrJahr='${j}';tierjahrRendern()">${j}</button>`).join('')}</div>`;
+  html += `<div class="tj-zahlen">
+      <div class="tj-zahl"><b>${eintraege.length}</b><small>${eintraege.length === 1 ? 'Tierart' : 'Tierarten'}</small></div>
+      <div class="tj-zahl"><b>${neuArten}</b><small>zum ersten Mal</small></div>
+      <div class="tj-zahl"><b>${sichtungen}</b><small>Sichtungen</small></div>
+      <div class="tj-zahl"><b>${beobJahr.length}</b><small>Beobachtungen</small></div>
+      <div class="tj-zahl"><b>${fotos}</b><small>Fotos</small></div>
+      <div class="tj-zahl"><b>${eintraege.filter(e => e.t.aufwand === 4).length}</b><small>seltene Funde</small></div>
+    </div>`;
+  if (!eintraege.length) {
+    html += `<div class="empty-state">Für ${escapeHtml(jahr)} ist noch nichts eingetragen. Tippt bei einem Tier auf „👀 Gesehen!“ – dann entsteht hier euer Jahres-Zeitstrahl.</div>`;
+  } else {
+    const erste = eintraege[0];
+    html += `<p class="tier-p">🌱 Erste Sichtung des Jahres: <b>${escapeHtml(erste.t.name)}</b> am ${escapeHtml(beobDatumText(erste.erst))}.</p>`;
+    let monat = -1;
+    eintraege.forEach(e => {
+      const m = Number(e.erst.slice(5, 7)) - 1;
+      if (m !== monat) { monat = m; html += `<div class="tj-monat">${monate[m]}</div>`; }
+      const vgl = e.diff === null ? '' : e.diff === 0 ? '<span class="tj-vergleich">wie im Vorjahr</span>' :
+        `<span class="tj-vergleich ${e.diff < 0 ? 'frueh' : 'spaet'}">${Math.abs(e.diff)} ${Math.abs(e.diff) === 1 ? 'Tag' : 'Tage'} ${e.diff < 0 ? 'früher' : 'später'}</span>`;
+      html += `<div class="tj-eintrag" onclick="tierjahrSchliessen(); tierDetailOeffnen('${e.t.id}')">
+        <span class="tj-bild">${tierIconHtml(e.t)}</span>
+        <span class="tj-text"><b>${escapeHtml(e.t.name)}</b>${e.neu ? ' 🎉' : ''}${e.t.aufwand === 4 ? ' 🔴' : ''}<small>zuerst am ${escapeHtml(new Date(e.erst + 'T12:00').toLocaleDateString('de-DE', { day: 'numeric', month: 'long' }))}${e.anzahl > 1 ? ' · ' + e.anzahl + '× gesehen' : ''}</small></span>${vgl}</div>`;
+    });
+  }
+  html += `<div class="bestimm-knoepfe" style="margin-top:14px"><button type="button" class="btn-secondary" onclick="tierjahrSchliessen()">Schließen</button></div>`;
+  document.getElementById('tierjahrInhalt').innerHTML = html;
+}
+
 function tierAnsichtSetzen(k) { tierAnsicht = k; renderTiere(); document.getElementById('tiereWrap').scrollTop = 0; }
 function tierKategorieSetzen(k) { tierKategorie = k; renderTiere(); }
 // Bei der Suche nur die Liste neu zeichnen – sonst schließt sich am Handy die Tastatur
@@ -10896,9 +11087,14 @@ function tierProjektZeigen(pid) {
 }
 function tierGesehen(id) {
   const sicht = tierSichtungen();
-  const heute = new Date().toISOString().slice(0, 10);
+  const heute = heuteISO();
   const neu = !sicht[id];
   if (neu) sicht[id] = { anzahl: 0, erst: heute, zuletzt: heute };
+  // Jahresdaten fürs „Tierjahr“ (ältere Einträge werden einmalig abgeleitet)
+  if (!sicht[id].jahre) sicht[id].jahre = neu ? {} : sichtJahre(sicht[id]);
+  const jahr = heute.slice(0, 4);
+  if (!sicht[id].jahre[jahr]) sicht[id].jahre[jahr] = { erst: heute, anzahl: 0 };
+  sicht[id].jahre[jahr].anzahl++;
   sicht[id].anzahl++;
   sicht[id].zuletzt = heute;
   const tt = alleTiere().find(x => x.id === id);
@@ -10915,6 +11111,8 @@ function tierGesehenZurueck(id) {
   const sicht = tierSichtungen();
   if (!sicht[id]) return;
   sicht[id].anzahl--;
+  const jj = sicht[id].jahre && sicht[id].jahre[heuteISO().slice(0, 4)];
+  if (jj) { jj.anzahl--; if (jj.anzahl <= 0) delete sicht[id].jahre[heuteISO().slice(0, 4)]; }
   if (sicht[id].anzahl <= 0) delete sicht[id];
   const log = tierLog();
   for (let i = log.length - 1; i >= 0; i--) if (log[i].tierId === id) { log.splice(i, 1); break; }

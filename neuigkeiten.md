@@ -1,5 +1,13 @@
 # Neuigkeiten im Familienplaner
-# Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## 2026-11-11 | 🐝 22 neue Bienen, Hummeln & Wespen
+# Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## 2026-11-12 | 🔎 Hummel-Bestimmung, Tierjahr, Frost-Checkliste, Wunschzettel & Bilderrahmen
+- **🔎 Hummel bestimmen** (Garten → Tiere im Garten): Po-Farbe und Bänder antippen und die passende Art direkt als gesehen eintragen. Kennt auch Holzbiene, Pelzbiene und Wollschweber.
+- **📅 Euer Tierjahr:** Zeitstrahl aller Erstsichtungen des Jahres mit Fotos und Zahlen, dazu der Vergleich zum Vorjahr („13 Tage früher“).
+- **🌿 Im November für Gartentiere:** Neue Kachel in der Übersicht mit 4 passenden Tipps für jeden Monat.
+- **❄️ Frost-Checkliste:** Wenn Frost kommt, steht im Wetter eine gemeinsame Liste zum Abhaken (Außenwasserhahn, Regentonne, Kübel, Vogeltränke …). Man sieht, wer was erledigt hat.
+- **🖍️ Wunschzettel malen:** In der Kinderecke malen die Kinder ihre Wünsche und sagen dazu, was es ist. Die Wünsche landen in der 🎁 Wunschliste („selbst gemalt“). Die Kinder sehen nie, ob etwas schon besorgt ist.
+- **🖼️ Bilderrahmen:** Wird ein Gerät eine Weile nicht benutzt, zeigt es Familienfotos mit Uhrzeit, Wetter und den nächsten Terminen. Einstellen unter Kinderecke → ⚙️ → Bilderrahmen.
+
+## 2026-11-11 | 🐝 22 neue Bienen, Hummeln & Wespen
 - **Hummeln:** Dunkle Erdhummel, Steinhummel, Ackerhummel, Baumhummel, Wiesenhummel, Gartenhummel. Die bisherige Karte heißt jetzt „Hummeln (Art unbekannt)“, eure Sichtungen bleiben erhalten.
 - **Wildbienen:** Gehörnte Mauerbiene, Frühlings-Pelzbiene, Fuchsrote Sandbiene, Garten-Wollbiene, Blattschneiderbienen, Glockenblumen-Scherenbiene, Natternkopf-Mauerbiene, Löcherbiene, Maskenbienen, dazu die Honigbiene.
 - **Wespen:** Gemeine & Deutsche Wespe, Hornisse, Feldwespen, Pillenwespe, Goldwespen.
