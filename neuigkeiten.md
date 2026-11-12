@@ -1,5 +1,10 @@
 # Neuigkeiten im Familienplaner
-# Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## 2026-11-12 | ✏️ Schönere Gartenkarte: Plan-Ansicht, Texturen & Ausrichten
+# Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## 2026-11-12 | ✏️ Zeichnen im Vollbild
+- Beim Handy schaltet die Gartenkarte nach „Zeichnen starten“ automatisch auf Vollbild. So hast du den ganzen Bildschirm zum Zeichnen, z. B. für eine lange Hecke als Freiform.
+- Unten steht ein Hinweis, was zu tun ist, mit „✕ Abbrechen“.
+- Nach dem Fertigstellen oder Abbrechen kehrt die Ansicht zu Karte + Liste zurück, und der Editor des neuen Elements ist geöffnet.
+
+## 2026-11-12 | ✏️ Schönere Gartenkarte: Plan-Ansicht, Texturen & Ausrichten
 - **✏️ Plan-Ansicht:** Neuer Knopf unter dem Zoom (oder ⚙️ Optionen → Kartenansicht). Das Luftbild wird ausgeblendet und die Karte als gezeichneter Plan auf Rasen angezeigt. Mit 🗺️ geht es zurück zum Foto als Vorlage.
 - **Gezeichnete Oberflächen:** Gebäude mit Dachziegeln, First und Schatten, Terrasse als Holzdielen, Kies, Platten, Rasen, Hecke mit Blattwerk, Teich mit Wellen, Zaun mit Pfosten. Beete erscheinen im Plan als Erde mit Holzrand, Bäume mit Krone.
 - **Neue Element-Arten:** Terrasse, Pflaster/Platten, Kiesfläche, Rasen, Hecke, Zaun, Teich/Wasser. Bei vorhandenen Elementen lässt sich die Art im Editor ändern (z. B. „Sonstiges“ → „Terrasse“).
