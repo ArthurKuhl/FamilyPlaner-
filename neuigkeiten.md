@@ -1,5 +1,13 @@
 # Neuigkeiten im Familienplaner
-# Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## 2026-11-12 | 🌙 Besser lesbar im Dunkelmodus
+# Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## 2026-11-12 | 🧭 Nordpfeil, Sonnenstunden, Tiere je Beet & Winterschutz
+- **🧭 Nordpfeil:** Neuer Knopf unter dem Zoom auf der Gartenkarte. Dort legst du fest, welche Himmelsrichtung auf der Karte oben ist (auch per Handy-Kompass).
+- **☀️ Sonne & Lage je Beet:** Im Beet-Editor schätzt die App die Sonnenstunden. Eingezeichnete Gebäude, Mauern und Bäume im Osten, Süden und Westen nehmen Morgen-, Mittags- oder Abendsonne. Plätze vor einer Südwand werden als „warm“ erkannt. Die Lage lässt sich von Hand korrigieren.
+- Die App warnt, wenn Pflanzen nicht zur Lage passen („Tomate wünscht volle Sonne“), und führt direkt zu passenden Blumenbeet-Vorschlägen.
+- **🦔 Gut für Tiere:** Jedes Beet zeigt, welchen Tieren seine Pflanzen helfen, und schlägt bis zu 3 passende Stauden vor, die neue Gäste anlocken.
+- **🧤 Winterschutz:** Von Oktober bis März (und bei Frostwarnung) zeigt „Heute“ eine Liste der Pflanzen in deinem Garten, die Schutz brauchen, mit konkreter Aufgabe (z. B. „Dahlie: Knollen ausgraben“, „Feige: einpacken“). Einmalige Aufgaben lassen sich abhaken.
+- Die Frost-Push-Nachricht nennt jetzt die konkreten Aufgaben, z. B. „Jetzt schützen: Feige (einpacken), Tomate (ernten)“. Bereits Erledigtes wird nicht mehr gemeldet.
+
+## 2026-11-12 | 🌙 Besser lesbar im Dunkelmodus
 - Behoben: Der Hinweis „❄️ Frost erwartet“ im Garten war im Dunkelmodus kaum zu lesen (heller Text auf hellem Grund).
 - Bei der Gelegenheit die ganze App durchsucht und weitere Stellen mit demselben Problem korrigiert: Hitze-, Regen- und Hagelhinweise, „Heute gießen“, Krankheits- und Schädlingskarten, Tabellenköpfe, Feiertage im Kalender und einige Hinweisboxen.
 

@@ -906,6 +906,35 @@ const TIPS_TOPICS = [
   },
 ];
 
+// ==================== 🧤 WINTERSCHUTZ je Pflanze ====================
+// typ 'saison' = einmal im Herbst erledigen (abhakbar) · 'nacht' = in jeder Frostnacht (abdecken/ernten)
+// kurz = für Push-Nachrichten
+const WINTERSCHUTZ = {
+  'Dahlie':        ['saison', 'Nach dem ersten Frost Knollen ausgraben, abtrocknen lassen und kühl & frostfrei (5–8 °C) lagern', 'Knollen ausgraben'],
+  'Feige':         ['saison', 'Mit Vlies oder Jute einpacken, Wurzelbereich dick mit Laub mulchen; im Kübel frostfrei stellen', 'einpacken'],
+  'Rosmarin':      ['saison', 'Im Beet mit Vlies schützen und Wurzeln mulchen; im Topf hell und kühl ins Haus', 'Vlies/ins Haus'],
+  'Artischocke':   ['saison', 'Zurückschneiden und dick mit Laub oder Stroh abdecken', 'mit Laub abdecken'],
+  'Geranie':       ['saison', 'Vor dem ersten Frost ins Haus: hell, kühl (5–10 °C), wenig gießen', 'ins Haus holen'],
+  'Granatapfel':   ['saison', 'Kübel hell und frostfrei überwintern', 'ins Haus holen'],
+  'Hibiskus':      ['saison', 'Garten-Hibiskus ist winterhart – Zimmer-Hibiskus im Kübel ins Haus holen', 'Kübel rein'],
+  'Rose':          ['saison', 'Veredelungsstelle mit Erde anhäufeln, Tannenzweige darüberlegen', 'anhäufeln'],
+  'Hortensie':     ['saison', 'Alte Blüten dranlassen (schützen die Knospen), bei Kahlfrost Vlies', 'Vlies bei Kahlfrost'],
+  'Chili':         ['saison', 'Im Topf hell und kühl überwintern – trägt dann mehrere Jahre', 'ins Haus holen'],
+  'Süßkartoffel':  ['saison', 'Vor dem ersten Frost ernten und warm lagern', 'ernten'],
+  'Physalis (Andenbeere)': ['saison', 'Früchte ernten; im Kübel hell und kühl überwintern', 'ernten/Kübel rein'],
+  'Erdbeere':      ['saison', 'Bei Kahlfrost mit Stroh oder Vlies schützen', 'Stroh/Vlies'],
+  'Lavendel':      ['saison', 'Junge Pflanzen mit Reisig schützen, im Herbst nicht mehr schneiden', 'Reisig'],
+  'Tomate':        ['nacht', 'Vor dem Frost letzte Früchte ernten – grüne Tomaten reifen drinnen nach', 'ernten'],
+  'Paprika':       ['nacht', 'Vor dem Frost abernten oder im Topf ins Haus holen', 'ernten'],
+  'Aubergine':     ['nacht', 'Vor dem Frost abernten', 'ernten'],
+  'Gurke':         ['nacht', 'Erfriert beim ersten Frost – vorher ernten', 'ernten'],
+  'Zucchini':      ['nacht', 'Erfriert beim ersten Frost – vorher ernten', 'ernten'],
+  'Kürbis':        ['nacht', 'Vor dem Frost ernten und warm & trocken nachreifen lassen', 'ernten'],
+  'Basilikum':     ['nacht', 'Vor dem Frost ernten oder im Topf auf die Fensterbank', 'ernten/rein'],
+  'Mangold':       ['nacht', 'Mit Vlies abdecken – treibt im Frühjahr wieder aus', 'Vlies'],
+  'Feldsalat':     ['nacht', 'Bei starkem Frost Vlies auflegen', 'Vlies'],
+};
+
 // ==================== 🌼 STAUDEN, WILDBLUMEN & GRÄSER ====================
 // Eine Tabelle je Pflanze – daraus werden unten PLANTS, SPACING, PFLANZEN_BEDINGUNGEN, PLANT_STECKBRIEFE,
 // CARE_INFO, RUECKSCHNITT und BLUETEZEIT ergänzt (so bleibt alles an einer Stelle).

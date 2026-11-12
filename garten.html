@@ -390,6 +390,30 @@
   .blumen-pflanzen { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
   .blumen-pflanze { display: inline-flex; align-items: center; gap: 5px; font-size: 0.72rem; border: 1px solid var(--parchment); background: var(--white); color: inherit; border-radius: 999px; padding: 3px 9px; cursor: pointer; }
   .blumen-pflanze i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; border: 1px solid rgba(0,0,0,0.2); }
+  .lage-box { background: rgba(127,164,118,0.08); border: 1px solid var(--parchment); border-radius: 10px; padding: 9px 11px; margin: 0 0 10px; font-size: 0.76rem; }
+  .lage-titel { font-weight: 700; font-size: 0.8rem; margin-bottom: 4px; }
+  .lage-zeile { margin: 2px 0; line-height: 1.4; }
+  .lage-klein { font-size: 0.72rem; opacity: 0.85; }
+  .lage-warn { margin-top: 6px; padding: 6px 8px; border-radius: 8px; background: rgba(212,136,10,0.14); font-size: 0.72rem; line-height: 1.45; }
+  .lage-knopf { width: 100%; margin-top: 8px; font-size: 0.74rem; padding: 7px 10px; }
+  .lage-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+  .lage-idee { font-size: 0.74rem; padding: 6px 8px; margin-top: 4px; border-radius: 8px; background: var(--white); border: 1px solid var(--parchment); cursor: pointer; }
+  .nord-vorschau { position: relative; width: 150px; height: 150px; margin: 4px auto; border-radius: 50%; border: 2px dashed var(--parchment); }
+  .nord-rose { position: absolute; inset: 10px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 4px 0; transition: transform .25s; background: rgba(127,164,118,0.12); }
+  .nr-n { font-weight: 800; color: #c0392b; } .nr-s { font-weight: 700; opacity: .6; } .nr-pfeil { color: #c0392b; font-size: 2.2rem; line-height: 1; }
+  .nord-karte-oben { position: absolute; top: -18px; left: 0; right: 0; text-align: center; font-size: 0.62rem; opacity: .7; }
+  .winter-karte { background: var(--white); border-radius: var(--radius-md, 14px); box-shadow: var(--shadow-soft); padding: 12px 14px; margin: 12px 0; border-left: 4px solid #8ea4c9; }
+  .winter-karte.frost { border-left-color: #4a6fa5; }
+  .winter-kopf { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-weight: 700; margin-bottom: 6px; }
+  .winter-kopf span { font-weight: 500; font-size: 0.74rem; opacity: 0.85; }
+  .winter-zeile { display: flex; gap: 10px; align-items: flex-start; padding: 7px 0; border-top: 1px dashed var(--parchment); font-size: 0.78rem; }
+  .winter-zeile.fertig { opacity: 0.55; }
+  .winter-sym { font-size: 1.4rem; line-height: 1.1; }
+  .winter-text { flex: 1; min-width: 0; line-height: 1.35; }
+  .winter-text small { display: inline; opacity: 0.7; margin-left: 6px; font-size: 0.7rem; }
+  .winter-text span { display: block; font-size: 0.74rem; opacity: 0.9; margin-top: 2px; }
+  .winter-btn { flex-shrink: 0; border: 1px solid var(--parchment); background: var(--cream); color: inherit; border-radius: 999px; padding: 4px 10px; font-size: 0.7rem; cursor: pointer; }
+  .winter-chip { flex-shrink: 0; font-size: 0.66rem; padding: 3px 8px; border-radius: 999px; background: rgba(74,111,165,0.18); }
   .tier-werkzeuge { display: flex; gap: 8px; margin: -4px 0 12px; }
   .tier-werkzeuge button { flex: 1; }
   .bestimm-frage { font-size: 1.05rem; font-weight: 600; margin: 4px 0 12px; }
@@ -1008,6 +1032,9 @@
         <button type="button" onclick="gartenZoomAnpassen(1.25)" title="Vergrößern" aria-label="Vergrößern" style="width:38px;height:38px;background:none;border:none;color:#fff;font-size:1.2rem;cursor:pointer;line-height:1;">＋</button>
         <div id="gartenZoomWidgetWert" style="color:#fff;font-size:0.6rem;text-align:center;padding:2px 0;border-top:1px solid rgba(255,255,255,0.15);border-bottom:1px solid rgba(255,255,255,0.15);">100%</div>
         <button type="button" onclick="gartenZoomAnpassen(0.8)" title="Verkleinern" aria-label="Verkleinern" style="width:38px;height:38px;background:none;border:none;color:#fff;font-size:1.2rem;cursor:pointer;line-height:1;">－</button>
+        <button type="button" id="nordWidgetBtn" onclick="nordModalOeffnen()" title="Norden festlegen" aria-label="Nordpfeil" style="width:38px;height:42px;background:none;border:none;border-top:1px solid rgba(255,255,255,0.15);color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:2px 0;">
+          <span id="nordWidgetPfeil" style="display:flex;flex-direction:column;align-items:center;transition:transform .3s;opacity:.45"><span style="font-size:0.55rem;font-weight:700;line-height:1">N</span><span style="font-size:0.95rem;line-height:1;color:#e05a4a">▲</span></span>
+        </button>
       </div>
       <div id="plantTooltip" style="position:absolute;display:none;pointer-events:none;background:var(--soil);color:#fff;font-size:0.72rem;padding:4px 8px;border-radius:6px;z-index:80;white-space:nowrap;box-shadow:0 3px 10px rgba(0,0,0,0.3)"></div>
       <div id="freehandControls" style="position:absolute;bottom:14px;left:50%;transform:translateX(-50%);display:none;align-items:center;gap:8px;z-index:90;background:rgba(58,46,31,0.94);padding:8px 12px;border-radius:12px;box-shadow:0 3px 12px rgba(0,0,0,0.35)">
@@ -1300,6 +1327,7 @@
 
         <div id="bedTabUebersicht" style="display:none">
           <div id="bedAreaDisplay" style="font-size:0.74rem;color:var(--bark);margin:4px 0 8px"></div>
+          <div id="bedLageBox" class="lage-box" style="display:none"></div>
           <div id="editDensityRow" class="form-row" style="margin-bottom:10px">
             <label>📏 Pflanzdichte berechnen</label>
             <select id="densityPlantSel" onchange="renderBedArea(selectedBed)">
@@ -2096,6 +2124,27 @@
     <button type="button" class="btn-secondary" style="width:100%;margin-top:10px" onclick="openBlumenBeete()">🌸 Blumen- &amp; Staudenbeete – Vorschläge nach Lage und Boden ›</button>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="document.getElementById('templateModal').style.display='none'">Schließen</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Nordpfeil -->
+<div class="modal-bg" id="nordModal" style="display:none;z-index:1050" onclick="if(event.target===this)nordModalSchliessen()">
+  <div class="modal" style="width:min(420px,94vw)">
+    <h2>🧭 Wo ist Norden?</h2>
+    <p style="font-size:0.76rem;color:var(--bark);margin-bottom:10px">Welche Himmelsrichtung ist <b>oben auf deiner Gartenkarte</b>? Daraus schätzt die App die Sonnenstunden jedes Beets – Gebäude, Mauern und Bäume im Osten, Süden und Westen werfen Schatten.</p>
+    <div class="nord-vorschau"><div id="nordRose" class="nord-rose"><span class="nr-n">N</span><span class="nr-pfeil">▲</span><span class="nr-s">S</span></div><div class="nord-karte-oben">⬆ oben auf der Karte</div></div>
+    <div id="nordText" style="text-align:center;font-weight:600;font-size:0.85rem;margin:6px 0"></div>
+    <div id="nordKnoepfe" class="beispiel-filter" style="justify-content:center"></div>
+    <label style="display:block;font-size:0.72rem;margin-top:8px">Feineinstellung<input type="range" id="nordRegler" min="0" max="359" step="1" style="width:100%" oninput="nordEntwurf=Number(this.value);nordModalRendern()"></label>
+    <div id="nordKompassZeile" style="margin-top:8px;font-size:0.74rem;background:rgba(127,164,118,0.12);border-radius:10px;padding:8px 10px">
+      📱 <b>Mit dem Handy-Kompass:</b> Stell dich in den Garten und schau in die Richtung, die auf der Karte oben ist. Dann:
+      <div style="display:flex;gap:6px;margin-top:6px;align-items:center;flex-wrap:wrap"><button type="button" class="btn-secondary" style="padding:5px 10px" onclick="nordKompassStarten()">Kompass starten</button><button type="button" class="btn-secondary" style="padding:5px 10px" onclick="nordKompassUebernehmen()">Übernehmen</button><span id="nordKompassAnzeige" style="opacity:.8"></span></div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="nordSpeichern(true)">Entfernen</button>
+      <button class="btn-cancel" onclick="nordModalSchliessen()">Abbrechen</button>
+      <button class="btn-primary" onclick="nordSpeichern(false)">Speichern</button>
     </div>
   </div>
 </div>
@@ -3433,8 +3482,8 @@ function wetterWarnBanner() {
   if (frostWarn) {
     const isFrost = frostWarn.worst.level === 'frost';
     const dayList = frostWarn.days.map(d => `${d.label} ${Math.round(d.tmin)}°C`).join(', ');
-    frostBanner = `<div style="font-size:0.74rem;padding:6px 9px;border-radius:7px;background:${isFrost?'#e3ecfb':'#f0f4fb'};border-left:3px solid ${isFrost?'#4a6fa5':'#8ea4c9'};margin-bottom:8px">
-      ❄️ <strong>${isFrost?'Frost erwartet':'Frostgefahr'}:</strong> ${dayList} – frostempfindliche Pflanzen abdecken oder reinholen.
+    frostBanner = `<div style="font-size:0.74rem;padding:6px 9px;border-radius:7px;background:${isFrost?'#e3ecfb':'#f0f4fb'};border-left:3px solid ${isFrost?'#4a6fa5':'#8ea4c9'};margin-bottom:8px;color:#2c2415">
+      ❄️ <strong>${isFrost?'Frost erwartet':'Frostgefahr'}:</strong> ${dayList} – frostempfindliche Pflanzen abdecken oder reinholen${winterschutzListe().length ? ' (🧤 Liste unter „Heute“)' : ''}.
     </div>`;
   }
   let heatBanner = '';
@@ -4729,6 +4778,268 @@ function beispielBeetEinfuegen(id) {
 }
 
 
+
+// ==================== 🧭 NORDPFEIL & ☀️ LAGE DER BEETE ====================
+// gardens[id].nordGrad = Winkel von „oben auf der Karte“ im Uhrzeigersinn bis Norden (0 = oben ist Norden).
+// Die Sonnenstunden werden grob geschätzt: Gebäude, Mauern und Bäume, die in Richtung Osten, Süden oder Westen
+// vor einem Beet stehen, nehmen Morgen-, Mittags- bzw. Abendsonne weg. Pro Beet lässt sich das von Hand korrigieren.
+function nordGrad() { const g = gardens[currentGardenId]; return g && typeof g.nordGrad === 'number' ? g.nordGrad : null; }
+function kartenRichtung(peilung) { const a = ((nordGrad() || 0) + peilung) * Math.PI / 180; return { x: Math.sin(a), y: -Math.cos(a) }; }
+const SONNEN_SEKTOREN = [[90, 3, 'Morgensonne', 'Osten'], [135, 2, 'Vormittagssonne', 'Südosten'], [180, 3, 'Mittagssonne', 'Süden'], [225, 2, 'Nachmittagssonne', 'Südwesten'], [270, 2, 'Abendsonne', 'Westen']];
+const RICHTUNG_8 = [['N', 0, 'Norden'], ['NO', 45, 'Nordosten'], ['O', 90, 'Osten'], ['SO', 135, 'Südosten'], ['S', 180, 'Süden'], ['SW', 225, 'Südwesten'], ['W', 270, 'Westen'], ['NW', 315, 'Nordwesten']];
+function schattenWerfer(ausser) {
+  const liste = [];
+  getCurrentBeds().forEach(b => {
+    if (b === ausser || b.kind !== 'struktur') return;
+    // Rechteckige Elemente als (gedrehtes) Rechteck, runde als Kreis
+    const form = b.shape === 'circle' ? { r: Math.max(b.rx ?? b.r ?? 60, b.ry ?? b.r ?? 60) } : { w: b.w || 100, h: b.h || 100, rot: b.rotation || 0 };
+    if (b.strukturTyp === 'gebaeude') liste.push(Object.assign({ x: b.x, y: b.y, weite: 600, dicht: 1, icon: '🏠', name: b.name || 'Gebäude' }, form));
+    else if (b.strukturTyp === 'mauer') liste.push(Object.assign({ x: b.x, y: b.y, weite: 250, dicht: 0.9, icon: '🧱', name: b.name || 'Mauer' }, form));
+  });
+  getCurrentFreiPflanzen().forEach(fp => {
+    const n = (fp.name || '').trim(), abst = SPACING[n] || 0;
+    const baum = abst >= 250 || /baum|walnuss|linde|eiche|buche|ahorn|birke|tanne|fichte|kiefer|hasel/i.test(n) || ['🌳', '🌲'].includes(fp.sym);
+    if (baum) liste.push({ x: fp.x, y: fp.y, r: Math.max(120, abst / 2 || 150), weite: 500, dicht: 0.6, icon: fp.sym || '🌳', name: n || 'Baum' });
+  });
+  return liste;
+}
+// Abstand, nach dem ein Strahl (Start x,y, Richtung v) das Hindernis trifft – oder null.
+// rand = halbe „Strahlbreite“ (ein Beet ist kein Punkt).
+function strahlTreffer(x, y, v, w, rand) {
+  if (w.w) {
+    const a = -(w.rot || 0) * Math.PI / 180, c = Math.cos(a), s = Math.sin(a);
+    const ox = (x - w.x) * c - (y - w.y) * s, oy = (x - w.x) * s + (y - w.y) * c;
+    const vx = v.x * c - v.y * s, vy = v.x * s + v.y * c;
+    const hx = w.w / 2 + rand, hy = w.h / 2 + rand;
+    let tmin = -Infinity, tmax = Infinity;
+    for (const [o, d, h] of [[ox, vx, hx], [oy, vy, hy]]) {
+      if (Math.abs(d) < 1e-9) { if (Math.abs(o) > h) return null; continue; }
+      let t1 = (-h - o) / d, t2 = (h - o) / d; if (t1 > t2) [t1, t2] = [t2, t1];
+      tmin = Math.max(tmin, t1); tmax = Math.min(tmax, t2);
+      if (tmin > tmax) return null;
+    }
+    if (tmax <= 0) return null;
+    if (tmin <= 0) return null; // Beet liegt (teilweise) im Hindernis – nicht werten
+    return tmin;
+  }
+  const dx = w.x - x, dy = w.y - y, t = dx * v.x + dy * v.y;
+  if (t <= 1) return null;
+  const quer = Math.abs(dx * v.y - dy * v.x);
+  return quer < w.r + rand ? Math.max(1, t - w.r) : null;
+}
+function bedLage(bed) {
+  if (nordGrad() === null) return null;
+  const werfer = schattenWerfer(bed), halb = Math.min(getBedRadius(bed), 150) * 0.35;
+  const trifft = (peilung, maxWeite) => {
+    const v = kartenRichtung(peilung);
+    let best = null;
+    werfer.forEach(w => {
+      const t = strahlTreffer(bed.x, bed.y, v, w, halb);
+      if (t === null || t > (maxWeite || w.weite)) return;
+      if (!best || w.dicht > best.dicht) best = w;
+    });
+    return best;
+  };
+  let stunden = 0;
+  const verdeckt = [];
+  SONNEN_SEKTOREN.forEach(([peilung, h, wann]) => {
+    const w = trifft(peilung);
+    stunden += h * (w ? 1 - w.dicht : 1);
+    if (w) verdeckt.push({ w, wann });
+  });
+  // Mauer/Gebäude direkt nördlich = Beet liegt vor einer Südwand (warm, geschützt)
+  const nord = trifft(0, 150);
+  const warm = !!(nord && nord.dicht >= 0.9);
+  stunden = Math.round(stunden * 2) / 2;
+  return { stunden, klasse: stunden >= 6 ? 'sonne' : stunden >= 3 ? 'halbschatten' : 'schatten', verdeckt, warm, waermeQuelle: warm ? nord : null };
+}
+function bedLichtKlasse(bed) { return bed.lichtManuell || (bedLage(bed) || {}).klasse || null; }
+const LICHT_PASST = { sonne: ['V', 'S', 'SH'], halbschatten: ['SH', 'H', 'S'], schatten: ['H', 'HS'] };
+function bedLichtSetzen(wert) {
+  if (!selectedBed) return;
+  pushUndo();
+  if (wert) selectedBed.lichtManuell = wert; else delete selectedBed.lichtManuell;
+  saveData(); renderBedLage(selectedBed);
+}
+function renderBedLage(bed) {
+  const box = document.getElementById('bedLageBox');
+  if (!box) return;
+  if (!bed || bed.kind === 'struktur') { box.innerHTML = ''; box.style.display = 'none'; return; }
+  box.style.display = '';
+  const lage = bedLage(bed);
+  let html = '<div class="lage-titel">☀️ Sonne &amp; Lage</div>';
+  if (!lage && !bed.lichtManuell) {
+    html += `<div class="lage-zeile">Lege einmal fest, wo auf deiner Karte Norden ist – dann schätzt die App für jedes Beet die Sonnenstunden und schlägt passende Pflanzen vor.</div>
+      <button type="button" class="btn-secondary lage-knopf" onclick="nordModalOeffnen()">🧭 Norden festlegen</button>`;
+  }
+  const klasse = bedLichtKlasse(bed);
+  if (lage) {
+    const li = BLUMEN_LICHT[lage.klasse];
+    html += `<div class="lage-zeile"><b>${li[0]} ca. ${zahlDe(lage.stunden)} Std. direkte Sonne</b> <span style="opacity:.75">(${li[1]}, geschätzt)</span></div>`;
+    lage.verdeckt.forEach(({ w, wann }) => { html += `<div class="lage-zeile lage-klein">${escapeHtml(w.icon)} ${escapeHtml(w.name)} nimmt ${w.dicht < 1 ? 'teilweise ' : ''}die ${wann}</div>`; });
+    if (lage.warm) html += `<div class="lage-zeile lage-klein">🔥 Liegt vor einer Südwand (${escapeHtml(lage.waermeQuelle.name)}) – besonders warm und geschützt</div>`;
+    if (!lage.verdeckt.length) html += `<div class="lage-zeile lage-klein">Keine Gebäude, Mauern oder Bäume im Osten, Süden oder Westen eingezeichnet.</div>`;
+  }
+  html += `<div class="lage-zeile" style="margin-top:6px"><label style="font-size:0.72rem">Tatsächlich: <select onchange="bedLichtSetzen(this.value)" style="font-size:0.74rem">
+    <option value=""${!bed.lichtManuell ? ' selected' : ''}>${lage ? 'wie geschätzt' : '– bitte wählen –'}</option>
+    ${Object.entries(BLUMEN_LICHT).map(([k, v]) => `<option value="${k}"${bed.lichtManuell === k ? ' selected' : ''}>${v[0]} ${v[1]} (${v[2]})</option>`).join('')}
+  </select></label></div>`;
+  // Passen die Pflanzen zur Lage?
+  if (klasse) {
+    const warn = [];
+    const gesehen = new Set();
+    (bed.plants || []).forEach(p => {
+      const n = (p.name || '').trim(); if (!n || gesehen.has(n)) return; gesehen.add(n);
+      const bd = pflanzenBedingungenFinden(n); if (!bd) return;
+      const l = bd[0];
+      if (klasse === 'schatten' && ['V', 'S', 'SH'].includes(l)) warn.push(`${n} braucht mehr Sonne`);
+      else if (klasse === 'halbschatten' && l === 'V') warn.push(`${n} wünscht volle Sonne – wächst hier schwächer`);
+      else if (klasse === 'sonne' && l === 'HS') warn.push(`${n} mag es schattiger`);
+    });
+    if (warn.length) html += `<div class="lage-warn">⚠️ ${warn.map(escapeHtml).join('<br>⚠️ ')}</div>`;
+    html += `<button type="button" class="btn-secondary lage-knopf" onclick="blumenFilter={licht:'${klasse}',boden:'alle'};openBlumenBeete()">🌸 Passende Blumenbeete für diese Lage</button>`;
+  }
+  // 🦔 Tiere
+  html += bedTiereHtml(bed, klasse);
+  box.innerHTML = html;
+}
+// Passt eine Futterpflanze aus dem Tier-Lexikon zu dieser Pflanze? Gleicher Katalogname (inkl. Aliase wie „Primel“)
+// oder als ganzes Wort enthalten („Salbei“ ↔ „Wiesen-Salbei“), aber nicht als Wortteil („Weide“ ≠ „Blutweiderich“).
+function pflanzeGleich(tierPflanze, name) {
+  const a = lexNorm(lexKatalogName(tierPflanze)), b = lexNorm(lexKatalogName(name));
+  if (a === b) return true;
+  const woerter = x => lexNorm(x).split(/[\s\-()]+/).filter(w => w.length > 2);
+  const pa = lexNorm(tierPflanze), pb = lexNorm(name);
+  return woerter(name).includes(pa) || woerter(tierPflanze).includes(pb);
+}
+function tiereFuerPflanze(name) {
+  return alleTiere().filter(t => (t.pflanzen || []).some(p => pflanzeGleich(p, name)));
+}
+function bedTiereHtml(bed, klasse) {
+  const namen = [...new Set((bed.plants || []).map(p => (p.name || '').trim()).filter(Boolean))];
+  const tiere = new Map();
+  namen.forEach(n => tiereFuerPflanze(n).forEach(t => { if (!tiere.has(t.id)) tiere.set(t.id, { t, pfl: [] }); tiere.get(t.id).pfl.push(n); }));
+  let html = '<div class="lage-titel" style="margin-top:12px">🦔 Gut für Tiere</div>';
+  if (tiere.size) {
+    html += `<div class="lage-chips">${[...tiere.values()].slice(0, 12).map(({ t, pfl }) => `<button type="button" class="lex-pchip" title="dank ${escapeHtml(pfl.join(', '))}" onclick="tierDetailOeffnen('${t.id}')">${t.icon} ${escapeHtml(t.name)}</button>`).join('')}${tiere.size > 12 ? `<span class="lage-klein">+${tiere.size - 12}</span>` : ''}</div>`;
+  } else html += `<div class="lage-zeile lage-klein">Die Pflanzen in diesem Beet stehen bei keinem Tier im Lexikon als Futterpflanze.</div>`;
+  // Ideen: Stauden, die zur Lage passen und ein Tier anlocken, das hier noch nicht versorgt ist
+  if (klasse && typeof STAUDEN !== 'undefined') {
+    const imGarten = new Set(); getCurrentBeds().forEach(b => (b.plants || []).forEach(p => imGarten.add((p.name || '').trim()))); getCurrentFreiPflanzen().forEach(fp => imGarten.add((fp.name || '').trim()));
+    const sicht = tierSichtungen();
+    const ideen = STAUDEN.filter(s => LICHT_PASST[klasse].includes(s.licht) && !imGarten.has(s.name))
+      .map(s => { const ts = tiereFuerPflanze(s.name).filter(t => !tiere.has(t.id)); return { s, ts, wert: ts.length + ts.filter(t => !sicht[t.id]).length * 0.5 + (s.heimisch ? 0.5 : 0) }; })
+      .filter(x => x.ts.length).sort((a, b) => b.wert - a.wert).slice(0, 3);
+    if (ideen.length) html += `<div class="lage-zeile lage-klein" style="margin-top:6px">💡 Passt hierher und lockt neue Gäste an:</div>` + ideen.map(({ s, ts }) =>
+      `<div class="lage-idee" onclick="lexikonOeffnen(${jsAttrStr(s.name).replace(/"/g, '&quot;')})">${s.sym} <b>${escapeHtml(s.name)}</b> → ${ts.slice(0, 3).map(t => t.icon + ' ' + escapeHtml(t.name)).join(', ')}</div>`).join('');
+  }
+  return html;
+}
+
+// ---------- Nord-Dialog ----------
+let nordEntwurf = 0;
+function nordModalOeffnen() {
+  nordEntwurf = nordGrad() ?? 0;
+  document.getElementById('nordModal').style.display = 'flex';
+  const kompass = !!(window.DeviceOrientationEvent);
+  document.getElementById('nordKompassZeile').style.display = kompass ? '' : 'none';
+  nordModalRendern();
+}
+function nordModalSchliessen() { document.getElementById('nordModal').style.display = 'none'; window.removeEventListener('deviceorientationabsolute', nordKompassEvent); window.removeEventListener('deviceorientation', nordKompassEvent); }
+function nordObenSetzen(peilungOben) { nordEntwurf = (360 - peilungOben) % 360; nordModalRendern(); }
+function nordModalRendern() {
+  const oben = (360 - nordEntwurf) % 360;
+  document.getElementById('nordRose').style.transform = `rotate(${nordEntwurf}deg)`;
+  document.getElementById('nordRegler').value = nordEntwurf;
+  const naechste = RICHTUNG_8.reduce((b, r) => { const d = Math.min(Math.abs(r[1] - oben), 360 - Math.abs(r[1] - oben)); return d < b[0] ? [d, r] : b; }, [999, null])[1];
+  document.getElementById('nordText').textContent = `Oben auf der Karte ist ${naechste[2]}${Math.round(oben) % 45 ? ' (' + Math.round(oben) + '°)' : ''}.`;
+  document.getElementById('nordKnoepfe').innerHTML = RICHTUNG_8.map(r => `<button type="button" class="saat-chip${Math.round(oben) === r[1] ? ' an' : ''}" onclick="nordObenSetzen(${r[1]})">${r[0]}</button>`).join('');
+}
+let nordKompassWert = null;
+function nordKompassEvent(e) {
+  let h = null;
+  if (typeof e.webkitCompassHeading === 'number') h = e.webkitCompassHeading;
+  else if (e.absolute && typeof e.alpha === 'number') h = (360 - e.alpha) % 360;
+  if (h === null) return;
+  nordKompassWert = h;
+  document.getElementById('nordKompassAnzeige').textContent = 'Blickrichtung: ' + Math.round(h) + '°';
+}
+async function nordKompassStarten() {
+  try { if (typeof DeviceOrientationEvent.requestPermission === 'function') { const ok = await DeviceOrientationEvent.requestPermission(); if (ok !== 'granted') return; } } catch (e) {}
+  nordKompassWert = null;
+  window.addEventListener('deviceorientationabsolute', nordKompassEvent);
+  window.addEventListener('deviceorientation', nordKompassEvent);
+  document.getElementById('nordKompassAnzeige').textContent = 'Handy flach halten …';
+  setTimeout(() => { if (nordKompassWert === null) document.getElementById('nordKompassAnzeige').textContent = 'Kein Kompass gefunden – bitte oben eine Richtung antippen.'; }, 2500);
+}
+function nordKompassUebernehmen() { if (nordKompassWert === null) return; nordObenSetzen(Math.round(nordKompassWert)); }
+function nordSpeichern(entfernen) {
+  const g = gardens[currentGardenId]; if (!g) return;
+  pushUndo();
+  if (entfernen) delete g.nordGrad; else g.nordGrad = Math.round(nordEntwurf) % 360;
+  saveData(); nordModalSchliessen(); nordWidgetAktualisieren();
+  if (selectedBed) renderBedLage(selectedBed);
+  showTempStatus(entfernen ? 'Nordpfeil entfernt' : '🧭 Norden gespeichert – die Beete zeigen jetzt ihre Sonnenstunden', 4);
+}
+function nordWidgetAktualisieren() {
+  const pf = document.getElementById('nordWidgetPfeil'); if (!pf) return;
+  const n = nordGrad();
+  pf.style.transform = `rotate(${n || 0}deg)`;
+  pf.style.opacity = n === null ? 0.45 : 1;
+  document.getElementById('nordWidgetBtn').title = n === null ? 'Norden festlegen' : 'Nordpfeil – antippen zum Ändern';
+}
+
+// ==================== 🧤 WINTERSCHUTZ im „Heute“-Bereich ====================
+function winterschutzSaison() { const d = new Date(); return String(d.getMonth() >= 6 ? d.getFullYear() : d.getFullYear() - 1); }
+function winterschutzInfo(name) {
+  const n = lexKatalogName(name);
+  if (WINTERSCHUTZ[n]) return WINTERSCHUTZ[n];
+  if (isFrostTender(n)) return ['nacht', 'Bei Frost mit Vlies abdecken oder ins Haus holen', 'abdecken'];
+  return null;
+}
+function winterschutzListe() {
+  const g = gardens[currentGardenId]; if (!g) return [];
+  const map = new Map();
+  const dazu = (name, ort) => {
+    const n = lexKatalogName((name || '').trim()); if (!n) return;
+    const info = winterschutzInfo(n); if (!info) return;
+    if (!map.has(n)) map.set(n, { name: n, anzahl: 0, orte: new Set(), info });
+    const e = map.get(n); e.anzahl++; if (ort) e.orte.add(ort);
+  };
+  (g.beds || []).filter(b => b.kind !== 'struktur').forEach(b => (b.plants || []).forEach(p => dazu(p.name, b.name)));
+  (g.freiPflanzen || []).forEach(fp => dazu(fp.name, 'frei im Garten'));
+  const erledigt = ((g.winterschutz || {})[winterschutzSaison()]) || {};
+  return [...map.values()].map(e => Object.assign(e, { erledigt: e.info[0] === 'saison' ? erledigt[e.name] || null : null }))
+    .sort((a, b) => (!!a.erledigt - !!b.erledigt) || ((a.info[0] === 'saison' ? 0 : 1) - (b.info[0] === 'saison' ? 0 : 1)) || a.name.localeCompare(b.name, 'de'));
+}
+function winterschutzUmschalten(name) {
+  const g = gardens[currentGardenId]; if (!g) return;
+  const s = winterschutzSaison();
+  g.winterschutz = g.winterschutz || {};
+  g.winterschutz[s] = g.winterschutz[s] || {};
+  if (g.winterschutz[s][name]) delete g.winterschutz[s][name]; else g.winterschutz[s][name] = heuteISO();
+  // alte Saisons aufräumen
+  Object.keys(g.winterschutz).forEach(k => { if (Number(k) < Number(s) - 1) delete g.winterschutz[k]; });
+  saveData(); renderHomeOverview();
+}
+function winterschutzHtml() {
+  const monat = new Date().getMonth() + 1;
+  const frost = getUpcomingFrostWarning();
+  if (!frost && !(monat >= 10 || monat <= 3)) return '';
+  const liste = winterschutzListe();
+  if (!liste.length) return '';
+  const offen = liste.filter(e => e.info[0] === 'saison' && !e.erledigt).length;
+  const pflanze = n => (PLANTS.find(p => p.name === n) || {}).sym || '🌱';
+  return `<div class="winter-karte${frost ? ' frost' : ''}">
+    <div class="winter-kopf">🧤 Winterschutz <span>${frost ? '❄️ ' + escapeHtml(frost.days.map(d => d.label + ' ' + Math.round(d.tmin) + '°C').slice(0, 2).join(', ')) : offen ? offen + ' offen' : '✅ alles erledigt'}</span></div>
+    ${liste.map(e => `<div class="winter-zeile${e.erledigt ? ' fertig' : ''}">
+      <span class="winter-sym">${pflanze(e.name)}</span>
+      <span class="winter-text"><b>${escapeHtml(e.name)}</b>${e.anzahl > 1 ? ' ×' + e.anzahl : ''}<small>${escapeHtml([...e.orte].slice(0, 2).join(', '))}</small><span>${escapeHtml(e.info[1])}</span></span>
+      ${e.info[0] === 'saison' ? `<button type="button" class="winter-btn" onclick="winterschutzUmschalten(${jsAttrStr(e.name).replace(/"/g, '&quot;')})">${e.erledigt ? '↺' : '✓ erledigt'}</button>` : '<span class="winter-chip">bei Frost</span>'}
+    </div>`).join('')}
+  </div>`;
+}
+
 // ==================== 🌸 BLUMEN- & STAUDENBEETE: Vorschläge mit Pflanzplan ====================
 // Daten: BLUMEN_BEETE, STAUDEN_INFO, BLUETEZEIT (pflanzendaten.js). Der Pflanzplan wird aus Höhe und
 // Abstand berechnet: Rand-Beet = hohe Pflanzen hinten (obere Kante), Insel-Beet = hohe Pflanzen in der Mitte.
@@ -4990,8 +5301,8 @@ function renderStats() {
     if (frostTenderCount > 0) {
       const isFrost = frostWarn.worst.level === 'frost';
       const dayList = frostWarn.days.map(d => `${d.label} ${Math.round(d.tmin)}°C`).join(', ');
-      html += `<div style="font-size:0.78rem;padding:8px 9px;border-radius:7px;background:${isFrost?'#e3ecfb':'#f0f4fb'};border-left:3px solid ${isFrost?'#4a6fa5':'#8ea4c9'};margin-bottom:14px">
-        ❄️ <strong>${isFrost?'Frost erwartet':'Frostgefahr'}:</strong> ${dayList} · ${frostTenderCount} frostempfindliche Pflanze(n) in diesem Garten – siehe 📋 Pflegeplan für Details.
+      html += `<div style="font-size:0.78rem;padding:8px 9px;border-radius:7px;background:${isFrost?'#e3ecfb':'#f0f4fb'};border-left:3px solid ${isFrost?'#4a6fa5':'#8ea4c9'};margin-bottom:14px;color:#2c2415">
+        ❄️ <strong>${isFrost?'Frost erwartet':'Frostgefahr'}:</strong> ${dayList} · ${frostTenderCount} frostempfindliche Pflanze(n) in diesem Garten – was genau zu tun ist, steht unter 🏠 Heute → 🧤 Winterschutz.
       </div>`;
     }
   }
@@ -6269,6 +6580,7 @@ function wendeZoomAn() {
 // es beim Verschieben/Scrollen im gezoomten Garten nicht mit aus dem Bild wandert.
 // Seine Position wird anhand der tatsächlichen Bildschirmposition von #canvasWrap berechnet.
 function positioniereZoomWidget() {
+  try { nordWidgetAktualisieren(); } catch (e) {}
   const widget = document.getElementById('gartenZoomWidget');
   const wrap = document.getElementById('canvasWrap');
   if (!widget || !wrap) return;
@@ -7412,6 +7724,7 @@ function showBedEditor(bed) {
   document.querySelectorAll('#editColorPicker .color-swatch').forEach(s=>s.classList.toggle('selected', s.dataset.color===bed.color));
   document.getElementById('editColorCustom').value = bed.color || '#7a9e72';
   renderBedArea(bed);
+  try { renderBedLage(bed); } catch (e) { console.warn('Lage', e); }
   renderFruchtfolge(bed);
   const searchEl = document.getElementById('bedPlantSearch');
   if (searchEl) searchEl.value = '';
@@ -10520,7 +10833,7 @@ async function renderHomeOverview() {
   }
 
   if (!stats.length && !todayTasks.length && !expiringPantry.length && !seedsToSow.length) {
-    const koch = ernteKochenHtml() + saatgutFehltHtml();
+    const koch = winterschutzHtml() + ernteKochenHtml() + saatgutFehltHtml();
     if (koch) { box.innerHTML = koch; return; }
     box.innerHTML = d.weather
       ? `<div class="empty-state" style="max-width:480px;margin:0 auto">✓ Heute nichts Dringendes – schau später wieder vorbei.</div>`
@@ -10528,7 +10841,7 @@ async function renderHomeOverview() {
     return;
   }
   const pillsHtml = stats.length ? `<div class="overview-grid">${stats.map(s => `<div class="overview-pill ov-${s.tone}"${s.onclick ? ` onclick="${s.onclick}"` : ''}>${s.icon} <span>${escapeHtml(s.label)}</span></div>`).join('')}</div>` : '';
-  box.innerHTML = pillsHtml + checklistHtml + ernteKochenHtml() + saatgutFehltHtml() + pantryHtml + seedHtml;
+  box.innerHTML = pillsHtml + winterschutzHtml() + checklistHtml + ernteKochenHtml() + saatgutFehltHtml() + pantryHtml + seedHtml;
 }
 
 // ==================== SHOPS & DIENSTLEISTER ====================
@@ -11961,8 +12274,7 @@ function lexPflanzeHtml(name) {
       <button type="button" class="lex-link" onclick="lexAusfuehren(()=>openPreserveForPlant(${jsAttrStr(name).replace(/"/g, '&quot;')}))">Mehr zur Verwertung ›</button></div>`;
   }
   // Tiere, denen die Pflanze hilft
-  const nn = lexNorm(name);
-  const tiere = alleTiere().filter(t => (t.pflanzen || []).some(p => { const pn = lexNorm(p); return pn === nn || pn.includes(nn) || nn.includes(pn) && pn.length > 3; }));
+  const tiere = tiereFuerPflanze(name);
   if (tiere.length) h += `<div class="lex-abschnitt">🦔 Hilft diesen Tieren</div><div class="lex-karte"><div class="lex-pchips">${tiere.map(t => `<button type="button" class="lex-pchip" onclick="lexAusfuehren(()=>tierDetailOeffnen('${t.id}'))">${t.icon} ${escapeHtml(t.name)}</button>`).join('')}</div></div>`;
   // Rezepte aus dem Kochen-Modul
   const rez = rezepteMit({ [name]: 1 }).slice(0, 5);
@@ -13171,14 +13483,16 @@ function gartenPushPlanBerechnen() {
     const pruefe = (p) => {
       anzahl++;
       const n = kat((p.name || '').trim());
-      if (!n || !isFrostTender(n)) return;
+      if (!n || !(isFrostTender(n) || WINTERSCHUTZ[n])) return;
+      const ws = WINTERSCHUTZ[n];
+      if (ws && ws[0] === 'saison' && ((g.winterschutz || {})[winterschutzSaison()] || {})[n]) return; // schon erledigt
       const ab = p.date || null;
       if (!(n in frost) || (frost[n] && (!ab || ab < frost[n]))) frost[n] = ab;
     };
     (g.beds || []).filter(b => b.kind !== 'struktur').forEach(b => (b.plants || []).forEach(pruefe));
     (g.freiPflanzen || []).forEach(pruefe);
     return { name: g.name || 'Garten', lat: Math.round(g.weatherLoc.lat * 100) / 100, lon: Math.round(g.weatherLoc.lon * 100) / 100,
-      pflanzen: anzahl, frost: Object.keys(frost).sort((a, b) => a.localeCompare(b, 'de')).map(n => ({ n, ab: frost[n] })) };
+      pflanzen: anzahl, frost: Object.keys(frost).sort((a, b) => a.localeCompare(b, 'de')).map(n => (WINTERSCHUTZ[n] ? { n, ab: frost[n], t: WINTERSCHUTZ[n][2] } : { n, ab: frost[n] })) };
   }).filter(Boolean);
   // Monatsvorschau
   const off = CLIMATE_OFFSET[getClimateZone()] || 0;
