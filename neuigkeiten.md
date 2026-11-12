@@ -1,5 +1,10 @@
 # Neuigkeiten im Familienplaner
-# Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## 2026-11-12 | 🔎 Hummel-Bestimmung, Tierjahr, Frost-Checkliste, Wunschzettel & Bilderrahmen
+# Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## 2026-11-12 | 🌸 Blumen- & Staudenbeete mit Pflanzplan
+- **Lexikon:** 55 neue Stauden, Wildblumen, Gräser und Frühblüher, z. B. Wasserdost, Wald-Storchschnabel, Witwenblumen, Natternkopf, Wiesen-Salbei, Funkie und Christrose. Jeweils mit lateinischem Namen, Höhe, Blütezeit, Standort, Boden und Pflege. Kennzeichnung „🌿 heimisch“ und „☠️ giftig“. Neuer Filter „🌼 Stauden & Wildblumen“.
+- **12 Beet-Vorschläge** (Lexikon → Blumen- & Staudenbeete oder 🧩 Beet-Vorlagen): Filter nach Sonne (☀️ über 6 h · ⛅ 3–6 h · ☁️ unter 3 h) und Boden (trocken, normal, feucht), mit Himmelsrichtung.
+- Jeder Vorschlag hat einen **Pflanzplan als Bild** (hohe Pflanzen hinten bzw. in der Mitte), einen Blühkalender übers Jahr und den Anteil heimischer Arten. „➕ Einfügen“ legt das Beet mit allen Pflanzen in deinem Garten an.
+
+## 2026-11-12 | 🔎 Hummel-Bestimmung, Tierjahr, Frost-Checkliste, Wunschzettel & Bilderrahmen
 - **🔎 Hummel bestimmen** (Garten → Tiere im Garten): Po-Farbe und Bänder antippen und die passende Art direkt als gesehen eintragen. Kennt auch Holzbiene, Pelzbiene und Wollschweber.
 - **📅 Euer Tierjahr:** Zeitstrahl aller Erstsichtungen des Jahres mit Fotos und Zahlen, dazu der Vergleich zum Vorjahr („13 Tage früher“).
 - **🌿 Im November für Gartentiere:** Neue Kachel in der Übersicht mit 4 passenden Tipps für jeden Monat.

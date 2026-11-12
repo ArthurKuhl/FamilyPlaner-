@@ -906,6 +906,223 @@ const TIPS_TOPICS = [
   },
 ];
 
+// ==================== 🌼 STAUDEN, WILDBLUMEN & GRÄSER ====================
+// Eine Tabelle je Pflanze – daraus werden unten PLANTS, SPACING, PFLANZEN_BEDINGUNGEN, PLANT_STECKBRIEFE,
+// CARE_INFO, RUECKSCHNITT und BLUETEZEIT ergänzt (so bleibt alles an einer Stelle).
+// hoehe/abstand in cm · bluete [von, bis] (Monate) · farbe = Blütenfarbe für Vorschaubilder
+// licht: V/S/SH/H/HS (wie PFLANZEN_BEDINGUNGEN) · wasser: w/m/v · boden: trocken | normal | feucht
+// heimisch: in Mitteleuropa wild vorkommend (wertvoll für spezialisierte Insekten)
+const STAUDEN = [
+  // ---- sonnig & trocken ----
+  { name: 'Wiesen-Salbei', sym: '🪻', latein: 'Salvia pratensis', hoehe: 50, abstand: 35, bluete: [5, 7], farbe: '#6a5acd', licht: 'V', wasser: 'w', boden: ['trocken', 'normal'], heimisch: true,
+    bodenText: 'Durchlässig, kalkhaltig, eher mager', pflege: 'Nach der ersten Blüte zurückschneiden – dann blüht er oft im Spätsommer nochmal', besonderheit: 'Hummel-Magnet: Die Blüte hat einen „Schlagbaum“-Mechanismus, der den Pollen auf den Rücken der Hummel klopft.' },
+  { name: 'Steppen-Salbei', sym: '🪻', latein: 'Salvia nemorosa', hoehe: 50, abstand: 35, bluete: [6, 9], farbe: '#5b3fa8', licht: 'V', wasser: 'w', boden: ['trocken', 'normal'], heimisch: false,
+    bodenText: 'Durchlässig, normal bis trocken', pflege: 'Nach dem ersten Flor bodennah zurückschneiden, dann Nachblüte bis September', besonderheit: 'Sehr robust und langlebig – eine der besten Bienenstauden für sonnige Beete.' },
+  { name: 'Katzenminze', sym: '🪻', latein: 'Nepeta × faassenii', hoehe: 40, abstand: 40, bluete: [5, 9], farbe: '#8a8ad6', licht: 'V', wasser: 'w', boden: ['trocken', 'normal'], heimisch: false,
+    bodenText: 'Durchlässig, gern sandig', pflege: 'Nach der Hauptblüte um die Hälfte kürzen', besonderheit: 'Duftet minzig – Katzen wälzen sich gern darin. Blüht extrem lange.' },
+  { name: 'Natternkopf', sym: '🪻', latein: 'Echium vulgare', hoehe: 80, abstand: 30, bluete: [5, 9], farbe: '#3f6fd8', licht: 'V', wasser: 'w', boden: ['trocken'], heimisch: true,
+    bodenText: 'Mager, steinig, sandig – auf fettem Boden kippt er um', pflege: 'Zweijährig: im ersten Jahr nur Blattrosette. Samen ausfallen lassen, dann kommt er jedes Jahr wieder', besonderheit: 'Einzige Pollenquelle der Natternkopf-Mauerbiene. Raue, borstige Blätter.' },
+  { name: 'Schafgarbe', sym: '🌼', latein: 'Achillea millefolium', hoehe: 60, abstand: 30, bluete: [6, 9], farbe: '#f2efe4', licht: 'V', wasser: 'w', boden: ['trocken', 'normal'], heimisch: true,
+    bodenText: 'Anspruchslos, eher mager', pflege: 'Verblühtes abschneiden verlängert die Blüte; breitet sich mit Ausläufern aus', besonderheit: 'Flache Blütenteller sind Landeplätze für Schwebfliegen, Käfer und Wildbienen.' },
+  { name: 'Wiesen-Flockenblume', sym: '🌸', latein: 'Centaurea jacea', hoehe: 60, abstand: 30, bluete: [6, 9], farbe: '#c45bb5', licht: 'S', wasser: 'w', boden: ['trocken', 'normal'], heimisch: true,
+    bodenText: 'Normal bis mager, gern kalkhaltig', pflege: 'Kaum Pflege – im Frühjahr zurückschneiden', besonderheit: 'Eine der besten Schmetterlingspflanzen der Wiese.' },
+  { name: 'Acker-Witwenblume', sym: '🌸', latein: 'Knautia arvensis', hoehe: 70, abstand: 35, bluete: [6, 8], farbe: '#9b7bd0', licht: 'S', wasser: 'w', boden: ['trocken', 'normal'], heimisch: true,
+    bodenText: 'Mager bis normal, durchlässig', pflege: 'Samen stehen lassen – sät sich mäßig aus', besonderheit: 'Lebensgrundlage der Knautien-Sandbiene, die fast nur hier Pollen sammelt.' },
+  { name: 'Färber-Kamille', sym: '🌼', latein: 'Anthemis tinctoria', hoehe: 50, abstand: 30, bluete: [6, 9], farbe: '#f2c230', licht: 'V', wasser: 'w', boden: ['trocken'], heimisch: true,
+    bodenText: 'Trocken, sandig-steinig, mager', pflege: 'Nach der Blüte kräftig zurückschneiden, sonst kurzlebig', besonderheit: 'Früher zum Gelbfärben von Wolle genutzt.' },
+  { name: 'Karthäuser-Nelke', sym: '🌸', latein: 'Dianthus carthusianorum', hoehe: 40, abstand: 20, bluete: [6, 9], farbe: '#d6336c', licht: 'V', wasser: 'w', boden: ['trocken'], heimisch: true,
+    bodenText: 'Trocken, kalkhaltig, steinig', pflege: 'Keine – nur nicht düngen', besonderheit: 'Kleine pinke Köpfchen auf drahtigen Stielen – Tagfalter lieben sie.' },
+  { name: 'Moschus-Malve', sym: '🌸', latein: 'Malva moschata', hoehe: 60, abstand: 40, bluete: [6, 9], farbe: '#f1a7c0', licht: 'S', wasser: 'm', boden: ['normal', 'trocken'], heimisch: true,
+    bodenText: 'Normal, durchlässig', pflege: 'Kurzlebig, sät sich aber selbst aus', besonderheit: 'Lange Blütezeit, wichtige Pflanze für die Malven-Langhornbiene.' },
+  { name: 'Johanniskraut', sym: '🌼', latein: 'Hypericum perforatum', hoehe: 60, abstand: 30, bluete: [6, 8], farbe: '#f5c518', licht: 'S', wasser: 'w', boden: ['trocken', 'normal'], heimisch: true,
+    bodenText: 'Mager bis normal', pflege: 'Im Spätwinter zurückschneiden', besonderheit: 'Hält man ein Blatt gegen das Licht, sieht man winzige „Löcher“ (Öldrüsen). Blüht um Johanni (24. Juni).' },
+  { name: 'Wilde Möhre', sym: '💮', latein: 'Daucus carota', hoehe: 80, abstand: 30, bluete: [6, 9], farbe: '#f4f1e8', licht: 'V', wasser: 'w', boden: ['trocken'], heimisch: true,
+    bodenText: 'Mager, trocken', pflege: 'Zweijährig – Samenstände stehen lassen', besonderheit: 'In der Mitte der weißen Dolde sitzt oft eine dunkle „Mohrenblüte“. Futterpflanze für Schwalbenschwanz-Raupen.' },
+  { name: 'Hornklee', sym: '🌼', latein: 'Lotus corniculatus', hoehe: 20, abstand: 25, bluete: [5, 8], farbe: '#f2b705', licht: 'V', wasser: 'w', boden: ['trocken', 'normal'], heimisch: true,
+    bodenText: 'Mager bis normal', pflege: 'Keine – verträgt auch Mahd', besonderheit: 'Wird von sehr vielen Wildbienenarten besucht und ist Raupenfutter für Bläulinge.' },
+  { name: 'Kugeldistel', sym: '🪻', latein: 'Echinops ritro', hoehe: 90, abstand: 50, bluete: [7, 9], farbe: '#4a74c9', licht: 'V', wasser: 'w', boden: ['trocken'], heimisch: false,
+    bodenText: 'Trocken, durchlässig, gern kalkig', pflege: 'Verblühte Kugeln für Vögel stehen lassen', besonderheit: 'Stahlblaue Kugeln, an denen oft gleichzeitig ein Dutzend Bienen sitzt.' },
+  { name: 'Woll-Ziest', sym: '🌿', latein: 'Stachys byzantina', hoehe: 40, abstand: 30, bluete: [6, 8], farbe: '#b9b5c9', licht: 'V', wasser: 'w', boden: ['trocken'], heimisch: false,
+    bodenText: 'Trocken, sandig – Nässe lässt ihn faulen', pflege: 'Im Frühjahr unansehnliche Blätter entfernen', besonderheit: 'Silbrig-weiche Blätter („Eselsohr“) – Kinder lieben sie. Nistmaterial der Garten-Wollbiene.' },
+  { name: 'Zierlauch', sym: '🪻', latein: 'Allium aflatunense', hoehe: 90, abstand: 25, bluete: [5, 6], farbe: '#8e4fb8', licht: 'V', wasser: 'w', boden: ['trocken', 'normal'], heimisch: false, zwiebel: true,
+    bodenText: 'Durchlässig, keine Staunässe', pflege: 'Zwiebeln im September/Oktober setzen; Laub nach der Blüte einziehen lassen', besonderheit: 'Lila Kugeln über dem Beet – die Samenstände sehen auch trocken noch schön aus.' },
+  { name: 'Blauschwingel', sym: '🌾', latein: 'Festuca glauca', hoehe: 25, abstand: 25, bluete: [6, 7], farbe: '#8fb3c4', licht: 'V', wasser: 'w', boden: ['trocken'], heimisch: false, gras: true,
+    bodenText: 'Trocken, sandig-kiesig', pflege: 'Im Frühjahr alte Halme auskämmen; nach einigen Jahren teilen', besonderheit: 'Blaue Igel-Polster – schön im Kiesbeet.' },
+  // ---- sonnig & normaler Boden ----
+  { name: 'Purpur-Sonnenhut', sym: '🌸', latein: 'Echinacea purpurea', hoehe: 80, abstand: 40, bluete: [7, 9], farbe: '#d6609a', licht: 'V', wasser: 'm', boden: ['normal'], heimisch: false,
+    bodenText: 'Nährstoffreich, durchlässig', pflege: 'Samenstände im Winter stehen lassen (Vogelfutter, Raureif)', besonderheit: 'Schmetterlinge landen gern auf den großen Blüten.' },
+  { name: 'Sonnenhut', sym: '🌼', latein: 'Rudbeckia fulgida', hoehe: 70, abstand: 40, bluete: [7, 10], farbe: '#f2a20c', licht: 'S', wasser: 'm', boden: ['normal', 'feucht'], heimisch: false,
+    bodenText: 'Humos, frisch bis feucht', pflege: 'Alle paar Jahre teilen', besonderheit: 'Leuchtend gelbe Blüten mit schwarzem „Knopf“ bis in den Oktober.' },
+  { name: 'Herbst-Aster', sym: '🪻', latein: 'Symphyotrichum novae-angliae', hoehe: 120, abstand: 50, bluete: [9, 10], farbe: '#7c4dbd', licht: 'S', wasser: 'm', boden: ['normal'], heimisch: false,
+    bodenText: 'Nährstoffreich, frisch', pflege: 'Bei Bedarf stützen; Ende Mai einkürzen = buschiger und standfester', besonderheit: 'Letzte große Tankstelle für Falter und Bienen vor dem Winter.' },
+  { name: 'Glockenblume', sym: '🪻', latein: 'Campanula persicifolia', hoehe: 70, abstand: 30, bluete: [6, 8], farbe: '#7b95e0', licht: 'SH', wasser: 'm', boden: ['normal'], heimisch: true,
+    bodenText: 'Normal, durchlässig, gern kalkhaltig', pflege: 'Verblühtes abschneiden = Nachblüte', besonderheit: 'Glockenblumen-Scherenbienen schlafen in den Glocken.' },
+  { name: 'Akelei', sym: '🪻', latein: 'Aquilegia vulgaris', hoehe: 60, abstand: 30, bluete: [5, 6], farbe: '#6b5bd6', licht: 'SH', wasser: 'm', boden: ['normal'], heimisch: true, giftig: true,
+    bodenText: 'Humos, frisch', pflege: 'Sät sich gern aus – Samen stehen lassen oder rechtzeitig abschneiden', besonderheit: 'Lange Nektarsporne – nur langrüsselige Hummeln kommen an den Nektar. Giftig.' },
+  { name: 'Rittersporn', sym: '🪻', latein: 'Delphinium elatum (Hybriden)', hoehe: 150, abstand: 50, bluete: [6, 9], farbe: '#2f5fd0', licht: 'S', wasser: 'm', boden: ['normal'], heimisch: false, giftig: true,
+    bodenText: 'Tiefgründig, nährstoffreich', pflege: 'Nach der ersten Blüte handbreit über dem Boden abschneiden = Nachblüte im September; stützen', besonderheit: 'Lieblingsblume der Gartenhummel. Alle Teile giftig – nicht in Kinderhöhe pflanzen.' },
+  { name: 'Blut-Storchschnabel', sym: '🌸', latein: 'Geranium sanguineum', hoehe: 30, abstand: 40, bluete: [5, 8], farbe: '#c2185b', licht: 'S', wasser: 'w', boden: ['trocken', 'normal'], heimisch: true,
+    bodenText: 'Durchlässig, gern kalkhaltig', pflege: 'Pflegeleicht, bildet dichte Polster', besonderheit: 'Leuchtend rote Herbstfärbung des Laubs.' },
+  { name: 'Lampenputzergras', sym: '🌾', latein: 'Pennisetum alopecuroides', hoehe: 80, abstand: 60, bluete: [8, 10], farbe: '#c9b38a', licht: 'V', wasser: 'm', boden: ['normal'], heimisch: false, gras: true,
+    bodenText: 'Normal, durchlässig', pflege: 'Erst im März zurückschneiden – die Halme schützen im Winter', besonderheit: 'Puschelige Blütenstände wie Flaschenbürsten.' },
+  { name: 'Krokus', sym: '🌷', latein: 'Crocus tommasinianus', hoehe: 10, abstand: 8, bluete: [2, 3], farbe: '#a58ad6', licht: 'S', wasser: 'm', boden: ['normal', 'trocken'], heimisch: false, zwiebel: true,
+    bodenText: 'Durchlässig', pflege: 'Knollen im September/Oktober setzen; Laub einziehen lassen, erst dann mähen', besonderheit: 'Erstes Futter für Hummelköniginnen. Der „Elfenkrokus“ verwildert gern im Rasen.' },
+  { name: 'Traubenhyazinthe', sym: '🪻', latein: 'Muscari armeniacum', hoehe: 15, abstand: 10, bluete: [3, 5], farbe: '#3d5ab8', licht: 'S', wasser: 'm', boden: ['normal', 'trocken'], heimisch: false, zwiebel: true,
+    bodenText: 'Durchlässig', pflege: 'Zwiebeln im Herbst setzen, vermehren sich von selbst', besonderheit: 'Lieblingsblume von Wollschweber und Pelzbiene.' },
+  // ---- Halbschatten & Schatten ----
+  { name: 'Wald-Witwenblume', sym: '🌸', latein: 'Knautia dipsacifolia', hoehe: 80, abstand: 40, bluete: [6, 9], farbe: '#a07ad8', licht: 'SH', wasser: 'm', boden: ['normal', 'feucht'], heimisch: true,
+    bodenText: 'Frisch, humos', pflege: 'Im Frühjahr zurückschneiden', besonderheit: 'Waldrand-Verwandte der Acker-Witwenblume, blüht bis in den Herbst.' },
+  { name: 'Wald-Storchschnabel', sym: '🪻', latein: 'Geranium sylvaticum', hoehe: 50, abstand: 40, bluete: [5, 7], farbe: '#8c6fd1', licht: 'H', wasser: 'm', boden: ['normal', 'feucht'], heimisch: true,
+    bodenText: 'Humos, frisch bis feucht', pflege: 'Nach der Blüte zurückschneiden – treibt frisches Laub', besonderheit: 'Typisch für Bergwiesen und Waldränder, sehr bienenfreundlich.' },
+  { name: 'Lungenkraut', sym: '🪻', latein: 'Pulmonaria officinalis', hoehe: 25, abstand: 30, bluete: [3, 5], farbe: '#b05fb0', licht: 'H', wasser: 'm', boden: ['normal', 'feucht'], heimisch: true,
+    bodenText: 'Humos, frisch, gern kalkhaltig', pflege: 'Bei Trockenheit gießen', besonderheit: 'Blüten wechseln von rosa zu blau. Lieblingsblume der Frühlings-Pelzbiene.' },
+  { name: 'Hohe Schlüsselblume', sym: '🌼', latein: 'Primula elatior', hoehe: 20, abstand: 20, bluete: [3, 5], farbe: '#f3e27a', licht: 'H', wasser: 'm', boden: ['normal', 'feucht'], heimisch: true,
+    bodenText: 'Humos, frisch bis feucht', pflege: 'Nicht austrocknen lassen', besonderheit: 'Wilde Schlüsselblumen sind geschützt – nie in der Natur ausgraben, sondern in der Staudengärtnerei kaufen.' },
+  { name: 'Frühlings-Platterbse', sym: '🪻', latein: 'Lathyrus vernus', hoehe: 30, abstand: 30, bluete: [4, 5], farbe: '#8e3fa8', licht: 'H', wasser: 'm', boden: ['normal'], heimisch: true,
+    bodenText: 'Humos, kalkhaltig', pflege: 'Wächst langsam an – ungestört lassen', besonderheit: 'Blüten färben sich von Purpur zu Blau. Wichtig für frühe Hummeln.' },
+  { name: 'Große Sternmiere', sym: '💮', latein: 'Stellaria holostea', hoehe: 25, abstand: 25, bluete: [4, 6], farbe: '#ffffff', licht: 'H', wasser: 'm', boden: ['normal'], heimisch: true,
+    bodenText: 'Humos, eher sauer', pflege: 'Lockerer Bodendecker, keine Pflege', besonderheit: 'Weiße Sternchen am Heckenrand.' },
+  { name: 'Salbei-Gamander', sym: '🌿', latein: 'Teucrium scorodonia', hoehe: 40, abstand: 30, bluete: [7, 9], farbe: '#d9dca0', licht: 'SH', wasser: 'w', boden: ['trocken', 'normal'], heimisch: true,
+    bodenText: 'Durchlässig, eher sauer', pflege: 'Im Frühjahr zurückschneiden', besonderheit: 'Unscheinbar, aber eine Spätsommer-Weide für Hummeln.' },
+  { name: 'Waldmeister', sym: '💮', latein: 'Galium odoratum', hoehe: 20, abstand: 20, bluete: [4, 5], farbe: '#ffffff', licht: 'HS', wasser: 'm', boden: ['normal', 'feucht'], heimisch: true,
+    bodenText: 'Humos, locker, Laubhumus', pflege: 'Breitet sich als Teppich aus', besonderheit: 'Duftet angewelkt nach Heu (Cumarin) – klassisch für die Maibowle.' },
+  { name: 'Gefleckte Taubnessel', sym: '🌸', latein: 'Lamium maculatum', hoehe: 25, abstand: 30, bluete: [4, 9], farbe: '#c76aa8', licht: 'HS', wasser: 'm', boden: ['normal', 'feucht'], heimisch: true,
+    bodenText: 'Humos, nährstoffreich', pflege: 'Bodendecker, bei Bedarf zurückschneiden', besonderheit: 'Brennt nicht! Kinder können den süßen Nektar aus den Blüten saugen.' },
+  { name: 'Kriechender Günsel', sym: '🪻', latein: 'Ajuga reptans', hoehe: 15, abstand: 25, bluete: [4, 6], farbe: '#4b5fc4', licht: 'HS', wasser: 'm', boden: ['normal', 'feucht'], heimisch: true,
+    bodenText: 'Frisch, humos', pflege: 'Bodendecker mit Ausläufern', besonderheit: 'Frühe Futterquelle für Hummeln und Pelzbienen.' },
+  { name: 'Duft-Veilchen', sym: '🪻', latein: 'Viola odorata', hoehe: 10, abstand: 20, bluete: [3, 4], farbe: '#5b3fa8', licht: 'H', wasser: 'm', boden: ['normal'], heimisch: true,
+    bodenText: 'Humos, frisch', pflege: 'Breitet sich langsam aus', besonderheit: 'Duftet herrlich; Raupenfutter für Perlmuttfalter.' },
+  { name: 'Elfenblume', sym: '🌼', latein: 'Epimedium × versicolor', hoehe: 30, abstand: 30, bluete: [4, 5], farbe: '#f0d060', licht: 'HS', wasser: 'm', boden: ['normal', 'trocken'], heimisch: false,
+    bodenText: 'Humos, verträgt Wurzeldruck unter Bäumen', pflege: 'Altes Laub im Februar abschneiden, dann sieht man die Blüten', besonderheit: 'Einer der wenigen Bodendecker für trockenen Schatten unter Bäumen.' },
+  { name: 'Christrose', sym: '💮', latein: 'Helleborus niger', hoehe: 30, abstand: 40, bluete: [12, 3], farbe: '#f7f3ea', licht: 'H', wasser: 'm', boden: ['normal'], heimisch: true, giftig: true,
+    bodenText: 'Humos, kalkhaltig, tiefgründig', pflege: 'Ungestört lassen – blüht erst nach ein paar Jahren richtig', besonderheit: 'Blüht im Winter, oft schon um Weihnachten. Giftig.' },
+  { name: 'Funkie', sym: '🌿', latein: 'Hosta', hoehe: 50, abstand: 50, bluete: [7, 8], farbe: '#b9a7d9', licht: 'HS', wasser: 'v', boden: ['feucht', 'normal'], heimisch: false,
+    bodenText: 'Humos, gleichmäßig feucht', pflege: 'Schnecken im Frühjahr im Blick behalten', besonderheit: 'Blattschmuckstaude für Schatten – die Blüten mögen Hummeln.' },
+  { name: 'Purpurglöckchen', sym: '🌿', latein: 'Heuchera', hoehe: 40, abstand: 35, bluete: [6, 8], farbe: '#8a2c4f', licht: 'H', wasser: 'm', boden: ['normal'], heimisch: false,
+    bodenText: 'Humos, durchlässig', pflege: 'Alle 3–4 Jahre teilen, wenn sie verholzen', besonderheit: 'Farbiges Laub (rot, bronze, limette) – auch im Winter.' },
+  { name: 'Wald-Geißbart', sym: '💮', latein: 'Aruncus dioicus', hoehe: 150, abstand: 80, bluete: [6, 7], farbe: '#f5f0dc', licht: 'HS', wasser: 'v', boden: ['feucht', 'normal'], heimisch: true,
+    bodenText: 'Humos, frisch bis feucht', pflege: 'Wird groß – genug Platz lassen', besonderheit: 'Große cremeweiße Federbüsche im Schatten.' },
+  { name: 'Wald-Segge', sym: '🌾', latein: 'Carex sylvatica', hoehe: 40, abstand: 30, bluete: [5, 6], farbe: '#9db07a', licht: 'HS', wasser: 'm', boden: ['normal', 'feucht'], heimisch: true, gras: true,
+    bodenText: 'Humos, frisch', pflege: 'Wintergrün – kaum Pflege', besonderheit: 'Ruhiger, grüner Begleiter zwischen Schattenstauden.' },
+  // ---- feucht ----
+  { name: 'Wasserdost', sym: '🌸', latein: 'Eupatorium cannabinum', hoehe: 150, abstand: 60, bluete: [7, 9], farbe: '#e0a2c4', licht: 'SH', wasser: 'v', boden: ['feucht', 'normal'], heimisch: true,
+    bodenText: 'Nährstoffreich, feucht', pflege: 'Im Frühjahr zurückschneiden', besonderheit: 'Schmetterlings-Magnet Nr. 1: Tagpfauenauge, Admiral und Distelfalter sitzen oft gleichzeitig darauf.' },
+  { name: 'Blutweiderich', sym: '🪻', latein: 'Lythrum salicaria', hoehe: 120, abstand: 50, bluete: [7, 9], farbe: '#c03a8f', licht: 'S', wasser: 'v', boden: ['feucht'], heimisch: true,
+    bodenText: 'Feucht bis nass, auch Teichrand', pflege: 'Verblühtes abschneiden, sonst starke Selbstaussaat', besonderheit: 'Pollenquelle der seltenen Blutweiderich-Sägehornbiene.' },
+  { name: 'Mädesüß', sym: '💮', latein: 'Filipendula ulmaria', hoehe: 120, abstand: 50, bluete: [6, 8], farbe: '#f6f1d8', licht: 'SH', wasser: 'v', boden: ['feucht'], heimisch: true,
+    bodenText: 'Feucht bis nass, nährstoffreich', pflege: 'Darf nie austrocknen', besonderheit: 'Duftet nach Honig und Mandel. Aus ihm wurde früher der Grundstoff für Aspirin gewonnen.' },
+  { name: 'Sumpf-Schwertlilie', sym: '🌼', latein: 'Iris pseudacorus', hoehe: 80, abstand: 40, bluete: [5, 6], farbe: '#f3d01a', licht: 'S', wasser: 'v', boden: ['feucht'], heimisch: true, giftig: true,
+    bodenText: 'Nass bis feucht, auch im flachen Wasser', pflege: 'Alle paar Jahre teilen', besonderheit: 'Für Teichrand und Sumpfbeet. Giftig – bei kleinen Kindern mit Abstand pflanzen.' },
+  { name: 'Gilbweiderich', sym: '🌼', latein: 'Lysimachia vulgaris', hoehe: 100, abstand: 40, bluete: [6, 8], farbe: '#f1c40f', licht: 'SH', wasser: 'v', boden: ['feucht'], heimisch: true,
+    bodenText: 'Feucht bis nass', pflege: 'Breitet sich mit Ausläufern aus', besonderheit: 'Die Schenkelbiene sammelt hier Blütenöl statt Nektar.' },
+  { name: 'Beinwell', sym: '🪻', latein: 'Symphytum officinale', hoehe: 100, abstand: 60, bluete: [5, 9], farbe: '#8b5aa8', licht: 'SH', wasser: 'v', boden: ['feucht', 'normal'], heimisch: true,
+    bodenText: 'Nährstoffreich, feucht', pflege: 'Mehrmals im Jahr abschneiden – die Blätter sind super Mulch und Jauche', besonderheit: 'Hummeln lieben die Glöckchen. Tiefe Pfahlwurzel – einmal gepflanzt, bleibt er.' },
+  { name: 'Rasen-Schmiele', sym: '🌾', latein: 'Deschampsia cespitosa', hoehe: 80, abstand: 40, bluete: [6, 8], farbe: '#b8a86a', licht: 'SH', wasser: 'v', boden: ['feucht', 'normal'], heimisch: true, gras: true,
+    bodenText: 'Frisch bis feucht', pflege: 'Im Frühjahr zurückschneiden', besonderheit: 'Feine, schimmernde Blütenschleier im Gegenlicht.' },
+];
+const BLUETEZEIT = {};
+const STAUDEN_INFO = {};
+(function staudenEinbauen() {
+  const namen = new Set(PLANTS.map(p => p.name));
+  const waterTage = { w: 7, m: 4, v: 2 };
+  STAUDEN.forEach(s => {
+    STAUDEN_INFO[s.name] = s;
+    BLUETEZEIT[s.name] = s.bluete;
+    if (!namen.has(s.name)) PLANTS.push({ sym: s.sym, name: s.name, cat: 'Blumen', perennial: true, staude: true });
+    if (!SPACING[s.name]) SPACING[s.name] = s.abstand;
+    const lichtText = { V: 'Vollsonnig', S: 'Sonnig', SH: 'Sonnig bis halbschattig', H: 'Halbschattig', HS: 'Halbschattig bis schattig' }[s.licht];
+    if (!PFLANZEN_BEDINGUNGEN[s.name]) PFLANZEN_BEDINGUNGEN[s.name] = [s.licht, s.wasser, s.wasser === 'v' ? 'M' : 'W', s.bodenText,
+      lichtText + (s.heimisch ? ' · heimische Wildpflanze' : ''), s.wasser === 'w' ? 'Nicht düngen und keine Staunässe – auf fettem Boden wird sie mastig und kippt' : 'Mulch aus Laub oder Kompost hält den Boden gleichmäßig feucht'];
+    if (!PLANT_STECKBRIEFE[s.name]) PLANT_STECKBRIEFE[s.name] = {
+      standort: lichtText, boden: s.bodenText,
+      aussaat: s.zwiebel ? 'Zwiebeln/Knollen im September–Oktober setzen' : 'Pflanzen im Frühjahr (März–Mai) oder Herbst (Sept.–Okt.)',
+      ernte: '–', pflege: s.pflege, besonderheit: s.besonderheit,
+    };
+    if (!CARE_INFO[s.name]) CARE_INFO[s.name] = { waterDays: waterTage[s.wasser], fertilizeDays: 0, harvestDays: 0 };
+    if (!RUECKSCHNITT[s.name] && !s.zwiebel) RUECKSCHNITT[s.name] = s.gras ? { monate: [3, 3], hinweis: 'Gräser erst im März zurückschneiden – die Halme schützen den Wurzelstock im Winter.' }
+      : { monate: [2, 3], hinweis: 'Stängel über den Winter stehen lassen (Winterquartier für Insekten) und erst im Spätwinter bodennah abschneiden.' };
+  });
+  // Blütezeiten bestehender Blumen
+  Object.assign(BLUETEZEIT, { 'Margerite': [5, 7], 'Fetthenne': [8, 10], 'Lavendel': [6, 8], 'Pfingstrose': [5, 6], 'Rose': [6, 9], 'Kornblume': [6, 9], 'Klatschmohn': [5, 7],
+    'Ringelblume': [6, 10], 'Sonnenblume': [7, 9], 'Tulpe': [4, 5], 'Narzisse': [3, 4], 'Dahlie': [7, 10], 'Hortensie': [6, 9], 'Strandflieder': [7, 9], 'Thymian': [6, 8], 'Oregano': [7, 9], 'Borretsch': [6, 9] });
+  // Zusatzinfos für ein paar vorhandene Blumen (für Beet-Vorschläge)
+  const zusatz = { 'Margerite': [60, '#ffffff', true], 'Fetthenne': [50, '#d47a9b', false], 'Lavendel': [50, '#8a6fd1', false], 'Pfingstrose': [80, '#e38aa8', false], 'Thymian': [15, '#c49bd6', true], 'Oregano': [40, '#d6a0c8', true] };
+  Object.entries(zusatz).forEach(([n, [h, f, heim]]) => { if (!STAUDEN_INFO[n]) STAUDEN_INFO[n] = { name: n, hoehe: h, farbe: f, heimisch: heim, bluete: BLUETEZEIT[n], abstand: SPACING[n] || 30 }; });
+  PFLANZEN_BEDINGUNGEN_ALIAS['primel'] = 'Hohe Schlüsselblume';
+  PFLANZEN_BEDINGUNGEN_ALIAS['schlüsselblume'] = 'Hohe Schlüsselblume';
+  PFLANZEN_BEDINGUNGEN_ALIAS['veilchen'] = 'Duft-Veilchen';
+  PFLANZEN_BEDINGUNGEN_ALIAS['taubnessel'] = 'Gefleckte Taubnessel';
+  PFLANZEN_BEDINGUNGEN_ALIAS['günsel'] = 'Kriechender Günsel';
+  PFLANZEN_BEDINGUNGEN_ALIAS['aster'] = 'Herbst-Aster';
+  PFLANZEN_BEDINGUNGEN_ALIAS['astern'] = 'Herbst-Aster';
+  PFLANZEN_BEDINGUNGEN_ALIAS['hosta'] = 'Funkie';
+  PFLANZEN_BEDINGUNGEN_ALIAS['storchschnabel'] = 'Wald-Storchschnabel';
+  PFLANZEN_BEDINGUNGEN_ALIAS['witwenblume'] = 'Acker-Witwenblume';
+  PFLANZEN_BEDINGUNGEN_ALIAS['flockenblume'] = 'Wiesen-Flockenblume';
+  PFLANZEN_BEDINGUNGEN_ALIAS['schneerose'] = 'Christrose';
+  PFLANZEN_BEDINGUNGEN_ALIAS['muscari'] = 'Traubenhyazinthe';
+  PFLANZEN_BEDINGUNGEN_ALIAS['echinacea'] = 'Purpur-Sonnenhut';
+  PFLANZEN_BEDINGUNGEN_ALIAS['wollziest'] = 'Woll-Ziest';
+})();
+
+// ==================== 🌸 BLUMEN- & STAUDENBEETE (Vorschläge) ====================
+// licht: sonne (> 6 h Sonne) | halbschatten (3–6 h) | schatten (< 3 h)
+// richtung: typische Lage, z. B. vor einer Wand/Hecke, die in diese Richtung zeigt (S = Südseite)
+// boden: trocken | normal | feucht · form: rand (Rückseite = obere Kante, hohe Pflanzen hinten) | insel (rundum sichtbar, hohe Pflanzen in der Mitte)
+const BLUMEN_BEETE = [
+  { id: 'wildblumen_trocken', icon: '☀️', name: 'Sonniges Wildblumenbeet', licht: 'sonne', richtung: ['S', 'SW', 'W'], boden: 'trocken', form: 'rand', w: 250, h: 120,
+    pflanzen: [['Natternkopf', 3], ['Wilde Möhre', 3], ['Wiesen-Salbei', 5], ['Schafgarbe', 3], ['Färber-Kamille', 3], ['Karthäuser-Nelke', 5], ['Hornklee', 5]],
+    text: 'Fast nur heimische Wildstauden für magere, sonnige Plätze – ein Festmahl für Wildbienen, Hummeln und Falter, und kaum Arbeit.',
+    tipp: 'Nicht düngen und keinen Kompost einarbeiten! Lieber Sand oder Splitt untermischen – auf magerem Boden blühen sie am schönsten.' },
+  { id: 'kiesbeet', icon: '🪨', name: 'Kiesbeet (sehr trocken)', licht: 'sonne', richtung: ['S', 'SW'], boden: 'trocken', form: 'rand', w: 200, h: 120,
+    pflanzen: [['Kugeldistel', 2], ['Zierlauch', 7], ['Lavendel', 4], ['Katzenminze', 3], ['Woll-Ziest', 4], ['Fetthenne', 3], ['Blauschwingel', 5], ['Thymian', 4]],
+    text: 'Für die heißeste Ecke vor einer Südwand: Diese Pflanzen kommen nach dem Anwachsen ohne Gießen durch den Sommer.',
+    tipp: '5–8 cm Splitt oder Kies als Mulch hält Unkraut fern und speichert Wärme. Im ersten Jahr noch gießen.' },
+  { id: 'hummel', icon: '🐝', name: 'Hummel-Paradies', licht: 'sonne', richtung: ['S', 'W', 'O'], boden: 'normal', form: 'rand', w: 250, h: 120,
+    pflanzen: [['Rittersporn', 2], ['Natternkopf', 3], ['Wiesen-Salbei', 4], ['Akelei', 3], ['Glockenblume', 3], ['Katzenminze', 3], ['Woll-Ziest', 3]],
+    text: 'Lauter Blüten mit langen Röhren, an die vor allem Hummeln herankommen – von Mai bis September brummt es hier.',
+    tipp: 'Rittersporn und Salbei nach der ersten Blüte zurückschneiden – dann gibt es im Spätsommer eine zweite Runde. Akelei und Rittersporn sind giftig.' },
+  { id: 'schmetterling', icon: '🦋', name: 'Schmetterlingsbeet', licht: 'sonne', richtung: ['S', 'SW', 'W'], boden: 'normal', form: 'rand', w: 300, h: 130,
+    pflanzen: [['Herbst-Aster', 2], ['Purpur-Sonnenhut', 3], ['Acker-Witwenblume', 3], ['Wiesen-Flockenblume', 3], ['Moschus-Malve', 2], ['Oregano', 3], ['Fetthenne', 3], ['Karthäuser-Nelke', 4]],
+    text: 'Nektar vom Frühsommer bis Oktober: Flockenblume, Witwenblume, Dost und Aster sind echte Falter-Tankstellen.',
+    tipp: 'Eine Brennnessel-Ecke in der Nähe stehen lassen – dort wachsen die Raupen von Tagpfauenauge und Admiral auf.' },
+  { id: 'praerie', icon: '🌾', name: 'Präriebeet', licht: 'sonne', richtung: ['S', 'W'], boden: 'normal', form: 'rand', w: 300, h: 150,
+    pflanzen: [['Lampenputzergras', 3], ['Purpur-Sonnenhut', 4], ['Sonnenhut', 4], ['Herbst-Aster', 2], ['Steppen-Salbei', 5], ['Katzenminze', 3], ['Fetthenne', 4]],
+    text: 'Modern und pflegeleicht: Gräser und Spätsommerblüher wie in der nordamerikanischen Prärie. Schön bis in den Winter.',
+    tipp: 'Erst im März alles auf einmal zurückschneiden – Samenstände und Halme mit Raureif sind im Winter ein Hingucker und Vogelfutter.' },
+  { id: 'bauerngarten', icon: '🏡', name: 'Bauerngarten-Rabatte', licht: 'sonne', richtung: ['S', 'O', 'W'], boden: 'normal', form: 'rand', w: 300, h: 120,
+    pflanzen: [['Rittersporn', 2], ['Pfingstrose', 2], ['Akelei', 4], ['Glockenblume', 4], ['Margerite', 3], ['Moschus-Malve', 2], ['Blut-Storchschnabel', 4], ['Katzenminze', 2]],
+    text: 'Klassische, üppige Blumenrabatte – romantisch, voller Farben und trotzdem bienenfreundlich.',
+    tipp: 'Pfingstrosen nicht zu tief pflanzen (Knospen max. 3 cm unter der Erde), sonst blühen sie nicht.' },
+  { id: 'rundbeet', icon: '⭕', name: 'Rundbeet im Rasen', licht: 'sonne', richtung: ['S', 'O', 'W'], boden: 'normal', form: 'insel', w: 180, h: 180,
+    pflanzen: [['Lampenputzergras', 1], ['Purpur-Sonnenhut', 3], ['Steppen-Salbei', 4], ['Blut-Storchschnabel', 4], ['Katzenminze', 4], ['Fetthenne', 3]],
+    text: 'Von allen Seiten schön: hoch in der Mitte, niedrig am Rand. Ideal als Blickfang mitten im Rasen.',
+    tipp: 'Eine Rasenkante (Metall oder Pflaster) spart das ständige Abstechen.' },
+  { id: 'waldrand', icon: '🌳', name: 'Waldrand im Halbschatten', licht: 'halbschatten', richtung: ['O', 'W'], boden: 'normal', form: 'rand', w: 330, h: 150,
+    pflanzen: [['Wasserdost', 1], ['Wald-Witwenblume', 3], ['Johanniskraut', 3], ['Wald-Storchschnabel', 5], ['Rasen-Schmiele', 3], ['Salbei-Gamander', 2], ['Frühlings-Platterbse', 3], ['Große Sternmiere', 3], ['Hohe Schlüsselblume', 5]],
+    text: 'Heimische Waldrand-Pflanzen für Plätze mit Morgen- oder Abendsonne – blüht von März (Schlüsselblume) bis September (Wasserdost).',
+    tipp: 'Laub im Herbst einfach liegen lassen – es wird zu Humus, genau wie am echten Waldrand.' },
+  { id: 'fruehling', icon: '🌷', name: 'Frühlingsbeet für Wildbienen', licht: 'halbschatten', richtung: ['O', 'S'], boden: 'normal', form: 'rand', w: 180, h: 100,
+    pflanzen: [['Lungenkraut', 4], ['Hohe Schlüsselblume', 5], ['Kriechender Günsel', 5], ['Duft-Veilchen', 6], ['Gefleckte Taubnessel', 3], ['Krokus', 20], ['Traubenhyazinthe', 20]],
+    text: 'Futter für die ersten Hummelköniginnen und Pelzbienen ab Februar – wenn sonst kaum etwas blüht.',
+    tipp: 'Gut unter Sträuchern oder Obstbäumen, die erst später austreiben. Krokus und Traubenhyazinthe im September/Oktober stecken.' },
+  { id: 'schatten', icon: '🌲', name: 'Schattenbeet unter Bäumen', licht: 'schatten', richtung: ['N'], boden: 'normal', form: 'rand', w: 250, h: 120,
+    pflanzen: [['Wald-Geißbart', 1], ['Funkie', 3], ['Christrose', 2], ['Wald-Segge', 5], ['Lungenkraut', 4], ['Elfenblume', 5], ['Waldmeister', 7]],
+    text: 'Grün, ruhig und trotzdem mit Blüten: von der Christrose im Winter über Waldmeister im Mai bis zum Geißbart im Juni.',
+    tipp: 'Unter Bäumen ist es oft trocken – im ersten Jahr regelmäßig gießen und mit Laub mulchen.' },
+  { id: 'nordwand', icon: '🧱', name: 'Nordseite am Haus', licht: 'schatten', richtung: ['N', 'NO'], boden: 'normal', form: 'rand', w: 200, h: 80,
+    pflanzen: [['Akelei', 3], ['Funkie', 2], ['Purpurglöckchen', 5], ['Wald-Segge', 3], ['Gefleckte Taubnessel', 4], ['Duft-Veilchen', 6]],
+    text: 'Für den schmalen Streifen an der Nordwand: Blattschmuck in Grün, Rot und Silber, dazu Blüten im Frühling.',
+    tipp: 'Regenschatten der Hauswand beachten – direkt an der Mauer ist es trockener, als man denkt.' },
+  { id: 'feucht', icon: '💧', name: 'Feuchtbeet & Teichrand', licht: 'halbschatten', richtung: ['S', 'O', 'W'], boden: 'feucht', form: 'rand', w: 280, h: 130,
+    pflanzen: [['Wasserdost', 2], ['Mädesüß', 2], ['Blutweiderich', 2], ['Gilbweiderich', 2], ['Sumpf-Schwertlilie', 3], ['Beinwell', 1], ['Rasen-Schmiele', 3]],
+    text: 'Für feuchte, lehmige Senken oder den Teichrand – hier blüht es den ganzen Sommer in Rosa, Gelb und Weiß.',
+    tipp: 'Wo das Wasser nach Regen lange stehen bleibt, fühlen sich diese Pflanzen am wohlsten. Schwertlilie ist giftig – mit Abstand zum Spielbereich.' },
+];
+const BLUMEN_LICHT = { sonne: ['☀️', 'Sonnig', 'mehr als 6 Std. Sonne'], halbschatten: ['⛅', 'Halbschatten', '3–6 Std. Sonne'], schatten: ['☁️', 'Schatten', 'weniger als 3 Std. Sonne'] };
+const BLUMEN_BODEN = { trocken: ['🏜️', 'Trocken & sandig'], normal: ['🌱', 'Normaler Gartenboden'], feucht: ['💧', 'Feucht & lehmig'] };
+const HIMMELSRICHTUNG = { N: 'Nord', NO: 'Nordost', O: 'Ost', SO: 'Südost', S: 'Süd', SW: 'Südwest', W: 'West', NW: 'Nordwest' };
+
 const TIER_KATEGORIEN = {
   bienen: '🐝 Bienen, Hummeln & Wespen',
   insekten: '🐞 Käfer & Nützlinge',

@@ -372,6 +372,17 @@
   .tier-detail-kopf { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; }
   .tier-detail-icon { font-size: 2.6rem; width: 64px; height: 64px; flex-shrink: 0; border-radius: 50%; background: rgba(127,164,118,0.15); display: flex; align-items: center; justify-content: center; }
   .tier-selten { background: rgba(196,80,60,0.12); border-left: 4px solid #c4503c; border-radius: var(--radius-sm); padding: 10px 12px; font-size: 0.82rem; line-height: 1.45; margin-bottom: 10px; }
+  .blumen-lage { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 8px; font-size: 0.72rem; }
+  .blumen-lage span { background: rgba(127,164,118,0.15); border-radius: 999px; padding: 3px 9px; }
+  .blumen-svg { width: 100%; height: auto; display: block; background: rgba(127,164,118,0.08); border-radius: 10px; }
+  .blumen-hinweis { font-size: 0.7rem; opacity: 0.75; margin: 4px 0 8px; }
+  .blumen-abschnitt { font-size: 0.72rem; font-weight: 700; margin-bottom: 4px; }
+  .blumen-bluete { display: grid; grid-template-columns: repeat(12, 1fr); gap: 2px; margin-bottom: 8px; }
+  .blumen-bluete span { display: flex; flex-direction: column; align-items: center; font-size: 0.62rem; opacity: 0.85; gap: 2px; }
+  .blumen-bluete i { display: block; width: 100%; height: 14px; border-radius: 4px; border: 1px solid rgba(127,127,127,0.25); }
+  .blumen-pflanzen { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
+  .blumen-pflanze { display: inline-flex; align-items: center; gap: 5px; font-size: 0.72rem; border: 1px solid var(--parchment); background: var(--white); color: inherit; border-radius: 999px; padding: 3px 9px; cursor: pointer; }
+  .blumen-pflanze i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; border: 1px solid rgba(0,0,0,0.2); }
   .tier-werkzeuge { display: flex; gap: 8px; margin: -4px 0 12px; }
   .tier-werkzeuge button { flex: 1; }
   .bestimm-frage { font-size: 1.05rem; font-weight: 600; margin: 4px 0 12px; }
@@ -2065,8 +2076,23 @@
     <p style="font-size:0.72rem;color:var(--bark);margin-bottom:10px">Bewährte Mischkultur-Kombinationen zum Übernehmen – „Einfügen“ legt ein neues Beet mit allen Pflanzen an, danach frei anpassbar.</p>
     <div class="beispiel-filter" id="beispielFilter"></div>
     <div id="beispielBeeteBox"></div>
+    <button type="button" class="btn-secondary" style="width:100%;margin-top:10px" onclick="openBlumenBeete()">🌸 Blumen- &amp; Staudenbeete – Vorschläge nach Lage und Boden ›</button>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="document.getElementById('templateModal').style.display='none'">Schließen</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Blumen- & Staudenbeete -->
+<div class="modal-bg" id="blumenBeeteModal" style="display:none">
+  <div class="modal" style="width:min(620px,96vw);max-height:90vh;overflow-y:auto">
+    <h2>🌸 Blumen- &amp; Staudenbeete</h2>
+    <p style="font-size:0.74rem;color:var(--bark);margin-bottom:8px">Fertige Pflanzpläne für eure Lage. <b>Faustregel:</b> Südseite = über 6 Std. Sonne, Ost- und Westseite = 3–6 Std. (Morgen- bzw. Abendsonne), Nordseite oder unter Bäumen = unter 3 Std. „Einfügen“ legt das Beet mit allen Pflanzen an – danach frei anpassbar.</p>
+    <div class="beispiel-filter" id="blumenFilterLicht"></div>
+    <div class="beispiel-filter" id="blumenFilterBoden" style="margin-top:6px"></div>
+    <div id="blumenBeeteBox" style="margin-top:10px"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="document.getElementById('blumenBeeteModal').style.display='none'">Schließen</button>
     </div>
   </div>
 </div>
@@ -4683,6 +4709,176 @@ function beispielBeetEinfuegen(id) {
   draw(); renderBedList(); saveData(); updateStatus();
   beetFotoAnsichtenAktualisieren();
   showTempStatus(`➕ „${name}“ angelegt – auf der Karte an die richtige Stelle ziehen`, 5);
+}
+
+
+// ==================== 🌸 BLUMEN- & STAUDENBEETE: Vorschläge mit Pflanzplan ====================
+// Daten: BLUMEN_BEETE, STAUDEN_INFO, BLUETEZEIT (pflanzendaten.js). Der Pflanzplan wird aus Höhe und
+// Abstand berechnet: Rand-Beet = hohe Pflanzen hinten (obere Kante), Insel-Beet = hohe Pflanzen in der Mitte.
+let blumenFilter = { licht: 'alle', boden: 'alle' };
+function openBlumenBeete() {
+  const t = document.getElementById('templateModal'); if (t) t.style.display = 'none';
+  renderBlumenBeete();
+  document.getElementById('blumenBeeteModal').style.display = 'flex';
+}
+function blumenFilterSetzen(art, wert) { blumenFilter[art] = wert; renderBlumenBeete(); }
+function blumenInfo(n) { const si = STAUDEN_INFO[n] || {}; return { hoehe: si.hoehe || 50, abstand: si.abstand || SPACING[n] || 30, farbe: si.farbe || '#c9a0c0', heimisch: !!si.heimisch, bluete: BLUETEZEIT[n] || null, giftig: !!si.giftig }; }
+// kleiner, fester Zufall – damit der Plan bei jedem Öffnen gleich aussieht
+function blumenZufall(seed) { let x = 0; for (const c of String(seed)) x = (x * 31 + c.charCodeAt(0)) % 9973; return () => { x = (x * 7919 + 13) % 9973; return x / 9973; }; }
+function blumenLayout(b) {
+  const zufall = blumenZufall(b.id);
+  const punkte = [];
+  const klasse = h => h >= 90 ? 0 : h >= 40 ? 1 : 2;
+  if (b.form === 'insel') {
+    // Ringe von innen nach außen, hohe Arten zuerst; jede Art bleibt als Gruppe (Bogenstück) zusammen
+    const R = b.w / 2;
+    const einzel = [];
+    b.pflanzen.slice().sort((x, y) => blumenInfo(y[0]).hoehe - blumenInfo(x[0]).hoehe).forEach(([n, a]) => { for (let i = 0; i < a; i++) einzel.push(n); });
+    const mittelAbstand = einzel.reduce((s, n) => s + blumenInfo(n).abstand, 0) / einzel.length;
+    let d = mittelAbstand, ringe;
+    for (let versuch = 0; versuch < 30; versuch++) {
+      ringe = []; let k = 0, j = 0;
+      while (k < einzel.length) {
+        const r = j === 0 ? 0 : j * d;
+        if (r > R - d * 0.35) { ringe = null; break; }
+        const kap = j === 0 ? 1 : Math.max(1, Math.floor(2 * Math.PI * r / d));
+        ringe.push({ r, liste: einzel.slice(k, k + kap) }); k += kap; j++;
+      }
+      if (ringe) break;
+      d *= 0.93;
+    }
+    // äußersten Ring an den Rand schieben, die übrigen gleichmäßig verteilen
+    const n = ringe.length;
+    ringe.forEach((ring, j) => {
+      const r = n === 1 ? 0 : (j === 0 && ring.liste.length === 1 ? 0 : (R - d * 0.45) * (j + (ringe[0].liste.length === 1 ? 0 : 0.5)) / (n - (ringe[0].liste.length === 1 ? 1 : 0.5)));
+      const start = zufall() * Math.PI * 2;
+      ring.liste.forEach((name, i) => {
+        if (r === 0) { punkte.push({ name, x: 0, y: 0 }); return; }
+        const w = start + i / ring.liste.length * Math.PI * 2;
+        const rr = r * (0.94 + zufall() * 0.1);
+        punkte.push({ name, x: Math.cos(w) * rr, y: Math.sin(w) * rr });
+      });
+    });
+  } else {
+    const W = b.w, H = b.h;
+    const baender = [[], [], []];
+    b.pflanzen.forEach(([n, a]) => baender[klasse(blumenInfo(n).hoehe)].push([n, a]));
+    const flaeche = band => band.reduce((s, [n, a]) => s + a * Math.pow(blumenInfo(n).abstand, 2), 0);
+    // Bandhöhe nach Fläche, aber mindestens so hoch wie der größte Pflanzabstand im Band
+    const roh = baender.map(bd => bd.length ? Math.max(flaeche(bd) / W, Math.max(...bd.map(([n]) => blumenInfo(n).abstand)) * 0.8) : 0);
+    const summe = roh.reduce((s, x) => s + x, 0) || 1;
+    let y0 = -H / 2;
+    baender.forEach((band, bi) => {
+      if (!band.length) return;
+      const bh = H * roh[bi] / summe;
+      const bf = flaeche(band) || 1;
+      let x0 = -W / 2;
+      band.forEach(([n, a]) => {
+        const gw = W * a * Math.pow(blumenInfo(n).abstand, 2) / bf;
+        const spalten = Math.min(a, Math.max(1, Math.round(Math.sqrt(a * gw / bh))));
+        const zeilen = Math.ceil(a / spalten);
+        const cw = gw / spalten, ch = bh / zeilen;
+        for (let i = 0; i < a; i++) {
+          const zi = Math.floor(i / spalten), si = i % spalten;
+          const versatz = zi % 2 ? cw * 0.25 : -cw * 0.25 * (spalten > 1 ? 1 : 0);
+          const x = x0 + cw * (si + 0.5) + versatz + (zufall() - 0.5) * cw * 0.25;
+          const y = y0 + ch * (zi + 0.5) + (zufall() - 0.5) * ch * 0.25;
+          const rr = Math.min(blumenInfo(n).abstand / 2, W / 4, H / 4) * 0.7;
+          punkte.push({ name: n, x: Math.max(-W / 2 + rr, Math.min(W / 2 - rr, x)), y: Math.max(-H / 2 + rr, Math.min(H / 2 - rr, y)) });
+        }
+        x0 += gw;
+      });
+      y0 += bh;
+    });
+  }
+  return punkte;
+}
+function blumenVorschauSvg(b) {
+  const punkte = blumenLayout(b);
+  const W = b.w, H = b.h, rand = 12;
+  const grund = b.form === 'insel'
+    ? `<ellipse cx="0" cy="0" rx="${W / 2}" ry="${H / 2}" fill="#a98b6a" opacity="0.55"/>`
+    : `<rect x="${-W / 2}" y="${-H / 2}" width="${W}" height="${H}" rx="8" fill="#a98b6a" opacity="0.55"/>` +
+      `<line x1="${-W / 2}" y1="${-H / 2 - 4}" x2="${W / 2}" y2="${-H / 2 - 4}" stroke="#6b5a45" stroke-width="3" stroke-dasharray="6 4"/>`;
+  const kreise = punkte.map(p => { const i = blumenInfo(p.name); const r = Math.max(5, i.abstand / 2 * 0.95);
+    return `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${r}" fill="${i.farbe}" fill-opacity="0.78" stroke="#fff" stroke-opacity="0.85" stroke-width="1.5"/>`; }).join('');
+  // eine Beschriftung je Pflanzengruppe (Mittelpunkt)
+  const gruppen = {};
+  punkte.forEach(p => { (gruppen[p.name] = gruppen[p.name] || []).push(p); });
+  const schrift = Math.max(9, Math.min(15, W / 22));
+  const texte = Object.entries(gruppen).map(([n, ps]) => {
+    const x = ps.reduce((s, p) => s + p.x, 0) / ps.length, y = ps.reduce((s, p) => s + p.y, 0) / ps.length;
+    const kurz = n.length > 13 ? n.split(/[\s-]/).pop() : n;
+    return `<text x="${x.toFixed(1)}" y="${(y + schrift / 3).toFixed(1)}" font-size="${schrift}" text-anchor="middle" fill="#1f1a12" stroke="#fff" stroke-width="3" paint-order="stroke" font-weight="600">${escapeHtml(kurz)}</text>`;
+  }).join('');
+  return `<svg class="blumen-svg" viewBox="${-W / 2 - rand} ${-H / 2 - rand} ${W + rand * 2} ${H + rand * 2}" role="img" aria-label="Pflanzplan ${escapeHtml(b.name)}">${grund}${kreise}${texte}</svg>`;
+}
+function blumenBluehbalken(b) {
+  const monate = Array.from({ length: 12 }, (_, m) => b.pflanzen.filter(([n]) => { const bl = blumenInfo(n).bluete; return bl && isInHarvestWindow(bl, m + 1); }));
+  const max = Math.max(1, ...monate.map(l => l.length));
+  return `<div class="blumen-bluete">${monate.map((l, m) => {
+    const farben = l.map(([n]) => blumenInfo(n).farbe);
+    const bg = farben.length ? `linear-gradient(90deg, ${farben.map((f, i) => `${f} ${i / farben.length * 100}% ${(i + 1) / farben.length * 100}%`).join(', ')})` : 'transparent';
+    return `<span title="${'JFMAMJJASOND'[m]}: ${l.map(([n]) => n).join(', ') || 'keine Blüte'}"><i style="background:${bg};opacity:${l.length ? 0.45 + 0.55 * l.length / max : 0}"></i>${'JFMAMJJASOND'[m]}</span>`;
+  }).join('')}</div>`;
+}
+function renderBlumenBeete() {
+  const box = document.getElementById('blumenBeeteBox');
+  const chip = (art, k, t) => `<button type="button" class="saat-chip${blumenFilter[art] === k ? ' an' : ''}" onclick="blumenFilterSetzen('${art}','${k}')">${t}</button>`;
+  document.getElementById('blumenFilterLicht').innerHTML = chip('licht', 'alle', 'Alle') + Object.entries(BLUMEN_LICHT).map(([k, v]) => chip('licht', k, v[0] + ' ' + v[1] + ' <small>(' + v[2].replace('mehr als ', '> ').replace('weniger als ', '< ').replace(' Std. Sonne', ' h') + ')</small>')).join('');
+  document.getElementById('blumenFilterBoden').innerHTML = chip('boden', 'alle', 'Alle Böden') + Object.entries(BLUMEN_BODEN).map(([k, v]) => chip('boden', k, v[0] + ' ' + v[1])).join('');
+  const liste = BLUMEN_BEETE.filter(b => (blumenFilter.licht === 'alle' || b.licht === blumenFilter.licht) && (blumenFilter.boden === 'alle' || b.boden === blumenFilter.boden));
+  if (!liste.length) { box.innerHTML = '<div class="empty-state">Für diese Kombination gibt es noch keinen Vorschlag – probier einen anderen Boden.</div>'; return; }
+  box.innerHTML = liste.map(b => {
+    const anzahl = b.pflanzen.reduce((s, [, n]) => s + n, 0);
+    const arten = b.pflanzen.length, heimisch = b.pflanzen.filter(([n]) => blumenInfo(n).heimisch).length;
+    const giftig = b.pflanzen.filter(([n]) => blumenInfo(n).giftig).map(([n]) => n);
+    const li = BLUMEN_LICHT[b.licht], bo = BLUMEN_BODEN[b.boden];
+    const pflanzen = b.pflanzen.map(([n, a]) => { const i = blumenInfo(n);
+      return `<button type="button" class="blumen-pflanze" onclick="blumenLexikon(${jsAttrStr(n).replace(/"/g, '&quot;')})"><i style="background:${i.farbe}"></i>${escapeHtml(n)} ×${a}</button>`; }).join('');
+    return `<div class="beispiel-karte blumen-karte">
+      <div class="beispiel-kopf">
+        <span class="beispiel-titel">${b.icon} ${escapeHtml(b.name)}
+          <div class="beispiel-meta">${zahlDe(b.w / 100)} × ${zahlDe(b.h / 100)} m${b.form === 'insel' ? ' (rund)' : ''} · ${anzahl} Pflanzen · ${arten} Arten</div></span>
+        <button class="tool-btn" style="padding:6px 10px;font-size:0.72rem;flex-shrink:0" onclick="blumenBeetEinfuegen('${b.id}')">➕ Einfügen</button>
+      </div>
+      <div class="blumen-lage">
+        <span>${li[0]} ${li[1]} · ${li[2]}</span><span>🧭 ${b.richtung.map(r => HIMMELSRICHTUNG[r]).join(', ')}</span><span>${bo[0]} ${bo[1]}</span><span>🌿 ${heimisch} von ${arten} heimisch</span>
+      </div>
+      ${blumenVorschauSvg(b)}
+      <div class="blumen-hinweis">${b.form === 'insel' ? '⭕ Hohe Pflanzen in der Mitte, niedrige außen' : '⬆️ Oben = Rückseite (Wand, Zaun oder Hecke) – hohe Pflanzen hinten, niedrige vorne'}</div>
+      <div class="blumen-abschnitt">🌸 Blüte im Jahr</div>
+      ${blumenBluehbalken(b)}
+      <div class="blumen-pflanzen">${pflanzen}</div>
+      <div class="beispiel-text">${escapeHtml(b.text)}</div>
+      ${b.tipp ? `<div class="beispiel-tipp">💡 ${escapeHtml(b.tipp)}</div>` : ''}
+      ${giftig.length ? `<div class="beispiel-tipp">☠️ Giftig: ${escapeHtml(giftig.join(', '))} – bei kleinen Kindern nicht direkt an den Spielbereich pflanzen.</div>` : ''}
+    </div>`;
+  }).join('');
+}
+function blumenLexikon(n) { document.getElementById('blumenBeeteModal').style.display = 'none'; lexikonOeffnen(n); }
+function blumenBeetEinfuegen(id) {
+  const b = BLUMEN_BEETE.find(x => x.id === id);
+  if (!b || !gardens[currentGardenId]) return;
+  const plants = blumenLayout(b).map(p => ({
+    sym: (PLANTS.find(x => x.name === p.name) || {}).sym || '🌸', name: p.name, variety: '',
+    rx: Math.round(p.x), ry: Math.round(p.y), notes: '', date: '', location: '', pest: '', solution: '', harvests: [],
+  }));
+  const vorhanden = getCurrentBeds().map(x => x.name);
+  let name = b.name, nr = 2;
+  while (vorhanden.includes(name)) name = b.name + ' ' + nr++;
+  pushUndo();
+  const jitter = () => Math.floor(Math.random() * 40) - 20;
+  const bed = b.form === 'insel'
+    ? { id: Date.now(), shape: 'circle', x: canvas.width / 2 + jitter(), y: canvas.height / 2 + jitter(), rx: b.w / 2, ry: b.h / 2, color: '#d488a0', name, rotation: 0, plants }
+    : { id: Date.now(), shape: 'rect', x: canvas.width / 2 + jitter(), y: canvas.height / 2 + jitter(), w: b.w, h: b.h, color: '#d488a0', name, rotation: 0, plants };
+  getCurrentBeds().push(bed);
+  selectedBed = bed; selectedBeds = [bed];
+  document.getElementById('blumenBeeteModal').style.display = 'none';
+  showBedEditor(bed);
+  draw(); renderBedList(); saveData(); updateStatus();
+  beetFotoAnsichtenAktualisieren();
+  showTempStatus(`🌸 „${name}“ angelegt – auf der Karte an die richtige Stelle ziehen und drehen`, 5);
 }
 
 function insertTemplate(id) {
@@ -11452,7 +11648,7 @@ function beobTierDetailHtml(tierId) {
 let lexVerlauf = [];          // Stapel der bisherigen Seiten (für ‹ Zurück)
 let lexSeite = { typ: 'liste' };
 let lexKat = 'alle';
-const LEX_KATS = [['alle', 'Alle'], ['garten', '📍 In meinem Garten'], ['Gemüse', '🥕 Gemüse'], ['Kräuter', '🌿 Kräuter'], ['Beeren', '🫐 Beeren'], ['Obst', '🍎 Obst'], ['Blumen', '🌸 Blumen']];
+const LEX_KATS = [['alle', 'Alle'], ['garten', '📍 In meinem Garten'], ['Gemüse', '🥕 Gemüse'], ['Kräuter', '🌿 Kräuter'], ['Beeren', '🫐 Beeren'], ['Obst', '🍎 Obst'], ['Blumen', '🌸 Blumen'], ['stauden', '🌼 Stauden & Wildblumen']];
 const LEX_FUNKTIONEN = [
   ['🗓', 'Aussaatkalender', 'aussaat säen vorziehen kalender', () => openSowingCalendar()],
   ['📅', 'Pflegeplan', 'gießen düngen pflege aufgaben', () => openCarePlan()],
@@ -11465,6 +11661,7 @@ const LEX_FUNKTIONEN = [
   ['🌰', 'Saatgutinventar', 'saatgut samen inventar', () => openSeedInventory()],
   ['🥫', 'Vorratskammer', 'vorrat eingekocht eingefroren vorratskammer', () => zurVorratskammer()],
   ['🧩', 'Beet-Vorlagen', 'vorlage vorlagen', () => openTemplateModal()],
+  ['🌸', 'Blumen- & Staudenbeete (Vorschläge)', 'blumenbeet staudenbeet stauden blumen schatten halbschatten sonne trocken feucht norden süden pflanzplan', () => openBlumenBeete()],
   ['🥫', 'Verwertung & Haltbarmachen', 'einkochen einfrieren fermentieren trocknen verwertung', () => showView('preserve')],
   ['🦔', 'Tiere im Garten', 'tiere igel vögel bienen insekten naturgarten', () => showView('tiere')],
   ['🔗', 'Wer frisst was? (Beobachtungen)', 'beobachtung beobachten raupe nektar insekten vögel beeren samen wer frisst', () => { showView('tiere'); tierAnsichtSetzen('wer'); }],
@@ -11586,6 +11783,7 @@ function lexListeHtml() {
   const imGartenKat = new Set([...imGarten].map(n => lexKatalogName(n)));
   let liste = lexAllePflanzen();
   if (lexKat === 'garten') liste = liste.filter(p => imGartenKat.has(p.name) || imGarten.has(p.name));
+  else if (lexKat === 'stauden') liste = liste.filter(p => p.staude || (typeof STAUDEN_INFO !== 'undefined' && STAUDEN_INFO[p.name]));
   else if (lexKat !== 'alle') liste = liste.filter(p => p.cat === lexKat);
   let html = `<div class="lex-chips">${LEX_KATS.map(([k, l]) => `<button type="button" class="saat-chip${lexKat === k ? ' an' : ''}" onclick="lexKatSetzen('${k}')">${l}</button>`).join('')}</div>`;
   if (!liste.length) return html + '<div class="empty-state">Keine Pflanzen in dieser Auswahl.</div>';
@@ -11660,6 +11858,7 @@ function lexInfo(art, i) {
 function lexJahresbalken(name) {
   const s = lexTabelle(name, SOWING) || {};
   const zeilen = [['🏠 Vorziehen', s.vorziehen, '#7aa6c9'], ['🌍 Direktsaat', s.direktsaat, '#c99a3a'], ['🌱 Auspflanzen', s.auspflanzen, '#6f9e4f'],
+    ['🌸 Blüte', typeof BLUETEZEIT !== 'undefined' ? BLUETEZEIT[name] : null, '#d488a0'],
     ['🧺 Ernte', lexTabelle(name, HARVEST_WINDOW), '#c0633a'], ['✂️ Rückschnitt', (lexTabelle(name, RUECKSCHNITT) || {}).monate, '#8b6f47']].filter(z => z[1]);
   if (!zeilen.length) return '';
   const jetzt = new Date().getMonth() + 1;
@@ -11674,7 +11873,8 @@ function lexPflanzeHtml(name) {
   const fam = FAMILIES[name];
   const chip = t => `<span class="bed-chip">${t}</span>`;
   let h = `<div class="lex-kopf-pflanze"><span class="lex-sym gross">${def.sym || '🌱'}</span><div><h2>${escapeHtml(name)}</h2>
-    <div class="bed-chips">${chip(def.cat || 'Eigene')}${def.perennial ? chip('🔄 mehrjährig') : ''}${def.frostTender ? chip('❄️ frostempfindlich') : ''}${fam && fam !== 'verschiedene' ? chip('🧬 ' + escapeHtml(fam)) : ''}</div></div></div>`;
+    ${typeof STAUDEN_INFO !== 'undefined' && STAUDEN_INFO[name] && STAUDEN_INFO[name].latein ? `<div class="tier-meta" style="margin:-2px 0 4px"><i>${escapeHtml(STAUDEN_INFO[name].latein)}</i></div>` : ''}
+    <div class="bed-chips">${chip(def.cat || 'Eigene')}${def.perennial ? chip('🔄 mehrjährig') : ''}${(() => { const si = typeof STAUDEN_INFO !== 'undefined' && STAUDEN_INFO[name]; if (!si) return ''; return (si.hoehe ? chip('📏 ca. ' + (si.hoehe >= 100 ? (si.hoehe / 100).toString().replace('.', ',') + ' m' : si.hoehe + ' cm') + ' hoch') : '') + (si.heimisch ? chip('🌿 heimisch') : '') + (si.giftig ? chip('☠️ giftig') : ''); })()}${def.frostTender ? chip('❄️ frostempfindlich') : ''}${fam && fam !== 'verschiedene' ? chip('🧬 ' + escapeHtml(fam)) : ''}</div></div></div>`;
   // In deinem Garten
   const vk = lexVorkommen(name).concat(name !== def.name ? [] : []);
   const zusatz = lexImGarten();
