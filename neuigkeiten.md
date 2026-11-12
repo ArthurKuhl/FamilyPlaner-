@@ -1,5 +1,12 @@
 # Neuigkeiten im Familienplaner
-# Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## 2026-11-12 | ✏️ Zeichnen im Vollbild
+# Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
+
+## 2026-11-12 | 🔍 Zoom bleibt beim Verschieben erhalten
+- Wer in die Gartenkarte hineinzoomt und dann herumwischt, wird nicht mehr auf die Gesamtansicht zurückgeworfen.
+- Grund war das „Zum Neuladen nach unten ziehen“: Wischen nach unten auf der Karte hat die Seite neu geladen. In der Karte ist das jetzt aus.
+- Außerdem bleibt dein eigener Zoom erhalten, wenn sich Leisten am Handy ein- oder ausblenden oder du zwischen Karte und Liste wechselst. „An Fenster anpassen“ holt die Gesamtansicht zurück.
+
+## 2026-11-12 | ✏️ Zeichnen im Vollbild
 - Beim Handy schaltet die Gartenkarte nach „Zeichnen starten“ automatisch auf Vollbild. So hast du den ganzen Bildschirm zum Zeichnen, z. B. für eine lange Hecke als Freiform.
 - Unten steht ein Hinweis, was zu tun ist, mit „✕ Abbrechen“.
 - Nach dem Fertigstellen oder Abbrechen kehrt die Ansicht zu Karte + Liste zurück, und der Editor des neuen Elements ist geöffnet.

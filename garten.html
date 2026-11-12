@@ -6463,7 +6463,7 @@ function switchGarden(id) {
   renderGardenTabs();
   renderBedList();
   updateStatus();
-  resizeCanvas();
+  resizeCanvas(true);
   applyBgColor();
   document.getElementById('sb4').textContent = gardens[id]?.name || '';
   const loc = getWeatherSettings();
@@ -6594,11 +6594,14 @@ function aktuelleGartengroesseCm() {
   if (size && size.w > 0 && size.h > 0) return { w: Math.round(size.w * 100), h: Math.round(size.h * 100) };
   return { w: 1000, h: 800 }; // Standardgröße (10 × 8 m), solange noch keine Gartengröße hinterlegt ist
 }
-function resizeCanvas() {
+// Hat man selbst gezoomt (＋/－, Sprung zu Beet/Zone), bleibt dieser Zoom erhalten – auch wenn
+// Android beim Verschieben der Karte die Fenstergröße minimal ändert (Adress-/Navigationsleiste).
+let gartenZoomManuell = false, gartenZoomWrapBreite = 0;
+function resizeCanvas(erzwingen) {
   const groesse = aktuelleGartengroesseCm();
-  canvas.width = groesse.w;
-  canvas.height = groesse.h;
-  gartenZoomEinpassen();
+  const geaendert = canvas.width !== groesse.w || canvas.height !== groesse.h;
+  if (geaendert) { canvas.width = groesse.w; canvas.height = groesse.h; }
+  gartenZoomEinpassen(erzwingen || geaendert);
   draw();
 }
 function wendeZoomAn() {
@@ -6628,18 +6631,27 @@ function positioniereZoomWidget() {
 }
 window.addEventListener('resize', positioniereZoomWidget);
 window.addEventListener('orientationchange', () => setTimeout(positioniereZoomWidget, 200));
-function gartenZoomSetzen(neuerZoom) {
+function gartenZoomSetzen(neuerZoom, automatisch) {
   gartenZoom = Math.min(4, Math.max(0.1, neuerZoom));
+  if (!automatisch) gartenZoomManuell = true;
   wendeZoomAn();
 }
 function gartenZoomAnpassen(faktor) { gartenZoomSetzen(gartenZoom * faktor); }
-function gartenZoomEinpassen() {
+// erzwingen=false: nur einpassen, solange nicht selbst gezoomt wurde
+function gartenZoomEinpassen(erzwingen = true) {
   if (!wrap.clientWidth || !canvas.width) return;
-  gartenZoomSetzen(wrap.clientWidth / canvas.width);
+  if (!erzwingen && gartenZoomManuell) { wendeZoomAn(); return; }
+  gartenZoomManuell = false;
+  gartenZoomWrapBreite = wrap.clientWidth;
+  gartenZoomSetzen(wrap.clientWidth / canvas.width, true);
 }
-
-window.addEventListener('resize', () => gartenZoomEinpassen());
-window.addEventListener('orientationchange', () => setTimeout(gartenZoomEinpassen, 200));
+// Nur auf echte Breitenänderungen reagieren – reine Höhenänderungen (Leisten ein-/ausblenden
+// beim Wischen) lösen sonst ständig ein Zurückspringen auf „ganzer Garten“ aus.
+window.addEventListener('resize', () => {
+  if (Math.abs(wrap.clientWidth - gartenZoomWrapBreite) < 4) return;
+  gartenZoomEinpassen(false);
+});
+window.addEventListener('orientationchange', () => setTimeout(() => gartenZoomEinpassen(true), 250));
 
 function drawZones() {
   ctx.save();
@@ -7805,6 +7817,11 @@ function zeigeLoeschToast(text, rueckgaengigFn, sekunden) {
     function indikatorAusblenden() { if (indikator) indikator.style.opacity = '0'; }
     document.addEventListener('touchstart', (e) => {
       if (window.scrollY > 0 || e.touches.length !== 1 || __pullToRefreshModalOffen()) { ziehend = false; return; }
+      // Nicht in der Gartenkarte (dort verschiebt Wischen die Karte) und nicht in Bereichen,
+      // die selbst nach oben gescrollt sind – sonst lädt die Seite neu und der Zoom ist weg.
+      for (let el = e.target; el && el !== document.body; el = el.parentElement) {
+        if (el.id === 'canvasWrap' || el.scrollTop > 0) { ziehend = false; return; }
+      }
       startY = e.touches[0].clientY; ziehend = true; ausgeloest = false;
     }, { passive: true });
     document.addEventListener('touchmove', (e) => {
