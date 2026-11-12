@@ -240,14 +240,15 @@ async function gartenErinnerungen(geraet, plan, wetterHolen) {
     const morgen = isoPlusTage(datum, 1);
     for (let i = 0; i < plan.gaerten.length; i++) {
       const g = plan.gaerten[i];
-      const betroffen = (g.frost || []).filter(f => f && f.n && (!f.ab || f.ab <= morgen)).map(f => f.n);
+      // f.t = kurze Aufgabe aus dem Winterschutz-Katalog der App (z. B. „Knollen ausgraben“)
+      const betroffen = (g.frost || []).filter(f => f && f.n && (!f.ab || f.ab <= morgen)).map(f => f.t ? f.n + ' (' + f.t + ')' : f.n);
       if (!betroffen.length) continue;
       const w = await wetterHolen(g.lat, g.lon);
       if (!w || typeof w.min[1] !== 'number') continue;
       const tmin = w.min[1]; // Nacht auf morgen = Tiefstwert des morgigen Tages (fällt meist in die frühen Morgenstunden)
       if (tmin > FROST_GRENZE) continue;
       liste.push({ schluessel: 'gartenFrost_' + i, titel: (tmin <= 0 ? '❄️ Frost heute Nacht' : '❄️ Frostgefahr heute Nacht') + ' (bis ' + gradText(tmin) + ')',
-        text: (mehrere ? g.name + ': ' : '') + 'Abdecken oder reinholen: ' + listeKurz(betroffen, 6), seite: 'garten' });
+        text: (mehrere ? g.name + ': ' : '') + 'Jetzt schützen: ' + listeKurz(betroffen, 5), seite: 'garten' });
     }
   }
   if (imFenster(tagesZiel)) {
