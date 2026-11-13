@@ -1,6 +1,12 @@
 # Neuigkeiten im Familienplaner
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 
+## 2026-11-13 | Kochen: Portionen rechnen richtig, Gewürze bleiben vom Einkauf weg
+- ⚖️ Portionen-Umrechnung versteht Brüche und Bereiche: „1/2 l“, „½ TL“, „1 1/2“, „2–3 Eier“, „1 Prise“ – und zeigt z. B. „4–6 Eier“, „2 Prisen Zimt“, „½ TL“.
+- 🛒 Zum Einkauf: Gewürze und Löffel-Mengen (TL, EL, Prise, „zum Braten“) sind in der Vorschau abgewählt und kommen – falls doch gewählt – ohne Löffelmenge auf die Liste. Die Zutaten landen gleich in der passenden Supermarkt-Abteilung.
+- 🛡️ Ein einzelnes fehlerhaftes Rezept kann die Rezeptliste nicht mehr leer machen.
+- 👨‍🍳 Beim Start des Koch-Modus verschwindet eine noch stehende Meldung, damit sie die Timer-Knöpfe nicht verdeckt.
+
 ## 2026-11-13 | Einkauf: Kategorien treffen besser, Mengen auch hinten
 - 🧺 Neue Produkte landen in der richtigen Abteilung: Reis, Eis, Wein und Öl nicht mehr bei den Milchprodukten, Kartoffelchips bei Süßem, Äpfel beim Obst, Spülmaschinentabs, Alufolie, Kerzen & Co. bei Drogerie & Haushalt.
 - ✏️ Mengen werden auch so erkannt: „2x Milch“, „Milch 1l“, „Eier 10 Stück“, „Milch x2“.

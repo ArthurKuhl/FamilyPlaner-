@@ -1453,7 +1453,7 @@
     document.getElementById('leerText').textContent = rezepte.length
       ? 'Keine Rezepte gefunden. Filter oder Suche anpassen.'
       : 'Noch keine Rezepte. Tippe auf „＋ Neu“, um eins anzulegen.';
-    liste.forEach(r => box.appendChild(rezeptKarte(r)));
+    liste.forEach(r => { try { box.appendChild(rezeptKarte(r)); } catch (e) { console.warn('Rezept-Karte übersprungen', r && r.titel, e); } });
   }
 
   function rezeptKarte(r) {
@@ -1480,7 +1480,7 @@
       '<div class="rezept-titel">' + escapeHtml(r.titel) + '</div>' +
       '<div class="rezept-meta">' + (function () { const info = kochzeitInfo(r); return info
         ? '<span title="Gestoppt: Ø aus ' + info.anzahl + '× Kochen">⏱ ~' + info.schnitt + ' Min.</span>'
-        : '<span>⏱ ' + r.zeit + ' Min.</span>'; })() + '<span>🍽 ' + r.portionenBasis + '</span>' + (r.aufwand ? '<span>' + AUFWAND_STUFEN[r.aufwand].icon + '</span>' : '') + '</div>' +
+        : '<span>⏱ ' + r.zeit + ' Min.</span>'; })() + '<span>🍽 ' + r.portionenBasis + '</span>' + (r.aufwand && AUFWAND_STUFEN[r.aufwand] ? '<span>' + AUFWAND_STUFEN[r.aufwand].icon + '</span>' : '') + '</div>' +
       sterneAnzeige(r.bewertung) +
       (function () { const gz = geschmackZaehlen(r); return (gz.mag || gz.nicht) ? '<div style="font-size:0.66rem;color:var(--bark);margin-top:2px;">' + (gz.mag ? '😋 ' + gz.mag : '') + (gz.mag && gz.nicht ? ' · ' : '') + (gz.nicht ? '😕 ' + gz.nicht : '') + '</div>' : ''; })() +
       (function () { const b = rezeptBetroffene(r); return b.length ? '<div class="rezept-allergie" title="' + escapeHtml(b.map(x => x.person.label + ': ' + window.Lebensmittel.allergenText(x.enthalten)).join(' · ')) + '">⚠ ' + escapeHtml(b.map(x => x.person.label).join(', ')) + '</div>' : ''; })() +
@@ -1499,7 +1499,46 @@
   // --- ZAHLENFORMAT für skalierte Mengen ---
   function formatZahl(n) {
     if (Math.abs(n - Math.round(n)) < 0.01) return String(Math.round(n));
+    // gängige Brüche lesbar: 0,5 → ½ usw. (nur bei kleinen Mengen)
+    const ganz = Math.floor(n), rest = n - ganz;
+    const BRUECHE = [[0.25, '¼'], [0.5, '½'], [0.75, '¾'], [1 / 3, '⅓'], [2 / 3, '⅔']];
+    if (n < 10) for (const [w, z] of BRUECHE) if (Math.abs(rest - w) < 0.02) return (ganz ? ganz : '') + z;
     return n.toLocaleString('de-DE', { maximumFractionDigits: 2 });
+  }
+  // Menge aus dem Rezept lesen: „250“, „1,5“, „1/2“, „½“, „1 ½“, „1½“, „2-3“, „1 Prise“, „etwas“
+  // → { wert, bis, wort } (wert/bis = Zahlen oder null, wort = übrig gebliebener Text wie „Prise“)
+  const UNICODE_BRUCH = { '½': 0.5, '¼': 0.25, '¾': 0.75, '⅓': 1 / 3, '⅔': 2 / 3, '⅛': 0.125 };
+  function zahlLesen(t) {
+    t = String(t || '').trim().replace(',', '.');
+    let m;
+    if ((m = t.match(/^(\d+)\s*([½¼¾⅓⅔⅛])$/))) return Number(m[1]) + UNICODE_BRUCH[m[2]];
+    if ((m = t.match(/^([½¼¾⅓⅔⅛])$/))) return UNICODE_BRUCH[m[1]];
+    if ((m = t.match(/^(\d+)\s+(\d+)\/(\d+)$/))) return Number(m[1]) + Number(m[2]) / Number(m[3]);
+    if ((m = t.match(/^(\d+)\/(\d+)$/))) return Number(m[2]) ? Number(m[1]) / Number(m[2]) : null;
+    if ((m = t.match(/^\d+(?:\.\d+)?$/))) return Number(t);
+    return null;
+  }
+  function mengeLesen(menge) {
+    const t = String(menge == null ? '' : menge).trim();
+    if (!t) return { wert: null, bis: null, wort: '' };
+    const m = t.match(/^((?:\d+\s*)?[½¼¾⅓⅔⅛]|\d+\s+\d+\/\d+|\d+\/\d+|\d+(?:[.,]\d+)?)(?:\s*(?:-|–|bis)\s*((?:\d+\s*)?[½¼¾⅓⅔⅛]|\d+\/\d+|\d+(?:[.,]\d+)?))?\s*(.*)$/);
+    if (!m) return { wert: null, bis: null, wort: t };
+    return { wert: zahlLesen(m[1]), bis: m[2] ? zahlLesen(m[2]) : null, wort: (m[3] || '').trim() };
+  }
+  // Skalierte Menge als Text („1 l“, „4–6“, „2 Prisen“) – unbekannte Angaben („etwas“) bleiben, wie sie sind
+  function mengeSkaliertText(z, faktor) {
+    const m = mengeLesen(z.menge);
+    if (m.wert === null) return [String(z.menge || '').trim(), z.einheit].filter(Boolean).join(' ');
+    let zahl = formatZahl(m.wert * faktor) + (m.bis !== null ? '–' + formatZahl(m.bis * faktor) : '');
+    let wort = m.wort;
+    if (wort && m.wert * faktor > 1 && /^(prise|messerspitze|dose|packung|zehe|scheibe|tasse|handvoll)$/i.test(wort)) wort = wort + (/e$/i.test(wort) ? 'n' : 'en');
+    return [zahl, wort, z.einheit].filter(Boolean).join(' ');
+  }
+  // Zahl für die Einkaufsliste (bei Bereichen die obere Grenze) oder null
+  function mengeSkaliertZahl(z, faktor) {
+    const m = mengeLesen(z.menge);
+    if (m.wert === null) return null;
+    return Math.round((m.bis !== null ? m.bis : m.wert) * faktor * 100) / 100;
   }
 
   // --- FAMILIENFOTOS (👪 Familie / 🔒 Nur ich) ---
@@ -1741,7 +1780,7 @@
       li.style.display = 'flex';
       li.style.alignItems = 'center';
       li.style.gap = '8px';
-      const menge = z.menge ? formatZahl(parseFloat(z.menge.toString().replace(',','.')) * faktor) : '';
+      const mengeText = mengeSkaliertText(z, faktor);
       const cb = document.createElement('input');
       cb.type = 'checkbox';
       cb.checked = detailZutatenAusgewaehlt.has(i);
@@ -1754,7 +1793,7 @@
       const istVorrat = vorratNamen.includes(z.name.trim().toLowerCase());
       const inhalt = document.createElement('span');
       inhalt.style.flex = '1';
-      inhalt.innerHTML = '<span class="z-menge">' + escapeHtml([menge, z.einheit].filter(Boolean).join(' ')) + '</span> <span>' + escapeHtml(z.name) + '</span>' +
+      inhalt.innerHTML = '<span class="z-menge">' + escapeHtml(mengeText) + '</span> <span>' + escapeHtml(z.name) + '</span>' +
         (istVorrat ? ' <span style="font-size:0.65rem;background:#e4efe0;color:#2c2415;padding:1px 7px;border-radius:10px;font-weight:600;" title="Steht laut Vorratskammer schon bei euch bereit">📦 vorrätig</span>' : '');
       li.appendChild(inhalt);
       zutBox.appendChild(li);
@@ -1835,9 +1874,7 @@
     const faktor = r.portionenBasis ? detailPortionen / r.portionenBasis : 1;
     const treffer = (r.zutaten || []).filter(z => z && z.name && zutatStaemme(z.name).some(st => t.includes(st)));
     box.innerHTML = treffer.map(z => {
-      const zahl = z.menge ? parseFloat(String(z.menge).replace(',', '.')) : NaN;
-      const menge = !isNaN(zahl) ? formatZahl(zahl * faktor) : (z.menge || '');
-      const m = [menge, z.einheit].filter(Boolean).join(' ');
+      const m = mengeSkaliertText(z, faktor);
       return '<span>' + (m ? '<b>' + escapeHtml(m) + '</b> ' : '') + escapeHtml(z.name) + '</span>';
     }).join('');
     box.style.display = treffer.length ? '' : 'none';
@@ -2030,6 +2067,7 @@
     }).join('');
   }
   function kochmodusOeffnen() {
+    try { const t = document.getElementById('tempStatus'); if (t) { clearTimeout(t._timeout); t.style.opacity = '0'; t.style.pointerEvents = 'none'; } } catch (e) {} // alte Meldung nicht über den Koch-Knöpfen stehen lassen
     const r = rezepte.find(x => x.id === detailId);
     if (!r || !r.schritte.length) { alert('Für dieses Rezept sind keine Zubereitungsschritte hinterlegt.'); return; }
     kochmodusSchrittIndex = 0;
@@ -2231,20 +2269,21 @@
       if (e) {
         if (!isNaN(zahl) && e.zahl !== null) e.zahl += zahl; else if (isNaN(zahl)) e.zahl = e.zahl; else e.zahl = e.zahl === null ? null : e.zahl;
         if (!e.quellen.includes(p.quelle)) e.quellen.push(p.quelle);
-      } else map.set(key, { name: p.name, einheit: p.einheit || '', zahl: isNaN(zahl) ? null : zahl, quellen: [p.quelle], vorrat: vorratVorhanden(p.name) });
+        if (!p.klein) e.klein = false;
+      } else map.set(key, { name: p.name, einheit: p.einheit || '', zahl: isNaN(zahl) ? null : zahl, quellen: [p.quelle], vorrat: vorratVorhanden(p.name), klein: !!p.klein });
     });
-    ekVorschauPosten = Array.from(map.values()).sort((a, b) => (a.vorrat - b.vorrat) || a.name.localeCompare(b.name, 'de'));
+    ekVorschauPosten = Array.from(map.values()).sort((a, b) => ((a.vorrat || a.klein) - (b.vorrat || b.klein)) || a.name.localeCompare(b.name, 'de'));
     const listen = laden(KEY_EINKAUF_LISTEN, []) || [];
     const aktivId = localStorage.getItem(KEY_EINKAUF_AKTIV);
     const sel = document.getElementById('ekVorschauListe');
     sel.innerHTML = (listen.length ? listen : [{ id: '', name: 'Wocheneinkauf (neu)' }]).map(l => '<option value="' + escapeHtml(l.id) + '"' + (l.id === aktivId ? ' selected' : '') + '>' + escapeHtml(l.name) + '</option>').join('');
-    const vorratAnz = ekVorschauPosten.filter(p => p.vorrat).length;
-    document.getElementById('ekVorschauInfo').textContent = info + (vorratAnz ? ' · 📦 ' + vorratAnz + ' laut Vorratskammer schon da (abgewählt)' : '');
+    const vorratAnz = ekVorschauPosten.filter(p => p.vorrat).length, kleinAnz = ekVorschauPosten.filter(p => p.klein && !p.vorrat).length;
+    document.getElementById('ekVorschauInfo').textContent = info + (vorratAnz ? ' · 📦 ' + vorratAnz + ' laut Vorratskammer schon da (abgewählt)' : '') + (kleinAnz ? ' · 🧂 ' + kleinAnz + ' Gewürze/Grundzutaten abgewählt' : '');
     document.getElementById('ekVorschauZeilen').innerHTML = ekVorschauPosten.map((p, i) =>
-      '<label class="ek-vorschau-zeile' + (p.vorrat ? ' vorrat' : '') + '"><input type="checkbox" data-i="' + i + '"' + (p.vorrat ? '' : ' checked') + '>' +
+      '<label class="ek-vorschau-zeile' + (p.vorrat || p.klein ? ' vorrat' : '') + '"><input type="checkbox" data-i="' + i + '"' + (p.vorrat || p.klein ? '' : ' checked') + '>' +
       '<span class="ev-name"><b>' + escapeHtml((p.zahl !== null ? formatZahl(p.zahl) + ' ' : '') + (p.einheit ? p.einheit + ' ' : '')) + '</b>' + escapeHtml(p.name) +
       (p.quellen.length > 1 || info.indexOf('Woche') !== -1 ? '<span class="ev-quelle">' + escapeHtml(p.quellen.join(', ')) + '</span>' : '') + '</span>' +
-      (p.vorrat ? '<span class="ev-badge">📦 haben wir</span>' : '') + '</label>').join('');
+      (p.vorrat ? '<span class="ev-badge">📦 haben wir</span>' : p.klein ? '<span class="ev-badge">🧂 meist da</span>' : '') + '</label>').join('');
     document.getElementById('modalEinkaufVorschau').classList.add('zeigen');
   }
   document.getElementById('btnEkVorschauAbbrechen').addEventListener('click', () => document.getElementById('modalEinkaufVorschau').classList.remove('zeigen'));
@@ -2267,7 +2306,7 @@
       if (kandidat && versucheMengeZusammenfuehren(kandidat, menge, p.einheit || '')) { kandidat.hinzugefuegtVon = herkunft; zusammengefuehrt++; return; }
       const fav = favoriten[norm(p.name)];
       const id = neueId('i');
-      aktiv.items.push({ id, name: p.name, menge, einheit: p.einheit || '', kategorie: (fav && fav.kategorie) || 'sonstiges', erledigt: false, hinzugefuegtVon: herkunft });
+      aktiv.items.push({ id, name: p.name, menge, einheit: p.einheit || '', kategorie: (fav && fav.kategorie) || (window.EinkaufKategorie && window.EinkaufKategorie.schaetzen(p.name)) || 'sonstiges', erledigt: false, hinzugefuegtVon: herkunft });
       neueIds.push(id);
     });
     try { localStorage.setItem(KEY_EINKAUF_LISTEN, JSON.stringify(listen)); } catch (e) { alert('Speichern fehlgeschlagen.'); return; }
@@ -2282,21 +2321,28 @@
         if (einkaufSync) einkaufSync.melde();
       } } : undefined);
   });
+  // Ein Rezept-Zutat → Posten für die Einkaufsliste. Löffel-/Prisen-Mengen und Grundzutaten (Salz, Öl …)
+  // werden als „klein“ markiert: in der Vorschau abgewählt und – falls doch gewählt – ohne Löffelmenge übertragen.
+  const KLEIN_EINHEITEN = /^(tl|el|teelöffel|esslöffel|msp|messerspitze|prise|prisen|schuss|spritzer|etwas|n\.?\s?b\.?|nach bedarf)$/i;
+  function einkaufPosten(z, faktor, quelle) {
+    const m = mengeLesen(z.menge);
+    const einheit = (z.einheit || '').trim();
+    const name = String(z.name || '').trim();
+    const grund = typeof BASIS_ZUTATEN !== 'undefined' && BASIS_ZUTATEN.includes(name.toLowerCase().replace(/\s+zum\s+\w+$/, ''));
+    const klein = KLEIN_EINHEITEN.test(einheit) || KLEIN_EINHEITEN.test(m.wort) || /\bzum\s+(braten|bestreuen|anbraten|garnieren|einfetten)\b/i.test(name) || (m.wert === null && !!String(z.menge || '').trim());
+    if (klein || (grund && m.wert === null)) return { name: name.replace(/\s+zum\s+\w+$/i, ''), menge: '', einheit: '', quelle, klein: true };
+    const zahl = mengeSkaliertZahl(z, faktor);
+    return { name, menge: zahl === null ? '' : zahl, einheit: einheit || (m.wort && !/^(stück|stk)$/i.test(m.wort) ? m.wort : ''), quelle, klein: grund && !/^(g|kg|ml|l)$/i.test(einheit) };
+  }
   function rezeptPosten(r, portionen) {
     const faktor = (portionen || r.portionenBasis) / (r.portionenBasis || 1);
-    return (r.zutaten || []).filter(z => z.name).map(z => {
-      const zahl = parseFloat(String(z.menge || '').replace(',', '.'));
-      return { name: z.name, menge: isNaN(zahl) ? '' : Math.round(zahl * faktor * 100) / 100, einheit: z.einheit || '', quelle: r.titel };
-    });
+    return (r.zutaten || []).filter(z => z.name).map(z => einkaufPosten(z, faktor, r.titel));
   }
   document.getElementById('btnZumEinkauf').addEventListener('click', () => {
     const r = rezepte.find(x => x.id === detailId);
     if (!r) return;
     const faktor = detailPortionen / r.portionenBasis;
-    const posten = r.zutaten.filter((z, i) => detailZutatenAusgewaehlt.has(i)).map(z => {
-      const zahl = parseFloat(String(z.menge || '').replace(',', '.'));
-      return { name: z.name, menge: isNaN(zahl) ? '' : Math.round(zahl * faktor * 100) / 100, einheit: z.einheit || '', quelle: r.titel };
-    });
+    const posten = r.zutaten.filter((z, i) => detailZutatenAusgewaehlt.has(i)).map(z => einkaufPosten(z, faktor, r.titel));
     if (!posten.length) { alert('Bitte mindestens eine Zutat auswählen.'); return; }
     einkaufVorschauOeffnen(posten, r.titel + ' · ' + detailPortionen + ' Portionen');
   });
@@ -2787,7 +2833,7 @@
     const kat = kategorieInfo(rezept.kategorie);
     const b = rezeptBetroffene(rezept);
     return '<div class="wt-slot">' + label + '<div class="wochentag-rezept" data-slot="' + slot + '"><span class="icon">' + kat.icon + '</span><span class="titel">' + escapeHtml(rezept.titel) + '</span>' +
-      (rezept.aufwand ? '<span style="font-size:0.75rem;flex-shrink:0;" title="' + AUFWAND_STUFEN[rezept.aufwand].label + '">' + AUFWAND_STUFEN[rezept.aufwand].icon + '</span>' : '') +
+      (rezept.aufwand && AUFWAND_STUFEN[rezept.aufwand] ? '<span style="font-size:0.75rem;flex-shrink:0;" title="' + AUFWAND_STUFEN[rezept.aufwand].label + '">' + AUFWAND_STUFEN[rezept.aufwand].icon + '</span>' : '') +
       (b.length ? '<span style="font-size:0.66rem;font-weight:700;color:#b03a2e;flex-shrink:0;" title="' + escapeHtml(b.map(x => x.name || x).join(', ')) + '">⚠️</span>' : '') +
       '</div><button type="button" class="wt-portionen" data-portionen="' + slot + '" title="Portionen">👥 ' + slotPortionen(key) + '</button><button class="wochentag-entfernen" data-weg="' + slot + '" aria-label="Entfernen">✕</button></div>';
   }

@@ -737,62 +737,8 @@
     { id: 'sonstiges',     label: 'Sonstiges',              icon: '📦', farbe: '#7d6339' },
   ];
   const EINHEIT_MUSTER = /^(stück|stk|packung(?:en)?|pack|dose(?:n)?|flasche(?:n)?|bund|kg|g|l|ml)$/i;
-  // Stichwort-basierte Kategorie-Erkennung für neue, noch unbekannte Produktnamen.
-  // Reihenfolge ist relevant: erster Treffer gewinnt (spezifischere Begriffe zuerst).
-  const KATEGORIE_STICHWORTE = [
-    { kategorie: 'obst_gemuese', begriffe: ['apfel','birne','banane','orange','mandarine','zitrone','limette','traube','erdbeere','himbeere','heidelbeere','brombeere','kirsche','pflaume','aprikose','pfirsich','melone','ananas','kiwi','mango','avocado','tomate','gurke','paprika','zucchini','aubergine','karotte','möhre','kartoffel','zwiebel','knoblauch','lauch','porree','salat','spinat','brokkoli','blumenkohl','kohl','pilz','champignon','sellerie','radieschen','rettich','mais','erbse','bohne','kürbis','ingwer','kräuter','petersilie','basilikum','schnittlauch','dill','obst','gemüse'] },
-    { kategorie: 'brot', begriffe: ['brot','brötchen','baguette','toast','croissant','brezel','kuchen','torte','waffel','müsliriegel','zwieback','knäckebrot','semmel'] },
-    { kategorie: 'milchprodukte', begriffe: ['milch','käse','joghurt','quark','butter','sahne','schmand','frischkäse','mozzarella','feta','parmesan','ei','eier','pudding','buttermilch','kefir'] },
-    { kategorie: 'fleisch_fisch', begriffe: ['fleisch','hähnchen','huhn','pute','rind','schwein','hack','wurst','schinken','speck','salami','lachs','fisch','thunfisch','garnele','forelle','filet','steak','bacon','frikadelle','wiener'] },
-    { kategorie: 'tiefkuehl', begriffe: ['tiefkühl','tiefkuehl','tk-','eis','pizza tiefkühl','fischstäbchen','pommes','erbsen tiefkühl'] },
-    { kategorie: 'trockenwaren', begriffe: ['nudel','spaghetti','reis','mehl','zucker','salz','müsli','haferflocken','konserve','dose ','linse','kichererbse','öl','essig','honig','marmelade','nutella','ketchup','senf','mayonnaise','gewürz','brühe','suppe','tütensuppe','tomatensauce','tomatenmark','cornflakes','kaffee','tee'] },
-    { kategorie: 'suesses', begriffe: ['schoko','chips','kaugummi','gummibär','fruchtgummi','bonbon','lakritz','praline','riegel','salzstangen','popcorn','flips','kekse','keks','cracker','nachos','süßigkeit','marshmallow'] },
-    { kategorie: 'getraenke', begriffe: ['wasser','saft','limonade','cola','bier','wein','sekt','smoothie','energydrink','apfelschorle','mineralwasser'] },
-    { kategorie: 'drogerie', begriffe: ['shampoo','duschgel','seife','zahnpasta','zahnbürste','klopapier','toilettenpapier','küchenrolle','waschmittel','spülmittel','windel','deo','rasier','creme','binden','tampon','putzmittel','müllbeutel','batterie'] },
-  ];
-  // Zusätzliche Begriffe (v485): Haushalt/Drogerie, Getränke, Snacks, Fertiggerichte
-  const KATEGORIE_ZUSATZ = {
-    drogerie: ['tabs','spülmaschinentabs','alufolie','frischhaltefolie','backpapier','gefrierbeutel','taschentuch','taschentücher','kerze','kerzen','teelicht','teelichter','glühbirne','leuchtmittel','waschpulver','weichspüler','reiniger','schwamm','lappen','zahnseide','pflaster','wattepads','wattestäbchen','hundefutter','katzenfutter','katzenstreu','futter','streu','kosmetiktücher','feuchttücher','handseife','sonnencreme','bodylotion','haarspray','spülung'],
-    getraenke: ['eistee','likör','schorle','sprudel','tonic','gin','whisky','vodka','prosecco','radler','malzbier'],
-    suesses: ['chips','nüsse','nuss','erdnüsse','studentenfutter','gummibärchen','schokolade'],
-    fleisch_fisch: ['leberkäse','maultaschen','fleischkäse','würstchen','bratwurst','geflügel'],
-    trockenwaren: ['speiseöl','olivenöl','rapsöl','sonnenblumenöl','apfelmus','spätzle','sauce','soße','pesto','backpulver','hefe','vanillezucker','puderzucker','grieß','couscous','bulgur','quinoa','tortellini','kakao','nüsse gemahlen'],
-    brot: ['laugen','toastbrot','vollkornbrot'],
-    milchprodukte: ['eier','ei','milch','hafermilch','sojamilch','skyr'],
-    tiefkuehl: ['eis','vanilleeis','tiefkühlpizza','pizza'],
-  };
-  // Erkennung per Wort-Ende: im Deutschen bestimmt das Ende eines zusammengesetzten Wortes, was es ist
-  // (Vanille|eis, Kartoffel|chips, Weiß|wein). Kurze Begriffe (≤ 3 Zeichen) zählen nur als ganzes Wort,
-  // längere auch mitten im Wort, aber schwächer. Umlaute und Mehrzahl werden berücksichtigt.
-  let kategorieBegriffe = null;
-  function kategorieBegriffeAufbauen() {
-    const liste = [];
-    KATEGORIE_STICHWORTE.forEach(g => g.begriffe.forEach(b => liste.push({ b: b.trim().replace(/-$/, ''), k: g.kategorie })));
-    Object.keys(KATEGORIE_ZUSATZ).forEach(k => KATEGORIE_ZUSATZ[k].forEach(b => liste.push({ b, k })));
-    return liste.filter(x => x.b);
-  }
-  function umlautFrei(t) { return t.replace(/ä/g, 'a').replace(/ö/g, 'o').replace(/ü/g, 'u').replace(/ß/g, 'ss'); }
-  function schaetzeKategorieAusName(name) {
-    if (!kategorieBegriffe) kategorieBegriffe = kategorieBegriffeAufbauen();
-    const woerter = umlautFrei(String(name || '').trim().toLowerCase()).split(/[^a-z0-9]+/).filter(Boolean);
-    if (!woerter.length) return null;
-    // Mehrzahl-Varianten des Wortes: äpfel → apfel, tomaten → tomate, nudeln → nudel, eier → ei
-    const varianten = w => [w, w.replace(/(en|n|e|s|er)$/, ''), w.replace(/n$/, ''), w.replace(/s$/, '')];
-    let best = null, bestPunkte = 0;
-    kategorieBegriffe.forEach(({ b, k }) => {
-      const t = umlautFrei(b);
-      woerter.forEach((w, wi) => {
-        const istLetztes = wi === woerter.length - 1;
-        let p = 0;
-        if (varianten(w).includes(t)) p = 100 + t.length;                                   // ganzes Wort
-        else if (t.length >= 3 && varianten(w).some(v => v.length > t.length && v.endsWith(t))) p = 60 + t.length; // Wort-Ende
-        else if (t.length >= 5 && w.includes(t)) p = 20 + t.length;                       // irgendwo im Wort (nur lange Begriffe)
-        if (p && istLetztes) p += 5;                                                      // letztes Wort ist meist das Hauptwort
-        if (p > bestPunkte) { bestPunkte = p; best = k; }
-      });
-    });
-    return best;
-  }
+  // Kategorie-Erkennung für neue Produkte: liegt in lebensmittel.js (auch vom Kochen-Modul genutzt)
+  function schaetzeKategorieAusName(name) { return window.EinkaufKategorie ? window.EinkaufKategorie.schaetzen(name) : null; }
   const PERSONEN = window.PLANER_PERSONEN || [
     { id: 'mama', label: 'Mama', farbe: '#c46b41' },
     { id: 'papa', label: 'Papa', farbe: '#5b8bb5' },
