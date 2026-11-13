@@ -385,6 +385,16 @@
      Text auf Akzent-Knöpfen dunkel – außer bei „Schnee“, dort ist der Knopf selbst dunkel. */
   html[data-dark="1"] { --moss-text: var(--sage); --on-moss: #16140f; }
   html[data-dark="1"][data-farbschema="schnee"] { --on-moss: #f4f5f6; }
+  .training-leiste { display: flex; gap: 6px; overflow-x: auto; padding: 10px 14px 0; scrollbar-width: none; }
+  .training-leiste::-webkit-scrollbar { display: none; }
+  .training-leiste button { flex: 0 0 auto; border: 1px solid var(--parchment); background: var(--white); color: var(--bark); border-radius: 999px; padding: 6px 13px; font: inherit; font-size: 0.78rem; font-weight: 700; cursor: pointer; }
+  .training-leiste button.active { background: var(--moss); border-color: var(--moss); color: var(--on-moss, #fff); }
+  .nur-kind { display: none; }
+  body.kind-ansicht .nur-kind { display: block; }
+  body.kind-ansicht .nur-erwachsen { display: none !important; }
+  .kind-knoepfe { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
+  .kind-knoepfe button { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 6px; border-radius: 14px; border: 1px solid var(--parchment); background: var(--white); color: var(--soil); font: inherit; font-size: 1.7rem; cursor: pointer; }
+  .kind-knoepfe button span { font-size: 0.7rem; font-weight: 700; color: var(--bark); text-align: center; line-height: 1.2; }
 </style>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
@@ -424,11 +434,8 @@
     <button id="btnViewHeute" role="tab" aria-selected="true">Heute</button>
     <button id="btnViewVerlauf" role="tab" aria-selected="false">Verlauf</button>
     <button id="btnViewRechner" role="tab" aria-selected="false">🧮 Rechner</button>
-    <button id="btnViewKraft" role="tab" aria-selected="false">💪 Kraft</button>
-    <button id="btnViewDehnen" role="tab" aria-selected="false">🧘 Dehnen</button>
-    <button id="btnViewBalance" role="tab" aria-selected="false">🤸 Balance</button>
+    <button id="btnViewTraining" role="tab" aria-selected="false">💪 Training</button>
     <button id="btnViewZyklus" role="tab" aria-selected="false">🌙 Zyklus</button>
-    <button id="btnViewTrainingsplan" role="tab" aria-selected="false">🗓️ Trainingsplan</button>
     <button id="btnViewKoerperlexikon" role="tab" aria-selected="false">🦴 Körperlexikon</button>
     <button id="btnViewErnaehrung" role="tab" aria-selected="false">🍽️ Ernährung</button>
     <button id="btnViewKrankheiten" role="tab" aria-selected="false">🤒 Krankheiten</button>
@@ -462,8 +469,22 @@
     🔒 <strong>Hinweis:</strong> Deine Eingaben hier (u.a. Gewicht, Schlaf, Trainingsdaten) werden mit den anderen Mitgliedern deiner Familie über die Cloud synchronisiert – wie bei allen Modulen dieser App. Bitte nur eintragen, was du mit ihnen teilen möchtest.
     <button id="btnDatenschutzBannerSchliessen" title="Schließen" style="position:absolute; top:6px; right:8px; background:none; border:none; font-size:1.1rem; cursor:pointer; color:inherit; line-height:1;">✕</button>
   </div>
+  <div class="training-leiste" id="trainingLeiste" style="display:none;" role="tablist" aria-label="Training">
+    <button type="button" id="btnViewKraft" data-unter="kraft">🏋️ Kraft</button>
+    <button type="button" id="btnViewDehnen" data-unter="dehnen">🧘 Dehnen</button>
+    <button type="button" id="btnViewBalance" data-unter="balance">🤸 Balance</button>
+    <button type="button" id="btnViewTrainingsplan" data-unter="trainingsplan">🗓️ Plan</button>
+  </div>
   <section id="ansichtHeute">
-    <div class="karte sport-karte">
+    <div class="karte nur-kind kind-karte">
+      <h3>🧸 Für <span class="kind-name"></span></h3>
+      <div class="kind-knoepfe">
+        <button type="button" data-kind-ziel="krankheiten">🤒<span>Fieber / krank</span></button>
+        <button type="button" data-kind-ziel="vorsorge">📏<span>Größe &amp; Gewicht</span></button>
+        <button type="button" data-kind-ziel="vorsorge">💉<span>Impfungen &amp; U-Untersuchungen</span></button>
+      </div>
+    </div>
+    <div class="karte sport-karte nur-erwachsen">
       <div class="datum-label">Sport heute</div>
       <button class="add-sport-btn" id="btnSportSchnellstart">▶ Laufen starten</button>
       <button class="sport-nachtragen" id="btnSportHinzufuegen">＋ Einheit nachtragen</button>
@@ -477,11 +498,11 @@
         <span class="metrik-label">⚖️ Gewicht (kg)</span>
         <input type="number" step="0.1" class="metrik-input-zahl" id="fGewicht" placeholder="–">
       </div>
-      <div class="metrik-zeile">
+      <div class="metrik-zeile nur-erwachsen">
         <span class="metrik-label">😴 Schlaf (Std.)</span>
         <input type="number" step="0.5" class="metrik-input-zahl" id="fSchlaf" placeholder="–">
       </div>
-      <div class="metrik-zeile">
+      <div class="metrik-zeile nur-erwachsen">
         <span class="metrik-label">❤️ Blutdruck (mmHg)</span>
         <div style="display:flex; align-items:center; gap:4px;">
           <input type="number" step="1" class="metrik-input-zahl" id="fBlutdruckSys" placeholder="Sys" style="width:56px;">
@@ -489,19 +510,19 @@
           <input type="number" step="1" class="metrik-input-zahl" id="fBlutdruckDia" placeholder="Dia" style="width:56px;">
         </div>
       </div>
-      <div class="metrik-zeile">
+      <div class="metrik-zeile nur-erwachsen">
         <span class="metrik-label">💓 Puls (bpm)</span>
         <input type="number" step="1" class="metrik-input-zahl" id="fPuls" placeholder="–">
       </div>
-      <div class="metrik-zeile">
+      <div class="metrik-zeile nur-erwachsen">
         <span class="metrik-label">👣 Schritte</span>
         <input type="number" step="1" class="metrik-input-zahl" id="fSchritte" placeholder="–">
       </div>
-      <div class="metrik-zeile">
+      <div class="metrik-zeile nur-erwachsen">
         <span class="metrik-label">🫁 SpO2 (%)</span>
         <input type="number" step="1" min="50" max="100" class="metrik-input-zahl" id="fSpo2" placeholder="–">
       </div>
-      <div class="metrik-zeile">
+      <div class="metrik-zeile nur-erwachsen">
         <span class="metrik-label">💧 Wasser (Gläser)</span>
         <div class="stepper">
           <button id="btnWasserMinus" type="button">−</button>
@@ -509,7 +530,7 @@
           <button id="btnWasserPlus" type="button">+</button>
         </div>
       </div>
-      <div class="ziel-zeile">
+      <div class="ziel-zeile nur-erwachsen">
         <div class="ziel-balken-wrap"><div class="ziel-balken" id="wasserZielBalken"></div></div>
         <span class="ziel-text" id="wasserZielText">0 / 8</span>
         <button class="ziel-edit-btn" id="btnWasserZielBearbeiten" title="Tagesziel anpassen">✎</button>
@@ -518,14 +539,14 @@
         <span class="metrik-label">Stimmung</span>
         <div class="stimmung-reihe" id="stimmungReihe"></div>
       </div>
-      <div class="metrik-zeile">
+      <div class="metrik-zeile nur-erwachsen">
         <span class="metrik-label">🛌 Ruhetag heute</span>
         <label class="schalter">
           <input type="checkbox" id="fRuhetag">
           <span class="schalter-kugel"></span>
         </label>
       </div>
-      <button type="button" class="uhr-import-btn" id="btnUhrImport">⌚ Uhr-Daten importieren</button>
+      <button type="button" class="uhr-import-btn nur-erwachsen" id="btnUhrImport">⌚ Uhr-Daten importieren</button>
     </div>
 
 
@@ -535,7 +556,7 @@
       <button class="add-sport-btn" id="btnMedHinzufuegen" style="margin-top:8px;">＋ Medikament/Vitamin hinzufügen</button>
     </div>
 
-    <div class="karte">
+    <div class="karte nur-erwachsen">
       <h3>🔔 Wasser-Erinnerung</h3>
       <div class="metrik-zeile">
         <span class="metrik-label">Erinnerungen aktiv</span>
@@ -549,7 +570,7 @@
         <input type="time" id="fNeueWasserzeit" value="12:00">
         <button type="button" id="btnWasserzeitHinzufuegen">＋ Uhrzeit</button>
       </div>
-      <div class="hinweis-klein">Funktioniert zuverlässig, solange die App im Vordergrund und der Bildschirm an ist. Bei gesperrtem Bildschirm oder App im Hintergrund pausieren mobile Browser die Prüfung meist – dafür holt die App die Erinnerung beim nächsten Öffnen innerhalb von 3 Std. nach. Für 100%ig zuverlässige Erinnerungen eignet sich der Wecker/die Erinnerungsfunktion des Handys besser.</div>
+      <div class="hinweis-klein">🔔 Mit eingeschalteter Push-Benachrichtigung (⚙️ Einstellungen der App → 🔔 Push) kommen die Erinnerungen zu diesen Zeiten auch bei geschlossener App aufs Handy. Ohne Push erinnert die App nur, solange sie geöffnet ist.</div>
     </div>
   </section>
 
@@ -2102,7 +2123,11 @@
     meilensteinFeiern(STRECKEN_ICONS[stufen.indexOf(hoechste)] + ' Meilenstein erreicht!',
       'Schon ' + hoechste.toLocaleString('de-DE') + ' km ' + t.label + ' insgesamt – stark! ' + t.icon);
   }
-  let aktivePerson = localStorage.getItem(KEY_AKTIVE_PERSON) || 'mama';
+  // Startperson: zuletzt gewählt – sonst die Person, der dieses Gerät gehört
+  let aktivePerson = localStorage.getItem(KEY_AKTIVE_PERSON) || (function () {
+    let g = ''; try { g = localStorage.getItem('planer_geraetIdentitaet') || ''; } catch (e) {}
+    return g && g !== 'familie' && PERSONEN.some(p => p.id === g) ? g : 'mama';
+  })();
   let aktiveAnsicht = 'heute';
 
   function findeOderErstelleTageswert(person, datum) {
@@ -2126,6 +2151,7 @@
         aktivePerson = p.id;
         localStorage.setItem(KEY_AKTIVE_PERSON, aktivePerson);
         renderPersonen();
+        kindAnsichtAnwenden();
         renderAlles();
       });
       box.appendChild(chip);
@@ -3584,9 +3610,28 @@
   const btnKoerperlexikon = document.getElementById('btnViewKoerperlexikon');
   const btnErnaehrung = document.getElementById('btnViewErnaehrung');
   const btnVorsorge = document.getElementById('btnViewVorsorge');
-  const alleTabs = { heute: btnHeute, verlauf: btnVerlauf, rechner: btnRechner, kraft: btnKraft, dehnen: btnDehnen, balance: btnBalance, zyklus: btnZyklus, trainingsplan: btnTrainingsplan, koerperlexikon: btnKoerperlexikon, ernaehrung: btnErnaehrung, krankheiten: btnKrankheiten, vorsorge: btnVorsorge };
+  const btnTraining = document.getElementById('btnViewTraining');
+  // Kraft, Dehnen, Balance und Trainingsplan liegen gemeinsam unter „💪 Training“ (Unterleiste)
+  const TRAINING_UNTER = ['kraft', 'dehnen', 'balance', 'trainingsplan'];
+  let trainingZuletzt = 'kraft';
+  try { trainingZuletzt = localStorage.getItem('gesundheit_trainingZuletzt') || 'kraft'; } catch (e) {}
+  const alleTabs = { heute: btnHeute, verlauf: btnVerlauf, rechner: btnRechner, training: btnTraining, zyklus: btnZyklus, koerperlexikon: btnKoerperlexikon, ernaehrung: btnErnaehrung, krankheiten: btnKrankheiten, vorsorge: btnVorsorge };
+  // 🧸 Kinder (aus der Kinderecke) bekommen eine kindgerechte Ansicht
+  const NICHT_FUER_KINDER = ['rechner', 'training', 'zyklus', 'ernaehrung', 'verlauf'];
+  function istKindPerson(id) { try { return ((JSON.parse(localStorage.getItem('kinder_einstellungen') || '{}') || {}).kinder || []).includes(id); } catch (e) { return false; } }
+  function kindAnsichtAnwenden() {
+    const kind = istKindPerson(aktivePerson);
+    document.body.classList.toggle('kind-ansicht', kind);
+    const p = PERSONEN.find(x => x.id === aktivePerson);
+    document.querySelectorAll('.kind-name').forEach(el => { el.textContent = p ? p.label : ''; });
+    if (typeof tabsNeuAnordnen === 'function') tabsNeuAnordnen();
+  }
   function zeigeAnsicht(name) {
+    if (name === 'training') name = TRAINING_UNTER.includes(trainingZuletzt) ? trainingZuletzt : 'kraft';
+    if (TRAINING_UNTER.includes(name)) { trainingZuletzt = name; try { localStorage.setItem('gesundheit_trainingZuletzt', name); } catch (e) {} }
     aktiveAnsicht = name;
+    document.getElementById('trainingLeiste').style.display = TRAINING_UNTER.includes(name) ? '' : 'none';
+    TRAINING_UNTER.forEach(u => { const b = document.getElementById('btnView' + u.charAt(0).toUpperCase() + u.slice(1)); if (b) b.classList.toggle('active', u === name); });
     document.getElementById('ansichtHeute').style.display = name === 'heute' ? '' : 'none';
     document.getElementById('ansichtVerlauf').style.display = name === 'verlauf' ? '' : 'none';
     document.getElementById('ansichtRechner').style.display = name === 'rechner' ? '' : 'none';
@@ -3600,8 +3645,9 @@
     document.getElementById('ansichtKrankheiten').style.display = name === 'krankheiten' ? '' : 'none';
     document.getElementById('ansichtVorsorge').style.display = name === 'vorsorge' ? '' : 'none';
     Object.keys(alleTabs).forEach((k) => {
-      alleTabs[k].classList.toggle('active', k === name);
-      alleTabs[k].setAttribute('aria-selected', k === name);
+      const an = k === name || (k === 'training' && TRAINING_UNTER.includes(name));
+      alleTabs[k].classList.toggle('active', an);
+      alleTabs[k].setAttribute('aria-selected', an);
     });
     if (name === 'verlauf') renderVerlauf();
     if (name === 'kraft') { renderMuskelGrid(); renderTrainingslog(); }
@@ -3626,6 +3672,8 @@
   btnErnaehrung.addEventListener('click', () => zeigeAnsicht('ernaehrung'));
   btnKrankheiten.addEventListener('click', () => zeigeAnsicht('krankheiten'));
   btnVorsorge.addEventListener('click', () => zeigeAnsicht('vorsorge'));
+  btnTraining.addEventListener('click', () => zeigeAnsicht('training'));
+  document.querySelectorAll('[data-kind-ziel]').forEach(b => b.addEventListener('click', () => zeigeAnsicht(b.dataset.kindZiel)));
   document.getElementById('btnInfosModal').addEventListener('click', () => {
     document.getElementById('infosModal').classList.add('zeigen');
   });
@@ -3660,13 +3708,16 @@
   function tabsNeuAnordnen() {
     const reihenfolge = tabReihenfolge();
     const versteckt = versteckteTabs();
+    const kind = istKindPerson(aktivePerson);
     reihenfolge.forEach(id => {
       const btn = alleTabs[id];
       if (!btn) return;
       viewToggleContainer.appendChild(btn);
-      btn.style.display = (id !== 'heute' && versteckt.includes(id)) ? 'none' : '';
+      btn.style.display = (id !== 'heute' && (versteckt.includes(id) || (kind && NICHT_FUER_KINDER.includes(id)))) ? 'none' : '';
     });
-    if (versteckt.includes(aktiveAnsicht)) zeigeAnsicht('heute');
+    // alte Einstellungen: versteckte Einzel-Reiter (kraft …) gelten nicht mehr
+    const aktivTab = TRAINING_UNTER.includes(aktiveAnsicht) ? 'training' : aktiveAnsicht;
+    if (versteckt.includes(aktivTab) || (kind && NICHT_FUER_KINDER.includes(aktivTab))) zeigeAnsicht('heute');
   }
 
   function renderTabsAnpassenListe() {
@@ -3717,6 +3768,7 @@
   });
 
   tabsNeuAnordnen();
+  kindAnsichtAnwenden();
 
 
   // ============================================================

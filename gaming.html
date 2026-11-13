@@ -1149,7 +1149,7 @@
     document.getElementById('fNotiz').value = s ? (s.notiz || '') : '';
     document.getElementById('notizenLogFeld').style.display = s ? '' : 'none';
     notizenLogRendern();
-    editPerson = s ? s.person : (personFilter !== 'alle' ? personFilter : 'mama');
+    editPerson = s ? s.person : (personFilter !== 'alle' ? personFilter : (function () { let g = ''; try { g = localStorage.getItem('planer_geraetIdentitaet') || ''; } catch (e) {} return g && g !== 'familie' ? g : 'mama'; })());
     editPlattform = s ? s.plattform : 'pc';
     editStatus = s ? s.status : 'wunschliste';
     editDetail = Object.assign({}, (s && s.bewertungDetail) || {});

@@ -1,6 +1,12 @@
 # Neuigkeiten im Familienplaner
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 
+## 2026-11-13 | Gesundheit: aufgeräumte Reiter, Kinder-Ansicht
+- 💪 Kraft, Dehnen, Balance und Trainingsplan liegen jetzt gemeinsam unter „Training“ (mit kleiner Leiste darunter) – 9 statt 12 Reiter. Der zuletzt genutzte Trainings-Bereich wird gemerkt.
+- 🧸 Für Kinder aus der Kinderecke zeigt Gesundheit nur, was passt: große Knöpfe für Fieber/krank, Größe & Gewicht und Impfungen/U-Untersuchungen, dazu Gewicht, Stimmung und Medikamente. Blutdruck, SpO2, Laufen & Co. sind ausgeblendet.
+- 👤 Ohne frühere Auswahl startet Gesundheit (und das Gaming-Formular) mit der Person, der das Gerät gehört – nicht mehr immer mit „Mama“.
+- 🔔 Der Hinweis bei der Wasser-Erinnerung erklärt jetzt die Push-Benachrichtigung statt auf den Handy-Wecker zu verweisen.
+
 ## 2026-11-13 | Vorratskammer: Abgelaufenes oben, Kommazahlen bleiben ganz
 - ⏳ Abgelaufene Artikel stehen immer ganz oben – egal, wie sortiert ist.
 - 📝 „Mehrere auf einmal“: „1,5 kg Mehl, 2 Dosen Tomaten“ wird richtig zu zwei Artikeln (vorher wurde das Dezimal-Komma als Trenner gelesen).
