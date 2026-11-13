@@ -1,6 +1,12 @@
 # Neuigkeiten im Familienplaner
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 
+## 2026-11-13 | Hausplan: freie Sicht und Komma-Maße
+- Die Zoom-Knöpfe (＋ − ⤢) sitzen jetzt rechts und verdecken nicht mehr die Ecke oben links, wo Pläne meist beginnen.
+- Beim Öffnen und beim Wechsel von Ebene oder Projekt wird der Plan automatisch eingepasst.
+- Breite, Tiefe, Raumhöhe, Wandlänge und Möbelmaße nehmen Komma an und zeigen es auch („4,50“). Flächen stehen ebenfalls mit Komma da.
+- Die Statuszeile unten verschwindet, sobald der Bearbeiten-Bereich im Bild ist, und verdeckt keine Felder mehr.
+
 ## 2026-11-13 | Notfall: Unwetterwarnungen direkt sichtbar
 - Aktuelle DWD-Warnungen für eure Orte (wie in 📰 Nachrichten eingestellt) stehen jetzt ganz oben auf „🚨 Sofort“ und in „⚡ Kurz“.
 - Vorrat: Kinder aus der Kinderecke zählen beim Essen halb, weil die BBK-Mengen für Erwachsene gelten. Beim Wasser zählen sie weiter voll. Mengen und „So lange reicht euer Vorrat“ sind dadurch realistischer.
