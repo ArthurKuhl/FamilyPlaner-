@@ -54,6 +54,10 @@
 
   /* Nachrichtenverlauf */
   #verlauf { flex: 1; overflow-y: auto; padding: 14px 10px 8px; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+  .neu-trenner { display: flex; align-items: center; gap: 8px; margin: 12px 4px 8px; color: var(--terracotta-text, #a8532e); font-size: 0.7rem; font-weight: 700; }
+  .neu-trenner::before, .neu-trenner::after { content: ''; flex: 1; height: 1px; background: currentColor; opacity: 0.5; }
+  #tippLeiste { display: flex; align-items: center; gap: 8px; margin: 0 10px 6px; padding: 8px 10px; background: var(--parchment); color: var(--soil); border-radius: 12px; font-size: 0.76rem; line-height: 1.35; }
+  #tippLeiste button { margin-left: auto; border: none; background: none; color: var(--bark); font-size: 1rem; cursor: pointer; padding: 2px 4px; }
   .tag-trenner { text-align: center; margin: 12px 0 8px; }
   .tag-trenner span { display: inline-block; background: var(--parchment); color: var(--bark); font-size: 0.68rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; }
   .zeile { display: flex; margin: 3px 0; }
@@ -220,6 +224,7 @@
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
 <script src="personen.js"></script>
 <script src="sync.js"></script>
+<script src="lebensmittel.js"></script>
 </head>
 <body>
   <header class="top">
@@ -242,6 +247,7 @@
   <div id="einrichtung"></div>
   <div id="verlauf" aria-live="polite"></div>
 
+  <div id="tippLeiste" style="display:none"><span>💡 <b>Nachricht lange drücken:</b> antworten, reagieren 👍, auf die Einkaufsliste, als Termin oder Notiz speichern.</span><button type="button" id="btnTippWeg" aria-label="Hinweis schließen">✕</button></div>
   <div id="antwortLeiste"><div class="al-inhalt"><b id="alWer"></b><span id="alText"></span></div><button type="button" id="btnAntwortWeg" aria-label="Antworten abbrechen">✕</button></div>
   <div id="eingabeLeiste">
     <button class="rund" id="btnPlus" aria-label="Teilen: Foto, Termin, Rezept …" title="Foto, Termin, Rezept, Wunsch teilen">＋</button>
@@ -277,6 +283,8 @@
   const MAX_SPRACHE_SEK = 120;
   const KEY_IDENTITAET = 'planer_geraetIdentitaet';
   const KEY_GESEHEN = 'chat_gesehenBis';
+  // Stand beim Öffnen merken – daran hängt die Linie „neue Nachrichten“
+  const gesehenBeimOeffnen = (() => { try { return Number(localStorage.getItem('chat_gesehenBis') || 0); } catch (e) { return 0; } })();
 
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -614,7 +622,10 @@
     }
     let html = nachrichten._mehr ? '<button type="button" class="aeltere" id="btnAeltere">Ältere Nachrichten laden</button>' : '';
     let letzterTag = '', letzterVon = '', letzteZeit = 0;
+    const ungelesen = gesehenBeimOeffnen ? nachrichten.filter(m => m._ms > gesehenBeimOeffnen && m.von !== ich()) : [];
+    const ersteNeue = ungelesen.length ? ungelesen[0].id : null;
     nachrichten.forEach(m => {
+      if (m.id === ersteNeue) { html += '<div class="neu-trenner" id="neuTrenner">' + (ungelesen.length === 1 ? '1 neue Nachricht' : ungelesen.length + ' neue Nachrichten') + '</div>'; letzterVon = ''; }
       const tag = tagText(m._ms);
       if (tag !== letzterTag) { html += '<div class="tag-trenner"><span>' + esc(tag) + '</span></div>'; letzterTag = tag; letzterVon = ''; }
       const eigen = m.von === ich();
@@ -633,14 +644,23 @@
       letzterVon = m.von; letzteZeit = m._ms;
     });
     box.innerHTML = html;
-    if (render._erstes === undefined || amEnde || render._zumEnde) { box.scrollTop = box.scrollHeight; render._erstes = false; render._zumEnde = false; }
+    const trenner = render._erstes === undefined && !render._zumEnde ? $('neuTrenner') : null;
+    if (trenner) { box.scrollTop = Math.max(0, trenner.offsetTop - 60); render._erstes = false; }
+    else if (render._erstes === undefined || amEnde || render._zumEnde) { box.scrollTop = box.scrollHeight; render._erstes = false; render._zumEnde = false; }
     else if (render._aeltere) { box.scrollTop = box.scrollHeight - vorherHoehe + vorherOben; render._aeltere = false; }
     else box.scrollTop = vorherOben;
     const aelt = $('btnAeltere');
     if (aelt) aelt.addEventListener('click', () => { limit += SEITE; render._aeltere = true; abonnieren(); });
     medienBeobachten();
+    tippZeigen();
     if (sprungZiel) { const ziel = sprungZiel; sprungZiel = null; zuNachricht(ziel, true); }
   }
+  function tippZeigen() {
+    let gesehen = false; try { gesehen = localStorage.getItem('chat_tippLangDruecken') === '1'; } catch (e) {}
+    $('tippLeiste').style.display = !gesehen && nachrichten.length ? 'flex' : 'none';
+  }
+  function tippWeg() { try { localStorage.setItem('chat_tippLangDruecken', '1'); } catch (e) {} $('tippLeiste').style.display = 'none'; }
+  $('btnTippWeg').addEventListener('click', tippWeg);
   // Zu einer Nachricht springen (Zitat antippen, Suchtreffer). Ist sie noch nicht geladen, ältere nachladen.
   let sprungZiel = null;
   function zuNachricht(id, nachgeladen) {
@@ -1110,6 +1130,7 @@
 
   function aktionen(id) {
     const m = nachrichten.find(x => x.id === id); if (!m || m._kaputt) return;
+    tippWeg(); // wer lange gedrückt hat, kennt es
     const b = document.querySelector('.blase[data-id="' + CSS.escape(id) + '"]'); if (b) b.classList.add('markiert');
     const text = (m.text || (m.karte && m.karte.titel) || '').trim();
     const gel = m.von === ich() ? gelesenVon(m) : [];
@@ -1219,16 +1240,28 @@
   // „Auf die Einkaufsliste“: direkt in die aktive Liste schreiben (eigener Sync-Kanal fürs Einkaufs-Dokument)
   let einkaufSync = null;
   function zurEinkaufsliste(text) {
-    const namen = text.split(/\n|,|;| und /).map(s => s.replace(/^[-•*\d.)\s]+/, '').trim()).filter(s => s && s.length < 60);
+    // „Ja: Brot, Eier und Bananen 🍌“ → Brot · Eier · Bananen; „2x Milch“ → Menge 2
+    const ohneEinleitung = String(text).split('\n').map(z => z.replace(/^[^:\n]{1,25}:\s*/, (m) => /\d/.test(m) ? m : '')).join('\n');
+    const posten = ohneEinleitung.split(/\n|,|;|\s+und\s+|\s+&\s+/)
+      .map(s => s.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\u{200D}]/gu, '').replace(/^[-•*▪◦·)\s]+/, '').replace(/[.!?]+$/, '').trim())
+      .filter(s => s && s.length < 60)
+      .map(s => {
+        let menge = '', einheit = '', name = s.replace(/^(\d+(?:[.,]\d+)?)\s*[x×]\s*/i, '$1 ');
+        const m1 = name.match(/^(\d+(?:[.,]\d+)?)\s*(g|kg|ml|l|liter|stk\.?|stück|pck\.?|packung(?:en)?|dose(?:n)?|flasche(?:n)?|bund|becher|glas)?\s+(.+)$/i);
+        if (m1) { menge = m1[1].replace(',', '.'); einheit = m1[2] && !/^(stk\.?|stück)$/i.test(m1[2]) ? m1[2] : ''; name = m1[3]; }
+        return { name: name.trim(), menge, einheit };
+      }).filter(p => p.name);
+    const namen = posten.map(p => p.name);
     if (!namen.length) return;
     let listen = lies('einkauf_listen', []);
     if (!Array.isArray(listen) || !listen.length) listen = [{ id: 'l' + Date.now(), name: 'Wocheneinkauf', items: [] }];
     let aktivId = ''; try { aktivId = localStorage.getItem('einkauf_aktiveListe') || ''; } catch (e) {}
     const liste = listen.find(l => l.id === aktivId) || listen[0];
     let neu = 0;
-    namen.forEach(n => {
+    posten.forEach(({ name: n, menge, einheit }) => {
       if (liste.items.some(i => !i.erledigt && String(i.name).trim().toLowerCase() === n.toLowerCase())) return;
-      liste.items.push({ id: 'i' + Date.now() + Math.random().toString(36).slice(2, 7), name: n, menge: '', einheit: '', kategorie: 'sonstiges', erledigt: false, hinzugefuegtVon: ich() || 'familie' });
+      let kategorie = ''; try { kategorie = window.EinkaufKategorie ? window.EinkaufKategorie.schaetzen(n) : ''; } catch (e) {}
+      liste.items.push({ id: 'i' + Date.now() + Math.random().toString(36).slice(2, 7), name: n, menge, einheit, kategorie: kategorie || 'sonstiges', erledigt: false, hinzugefuegtVon: ich() || 'familie' });
       neu++;
     });
     try { localStorage.setItem('einkauf_listen', JSON.stringify(listen)); } catch (e) {}

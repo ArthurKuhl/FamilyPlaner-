@@ -1,6 +1,11 @@
 # Neuigkeiten im Familienplaner
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 
+## 2026-11-13 | Chat: neue Nachrichten markiert
+- Beim Öffnen zeigt eine Linie „── 3 neue Nachrichten ──“, wo es weitergeht, und der Chat springt genau dorthin.
+- „🛒 Auf die Einkaufsliste“ aus einer Nachricht: Einleitungen wie „Ja:“ und Emojis fallen weg, „2x Milch“ wird als Menge erkannt, und die Artikel landen in der passenden Abteilung.
+- Einmaliger Hinweis: Wer eine Nachricht lange drückt, kann antworten, reagieren 👍 und sie auf die Einkaufsliste, in Termine oder in den Notizblock übernehmen.
+
 ## 2026-11-13 | Gaming: Filter und Bildschirmzeit richtig
 - Personen-Filter: Mit z. B. „Lev“ erscheinen jetzt auch die Familienspiele, in der Bibliothek und bei „⏱ Jetzt spielen“. Vorher war die Auswahl leer.
 - Die Statistik zählt jetzt, wer gespielt hat, nicht wem das Spiel gehört. Levs Mario-Kart-Zeit taucht also bei Lev auf.
