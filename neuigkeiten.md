@@ -1,6 +1,12 @@
 # Neuigkeiten im Familienplaner
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 
+## 2026-11-13 | Handwerk: Material auf die Baumarkt-Liste
+- „🛒 Material zum Einkauf“ fragt jetzt, auf welche Liste das Material soll. Vorausgewählt ist „🔨 Baumarkt“, die Liste wird beim ersten Mal automatisch angelegt. Material landet so nicht mehr im Wocheneinkauf.
+- Auch der Heimwerker-Rechner überträgt auf diesem Weg.
+- Beim Material steht jetzt dabei: Der Preis gilt für die ganze Zeile, nicht pro Stück.
+- Preise mit Komma (z. B. 8,99) werden beim Bearbeiten wieder richtig angezeigt und gehen beim Speichern nicht mehr verloren.
+
 ## 2026-11-13 | Finanzen: Tausenderpunkt, Abos im Budget
 - 💶 Beträge mit Tausenderpunkt werden richtig gelesen: „1.234,56“ sind jetzt 1.234,56 € (vorher wurden daraus 1,23 €).
 - 🔁 Neue Abos & Rechnungen buchen standardmäßig in die Kategorie „Abos & Verträge“ (wird bei Bedarf angelegt, änderbar). Abos ohne Kategorie zeigen „nicht im Budget“.

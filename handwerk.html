@@ -161,6 +161,8 @@
   .opt.aktiv { color: var(--on-moss, var(--white)); border-color: transparent; background: var(--moss); }
   .opt.aktiv[style*="background"] { color: #fff; } /* Personenfarbe als Hintergrund: weiße Schrift */
 
+  .ez-info { font-size: 0.82rem; color: var(--text-light, #888); margin: -4px 0 4px; }
+  .material-hinweis { font-size: 0.75rem; color: var(--text-light, #888); margin: -2px 0 6px; }
   .unterliste-titel { font-size: 0.72rem; font-weight: 700; color: var(--bark); text-transform: uppercase; letter-spacing: 0.03em; margin: 16px 0 6px; }
   .verlauf-liste { list-style: none; }
   .verlauf-liste li { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid var(--parchment); font-size: 0.8rem; }
@@ -525,6 +527,7 @@
     </div>
 
     <div class="unterliste-titel">Material</div>
+    <div class="material-hinweis">Preis = was die ganze Zeile kostet (nicht pro Stück).</div>
     <div id="editMaterialListe"></div>
     <button class="zeile-hinzufuegen" id="btnMaterialHinzufuegen">＋ Material hinzufügen</button>
 
@@ -653,6 +656,21 @@
 </div>
 
 <!-- Heimwerker-Rechner -->
+<div class="modal-bg" id="modalEinkaufZiel">
+  <div class="modal">
+    <h2>🛒 Auf welche Einkaufsliste?</h2>
+    <div class="feld">
+      <label for="einkaufZielWahl">Liste</label>
+      <select id="einkaufZielWahl"></select>
+    </div>
+    <div class="ez-info" id="einkaufZielInfo"></div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="btnEinkaufZielAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="btnEinkaufZielOk">🛒 Übertragen</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="modalRechner">
   <div class="modal">
     <h2>🧮 Heimwerker-Rechner</h2>
@@ -1111,13 +1129,40 @@
   document.getElementById('btnZumEinkauf').addEventListener('click', () => {
     const p = projekte.find(x => x.id === detailId);
     if (!p || !p.material || !p.material.length) { alert('Für dieses Projekt ist noch kein Material eingetragen.'); return; }
-    alert(materialZurEinkaufsliste(p.material, 'projekt:' + p.titel));
+    einkaufZielWaehlen(p.material, 'projekt:' + p.titel);
   });
-  function materialZurEinkaufsliste(material, herkunft) {
+  // Baumarkt-Material gehört meist nicht auf den Wocheneinkauf – daher kurz nachfragen.
+  let einkaufZielAuftrag = null;
+  function einkaufZielWaehlen(material, herkunft) {
+    const listen = laden(KEY_EINKAUF_LISTEN, null) || [];
+    const baumarkt = listen.find(l => /baumarkt|bauhaus|obi|hornbach|toom|hagebau/i.test(l.name || ''));
+    const sel = document.getElementById('einkaufZielWahl');
+    sel.innerHTML = (baumarkt ? '' : '<option value="__baumarkt__">🔨 Baumarkt (neue Liste)</option>') +
+      listen.map(l => '<option value="' + escapeHtml(l.id) + '">' + escapeHtml(l.name || 'Liste') + ' (' + (l.items || []).filter(i => !i.erledigt).length + ' offen)</option>').join('');
+    sel.value = baumarkt ? baumarkt.id : '__baumarkt__';
+    document.getElementById('einkaufZielInfo').textContent = material.length + (material.length === 1 ? ' Material-Posten wird' : ' Material-Posten werden') + ' übertragen.';
+    einkaufZielAuftrag = { material, herkunft };
+    document.getElementById('modalEinkaufZiel').classList.add('zeigen');
+  }
+  function einkaufZielSchliessen() { document.getElementById('modalEinkaufZiel').classList.remove('zeigen'); einkaufZielAuftrag = null; }
+  document.getElementById('btnEinkaufZielAbbrechen').addEventListener('click', einkaufZielSchliessen);
+  document.getElementById('modalEinkaufZiel').addEventListener('click', (e) => { if (e.target.id === 'modalEinkaufZiel') einkaufZielSchliessen(); });
+  document.getElementById('btnEinkaufZielOk').addEventListener('click', () => {
+    const a = einkaufZielAuftrag;
+    if (!a) return;
+    const meldung = materialZurEinkaufsliste(a.material, a.herkunft, document.getElementById('einkaufZielWahl').value);
+    einkaufZielSchliessen();
+    showTempStatus('🛒 ' + meldung, 5);
+  });
+  function materialZurEinkaufsliste(material, herkunft, zielId) {
     let listen = laden(KEY_EINKAUF_LISTEN, null);
-    if (!listen || !listen.length) listen = [{ id: neueId('l'), name: 'Wocheneinkauf', items: [] }];
+    if (!listen) listen = [];
     let aktivId = localStorage.getItem(KEY_EINKAUF_AKTIV);
-    let aktiv = listen.find(l => l.id === aktivId) || listen[0];
+    let aktiv;
+    if (zielId === '__baumarkt__') { aktiv = { id: neueId('l'), name: '🔨 Baumarkt', items: [], istMarkt: false, istUebersicht: false }; listen.push(aktiv); }
+    else aktiv = listen.find(l => l.id === zielId) || listen.find(l => l.id === aktivId) || listen[0];
+    if (!aktiv) { aktiv = { id: neueId('l'), name: '🔨 Baumarkt', items: [] }; listen.push(aktiv); }
+    if (!aktiv.items) aktiv.items = [];
     let zusammengefuehrt = 0;
     material.forEach(m => {
       const kandidat = aktiv.items.find(i => !i.erledigt && i.name.trim().toLowerCase() === m.name.trim().toLowerCase());
@@ -1131,8 +1176,8 @@
     speichern(KEY_EINKAUF_LISTEN, listen);
     if (einkaufSync) einkaufSync.melde();
     if (!aktivId) localStorage.setItem(KEY_EINKAUF_AKTIV, aktiv.id);
-    let meldung = material.length + ' Material-Posten wurden zu „' + aktiv.name + '“ in Einkauf hinzugefügt.';
-    if (zusammengefuehrt) meldung += ' (' + zusammengefuehrt + ' davon mit bereits vorhandenen Posten zusammengeführt.)';
+    let meldung = material.length + ' Posten auf „' + aktiv.name + '“';
+    if (zusammengefuehrt) meldung += ' (' + zusammengefuehrt + ' zusammengeführt)';
     return meldung;
   }
 
@@ -1221,7 +1266,7 @@
       '<input type="text" class="menge" placeholder="Menge" value="' + escapeHtml(m.menge || '') + '">' +
       '<input type="text" class="einheit" placeholder="Einheit" value="' + escapeHtml(m.einheit || '') + '">' +
       '<input type="text" class="name" placeholder="Material" value="' + escapeHtml(m.name || '') + '">' +
-      '<input type="number" class="preis" placeholder="€" min="0" step="0.01" value="' + escapeHtml(m.preis || '') + '">' +
+      '<input type="number" class="preis" placeholder="€" title="Preis für die ganze Zeile (Menge × Stückpreis)" aria-label="Preis gesamt in Euro" min="0" step="0.01" value="' + escapeHtml(String(m.preis || '').replace(',', '.')) + '">' +
       '<button type="button" class="zeile-entfernen" aria-label="Entfernen">✕</button>';
     zeile.querySelector('.zeile-entfernen').addEventListener('click', () => zeile.remove());
     return zeile;
@@ -2754,9 +2799,8 @@
     const ziel = document.getElementById('rechnerZiel').value;
     const material = rechnerErgebnis.material.map(m => Object.assign({ preis: '' }, m));
     if (ziel === 'einkauf') {
-      const meldung = materialZurEinkaufsliste(material, 'rechner:' + (RECHNER_ARTEN.find(a => a.id === rechnerArt) || {}).label);
       document.getElementById('modalRechner').classList.remove('zeigen');
-      showTempStatus('🛒 ' + meldung, 5);
+      einkaufZielWaehlen(material, 'rechner:' + (RECHNER_ARTEN.find(a => a.id === rechnerArt) || {}).label);
       return;
     }
     let p;
