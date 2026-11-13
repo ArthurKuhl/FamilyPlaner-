@@ -1,6 +1,15 @@
 # Neuigkeiten im Familienplaner
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 
+## 2026-11-13 | Haushalt: Push am Morgen, fairere Rotation
+- 🔔 Neue Push-Erinnerung: morgens die heute offenen Haushaltsaufgaben („Nur meine“ oder „Meine und offene“ – in den Push-Einstellungen wählbar). Im Urlaubsmodus ruht sie.
+- 🔄 Rotation: Springt jemand ein, bleibt die eigentlich vorgesehene Person als Nächstes dran (vorher war dann der Einspringer gleich nochmal dran). Gilt auch beim Abhaken in der Übersicht und in der Kinderecke.
+- 👪 „Familie“ heißt beim Abhaken jetzt „Alle zusammen“.
+- 📊 Statistik: Beide Personen-Diagramme nutzen dieselben Personenfarben.
+- Die Filter (Heute fällig / Alle / Räume) stehen jetzt unter den Reitern in der Aufgaben-Ansicht. Der Abhak-Kreis ist deutlicher, auch im Dunkelmodus.
+- Starter-Pakete: Hinweis, wenn nichts angehakt ist.
+- Überall: Kurze Hinweise unten (z. B. „✓ … · Rückgängig“) werden nicht mehr unnötig in mehrere Zeilen umbrochen.
+
 ## 2026-11-13 | Garten per Sprache, Erinnerungen aufs Handy, Platz sparen
 - 🎤 ＋ Schnell festhalten → „🌱 In den Garten“: Sätze wie „2 Kilo Tomaten geerntet“, „Tomaten gegossen“ oder „Igel am Komposthaufen gesehen“ werden erkannt und nach kurzer Rückfrage eingetragen. Alles andere wird eine Notiz auf der Karte.
 - 🔔 Notiz-Erinnerungen von der Garten-Karte kommen jetzt auch als Push-Nachricht aufs Handy (zur eingestellten Tageszeit).

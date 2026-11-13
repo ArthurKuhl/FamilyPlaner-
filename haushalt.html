@@ -85,6 +85,13 @@
   .filter-reihe::-webkit-scrollbar { display: none; }
   .filter-chip { flex: 0 0 auto; background: transparent; border: 1px solid #4a3a28; color: var(--sage); font-size: 0.72rem; font-weight: 600; padding: 5px 12px; border-radius: var(--radius-pill); cursor: pointer; white-space: nowrap; }
   .filter-chip.active { background: var(--moss); color: var(--on-moss, var(--leaf)); border-color: var(--moss); }
+  main > .filter-reihe { margin: 0 0 8px; }
+  main .filter-chip { background: var(--white); border-color: var(--parchment); color: var(--bark); }
+  main .filter-chip.active { background: var(--moss); border-color: var(--moss); color: var(--on-moss, var(--leaf)); }
+  /* Abhak-Kreis: bei fälligen Aufgaben deutlich sichtbar (auch im Dunkelmodus) */
+  .ak-check:not(.erledigt):not(.faellig-nicht) { border-color: var(--moss); border-width: 2.5px; }
+  [data-dark] .ak-check:not(.erledigt) { background: rgba(255,255,255,0.06); }
+  [data-dark] .ak-check.faellig-nicht { border-color: rgba(255,255,255,0.28); }
 
   main { padding: 12px 14px; max-width: 680px; margin: 0 auto; }
   @media (min-width: 1000px) {
@@ -237,8 +244,6 @@
     <button class="theme-btn" id="btnThemeAuswahl" title="Hintergrundmuster wählen">🎨</button>
     <button class="add-btn" id="btnNeu">＋ Neu</button>
   </div>
-  <div class="filter-reihe" id="filterReihe"></div>
-  <div class="filter-reihe" id="raumFilterReihe" style="display:none;"></div>
 </header>
   <div class="theme-popup" id="themePopup">
     <div class="theme-swatch" data-theme="" title="Kein Muster">✕</div>
@@ -267,6 +272,8 @@
     <button class="ansicht-tab" id="tabWoche">📅 Woche</button>
     <button class="ansicht-tab" id="tabStatistik">📊 Statistik</button>
   </div>
+  <div class="filter-reihe" id="filterReihe"></div>
+  <div class="filter-reihe" id="raumFilterReihe" style="display:none;"></div>
 
   <div id="ansichtAufgaben">
     <div class="aufgaben-liste" id="aufgabenListe"></div>
@@ -547,7 +554,7 @@
       'background:#2a2016;color:#bcd196;padding:10px 18px;border-radius:22px;' +
       'font-size:0.85rem;font-weight:600;box-shadow:0 4px 14px rgba(0,0,0,0.25);' +
       'opacity:1;pointer-events:' + (optionen.rueckgaengig ? 'auto' : 'none') + ';transition:opacity .2s, transform .2s;z-index:9999;' +
-      'max-width:88vw;text-align:center;font-family:Inter,system-ui,sans-serif;' +
+      'width:max-content;max-width:88vw;text-align:center;font-family:Inter,system-ui,sans-serif;' +
       'display:flex;align-items:center;gap:12px;';
     el.innerHTML = '';
     const textSpan = document.createElement('span');
@@ -640,8 +647,10 @@
     if (window.PLANER_PERSONEN && window.PLANER_PERSONEN.length) return window.PLANER_PERSONEN;
     return [{ id: 'mama', label: 'Mama', farbe: '#c46b41' }, { id: 'papa', label: 'Papa', farbe: '#5b8bb5' }];
   }
+  // „Familie“ steht beim Abhaken für „alle zusammen“
   function personInfo(id) {
-    return personenListe().find(p => p.id === id) || { id, label: id, farbe: '#7d6339' };
+    const p = personenListe().find(x => x.id === id) || { id, label: id, farbe: '#7d6339' };
+    return id === 'familie' ? Object.assign({}, p, { label: '👪 Alle zusammen' }) : p;
   }
 
   const WOCHENTAGE = [
@@ -834,11 +843,12 @@
         if (erledigtHeute) {
           const entfernt = a.erledigt.pop();
           const rotZurueck = a.zuweisung === 'rotation' && (a.rotationPersonen || []).length;
-          if (rotZurueck) a.rotationIndex = ((a.rotationIndex || 0) - 1 + a.rotationPersonen.length) % a.rotationPersonen.length;
+          const rotVorher = a.rotationIndex || 0;
+          if (rotZurueck) a.rotationIndex = typeof entfernt.rv === 'number' ? entfernt.rv : ((a.rotationIndex || 0) - 1 + a.rotationPersonen.length) % a.rotationPersonen.length;
           speichernAufgaben();
           renderFilter(); renderListe();
           showTempStatus('↩️ „' + a.titel + '“ wieder offen', 6, {
-            rueckgaengig: () => { a.erledigt.push(entfernt); if (rotZurueck) a.rotationIndex = ((a.rotationIndex || 0) + 1) % a.rotationPersonen.length; speichernAufgaben(); renderFilter(); renderListe(); }
+            rueckgaengig: () => { a.erledigt.push(entfernt); if (rotZurueck) a.rotationIndex = rotVorher; speichernAufgaben(); renderFilter(); renderListe(); }
           });
         } else {
           erledigtOeffnen(a.id);
@@ -871,16 +881,17 @@
     if (!a.erledigt) a.erledigt = [];
     const eintrag = { datum: new Date().toISOString(), von: wer };
     if (foto) eintrag.foto = foto;
+    const rotNeu = HL.rotationNach(a, wer);
+    const rotWeiter = rotNeu !== null;
+    if (rotWeiter) { eintrag.rv = a.rotationIndex || 0; a.rotationIndex = rotNeu; }
     a.erledigt.push(eintrag);
-    const rotWeiter = a.zuweisung === 'rotation' && (a.rotationPersonen || []).length;
-    if (rotWeiter) a.rotationIndex = ((a.rotationIndex || 0) + 1) % a.rotationPersonen.length;
     speichernAufgaben();
     renderFilter(); renderListe(); ansichtNeuZeichnen();
     showTempStatus('✓ ' + a.titel + ' · ' + personInfo(wer).label, 6, {
       rueckgaengig: () => {
         const i = a.erledigt.indexOf(eintrag);
         if (i !== -1) a.erledigt.splice(i, 1);
-        if (rotWeiter) a.rotationIndex = ((a.rotationIndex || 0) - 1 + a.rotationPersonen.length) % a.rotationPersonen.length;
+        if (rotWeiter) a.rotationIndex = eintrag.rv;
         speichernAufgaben(); renderFilter(); renderListe(); ansichtNeuZeichnen();
       }
     });
@@ -941,7 +952,7 @@
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'opt' + (vorschlag && vorschlag.id === p.id ? ' aktiv' : '');
-      btn.textContent = p.label;
+      btn.textContent = personInfo(p.id).label;
       btn.dataset.person = p.id;
       btn.addEventListener('click', () => {
         box.querySelectorAll('.opt').forEach(o => o.classList.remove('aktiv'));
@@ -1227,7 +1238,7 @@
     document.getElementById('statPersonenLeer').style.display = personenEintraege.length ? 'none' : '';
     personenBox.innerHTML = personenEintraege.map((e, i) => {
       const prozent = gesamt ? Math.round((e.anzahl / gesamt) * 100) : 0;
-      const farbe = STAT_FARBEN[i % STAT_FARBEN.length];
+      const farbe = e.person.farbe || STAT_FARBEN[i % STAT_FARBEN.length];
       return '<div class="stat-person-zeile">' +
         '<div class="stat-person-kopf"><span>' + escapeHtml(e.person.label) + '</span><span>' + e.anzahl + ' (' + prozent + '%)</span></div>' +
         '<div class="balken-wrap"><div class="balken" style="width:' + prozent + '%;background:' + farbe + ';"></div></div>' +
@@ -1540,8 +1551,8 @@
       if (!a.wochentage) a.wochentage = [];
       neu.push(a);
     });
+    if (!neu.length) { showTempStatus('Bitte mindestens eine Aufgabe anhaken.', 3); return; }
     document.getElementById('modalPakete').classList.remove('zeigen');
-    if (!neu.length) return;
     neu.forEach(a => aufgaben.push(a));
     speichernAufgaben();
     renderFilter(); renderListe(); ansichtNeuZeichnen();

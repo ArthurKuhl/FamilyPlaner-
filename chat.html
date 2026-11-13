@@ -1237,7 +1237,7 @@
   }
   function toast(t) {
     let el = $('chatToast');
-    if (!el) { el = document.createElement('div'); el.id = 'chatToast'; el.style.cssText = 'position:fixed;left:50%;bottom:80px;transform:translateX(-50%);background:#2a2016;color:#bcd196;padding:9px 16px;border-radius:20px;font-size:0.82rem;font-weight:600;z-index:300;transition:opacity .3s;max-width:88vw;text-align:center;pointer-events:none;'; document.body.appendChild(el); }
+    if (!el) { el = document.createElement('div'); el.id = 'chatToast'; el.style.cssText = 'position:fixed;left:50%;bottom:80px;transform:translateX(-50%);background:#2a2016;color:#bcd196;padding:9px 16px;border-radius:20px;font-size:0.82rem;font-weight:600;z-index:300;transition:opacity .3s;width:max-content;max-width:88vw;text-align:center;pointer-events:none;'; document.body.appendChild(el); }
     el.textContent = t; el.style.opacity = '1'; clearTimeout(el._t); el._t = setTimeout(() => { el.style.opacity = '0'; }, 2600);
   }
 

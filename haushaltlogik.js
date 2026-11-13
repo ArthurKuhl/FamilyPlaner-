@@ -1,4 +1,5 @@
-// Gemeinsame Fälligkeitslogik für Haushaltsaufgaben (Haushalt, Kinderecke, Home).
+// Gemeinsame Fälligkeitslogik für Haushaltsaufgaben (Haushalt, Kinderecke, Home, Push-Erinnerung).
+// WICHTIG: functions/haushaltlogik.js ist eine Kopie dieser Datei – bei Änderungen beide anpassen.
 // Alle Datumsvergleiche laufen über das LOKALE Datum (nicht UTC), damit kurz nach Mitternacht
 // nicht noch der Vortag zählt.
 //
@@ -139,6 +140,18 @@
     return liste;
   };
 
+  // Rotation nach einer Erledigung: Dran ist die Person NACH der, die es tatsächlich gemacht hat
+  // (springt jemand ein, kommt die eigentlich vorgesehene Person trotzdem als Nächstes dran).
+  // Liefert den neuen Index oder null (keine Rotation).
+  L.rotationNach = function (a, wer) {
+    const r = (a && a.zuweisung === 'rotation' && a.rotationPersonen) || [];
+    if (!r.length) return null;
+    const alt = ((a.rotationIndex || 0) % r.length + r.length) % r.length;
+    const i = r.indexOf(wer);
+    if (i === -1 || i === alt) return (alt + 1) % r.length;
+    // eingesprungen: die eigentlich dran gewesene Person bleibt dran
+    return alt;
+  };
   L.turnusText = function (a, wochentagNamen) {
     if (a.turnus === 'taeglich') return 'Täglich';
     if (a.turnus === 'woechentlich') {
@@ -156,5 +169,6 @@
     return 'Einmalig';
   };
 
-  window.HaushaltLogik = L;
+  if (typeof module !== 'undefined' && module.exports) module.exports = L; // auch für die Push-Funktion (functions/haushaltlogik.js = Kopie)
+  if (typeof window !== 'undefined') window.HaushaltLogik = L;
 })();

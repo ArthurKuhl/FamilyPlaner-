@@ -914,9 +914,9 @@
     if (!a) return;
     if (!a.erledigt) a.erledigt = [];
     const eintrag = { datum: new Date().toISOString(), von: kindId };
+    const rotNeu = window.HaushaltLogik.rotationNach(a, kindId), rot = rotNeu !== null;
+    if (rot) { eintrag.rv = a.rotationIndex || 0; a.rotationIndex = rotNeu; }
     a.erledigt.push(eintrag);
-    const rot = a.zuweisung === 'rotation' && (a.rotationPersonen || []).length;
-    if (rot) a.rotationIndex = ((a.rotationIndex || 0) + 1) % a.rotationPersonen.length;
     speichern('haushalt_aufgaben', aufgaben, haushaltSync);
     konfetti();
     renderAlles();
@@ -924,7 +924,7 @@
       const a2 = laden('haushalt_aufgaben', []); const x = a2.find(y => y.id === aufgabeId); if (!x) return;
       const i = (x.erledigt || []).findIndex(e => e.datum === eintrag.datum && e.von === kindId);
       if (i !== -1) x.erledigt.splice(i, 1);
-      if (rot) x.rotationIndex = ((x.rotationIndex || 0) - 1 + x.rotationPersonen.length) % x.rotationPersonen.length;
+      if (rot) x.rotationIndex = eintrag.rv;
       speichern('haushalt_aufgaben', a2, haushaltSync);
       renderAlles();
     });
