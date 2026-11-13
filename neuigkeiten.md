@@ -1,6 +1,14 @@
 # Neuigkeiten im Familienplaner
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 
+## 2026-11-13 | Gaming: Filter und Bildschirmzeit richtig
+- Personen-Filter: Mit z. B. „Lev“ erscheinen jetzt auch die Familienspiele, in der Bibliothek und bei „⏱ Jetzt spielen“. Vorher war die Auswahl leer.
+- Die Statistik zählt jetzt, wer gespielt hat, nicht wem das Spiel gehört. Levs Mario-Kart-Zeit taucht also bei Lev auf.
+- Die Limit-Meldung sagt jetzt, welches Limit erreicht ist („Wochenlimit erreicht – 2,2 von 2 Std.“), statt immer „für heute aufgebraucht“.
+- Oben in der Bibliothek steht die Restzeit der Kinder, sobald ein Limit eingestellt ist.
+- Nach einer Sitzung kommt statt eines Fensters zum Wegtippen eine kurze Einblendung mit „Rückgängig“. Das Wochenlimit nimmt jetzt auch Komma („1,5“) an.
+- Dunkelmodus: Die farbigen Chips sind besser lesbar.
+
 ## 2026-11-13 | Medien: Seite schnell eintragen
 - Bücher, die gerade gelesen werden, haben auf der Karte den Knopf „📖 Seite“. Er öffnet ein kleines Feld für die aktuelle Seite. Bei der letzten Seite fragt die App, ob das Buch fertig gelesen ist 🏆.
 - Neue Einträge sind automatisch für die Person, die dieses Gerät nutzt.

@@ -248,6 +248,10 @@
      Text auf Akzent-Knöpfen dunkel – außer bei „Schnee“, dort ist der Knopf selbst dunkel. */
   html[data-dark="1"] { --moss-text: var(--sage); --on-moss: #16140f; }
   html[data-dark="1"][data-farbschema="schnee"] { --on-moss: #f4f5f6; }
+  .restzeit-zeile { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  .restzeit-zeile .rz { font-size: 0.76rem; background: var(--white); border: 1px solid var(--parchment); border-radius: var(--radius-pill); padding: 4px 10px; color: var(--soil); }
+  .restzeit-zeile .rz.um { border-color: var(--terracotta); color: var(--terracotta-text, var(--terracotta)); }
+  html[data-dark="1"] .spiel-chips .mini-chip { filter: brightness(1.75) saturate(0.9); }
 </style>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
@@ -314,6 +318,7 @@
       </div>
       <button class="btn btn-primary" id="btnGamingTimerStopp" style="flex-shrink:0;">■ Stopp</button>
     </div>
+    <div class="restzeit-zeile" id="restzeitZeile"></div>
     <div style="display:flex;gap:8px;">
       <button class="add-sport-btn" id="btnGamingTimerStart" style="flex:1;">⏱ Jetzt spielen</button>
       <button class="add-sport-btn" id="btnSitzungHinzufuegen" style="flex:1;">▶ Nachträglich erfassen</button>
@@ -805,6 +810,20 @@
     sitzungen.filter(sz => sz.person === person).forEach(sz => { if (sz.datum === h) tag += sz.minuten; if (sz.datum >= ws && sz.datum <= h) woche += sz.minuten; });
     return { tag: tag + (zusatz || 0), woche: woche + (zusatz || 0) };
   }
+  // Was ist knapp? { tag, woche } jeweils Rest in Minuten oder null
+  function restDetail(person, zusatz) {
+    const l = limits[person]; if (!l || (!l.tag && !l.woche)) return null;
+    const m = minutenVon(person, zusatz);
+    return { tag: l.tag ? l.tag - m.tag : null, woche: l.woche ? l.woche - m.woche : null, m, l };
+  }
+  function stdKurz(min) { return (Math.round(min / 6) / 10).toLocaleString('de-DE') + ' Std.'; }
+  function restSatz(person) {
+    const d = restDetail(person); if (!d) return '';
+    if (d.woche !== null && d.woche <= 0) return '⛔ Wochenlimit erreicht – ' + stdKurz(d.m.woche) + ' von ' + stdKurz(d.l.woche);
+    if (d.tag !== null && d.tag <= 0) return '⛔ Heute ist die Spielzeit aufgebraucht (' + d.m.tag + ' von ' + d.l.tag + ' Min.)';
+    const r = Math.min(...[d.tag, d.woche].filter(x => x !== null));
+    return '⏳ noch <b>' + r + ' Min.</b>' + (d.tag !== null && d.woche !== null && d.woche < d.tag ? ' (Woche fast voll)' : ' heute');
+  }
   function restMinuten(person, zusatz) {
     const l = limits[person]; if (!l || (!l.tag && !l.woche)) return null;
     const m = minutenVon(person, zusatz);
@@ -814,6 +833,15 @@
     return Math.min(...reste);
   }
   let personFilter = localStorage.getItem(KEY_AKTIVE_PERSON) || 'alle';
+  // Familienspiele gehören allen – beim Filter „Lev“ also eigene + Familienspiele
+  function gehoertZuFilter(s) { return personFilter === 'alle' || s.person === personFilter || !s.person || s.person === 'familie'; }
+  // Statistik zählt, WER gespielt hat (Sitzung), nur ohne Angabe zählt der Besitzer des Spiels
+  function sitzungZaehlt(sz) {
+    if (personFilter === 'alle') return true;
+    if (sz.person) return sz.person === personFilter;
+    const sp = spiele.find(x => x.id === sz.spielId);
+    return !!sp && sp.person === personFilter;
+  }
   let statusFilter = 'alle';
   let suchtext = '';
   let bearbeiteId = null;
@@ -898,7 +926,7 @@
   let sortRichtung = localStorage.getItem('gaming_sortRichtung') || 'az';
   function gefilterteSpiele() {
     const gefiltert = spiele.filter(s => {
-      if (personFilter !== 'alle' && s.person !== personFilter) return false;
+      if (!gehoertZuFilter(s)) return false;
       if (statusFilter !== 'alle' && s.status !== statusFilter) return false;
       if (suchtext && !s.titel.toLowerCase().includes(suchtext)) return false;
       return true;
@@ -921,7 +949,7 @@
   function renderStats() {
     const box = document.getElementById('statReihe');
     box.innerHTML = '';
-    const basis = spiele.filter(s => personFilter === 'alle' || s.person === personFilter);
+    const basis = spiele.filter(gehoertZuFilter);
     const aktuell = basis.filter(s => s.status === 'spiele_ich').length;
     const durch = basis.filter(s => s.status === 'durchgespielt').length;
     const gesamtStunden = basis.reduce((sum, s) => sum + spielzeitGesamt(s), 0);
@@ -1270,7 +1298,7 @@
     box.querySelectorAll('[data-p]').forEach(b => b.addEventListener('click', () => { setzen(holen() === b.dataset.p ? '' : b.dataset.p); werChipsRendern(boxId, holen, setzen, nachher); if (nachher) nachher(); }));
   }
   function spielFilterFuerPerson() {
-    return personFilter === 'alle' ? spiele : spiele.filter(s => s.person === personFilter);
+    return spiele.filter(gehoertZuFilter);
   }
   document.getElementById('btnSitzungHinzufuegen').addEventListener('click', () => {
     if (!spiele.length) { alert('Lege zuerst ein Spiel in der Bibliothek an.'); return; }
@@ -1295,7 +1323,8 @@
     document.getElementById('modalSitzung').classList.remove('zeigen');
     renderAlles();
     if (aktiveAnsicht === 'statistik') renderStatistik();
-    alert('Spielsitzung gespeichert (' + minuten + ' Min.).');
+    const neuId = sitzungen[sitzungen.length - 1].id;
+    showTempStatus('▶ Sitzung gespeichert: ' + minuten + ' Min.', 5, { rueckgaengig: () => { sitzungen = sitzungen.filter(x => x.id !== neuId); speichernSitzungen(); renderAlles(); if (aktiveAnsicht === 'statistik') renderStatistik(); } });
   });
 
   // ============================================================
@@ -1347,7 +1376,7 @@
     select.innerHTML = spielFilterFuerPerson().map(s => '<option value="' + s.id + '">' + escapeHtml(s.titel) + '</option>').join('');
     const limitInfo = () => {
       const r = timerWer ? restMinuten(timerWer) : null;
-      document.getElementById('fTimerLimitInfo').innerHTML = r === null ? '' : (r > 0 ? '⏳ ' + escapeHtml(personName(timerWer)) + ' hat heute noch <b>' + r + ' Min.</b>' : '⛔ Die Spielzeit für heute ist schon aufgebraucht.');
+      document.getElementById('fTimerLimitInfo').innerHTML = r === null ? '' : escapeHtml(personName(timerWer)) + ': ' + restSatz(timerWer);
     };
     timerWer = standardSpieler(select.value);
     select.onchange = () => { timerWer = standardSpieler(select.value); werChipsRendern('fTimerWer', () => timerWer, (v) => { timerWer = v; }, limitInfo); limitInfo(); };
@@ -1375,7 +1404,8 @@
     renderAlles();
     if (aktiveAnsicht === 'statistik') renderStatistik();
     const spiel = spiele.find(s => s.id === laufend.spielId);
-    alert('Sitzung gespeichert: ' + (spiel ? spiel.titel : '') + ' – ' + minuten + ' Min.');
+    const neuId = sitzungen[sitzungen.length - 1].id;
+    showTempStatus('■ ' + (spiel ? spiel.titel + ': ' : '') + minuten + ' Min. gespeichert', 6, { rueckgaengig: () => { sitzungen = sitzungen.filter(x => x.id !== neuId); speichernSitzungen(); renderAlles(); if (aktiveAnsicht === 'statistik') renderStatistik(); } });
   });
   gamingTimerAnzeigeAktualisieren();
 
@@ -1394,8 +1424,7 @@
   function spielTitel(spielId) { const s = spiele.find(x => x.id === spielId); return s ? s.titel : '(gelöschtes Spiel)'; }
 
   function renderSpielzeitChart() {
-    const relevanteSpielIds = new Set(spielFilterFuerPerson().map(s => s.id));
-    const relevant = sitzungen.filter(sz => relevanteSpielIds.has(sz.spielId));
+    const relevant = sitzungen.filter(sitzungZaehlt);
     const tage = letzteNTageGaming(14);
     const minutenProTag = tage.map(tag => relevant.filter(sz => sz.datum === tag).reduce((sum, sz) => sum + sz.minuten, 0));
     const max = Math.max(...minutenProTag, 1);
@@ -1412,9 +1441,8 @@
   }
 
   function renderMeistgespielt() {
-    const relevanteSpielIds = new Set(spielFilterFuerPerson().map(s => s.id));
     const summen = {};
-    sitzungen.filter(sz => relevanteSpielIds.has(sz.spielId)).forEach(sz => {
+    sitzungen.filter(sitzungZaehlt).forEach(sz => {
       summen[sz.spielId] = (summen[sz.spielId] || 0) + sz.minuten;
     });
     const box = document.getElementById('meistgespieltListe');
@@ -1428,8 +1456,7 @@
   }
 
   function renderSitzungsVerlauf() {
-    const relevanteSpielIds = new Set(spielFilterFuerPerson().map(s => s.id));
-    const relevant = sitzungen.filter(sz => relevanteSpielIds.has(sz.spielId)).sort((a,b) => b.datum < a.datum ? -1 : 1).slice(0, 20);
+    const relevant = sitzungen.filter(sitzungZaehlt).sort((a,b) => b.datum < a.datum ? -1 : 1).slice(0, 20);
     const box = document.getElementById('sitzungsVerlauf');
     if (!relevant.length) { box.innerHTML = '<div class="chart-leer">Noch keine Sitzungen erfasst.</div>'; return; }
     box.innerHTML = '';
@@ -1448,17 +1475,15 @@
   }
 
   function renderStatistikStats() {
-    const relevant = spielFilterFuerPerson();
-    const relevanteSpielIds = new Set(relevant.map(s => s.id));
-    const gesamtMinuten = sitzungen.filter(sz => relevanteSpielIds.has(sz.spielId)).reduce((sum, sz) => sum + sz.minuten, 0);
+    const gesamtMinuten = sitzungen.filter(sitzungZaehlt).reduce((sum, sz) => sum + sz.minuten, 0);
     const letzte7 = letzteNTageGaming(7);
-    const minutenLetzte7 = sitzungen.filter(sz => relevanteSpielIds.has(sz.spielId) && letzte7.includes(sz.datum)).reduce((sum, sz) => sum + sz.minuten, 0);
+    const minutenLetzte7 = sitzungen.filter(sz => sitzungZaehlt(sz) && letzte7.includes(sz.datum)).reduce((sum, sz) => sum + sz.minuten, 0);
     const box = document.getElementById('statistikStatReihe');
     box.innerHTML = '';
     [
       { wert: (Math.round(gesamtMinuten/6)/10).toLocaleString('de-DE'), label: 'Std. gesamt' },
       { wert: (Math.round(minutenLetzte7/6)/10).toLocaleString('de-DE'), label: 'Std. (7 Tage)' },
-      { wert: sitzungen.filter(sz => relevanteSpielIds.has(sz.spielId)).length, label: 'Sitzungen' },
+      { wert: sitzungen.filter(sitzungZaehlt).length, label: 'Sitzungen' },
     ].forEach(s => {
       const el = document.createElement('div');
       el.className = 'stat-box';
@@ -1479,7 +1504,7 @@
       return '<div class="limit-zeile"><div class="limit-kopf"><span>' + escapeHtml(p.label) + '</span><span class="limit-info">heute ' + m.tag + (l.tag ? ' / ' + l.tag : '') + ' Min. · Woche ' + stdText(m.woche / 60) + (l.woche ? ' / ' + stdText(l.woche / 60) : '') + '</span></div>' +
         balken(m.tag, l.tag) + balken(m.woche, l.woche) +
         '<div class="limit-felder"><label>Limit pro Tag (Min.)<input type="number" min="0" step="5" data-limit="' + escapeHtml(p.id) + '" data-art="tag" value="' + (l.tag || '') + '" placeholder="kein"></label>' +
-        '<label>Limit pro Woche (Std.)<input type="number" min="0" step="0.5" data-limit="' + escapeHtml(p.id) + '" data-art="woche" value="' + (l.woche ? Math.round(l.woche / 6) / 10 : '') + '" placeholder="kein"></label></div></div>';
+        '<label>Limit pro Woche (Std.)<input type="text" inputmode="decimal" autocomplete="off" data-limit="' + escapeHtml(p.id) + '" data-art="woche" value="' + (l.woche ? String(Math.round(l.woche / 6) / 10).replace('.', ',') : '') + '" placeholder="kein"></label></div></div>';
     }).join('');
     box.querySelectorAll('[data-limit]').forEach(inp => inp.addEventListener('change', () => {
       const pid = inp.dataset.limit, art = inp.dataset.art;
@@ -1487,7 +1512,7 @@
       limits[pid] = Object.assign({}, limits[pid], { [art]: art === 'woche' ? Math.round(w * 60) : Math.round(w) });
       if (!limits[pid].tag && !limits[pid].woche) delete limits[pid];
       speichern(KEY_LIMITS, limits);
-      renderBildschirmzeit();
+      renderBildschirmzeit(); renderRestzeit();
     }));
   }
   function bestenliste(spielId) {
@@ -1704,7 +1729,15 @@
     showTempStatus('🎁 „' + s.titel + '“ steht jetzt auf der Wunschliste', 3);
   });
 
+  function renderRestzeit() {
+    const box = document.getElementById('restzeitZeile'); if (!box) return;
+    const leute = Object.keys(limits || {}).filter(pid => restDetail(pid) && (personFilter === 'alle' || personFilter === pid) && echtePersonen().some(p => p.id === pid));
+    box.innerHTML = leute.map(pid => { const d = restDetail(pid), um = (d.tag !== null && d.tag <= 0) || (d.woche !== null && d.woche <= 0);
+      return '<span class="rz' + (um ? ' um' : '') + '">👦 ' + escapeHtml(personName(pid)) + ': ' + restSatz(pid).replace(/^⏳ /, '').replace(/^⛔ /, '') + '</span>'; }).join('');
+    box.style.display = leute.length ? '' : 'none';
+  }
   function renderAlles() {
+    renderRestzeit();
     renderStats();
     renderGrid();
     if (aktiveAnsicht === 'statistik') renderStatistik();
