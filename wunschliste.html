@@ -187,6 +187,8 @@
   .btn-primary { background: var(--moss); color: var(--on-moss, var(--white)); border: none; border-radius: var(--radius-pill); padding: 10px; font-size: 0.85rem; font-weight: 700; cursor: pointer; width: 100%; font-family: 'Inter', sans-serif; }
   .btn-secondary { background: transparent; color: var(--moss-text, var(--moss)); border: 1px solid var(--moss); border-radius: var(--radius-pill); padding: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer; width: 100%; margin-top: 8px; font-family: 'Inter', sans-serif; }
   .btn-delete { background: transparent; color: var(--terracotta); border: 1px solid var(--terracotta); border-radius: var(--radius-pill); padding: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer; width: 100%; margin-top: 8px; font-family: 'Inter', sans-serif; }
+  .teilen-wahl { display: flex; align-items: center; gap: 10px; width: 100%; background: var(--white); border: 1px solid var(--parchment); border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; cursor: pointer; font-family: 'Inter', sans-serif; color: var(--soil); text-align: left; }
+  .teilen-wahl .tw-info { flex: 1; font-size: 0.8rem; color: var(--bark); }
   .modal-actions { display: flex; gap: 8px; margin-top: 4px; }
 
   /* Sehr breite Bildschirme: Content etwas breiter + dezente Deko-Streifen im Rand */
@@ -351,13 +353,22 @@
     </section>
   </main>
 
+  <!-- Teilen: für wen? -->
+  <div class="modal-bg" id="teilenModal">
+    <div class="modal">
+      <h2>📤 Wunschzettel teilen – für wen?</h2>
+      <p id="teilenUnter" style="font-size:0.74rem;color:var(--bark);margin:-4px 0 10px;"></p>
+      <div id="teilenListe"></div>
+      <div class="modal-actions"><button class="btn-secondary" id="btnTeilenAbbrechen">Abbrechen</button></div>
+    </div>
+  </div>
   <!-- Besorgt: tatsächlicher Preis -->
   <div class="modal-bg" id="besorgtModal">
     <div class="modal">
       <h2 id="besorgtTitel">🛍️ Besorgt</h2>
       <div class="form-row">
         <label for="besorgtPreis">Tatsächlicher Preis (€, optional)</label>
-        <input type="number" id="besorgtPreis" min="0" step="0.01" inputmode="decimal" placeholder="z. B. 39,99">
+        <input type="text" id="besorgtPreis" inputmode="decimal" autocomplete="off" placeholder="z. B. 39,99">
       </div>
       <div class="check-row">
         <input type="checkbox" id="besorgtFinanzen">
@@ -702,11 +713,21 @@
 
     let wunschGruppierung = 'keine';
     let wunschSortierung = 'alpha';
-    function wunschPreisZahl(w) {
-      const treffer = (w.preis || '').match(/[\d]+(?:[.,]\d+)?/);
-      if (!treffer) return -1; // ohne erkennbaren Preis ans Ende
-      return parseFloat(treffer[0].replace(',', '.'));
+    // „1.299 €“, „39,99“, „ca. 45 €“ → Zahl (Tausenderpunkt und Dezimalkomma wie in Finanzen)
+    function preisLesen(wert) {
+      const m = String(wert == null ? '' : wert).match(/\d[\d.,]*/);
+      if (!m) return NaN;
+      let t = m[0].replace(/[.,]$/, '');
+      if (t.includes(',') && t.includes('.')) t = t.lastIndexOf(',') > t.lastIndexOf('.') ? t.replace(/\./g, '').replace(',', '.') : t.replace(/,/g, '');
+      else if (t.includes(',')) t = t.replace(',', '.');
+      else if (/^\d{1,3}(\.\d{3})+$/.test(t)) t = t.replace(/\./g, '');
+      return parseFloat(t);
     }
+    function wunschPreisZahl(w) {
+      const n = preisLesen(w.preis);
+      return isNaN(n) ? -1 : n; // ohne erkennbaren Preis ans Ende
+    }
+    function preisText(w) { return String(w.preis || '').trim().replace(/^(ca\.?|circa|etwa|~)\s*/i, ''); }
     function wertVon(w) { const st = statusVon(w); return (st === 'besorgt' || st === 'verschenkt') && Number(w.preisIst) > 0 ? Number(w.preisIst) : Math.max(0, wunschPreisZahl(w)); }
     const PRIO = { hoch: 0, mittel: 1, niedrig: 2 };
     function wunschSortFn(a, b) {
@@ -767,7 +788,7 @@
         <div class="wk-inhalt">
           ${w.foto && fotoSrc(w.foto) ? '<img src="' + escapeHtml(fotoSrc(w.foto)) + '" alt="" loading="lazy">' : ''}
           <div style="flex:1;min-width:0;">
-            <div style="font-weight:700">${escapeHtml(w.name)}${w.preis ? ' <span style="font-weight:400;opacity:0.7;font-size:0.8rem">· ca. ' + escapeHtml(w.preis) + '</span>' : ''}</div>
+            <div style="font-weight:700">${escapeHtml(w.name)}${preisText(w) ? ' <span style="font-weight:400;opacity:0.7;font-size:0.8rem">· ca. ' + escapeHtml(preisText(w)) + '</span>' : ''}</div>
             ${w.notiz ? `<div style="font-size:0.8rem;opacity:0.8;margin-top:2px">${escapeHtml(w.notiz)}</div>` : ''}
           </div>
         </div>
@@ -871,7 +892,7 @@
       } else if (aktion === 'besorgt') {
         besorgtId = id;
         document.getElementById('besorgtTitel').textContent = '🛍️ „' + w.name + '“ besorgt';
-        document.getElementById('besorgtPreis').value = Number(w.preisIst) > 0 ? w.preisIst : (wunschPreisZahl(w) > 0 ? wunschPreisZahl(w) : '');
+        document.getElementById('besorgtPreis').value = String(Number(w.preisIst) > 0 ? w.preisIst : (wunschPreisZahl(w) > 0 ? wunschPreisZahl(w) : '')).replace('.', ',');
         document.getElementById('besorgtFinanzen').checked = false;
         document.getElementById('besorgtModal').classList.add('zeigen');
       } else if (aktion === 'verschenkt') {
@@ -899,7 +920,7 @@
     document.getElementById('btnBesorgtOk').addEventListener('click', () => {
       const w = wunschliste.find(x => x.id === besorgtId); if (!w) return;
       const vorher = JSON.parse(JSON.stringify(w));
-      const preis = Number(String(document.getElementById('besorgtPreis').value).replace(',', '.'));
+      const preis = preisLesen(document.getElementById('besorgtPreis').value) || 0;
       w.status = 'besorgt'; w.besorgtAm = heuteIso();
       if (!w.reserviertVon) w.reserviertVon = ich || 'familie';
       if (preis > 0) w.preisIst = Math.round(preis * 100) / 100; else delete w.preisIst;
@@ -943,19 +964,16 @@
       const w0 = liste[0];
       const datum = anlass ? anlassDatum(w0, null) : null;
       const kopf = '🎁 Wunschzettel für ' + empfaengerLabel(w0) + (anlass ? ' – ' + anlassLabel(anlass).replace(/^\S+\s/, '') + (datum ? ' (' + new Date(datum + 'T12:00').toLocaleDateString('de-DE', { day: 'numeric', month: 'long' }) + ')' : '') : '');
-      return kopf + '\n\n' + liste.map(w => '• ' + w.name + (w.preis ? ' (ca. ' + w.preis + ')' : '') + (w.prioritaet === 'hoch' ? ' ⭐' : '') + (w.notiz ? '\n   ' + w.notiz : '') + (sichererLink(w.link) ? '\n   ' + sichererLink(w.link) : '')).join('\n') +
+      return kopf + '\n\n' + liste.map(w => '• ' + w.name + (preisText(w) ? ' (ca. ' + preisText(w) + ')' : '') + (w.prioritaet === 'hoch' ? ' ⭐' : '') + (w.notiz ? '\n   ' + w.notiz : '') + (sichererLink(w.link) ? '\n   ' + sichererLink(w.link) : '')).join('\n') +
         '\n\nBitte kurz Bescheid geben, was ihr besorgt – damit nichts doppelt kommt. 😊';
     }
     async function wunschzettelTeilen(key, anlass) {
       if (!key) {
         const keys = [...new Set(sichtbareWuensche().filter(w => statusVon(w) === 'offen' && !fuerMich(w)).map(personKey))];
         if (!keys.length) { showTempStatus('Keine offenen Wünsche zum Teilen', 3); return; }
-        if (keys.length > 1) {
-          const wahl = prompt('Für wen soll der Wunschzettel sein?\n' + keys.map((k, i) => (i + 1) + ' = ' + keyLabel(k)).join('\n'), '1');
-          const i = Number(wahl) - 1; if (!(i >= 0 && i < keys.length)) return;
-          key = keys[i];
-        } else key = keys[0];
         if (anlassFilter !== 'alle') anlass = anlassFilter;
+        if (keys.length > 1) { teilenAuswahlZeigen(keys, anlass); return; }
+        key = keys[0];
       }
       const text = wunschzettelText(key, anlass);
       if (!text) { showTempStatus('Keine offenen Wünsche zum Teilen', 3); return; }
@@ -965,6 +983,19 @@
       try { await navigator.clipboard.writeText(text); showTempStatus('📋 Wunschzettel kopiert – jetzt z. B. in WhatsApp einfügen', 4); }
       catch (e) { prompt('Zum Kopieren:', text); }
     }
+    function teilenAuswahlZeigen(keys, anlass) {
+      const box = document.getElementById('teilenListe');
+      box.innerHTML = keys.map(k => {
+        const n = wunschliste.filter(w => personKey(w) === k && (!anlass || w.anlass === anlass) && statusVon(w) === 'offen').length;
+        const farbe = personFarbe(k.indexOf('ext:') === 0 ? 'extern' : k);
+        return '<button type="button" class="teilen-wahl" data-key="' + escapeHtml(k) + '"><span class="wk-person" style="background:' + farbe + '">' + escapeHtml(keyLabel(k)) + '</span><span class="tw-info">' + n + (n === 1 ? ' offener Wunsch' : ' offene Wünsche') + '</span><span>📤</span></button>';
+      }).join('');
+      document.getElementById('teilenUnter').textContent = anlass ? 'Nur ' + anlassLabel(anlass) : 'Alle Anlässe';
+      box.querySelectorAll('[data-key]').forEach(b => b.addEventListener('click', () => { document.getElementById('teilenModal').classList.remove('zeigen'); wunschzettelTeilen(b.dataset.key, anlass); }));
+      document.getElementById('teilenModal').classList.add('zeigen');
+    }
+    document.getElementById('btnTeilenAbbrechen').addEventListener('click', () => document.getElementById('teilenModal').classList.remove('zeigen'));
+    document.getElementById('teilenModal').addEventListener('click', (e) => { if (e.target.id === 'teilenModal') e.currentTarget.classList.remove('zeigen'); });
     document.getElementById('btnTeilen').addEventListener('click', () => wunschzettelTeilen(aktiverFilter !== 'alle' && aktiverFilter !== 'extern' ? aktiverFilter : null, anlassFilter !== 'alle' ? anlassFilter : null));
 
     // ---------- 📜 Verlauf ----------
@@ -1209,6 +1240,20 @@
       setTimeout(() => { if (!wunschliste.some(w => w.foto && w.foto.pfad === pfad)) { try { window.FotoSpeicher.loeschen(pfad); } catch (e) {} } }, 9000);
     }
 
+    // Neuer Wunsch: Weihnachten/Ostern vorschlagen, wenn das Fest bald ist – sonst Geburtstag
+    function naechsterAnlass() {
+      const tW = tageBis(anlassDatum({ anlass: 'weihnachten' }, null)), tO = tageBis(anlassDatum({ anlass: 'ostern' }, null));
+      if (tW >= 0 && tW <= 75) return 'weihnachten';
+      if (tO >= 0 && tO <= 45) return 'ostern';
+      return 'geburtstag';
+    }
+    // … und die Person, die für diesen Anlass die meisten offenen Wünsche hat (sonst Familie)
+    function wahrscheinlichePerson(anlass) {
+      const zahl = {};
+      wunschliste.forEach(w => { if (w.person && w.person !== 'extern' && w.person !== 'familie' && !fuerMich(w) && statusVon(w) !== 'verschenkt' && w.anlass === anlass) zahl[w.person] = (zahl[w.person] || 0) + 1; });
+      const best = Object.keys(zahl).sort((a, b) => zahl[b] - zahl[a])[0];
+      return best && WER_OPTIONEN.some(o => o.id === best) ? best : 'familie';
+    }
     function wunschFormOeffnen(id) {
       const w = id ? wunschliste.find(x=>x.id===id) : null;
       document.getElementById('wunschModalTitel').textContent = w ? (statusVon(w) === 'verschenkt' ? '🎁 Verschenkt' : 'Wunsch bearbeiten') : 'Neuer Wunsch';
@@ -1228,8 +1273,8 @@
       const st = w ? statusVon(w) : 'offen';
       document.getElementById('wunschStatus').value = st;
       document.getElementById('wunschReserviertVonFeld').style.display = st !== 'offen' ? '' : 'none';
-      wunschEditPerson = w ? w.person : (aktiverFilter!=='alle' ? aktiverFilter : 'familie');
-      wunschEditAnlass = w ? w.anlass : (anlassFilter !== 'alle' ? anlassFilter : 'geburtstag');
+      wunschEditAnlass = w ? w.anlass : (anlassFilter !== 'alle' ? anlassFilter : naechsterAnlass());
+      wunschEditPerson = w ? w.person : (aktiverFilter !== 'alle' && aktiverFilter !== 'extern' ? aktiverFilter : wahrscheinlichePerson(wunschEditAnlass));
       wunschEditReserviertVon = w ? (w.reserviertVon || ich || 'familie') : (ich || 'familie');
       wunschEditVersteckenVor = w && Array.isArray(w.versteckenVor) ? w.versteckenVor.slice() : [];
       wunschEditFoto = w && w.foto ? Object.assign({}, w.foto) : null;

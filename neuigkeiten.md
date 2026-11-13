@@ -1,6 +1,13 @@
 # Neuigkeiten im Familienplaner
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 
+## 2026-11-13 | Wunschliste: richtige Preise, schneller teilen
+- Preise mit Tausenderpunkt („1.299 €“) werden im Budget und beim Sortieren jetzt richtig gezählt (vorher 1,30 €).
+- Wer selbst „ca.“ in den Preis schreibt, sieht es nicht mehr doppelt.
+- Der Preis bei „🛍️ Besorgt“ nimmt jetzt Komma und Punkt an („39,99“).
+- Neuer Wunsch: Vor Weihnachten und Ostern ist der Anlass schon passend vorausgewählt, dazu die Person, für die schon die meisten Wünsche gesammelt sind.
+- 📤 Teilen: Bei mehreren Personen erscheint jetzt ein Auswahlfenster mit einem Knopf pro Person statt einer Zahleneingabe.
+
 ## 2026-11-13 | Notizblock: Checklisten schneller tippen
 - Checklisten: Enter legt direkt den nächsten Punkt an, die Löschtaste in einem leeren Punkt entfernt ihn. Fügst du mehrere Zeilen ein (z. B. aus WhatsApp), wird jede Zeile ein eigener Punkt.
 - Beim Umschalten zwischen 📝 Text und ☑️ Checkliste geht nichts mehr verloren: Aus den Zeilen werden Punkte und umgekehrt.
