@@ -1,6 +1,12 @@
 # Neuigkeiten im Familienplaner
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 
+## 2026-11-13 | Kinderecke: Sterne zum Zählen, weniger Eltern-Text
+- ⭐ Im Kleinkind-Modus stehen die Sterne bis zur Belohnung in Fünfer-Reihen – leicht zu zählen wie die Finger einer Hand.
+- 🦊 Hat ein Geschwisterkind eine Aufgabe übernommen, steht dort „Lev hat's gemacht“ statt eines Hakens. Und die eigene erledigte Aufgabe bleibt sichtbar, auch wenn danach schon das andere Kind dran ist.
+- 🌈 Im Kleinkind-Modus: „Heute hast du frei!“ statt Anleitungstext, und die Taschengeld-Karte erscheint erst, wenn es ein Konto gibt.
+- 🎒 Die Morgen-Routine-Vorlage heißt im Kleinkind-Modus „Kita-Tasche“ statt „Ranzen packen“.
+
 ## 2026-11-13 | Kochen: Portionen rechnen richtig, Gewürze bleiben vom Einkauf weg
 - ⚖️ Portionen-Umrechnung versteht Brüche und Bereiche: „1/2 l“, „½ TL“, „1 1/2“, „2–3 Eier“, „1 Prise“ – und zeigt z. B. „4–6 Eier“, „2 Prisen Zimt“, „½ TL“.
 - 🛒 Zum Einkauf: Gewürze und Löffel-Mengen (TL, EL, Prise, „zum Braten“) sind in der Vorschau abgewählt und kommen – falls doch gewählt – ohne Löffelmenge auf die Liste. Die Zutaten landen gleich in der passenden Supermarkt-Abteilung.

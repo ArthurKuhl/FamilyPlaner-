@@ -144,7 +144,7 @@
   .br-album button { position: absolute; top: -4px; right: -4px; width: 22px; height: 22px; border-radius: 50%; border: none; background: rgba(0,0,0,0.6); color: #fff; cursor: pointer; font-size: 0.7rem; }
   .einst-zeile { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
   .pin-eingabe { font-size: 1.6rem !important; letter-spacing: 0.5em; text-align: center; width: 100%; padding: 12px !important; }
-  #kiToast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 0); background: #2a2016; color: #bcd196; padding: 10px 16px; border-radius: 22px; font: 600 0.88rem 'Inter', sans-serif; box-shadow: 0 4px 14px rgba(0,0,0,0.25); z-index: 9998; display: flex; gap: 12px; align-items: center; max-width: 90vw; transition: opacity .2s; }
+  #kiToast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 0); background: #2a2016; color: #bcd196; padding: 10px 16px; border-radius: 22px; font: 600 0.88rem 'Inter', sans-serif; box-shadow: 0 4px 14px rgba(0,0,0,0.25); z-index: 9998; display: flex; gap: 12px; align-items: center; width: max-content; max-width: 90vw; transition: opacity .2s; }
   #kiToast button { background: none; border: none; color: #e8c98a; font-weight: 800; text-decoration: underline; cursor: pointer; font-size: 0.88rem; }
   /* 🎄 Adventskalender */
   .advent { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
@@ -181,8 +181,12 @@
   .kleinkind .aufgabe { padding: 14px 12px; }
   .kleinkind .aufgabe .a-icon { font-size: 2.6rem; line-height: 1; }
   .kleinkind .aufgabe .a-titel { font-size: 0.95rem; }
-  .stern-bilder { font-size: 1.7rem; line-height: 1.25; letter-spacing: 2px; word-break: break-all; margin: 4px 0 6px; }
-  .stern-bilder .leer { opacity: 0.25; filter: grayscale(1); }
+  .stern-bilder { font-size: 1.7rem; line-height: 1.25; letter-spacing: 2px; margin: 4px 0 6px; display: flex; flex-wrap: wrap; column-gap: 14px; row-gap: 2px; }
+  .stern-bilder .fuenf { white-space: nowrap; }
+  .leer-bild { text-align: center; font-size: 2.4rem; margin: 6px 0 2px; }
+  .leer-bild span { display: block; font-size: 0.85rem; font-weight: 700; color: var(--bark); margin-top: 2px; }
+  .von-anderem { font-size: 0.78rem; font-weight: 700; color: var(--bark); white-space: nowrap; }
+  .stern-bilder .stern-aus { opacity: 0.25; filter: grayscale(1); }
   .kleinkind .tuer { font-size: 1.25rem; }
   .konfetti { position: fixed; top: -20px; font-size: 1.6rem; z-index: 9999; pointer-events: none; animation: fallen 1.8s ease-in forwards; }
   @keyframes fallen { to { transform: translateY(105vh) rotate(540deg); opacity: 0.2; } }
@@ -726,8 +730,10 @@
     const tg = taschengeld(kind.id);
     const belohnungen = e.belohnungen.slice().sort((a, b) => a.sterne - b.sterne);
     const ziel = belohnungen.find(b => b.sterne > sterne) || null;
-    const aufgaben = laden('haushalt_aufgaben', []).filter(a => !a.pausiert && zustaendig(a) === kind.id);
-    const offen = aufgaben.filter(a => heuteFaellig(a) && !heuteErledigt(a));
+    const vonWem = a => (letzte(a) || {}).von || '';
+    // Meine Aufgaben = gerade mir zugeteilt ODER heute von mir erledigt (bei Rotation ist danach schon das nächste Kind dran)
+    const aufgaben = laden('haushalt_aufgaben', []).filter(a => !a.pausiert && (zustaendig(a) === kind.id || (heuteErledigt(a) && vonWem(a) === kind.id)));
+    const offen = aufgaben.filter(a => zustaendig(a) === kind.id && heuteFaellig(a) && !heuteErledigt(a));
     const beete = gartenBeeteVon(kind.id);
     const beeteOffen = beete.filter(x => x.faellig && !x.heuteErledigt);
     const fertig = aufgaben.filter(heuteErledigt);
@@ -773,9 +779,13 @@
 
     // Aufgaben
     html += '<div class="karte"><h2>✅ Meine Aufgaben heute</h2>';
-    if (!offen.length && !fertig.length) html += '<p class="klein">Keine Aufgaben für heute. Eltern können im 🧹 Haushalt Aufgaben für dich anlegen.</p>';
+    if (!offen.length && !fertig.length) html += e.kleinkind ? '<div class="leer-bild">🌈<span>Heute hast du frei!</span></div>' : '<p class="klein">Keine Aufgaben für heute. Eltern können im 🧹 Haushalt Aufgaben für dich anlegen.</p>';
     offen.forEach(a => { html += '<div class="aufgabe">' + (e.kleinkind ? '<span class="a-icon">' + esc(a.icon || '✅') + '</span>' : '') + '<span class="a-titel">' + esc(a.titel) + '</span>' + sagKnopf(a.titel) + '<button class="knopf-gross gold" data-erledigt="' + esc(a.id) + '">Erledigt! ' + (() => { const n = parseInt(a.sterne, 10); const z = isNaN(n) ? 1 : Math.max(0, n); return z === 0 ? '✓' : (z > 1 ? '+' + z + ' ' : '') + '⭐'; })() + '</button></div>'; });
-    fertig.forEach(a => { html += '<div class="aufgabe fertig"><span class="a-titel">' + esc(a.titel) + '</span><span>✅</span></div>'; });
+    fertig.forEach(a => {
+      const von = vonWem(a), fremd = von && von !== kind.id;
+      html += '<div class="aufgabe fertig">' + (e.kleinkind ? '<span class="a-icon">' + esc(a.icon || '✅') + '</span>' : '') + '<span class="a-titel">' + esc(a.titel) + '</span>' +
+        (fremd ? '<span class="von-anderem">' + esc((e.avatare && e.avatare[von]) || '') + ' ' + esc(person(von).label) + ' hat\'s gemacht</span>' : '<span>✅</span>') + '</div>';
+    });
     html += '</div>';
     // Garten-Beete
     if (beete.length) {
@@ -792,7 +802,7 @@
     // Sterne
     html += '<div class="karte"><h2>⭐ Meine Sterne <button class="knopf-klein" id="btnBonus" title="Für Eltern: einen Bonus-Stern vergeben">+⭐ Bonus</button></h2>' +
       '<div class="sterne-zeile"><span class="sterne-zahl">' + sterne + '</span><span>' + (ziel ? 'Noch <b>' + (ziel.sterne - sterne) + ' ⭐</b> bis:<br><b>' + esc(ziel.text) + '</b>' : (belohnungen.length ? 'Du kannst dir eine Belohnung aussuchen! 🎁' : '')) + '</span></div>';
-    if (ziel && e.kleinkind && ziel.sterne <= 40) html += '<div class="stern-bilder" aria-hidden="true">' + '⭐'.repeat(Math.min(sterne, ziel.sterne)) + '<span class="leer">' + '⭐'.repeat(Math.max(0, ziel.sterne - sterne)) + '</span></div>' + sagKnopf('Du hast ' + sterne + (sterne === 1 ? ' Stern' : ' Sterne') + '. Noch ' + (ziel.sterne - sterne) + ' Sterne bis: ' + ziel.text);
+    if (ziel && e.kleinkind && ziel.sterne <= 40) html += '<div class="stern-bilder" aria-hidden="true">' + Array.from({ length: Math.ceil(ziel.sterne / 5) }, (_, g) => '<span class="fuenf">' + Array.from({ length: Math.min(5, ziel.sterne - g * 5) }, (_, i) => (g * 5 + i < sterne ? '⭐' : '<span class="stern-aus">⭐</span>')).join('') + '</span>').join('') + '</div>' + sagKnopf('Du hast ' + sterne + (sterne === 1 ? ' Stern' : ' Sterne') + '. Noch ' + (ziel.sterne - sterne) + ' Sterne bis: ' + ziel.text);
     else if (ziel) html += '<div class="balken"><span style="width:' + Math.min(100, Math.round(sterne / ziel.sterne * 100)) + '%"></span></div>';
     const woche = wochenSterne(kind.id);
     const wz = e.wochenziel;
@@ -843,8 +853,8 @@
       abz.map(a => '<div class="abzeichen' + (a.ok ? '' : ' gesperrt') + '"><span class="a-icon">' + a.icon + '</span>' + esc(a.text) + '</div>').join('') + '</div>' +
       '<p class="klein" style="margin-top:8px;">🔥 Serie: ' + serieTage(kind.id).aktuell + ' Tage am Stück (Rekord ' + serieTage(kind.id).best + ')</p></div>';
 
-    // Taschengeld
-    html += '<div class="karte"><h2>💰 Mein Taschengeld</h2>';
+    // Taschengeld (im Kleinkind-Modus nur, wenn es ein Konto gibt)
+    if (tg || !e.kleinkind) html += '<div class="karte"><h2>💰 Mein Taschengeld</h2>';
     if (tg) {
       html += '<div class="geld">' + euro(tg.stand) + '</div>';
       if (tg.konto.naechsteFaelligkeit) html += '<p class="klein" style="margin:4px 0 8px;">Nächstes Taschengeld: <b>' + euro(tg.konto.betrag) + '</b> am ' + new Date(tg.konto.naechsteFaelligkeit + 'T00:00').toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' }) + '</p>';
@@ -857,8 +867,8 @@
           '<p class="klein" style="margin:0;">' + (rest <= 0 ? 'Geschafft! Du kannst es dir kaufen 🎉' : 'Noch ' + euro(rest) + wann) + '</p></div>';
       }
       tg.letzte.forEach(b => { html += '<div class="buchung"><span>' + esc(b.beschreibung || (b.typ === 'ausgabe' ? 'Ausgabe' : 'Gutschrift')) + '</span><span class="' + (b.typ === 'ausgabe' ? 'minus">−' : 'plus">+') + euro(b.betrag) + '</span></div>'; });
-    } else html += '<p class="klein">Noch kein Taschengeld-Konto. Eltern können es unter 💶 Finanzen → Taschengeld anlegen.</p>';
-    html += '</div>';
+    } else if (!e.kleinkind) html += '<p class="klein">Noch kein Taschengeld-Konto. Eltern können es unter 💶 Finanzen → Taschengeld anlegen.</p>';
+    if (tg || !e.kleinkind) html += '</div>';
 
     // 🎁 Wunschzettel (Daten in termine_wunschliste – Eltern sehen sie in der Wunschliste)
     const meineWuensche = wunschzettelVon(kind.id);
@@ -1086,8 +1096,9 @@
   function routineHinzufuegen(vorlage) {
     if (!einstKind) return;
     const e2 = einstellungen(); e2.routinen = Object.assign({}, e2.routinen);
-    const v = vorlage ? ROUTINE_VORLAGEN[vorlage] : { name: prompt('Name der Routine:', 'Nach der Schule') || '', icon: '📋', sterne: 1, punkte: [] };
+    const v = vorlage ? Object.assign({}, ROUTINE_VORLAGEN[vorlage]) : { name: prompt('Name der Routine:', 'Nach der Schule') || '', icon: '📋', sterne: 1, punkte: [] };
     if (!v.name) return;
+    if (e2.kleinkind && vorlage === 'morgen') v.punkte = v.punkte.map(([icon, text]) => text === 'Ranzen packen' ? [icon, 'Kita-Tasche'] : [icon, text]);
     e2.routinen[einstKind] = (e2.routinen[einstKind] || []).concat([{ id: neueId('ro'), name: v.name, icon: v.icon, sterne: v.sterne, punkte: (v.punkte || []).map(([icon, text]) => ({ id: neueId('rp'), icon, text })) }]);
     einstSpeichern(e2); einstZusatzRendern(); renderAlles();
   }
