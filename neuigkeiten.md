@@ -1,6 +1,12 @@
 # Neuigkeiten im Familienplaner
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 
+## 2026-11-13 | Medien: Seite schnell eintragen
+- Bücher, die gerade gelesen werden, haben auf der Karte den Knopf „📖 Seite“. Er öffnet ein kleines Feld für die aktuelle Seite. Bei der letzten Seite fragt die App, ob das Buch fertig gelesen ist 🏆.
+- Neue Einträge sind automatisch für die Person, die dieses Gerät nutzt.
+- Dunkelmodus: Die farbigen Chips („Lese ich“, „Serie“, „Anime“ …) sind jetzt gut lesbar.
+- Die Felder für Band/Seite/Folge im Formular sind breiter und nicht mehr abgeschnitten.
+
 ## 2026-11-13 | Geldgeschenke: für mehrere Kinder auf einmal
 - Bei „Für wen“ lassen sich jetzt mehrere Personen antippen, z. B. wenn Oma beiden Kindern etwas schenkt. Beim Speichern entsteht für jede Person ein eigener Eintrag mit demselben Betrag (auch Taschengeld und „Danke offen“).
 - Der Betrag nimmt jetzt Komma und Tausenderpunkt an („25,50“, „1.000“). Vorher wurde „1.000“ als 1 € gespeichert.

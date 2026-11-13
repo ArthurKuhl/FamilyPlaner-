@@ -124,6 +124,7 @@
   .spiel-titel { font-size: 0.88rem; font-weight: 700; line-height: 1.25; }
   .spiel-chips { display: flex; gap: 4px; flex-wrap: wrap; }
   .mini-chip { font-size: 0.6rem; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-pill); white-space: nowrap; }
+  html[data-dark="1"] .spiel-chips .mini-chip { filter: brightness(1.75) saturate(0.9); }
   .sterne-reihe { display: flex; gap: 1px; margin-top: 2px; }
   .sterne-reihe .stern { font-size: 0.85rem; color: var(--parchment); }
   .sterne-reihe .stern.aktiv { color: var(--gold); }
@@ -199,8 +200,8 @@
   /* ---- Medien-spezifisch ---- */
   .typ-reihe-kopf { margin-bottom: 8px; }
   .fortschritt-zeile { display: flex; align-items: center; gap: 5px; }
-  .fortschritt-zeile input { min-width: 0; text-align: center; }
-  .fortschritt-zeile .trenner { font-size: 0.75rem; color: var(--bark); flex-shrink: 0; }
+  .fortschritt-zeile input { min-width: 0; flex: 1 1 0; text-align: center; padding-left: 4px !important; padding-right: 4px !important; }
+  .fortschritt-zeile .trenner { font-size: 0.7rem; color: var(--bark); flex-shrink: 0; }
   .spiel-fortschritt { display: flex; align-items: center; gap: 8px; font-size: 0.7rem; color: var(--bark); font-weight: 600; }
   .fortschritt-balken { flex: 1; height: 5px; background: var(--parchment); border-radius: 3px; overflow: hidden; }
   .fortschritt-balken div { height: 100%; background: var(--moss); }
@@ -429,6 +430,18 @@
     <h2 style="display:flex;align-items:center;justify-content:space-between;gap:8px;">📊 Jahresübersicht <span style="display:flex;gap:6px;align-items:center;"><button class="filter-chip" id="btnStatJahrZurueck" style="color:var(--soil);border-color:var(--parchment);">◀</button><b id="statJahr"></b><button class="filter-chip" id="btnStatJahrVor" style="color:var(--soil);border-color:var(--parchment);">▶</button></span></h2>
     <div id="statInhalt"></div>
     <div class="modal-btns"><button class="btn btn-secondary" id="btnStatSchliessen">Schließen</button></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalSeite">
+  <div class="modal" style="max-width:380px;">
+    <h2 id="seiteTitel">📖 Seite</h2>
+    <div class="fortschritt-zeile" style="margin:6px 0 4px;">
+      <input type="text" inputmode="numeric" id="seiteNeu" autocomplete="off" enterkeyhint="done" style="font-size:1.1rem;padding:10px;border:1px solid var(--parchment);border-radius:var(--radius-sm);background:var(--white);color:var(--soil);">
+      <span class="trenner">von</span>
+      <input type="text" inputmode="numeric" id="seiteGesamt" autocomplete="off" placeholder="gesamt" style="font-size:1.1rem;padding:10px;border:1px solid var(--parchment);border-radius:var(--radius-sm);background:var(--white);color:var(--soil);">
+    </div>
+    <div class="modal-btns"><button type="button" class="btn btn-secondary" id="btnSeiteAbbrechen">Abbrechen</button><button type="button" class="btn btn-primary" id="btnSeiteOk">Speichern</button></div>
   </div>
 </div>
 
@@ -863,6 +876,7 @@
     karte.style.borderTopColor = stat.farbe;
     const fort = fortschrittHtml(e);
     const plusFeld = plusEinsFeld(e);
+    const seiteKnopf = e.typ === 'buch' && e.status === 'aktiv';
     karte.innerHTML =
       (coverQuelle(e) ? '<div class="spiel-cover" style="background-image:url(\'' + escapeHtml(coverQuelle(e)).replace(/'/g, '%27') + '\')"></div>' : '') +
       '<div class="spiel-titel">' + (e.reihe && offeneReihe && e.reiheNr !== undefined && e.reiheNr !== '' ? '<span class="reihe-nr">' + escapeHtml(String(e.reiheNr)) + '</span>' : '') + escapeHtml(e.titel) + '</div>' +
@@ -878,9 +892,11 @@
         (e.sprache && SPRACHEN[e.sprache] ? '<span class="mini-chip" style="background:var(--parchment); color:var(--bark);">' + SPRACHEN[e.sprache] + '</span>' : '') +
       '</div>' +
       sterneAnzeige(e.bewertung || 0) +
-      ((fort || plusFeld) ? '<div class="spiel-fortschritt">' + fort + (plusFeld ? '<button type="button" class="plus-eins" title="' + (plusFeld === 'a' ? 'Nächster Band' : 'Nächste Folge') + '">＋1</button>' : '') + '</div>' : '');
+      ((fort || plusFeld || seiteKnopf) ? '<div class="spiel-fortschritt">' + fort + (plusFeld ? '<button type="button" class="plus-eins" title="' + (plusFeld === 'a' ? 'Nächster Band' : 'Nächste Folge') + '">＋1</button>' : '') + (seiteKnopf ? '<button type="button" class="plus-eins seite-btn" title="Aktuelle Seite eintragen">📖 Seite</button>' : '') + '</div>' : '');
     karte.addEventListener('click', () => editModalOeffnen(e));
-    const plusBtn = karte.querySelector('.plus-eins');
+    const seiteBtn = karte.querySelector('.seite-btn');
+    if (seiteBtn) seiteBtn.addEventListener('click', (ev) => { ev.stopPropagation(); seiteOeffnen(e); });
+    const plusBtn = karte.querySelector('.plus-eins:not(.seite-btn)');
     if (plusBtn) plusBtn.addEventListener('click', (ev) => {
       ev.stopPropagation();
       if (!e.fortschritt) e.fortschritt = { a: '', b: '' };
@@ -894,6 +910,37 @@
     });
     return karte;
   }
+
+  // 📖 Aktuelle Seite schnell eintragen
+  let seiteEintrag = null;
+  function seiteOeffnen(e) {
+    seiteEintrag = e;
+    const f = e.fortschritt || {};
+    document.getElementById('seiteTitel').textContent = '📖 ' + e.titel;
+    document.getElementById('seiteNeu').value = '';
+    document.getElementById('seiteNeu').placeholder = f.a ? 'bisher ' + f.a : 'Seite';
+    document.getElementById('seiteGesamt').value = f.b || '';
+    document.getElementById('modalSeite').classList.add('zeigen');
+    setTimeout(() => document.getElementById('seiteNeu').focus(), 60);
+  }
+  function seiteSpeichern() {
+    const e = seiteEintrag; if (!e) return;
+    const neu = zahl(document.getElementById('seiteNeu').value), ges = zahl(document.getElementById('seiteGesamt').value);
+    if (neu === null) { document.getElementById('seiteNeu').focus(); return; }
+    const vorher = Object.assign({}, e.fortschritt || {}), vorherStatus = e.status, vorherAm = e.beendetAm;
+    e.fortschritt = { a: String(neu), b: ges !== null ? String(ges) : (vorher.b || '') };
+    document.getElementById('modalSeite').classList.remove('zeigen');
+    const fertig = ges !== null && neu >= ges && confirm('Seite ' + neu + ' von ' + ges + ' – „' + e.titel + '“ fertig gelesen? 🏆');
+    if (fertig) { e.status = 'beendet'; e.beendetAm = lokalIso(); }
+    speichernEintraege(); renderAlles();
+    showTempStatus(fertig ? '🏆 „' + e.titel + '“ gelesen!' : '📖 ' + e.titel + ': Seite ' + neu + (ges ? ' von ' + ges : ''), 4, {
+      rueckgaengig: () => { e.fortschritt = vorher; e.status = vorherStatus; if (vorherAm) e.beendetAm = vorherAm; else delete e.beendetAm; speichernEintraege(); renderAlles(); }
+    });
+  }
+  document.getElementById('btnSeiteOk').addEventListener('click', seiteSpeichern);
+  document.getElementById('seiteNeu').addEventListener('keydown', (ev) => { if (ev.key === 'Enter') seiteSpeichern(); });
+  document.getElementById('btnSeiteAbbrechen').addEventListener('click', () => document.getElementById('modalSeite').classList.remove('zeigen'));
+  document.getElementById('modalSeite').addEventListener('click', (ev) => { if (ev.target.id === 'modalSeite') ev.currentTarget.classList.remove('zeigen'); });
 
   function reiheNrZahl(e) { const n = parseFloat(String(e.reiheNr ?? '').replace(',', '.')); return isNaN(n) ? 9999 : n; }
   // 📁 Ordner-Karte für eine Buchreihe
@@ -1115,7 +1162,8 @@
     document.getElementById('autorListe').innerHTML = [...new Set(eintraege.map(x => x.info && (x.info.autor || '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'de')).map(n => '<option value="' + escapeHtml(n) + '">').join('');
     // Neuer Eintrag: Art aus dem gewählten Reiter übernehmen (Filme/Serien → Film)
     editTyp = e ? e.typ : (offeneReihe ? 'buch' : typFilter !== 'alle' ? typFilter : 'manga');
-    editPerson = e ? e.person : (personFilter !== 'alle' ? personFilter : (PERSONEN[1] ? PERSONEN[1].id : 'familie'));
+    const geraetPerson = (() => { try { return localStorage.getItem('planer_geraetIdentitaet') || ''; } catch (x) { return ''; } })();
+    editPerson = e ? e.person : (personFilter !== 'alle' ? personFilter : (geraetPerson && PERSONEN.some(p => p.id === geraetPerson) ? geraetPerson : (PERSONEN[1] ? PERSONEN[1].id : 'familie')));
     editWo = e ? e.wo : typInfo(editTyp).wo[0].id;
     editStatus = e ? e.status : 'wunschliste';
     editDetail = Object.assign({}, (e && e.bewertungDetail) || {});
