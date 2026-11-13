@@ -1,6 +1,11 @@
 # Neuigkeiten im Familienplaner
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 
+## 2026-11-13 | Übersicht: Termine der Woche, Wochenlimit
+- „⏰ Demnächst“ zeigt jetzt auch einzelne Termine der nächsten 7 Tage (z. B. „Di 17. · Kinderarzt Lev · 09:30“). Regelmäßige Termine wie wöchentliches Turnen bleiben draußen.
+- Bildschirmzeit: Die Kachel zeigt auch das Wochenlimit („Woche 2,2 von 2 Std. – Wochenlimit erreicht“). Kinder, die nur ein Wochenlimit haben, erscheinen jetzt auch.
+- Notfall-Vorrat: Kinder zählen beim Essen halb, wie im Notfall-Modul.
+
 ## 2026-11-13 | Hausplan: freie Sicht und Komma-Maße
 - Die Zoom-Knöpfe (＋ − ⤢) sitzen jetzt rechts und verdecken nicht mehr die Ecke oben links, wo Pläne meist beginnen.
 - Beim Öffnen und beim Wechsel von Ebene oder Projekt wird der Plan automatisch eingepasst.

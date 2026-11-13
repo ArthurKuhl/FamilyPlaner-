@@ -277,6 +277,8 @@
   .kind-zeile { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-top: 1px solid var(--parchment); font-size: 0.85rem; }
   .kind-zeile:first-child { border-top: none; }
   .kind-punkt { width: 26px; height: 26px; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.75rem; flex-shrink: 0; }
+  .gz-woche { font-size: 0.72rem; color: var(--bark); margin: -2px 0 6px 34px; }
+  .gz-woche.um { color: var(--terracotta-text, #a8532e); font-weight: 700; }
   .gz-balken { flex: 1; height: 8px; background: var(--parchment); border-radius: 4px; overflow: hidden; }
   .gz-balken > div { height: 100%; background: var(--moss); }
   .gz-balken > div.ueber { background: var(--terracotta, #c46b41); }
@@ -2276,6 +2278,14 @@
       const iso = toISODatum(n);
       if (tageBis(iso) >= 2) add(iso, '🎂', (window.TerminLogik ? window.TerminLogik.titelMitAlter(ev, iso) : String(ev.title)).replace(/🎂/g, '').trim(), 'termine');
     });
+    // 🗓️ Einzelne Termine der nächsten Tage (heute/morgen stehen oben; regelmäßige Termine nicht)
+    if (modulSichtbar('termine')) {
+      const evs = laden('termine_events_v1', []).filter(ev => ev && !/geburtstag|🎂/i.test(ev.title || '') && (!ev.recurrence || !ev.recurrence.freq || ev.recurrence.freq === 'keine'));
+      for (let t = 2; t <= 7; t++) {
+        const iso = toISODatum(new Date(h.getFullYear(), h.getMonth(), h.getDate() + t));
+        termineAm(evs, iso).forEach(ev => liste.push({ datum: iso, tage: t, icon: '🗓️', text: String(ev.title || 'Termin') + (!ev.allDay && ev.startTime ? ' · ' + ev.startTime : ''), ziel: 'termine' }));
+      }
+    }
     // 💶 Abos: Kündigungsfristen (30 Tage) und Abbuchungen (7 Tage)
     if (modulSichtbar('finanzen')) laden('finanzen_abos', []).forEach(a => {
       if (a.kuendigenBis && tageBis(a.kuendigenBis) >= 0 && tageBis(a.kuendigenBis) <= 30) liste.push({ datum: a.kuendigenBis, tage: tageBis(a.kuendigenBis), icon: '✂️', text: (a.name || 'Abo') + ' kündigen bis', ziel: 'finanzen' });
@@ -2287,7 +2297,7 @@
       laden('fahrzeuge_liste', []).forEach(f => {
         const name = f.name || 'Auto';
         const monatsDatum = ym => ym + '-01';
-        if (f.tuev && /^\d{4}-\d{2}$/.test(f.tuev) && tageBis(monatsDatum(f.tuev)) <= 31) liste.push({ datum: monatsDatum(f.tuev), tage: tageBis(monatsDatum(f.tuev)), icon: '✅', text: 'TÜV/HU ' + name + ' (' + f.tuev.split('-').reverse().join('/') + ')', ziel: 'fahrzeuge' });
+        if (f.tuev && /^\d{4}-\d{2}$/.test(f.tuev) && tageBis(monatsDatum(f.tuev)) <= 31) liste.push({ datum: monatsDatum(f.tuev), tage: tageBis(monatsDatum(f.tuev)), icon: '🔍', text: 'TÜV/HU ' + name + ' (' + f.tuev.split('-').reverse().join('/') + ')', ziel: 'fahrzeuge' });
         (f.fixkosten || []).forEach(x => { if (x.faellig && /^\d{4}-\d{2}$/.test(x.faellig) && tageBis(monatsDatum(x.faellig)) <= bis) liste.push({ datum: monatsDatum(x.faellig), tage: tageBis(monatsDatum(x.faellig)), icon: '💶', text: (x.name || 'Fixkosten').replace(/^\S+\s/, '') + ' ' + name + (x.betrag ? ' · ' + euroText(x.betrag) : ''), ziel: 'fahrzeuge' }); });
         (f.wartung || []).forEach(w => {
           if (!(Number(w.monate) > 0)) return;
@@ -2465,7 +2475,7 @@
   function renderGaming() {
     const kachel = document.getElementById('kachelGaming');
     const limits = laden('gaming_limits', {}) || {};
-    const ids = Object.keys(limits).filter(id => limits[id] && limits[id].tag);
+    const ids = Object.keys(limits).filter(id => limits[id] && (limits[id].tag || limits[id].woche));
     if (!modulSichtbar('gaming') || !ids.length) { kachel.style.display = 'none'; return; }
     kachel.style.display = '';
     const sitzungen = laden('gaming_sessions', []);
@@ -2474,9 +2484,16 @@
     document.getElementById('gamingInfo').innerHTML = ids.map(id => {
       const p = personen.find(x => x.id === id) || { label: id, farbe: '#7d6339' };
       const min = sitzungen.filter(sz => sz.person === id && sz.datum === hIso).reduce((s, sz) => s + (Number(sz.minuten) || 0), 0);
-      const lim = Number(limits[id].tag);
+      const ws = (() => { const d = heute(); return toISODatum(new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay() + 6) % 7))); })();
+      const woche = sitzungen.filter(sz => sz.person === id && sz.datum >= ws && sz.datum <= hIso).reduce((s, sz) => s + (Number(sz.minuten) || 0), 0);
+      const lim = Number(limits[id].tag) || 0, wlim = Number(limits[id].woche) || 0;
+      const std = m => (Math.round(m / 6) / 10).toLocaleString('de-DE');
+      const wocheUm = wlim && woche >= wlim;
+      // Balken: Tageslimit, sonst Wochenlimit
+      const ist = lim ? min : woche, soll = lim || wlim;
       return '<div class="kind-zeile"><span class="kind-punkt" style="background:' + escapeHtml(p.farbe || '#7d6339') + '">' + escapeHtml((p.label || '?').charAt(0)) + '</span><span style="min-width:56px">' + escapeHtml(p.label) + '</span>' +
-        '<div class="gz-balken"><div class="' + (min > lim ? 'ueber' : '') + '" style="width:' + Math.min(100, min / lim * 100) + '%"></div></div><span class="mini-zeit" style="min-width:0;text-align:right">' + min + '/' + lim + ' Min.</span></div>';
+        '<div class="gz-balken"><div class="' + (ist >= soll || wocheUm ? 'ueber' : '') + '" style="width:' + Math.min(100, ist / soll * 100) + '%"></div></div><span class="mini-zeit" style="min-width:0;text-align:right">' + (lim ? min + '/' + lim + ' Min.' : std(woche) + '/' + std(wlim) + ' Std.') + '</span></div>' +
+        (lim && wlim ? '<div class="gz-woche' + (wocheUm ? ' um' : '') + '">' + (wocheUm ? '⛔ ' : '') + 'Woche ' + std(woche) + ' von ' + std(wlim) + ' Std.' + (wocheUm ? ' – Wochenlimit erreicht' : '') + '</div>' : '');
     }).join('');
   }
   document.getElementById('kachelGaming').addEventListener('click', () => navigiere('gaming'));
@@ -2578,14 +2595,17 @@
     if (!sichtbar || !NL || !(Array.isArray(items) && items.length) || !modulSichtbar('vorratskammer')) { kachel.style.display = 'none'; return; }
     const personen = Math.max(1, Number(einst.personen) || (window.PLANER_PERSONEN || []).filter(p => p.id !== 'familie').length || 1);
     const ziel = [3, 5, 10].includes(Number(einst.tage)) ? Number(einst.tage) : 10;
-    const r = NL.reichweite(items, personen, einst.eigeneMengen || {});
+    // Kinder zählen beim Essen halb (wie im Notfall-Modul)
+    const kinderN = (() => { const e = laden('kinder_einstellungen', {}) || {}; const ids = (window.PLANER_PERSONEN || []).map(p => p.id); return (Array.isArray(e.kinder) ? e.kinder : []).filter(id => ids.includes(id)).length; })();
+    const essenP = personen - Math.min(kinderN, Math.max(0, personen - 1)) * 0.5;
+    const r = NL.reichweite(items, personen, einst.eigeneMengen || {}, essenP);
     const stufe = t => t >= ziel ? 'gut' : t >= 3 ? 'mittel' : 'knapp';
     const wert = (icon, was, t) => '<div class="nf-wert ' + stufe(t) + '">' + icon + ' ' + was + '<b>' + (t > 60 ? '60+' : t) + (t === 1 ? ' Tag' : ' Tage') + '</b></div>';
     const medis = modulSichtbar('gesundheit') ? NL.medikamente(laden('gesundheit_medikamente', [])).filter(m => m.tage !== null && m.tage < ziel) : [];
     const pName = id => ((window.PLANER_PERSONEN || []).find(p => p.id === id) || { label: '' }).label;
     kachel.style.display = '';
     document.getElementById('notfallInfo').innerHTML = '<div class="nf-werte">' + wert('💧', 'Wasser', r.wasserTage) + wert('🍽️', 'Essen', r.essenTage) + '</div>' +
-      '<div class="nf-zeile" style="color:var(--bark)">Geschätzt für ' + personen + ' ' + (personen === 1 ? 'Person' : 'Personen') + ' · Ziel ' + ziel + ' Tage</div>' +
+      '<div class="nf-zeile" style="color:var(--bark)">Geschätzt für ' + personen + ' ' + (personen === 1 ? 'Person' : 'Personen') + (essenP < personen ? ' (Kinder beim Essen ½)' : '') + ' · Ziel ' + ziel + ' Tage</div>' +
       medis.slice(0, 3).map(m => '<div class="nf-zeile warn">💊 ' + escapeHtml(m.name) + (pName(m.person) ? ' (' + escapeHtml(pName(m.person)) + ')' : '') + ' reicht nur noch ' + m.tage + (m.tage === 1 ? ' Tag' : ' Tage') + '</div>').join('');
   }
   document.getElementById('kachelNotfall').addEventListener('click', () => { try { window.parent.postMessage({ type: 'navigiere', modul: 'notfall', aktion: 'vorrat' }, window.location.origin); } catch (e) {} });
