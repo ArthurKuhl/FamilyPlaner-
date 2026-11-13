@@ -1,6 +1,12 @@
 # Neuigkeiten im Familienplaner
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 
+## 2026-11-13 | Ausflüge: kürzeres Formular, Packliste von der Karte
+- Hin- und Rückfahrt, Route und Karten-Link stecken jetzt im aufklappbaren Bereich „🚗 Fahrt & Route“. Er ist automatisch offen, wenn schon etwas eingetragen ist. Das Formular ist dadurch etwa ein Drittel kürzer.
+- Packliste: Ein Tipp auf „🎒 1 / 2 gepackt“ auf der Karte öffnet ein kleines Fenster zum Abhaken. Es wird sofort gespeichert.
+- Geplante Ausflüge zeigen Wochentag und Countdown, z. B. „So., 15.11. · übermorgen“.
+- Kosten mit Tausenderpunkt („1.234,50 €“) werden richtig gelesen.
+
 ## 2026-11-13 | Wunschliste: richtige Preise, schneller teilen
 - Preise mit Tausenderpunkt („1.299 €“) werden im Budget und beim Sortieren jetzt richtig gezählt (vorher 1,30 €).
 - Wer selbst „ca.“ in den Preis schreibt, sieht es nicht mehr doppelt.

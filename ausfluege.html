@@ -98,6 +98,15 @@
   .ak-meta { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
   .mini-chip { font-size: 0.62rem; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-pill); white-space: nowrap; background: var(--parchment); color: var(--bark); }
   .mini-chip.person { color: var(--white); }
+  .fahrt-box { margin: 12px 0 4px; border: 1px solid var(--parchment); border-radius: var(--radius-sm); }
+  .fahrt-box > summary { cursor: pointer; padding: 10px 12px; font-size: 0.85rem; font-weight: 700; color: var(--soil); list-style: none; }
+  .fahrt-box > summary::-webkit-details-marker { display: none; }
+  .fahrt-box > summary::after { content: '›'; float: right; transition: transform .2s; }
+  .fahrt-box[open] > summary::after { transform: rotate(90deg); }
+  .fahrt-box #pFahrtInfo { font-weight: 400; font-size: 0.75rem; color: var(--bark); margin-left: 4px; }
+  .fahrt-inhalt { padding: 0 12px 4px; }
+  button.ak-packfortschritt { background: none; border: none; padding: 4px 0 0; cursor: pointer; font-family: inherit; text-align: left; text-decoration: underline dotted; }
+  .pack-schnell .packliste-item button { display: none; }
   .ak-packfortschritt { font-size: 0.7rem; color: var(--bark); margin-top: 6px; }
 
   .erlebt-liste { display: grid; grid-template-columns: 1fr; gap: 12px; }
@@ -352,7 +361,8 @@
       </div>
     </div>
     <div class="wetter-box" id="pWetter"></div>
-    <div class="sidebar-title" style="margin:14px 0 4px;font-size:0.85rem;">🚗 Hinfahrt</div>
+    <details class="fahrt-box" id="pFahrtBox"><summary>🚗 Fahrt &amp; Route <span id="pFahrtInfo"></span></summary><div class="fahrt-inhalt">
+    <div class="sidebar-title" style="margin:6px 0 4px;font-size:0.85rem;">🚗 Hinfahrt</div>
     <div class="zeile" style="display:flex;gap:10px;">
       <div class="feld" style="flex:1;">
         <label for="pAbfahrt">Abfahrt</label>
@@ -391,6 +401,7 @@
       <label for="pRouteLink">Link zu einer Karten-Route (optional)</label>
       <input type="url" id="pRouteLink" placeholder="z.B. Google-Maps-Link">
     </div>
+    </div></details>
     <div class="sidebar-title" style="margin:14px 0 4px;font-size:0.85rem;">👪 Teilnehmer</div>
     <div class="opt-reihe" id="pTeilnehmerReihe"></div>
     <div class="sidebar-title" style="margin:14px 0 4px;font-size:0.85rem;">🎒 Packliste</div>
@@ -420,6 +431,15 @@
 </div>
 
 <!-- Erlebt: Neu / Bearbeiten -->
+<div class="modal-bg" id="modalPackSchnell">
+  <div class="modal" style="max-width:440px;">
+    <h2 id="packSchnellTitel">🎒 Packliste</h2>
+    <p id="packSchnellStand" style="font-size:0.75rem;color:var(--bark);margin:-6px 0 8px;"></p>
+    <div class="pack-schnell" id="packSchnellListe"></div>
+    <div class="modal-btns"><button class="btn btn-primary" id="btnPackSchnellZu">Fertig</button></div>
+  </div>
+</div>
+
 <div class="modal-bg" id="modalErlebt">
   <div class="modal">
     <h2 id="erlebtTitelKopf">Neue Erinnerung</h2>
@@ -664,7 +684,11 @@
   }
   function kostenZahl(v) {
     if (v === '' || v === null || v === undefined) return null;
-    const n = parseFloat(String(v).replace(/[\s€]/g, '').replace(',', '.'));
+    let t = String(v).replace(/[^\d,.-]/g, '');
+    if (t.includes(',') && t.includes('.')) t = t.lastIndexOf(',') > t.lastIndexOf('.') ? t.replace(/\./g, '').replace(',', '.') : t.replace(/,/g, '');
+    else if (t.includes(',')) t = t.replace(',', '.');
+    else if (/^\d{1,3}(\.\d{3})+$/.test(t)) t = t.replace(/\./g, '');
+    const n = parseFloat(t);
     return isFinite(n) && n >= 0 ? Math.round(n * 100) / 100 : null;
   }
   function euro(n) { return n.toLocaleString('de-DE', { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 }) + ' €'; }
@@ -807,6 +831,11 @@
     vergangen.forEach(a => box.appendChild(ausflugKarte(a, true)));
     wetterFuerKartenNachladen();
   }
+  function countdownText(a) {
+    const h = new Date(heuteIso() + 'T12:00'), t = Math.round((new Date(a.datum + 'T12:00') - h) / 864e5);
+    if (t < 0) return a.datumBis && a.datumBis >= heuteIso() ? ' · läuft' : '';
+    return ' · ' + (t === 0 ? 'heute' : t === 1 ? 'morgen' : t === 2 ? 'übermorgen' : 'in ' + t + ' Tagen');
+  }
   function ausflugKarte(a, vorbei) {
     const erledigt = (a.packliste || []).filter(p => p.erledigt).length;
     const gesamt = (a.packliste || []).length;
@@ -821,22 +850,54 @@
         (bewertung ? '<span class="ak-sterne" title="' + bewertung + ' von 5 Sternen">' + sterne(bewertung) + '</span>' : '') + '</div>' +
       '<div class="ak-meta">' +
         (a.ort ? '<button type="button" class="mini-chip ort-link" data-route title="Route in der Karten-App öffnen">📍 ' + escapeHtml(a.ort) + ' ↗</button>' : '') +
-        (a.datum ? '<span class="mini-chip">🗓 ' + datumAnzeige(a.datum) + (a.datumBis ? ' – ' + datumAnzeige(a.datumBis) : '') + '</span>' : '') +
+        (a.datum ? '<span class="mini-chip">🗓 ' + (vorbei ? datumAnzeige(a.datum) + (a.datumBis ? ' – ' + datumAnzeige(a.datumBis) : '') : kurzdatum(a.datum) + (a.datumBis && a.datumBis !== a.datum ? ' – ' + kurzdatum(a.datumBis) : '') + countdownText(a)) + '</span>' : '') +
         (a.teilnehmer || []).map(pid => '<span class="mini-chip person" style="background:' + personFarbe(pid) + '">' + escapeHtml(personLabel(pid)) + '</span>').join('') +
         (kosten !== null ? '<span class="mini-chip">💶 ' + euro(kosten) + '</span>' : '') +
       '</div>' +
       (!vorbei && a.datum && a.ort ? '<div class="ak-wetter" data-wetter="' + escapeHtml(a.id) + '"></div>' : '') +
-      (gesamt && !vorbei ? '<div class="ak-packfortschritt">🎒 ' + erledigt + ' / ' + gesamt + ' gepackt</div>' : '') +
+      (gesamt && !vorbei ? '<button type="button" class="ak-packfortschritt" data-pack title="Packliste abhaken">🎒 ' + erledigt + ' / ' + gesamt + ' gepackt' + (erledigt === gesamt ? ' ✓' : '') + '</button>' : '') +
       (begonnen && !er ? '<div class="ak-aktionen"><button type="button" class="ak-knopf betont" data-wiewars>⭐ Wie war\'s?</button></div>' : '');
     karte.addEventListener('click', () => planungOeffnen(a.id));
     const rb = karte.querySelector('[data-route]');
     if (rb) rb.addEventListener('click', (ev) => { ev.stopPropagation(); routeOeffnen(a); });
+    const pk = karte.querySelector('[data-pack]');
+    if (pk) pk.addEventListener('click', (ev) => { ev.stopPropagation(); packSchnellOeffnen(a.id); });
     const ww = karte.querySelector('[data-wiewars]');
     if (ww) ww.addEventListener('click', (ev) => {
       ev.stopPropagation();
       erlebtOeffnen(null, { titel: ausflugTitelKurz(a), datum: a.datum, ausflugId: a.id });
     });
     return karte;
+  }
+
+  // 🎒 Packliste direkt von der Karte abhaken (speichert sofort)
+  let packSchnellId = null;
+  function packSchnellOeffnen(id) {
+    const a = ausfluege.find(x => x.id === id); if (!a) return;
+    packSchnellId = id;
+    document.getElementById('packSchnellTitel').textContent = '🎒 ' + ausflugTitelKurz(a);
+    packSchnellRendern();
+    document.getElementById('modalPackSchnell').classList.add('zeigen');
+  }
+  function packSchnellRendern() {
+    const a = ausfluege.find(x => x.id === packSchnellId); if (!a) return;
+    const liste = a.packliste || [];
+    const box = document.getElementById('packSchnellListe');
+    box.innerHTML = '';
+    liste.forEach(item => {
+      const row = document.createElement('label');
+      row.className = 'packliste-item' + (item.erledigt ? ' erledigt' : '');
+      row.innerHTML = '<input type="checkbox" ' + (item.erledigt ? 'checked' : '') + '><span class="pli-text">' + escapeHtml(item.text) + '</span>';
+      row.querySelector('input').addEventListener('change', (e) => {
+        item.erledigt = e.target.checked;
+        speichern(KEY_AUSFLUEGE, ausfluege);
+        packSchnellRendern(); renderAusflugListe();
+        if (liste.length > 1 && liste.every(p => p.erledigt)) showTempStatus('🎒 Alles gepackt – viel Spaß!', 3);
+      });
+      box.appendChild(row);
+    });
+    const n = liste.filter(p => p.erledigt).length;
+    document.getElementById('packSchnellStand').textContent = n + ' von ' + liste.length + ' gepackt';
   }
 
   // ============================================================
@@ -1128,6 +1189,7 @@
     pPackliste = d.packliste || [];
     renderTeilnehmerReihe();
     renderPackliste();
+    try { fahrtBoxAnpassen(); } catch (e) {}
   }
   let pIdeeId = null;
   function planungOeffnen(id, vorgabe) {
@@ -1161,6 +1223,7 @@
     renderTeilnehmerReihe();
     renderPackliste();
     renderPackVorlagen();
+    fahrtBoxAnpassen();
     document.getElementById('pWetter').innerHTML = '';
     document.getElementById('planungLoeschZeile').style.display = a ? '' : 'none';
     document.getElementById('modalPlanung').classList.add('zeigen');
@@ -1174,6 +1237,15 @@
     entwurfUeberwachungStarten();
     planungWetterAktualisieren();
   }
+  const FAHRT_FELDER = ['pAbfahrt', 'pAnkunft', 'pHinfahrtNotiz', 'pRueckfahrtStart', 'pEnde', 'pRueckfahrtNotiz', 'pRoute', 'pRouteLink'];
+  function fahrtBoxAnpassen() {
+    const gefuellt = FAHRT_FELDER.some(id => document.getElementById(id).value.trim());
+    document.getElementById('pFahrtBox').open = gefuellt;
+    const ab = document.getElementById('pAbfahrt').value, zu = document.getElementById('pEnde').value;
+    document.getElementById('pFahrtInfo').textContent = ab || zu ? '· ' + [ab ? 'los ' + ab : '', zu ? 'zurück ' + zu : ''].filter(Boolean).join(', ') : gefuellt ? '· eingetragen' : '(optional)';
+  }
+  document.getElementById('btnPackSchnellZu').addEventListener('click', () => document.getElementById('modalPackSchnell').classList.remove('zeigen'));
+  document.getElementById('modalPackSchnell').addEventListener('click', (e) => { if (e.target.id === 'modalPackSchnell') e.currentTarget.classList.remove('zeigen'); });
   let pWetterTimer = null;
   function planungWetterAktualisieren() {
     clearTimeout(pWetterTimer);
