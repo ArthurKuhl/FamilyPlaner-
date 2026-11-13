@@ -68,6 +68,21 @@
   .stand img { width: 36px; height: 36px; object-fit: cover; border-radius: 6px; cursor: zoom-in; }
   .stand .rechts { margin-left: auto; color: var(--bark); font-size: 0.74rem; }
   .stand button { border: none; background: none; color: var(--terracotta-text); cursor: pointer; }
+  @media (max-width: 400px) { .lang-text { display: none; } }
+  .stand .stand-text { cursor: pointer; flex: 1; min-width: 0; }
+  .stand .wechsel-tag { font-size: 0.68rem; background: var(--parchment); color: var(--bark); border-radius: 6px; padding: 1px 6px; margin-left: 4px; white-space: nowrap; }
+  .feld label.foto-knopf { display: inline-block; text-transform: none; letter-spacing: 0; font-size: 0.85rem; color: var(--soil); margin: 0; padding: 9px 14px; }
+  .foto-input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+  .check-zeile { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--soil); margin: 2px 0 10px; cursor: pointer; }
+  .check-zeile input { width: 18px; height: 18px; accent-color: var(--moss); }
+  #aWechselBox { display: none; background: var(--parchment); border-radius: var(--radius-sm); padding: 10px 10px 2px; margin-bottom: 10px; }
+  #aWechselBox.zeigen { display: block; }
+  .alle-zeile { display: grid; grid-template-columns: 1fr 9.5em; gap: 8px; align-items: center; padding: 7px 0; border-top: 1px solid var(--parchment); }
+  .alle-zeile:first-child { border-top: none; }
+  .alle-zeile .az-name { font-size: 0.88rem; font-weight: 700; color: var(--soil); }
+  .alle-zeile .az-name small { display: block; font-weight: 400; font-size: 0.72rem; color: var(--bark); }
+  .alle-zeile input { width: 100%; padding: 9px 11px; border: 1px solid var(--parchment); border-radius: var(--radius-sm); background: var(--white); color: var(--soil); font-size: 0.95rem; }
+  .alle-zeile .warn { grid-column: 1 / -1; min-height: 0; }
   .leer { text-align: center; color: var(--bark); font-size: 0.88rem; padding: 26px 12px; line-height: 1.6; }
   .schnell { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
   .schnell button { border: 1px solid var(--parchment); background: var(--white); color: var(--soil); border-radius: var(--radius-md); padding: 14px 6px; font-weight: 700; cursor: pointer; font-size: 0.84rem; }
@@ -103,6 +118,7 @@
 <header class="top">
   <div class="titel-zeile">
     <h1>📊 Zählerstände</h1>
+    <button type="button" class="kopf-btn" id="btnAlle" style="display:none" title="Alle Zähler auf einmal ablesen">📋 Alle<span class="lang-text"> ablesen</span></button>
     <button type="button" class="kopf-btn" id="btnErinnerung">🔔</button>
     <button type="button" class="kopf-btn voll" id="btnNeuZaehler">＋ Zähler</button>
   </div>
@@ -118,10 +134,25 @@
       <div class="feld"><label for="aWert" id="aWertLabel">Zählerstand</label><input type="text" inputmode="decimal" id="aWert" autocomplete="off"></div>
     </div>
     <div class="warn" id="aWarn"></div>
-    <div class="feld"><label>Foto vom Zähler (optional)</label><input type="file" accept="image/*" capture="environment" id="aFoto"><div class="foto-vorschau" id="aFotoVorschau"></div></div>
+    <label class="check-zeile"><input type="checkbox" id="aWechsel"> 🔄 Neuer Zähler eingebaut (Zählerwechsel)</label>
+    <div id="aWechselBox">
+      <div class="feld"><label for="aAltEnde">Endstand alter Zähler</label><input type="text" inputmode="decimal" id="aAltEnde" autocomplete="off" placeholder="steht im Wechsel-Protokoll"></div>
+      <div class="hinweis" style="margin:-4px 0 8px">Oben trägst du den Stand des <b>neuen</b> Zählers ein. Der Verbrauch läuft dann einfach weiter.</div>
+    </div>
+    <div class="feld"><label>Foto vom Zähler (optional)</label><input type="file" accept="image/*" capture="environment" id="aFoto" class="foto-input"><label for="aFoto" class="btn btn-secondary foto-knopf" id="aFotoKnopf">📷 Foto aufnehmen</label><div class="foto-vorschau" id="aFotoVorschau"></div></div>
     <div class="feld"><label for="aNotiz">Notiz</label><input type="text" id="aNotiz" placeholder="z. B. Zählerwechsel, Abrechnung"></div>
     <div class="hinweis">Tipp: Am besten immer am gleichen Tag im Monat ablesen (z. B. am 1.). Das Foto ist ein Beleg, falls die Abrechnung nicht stimmt.</div>
     <div class="modal-btns"><button type="button" class="btn btn-secondary" data-zu="modalAblesen">Abbrechen</button><button type="button" class="btn btn-primary" id="btnAblesenSpeichern">Speichern</button></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalAlle">
+  <div class="modal">
+    <h2>📋 Alle Zähler ablesen</h2>
+    <div class="feld"><label for="alleDatum">Datum</label><input type="date" id="alleDatum"></div>
+    <div id="alleListe"></div>
+    <div class="hinweis" style="margin-top:6px">Leere Felder werden übersprungen. Foto oder Zählerwechsel: beim einzelnen Zähler über „📷 Ablesen“.</div>
+    <div class="modal-btns"><button type="button" class="btn btn-secondary" data-zu="modalAlle">Abbrechen</button><button type="button" class="btn btn-primary" id="btnAlleSpeichern">Speichern</button></div>
   </div>
 </div>
 
@@ -133,12 +164,12 @@
       <div class="feld"><label for="zName">Name</label><input type="text" id="zName" placeholder="z. B. Strom Haus"></div>
       <div class="feld"><label for="zEinheit">Einheit</label><select id="zEinheit"><option>kWh</option><option>m³</option><option>MWh</option><option>Einheiten</option></select></div>
       <div class="feld"><label for="zNummer">Zählernummer</label><input type="text" id="zNummer"></div>
-      <div class="feld"><label for="zPreis">Arbeitspreis (€ je Einheit)</label><input type="text" inputmode="decimal" id="zPreis" placeholder="z. B. 0,32"></div>
-      <div class="feld"><label for="zGrund">Grundpreis (€ im Monat)</label><input type="text" inputmode="decimal" id="zGrund" placeholder="z. B. 12,50"></div>
-      <div class="feld"><label for="zAbschlag">Abschlag (€ im Monat)</label><input type="text" inputmode="decimal" id="zAbschlag" placeholder="z. B. 95"></div>
+      <div class="feld"><label for="zPreis" id="zPreisLabel">Arbeitspreis (€ je Einheit)</label><input type="text" inputmode="decimal" id="zPreis" placeholder="z. B. 0,32"></div>
+      <div class="feld nicht-pv"><label for="zGrund">Grundpreis (€ im Monat)</label><input type="text" inputmode="decimal" id="zGrund" placeholder="z. B. 12,50"></div>
+      <div class="feld nicht-pv"><label for="zAbschlag">Abschlag (€ im Monat)</label><input type="text" inputmode="decimal" id="zAbschlag" placeholder="z. B. 95"></div>
       <div class="feld"><label for="zBeginn">Abrechnungsjahr beginnt</label><select id="zBeginn"></select></div>
     </div>
-    <div class="hinweis">Preise und Abschlag stehen auf der letzten Jahresabrechnung oder im Vertrag. Damit rechnet der Planer aus, ob eine Nachzahlung droht. Bei Gas in m³: Arbeitspreis je m³ eintragen (kWh-Preis × Brennwert, meist etwa × 10).</div>
+    <div class="hinweis" id="zHinweis">Preise und Abschlag stehen auf der letzten Jahresabrechnung oder im Vertrag. Damit rechnet der Planer aus, ob eine Nachzahlung droht. Bei Gas in m³: Arbeitspreis je m³ eintragen (kWh-Preis × Brennwert, meist etwa × 10).</div>
     <div class="modal-btns"><button type="button" class="btn btn-gefahr" id="btnZaehlerLoeschen">Löschen</button><span style="flex:1"></span><button type="button" class="btn btn-secondary" data-zu="modalZaehler">Abbrechen</button><button type="button" class="btn btn-primary" id="btnZaehlerSpeichern">Speichern</button></div>
   </div>
 </div>
@@ -160,13 +191,37 @@
     sonst: { em: '🔢', name: 'Sonstiger Zähler', einheit: 'Einheiten', farbe: '#7d6339', preis: 0, grund: 0 },
   };
   const MONATE = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
-  function zahl(v) { const n = parseFloat(String(v == null ? '' : v).replace(/\s/g, '').replace(',', '.')); return isNaN(n) ? null : n; }
+  // Liest Zahlen wie „17.950,5“, „17950,5“, „0,32“ oder gespeicherte Zahlen.
+  // „12.345“ (nur Punkt) ist mehrdeutig: mit Vergleichswert gewinnt die passendere Lesart, sonst Tausenderpunkt.
+  function zahl(v, referenz) {
+    if (typeof v === 'number') return isFinite(v) ? v : null;
+    let t = String(v == null ? '' : v).replace(/[^\d,.-]/g, '');
+    if (!t) return null;
+    if (t.includes(',') && t.includes('.')) t = t.lastIndexOf(',') > t.lastIndexOf('.') ? t.replace(/\./g, '').replace(',', '.') : t.replace(/,/g, '');
+    else if (t.includes(',')) t = t.replace(/\./g, '').replace(',', '.');
+    else if (/^[1-9]\d{0,2}(\.\d{3})+$/.test(t)) {
+      const tausend = parseFloat(t.replace(/\./g, '')), dezimal = (t.match(/\./g) || []).length === 1 ? parseFloat(t) : null;
+      if (dezimal !== null && typeof referenz === 'number' && Math.abs(dezimal - referenz) < Math.abs(tausend - referenz)) return dezimal;
+      return tausend;
+    }
+    const n = parseFloat(t); return isNaN(n) ? null : n;
+  }
+  function zahlText(x) { return x == null ? '' : String(x).replace('.', ','); }
   function fmt(x, st) { return (Math.round(x * Math.pow(10, st || 0)) / Math.pow(10, st || 0)).toLocaleString('de-DE'); }
   function euro(x) { return x.toLocaleString('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }); }
   function tage(a, b) { return Math.round((ausISO(b) - ausISO(a)) / 864e5); }
   function plusTage(iso, n) { const d = ausISO(iso); d.setDate(d.getDate() + n); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
   function datumKurz(iso) { return ausISO(iso).toLocaleDateString('de-DE', { day: 'numeric', month: 'numeric', year: '2-digit' }); }
-  function staendeVon(id) { return staende.filter(s => s.zaehlerId === id && s.datum && zahl(s.wert) !== null).sort((a, b) => a.datum.localeCompare(b.datum)); }
+  // Ablesungen sortiert, mit durchlaufendem Wert .w (Zählerwechsel herausgerechnet)
+  function staendeVon(id) {
+    const liste = staende.filter(s => s.zaehlerId === id && s.datum && zahl(s.wert) !== null).sort((a, b) => a.datum.localeCompare(b.datum));
+    let versatz = 0;
+    return liste.map((s, i) => {
+      const echt = zahl(s.wert);
+      if (i > 0 && s.wechsel && zahl(s.altEnde) !== null) versatz += zahl(s.altEnde) - echt;
+      return Object.assign({}, s, { w: echt + versatz });
+    });
+  }
 
   // Verbrauch zwischen zwei Tagen (lineare Verteilung zwischen den Ablesungen); null, wenn nicht abgedeckt
   function verbrauch(liste, von, bis) {
@@ -178,7 +233,7 @@
       const s = a.datum > von ? a.datum : von, e = b.datum < bis ? b.datum : bis;
       if (e <= s) continue;
       const d = tage(a.datum, b.datum); if (d <= 0) continue;
-      summe += (zahl(b.wert) - zahl(a.wert)) * tage(s, e) / d;
+      summe += (b.w - a.w) * tage(s, e) / d;
     }
     return summe;
   }
@@ -229,7 +284,7 @@
     const B = 300, H = 120, bw = B / 12;
     return '<svg viewBox="0 0 ' + B + ' ' + (H + 40) + '" role="img" aria-label="Verbrauch pro Monat"><g transform="translate(0 10)">' + werte.map((w, i) => {
       const x = i * bw;
-      const vh = w.vj ? w.vj.wert / max * H : 0, ah = w.akt ? w.akt.wert / max * H : 0;
+      const vh = w.vj ? Math.max(0, w.vj.wert) / max * H : 0, ah = w.akt ? Math.max(0, w.akt.wert) / max * H : 0;
       return (w.vj ? '<rect x="' + (x + 3) + '" y="' + (H - vh) + '" width="' + (bw - 6) + '" height="' + vh + '" fill="currentColor" opacity="0.15" rx="2"><title>' + MONATE[w.x.m] + ' ' + (w.x.j - 1) + ': ' + fmt(w.vj.wert, 1) + '</title></rect>' : '') +
         (w.akt ? '<rect x="' + (x + 6) + '" y="' + (H - ah) + '" width="' + (bw - 12) + '" height="' + ah + '" fill="' + a.farbe + '" opacity="' + (w.akt.voll ? 1 : 0.5) + '" rx="2"><title>' + MONATE[w.x.m] + ' ' + w.x.j + ': ' + fmt(w.akt.wert, 1) + ' ' + esc(z.einheit || a.einheit) + (w.akt.voll ? '' : ' (teilweise)') + '</title></rect>' : '') +
         '<text x="' + (x + bw / 2) + '" y="' + (H + 12) + '" font-size="8" text-anchor="middle" fill="currentColor" opacity="0.7">' + MONATE[w.x.m] + '</text>' +
@@ -239,6 +294,7 @@
 
   function render() {
     const box = $('inhalt');
+    $('btnAlle').style.display = zaehler.length >= 2 ? '' : 'none';
     if (!zaehler.length) {
       box.innerHTML = '<div class="leer">📊 Noch keine Zähler.<br>Einmal im Monat ablesen und eintippen – der Planer zeigt den Verbrauch pro Monat, den Vergleich zum Vorjahr und ob der Abschlag reicht.</div>' +
         '<div class="schnell">' + ['strom', 'gas', 'wasser'].map(k => '<button type="button" data-schnell="' + k + '"><span>' + ARTEN[k].em + '</span>' + ARTEN[k].name + '</button>').join('') + '</div>';
@@ -249,12 +305,15 @@
       const a = ARTEN[z.art] || ARTEN.sonst, ein = z.einheit || a.einheit, liste = staendeVon(z.id);
       const letzt = liste[liste.length - 1], vor = liste[liste.length - 2];
       const seit = letzt ? tage(letzt.datum, heuteISO()) : null;
-      const proTag = letzt && vor && tage(vor.datum, letzt.datum) > 0 ? (zahl(letzt.wert) - zahl(vor.wert)) / tage(vor.datum, letzt.datum) : null;
+      const proTag = letzt && vor && tage(vor.datum, letzt.datum) > 0 ? (letzt.w - vor.w) / tage(vor.datum, letzt.datum) : null;
       const jahrVon = heuteISO().slice(0, 4) + '-01-01';
       const diesesJahr = liste.length >= 2 ? verbrauch(liste, jahrVon > liste[0].datum ? jahrVon : liste[0].datum, letzt.datum) : null;
       const p = prognose(z, liste);
       let progHtml = '';
-      if (p && zahl(z.preis) && zahl(z.abschlag)) {
+      if (p && z.art === 'pv') {
+        progHtml = '<div class="prognose plus">☀️ Hochgerechnet <b>' + fmt(p.gesamt) + ' ' + esc(ein) + '</b> eingespeist' + (zahl(z.preis) ? ' ≈ <b>' + euro(p.gesamt * zahl(z.preis)) + ' Vergütung</b>' : '') + ' für ' + datumKurz(p.start) + '–' + datumKurz(plusTage(p.ende, -1)) +
+          '<br><span class="hinweis">' + (zahl(z.preis) ? (p.methode === 'vorjahr' ? 'Rest nach Vorjahr' : 'Rest nach Durchschnitt') + (p.unsicher ? ' · noch ungenau (wenige Werte)' : '') : 'Mit der Einspeisevergütung (⚙️) rechnet der Planer den Betrag aus.') + '</span></div>';
+      } else if (p && zahl(z.preis) && zahl(z.abschlag)) {
         const diff = p.bezahlt - p.kosten;
         progHtml = '<div class="prognose ' + (Math.abs(diff) < p.kosten * 0.03 ? 'neutral' : diff > 0 ? 'plus' : 'minus') + '">' + (diff >= 0 ? '👍 Voraussichtlich <b>' + euro(diff) + ' Guthaben</b>' : '⚠️ Voraussichtlich <b>' + euro(-diff) + ' Nachzahlung</b>') +
           ' für ' + datumKurz(p.start) + '–' + datumKurz(plusTage(p.ende, -1)) + '<br><span class="hinweis">Hochgerechnet ' + fmt(p.gesamt) + ' ' + esc(ein) + ' ≈ ' + euro(p.kosten) + ', Abschläge ' + euro(p.bezahlt) + (p.methode === 'vorjahr' ? ' · Rest nach Vorjahr' : ' · Rest nach Durchschnitt') + (p.unsicher ? ' · noch ungenau (wenige Werte)' : '') + (diff < 0 ? ' · Abschlag ' + euro(Math.ceil(-diff / 12)) + ' höher würde es ausgleichen' : '') + '</span></div>';
@@ -267,13 +326,14 @@
         '<div class="chart">' + chartSvg(z, liste) + '</div>' +
         (liste.length ? '<details><summary>📜 Ablesungen (' + liste.length + ')</summary>' + liste.slice().reverse().slice(0, 24).map((s, i, arr) => {
           const prev = arr[i + 1];
-          const diff = prev ? zahl(s.wert) - zahl(prev.wert) : null;
+          const diff = prev ? s.w - prev.w : null;
           const f = s.foto && (s.foto.url || s.foto.bild);
-          return '<div class="stand">' + (f ? '<img src="' + esc(f) + '" alt="Foto" data-gross="1">' : '') + '<span><b>' + fmt(zahl(s.wert), 1) + '</b> · ' + datumKurz(s.datum) + (s.notiz ? ' · ' + esc(s.notiz) : '') + '</span><span class="rechts">' + (diff !== null ? (diff >= 0 ? '+' : '') + fmt(diff, 1) : '') + '</span><button type="button" data-standweg="' + esc(s.id) + '" aria-label="Ablesung löschen">✕</button></div>';
+          return '<div class="stand">' + (f ? '<img src="' + esc(f) + '" alt="Foto" data-gross="1">' : '') + '<span class="stand-text" data-standedit="' + esc(s.id) + '" title="Antippen zum Bearbeiten"><b>' + fmt(zahl(s.wert), 1) + '</b> · ' + datumKurz(s.datum) + (s.wechsel ? '<span class="wechsel-tag">🔄 neuer Zähler</span>' : '') + (s.notiz ? ' · ' + esc(s.notiz) : '') + '</span><span class="rechts">' + (diff !== null ? (diff >= 0 ? '+' : '') + fmt(diff, 1) : '') + '</span><button type="button" data-standweg="' + esc(s.id) + '" aria-label="Ablesung löschen">✕</button></div>';
         }).join('') + '</details>' : '') +
         '<div class="knopf-reihe" style="margin-top:8px"><button type="button" class="btn btn-secondary" data-einst="' + esc(z.id) + '">⚙️ Preise &amp; Einstellungen</button></div></div>';
     }).join('');
     box.querySelectorAll('[data-ablesen]').forEach(b => b.addEventListener('click', () => ablesenOeffnen(b.dataset.ablesen)));
+    box.querySelectorAll('[data-standedit]').forEach(el => el.addEventListener('click', () => { const s = staende.find(x => x.id === el.dataset.standedit); if (s) ablesenOeffnen(s.zaehlerId, s.id); }));
     box.querySelectorAll('[data-einst]').forEach(b => b.addEventListener('click', () => zaehlerOeffnen(zaehler.find(z => z.id === b.dataset.einst))));
     box.querySelectorAll('[data-gross]').forEach(img => img.addEventListener('click', () => { $('bildGross').querySelector('img').src = img.src; $('bildGross').classList.add('zeigen'); }));
     box.querySelectorAll('[data-standweg]').forEach(b => b.addEventListener('click', () => {
@@ -304,9 +364,16 @@
     $('zPreis').placeholder = 'z. B. ' + String(a.preis).replace('.', ',');
     $('zBeginn').value = z ? z.beginn || '01' : '01';
     $('btnZaehlerLoeschen').style.display = z ? '' : 'none';
+    pvFelder();
     $('modalZaehler').classList.add('zeigen');
   }
-  $('zArt').addEventListener('change', () => { const a = ARTEN[$('zArt').value]; if (!zEdit) { $('zName').value = a.name; $('zEinheit').value = a.einheit; } $('zPreis').placeholder = 'z. B. ' + String(a.preis).replace('.', ','); });
+  function pvFelder() {
+    const pv = $('zArt').value === 'pv';
+    document.querySelectorAll('#modalZaehler .nicht-pv').forEach(el => { el.style.display = pv ? 'none' : ''; });
+    $('zPreisLabel').textContent = pv ? 'Einspeisevergütung (€ je kWh)' : 'Arbeitspreis (€ je Einheit)';
+    $('zHinweis').textContent = pv ? 'Die Einspeisevergütung steht im Schreiben des Netzbetreibers (z. B. 0,08 €/kWh). Der Planer rechnet damit aus, was die Einspeisung im Jahr bringt.' : 'Preise und Abschlag stehen auf der letzten Jahresabrechnung oder im Vertrag. Damit rechnet der Planer aus, ob eine Nachzahlung droht. Bei Gas in m³: Arbeitspreis je m³ eintragen (kWh-Preis × Brennwert, meist etwa × 10).';
+  }
+  $('zArt').addEventListener('change', () => { const a = ARTEN[$('zArt').value]; if (!zEdit) { $('zName').value = a.name; $('zEinheit').value = a.einheit; } $('zPreis').placeholder = 'z. B. ' + String(a.preis).replace('.', ','); pvFelder(); });
   $('btnNeuZaehler').addEventListener('click', () => zaehlerOeffnen(null, 'strom'));
   $('btnZaehlerSpeichern').addEventListener('click', () => {
     const d = { art: $('zArt').value, name: $('zName').value.trim(), einheit: $('zEinheit').value, nummer: $('zNummer').value.trim(), preis: zahl($('zPreis').value), grund: zahl($('zGrund').value), abschlag: zahl($('zAbschlag').value), beginn: $('zBeginn').value };
@@ -322,28 +389,37 @@
   });
 
   // ---------- Ablesen ----------
-  let aZaehler = null, aFoto = null;
-  function ablesenOeffnen(id) {
+  let aZaehler = null, aFoto = null, aStand = null;
+  function ablesenOeffnen(id, standId) {
     aZaehler = zaehler.find(z => z.id === id); if (!aZaehler) return;
-    const a = ARTEN[aZaehler.art] || ARTEN.sonst, liste = staendeVon(id), letzt = liste[liste.length - 1];
-    $('ablesenTitel').textContent = a.em + ' ' + (aZaehler.name || a.name) + ' ablesen';
-    $('aDatum').value = heuteISO(); $('aWert').value = ''; $('aNotiz').value = ''; $('aWarn').textContent = '';
+    aStand = standId ? staende.find(s => s.id === standId) || null : null;
+    const a = ARTEN[aZaehler.art] || ARTEN.sonst, liste = staendeVon(id).filter(s => !aStand || s.id !== aStand.id), letzt = liste[liste.length - 1];
+    $('ablesenTitel').textContent = a.em + ' ' + (aZaehler.name || a.name) + (aStand ? ' – Ablesung ändern' : ' ablesen');
+    $('aDatum').value = aStand ? aStand.datum : heuteISO(); $('aWert').value = aStand ? zahlText(aStand.wert) : ''; $('aNotiz').value = aStand ? aStand.notiz || '' : ''; $('aWarn').textContent = '';
+    $('aWechsel').checked = !!(aStand && aStand.wechsel); $('aAltEnde').value = aStand && aStand.wechsel ? zahlText(aStand.altEnde) : '';
+    $('aWechselBox').classList.toggle('zeigen', $('aWechsel').checked);
     $('aWertLabel').textContent = 'Zählerstand (' + (aZaehler.einheit || a.einheit) + ')';
     $('aWert').placeholder = letzt ? 'zuletzt ' + fmt(zahl(letzt.wert), 1) : 'z. B. 12345,6';
-    aFoto = null; $('aFotoVorschau').innerHTML = ''; $('aFoto').value = '';
+    aFoto = null; $('aFoto').value = '';
+    const altFoto = aStand && aStand.foto && (aStand.foto.url || aStand.foto.bild);
+    $('aFotoVorschau').innerHTML = altFoto ? '<img src="' + esc(altFoto) + '" alt="Foto">' : '';
+    $('aFotoKnopf').textContent = altFoto ? '📷 Foto ersetzen' : '📷 Foto aufnehmen';
     $('modalAblesen').classList.add('zeigen');
-    setTimeout(() => $('aWert').focus(), 60);
+    if (!aStand) setTimeout(() => $('aWert').focus(), 60);
   }
+  function letzterVor(zid, d, ohneId) { const l = staendeVon(zid).filter(s => s.datum < d && s.id !== ohneId); return l[l.length - 1]; }
   function plausibel() {
-    const w = zahl($('aWert').value), d = $('aDatum').value;
-    if (w === null || !aZaehler) { $('aWarn').textContent = ''; return; }
-    const liste = staendeVon(aZaehler.id).filter(s => s.datum !== d);
+    const d = $('aDatum').value, vor0 = aZaehler ? letzterVor(aZaehler.id, d, aStand && aStand.id) : null;
+    const w = zahl($('aWert').value, vor0 && !$('aWechsel').checked ? zahl(vor0.wert) : undefined);
+    if (w === null || !aZaehler || $('aWechsel').checked) { $('aWarn').textContent = ''; return; }
+    const liste = staendeVon(aZaehler.id).filter(s => s.datum !== d && (!aStand || s.id !== aStand.id));
     const vorher = liste.filter(s => s.datum < d).pop(), nachher = liste.find(s => s.datum > d);
     if (vorher && w < zahl(vorher.wert)) $('aWarn').textContent = '⚠ Kleiner als am ' + datumKurz(vorher.datum) + ' (' + fmt(zahl(vorher.wert), 1) + ') – Tippfehler oder Zählerwechsel?';
     else if (nachher && w > zahl(nachher.wert)) $('aWarn').textContent = '⚠ Größer als die spätere Ablesung vom ' + datumKurz(nachher.datum) + '.';
     else $('aWarn').textContent = '';
   }
   $('aWert').addEventListener('input', plausibel); $('aDatum').addEventListener('change', plausibel);
+  $('aWechsel').addEventListener('change', () => { $('aWechselBox').classList.toggle('zeigen', $('aWechsel').checked); plausibel(); if ($('aWechsel').checked) setTimeout(() => $('aAltEnde').focus(), 60); });
   function cloudBereit() { return !!(window.FotoSpeicher && window.FotoSpeicher.verfuegbar && window.FotoSpeicher.verfuegbar()); }
   $('aFoto').addEventListener('change', (e) => {
     const datei = e.target.files && e.target.files[0]; if (!datei) return;
@@ -353,20 +429,62 @@
       const c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
       c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
       aFoto = { bild: c.toDataURL('image/jpeg', cloudBereit() ? 0.78 : 0.55) };
-      $('aFotoVorschau').innerHTML = '<img src="' + aFoto.bild + '" alt="Vorschau">';
+      $('aFotoVorschau').innerHTML = '<img src="' + aFoto.bild + '" alt="Vorschau">'; $('aFotoKnopf').textContent = '📷 Foto ersetzen';
     }; img.src = ev.target.result; };
     r.readAsDataURL(datei);
   });
   $('btnAblesenSpeichern').addEventListener('click', () => {
-    const w = zahl($('aWert').value), d = $('aDatum').value;
+    const d = $('aDatum').value, wechsel = $('aWechsel').checked, vor0 = d ? letzterVor(aZaehler.id, d, aStand && aStand.id) : null;
+    const w = zahl($('aWert').value, vor0 && !wechsel ? zahl(vor0.wert) : undefined);
     if (w === null || !d) { $('aWarn').textContent = 'Bitte Datum und Zählerstand eintragen.'; return; }
-    const alt = staende.find(s => s.zaehlerId === aZaehler.id && s.datum === d);
-    const eintrag = { id: alt ? alt.id : neueId('s'), zaehlerId: aZaehler.id, datum: d, wert: w, notiz: $('aNotiz').value.trim(), von: (function () { try { return localStorage.getItem('planer_geraetIdentitaet') || ''; } catch (e) { return ''; } })() };
+    const altEnde = wechsel ? zahl($('aAltEnde').value, vor0 ? zahl(vor0.wert) : undefined) : null;
+    if (wechsel && altEnde === null) { $('aWarn').textContent = 'Bitte den Endstand des alten Zählers eintragen.'; $('aAltEnde').focus(); return; }
+    const amTag = staende.find(s => s.zaehlerId === aZaehler.id && s.datum === d && (!aStand || s.id !== aStand.id));
+    if (aStand && amTag) staende.splice(staende.indexOf(amTag), 1); // Datum auf einen belegten Tag geändert: der alte Eintrag dort wird ersetzt
+    const alt = aStand || amTag;
+    const eintrag = { id: alt ? alt.id : neueId('s'), zaehlerId: aZaehler.id, datum: d, wert: w, notiz: $('aNotiz').value.trim(), von: alt && alt.von ? alt.von : (function () { try { return localStorage.getItem('planer_geraetIdentitaet') || ''; } catch (e) { return ''; } })() };
     if (aFoto) eintrag.foto = aFoto; else if (alt && alt.foto) eintrag.foto = alt.foto;
-    if (alt) Object.assign(alt, eintrag); else staende.push(eintrag);
+    if (alt) { Object.assign(alt, eintrag); delete alt.wechsel; delete alt.altEnde; } else staende.push(eintrag);
+    const ziel = alt || eintrag;
+    if (wechsel) { ziel.wechsel = true; ziel.altEnde = altEnde; }
     speichern(KEY_S, staende); $('modalAblesen').classList.remove('zeigen'); render();
-    showTempStatus('📊 ' + fmt(w, 1) + ' gespeichert', 3);
+    showTempStatus('📊 ' + fmt(w, 1) + (aStand ? ' geändert' : ' gespeichert') + (wechsel ? ' · 🔄 Zählerwechsel' : ''), 3);
     if (aFoto) setTimeout(fotosHochladen, 300);
+  });
+
+  // ---------- 📋 Alle Zähler auf einmal ----------
+  function alleOeffnen() {
+    $('alleDatum').value = heuteISO();
+    $('alleListe').innerHTML = zaehler.map(z => {
+      const a = ARTEN[z.art] || ARTEN.sonst, l = staendeVon(z.id), letzt = l[l.length - 1];
+      return '<div class="alle-zeile"><label class="az-name" for="alle_' + esc(z.id) + '">' + a.em + ' ' + esc(z.name || a.name) + '<small>' + (letzt ? 'zuletzt ' + fmt(zahl(letzt.wert), 1) + ' ' + esc(z.einheit || a.einheit) + ' am ' + datumKurz(letzt.datum) : 'noch nicht abgelesen') + '</small></label>' +
+        '<input type="text" inputmode="decimal" autocomplete="off" id="alle_' + esc(z.id) + '" data-zid="' + esc(z.id) + '" placeholder="' + esc(z.einheit || a.einheit) + '"><div class="warn" data-warn="' + esc(z.id) + '"></div></div>';
+    }).join('');
+    $('alleListe').querySelectorAll('input').forEach(inp => inp.addEventListener('input', () => allePruefen(inp)));
+    $('modalAlle').classList.add('zeigen');
+    setTimeout(() => { const i = $('alleListe').querySelector('input'); if (i) i.focus(); }, 60);
+  }
+  function allePruefen(inp) {
+    const d = $('alleDatum').value, vor = letzterVor(inp.dataset.zid, d), warn = $('alleListe').querySelector('[data-warn="' + inp.dataset.zid + '"]');
+    const w = zahl(inp.value, vor ? zahl(vor.wert) : undefined);
+    warn.textContent = w !== null && vor && w < zahl(vor.wert) ? '⚠ Kleiner als am ' + datumKurz(vor.datum) + ' (' + fmt(zahl(vor.wert), 1) + ')' : '';
+  }
+  $('alleDatum').addEventListener('change', () => $('alleListe').querySelectorAll('input').forEach(allePruefen));
+  $('btnAlle').addEventListener('click', alleOeffnen);
+  $('btnAlleSpeichern').addEventListener('click', () => {
+    const d = $('alleDatum').value; if (!d) return;
+    const von = (function () { try { return localStorage.getItem('planer_geraetIdentitaet') || ''; } catch (e) { return ''; } })();
+    let n = 0;
+    $('alleListe').querySelectorAll('input').forEach(inp => {
+      const vor = letzterVor(inp.dataset.zid, d), w = zahl(inp.value, vor ? zahl(vor.wert) : undefined);
+      if (w === null) return;
+      const alt = staende.find(s => s.zaehlerId === inp.dataset.zid && s.datum === d);
+      if (alt) { alt.wert = w; } else staende.push({ id: neueId('s'), zaehlerId: inp.dataset.zid, datum: d, wert: w, notiz: '', von });
+      n++;
+    });
+    if (!n) { showTempStatus('Kein Zählerstand eingetragen', 3); return; }
+    speichern(KEY_S, staende); $('modalAlle').classList.remove('zeigen'); render();
+    showTempStatus('📊 ' + n + (n === 1 ? ' Zählerstand' : ' Zählerstände') + ' gespeichert', 3);
   });
 
   // ---------- Fotos in den Familien-Fotospeicher ----------
@@ -407,7 +525,7 @@
 
   window.addEventListener('message', (e) => {
     if (e.origin !== location.origin || !e.data || e.data.type !== 'shortcutAktion') return;
-    if (e.data.aktion === 'neu' && zaehler.length) ablesenOeffnen(zaehler[0].id);
+    if (e.data.aktion === 'neu' && zaehler.length) { if (zaehler.length >= 2) alleOeffnen(); else ablesenOeffnen(zaehler[0].id); }
   });
 
   render(); erinnerungKnopf();

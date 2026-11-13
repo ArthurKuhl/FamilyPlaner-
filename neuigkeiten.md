@@ -1,6 +1,14 @@
 # Neuigkeiten im Familienplaner
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 
+## 2026-11-13 | Zähler: alle auf einmal ablesen, Zählerwechsel
+- Neu: „📋 Alle ablesen“. Ein Fenster für Strom, Gas, Wasser und alle anderen Zähler, mit einem gemeinsamen Datum. Leere Felder werden übersprungen.
+- Zählerwechsel: Beim Ablesen „🔄 Neuer Zähler eingebaut“ ankreuzen und den Endstand des alten Zählers eintragen. Verbrauch, Diagramm und Prognose laufen dann einfach weiter.
+- Ablesungen lassen sich jetzt ändern: in der Liste „📜 Ablesungen“ einfach auf die Zeile tippen.
+- Zahlen mit Tausenderpunkt wie „17.950,5“ werden jetzt richtig gelesen (vorher wurde daraus 17,95).
+- Einspeisung (PV): statt „Nachzahlung“ und „Abschlag“ zeigt die App jetzt die voraussichtliche Vergütung im Jahr.
+- Das Foto vom Zähler nimmst du jetzt über einen richtigen Knopf „📷 Foto aufnehmen“ auf.
+
 ## 2026-11-13 | Handwerk: Material auf die Baumarkt-Liste
 - „🛒 Material zum Einkauf“ fragt jetzt, auf welche Liste das Material soll. Vorausgewählt ist „🔨 Baumarkt“, die Liste wird beim ersten Mal automatisch angelegt. Material landet so nicht mehr im Wocheneinkauf.
 - Auch der Heimwerker-Rechner überträgt auf diesem Weg.
