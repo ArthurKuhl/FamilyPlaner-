@@ -6687,8 +6687,85 @@ document.getElementById('modalGardenName').addEventListener('keydown', e => { if
 
 // ==================== CANVAS ====================
 const canvas = document.getElementById('gardenCanvas');
-const ctx = canvas.getContext('2d');
+let ctx = canvas.getContext('2d');
+const hauptCtx = ctx;
 const wrap = document.getElementById('canvasWrap');
+// ==================== SCHARFE DARSTELLUNG BEIM REINZOOMEN ====================
+// Der Haupt-Canvas hat 1 Pixel pro cm und wird per CSS vergrößert – beim starken Reinzoomen wird
+// das unscharf. Darum liegt darüber ein zweiter Canvas, der nur den sichtbaren Ausschnitt (plus Rand)
+// in voller Bildschirmauflösung zeichnet. Er liegt im Scroll-Inhalt und wandert beim Wischen mit;
+// erst wenn der Rand erreicht ist, wird neu gezeichnet. Klicks/Touches gehen weiter an den Haupt-Canvas.
+const scharfCanvas = document.createElement('canvas');
+scharfCanvas.id = 'gardenCanvasScharf';
+scharfCanvas.setAttribute('aria-hidden', 'true');
+scharfCanvas.style.cssText = 'position:absolute;pointer-events:none;display:none;left:0;top:0;z-index:1;';
+canvas.insertAdjacentElement('afterend', scharfCanvas);
+const scharfCtx = scharfCanvas.getContext('2d');
+let scharfFaktor = 1, scharfBereich = null;
+(function () { // Schatten-Werte sind Gerätepixel – mit dem Maßstab mitwachsen lassen
+  const proto = CanvasRenderingContext2D.prototype;
+  ['shadowBlur', 'shadowOffsetX', 'shadowOffsetY'].forEach(k => {
+    const d = Object.getOwnPropertyDescriptor(proto, k);
+    if (!d || !d.set) return;
+    Object.defineProperty(scharfCtx, k, { get() { return d.get.call(this) / scharfFaktor; }, set(v) { d.set.call(this, v * scharfFaktor); }, configurable: true });
+  });
+})();
+function scharfAus() {
+  scharfBereich = null;
+  scharfCanvas.style.display = 'none';
+  canvas.style.opacity = '';
+}
+function scharfZeichnen() {
+  const z = gartenZoom || 1, dpr = window.devicePixelRatio || 1;
+  const vw = wrap.clientWidth, vh = wrap.clientHeight;
+  if (!vw || !vh || z * dpr <= 1.25 || !canvas.width) { scharfAus(); return; }
+  const ox = canvas.offsetLeft, oy = canvas.offsetTop;
+  // sichtbarer Ausschnitt in Garten-Koordinaten (cm), mit 35 % Rand auf jeder Seite
+  const sx = (wrap.scrollLeft - ox) / z, sy = (wrap.scrollTop - oy) / z, sw = vw / z, sh = vh / z;
+  const rand = 0.35;
+  const x0 = Math.max(0, sx - sw * rand), y0 = Math.max(0, sy - sh * rand);
+  const x1 = Math.min(canvas.width, sx + sw * (1 + rand)), y1 = Math.min(canvas.height, sy + sh * (1 + rand));
+  const bw = x1 - x0, bh = y1 - y0;
+  if (bw <= 0 || bh <= 0) { scharfAus(); return; }
+  let f = dpr;
+  const MAX_PIXEL = 9e6;
+  const px = bw * z * bh * z * f * f;
+  if (px > MAX_PIXEL) f *= Math.sqrt(MAX_PIXEL / px);
+  const pw = Math.max(1, Math.round(bw * z * f)), ph = Math.max(1, Math.round(bh * z * f));
+  if (scharfCanvas.width !== pw) scharfCanvas.width = pw;
+  if (scharfCanvas.height !== ph) scharfCanvas.height = ph;
+  scharfCanvas.style.left = Math.round(ox + x0 * z) + 'px';
+  scharfCanvas.style.top = Math.round(oy + y0 * z) + 'px';
+  scharfCanvas.style.width = (pw / f) + 'px';
+  scharfCanvas.style.height = (ph / f) + 'px';
+  const k = pw / bw;
+  scharfFaktor = k;
+  scharfCtx.setTransform(1, 0, 0, 1, 0, 0);
+  scharfCtx.clearRect(0, 0, pw, ph);
+  scharfCtx.setTransform(k, 0, 0, ph / bh, -x0 * k, -y0 * (ph / bh));
+  ctx = scharfCtx;
+  try { drawSzene(); } catch (e) { console.warn('Scharf zeichnen fehlgeschlagen', e); }
+  finally { ctx = hauptCtx; }
+  scharfBereich = { x0, y0, x1, y1, z };
+  scharfCanvas.style.display = 'block';
+  canvas.style.opacity = '0';
+}
+let scharfScrollRaf = 0;
+wrap.addEventListener('scroll', () => {
+  if (!scharfBereich || scharfScrollRaf) return;
+  scharfScrollRaf = requestAnimationFrame(() => {
+    scharfScrollRaf = 0;
+    const b = scharfBereich, z = gartenZoom || 1;
+    if (!b) return;
+    const sx = (wrap.scrollLeft - canvas.offsetLeft) / z, sy = (wrap.scrollTop - canvas.offsetTop) / z;
+    const sw = wrap.clientWidth / z, sh = wrap.clientHeight / z, m = 0.08;
+    const drin = (sx >= b.x0 - 1 || b.x0 <= 0) && (sy >= b.y0 - 1 || b.y0 <= 0) &&
+      (sx + sw <= b.x1 + 1 || b.x1 >= canvas.width) && (sy + sh <= b.y1 + 1 || b.y1 >= canvas.height);
+    const nahAmRand = (b.x0 > 0 && sx - b.x0 < sw * m) || (b.y0 > 0 && sy - b.y0 < sh * m) ||
+      (b.x1 < canvas.width && b.x1 - (sx + sw) < sw * m) || (b.y1 < canvas.height && b.y1 - (sy + sh) < sh * m);
+    if (!drin || nahAmRand) scharfZeichnen();
+  });
+}, { passive: true });
 
 // Feste Regel ab jetzt: 1 Canvas-Einheit (Pixel im internen Zeichenpuffer) = 1 echter cm.
 // Die Canvas-Puffergröße richtet sich damit direkt nach der hinterlegten Gartengröße in Metern
@@ -6713,6 +6790,7 @@ function resizeCanvas(erzwingen) {
 function wendeZoomAn() {
   canvas.style.width = Math.round(canvas.width * gartenZoom) + 'px';
   canvas.style.height = Math.round(canvas.height * gartenZoom) + 'px';
+  if (scharfBereich && scharfBereich.z !== gartenZoom) scharfAus(); // bis zum Neuzeichnen das (unscharfe) Hauptbild zeigen
   const prozentText = Math.round(gartenZoom * 100) + '%';
   const anzeige = document.getElementById('gartenZoomWert');
   if (anzeige) anzeige.textContent = prozentText;
@@ -6791,6 +6869,10 @@ function drawZones() {
   ctx.restore();
 }
 function draw() {
+  drawSzene();
+  scharfZeichnen();
+}
+function drawSzene() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   if (ebene('hintergrund')) drawBgImage();
   drawGardenBoundary();
@@ -7986,11 +8068,14 @@ function farbeMischen(hex, f) {
   return '#' + z.map(x => Math.max(0, Math.min(255, x)).toString(16).padStart(2, '0')).join('');
 }
 function strukturMuster(typ, farbe) {
-  const key = typ + '|' + farbe;
+  // Im scharfen Modus die Kachel in höherer Auflösung erzeugen (1×, 2×, 4× oder 8×)
+  const q = ctx === hauptCtx ? 1 : Math.min(8, Math.pow(2, Math.ceil(Math.log2(Math.max(1, scharfFaktor)))));
+  const key = typ + '|' + farbe + '|' + q;
   if (musterCache[key]) return musterCache[key];
   const g = 48;
-  const c = document.createElement('canvas'); c.width = g; c.height = g;
+  const c = document.createElement('canvas'); c.width = g * q; c.height = g * q;
   const m = c.getContext('2d'), r = zufallsFolge(typ.length * 97 + 13);
+  m.scale(q, q);
   const hell = farbeMischen(farbe, 0.18), dunkel = farbeMischen(farbe, -0.22);
   m.fillStyle = farbe; m.fillRect(0, 0, g, g);
   if (typ === 'gebaeude') { // Dachziegel
@@ -8021,6 +8106,7 @@ function strukturMuster(typ, farbe) {
     for (let i = 0; i < 60; i++) { m.fillStyle = r() > 0.5 ? hell : dunkel; m.beginPath(); m.arc(r() * g, r() * g, 0.8 + r() * 1.6, 0, Math.PI * 2); m.fill(); }
   }
   const p = ctx.createPattern(c, 'repeat');
+  if (q > 1 && p.setTransform && typeof DOMMatrix !== 'undefined') p.setTransform(new DOMMatrix().scale(1 / q));
   musterCache[key] = p;
   return p;
 }

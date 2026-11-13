@@ -1,6 +1,9 @@
 # Neuigkeiten im Familienplaner
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 
+## 2026-11-13 | Gestochen scharf beim Reinzoomen
+- Symbole, Linien, Beschriftungen und Muster (Zaun, Dach, Pflaster …) werden beim Reinzoomen jetzt in voller Bildschirmauflösung gezeichnet statt hochskaliert – keine Pixel-Treppen mehr.
+
 ## 2026-11-13 | Tiere auf der Karte, Gießrunde, Zeitreise & Kindersicher
 - 🐾 Tiere auf der Karte: Tippe, wo du ein Tier gesehen, einen Nistkasten aufgehängt oder ein Winterquartier entdeckt hast. Neue Arten: 🪺 Nistkasten, 🕳️ Höhle/Bau, ❄️ überwintert hier. Auch bestehende Beobachtungen lassen sich unter „📍 Ort im Garten“ auf die Karte setzen.
 - 💧 Gießrunde: zeigt auf der Karte alles, was heute gegossen werden muss. Antippen hakt ab und trägt „gegossen“ ein.
