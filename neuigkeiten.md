@@ -1,6 +1,11 @@
 # Neuigkeiten im Familienplaner
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 
+## 2026-11-13 | Baumkronen für jede Schreibweise & eigene Kronenbreite
+- Kronen werden jetzt auch angezeigt, wenn der Baum „Birne“, „Birnenbaum“ oder „Säulenbirne“ heißt.
+- Säulen- und Spindelobst (im Namen oder in der Sorte) bekommt automatisch eine schmale Krone von etwa 70 cm.
+- Neues Feld „Kronen-Ø“ bei Bäumen und Sträuchern: trag die echte Breite ein, dann zeigt die Karte genau diese Größe. Leer lassen = automatisch.
+
 ## 2026-11-13 | 🤏 Zwei-Finger-Zoom, Maßband, Ebenen & Blüh-Kalender
 - **Zoomen mit zwei Fingern** direkt auf der Gartenkarte. Am PC geht es mit Strg + Mausrad oder mit zwei Fingern auf dem Trackpad. Die Stelle zwischen den Fingern bleibt dabei unter den Fingern.
 - **📏 Maßband:** Zwei Punkte antippen, dann siehst du den Abstand in Metern. Wischen verschiebt weiterhin die Karte.
