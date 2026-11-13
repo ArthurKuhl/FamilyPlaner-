@@ -9,7 +9,7 @@
 //   kalender       – Termine als Kalender-Abo (ICS) für Google/Apple/Outlook
 //   rezeptImport   – liest ein Rezept von einer Webseite (schema.org/Recipe)
 //   chatPush       – Benachrichtigung bei neuen Nachrichten im Familien-Chat
-//   Garten (in „erinnerungen“): Frost um 18 Uhr, Hitze morgens, Monatsvorschau am 1.
+//   Garten (in „erinnerungen“): Frost um 18 Uhr, Hitze morgens, Monatsvorschau am 1., Notiz-Erinnerungen
 //
 // Datenquellen (wie von der App synchronisiert):
 //   planerFamilien/{familie}/daten/termine     → werte.termine_events_v1
@@ -261,6 +261,14 @@ async function gartenErinnerungen(geraet, plan, wetterHolen) {
       liste.push({ schluessel: 'gartenHitze_' + i, titel: '☀️ Heute bis ' + gradText(w.max[0]),
         text: (mehrere ? g.name + ': ' : '') + 'Garten früh morgens oder abends gründlich gießen – nicht in der Mittagshitze.', seite: 'garten' });
     }
+    // 📝 Notiz-Erinnerungen aus der Garten-Karte (am Erinnerungstag; jährliche jedes Jahr am selben Tag)
+    (plan.notizen || []).forEach(n => {
+      if (!n || !n.id || !n.d) return;
+      const heute = n.j ? (String(n.d).slice(5) === datum.slice(5) && String(n.e || '') !== datum.slice(0, 4)) : String(n.d) === datum;
+      if (!heute) return;
+      liste.push({ schluessel: 'gartenNotiz_' + String(n.id).replace(/[^\w-]/g, '_'), titel: '📝 Erinnerung aus dem Garten',
+        text: (Object.keys(plan.gaerten || {}).length > 1 && n.g ? n.g + ': ' : '') + String(n.t || '').slice(0, 200), seite: 'garten' });
+    });
     // 🌱 Monatsvorschau am 1. des Monats
     if (datum.endsWith('-01') && plan.monate) {
       const mo = plan.monate[datum.slice(0, 7)];
