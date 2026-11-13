@@ -9,6 +9,7 @@
 //   kalender       – Termine als Kalender-Abo (ICS) für Google/Apple/Outlook
 //   rezeptImport   – liest ein Rezept von einer Webseite (schema.org/Recipe)
 //   chatPush       – Benachrichtigung bei neuen Nachrichten im Familien-Chat
+//   Haushalt (in „erinnerungen“): morgens die heute offenen Aufgaben
 //   Garten (in „erinnerungen“): Frost um 18 Uhr, Hitze morgens, Monatsvorschau am 1., Notiz-Erinnerungen
 //
 // Datenquellen (wie von der App synchronisiert):
@@ -26,6 +27,7 @@ const net = require('node:net');
 const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 const { getMessaging } = require('firebase-admin/messaging');
 const TerminLogik = require('./terminlogik'); // gleiche Datei wie terminlogik.js in der App
+const HaushaltLogik = require('./haushaltlogik'); // gleiche Datei wie haushaltlogik.js in der App
 
 initializeApp();
 
@@ -154,6 +156,29 @@ function faelligeErinnerungen(geraet, daten) {
     }
   }
 
+  // 🧹 Haushalt: morgens eine Nachricht mit den heute offenen Aufgaben (meine bzw. auch die ohne Zuständigkeit)
+  if (geraet.haushalt && geraet.haushalt !== 'aus' && imFenster(tagesZiel) && (daten.haushalt || []).length) {
+    const u = daten.urlaub;
+    const imUrlaub = !!(u && u.von && u.bis && u.haushaltPausieren !== false && datum >= u.von && datum <= u.bis);
+    const meine = [], offene = [];
+    if (!imUrlaub) (daten.haushalt || []).forEach(a => {
+      if (!a || a.pausiert) return;
+      let st;
+      try { st = HaushaltLogik.status(a, datum); } catch (e) { return; }
+      if (!st.offen) return;
+      const z = HaushaltLogik.zustaendigId(a, 0);
+      const txt = (a.icon ? a.icon + ' ' : '') + (a.titel || 'Aufgabe') + (st.ueberfaelligSeit ? ' (überfällig)' : '');
+      if (z && z !== 'familie') { if (z === geraet.person) meine.push(txt); }
+      else if (geraet.haushalt === 'alle') offene.push(txt);
+    });
+    if (meine.length || offene.length) {
+      const teile = [];
+      if (meine.length) teile.push((geraet.haushalt === 'alle' ? 'Für dich: ' : '') + listeKurz(meine, 5));
+      if (offene.length) teile.push('Offen für alle: ' + listeKurz(offene, 4));
+      liste.push({ schluessel: 'haushalt', titel: '🧹 Heute im Haushalt', text: teile.join('\n').slice(0, 200), seite: 'haushalt' });
+    }
+  }
+
   // Wartung: am Fälligkeitstag und danach wöchentlich, solange nicht erledigt
   if (geraet.wartung && imFenster(tagesZiel)) {
     const faellig = [];
@@ -219,6 +244,12 @@ function wetterHolerErzeugen() {
     }
     return cache.get(k);
   };
+}
+// Liegt gerade die Morgen-Uhrzeit (Tages-Erinnerungen) dieses Geräts an?
+function tagesFensterOffen(geraet) {
+  const { minuten } = lokaleZeit(geraet.zeitzone);
+  const ziel = hhmmZuMinuten(geraet.tagesZeit || '08:00');
+  return ziel !== null && ziel <= minuten && minuten - ziel < FENSTER_MIN;
 }
 // Ist für dieses Gerät gerade ein Garten-Hinweis möglich? (spart Lesen und Wetterabruf)
 function gartenFensterOffen(geraet) {
@@ -307,14 +338,16 @@ exports.erinnerungen = onSchedule(
     for (const { ref: familieRef, geraete } of proFamilie.values()) {
       const brauchtVorrat = geraete.some(g => g.daten.vorrat);
       const brauchtWartung = geraete.some(g => g.daten.wartung);
+      const brauchtHaushalt = geraete.some(g => g.daten.haushalt && g.daten.haushalt !== 'aus' && tagesFensterOffen(g.daten));
       const brauchtGarten = geraete.some(g => gartenFensterOffen(g.daten)); // Gartendaten nur lesen, wenn ein Hinweis fällig sein kann
       const leer = { exists: false };
-      const [terminDoc, gesundheitDoc, vorratDoc, handwerkDoc, gartenDoc] = await Promise.all([
+      const [terminDoc, gesundheitDoc, vorratDoc, handwerkDoc, gartenDoc, haushaltDoc] = await Promise.all([
         familieRef.collection('daten').doc('termine').get(),
         familieRef.collection('daten').doc('gesundheit').get(),
         brauchtVorrat ? familieRef.collection('daten').doc('vorratskammer').get() : leer,
         brauchtWartung ? familieRef.collection('daten').doc('handwerk').get() : leer,
         brauchtGarten ? familieRef.collection('daten').doc('garten').get() : leer,
+        brauchtHaushalt ? familieRef.collection('daten').doc('haushalt').get() : leer,
       ]);
       const werteVon = (doc) => (doc.exists && doc.data().werte) || {};
       const tw = werteVon(terminDoc), gw = werteVon(gesundheitDoc);
@@ -325,6 +358,7 @@ exports.erinnerungen = onSchedule(
         medErledigt: gw.gesundheit_medErledigt || {},
         vorrat: werteVon(vorratDoc).vorratskammer_items || [],
         wartung: werteVon(handwerkDoc).handwerk_wartung || [],
+        haushalt: werteVon(haushaltDoc).haushalt_aufgaben || [],
       };
       let gartenPlan = werteVon(gartenDoc).garten_pushPlan || null;
       if (typeof gartenPlan === 'string') { try { gartenPlan = JSON.parse(gartenPlan); } catch (e) { gartenPlan = null; } }
@@ -719,4 +753,4 @@ exports.chatPush = onRequest({ region: 'europe-west3', memory: '256MiB', invoker
 });
 
 // Für Tests (node): reine Hilfsfunktionen
-if (process.env.FAMILIENPLANER_TEST) exports._test = { gartenErinnerungen, gartenFensterOffen, chatVorschau, sonntagsbriefText, kalenderIcs, rezeptAusJsonLd, zutatZerlegen, schritteListe, isoDauerMinuten, privateAdresse };
+if (process.env.FAMILIENPLANER_TEST) exports._test = { faelligeErinnerungen, gartenErinnerungen, gartenFensterOffen, chatVorschau, sonntagsbriefText, kalenderIcs, rezeptAusJsonLd, zutatZerlegen, schritteListe, isoDauerMinuten, privateAdresse };
