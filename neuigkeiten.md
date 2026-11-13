@@ -1,6 +1,11 @@
 # Neuigkeiten im Familienplaner
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 
+## 2026-11-13 | Finanzen: Tausenderpunkt, Abos im Budget
+- 💶 Beträge mit Tausenderpunkt werden richtig gelesen: „1.234,56“ sind jetzt 1.234,56 € (vorher wurden daraus 1,23 €).
+- 🔁 Neue Abos & Rechnungen buchen standardmäßig in die Kategorie „Abos & Verträge“ (wird bei Bedarf angelegt, änderbar). Abos ohne Kategorie zeigen „nicht im Budget“.
+- 📈 Bei den Abos steht zusätzlich die Jahressumme („≈ … € im Jahr“).
+
 ## 2026-11-13 | Gesundheit: aufgeräumte Reiter, Kinder-Ansicht
 - 💪 Kraft, Dehnen, Balance und Trainingsplan liegen jetzt gemeinsam unter „Training“ (mit kleiner Leiste darunter) – 9 statt 12 Reiter. Der zuletzt genutzte Trainings-Bereich wird gemerkt.
 - 🧸 Für Kinder aus der Kinderecke zeigt Gesundheit nur, was passt: große Knöpfe für Fieber/krank, Größe & Gewicht und Impfungen/U-Untersuchungen, dazu Gewicht, Stimmung und Medikamente. Blutdruck, SpO2, Laufen & Co. sind ausgeblendet.

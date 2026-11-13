@@ -268,7 +268,7 @@
       <div id="abosLeer" class="leer-hinweis" style="display:none;padding:16px 8px;"><span class="em">🔁</span>Noch keine Abos oder Rechnungen erfasst.</div>
     </div>
     <div class="karte" id="abosSummeKarte" style="display:none;">
-      <h3>Monatliche Gesamtbelastung</h3>
+      <h3>Gesamtbelastung</h3>
       <div style="font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;" id="abosSumme"></div>
     </div>
   </section>
@@ -917,7 +917,7 @@
     const name = document.getElementById('fKatName').value.trim();
     if (!name) { alert('Bitte einen Namen eingeben.'); return; }
     const icon = document.getElementById('fKatIcon').value.trim() || '💶';
-    const limit = parseFloat(String(document.getElementById('fKatLimit').value).replace(',', '.')) || 0;
+    const limit = (betragLesen(document.getElementById('fKatLimit').value) || 0);
     const k = bearbeiteKatId && katInfo(bearbeiteKatId);
     if (k) Object.assign(k, { name, icon, limit });
     else kategorien.push({ id: neueId('kat'), name, icon, limit });
@@ -997,7 +997,7 @@
   document.getElementById('modalAusgabe').addEventListener('click', (e) => { if (e.target.id === 'modalAusgabe') e.currentTarget.classList.remove('zeigen'); });
   document.getElementById('fAusgabeBetrag').addEventListener('keydown', (e) => { if (e.key === 'Enter') document.getElementById('btnAusgabeSpeichern').click(); });
   document.getElementById('btnAusgabeSpeichern').addEventListener('click', () => {
-    const betrag = parseFloat(String(document.getElementById('fAusgabeBetrag').value).replace(/[^\d,.-]/g, '').replace(',', '.'));
+    const betrag = betragLesen(document.getElementById('fAusgabeBetrag').value);
     if (!(betrag > 0)) { alert('Bitte einen gültigen Betrag eingeben.'); document.getElementById('fAusgabeBetrag').focus(); return; }
     const daten = {
       kategorieId: document.getElementById('fAusgabeKategorie').value, betrag: Math.round(betrag * 100) / 100,
@@ -1154,7 +1154,7 @@
   document.getElementById('btnSzSpeichern').addEventListener('click', () => {
     const k = tgKonten.find(x => x.id === sparzielKontoId); if (!k) return;
     const name = document.getElementById('fSzName').value.trim();
-    const betrag = parseFloat(String(document.getElementById('fSzBetrag').value).replace(/[^\d,.]/g, '').replace(',', '.'));
+    const betrag = betragLesen(document.getElementById('fSzBetrag').value);
     if (!name || !(betrag > 0)) { alert('Bitte Ziel und Betrag eingeben.'); return; }
     k.sparziel = { name, betrag: Math.round(betrag * 100) / 100, seit: (k.sparziel && k.sparziel.seit) || heute() };
     speichernAlles();
@@ -1185,7 +1185,7 @@
   document.getElementById('btnTgKontoAbbrechen').addEventListener('click', () => document.getElementById('modalTaschengeldKonto').classList.remove('zeigen'));
   document.getElementById('modalTaschengeldKonto').addEventListener('click', (e) => { if (e.target.id === 'modalTaschengeldKonto') e.currentTarget.classList.remove('zeigen'); });
   document.getElementById('btnTgKontoSpeichern').addEventListener('click', () => {
-    const betrag = parseFloat(document.getElementById('fTgBetrag').value.replace(',', '.'));
+    const betrag = betragLesen(document.getElementById('fTgBetrag').value);
     if (!(betrag > 0)) { alert('Bitte einen gültigen Betrag eingeben.'); return; }
     const personId = document.getElementById('fTgPerson').value;
     if (tgKonten.some(k => k.personId === personId)) { alert('Für diese Person existiert bereits ein Konto.'); return; }
@@ -1218,7 +1218,7 @@
   document.getElementById('btnTgBuchungAbbrechen').addEventListener('click', () => document.getElementById('modalTgBuchung').classList.remove('zeigen'));
   document.getElementById('modalTgBuchung').addEventListener('click', (e) => { if (e.target.id === 'modalTgBuchung') e.currentTarget.classList.remove('zeigen'); });
   document.getElementById('btnTgBuchungSpeichern').addEventListener('click', () => {
-    const betrag = parseFloat(document.getElementById('fTgBuchungBetrag').value.replace(',', '.'));
+    const betrag = betragLesen(document.getElementById('fTgBuchungBetrag').value);
     if (!(betrag > 0)) { alert('Bitte einen gültigen Betrag eingeben.'); return; }
     tgBuchungen.push({
       id: neueId('tgb'), kontoId: tgBuchungKontoId, betrag,
@@ -1234,6 +1234,15 @@
   // ============================================================
   // ABOS & RECHNUNGEN
   // ============================================================
+  // Betrag aus Eingabe: „1.234,56“, „1234,56“, „1,234.56“, „12.5“, „1.000“ (= tausend), „12 €“
+  function betragLesen(wert) {
+    let t = String(wert == null ? '' : wert).replace(/[^\d,.-]/g, '');
+    if (!t) return NaN;
+    if (t.includes(',') && t.includes('.')) t = t.lastIndexOf(',') > t.lastIndexOf('.') ? t.replace(/\./g, '').replace(',', '.') : t.replace(/,/g, '');
+    else if (t.includes(',')) t = t.replace(',', '.'); // deutsches Dezimalkomma
+    else if (/^\d{1,3}(\.\d{3})+$/.test(t)) t = t.replace(/\./g, '');
+    return parseFloat(t);
+  }
   function naechsteFaelligkeitBerechnen(datumIso, rhythmus) {
     const d = new Date(datumIso + 'T00:00:00');
     if (rhythmus === 'woechentlich') d.setDate(d.getDate() + 7);
@@ -1275,6 +1284,7 @@
         if (tk >= 0 && tk <= 45) hinweis += '<span class="abo-hinweis' + (tk <= 14 ? ' dringend' : '') + '">✂️ Kündigen bis ' + formatDatum(a.kuendigenBis) + (tk <= 14 ? ' – noch ' + tk + (tk === 1 ? ' Tag' : ' Tage') : '') + '</span> ';
         else if (tk < 0 && tk > -30) hinweis += '<span class="abo-hinweis">✂️ Kündigungsfrist am ' + formatDatum(a.kuendigenBis) + ' abgelaufen</span> ';
       }
+      if (!kat) hinweis += '<span class="abo-hinweis">nicht im Budget – antippen und Kategorie wählen</span> ';
       if (t >= 0 && t <= 3) hinweis += '<span class="abo-hinweis">' + (t === 0 ? 'heute' : t === 1 ? 'morgen' : 'in ' + t + ' Tagen') + ' fällig</span>';
       return '<div class="abo-zeile" data-abo="' + a.id + '"><div class="abo-info"><div class="abo-name">' + escapeHtml(a.name) + '</div>' +
         '<div class="abo-details">' + rhythmusLabel + ' · nächste Fälligkeit ' + formatDatum(a.faelligkeit) + (kat ? ' · bucht in ' + kat.icon + ' ' + escapeHtml(kat.name) : '') + '</div>' + (hinweis ? '<div>' + hinweis + '</div>' : '') + '</div>' +
@@ -1290,7 +1300,7 @@
       return s;
     }, 0);
     document.getElementById('abosSummeKarte').style.display = abos.length ? '' : 'none';
-    document.getElementById('abosSumme').textContent = formatEuro(monatsSumme) + ' / Monat';
+    document.getElementById('abosSumme').innerHTML = escapeHtml(formatEuro(monatsSumme)) + ' / Monat<div style="font-family:Inter,system-ui,sans-serif;font-size:0.8rem;font-weight:600;color:var(--bark);margin-top:2px;">≈ ' + escapeHtml(formatEuro(monatsSumme * 12)) + ' im Jahr</div>';
   }
   function aboLoeschen(id) {
     const index = abos.findIndex(a => a.id === id); if (index < 0) return;
@@ -1309,8 +1319,12 @@
     document.getElementById('fAboRhythmus').value = a ? a.rhythmus : 'monatlich';
     document.getElementById('fAboFaelligkeit').value = a ? a.faelligkeit : heute();
     document.getElementById('fAboKuendigen').value = a ? (a.kuendigenBis || '') : '';
-    document.getElementById('fAboKategorie').innerHTML = '<option value="">– nicht automatisch buchen –</option>' + kategorien.map(k => '<option value="' + k.id + '">' + k.icon + ' ' + escapeHtml(k.name) + '</option>').join('');
-    document.getElementById('fAboKategorie').value = a && a.kategorieId && katInfo(a.kategorieId) ? a.kategorieId : '';
+    const aboKat = kategorien.find(k => /^abos?\b/i.test(k.name || ''));
+    document.getElementById('fAboKategorie').innerHTML = '<option value="">– nicht automatisch buchen (nicht im Budget) –</option>' +
+      (aboKat ? '' : '<option value="__abos__">🔁 Abos & Verträge (neu anlegen)</option>') +
+      kategorien.map(k => '<option value="' + k.id + '">' + k.icon + ' ' + escapeHtml(k.name) + '</option>').join('');
+    // Neue Abos landen standardmäßig im Budget (Kategorie „Abos & Verträge“)
+    document.getElementById('fAboKategorie').value = a ? (a.kategorieId && katInfo(a.kategorieId) ? a.kategorieId : '') : (aboKat ? aboKat.id : '__abos__');
     document.getElementById('btnAboLoeschen').style.display = a ? '' : 'none';
     document.getElementById('modalAbo').classList.add('zeigen');
   }
@@ -1320,11 +1334,12 @@
   document.getElementById('btnAboLoeschen').addEventListener('click', () => { document.getElementById('modalAbo').classList.remove('zeigen'); aboLoeschen(bearbeiteAboId); });
   document.getElementById('btnAboSpeichern').addEventListener('click', () => {
     const name = document.getElementById('fAboName').value.trim();
-    const betrag = parseFloat(String(document.getElementById('fAboBetrag').value).replace(',', '.'));
+    const betrag = betragLesen(document.getElementById('fAboBetrag').value);
     if (!name || !(betrag > 0)) { alert('Bitte Name und gültigen Betrag eingeben.'); return; }
     const daten = { name, betrag, rhythmus: document.getElementById('fAboRhythmus').value,
       faelligkeit: document.getElementById('fAboFaelligkeit').value || heute(),
       kategorieId: document.getElementById('fAboKategorie').value, kuendigenBis: document.getElementById('fAboKuendigen').value };
+    if (daten.kategorieId === '__abos__') { const k = { id: neueId('kat'), name: 'Abos & Verträge', icon: '🔁', limit: 0 }; kategorien.push(k); daten.kategorieId = k.id; }
     const a = bearbeiteAboId && abos.find(x => x.id === bearbeiteAboId);
     if (a) Object.assign(a, daten); else abos.push(Object.assign({ id: neueId('abo') }, daten));
     // Liegt die Fälligkeit in der Vergangenheit, wird beim Buchen nur ab heute gerechnet (keine Nachbuchung alter Zeiträume)
@@ -1440,7 +1455,7 @@
     const url = document.getElementById('fPreisUrl').value.trim();
     if (!name || !url) { alert('Bitte Name und Link eingeben.'); return; }
     const neu = { id: neueId('pp'), name, url, feedUrl: null, letzterPreis: null, letztesUpdate: null, verlauf: [] };
-    const startPreis = parseFloat(document.getElementById('fPreisStart').value.replace(',', '.'));
+    const startPreis = betragLesen(document.getElementById('fPreisStart').value);
     preisProdukte.push(neu);
     if (startPreis > 0) { const w = Math.round(startPreis * 100) / 100; neu.verlauf.push({ datum: heute(), preis: w }); neu.letzterPreis = w; neu.letztesUpdate = heute(); }
     speichernAlles();
@@ -1451,7 +1466,7 @@
   document.getElementById('btnPreisUpdateAbbrechen').addEventListener('click', () => document.getElementById('modalPreisUpdate').classList.remove('zeigen'));
   document.getElementById('modalPreisUpdate').addEventListener('click', (e) => { if (e.target.id === 'modalPreisUpdate') e.currentTarget.classList.remove('zeigen'); });
   document.getElementById('btnPreisUpdateSpeichern').addEventListener('click', () => {
-    const wert = parseFloat(document.getElementById('fPreisNeu').value.replace(',', '.'));
+    const wert = betragLesen(document.getElementById('fPreisNeu').value);
     if (!(wert > 0)) { alert('Bitte einen gültigen Preis eingeben.'); return; }
     const laden = document.getElementById('fPreisNeuLaden').value.trim() || null;
     preisEintragen(preisAktiveId, Math.round(wert * 100) / 100, laden);
