@@ -1,6 +1,16 @@
 # Neuigkeiten im Familienplaner
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 
+## 2026-11-13 | 🤏 Zwei-Finger-Zoom, Maßband, Ebenen & Blüh-Kalender
+- **Zoomen mit zwei Fingern** direkt auf der Gartenkarte. Am PC geht es mit Strg + Mausrad oder mit zwei Fingern auf dem Trackpad. Die Stelle zwischen den Fingern bleibt dabei unter den Fingern.
+- **📏 Maßband:** Zwei Punkte antippen, dann siehst du den Abstand in Metern. Wischen verschiebt weiterhin die Karte.
+- **🗂️ Ebenen:** Luftbild, Strukturen, Beete, Pflanzen, Kronenkreise und Beschriftungen lassen sich einzeln ein- und ausblenden. Die Einstellung gilt pro Gerät.
+- **🌸 Blüh-Kalender:** Monate von Januar bis Dezember mit Balken. Was im gewählten Monat blüht, leuchtet in seiner Blütenfarbe, der Rest wird blass. Monate ohne Blüte sind schraffiert, dazu gibt es Vorschläge für heimische Pflanzen. Auch Obstbäume, Beeren, Kräuter und Gemüse haben jetzt Blütezeiten.
+- **🌷 Tuffs zusammenfassen:** Im Beet-Editor fasst ein Knopf eng stehende gleiche Pflanzen mit einem Tipp zu Tuffs zusammen. Mit „Rückgängig“ lässt sich das wieder aufheben.
+- **✏️ Tuffs in freier Form:** Im Pflanzen-Info „Form zeichnen“ antippen und die Eckpunkte setzen, z. B. für ein Krokus-Band am Weg. Die Pflanzen werden gleichmäßig in der Fläche verteilt. „Wieder rund“ setzt die Form zurück.
+- **Zähler:** Unten steht jetzt die echte Stückzahl inklusive Tuffs und Einzelpflanzen, die Zwiebeln extra (🌷). Strukturen zählen nicht mehr als Beete.
+- Hinweisleisten beim Zeichnen bleiben jetzt auch beim Verschieben der gezoomten Karte am unteren Rand.
+
 ## 2026-11-12 | 🌷 Symbole in echter Größe, Bündel & Pflanzgruppen
 - **Symbole passend zur Pflanze:** Die Größe richtet sich jetzt nach dem echten Pflanzabstand. Zwiebeln und Kräuter sind klein, Tomaten oder Kürbis größer, Bäume bleiben wie bisher. Beim Herauszoomen wachsen die Symbole bis zu einer Mindestgröße mit, damit man sie noch sieht.
 - **Kronen in echter Größe:** Bäume und große Sträucher zeigen auch auf dem Luftbild einen gestrichelten Kreis in Kronengröße, z. B. etwa 3,4 m beim Birnbaum.

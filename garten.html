@@ -710,6 +710,29 @@
   .gruppe-zeile input { width: 74px !important; flex: 0 0 auto; }
   .gruppe-zeile input:disabled { opacity: 0.5; }
   .gruppe-hinweis { font-size: 0.68rem; color: var(--bark); margin-top: 4px; line-height: 1.35; }
+  .widget-knopf { width: 38px; height: 38px; background: none; border: none; border-top: 1px solid rgba(255,255,255,0.15); color: #fff; font-size: 1rem; cursor: pointer; line-height: 1; position: relative; }
+  .widget-knopf.widget-aktiv { background: rgba(196,107,65,0.9); }
+  .widget-knopf.widget-hinweis::after { content: ''; position: absolute; top: 6px; right: 6px; width: 7px; height: 7px; border-radius: 50%; background: #e8a33a; }
+  .ebenen-menu { position: fixed; z-index: 95; background: var(--white); color: var(--soil); border: 1px solid var(--parchment); border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.25); padding: 10px 12px; width: 240px; max-width: calc(100vw - 80px); }
+  .ebenen-menu .em-titel { font-weight: 700; font-size: 0.82rem; margin-bottom: 6px; }
+  .ebenen-menu .em-zeile { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; padding: 5px 0; cursor: pointer; }
+  .ebenen-menu .em-zeile input { width: 18px; height: 18px; accent-color: var(--moss); margin: 0; flex: 0 0 auto; }
+  .blueh-leiste { position: fixed; z-index: 88; background: var(--white); color: var(--soil); border: 1px solid var(--parchment); border-radius: 14px; box-shadow: 0 6px 20px rgba(0,0,0,0.25); padding: 8px 10px 10px; }
+  .blueh-leiste .bl-kopf { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; margin-bottom: 6px; }
+  .blueh-leiste .bl-monat { flex: 1; color: var(--terracotta-text, #a8532e); font-weight: 700; }
+  .blueh-leiste .bl-zu { background: none; border: none; color: var(--bark); font-size: 1rem; cursor: pointer; padding: 2px 6px; }
+  .blueh-leiste .bl-monate { display: grid; grid-template-columns: repeat(12, 1fr); gap: 3px; }
+  .blueh-leiste .bl-m { background: none; border: 1px solid transparent; border-radius: 8px; padding: 2px 0 1px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; color: var(--soil); font: inherit; }
+  .blueh-leiste .bl-m.aktiv { border-color: #d4588f; background: rgba(212,88,143,0.12); }
+  .blueh-leiste .bl-saeule { height: 30px; width: 70%; display: flex; align-items: flex-end; background: rgba(127,164,118,0.12); border-radius: 4px; overflow: hidden; }
+  .blueh-leiste .bl-balken { width: 100%; background: linear-gradient(#e86aa0, #f2c230); border-radius: 4px 4px 0 0; }
+  .blueh-leiste .bl-m.leer .bl-saeule { background: repeating-linear-gradient(45deg, rgba(192,57,43,0.15) 0 3px, transparent 3px 6px); }
+  .blueh-leiste .bl-k { font-size: 0.62rem; font-weight: 600; }
+  .blueh-leiste .bl-text { font-size: 0.72rem; line-height: 1.4; margin-top: 6px; max-height: 66px; overflow-y: auto; }
+  .blueh-leiste .bl-n { color: var(--bark); font-size: 0.66rem; }
+  .blueh-leiste .bl-idee { color: var(--moss-text, var(--moss)); }
+  .tuff-knoepfe { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+  .tuff-knoepfe button { font-size: 0.68rem; padding: 3px 8px; }
   .modal h2 { font-family: 'Playfair Display', serif; color: var(--moss-text, var(--moss)); margin-bottom: 14px; font-size: 1.05rem; }
   .modal-btns { display: flex; gap: 8px; margin-top: 14px; }
   .modal-btns button { flex: 1; }
@@ -1045,6 +1068,19 @@
         <button type="button" id="nordWidgetBtn" onclick="nordModalOeffnen()" title="Norden festlegen" aria-label="Nordpfeil" style="width:38px;height:42px;background:none;border:none;border-top:1px solid rgba(255,255,255,0.15);color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:2px 0;">
           <span id="nordWidgetPfeil" style="display:flex;flex-direction:column;align-items:center;transition:transform .3s;opacity:.45"><span style="font-size:0.55rem;font-weight:700;line-height:1">N</span><span style="font-size:0.95rem;line-height:1;color:#e05a4a">▲</span></span>
         </button>
+        <button type="button" id="messBtn" class="widget-knopf" onclick="messenUmschalten()" title="Abstand messen" aria-label="Maßband">📏</button>
+        <button type="button" id="bluehBtn" class="widget-knopf" onclick="bluehUmschalten()" title="Blüh-Kalender: was blüht wann?" aria-label="Blüh-Zeitleiste">🌸</button>
+        <button type="button" id="ebenenBtn" class="widget-knopf" onclick="ebenenMenuUmschalten(event)" title="Ebenen ein-/ausblenden" aria-label="Ebenen">🗂️</button>
+      </div>
+      <div id="ebenenMenu" class="ebenen-menu" style="display:none" onclick="event.stopPropagation()">
+        <div class="em-titel">🗂️ Ebenen</div>
+        <div class="em-liste"></div>
+        <button type="button" class="btn-secondary" style="width:100%;margin-top:6px;font-size:0.72rem;padding:5px" onclick="ebenenAlleAn()">Alle einblenden</button>
+      </div>
+      <div id="bluehLeiste" class="blueh-leiste" style="display:none">
+        <div class="bl-kopf"><b>🌸 Blüh-Kalender</b><span id="bluehMonatName" class="bl-monat"></span><button type="button" class="bl-zu" onclick="bluehModusAus()" aria-label="Schließen">✕</button></div>
+        <div class="bl-monate" id="bluehMonate"></div>
+        <div class="bl-text" id="bluehText"></div>
       </div>
       <div id="plantTooltip" style="position:absolute;display:none;pointer-events:none;background:var(--soil);color:#fff;font-size:0.72rem;padding:4px 8px;border-radius:6px;z-index:80;white-space:nowrap;box-shadow:0 3px 10px rgba(0,0,0,0.3)"></div>
       <div id="freehandControls" style="position:absolute;bottom:14px;left:50%;transform:translateX(-50%);display:none;align-items:center;gap:8px;z-index:90;background:rgba(58,46,31,0.94);padding:8px 12px;border-radius:12px;box-shadow:0 3px 12px rgba(0,0,0,0.35)">
@@ -1391,6 +1427,7 @@
           <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--parchment)">
             <div class="sidebar-title" style="margin-bottom:8px">🌱 Pflanzen in diesem Beet</div>
             <button type="button" class="btn-secondary" id="btnBeetErinnerungen" style="display:none;width:100%;margin-bottom:8px;font-size:0.8rem;" onclick="beetPflanzErinnerungen()"></button>
+            <button type="button" class="btn-secondary" id="btnTuffZusammen" style="display:none;width:100%;margin-bottom:8px;font-size:0.8rem;" onclick="tuffsZusammenfassen(selectedBed)"></button>
             <input type="text" id="bedPlantSearch" placeholder="🔍 In dieser Liste filtern..." oninput="renderBedPlantList(selectedBed, this.value)" style="margin-bottom:8px"/>
             <div class="bed-list" id="bedPlantList"></div>
           </div>
@@ -1611,6 +1648,7 @@
           <label>Anzahl / Pflanzgruppe</label>
           <div class="gruppe-zeile"><input type="number" id="ppAnzahl" min="1" max="500" inputmode="numeric" placeholder="1" oninput="savePlantInfo()"/><span>Stück · Ø</span><input type="number" id="ppGruppeD" min="10" max="2000" step="5" inputmode="numeric" oninput="savePlantInfo()"/><span>cm</span></div>
           <div class="gruppe-hinweis" id="ppGruppeHinweis"></div>
+          <div class="tuff-knoepfe" id="ppTuffKnoepfe"><button type="button" class="btn-secondary" onclick="tuffFormStarten('pp')">✏️ Form zeichnen</button><button type="button" class="btn-secondary tuff-rund" onclick="tuffFormRund('pp')">◯ Wieder rund</button></div>
         </div>
         <div class="form-row">
           <label>Bewertung</label>
@@ -1864,6 +1902,7 @@
           <label>Anzahl / Pflanzgruppe</label>
           <div class="gruppe-zeile"><input type="number" id="fpAnzahl" min="1" max="500" inputmode="numeric" placeholder="1" oninput="fpAutoSave()"/><span>Stück · Ø</span><input type="number" id="fpGruppeD" min="10" max="2000" step="5" inputmode="numeric" oninput="fpAutoSave()"/><span>cm</span></div>
           <div class="gruppe-hinweis" id="fpGruppeHinweis"></div>
+          <div class="tuff-knoepfe" id="fpTuffKnoepfe"><button type="button" class="btn-secondary" onclick="tuffFormStarten('fp')">✏️ Form zeichnen</button><button type="button" class="btn-secondary tuff-rund" onclick="tuffFormRund('fp')">◯ Wieder rund</button></div>
         </div>
         <div class="form-row">
           <label>Gepflanzt am (optional)</label>
@@ -6413,6 +6452,12 @@ function renderBedPlantList(bed, filter) {
   if (!box || !bed) return;
   filter = (filter || '').trim().toLowerCase();
   const plants = bed.plants || [];
+  const tuffBtn = document.getElementById('btnTuffZusammen');
+  if (tuffBtn) {
+    const kand = tuffKandidaten(bed), n = kand.reduce((s, g) => s + g.length, 0);
+    tuffBtn.style.display = kand.length ? '' : 'none';
+    tuffBtn.textContent = `🌷 ${n} eng stehende gleiche Pflanzen zu ${kand.length === 1 ? 'einem Tuff' : kand.length + ' Tuffs'} zusammenfassen`;
+  }
   if (!plants.length) {
     box.innerHTML = '<div class="empty-state" style="font-size:0.72rem">Noch keine Pflanzen in diesem Beet. Im 🌱-Modus aufs Beet tippen, um welche zu platzieren.</div>';
     return;
@@ -6429,7 +6474,7 @@ function renderBedPlantList(bed, filter) {
     const rotConflict = !isPerennial(p.name) && getFruchtfolgeWarning(bed, p.name);
     return `<div class="bed-item" onclick="openPlantPanel(selectedBed, ${idx})">
       <span style="font-size:1rem">${p.sym||'🌱'}</span>
-      <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(p.name)||'–'}${p.variety?' · '+escapeHtml(p.variety):''}</span>
+      <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${istGruppe(p)?'<b>'+parseInt(p.anzahl,10)+'×</b> ':''}${escapeHtml(p.name)||'–'}${p.variety?' · '+escapeHtml(p.variety):''}</span>
       ${conflict ? '<span title="Mischkultur-Konflikt" style="color:#c05030">⚠️</span>' : ''}
       ${rotConflict ? `<span title="Fruchtfolge-Warnung: ${escapeHtml(rotConflict.fam)} stand ${rotConflict.yearsAgo===1?'letztes Jahr':`vor ${rotConflict.yearsAgo} Jahren`} hier" style="color:#a8621a">🔄⚠️</span>` : ''}
     </div>`;
@@ -6646,6 +6691,8 @@ function wendeZoomAn() {
 // Seine Position wird anhand der tatsächlichen Bildschirmposition von #canvasWrap berechnet.
 function positioniereZoomWidget() {
   try { nordWidgetAktualisieren(); } catch (e) {}
+  try { bluehLeistePositionieren(); } catch (e) {}
+  try { kartenLeistenPositionieren(); } catch (e) {}
   const widget = document.getElementById('gartenZoomWidget');
   const wrap = document.getElementById('canvasWrap');
   if (!widget || !wrap) return;
@@ -6708,13 +6755,19 @@ function drawZones() {
 }
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  drawBgImage();
+  if (ebene('hintergrund')) drawBgImage();
   drawGardenBoundary();
   drawZones();
   symbolBuendelBerechnen();
   for (const bed of getCurrentBeds()) drawBed(bed, selectedBeds.includes(bed));
+  if (bluehMonat) { // Blüh-Zeitleiste: alles außer den Pflanzen etwas zurücknehmen
+    ctx.save(); ctx.fillStyle = 'rgba(255,255,255,0.35)'; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.restore();
+    for (const bed of getCurrentBeds()) drawBed(bed, false, true);
+  }
   for (const fp of getCurrentFreiPflanzen()) drawFreiPflanze(fp);
   zeichneSymbolBuendel();
+  zeichneTuffFormVorschau();
+  zeichneMessung();
   if (freehandDrawing && freehandPoints.length) {
     ctx.save();
     ctx.strokeStyle = '#4f6f45'; ctx.lineWidth = 2; ctx.setLineDash([5,4]);
@@ -6767,6 +6820,7 @@ function pflanzAbstandCm(name) {
 }
 function istGruppe(p) { return !!p && (parseInt(p.anzahl, 10) || 1) > 1; }
 function gruppenRadius(p) {
+  if (hatTuffForm(p)) return Math.max(12, ...p.form.map(q => Math.hypot(q.x, q.y)));
   if (p.gruppenR > 0) return p.gruppenR;
   const s = pflanzAbstandCm(p.name) || 15;
   return Math.max(12, Math.round(s * 0.6 * Math.sqrt(parseInt(p.anzahl, 10) || 1)));
@@ -6792,26 +6846,38 @@ function istZwiebelPflanze(name) {
 function zeichnePflanzGruppe(cx, cy, p, ausgewaehlt) {
   const r = gruppenRadius(p), z = zoomFaktor(), anzahl = parseInt(p.anzahl, 10) || 1, n = Math.min(anzahl, 80);
   const si = (typeof STAUDEN_INFO !== 'undefined' && STAUDEN_INFO[(p.name || '').trim()]) || {};
-  const farbe = /^#[0-9a-f]{6}$/i.test(si.farbe || '') ? si.farbe : '#8fae6a';
+  const blueht = bluehStatus(p.name);
+  const farbe = blueht ? bluehFarbe(p.name) : (/^#[0-9a-f]{6}$/i.test(si.farbe || '') ? si.farbe : '#8fae6a');
+  const form = hatTuffForm(p) ? p.form : null;
   ctx.save();
-  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
-  ctx.fillStyle = farbe + '44'; ctx.fill();
+  ctx.beginPath();
+  if (form) { form.forEach((q, i) => i ? ctx.lineTo(cx + q.x, cy + q.y) : ctx.moveTo(cx + q.x, cy + q.y)); ctx.closePath(); }
+  else ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fillStyle = farbe + (blueht ? '88' : '44'); ctx.fill();
   ctx.setLineDash([4 / z, 3 / z]); ctx.lineWidth = (ausgewaehlt ? 2.5 : 1.4) / z;
   ctx.strokeStyle = ausgewaehlt ? '#c0633a' : farbeMischen(farbe, -0.35); ctx.stroke(); ctx.setLineDash([]);
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.fillStyle = '#2c2415'; // deckend – sonst übernehmen Farb-Emojis die Transparenz der Fläche
   const s = pflanzAbstandCm(p.name) || 15, f = Math.min(s * 0.8, r * 0.9);
-  if (f * z >= 10) { // nah genug: jede Pflanze einzeln, im Sonnenblumen-Muster verteilt
+  if (f * z >= 10 && form) { // eigene Form: Pflanzen gleichmäßig in der Fläche verteilt
+    const pts = tuffStreuPunkte(form, n);
+    const fs = pts.length > 1 ? Math.min(s * 0.8, Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y) * 0.95) : f;
+    ctx.font = Math.max(fs, 4) + 'px ' + EMOJI_FONT;
+    pts.forEach(q => ctx.fillText(p.sym || '🌱', cx + q.x, cy + q.y));
+  } else if (f * z >= 10) { // nah genug: jede Pflanze einzeln, im Sonnenblumen-Muster verteilt
     ctx.font = f + 'px ' + EMOJI_FONT;
     for (let i = 0; i < n; i++) {
       const rr = Math.max(0, r - f * 0.45) * Math.sqrt((i + 0.5) / n), w = i * 2.39996;
       ctx.fillText(p.sym || '🌱', cx + rr * Math.cos(w), cy + rr * Math.sin(w));
     }
   } else {
-    ctx.font = Math.max(r * 1.1, 13 / z) + 'px ' + EMOJI_FONT;
+    ctx.font = Math.max(13 / z, Math.min(r * 0.9, 26 / z)) + 'px ' + EMOJI_FONT;
     ctx.fillText(p.sym || '🌱', cx, cy);
   }
-  zaehlerZeichnen('×' + anzahl, cx + r * 0.72, cy - r * 0.72, 'rgba(44,36,21,0.85)');
+  if (form) {
+    const maxX = Math.max(...form.map(q => q.x)), minY = Math.min(...form.map(q => q.y));
+    zaehlerZeichnen('×' + anzahl, cx + maxX * 0.85, cy + minY * 0.85, 'rgba(44,36,21,0.85)');
+  } else zaehlerZeichnen('×' + anzahl, cx + r * 0.72, cy - r * 0.72, 'rgba(44,36,21,0.85)');
   ctx.restore();
 }
 function zaehlerZeichnen(text, x, y, hg) {
@@ -6828,6 +6894,7 @@ function symbolBuendelBerechnen() {
   symbolBuendel = []; buendelVersteckt = new Set();
   const z = zoomFaktor(), items = [];
   const clusterR = (p, frei) => istGruppe(p) ? SYMBOL_MIN_PX.beet * 0.6 / z : symbolRadius(p, frei);
+  if (!ebene('pflanzen')) return;
   getCurrentBeds().forEach(bed => (bed.plants || []).forEach((p, idx) => {
     if (selectedPlantOnCanvas && selectedPlantOnCanvas.bedId === bed.id && selectedPlantOnCanvas.idx === idx) return;
     items.push({ typ: 'pflanze', bed, idx, p, x: bed.x + rotX(p.rx, p.ry, bed.rotation || 0), y: bed.y + rotY(p.rx, p.ry, bed.rotation || 0), r: clusterR(p, false), tr: trefferRadius(p, false) });
@@ -6860,7 +6927,10 @@ function zeichneSymbolBuendel() {
   const z = zoomFaktor();
   symbolBuendel.forEach(b => {
     const R = 17 / z;
+    const bluehend = bluehMonat ? b.items.find(m => bluehtIm(m.p.name, bluehMonat)) : null;
+    if (bluehend) bluehHalo(b.x, b.y, R, bluehend.p.name);
     ctx.save();
+    if (bluehMonat && !bluehend) ctx.globalAlpha = 0.35;
     ctx.beginPath(); ctx.arc(b.x, b.y, R, 0, Math.PI * 2);
     ctx.fillStyle = 'rgba(255,253,248,0.95)'; ctx.fill();
     ctx.setLineDash([3 / z, 2 / z]); ctx.lineWidth = 1.6 / z; ctx.strokeStyle = 'rgba(74,111,90,0.9)'; ctx.stroke(); ctx.setLineDash([]);
@@ -6926,19 +6996,417 @@ function gruppeHinweisZeigen(p, pre) {
   const el = document.getElementById(pre + 'GruppeHinweis'), dEl = document.getElementById(pre + 'GruppeD');
   if (!el || !dEl) return;
   const gr = istGruppe(p);
-  dEl.disabled = !gr;
+  dEl.disabled = !gr || hatTuffForm(p);
+  const kn = document.getElementById(pre + 'TuffKnoepfe');
+  if (kn) { kn.style.display = gr ? 'flex' : 'none'; kn.querySelector('.tuff-rund').style.display = hatTuffForm(p) ? '' : 'none'; }
   dEl.placeholder = gr ? String(Math.round(gruppenRadius(Object.assign({}, p, { gruppenR: 0 })) * 2)) : '–';
   const abstand = pflanzAbstandCm(p.name);
   el.textContent = gr
-    ? `Wird als Tuff mit ${p.anzahl} Pflanzen gezeichnet` + (p.gruppenR ? '.' : (abstand ? ` – Fläche automatisch aus dem Pflanzabstand (${abstand} cm).` : '.'))
+    ? `Wird als Tuff mit ${p.anzahl} Pflanzen gezeichnet` + (hatTuffForm(p) ? ' – in deiner gezeichneten Form.' : p.gruppenR ? '.' : (abstand ? ` – Fläche automatisch aus dem Pflanzabstand (${abstand} cm). Für Bänder oder Streifen: „Form zeichnen“.` : '.'))
     : (istZwiebelPflanze(p.name) ? '🌷 Zwiebeln setzt man meist in Gruppen – z. B. 15 eintragen, dann wird daraus ein Tuff.' : 'Mehrere gleiche Pflanzen an einer Stelle? Anzahl eintragen – dann wird daraus eine Gruppe.');
 }
+// ==================== EBENEN (pro Gerät) ====================
+const EBENEN = [
+  ['hintergrund', '🗺️', 'Luftbild / Hintergrund'], ['strukturen', '🏠', 'Strukturen (Haus, Wege, Zaun …)'], ['beete', '🟫', 'Beete'],
+  ['pflanzen', '🌱', 'Pflanzen'], ['kronen', '🌳', 'Kronenkreise der Bäume'], ['beschriftung', '🏷️', 'Beschriftungen'],
+];
+let ebenenAus = {};
+try { ebenenAus = JSON.parse(localStorage.getItem('garten_ebenen') || '{}') || {}; } catch (e) { ebenenAus = {}; }
+function ebene(k) { return !ebenenAus[k]; }
+function bettSichtbar(bed) { return ebene(bed.kind === 'struktur' ? 'strukturen' : 'beete'); }
+function ebeneUmschalten(k, an) {
+  if (an) delete ebenenAus[k]; else ebenenAus[k] = true;
+  try { localStorage.setItem('garten_ebenen', JSON.stringify(ebenenAus)); } catch (e) {}
+  ebenenMenuRendern(); draw();
+}
+function ebenenMenuRendern() {
+  const m = document.getElementById('ebenenMenu');
+  if (m) m.querySelector('.em-liste').innerHTML = EBENEN.map(([k, ic, txt]) =>
+    `<label class="em-zeile"><input type="checkbox" ${ebene(k) ? 'checked' : ''} onchange="ebeneUmschalten('${k}', this.checked)"><span>${ic}</span><span>${txt}</span></label>`).join('');
+  const btn = document.getElementById('ebenenBtn');
+  if (btn) btn.classList.toggle('widget-hinweis', Object.keys(ebenenAus).length > 0);
+}
+function ebenenMenuUmschalten(ev) {
+  if (ev) ev.stopPropagation();
+  const m = document.getElementById('ebenenMenu'), w = document.getElementById('gartenZoomWidget');
+  if (m.style.display === 'block') { m.style.display = 'none'; return; }
+  ebenenMenuRendern();
+  const r = w.getBoundingClientRect();
+  m.style.left = Math.round(r.right + 8) + 'px';
+  m.style.top = Math.round(r.top) + 'px';
+  m.style.display = 'block';
+}
+document.addEventListener('click', e => {
+  const m = document.getElementById('ebenenMenu');
+  if (m && m.style.display === 'block' && !m.contains(e.target) && e.target.id !== 'ebenenBtn') m.style.display = 'none';
+});
+function ebenenAlleAn() { ebenenAus = {}; try { localStorage.removeItem('garten_ebenen'); } catch (e) {} ebenenMenuRendern(); draw(); }
+
+// Trifft (x, y) diese Pflanze? Berücksichtigt Ebenen, Gruppengröße und eigene Tuff-Formen.
+function pflanzeTrifft(p, bed, x, y) {
+  if (!ebene('pflanzen')) return false;
+  const rot = bed ? (bed.rotation || 0) : 0;
+  const cx = bed ? bed.x + rotX(p.rx, p.ry, rot) : p.x, cy = bed ? bed.y + rotY(p.rx, p.ry, rot) : p.y;
+  const dx = x - cx, dy = y - cy;
+  if (istGruppe(p) && hatTuffForm(p)) {
+    const a = -rot * Math.PI / 180;
+    const lx = dx * Math.cos(a) - dy * Math.sin(a), ly = dx * Math.sin(a) + dy * Math.cos(a);
+    return punktInPolygon(lx, ly, p.form) || Math.hypot(dx, dy) < 10 / zoomFaktor();
+  }
+  return Math.hypot(dx, dy) < trefferRadius(p, !bed);
+}
+function punktInPolygon(x, y, pts) {
+  let drin = false;
+  for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+    const a = pts[i], b = pts[j];
+    if ((a.y > y) !== (b.y > y) && x < (b.x - a.x) * (y - a.y) / (b.y - a.y) + a.x) drin = !drin;
+  }
+  return drin;
+}
+
+// ==================== TUFFS IN FREIER FORM ====================
+function hatTuffForm(p) { return !!(p && Array.isArray(p.form) && p.form.length >= 3); }
+const tuffStreuCache = new Map();
+function tuffStreuPunkte(form, n) {
+  const key = n + '|' + form.map(q => Math.round(q.x) + ',' + Math.round(q.y)).join(';');
+  if (tuffStreuCache.has(key)) return tuffStreuCache.get(key);
+  let flaeche = 0;
+  for (let i = 0, j = form.length - 1; i < form.length; j = i++) flaeche += (form[j].x + form[i].x) * (form[j].y - form[i].y);
+  flaeche = Math.abs(flaeche / 2) || 1;
+  const xs = form.map(q => q.x), ys = form.map(q => q.y);
+  const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
+  let d = Math.sqrt(flaeche / n) * 1.05, pts = [];
+  for (let versuch = 0; versuch < 8; versuch++) {
+    pts = [];
+    const dy = d * 0.866;
+    for (let row = 0, y = minY + dy / 2; y < maxY; y += dy, row++)
+      for (let x = minX + (row % 2 ? d : d / 2); x < maxX; x += d)
+        if (punktInPolygon(x, y, form)) pts.push({ x, y });
+    if (pts.length >= n || pts.length > 400) break;
+    d *= 0.9;
+  }
+  if (!pts.length) pts = [{ x: (minX + maxX) / 2, y: (minY + maxY) / 2 }];
+  let erg = pts;
+  if (pts.length > n) { const schritt = pts.length / n; erg = []; for (let i = 0; i < n; i++) erg.push(pts[Math.floor(i * schritt)]); }
+  if (tuffStreuCache.size > 200) tuffStreuCache.clear();
+  tuffStreuCache.set(key, erg);
+  return erg;
+}
+let tuffFormZiel = null, tuffFormPunkte = [];
+function tuffFormStarten(typ) {
+  let ziel = null;
+  if (typ === 'pp') {
+    const ab = activePlantBedId, bed = ab && getCurrentBeds().find(b => b.id === ab.bedId), p = bed && bed.plants[ab.idx];
+    if (p) ziel = { bed, p };
+  } else {
+    const fp = getCurrentFreiPflanzen().find(f => f.id === activeFreiPflanzeId);
+    if (fp) ziel = { bed: null, p: fp };
+  }
+  if (!ziel) return;
+  if (!istGruppe(ziel.p)) { showTempStatus('Erst bei „Anzahl“ mindestens 2 eintragen – dann ist es ein Tuff.', 4); return; }
+  tuffFormZiel = ziel; tuffFormPunkte = [];
+  if (typ === 'pp') closePlantPanel(); else fpSchliessen();
+  setMode('tuffform');
+}
+function tuffFormPunktZurueck() { tuffFormPunkte.pop(); tuffFormHinweis(); draw(); }
+function tuffFormFertig() {
+  const z = tuffFormZiel;
+  if (!z || tuffFormPunkte.length < 3) { showTempStatus('Mindestens 3 Punkte antippen.', 3); return; }
+  pushUndo();
+  let pts;
+  if (z.bed) {
+    const a = -(z.bed.rotation || 0) * Math.PI / 180;
+    pts = tuffFormPunkte.map(q => { const dx = q.x - z.bed.x, dy = q.y - z.bed.y; return { x: dx * Math.cos(a) - dy * Math.sin(a), y: dx * Math.sin(a) + dy * Math.cos(a) }; });
+  } else pts = tuffFormPunkte.map(q => ({ x: q.x, y: q.y }));
+  const cx = pts.reduce((s, q) => s + q.x, 0) / pts.length, cy = pts.reduce((s, q) => s + q.y, 0) / pts.length;
+  if (z.bed) { z.p.rx = Math.round(cx); z.p.ry = Math.round(cy); } else { z.p.x = Math.round(cx); z.p.y = Math.round(cy); }
+  z.p.form = pts.map(q => ({ x: Math.round(q.x - cx), y: Math.round(q.y - cy) }));
+  delete z.p.gruppenR;
+  tuffFormZiel = null; tuffFormPunkte = [];
+  saveData();
+  setMode('select');
+  showTempStatus('🌷 Form gespeichert – der Tuff füllt jetzt die gezeichnete Fläche.', 4);
+}
+function tuffFormAbbrechen() { tuffFormZiel = null; tuffFormPunkte = []; setMode('select'); }
+function tuffFormRund(typ) {
+  const p = typ === 'pp'
+    ? (activePlantBedId && (getCurrentBeds().find(b => b.id === activePlantBedId.bedId) || {}).plants?.[activePlantBedId.idx])
+    : getCurrentFreiPflanzen().find(f => f.id === activeFreiPflanzeId);
+  if (!p) return;
+  pushUndo(); delete p.form; saveData(); draw(); gruppeHinweisZeigen(p, typ);
+}
+function tuffFormHinweis() {
+  const el = document.getElementById('zeichenHinweis');
+  const t = el && el.querySelector('.zh-text');
+  if (t && mode === 'tuffform') t.textContent = tuffFormPunkte.length < 3
+    ? `🌷 Eckpunkte der Fläche antippen (${tuffFormPunkte.length}/3+)`
+    : `🌷 ${tuffFormPunkte.length} Punkte – weiter antippen oder „Fertig“`;
+}
+function zeichneTuffFormVorschau() {
+  if (mode !== 'tuffform' || !tuffFormPunkte.length) return;
+  const z = zoomFaktor();
+  ctx.save();
+  ctx.beginPath(); tuffFormPunkte.forEach((q, i) => i ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y));
+  if (tuffFormPunkte.length > 2) { ctx.closePath(); ctx.fillStyle = 'rgba(232,80,138,0.18)'; ctx.fill(); }
+  ctx.setLineDash([6 / z, 4 / z]); ctx.lineWidth = 2 / z; ctx.strokeStyle = '#c0397a'; ctx.stroke(); ctx.setLineDash([]);
+  tuffFormPunkte.forEach(q => { ctx.beginPath(); ctx.arc(q.x, q.y, 5 / z, 0, Math.PI * 2); ctx.fillStyle = '#fff'; ctx.fill(); ctx.lineWidth = 2 / z; ctx.strokeStyle = '#c0397a'; ctx.stroke(); });
+  ctx.restore();
+}
+
+// ==================== GLEICHE PFLANZEN ZU TUFFS ZUSAMMENFASSEN ====================
+function tuffKandidaten(bed) {
+  const pl = (bed && bed.plants) || [], benutzt = new Set(), gruppen = [];
+  const schluessel = p => (p.name || '').trim() + '|' + (p.variety || '').trim();
+  for (let i = 0; i < pl.length; i++) {
+    if (benutzt.has(i)) continue;
+    benutzt.add(i);
+    const g = [i], s = pflanzAbstandCm(pl[i].name) || 20;
+    let weiter = true;
+    while (weiter) {
+      weiter = false;
+      for (let j = 0; j < pl.length; j++) {
+        if (benutzt.has(j) || schluessel(pl[j]) !== schluessel(pl[i])) continue;
+        const nah = g.some(k => {
+          const a = pl[k], b = pl[j];
+          const extra = (istGruppe(a) ? gruppenRadius(a) : 0) + (istGruppe(b) ? gruppenRadius(b) : 0);
+          return Math.hypot(a.rx - b.rx, a.ry - b.ry) <= Math.max(s * 2.5, 25) + extra;
+        });
+        if (nah) { g.push(j); benutzt.add(j); weiter = true; }
+      }
+    }
+    if (g.length > 1) gruppen.push(g);
+  }
+  return gruppen;
+}
+function tuffsZusammenfassen(bed) {
+  if (!bed) return;
+  const gruppen = tuffKandidaten(bed);
+  if (!gruppen.length) { showTempStatus('Keine eng stehenden gleichen Pflanzen gefunden.', 3); return; }
+  pushUndo();
+  const pl = bed.plants, weg = new Set(), neu = [];
+  let einzel = 0;
+  gruppen.forEach(g => {
+    const glieder = g.map(i => pl[i]), anzahl = glieder.reduce((s, p) => s + (parseInt(p.anzahl, 10) || 1), 0);
+    const cx = glieder.reduce((s, p) => s + p.rx * (parseInt(p.anzahl, 10) || 1), 0) / anzahl;
+    const cy = glieder.reduce((s, p) => s + p.ry * (parseInt(p.anzahl, 10) || 1), 0) / anzahl;
+    const s = pflanzAbstandCm(glieder[0].name) || 20;
+    const ausdehnung = Math.max(...glieder.map(p => Math.hypot(p.rx - cx, p.ry - cy) + (istGruppe(p) ? gruppenRadius(p) : s / 2)));
+    const basis = Object.assign({}, glieder[0], { rx: Math.round(cx), ry: Math.round(cy), anzahl });
+    delete basis.form; delete basis.gruppenR;
+    const auto = gruppenRadius(basis);
+    if (ausdehnung > auto * 1.1) basis.gruppenR = Math.round(ausdehnung);
+    const notizen = [...new Set(glieder.map(p => (p.notes || '').trim()).filter(Boolean))];
+    if (notizen.length) basis.notes = notizen.join('\n');
+    const ernten = glieder.flatMap(p => p.harvests || []);
+    if (ernten.length) basis.harvests = ernten;
+    g.forEach(i => weg.add(i));
+    einzel += g.length;
+    neu.push(basis);
+  });
+  bed.plants = pl.filter((_, i) => !weg.has(i)).concat(neu);
+  selectedPlantOnCanvas = null;
+  saveData(); draw(); updateStatus();
+  renderBedPlantList(bed, document.getElementById('bedPlantSearch')?.value || '');
+  zeigeLoeschToast(`🌷 ${einzel} Pflanzen zu ${neu.length} ${neu.length === 1 ? 'Tuff' : 'Tuffs'} zusammengefasst`, () => { undo(); }, 6);
+}
+
+// ==================== MASSBAND ====================
+let messPunkte = [], messMaus = null, messStart = null;
+function messenUmschalten() { setMode(mode === 'messen' ? 'select' : 'messen'); }
+function messText(cm) { return cm < 100 ? Math.round(cm) + ' cm' : (cm / 100).toFixed(2).replace('.', ',') + ' m'; }
+function messHinweis() {
+  const el = document.getElementById('zeichenHinweis'), t = el && el.querySelector('.zh-text');
+  if (!t || mode !== 'messen') return;
+  if (messPunkte.length === 2) t.textContent = '📏 Abstand: ' + messText(Math.hypot(messPunkte[1].x - messPunkte[0].x, messPunkte[1].y - messPunkte[0].y)) + ' – neu antippen für die nächste Messung';
+  else t.textContent = messPunkte.length ? '📏 Jetzt den zweiten Punkt antippen' : '📏 Zwei Punkte antippen – der Abstand wird angezeigt';
+}
+function messTipp(x, y) {
+  if (messPunkte.length >= 2) messPunkte = [];
+  messPunkte.push({ x, y });
+  messHinweis(); draw();
+}
+function zeichneMessung() {
+  if (mode !== 'messen' || !messPunkte.length) return;
+  const z = zoomFaktor(), a = messPunkte[0], b = messPunkte[1] || messMaus;
+  ctx.save();
+  if (b) {
+    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y);
+    ctx.lineWidth = 5 / z; ctx.strokeStyle = 'rgba(255,255,255,0.9)'; ctx.stroke();
+    ctx.setLineDash([8 / z, 5 / z]); ctx.lineWidth = 2.4 / z; ctx.strokeStyle = '#c0392b'; ctx.stroke(); ctx.setLineDash([]);
+  }
+  [a, messPunkte[1]].filter(Boolean).forEach(q => {
+    ctx.beginPath(); ctx.arc(q.x, q.y, 6 / z, 0, Math.PI * 2); ctx.fillStyle = '#fff'; ctx.fill();
+    ctx.lineWidth = 2.4 / z; ctx.strokeStyle = '#c0392b'; ctx.stroke();
+  });
+  if (b) {
+    const txt = messText(Math.hypot(b.x - a.x, b.y - a.y)), mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+    ctx.font = '700 ' + (13 / z) + 'px Inter, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    const w = ctx.measureText(txt).width + 14 / z, h = 22 / z;
+    ctx.fillStyle = 'rgba(42,32,22,0.92)'; ctx.beginPath(); ctx.roundRect(mx - w / 2, my - h / 2 - 14 / z, w, h, h / 2); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.fillText(txt, mx, my - 14 / z + 0.5 / z);
+  }
+  ctx.restore();
+}
+
+// ==================== ZWEI-FINGER-ZOOM & STRG+MAUSRAD ====================
+let pinch = null;
+function zoomUmPunkt(neuerZoom, clientX, clientY, wx, wy) {
+  const wr = wrap.getBoundingClientRect();
+  gartenZoomSetzen(neuerZoom);
+  const cr = canvas.getBoundingClientRect();
+  const offL = cr.left - wr.left + wrap.scrollLeft, offT = cr.top - wr.top + wrap.scrollTop;
+  wrap.scrollLeft = offL + wx * gartenZoom - (clientX - wr.left);
+  wrap.scrollTop = offT + wy * gartenZoom - (clientY - wr.top);
+}
+function pinchDaten(e) {
+  const [a, b] = e.touches;
+  return { d: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY), mx: (a.clientX + b.clientX) / 2, my: (a.clientY + b.clientY) / 2 };
+}
+wrap.addEventListener('touchstart', e => {
+  if (e.touches.length < 2) return;
+  e.preventDefault(); e.stopPropagation();
+  if (!pinch) {
+    // eine laufende Ein-Finger-Aktion (Verschieben, Tipp) sauber beenden
+    festTipp = null;
+    if (touchAktionAktiv) { try { onUp(e); } catch (err) {} touchAktionAktiv = false; }
+    hidePlantTooltip();
+  }
+  const d = pinchDaten(e), cr = canvas.getBoundingClientRect();
+  pinch = { d0: Math.max(10, d.d), z0: gartenZoom, wx: (d.mx - cr.left) / gartenZoom, wy: (d.my - cr.top) / gartenZoom };
+}, { passive: false, capture: true });
+wrap.addEventListener('touchmove', e => {
+  if (!pinch) return;
+  e.preventDefault(); e.stopPropagation();
+  if (e.touches.length < 2) return;
+  const d = pinchDaten(e);
+  zoomUmPunkt(pinch.z0 * d.d / pinch.d0, d.mx, d.my, pinch.wx, pinch.wy);
+}, { passive: false, capture: true });
+['touchend', 'touchcancel'].forEach(typ => wrap.addEventListener(typ, e => {
+  if (!pinch) return;
+  e.stopPropagation(); if (e.cancelable) e.preventDefault();
+  if (e.touches.length === 0) pinch = null;
+}, { passive: false, capture: true }));
+wrap.addEventListener('wheel', e => {
+  if (!e.ctrlKey) return; // Trackpad-Pinch bzw. Strg+Mausrad
+  e.preventDefault();
+  const cr = canvas.getBoundingClientRect();
+  zoomUmPunkt(gartenZoom * Math.exp(-e.deltaY * 0.01), e.clientX, e.clientY, (e.clientX - cr.left) / gartenZoom, (e.clientY - cr.top) / gartenZoom);
+}, { passive: false });
+
+// ==================== BLÜH-ZEITLEISTE ====================
+let bluehMonat = null;
+const BLUEH_MONATE = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
+const BLUEH_MONATE_LANG = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+function bluehtIm(name, m) {
+  const b = typeof BLUETEZEIT !== 'undefined' && BLUETEZEIT[(name || '').trim()];
+  if (!b) return false;
+  return b[0] <= b[1] ? (m >= b[0] && m <= b[1]) : (m >= b[0] || m <= b[1]);
+}
+function bluehFarbe(name) {
+  const n = (name || '').trim(), si = typeof STAUDEN_INFO !== 'undefined' && STAUDEN_INFO[n];
+  const f = (si && si.farbe) || (typeof BLUEH_FARBEN !== 'undefined' && BLUEH_FARBEN[n]) || '#e86aa0';
+  return /^#[0-9a-f]{6}$/i.test(f) ? f : '#e86aa0';
+}
+// null = Zeitleiste aus; true/false = blüht im gewählten Monat
+function bluehStatus(name) { return bluehMonat ? bluehtIm(name, bluehMonat) : null; }
+function bluehHalo(cx, cy, r, name) {
+  const z = zoomFaktor(), R = Math.max(r * 1.7, 16 / z), f = bluehFarbe(name);
+  const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, R);
+  const weiss = f.toLowerCase() === '#ffffff';
+  g.addColorStop(0, (weiss ? '#fff8d0' : f) + 'ee'); g.addColorStop(0.55, (weiss ? '#fff3b0' : f) + '88'); g.addColorStop(1, f + '00');
+  ctx.save(); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.fill();
+  if (weiss) { ctx.lineWidth = 1.5 / z; ctx.strokeStyle = 'rgba(200,160,40,0.7)'; ctx.beginPath(); ctx.arc(cx, cy, R * 0.6, 0, Math.PI * 2); ctx.stroke(); }
+  ctx.restore();
+}
+function gartenPflanzenListe() {
+  const liste = [];
+  getCurrentBeds().forEach(b => (b.plants || []).forEach(p => liste.push(p)));
+  getCurrentFreiPflanzen().forEach(fp => liste.push(fp));
+  return liste;
+}
+function bluehUmschalten() {
+  if (bluehMonat) { bluehModusAus(); return; }
+  bluehMonat = new Date().getMonth() + 1;
+  if (bluehMonat < 2 || bluehMonat > 10) bluehMonat = 3; // im Winter mit dem Frühling starten
+  document.getElementById('bluehLeiste').style.display = 'block';
+  document.getElementById('bluehBtn')?.classList.add('widget-aktiv');
+  bluehLeisteRendern(); positioniereZoomWidget(); draw();
+}
+function bluehModusAus() {
+  bluehMonat = null;
+  document.getElementById('bluehLeiste').style.display = 'none';
+  document.getElementById('bluehBtn')?.classList.remove('widget-aktiv');
+  draw();
+}
+function bluehMonatSetzen(m) { bluehMonat = m; bluehLeisteRendern(); draw(); }
+function bluehLeisteRendern() {
+  const pflanzen = gartenPflanzenListe();
+  const stueck = p => parseInt(p.anzahl, 10) || 1;
+  const proMonat = BLUEH_MONATE.map((_, i) => pflanzen.filter(p => bluehtIm(p.name, i + 1)).reduce((s, p) => s + stueck(p), 0));
+  const max = Math.max(1, ...proMonat);
+  document.getElementById('bluehMonate').innerHTML = BLUEH_MONATE.map((k, i) => {
+    const n = proMonat[i], leer = !n && i >= 1 && i <= 9;
+    return `<button type="button" class="bl-m${bluehMonat === i + 1 ? ' aktiv' : ''}${leer ? ' leer' : ''}" onclick="bluehMonatSetzen(${i + 1})" title="${BLUEH_MONATE_LANG[i]}: ${n} blühende Pflanzen"><span class="bl-saeule"><span class="bl-balken" style="height:${Math.round(n / max * 100)}%"></span></span><span class="bl-k">${k}</span></button>`;
+  }).join('');
+  document.getElementById('bluehMonatName').textContent = BLUEH_MONATE_LANG[bluehMonat - 1];
+  const bluehend = {};
+  pflanzen.filter(p => bluehtIm(p.name, bluehMonat)).forEach(p => { const n = (p.name || '').trim(); bluehend[n] = (bluehend[n] || 0) + stueck(p); });
+  const namen = Object.keys(bluehend);
+  let html = namen.length
+    ? '<b>Blüht:</b> ' + namen.map(n => escapeHtml(n) + (bluehend[n] > 1 ? ' <span class="bl-n">×' + bluehend[n] + '</span>' : '')).join(', ')
+    : '<b>Hier blüht noch nichts.</b>';
+  if (namen.length < 2 && bluehMonat >= 2 && bluehMonat <= 10 && typeof STAUDEN !== 'undefined') {
+    const vorhanden = new Set(pflanzen.map(p => (p.name || '').trim()));
+    const ideen = STAUDEN.filter(s => s.heimisch && bluehtIm(s.name, bluehMonat) && !vorhanden.has(s.name)).slice(0, 4).map(s => s.sym + ' ' + s.name);
+    if (ideen.length) html += '<br><span class="bl-idee">💡 Lücke für Bienen & Hummeln – passt z. B.: ' + escapeHtml(ideen.join(', ')) + '</span>';
+  }
+  document.getElementById('bluehText').innerHTML = html;
+}
+function bluehLeistePositionieren() {
+  const el = document.getElementById('bluehLeiste');
+  if (!el || el.style.display === 'none') return;
+  const sichtbar = document.getElementById('view-garden')?.classList.contains('active');
+  if (!sichtbar) { el.style.visibility = 'hidden'; return; }
+  const r = wrap.getBoundingClientRect();
+  el.style.visibility = 'visible';
+  el.style.left = Math.round(r.left + 8) + 'px';
+  el.style.width = Math.round(Math.min(560, r.width - 16)) + 'px';
+  el.style.top = 'auto';
+  el.style.bottom = Math.round(window.innerHeight - r.bottom + 10) + 'px';
+}
+
+// Hinweis- und Steuerleisten unten über der Karte: fest am Bildschirm statt in der scrollenden Karte,
+// sonst wandern sie beim Verschieben des gezoomten Gartens aus dem Bild.
+function kartenLeistenPositionieren() {
+  const r = wrap.getBoundingClientRect();
+  ['zeichenHinweis', 'freehandControls', 'plantModeControls'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    // feste Breite um die Mitte, damit die Leiste am Rand nicht zusammengequetscht wird
+    const breite = Math.min(r.width - 16, 520);
+    el.style.position = 'fixed';
+    el.style.transform = 'none';
+    el.style.left = Math.round(r.left + (r.width - breite) / 2) + 'px';
+    el.style.width = Math.round(breite) + 'px';
+    el.style.maxWidth = 'none';
+    el.style.boxSizing = 'border-box';
+    el.style.justifyContent = 'center';
+    el.style.bottom = Math.round(window.innerHeight - r.bottom + 14) + 'px';
+  });
+}
+// ==================== ZÄHLER ====================
+function pflanzenZaehlen() {
+  let stueck = 0, zwiebeln = 0;
+  gartenPflanzenListe().forEach(p => { const n = parseInt(p.anzahl, 10) || 1; stueck += n; if (istZwiebelPflanze(p.name)) zwiebeln += n; });
+  return { stueck, zwiebeln };
+}
+
 function drawFreiPflanze(fp) {
   if (dragFreiPflanze && dragFreiPflanze.item === fp) return; // wird als Drag-Vorschau gezeichnet
   const z = zoomFaktor();
   // Bäume und große Sträucher: Krone in echter Größe (Plan-Ansicht gefüllt, Foto-Ansicht als gestrichelter Kreis)
   const kroneCm = SPACING[(fp.name || '').trim()] || 0;
-  if (kroneCm >= 150 && !istGruppe(fp)) {
+  if (kroneCm >= 150 && !istGruppe(fp) && ebene('kronen') && !bluehMonat) {
     const r = kroneCm / 2 * 0.85;
     ctx.save();
     if (kartenStil() === 'plan') {
@@ -6957,7 +7425,11 @@ function drawFreiPflanze(fp) {
     }
     ctx.restore();
   }
-  if (buendelVersteckt.has(fp)) return; // steckt in einem Bündel
+  if (buendelVersteckt.has(fp) || !ebene('pflanzen')) return; // steckt in einem Bündel / Ebene aus
+  const blueht = bluehStatus(fp.name);
+  if (blueht) bluehHalo(fp.x, fp.y, istGruppe(fp) ? Math.min(gruppenRadius(fp), 60) : Math.max(freiSymbolCm(fp) / 2, Math.min(80, (kroneCm || 0) * 0.3)), fp.name);
+  ctx.save();
+  if (blueht === false) ctx.globalAlpha = 0.3;
   if (istGruppe(fp)) {
     const offen = document.getElementById('freiPflanzePanel')?.classList.contains('open');
     zeichnePflanzGruppe(fp.x, fp.y, fp, offen && fp.id === activeFreiPflanzeId);
@@ -6979,6 +7451,7 @@ function drawFreiPflanze(fp) {
     ctx.fillText(fp.sym || '🌳', fp.x, fp.y);
     ctx.restore();
   }
+  ctx.restore();
   if (fp.locked) {
     const r = istGruppe(fp) ? gruppenRadius(fp) * 0.72 : freiSymbolCm(fp) * 0.36, k = Math.max(1, 1 / z) * 0.9;
     ctx.save();
@@ -7170,7 +7643,10 @@ function drawGardenBoundary() {
   ctx.restore();
 }
 
-function drawBed(bed, selected) {
+function drawBed(bed, selected, nurPflanzen) {
+  const flaecheZeigen = bettSichtbar(bed) && !nurPflanzen;
+  const pflanzenZeigen = ebene('pflanzen') && (nurPflanzen || !bluehMonat);
+  if (!flaecheZeigen && !pflanzenZeigen) return;
   ctx.save();
   ctx.translate(bed.x, bed.y);
   ctx.rotate((bed.rotation || 0) * Math.PI / 180);
@@ -7182,6 +7658,7 @@ function drawBed(bed, selected) {
   ctx.lineWidth = selected ? 2.5 : (typ === 'beet' && plan ? 4 : 1.5);
   const mitSchatten = ['gebaeude', 'mauer', 'hecke'].includes(typ);
   if (mitSchatten) { const v = schattenVersatz(typ === 'gebaeude' ? 14 : 6); ctx.shadowColor = 'rgba(0,0,0,0.35)'; ctx.shadowBlur = typ === 'gebaeude' ? 14 : 6; ctx.shadowOffsetX = v.x * (gartenZoom || 1); ctx.shadowOffsetY = v.y * (gartenZoom || 1); }
+  if (flaecheZeigen) {
   ctx.beginPath();
   if (bed.shape === 'circle') {
     const radX = bed.rx ?? bed.r ?? 60, radY = bed.ry ?? bed.r ?? 60;
@@ -7221,7 +7698,7 @@ function drawBed(bed, selected) {
     for (let i = 0; i <= n; i++) { const p = -lang / 2 + lang * i / n; const q = quer * 1.6; if (bed.w >= bed.h) ctx.fillRect(p - q / 2, -q / 2, q, q); else ctx.fillRect(-q / 2, p - q / 2, q, q); }
     ctx.restore();
   }
-  if (bed.name) {
+  if (bed.name && ebene('beschriftung')) {
     const ty = bed.shape === 'tri' ? bed.h/6 : 0;
     const preset = STRUKTUR_PRESETS[typ] || STRUKTUR_PRESETS.beet;
     if (typ === 'beet' && (bed.plants || []).length) {
@@ -7232,11 +7709,16 @@ function drawBed(bed, selected) {
       ctx.save(); ctx.rotate(-(bed.rotation || 0) * Math.PI / 180); planBeschriftung(bed.name, 0, ty, typ === 'beet' ? '' : preset.icon, bed.kind === 'struktur'); ctx.restore();
     }
   }
-  const conflictIdx = new Set(getBedConflicts(bed).flat());
-  for (const plant of (bed.plants||[])) {
+  } // Ende flaecheZeigen
+  const conflictIdx = pflanzenZeigen ? new Set(getBedConflicts(bed).flat()) : new Set();
+  for (const plant of (pflanzenZeigen ? (bed.plants||[]) : [])) {
     const idx = bed.plants.indexOf(plant);
     const isSelected = selectedPlantOnCanvas && selectedPlantOnCanvas.bedId===bed.id && selectedPlantOnCanvas.idx===idx;
     if (!isSelected && buendelVersteckt.has(plant)) continue; // steckt in einem Bündel
+    const blueht = bluehStatus(plant.name);
+    if (blueht) bluehHalo(plant.rx, plant.ry, istGruppe(plant) ? Math.min(gruppenRadius(plant), 40) : beetSymbolCm(plant) * 0.6, plant.name);
+    ctx.save();
+    if (blueht === false) ctx.globalAlpha = 0.3;
     let k = 1, ox = 9;
     if (istGruppe(plant)) {
       zeichnePflanzGruppe(plant.rx, plant.ry, plant, isSelected);
@@ -7250,7 +7732,8 @@ function drawBed(bed, selected) {
         ctx.beginPath(); ctx.arc(plant.rx, plant.ry, 13*k, 0, Math.PI*2); ctx.stroke();
       }
     }
-    if (conflictIdx.has(idx)) {
+    ctx.restore();
+    if (conflictIdx.has(idx) && !bluehMonat) {
       ctx.font=(12*k)+'px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
       ctx.fillStyle='#d4880a';
       ctx.beginPath(); ctx.arc(plant.rx+(istGruppe(plant)?-ox:ox), plant.ry-ox, 8*k, 0, Math.PI*2); ctx.fill();
@@ -7258,7 +7741,7 @@ function drawBed(bed, selected) {
       ctx.fillText('!', plant.rx+(istGruppe(plant)?-ox:ox), plant.ry-ox);
     }
   }
-  if (selected && bed.shape === 'freehand' && bed.points && !bed.locked) {
+  if (selected && flaecheZeigen && bed.shape === 'freehand' && bed.points && !bed.locked) {
     const r = 6 / Math.max(0.15, gartenZoom || 1);
     bed.points.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI * 2); ctx.fillStyle = '#fff'; ctx.fill(); ctx.lineWidth = r / 3; ctx.strokeStyle = '#c0633a'; ctx.stroke(); });
   }
@@ -7272,7 +7755,7 @@ function drawBed(bed, selected) {
     ctx.beginPath(); ctx.arc(0, 0, getBedRadius(bed)+5, 0, Math.PI*2); ctx.stroke();
     ctx.setLineDash([]);
   }
-  if (bed.locked) {
+  if (bed.locked && flaecheZeigen) {
     ctx.font = '13px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText('📌', getBedRadius(bed) - 2, -getBedRadius(bed) + 10);
   }
@@ -7301,7 +7784,7 @@ let activeFreiPflanzeId = null;
 function hitTestFreiPflanze(x, y) {
   const liste = getCurrentFreiPflanzen();
   for (let i = liste.length - 1; i >= 0; i--) {
-    if (Math.hypot(x - liste[i].x, y - liste[i].y) < trefferRadius(liste[i], true)) return liste[i];
+    if (pflanzeTrifft(liste[i], null, x, y)) return liste[i];
   }
   return null;
 }
@@ -7323,7 +7806,8 @@ canvas.addEventListener('click', ()=>{});
 // würde. Nur dann wird natives Scrollen blockiert – über leerem Bereich soll der Finger
 // stattdessen ganz normal die Fläche scrollen können (wichtig bei gezoomten/großen Gärten).
 function ermittleCanvasZiel(x, y) {
-  if (['circle','rect','tri','lshape','freehand','freitree','zone'].includes(mode)) return true;
+  if (['circle','rect','tri','lshape','freehand','freitree','zone','tuffform'].includes(mode)) return true;
+  if (mode === 'messen') return false; // Wischen verschiebt die Karte, Antippen setzt einen Messpunkt
   if (mode === 'select' && buendelTreffer(x, y)) return false; // Bündel: Wischen scrollt, Antippen öffnet die Auswahl
   const fpHit = hitTestFreiPflanze(x, y);
   if (fpHit && !fpHit.locked) return true;
@@ -7336,7 +7820,7 @@ function ermittleCanvasZiel(x, y) {
       const rad = (bed.rotation||0) * Math.PI/180;
       const px = bed.x + plant.rx*Math.cos(rad) - plant.ry*Math.sin(rad);
       const py = bed.y + plant.rx*Math.sin(rad) + plant.ry*Math.cos(rad);
-      if (Math.hypot(x-px, y-py) < trefferRadius(plant, false)) return true;
+      if (pflanzeTrifft(plant, bed, x, y)) return true;
     }
   }
   const bedHit = hitTest(x, y);
@@ -7370,6 +7854,12 @@ function rotY(rx,ry,deg){const a=deg*Math.PI/180;return rx*Math.sin(a)+ry*Math.c
 
 function onDown(e) {
   const {x,y} = getPos(e);
+  if (mode === 'messen') {
+    const pk = (e.touches && e.touches[0]) || e;
+    messStart = { cx: pk.clientX, cy: pk.clientY, x, y };
+    return;
+  }
+  if (mode === 'tuffform') { tuffFormPunkte.push({ x, y }); tuffFormHinweis(); draw(); return; }
   if (mode==='zone') {
     zoneDrawing = true;
     zoneDrawStart = {x,y};
@@ -7400,7 +7890,7 @@ function onDown(e) {
       if (!bed.locked) continue;
       for (let j=(bed.plants||[]).length-1;j>=0;j--) {
         const pl=bed.plants[j];
-        if (Math.hypot(x-(bed.x+rotX(pl.rx,pl.ry,bed.rotation||0)), y-(bed.y+rotY(pl.rx,pl.ry,bed.rotation||0)))<trefferRadius(pl, false)) { festMerken({ typ: 'pflanze', bed, idx: j }); return; }
+        if (pflanzeTrifft(pl, bed, x, y)) { festMerken({ typ: 'pflanze', bed, idx: j }); return; }
       }
     }
     const beetFest = hitTest(x, y);
@@ -7425,7 +7915,7 @@ function onDown(e) {
         const plant=bed.plants[j];
         const px=bed.x+rotX(plant.rx,plant.ry,bed.rotation||0);
         const py=bed.y+rotY(plant.rx,plant.ry,bed.rotation||0);
-        if (Math.hypot(x-px,y-py)<trefferRadius(plant, false)) {
+        if (pflanzeTrifft(plant, bed, x, y)) {
           dragPlant = { bed, idx:j, plant, startX:x, startY:y, curX:x, curY:y, moved:false };
           return;
         }
@@ -7526,6 +8016,7 @@ function onDown(e) {
 }
 
 function onMove(e) {
+  if (mode === 'messen' && messPunkte.length === 1 && !e.touches) { messMaus = getPos(e); draw(); return; }
   if (dragPunkt) {
     const {x,y}=getPos(e);
     const b = dragPunkt.bed, a = -(b.rotation || 0) * Math.PI / 180, dx = x - b.x, dy = y - b.y;
@@ -7588,7 +8079,7 @@ function onMove(e) {
         const plant=bed.plants[j];
         const px=bed.x+rotX(plant.rx,plant.ry,bed.rotation||0);
         const py=bed.y+rotY(plant.rx,plant.ry,bed.rotation||0);
-        if (Math.hypot(x-px,y-py)<trefferRadius(plant, false)) { found=plant; break; }
+        if (pflanzeTrifft(plant, bed, x, y)) { found=plant; break; }
       }
       if (found) break;
     }
@@ -7635,6 +8126,12 @@ function festTippAuswerten(e) {
 }
 canvas.addEventListener('touchcancel', () => { festTipp = null; });
 function onUp(e) {
+  if (messStart) {
+    const ms = messStart; messStart = null;
+    const pk = (e && e.changedTouches && e.changedTouches[0]) || e || {};
+    if (mode === 'messen' && Math.hypot((pk.clientX ?? ms.cx) - ms.cx, (pk.clientY ?? ms.cy) - ms.cy) <= 12) { messTipp(ms.x, ms.y); festTippBehandelt = true; } // kein Geister-Klick hinterher
+    return;
+  }
   if (dragPunkt) { dragPunkt = null; saveData(); renderBedList(); return; }
   if (festTippAuswerten(e)) return;
   if (zoneDrawing) {
@@ -7761,6 +8258,8 @@ function punktInDreieck(px,py, ax,ay, bx,by, cx,cy) {
 function hitTest(x,y) {
   for (let i=getCurrentBeds().length-1;i>=0;i--) {
     const bed=getCurrentBeds()[i];
+    if (!bettSichtbar(bed)) continue; // ausgeblendete Ebene
+
     const angle=-(bed.rotation||0)*Math.PI/180;
     const dx=x-bed.x, dy=y-bed.y;
     const rx=dx*Math.cos(angle)-dy*Math.sin(angle);
@@ -7954,7 +8453,7 @@ function zoneLoeschen(zoneId) {
 }
 // Auf dem Handy liegt die Liste unter der Karte – zum Zeichnen schaltet die App vorübergehend
 // auf „nur Karte“ und danach zurück (ohne die gespeicherte Ansicht zu ändern).
-const ZEICHEN_MODI = ['circle', 'rect', 'tri', 'lshape', 'freehand', 'zone', 'freitree'];
+const ZEICHEN_MODI = ['circle','rect','tri','lshape','freehand','zone','freitree','messen','tuffform'];
 let zeichenVorherAnsicht = null;
 function zeichenVollbild(an) {
   if (an) {
@@ -7970,18 +8469,26 @@ function zeichenHinweisZeigen(m) {
   let el = document.getElementById('zeichenHinweis');
   const texte = { circle: 'Tippe auf die Karte, um den Kreis zu platzieren', rect: 'Tippe auf die Karte, um das Rechteck zu platzieren', tri: 'Tippe auf die Karte, um das Dreieck zu platzieren',
     lshape: 'Tippe auf die Karte, um die L-Form zu platzieren', freehand: 'Tippe nacheinander die Eckpunkte – zum Schließen auf den roten Startpunkt', zone: 'Rechteck für den Bereich über die Karte ziehen', freitree: 'Tippe auf die Karte, um die Pflanze frei zu platzieren' };
-  if (!texte[m]) { if (el) el.style.display = 'none'; return; }
+  texte.messen = ''; texte.tuffform = '';
+  if (!(m in texte)) { if (el) el.style.display = 'none'; return; }
   if (!el) {
     el = document.createElement('div'); el.id = 'zeichenHinweis';
     el.style.cssText = 'position:absolute;bottom:14px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:8px;z-index:90;background:rgba(58,46,31,0.94);padding:8px 12px;border-radius:12px;box-shadow:0 3px 12px rgba(0,0,0,0.35);max-width:92%';
     document.getElementById('canvasWrap').appendChild(el);
   }
-  el.innerHTML = `<span style="color:#fff;font-size:0.75rem">✏️ ${texte[m]}</span><button class="tool-btn danger" style="padding:5px 10px;font-size:0.72rem" onclick="setMode('select')">✕ Abbrechen</button>`;
+  const knopf = 'class="tool-btn" style="padding:5px 10px;font-size:0.72rem;white-space:nowrap"';
+  if (m === 'messen') el.innerHTML = `<span class="zh-text" style="color:#fff;font-size:0.75rem"></span><button ${knopf} onclick="setMode('select')">✓ Fertig</button>`;
+  else if (m === 'tuffform') el.innerHTML = `<span class="zh-text" style="color:#fff;font-size:0.75rem"></span><button ${knopf} onclick="tuffFormPunktZurueck()">↩ Punkt</button><button ${knopf} onclick="tuffFormFertig()">✓ Fertig</button><button class="tool-btn danger" style="padding:5px 10px;font-size:0.72rem" onclick="tuffFormAbbrechen()">✕</button>`;
+  else el.innerHTML = `<span class="zh-text" style="color:#fff;font-size:0.75rem">✏️ ${texte[m]}</span><button class="tool-btn danger" style="padding:5px 10px;font-size:0.72rem" onclick="setMode('select')">✕ Abbrechen</button>`;
   el.style.display = 'flex';
+  if (m === 'messen') messHinweis(); else if (m === 'tuffform') tuffFormHinweis();
 }
 function setMode(m) {
   if (mode==='freehand' && m!=='freehand' && freehandDrawing) cancelFreehand();
+  if (mode==='messen' && m!=='messen') { messPunkte = []; messMaus = null; }
+  if (mode==='tuffform' && m!=='tuffform') { tuffFormZiel = null; tuffFormPunkte = []; }
   mode=m;
+  document.getElementById('messBtn')?.classList.toggle('widget-aktiv', m === 'messen');
   zeichenVollbild(ZEICHEN_MODI.includes(m));
   try { zeichenHinweisZeigen(m); } catch (e) {}
   hoverConflictBedId=null;
@@ -7989,12 +8496,13 @@ function setMode(m) {
   const map={circle:'btnCircle',rect:'btnRect',tri:'btnTri',lshape:'btnLshape',freehand:'btnFreehand',select:'btnSelect',plant:'btnPlant'};
   if(map[m]) document.getElementById(map[m])?.classList.add('active');
   wrap.className='canvas-wrap mode-'+m;
-  const labels={circle:'Kreis zeichnen',rect:'Rechteck zeichnen',tri:'Dreieck zeichnen',lshape:'L-Form zeichnen',freehand:'Freiform: Punkte anklicken, am Startpunkt schließen',select:'Auswählen / Verschieben',plant:`Pflanze setzen: ${selectedPlantSym}`,freitree:`🌳 Frei platzieren: ${selectedPlantSym} – auf die Fläche tippen (außerhalb eines Beets)`,zone:'📌 Bereich: Rechteck über die Karte ziehen'};
+  const labels={circle:'Kreis zeichnen',rect:'Rechteck zeichnen',tri:'Dreieck zeichnen',lshape:'L-Form zeichnen',freehand:'Freiform: Punkte anklicken, am Startpunkt schließen',select:'Auswählen / Verschieben',plant:`Pflanze setzen: ${selectedPlantSym}`,messen:'📏 Abstand messen',tuffform:'🌷 Form des Tuffs zeichnen',freitree:`🌳 Frei platzieren: ${selectedPlantSym} – auf die Fläche tippen (außerhalb eines Beets)`,zone:'📌 Bereich: Rechteck über die Karte ziehen'};
   document.getElementById('statusMsg').textContent=labels[m]||m;
   document.getElementById('sb1').textContent='Modus: '+(labels[m]||m);
   document.getElementById('plantModeControls').style.display = (m==='plant') ? 'flex' : 'none';
   updateShapeControls();
   draw();
+  setTimeout(positioniereZoomWidget, 40);
 }
 let statusMsgTimer=null;
 // ---------- LÖSCH-TOAST MIT RÜCKGÄNGIG (eigene Funktion, da showTempStatus() oben
@@ -8117,7 +8625,7 @@ function showTempStatus(text, seconds, knopf) {
   el.textContent = text;
   if (statusMsgTimer) clearTimeout(statusMsgTimer);
   statusMsgTimer = setTimeout(() => {
-    const labels={circle:'Kreis zeichnen',rect:'Rechteck zeichnen',tri:'Dreieck zeichnen',lshape:'L-Form zeichnen',freehand:'Freiform: Punkte anklicken, am Startpunkt schließen',select:'Auswählen / Verschieben',plant:`Pflanze setzen: ${selectedPlantSym}`,freitree:`🌳 Frei platzieren: ${selectedPlantSym}`};
+    const labels={circle:'Kreis zeichnen',rect:'Rechteck zeichnen',tri:'Dreieck zeichnen',lshape:'L-Form zeichnen',freehand:'Freiform: Punkte anklicken, am Startpunkt schließen',select:'Auswählen / Verschieben',plant:`Pflanze setzen: ${selectedPlantSym}`,messen:'📏 Abstand messen',tuffform:'🌷 Form des Tuffs zeichnen',freitree:`🌳 Frei platzieren: ${selectedPlantSym}`};
     el.textContent = labels[mode]||'';
   }, (seconds||5)*1000);
 }
@@ -10318,9 +10826,11 @@ function switchTab(name){
 // ==================== STATUS ====================
 function updateStatus(){
   const beds=getCurrentBeds();
-  const plants=beds.reduce((s,b)=>s+(b.plants||[]).length,0);
-  document.getElementById('sb2').textContent='Beete: '+beds.length;
-  document.getElementById('sb3').textContent='Pflanzen: '+plants;
+  const zahl = pflanzenZaehlen();
+  document.getElementById('sb2').textContent='Beete: '+beds.filter(b=>b.kind!=='struktur').length;
+  document.getElementById('sb3').textContent='Pflanzen: '+zahl.stueck+(zahl.zwiebeln?' (🌷 '+zahl.zwiebeln+')':'');
+  document.getElementById('sb3').title = zahl.zwiebeln ? `${zahl.stueck} Pflanzen, davon ${zahl.zwiebeln} Zwiebeln/Knollen` : `${zahl.stueck} Pflanzen`;
+  if (bluehMonat) try { bluehLeisteRendern(); } catch (e) {}
   document.getElementById('sb4').textContent=gardens[currentGardenId]?.name||'';
 }
 

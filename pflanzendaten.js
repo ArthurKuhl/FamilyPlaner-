@@ -1050,6 +1050,7 @@ const STAUDEN = [
     bodenText: 'Frisch bis feucht', pflege: 'Im Frühjahr zurückschneiden', besonderheit: 'Feine, schimmernde Blütenschleier im Gegenlicht.' },
 ];
 const BLUETEZEIT = {};
+const BLUEH_FARBEN = {}; // Blütenfarbe für Pflanzen ohne STAUDEN_INFO
 const STAUDEN_INFO = {};
 (function staudenEinbauen() {
   const namen = new Set(PLANTS.map(p => p.name));
@@ -1074,6 +1075,24 @@ const STAUDEN_INFO = {};
   // Blütezeiten bestehender Blumen
   Object.assign(BLUETEZEIT, { 'Margerite': [5, 7], 'Fetthenne': [8, 10], 'Lavendel': [6, 8], 'Pfingstrose': [5, 6], 'Rose': [6, 9], 'Kornblume': [6, 9], 'Klatschmohn': [5, 7],
     'Ringelblume': [6, 10], 'Sonnenblume': [7, 9], 'Tulpe': [4, 5], 'Narzisse': [3, 4], 'Dahlie': [7, 10], 'Hortensie': [6, 9], 'Strandflieder': [7, 9], 'Thymian': [6, 8], 'Oregano': [7, 9], 'Borretsch': [6, 9] });
+  // Blütezeiten von Obst, Beeren, Kräutern und Gemüse – wichtig für die Blüh-Zeitleiste (Bienenweide)
+  const bluehZusatz = {
+    'Apfelbaum': [4, 5, '#f7d6df'], 'Birnbaum': [4, 4, '#ffffff'], 'Kirschbaum': [4, 4, '#ffffff'], 'Pflaumenbaum': [4, 4, '#ffffff'],
+    'Zwetschge': [4, 4, '#ffffff'], 'Mirabelle': [4, 4, '#ffffff'], 'Japanische Quitte': [3, 5, '#e0503a'], 'Weißdorn': [5, 5, '#ffffff'],
+    'Schlehe': [3, 4, '#ffffff'], 'Granatapfel': [6, 8, '#e0503a'], 'Zierkirsche (Kirschblüte)': [4, 4, '#f7c6d6'], 'Felsenbirne': [4, 4, '#ffffff'],
+    'Erdbeere': [5, 6, '#ffffff'], 'Himbeere': [5, 6, '#ffffff'], 'Heidelbeere': [4, 5, '#f5e6ea'], 'Johannisbeere': [4, 4, '#d6e08a'],
+    'Brombeere': [6, 8, '#f3d9e3'], 'Stachelbeere': [4, 4, '#d6e08a'], 'Japanische Weinbeere': [6, 7, '#f3d9e3'], 'Traube': [6, 6, '#d6e08a'],
+    'Kamtschatka-Beere': [3, 4, '#f2e9a0'], 'Physalis (Andenbeere)': [6, 9, '#f2e28a'],
+    'Schnittlauch': [5, 6, '#c48ad6'], 'Salbei': [5, 7, '#8a6fd1'], 'Rosmarin': [3, 5, '#8fa8e0'], 'Minze': [7, 9, '#c9a0d6'], 'Bohnenkraut': [7, 9, '#e8d0f0'],
+    'Majoran': [7, 9, '#f0d6e8'], 'Dill': [6, 8, '#e8d94a'], 'Zitronenmelisse': [6, 8, '#ffffff'], 'Liebstöckel': [7, 8, '#e8d94a'], 'Basilikum': [7, 9, '#ffffff'],
+    'Zucchini': [6, 9, '#f2c230'], 'Kürbis': [6, 9, '#f2c230'], 'Gurke': [6, 8, '#f2d230'], 'Bohnen': [6, 8, '#ffffff'], 'Erbsen': [5, 7, '#ffffff'],
+    'Tomate': [6, 9, '#f2d230'], 'Paprika': [6, 8, '#ffffff'], 'Artischocke': [7, 9, '#8a6fd1'], 'Topinambur': [9, 10, '#f2c230'], 'Kartoffel': [6, 7, '#f0e8f8'],
+    'Kapuzinerkresse': [6, 10, '#f08a24'], 'Studentenblume (Tagetes)': [6, 10, '#f2a024'], 'Stiefmütterchen': [3, 6, '#9a7ad6'], 'Zinnie': [7, 10, '#e8508a'],
+    'Geranie': [5, 10, '#e0503a'], 'Petunie': [5, 10, '#c050b0'], 'Hibiskus': [7, 9, '#c890d6'], 'Löwenmäulchen': [6, 9, '#f0a0b8'],
+  };
+  Object.entries(bluehZusatz).forEach(([n, [a, e, f]]) => { if (!BLUETEZEIT[n]) BLUETEZEIT[n] = [a, e]; BLUEH_FARBEN[n] = f; });
+  Object.assign(BLUEH_FARBEN, { 'Margerite': '#ffffff', 'Rose': '#e05a7a', 'Kornblume': '#4a6fd6', 'Klatschmohn': '#e03a2a', 'Ringelblume': '#f2a024', 'Sonnenblume': '#f2c230',
+    'Tulpe': '#e8508a', 'Narzisse': '#f2d230', 'Dahlie': '#e0503a', 'Hortensie': '#8fa8e0', 'Strandflieder': '#a58ad6', 'Borretsch': '#4a7ad6' });
   // Zusatzinfos für ein paar vorhandene Blumen (für Beet-Vorschläge)
   const zusatz = { 'Margerite': [60, '#ffffff', true], 'Fetthenne': [50, '#d47a9b', false], 'Lavendel': [50, '#8a6fd1', false], 'Pfingstrose': [80, '#e38aa8', false], 'Thymian': [15, '#c49bd6', true], 'Oregano': [40, '#d6a0c8', true] };
   Object.entries(zusatz).forEach(([n, [h, f, heim]]) => { if (!STAUDEN_INFO[n]) STAUDEN_INFO[n] = { name: n, hoehe: h, farbe: f, heimisch: heim, bluete: BLUETEZEIT[n], abstand: SPACING[n] || 30 }; });
