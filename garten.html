@@ -727,6 +727,35 @@
   .blueh-leiste input[type=range] { width: 100%; accent-color: var(--moss); margin: 4px 0 0; }
   .blueh-leiste .zeit-skala { display: flex; justify-content: space-between; font-size: 0.6rem; color: var(--bark); }
   .zeit-warn { color: var(--terracotta-text, #a8532e); }
+  .markier-wahl { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .markier-wahl button { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 14px 8px; border-radius: 12px; border: 2px solid var(--parchment); background: var(--white); color: var(--soil); font: inherit; cursor: pointer; text-align: center; }
+  .markier-wahl button span { font-size: 1.8rem; }
+  .markier-wahl button small { font-size: 0.68rem; color: var(--bark); line-height: 1.3; }
+  .markier-wahl button:hover { border-color: var(--moss); }
+  .notiz-jaehrlich { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; margin-bottom: 14px; white-space: nowrap; }
+  .notiz-jaehrlich input { width: 18px; height: 18px; accent-color: var(--moss); margin: 0; }
+  .ff-zeile { font-size: 0.8rem; line-height: 1.45; padding: 9px 11px; border-radius: 9px; margin-bottom: 8px; background: rgba(127,164,118,0.12); }
+  .ff-zeile.rot { background: rgba(192,57,43,0.1); border-left: 4px solid #c0392b; }
+  .ff-zeile.gruen { background: rgba(63,138,71,0.12); border-left: 4px solid #3f8a47; }
+  .ff-hist { font-size: 0.76rem; color: var(--bark); margin: 4px 0 10px; line-height: 1.5; }
+  .ff-titel { font-weight: 700; font-size: 0.82rem; margin: 8px 0 6px; }
+  .ff-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .ff-fam { color: var(--bark); font-size: 0.64rem; }
+  .vg-wahl { display: flex; gap: 10px; margin-bottom: 10px; }
+  .vg-wahl label { flex: 1; display: flex; flex-direction: column; gap: 3px; font-size: 0.72rem; font-weight: 700; color: var(--bark); }
+  .vg-bild { position: relative; width: 100%; aspect-ratio: 4 / 3; border-radius: 12px; overflow: hidden; background: #000; touch-action: none; user-select: none; cursor: ew-resize; }
+  .vg-bild img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+  .vg-vor-wrap { position: absolute; inset: 0; }
+  .vg-linie { position: absolute; top: 0; bottom: 0; width: 3px; margin-left: -1.5px; background: #fff; box-shadow: 0 0 6px rgba(0,0,0,0.5); pointer-events: none; }
+  .vg-linie span { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 34px; height: 34px; border-radius: 50%; background: #fff; color: #2a2016; display: flex; align-items: center; justify-content: center; font-weight: 700; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+  .vg-tag { position: absolute; top: 8px; background: rgba(42,32,22,0.8); color: #fff; font-size: 0.7rem; font-weight: 700; padding: 3px 8px; border-radius: 999px; pointer-events: none; }
+  .vg-tag.links { left: 8px; } .vg-tag.rechts { right: 8px; }
+  .pp-foto-vergleich { border-style: solid; }
+  .zh-kinder { display: flex; flex-direction: column; gap: 6px; }
+  .gk-tropfen { font-size: 1.4rem; letter-spacing: 2px; line-height: 1.2; word-break: break-all; }
+  .gk-kinder { display: flex; gap: 6px; flex-wrap: wrap; }
+  .gk-kind { border: 2px solid var(--kf); background: transparent; color: #fff; font: inherit; font-size: 0.95rem; font-weight: 700; padding: 6px 14px; border-radius: 999px; cursor: pointer; }
+  .gk-kind.an { background: var(--kf); }
   .gift-hinweis { font-size: 0.76rem; padding: 9px 12px; border-radius: 9px; background: #fdf0e3; border-left: 4px solid #e67e22; color: #2c2415; margin-bottom: 8px; line-height: 1.4; }
   .gift-hinweis.stark { background: #fbe6e3; border-left-color: #c0392b; }
   .beob-ort { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
@@ -1087,7 +1116,7 @@
         <button type="button" id="bluehBtn" class="widget-knopf" onclick="bluehUmschalten()" title="Blüh- &amp; Ernte-Kalender" aria-label="Blüh- und Ernte-Kalender">🌸</button>
         <button type="button" id="giessBtn" class="widget-knopf" onclick="giessRundeUmschalten()" title="Gießrunde: was muss heute gegossen werden?" aria-label="Gießrunde">💧</button>
         <button type="button" id="zeitBtn" class="widget-knopf" onclick="zeitreiseUmschalten()" title="Zeitreise: wie groß werden die Bäume?" aria-label="Zeitreise">⏳</button>
-        <button type="button" id="tierBtn" class="widget-knopf" onclick="tierAufKarteStarten()" title="Tier, Nistkasten oder Winterquartier eintragen" aria-label="Tier auf der Karte eintragen">🐾</button>
+        <button type="button" id="tierBtn" class="widget-knopf" onclick="tierAufKarteStarten()" title="Markierung setzen: Tier, Nistkasten oder Notiz mit Erinnerung" aria-label="Markierung setzen">📍</button>
         <button type="button" id="ebenenBtn" class="widget-knopf" onclick="ebenenMenuUmschalten(event)" title="Ebenen ein-/ausblenden" aria-label="Ebenen">🗂️</button>
       </div>
       <div id="ebenenMenu" class="ebenen-menu" style="display:none" onclick="event.stopPropagation()">
@@ -1570,6 +1599,57 @@
       <button class="btn-primary" style="width:auto;flex:1" onclick="beobSpeichern()">Speichern</button>
     </div>
     <button type="button" class="btn-cancel" id="beobLoeschen" style="width:100%;margin-top:8px;color:var(--terracotta-text)" onclick="beobLoeschen()">🗑 Beobachtung löschen</button>
+  </div>
+</div>
+<div class="modal-bg" id="markierWahl" style="display:none" onclick="if(event.target===this)markierWahlSchliessen()">
+  <div class="modal" style="width:min(380px,92vw)">
+    <h2 style="margin-top:0">📍 Was möchtest du hier eintragen?</h2>
+    <div class="markier-wahl">
+      <button type="button" onclick="markierWahl('tier')"><span>🐾</span><b>Tier</b><small>Beobachtung, Nistkasten, Bau, Winterquartier</small></button>
+      <button type="button" onclick="markierWahl('notiz')"><span>📝</span><b>Notiz</b><small>z. B. „Krokusse nachstecken“ – mit Erinnerung</small></button>
+    </div>
+    <button class="btn-cancel" style="width:100%;margin-top:10px" onclick="markierWahlSchliessen()">Abbrechen</button>
+  </div>
+</div>
+<div class="modal-bg" id="notizModal" style="display:none" onclick="if(event.target===this)notizSchliessen()">
+  <div class="modal" style="width:min(440px,94vw);max-height:90vh;overflow-y:auto">
+    <h2 id="notizTitel" style="margin-top:0">📝 Notiz</h2>
+    <div class="form-row"><label>Symbol</label><div class="beob-arten" id="notizIcons"></div></div>
+    <div class="form-row"><label for="notizText">Notiz</label><textarea id="notizText" rows="2" placeholder="z. B. Im Herbst Krokusse nachstecken, Wasserhahn, Maulwurf-Ecke …"></textarea></div>
+    <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+      <div class="form-row" style="flex:1 1 150px"><label for="notizDatum">🔔 Erinnern am (optional)</label><input type="date" id="notizDatum"></div>
+      <label class="notiz-jaehrlich"><input type="checkbox" id="notizJaehrlich"> jedes Jahr</label>
+    </div>
+    <div class="form-row"><div class="beob-ort"><span class="beob-ort-text">📍 Auf der Karte eingetragen</span><button type="button" class="btn-secondary" onclick="notizOrtWaehlen()">Verschieben</button></div></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="notizSchliessen()">Abbrechen</button>
+      <button class="btn-primary" style="width:auto;flex:1" onclick="notizSpeichern()">Speichern</button>
+    </div>
+    <button type="button" class="btn-secondary" id="notizErledigt" style="width:100%;margin-top:8px" onclick="notizAlsErledigt()">✓ Erledigt</button>
+    <button type="button" class="btn-cancel" id="notizLoeschen" style="width:100%;margin-top:8px;color:var(--terracotta-text)" onclick="notizLoeschen()">🗑 Notiz löschen</button>
+  </div>
+</div>
+<div class="modal-bg" id="ffModal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal" style="width:min(460px,94vw);max-height:88vh;overflow-y:auto">
+    <h2 id="ffTitel" style="margin-top:0">🔄 Fruchtfolge</h2>
+    <div id="ffInhalt"></div>
+    <button class="btn-cancel" style="width:100%;margin-top:12px" onclick="document.getElementById('ffModal').style.display='none'">Schließen</button>
+  </div>
+</div>
+<div class="modal-bg" id="vergleichModal" style="display:none" onclick="if(event.target===this)vergleichSchliessen()">
+  <div class="modal" style="width:min(560px,96vw);max-height:94vh;overflow-y:auto">
+    <h2 id="vergleichTitel" style="margin-top:0">↔️ Vorher / Nachher</h2>
+    <div class="vg-wahl">
+      <label>Vorher<select id="vgVorher" onchange="vergleichRendern()"></select></label>
+      <label>Nachher<select id="vgNachher" onchange="vergleichRendern()"></select></label>
+    </div>
+    <div class="vg-bild" id="vgBild">
+      <img id="vgNach" alt="Nachher"><div class="vg-vor-wrap" id="vgVorWrap"><img id="vgVor" alt="Vorher"></div>
+      <div class="vg-linie" id="vgLinie"><span>↔</span></div>
+      <span class="vg-tag links" id="vgTagL"></span><span class="vg-tag rechts" id="vgTagR"></span>
+    </div>
+    <input type="range" id="vgRegler" min="0" max="100" value="50" oninput="vergleichRegler()" aria-label="Vergleich verschieben" style="width:100%;accent-color:var(--moss);margin-top:8px">
+    <button class="btn-cancel" style="width:100%;margin-top:8px" onclick="vergleichSchliessen()">Schließen</button>
   </div>
 </div>
 <div class="modal-bg" id="bestimmModal" style="display:none;z-index:1050" onclick="if(event.target===this)bestimmSchliessen()">
@@ -6887,7 +6967,9 @@ function drawSzene() {
   zeichneSymbolBuendel();
   zeichneTuffFormVorschau();
   zeichneMessung();
+  zeichneFruchtfolgeAmpel();
   zeichneGiftMarker();
+  zeichneNotizPins();
   zeichneTierMarker();
   zeichneGiessRunde();
   if (freehandDrawing && freehandPoints.length) {
@@ -7131,7 +7213,8 @@ function gruppeHinweisZeigen(p, pre) {
 const EBENEN = [
   ['hintergrund', '🗺️', 'Luftbild / Hintergrund'], ['strukturen', '🏠', 'Strukturen (Haus, Wege, Zaun …)'], ['beete', '🟫', 'Beete'],
   ['pflanzen', '🌱', 'Pflanzen'], ['kronen', '🌳', 'Kronenkreise der Bäume'], ['beschriftung', '🏷️', 'Beschriftungen'],
-  ['tiere', '🐾', 'Tiere & Nistplätze'], ['giftig', '⚠️', 'Giftig für Kinder markieren'],
+  ['tiere', '🐾', 'Tiere & Nistplätze'], ['notizen', '📝', 'Notizen & Erinnerungen'], ['fruchtfolge', '🔄', 'Fruchtfolge-Ampel an den Beeten'],
+  ['giftig', '⚠️', 'Giftig für Kinder markieren'],
 ];
 const EBENEN_STANDARD_AUS = ['giftig']; // diese Ebenen sind erst nach dem Einschalten sichtbar
 let ebenenAus = {};
@@ -7791,10 +7874,27 @@ function giessPos(e) {
   const rot = e.bed.rotation || 0;
   return { x: e.bed.x + rotX(e.p.rx, e.p.ry, rot), y: e.bed.y + rotY(e.p.rx, e.p.ry, rot), r: symbolRadius(e.p, false) };
 }
+// Kinder-Modus der Gießrunde: große Symbole, kein Text, Sterne für die Kinderecke
+let giessKinderModus = false, giessKind = null;
+function giessKinderUmschalten() {
+  giessKinderModus = !giessKinderModus;
+  if (giessKinderModus && !giessKind) { const k = gartenKinder(); if (k.length === 1) giessKind = k[0]; }
+  zeichenHinweisZeigen('giessen'); draw();
+}
+function giessKindWaehlen(id) { giessKind = giessKind === id ? null : id; giessHinweis(); }
 function giessHinweis() {
   const el = document.getElementById('zeichenHinweis'), t = el && el.querySelector('.zh-text');
   if (!t || mode !== 'giessen') return;
   const n = giessRundeListe.length, fertig = giessRundeListe.filter(giessErledigt).length;
+  if (giessKinderModus) {
+    const tropfen = n ? giessRundeListe.map(e => giessErledigt(e) ? '💧' : '⚪').join('') : '😊';
+    const kinder = gartenKinder();
+    t.innerHTML = `<span class="gk-tropfen">${tropfen}</span>` + (kinder.length ? `<span class="gk-kinder">${kinder.map(id => {
+      const p = gartenPersonInfo(id) || { label: id }, an = giessKind === id;
+      return `<button type="button" class="gk-kind${an ? ' an' : ''}" style="--kf:${escapeHtml(p.farbe || '#c99a3a')}" onclick="giessKindWaehlen(${jsAttrStr(id).replace(/"/g, '&quot;')})">${escapeHtml((p.label || id).slice(0, 10))}${an ? ' ⭐' : ''}</button>`;
+    }).join('')}</span>` : '');
+    return;
+  }
   if (!n) t.textContent = giessRundeInfo && giessRundeInfo.regen ? `🌧 ${Math.round(giessRundeInfo.regen)} mm Regen – heute muss nichts gegossen werden` : '💧 Heute ist nichts zum Gießen fällig 🎉';
   else if (fertig === n) t.textContent = `💧 Alle ${n} gegossen – fertig! 🎉`;
   else t.textContent = `💧 Gießrunde: ${fertig} von ${n} erledigt${giessRundeInfo && giessRundeInfo.heiss ? ' · ☀️ heiß' : ''} – Pflanze antippen zum Abhaken`;
@@ -7804,7 +7904,7 @@ function giessTipp(x, y) {
   let best = null, bestD = Infinity;
   giessRundeListe.forEach(e => {
     const q = giessPos(e), d = Math.hypot(q.x - x, q.y - y);
-    if (d <= Math.max(q.r * 1.3, 24 / z) && d < bestD) { best = e; bestD = d; }
+    if (d <= Math.max(q.r * 1.3, (giessKinderModus ? 40 : 24) / z) && d < bestD) { best = e; bestD = d; }
   });
   if (!best) return;
   if (best.typ === 'beet') toggleCareTaskDone(best.id);
@@ -7814,28 +7914,381 @@ function giessTipp(x, y) {
     else { giessVorherFrei.set(fp, fp.lastWatered || null); fp.lastWatered = heuteISO(); }
     saveData();
   }
+  const jetzt = giessErledigt(best);
+  if (giessKinderModus && giessKind) {
+    const schluessel = best.typ === 'beet' ? best.id : 'frei_' + best.fp.id;
+    kinderSternSetzen(giessKind, 'st_garten_giess_' + schluessel + '_' + heuteISO(), '💧 ' + (best.p.name || 'Pflanze') + ' gegossen', jetzt);
+    if (jetzt) showTempStatus('⭐ Super, ' + ((gartenPersonInfo(giessKind) || {}).label || '') + '!', 2);
+  }
   giessHinweis(); draw();
   const n = giessRundeListe.length;
-  if (n && giessRundeListe.every(giessErledigt)) showTempStatus('🎉 Gießrunde geschafft!', 3);
+  if (jetzt && n && giessRundeListe.every(giessErledigt)) showTempStatus(giessKinderModus ? '🎉⭐ Alles gegossen – toll gemacht!' : '🎉 Gießrunde geschafft!', 3);
 }
 function zeichneGiessRunde() {
   if (mode !== 'giessen') return;
-  const z = zoomFaktor();
+  const z = zoomFaktor(), kind = giessKinderModus;
   ctx.save();
-  ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = kind ? 'rgba(255,255,255,0.55)' : 'rgba(255,255,255,0.4)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
   giessRundeListe.forEach(e => {
-    const q = giessPos(e), fertig = giessErledigt(e), r = Math.max(Math.min(q.r, 60) + 4 / z, 16 / z);
+    const q = giessPos(e), fertig = giessErledigt(e);
+    const r = kind ? Math.max(Math.min(q.r, 60) + 6 / z, 34 / z) : Math.max(Math.min(q.r, 60) + 4 / z, 16 / z);
     ctx.beginPath(); ctx.arc(q.x, q.y, r, 0, Math.PI * 2);
     ctx.fillStyle = fertig ? 'rgba(76,150,80,0.28)' : 'rgba(70,140,210,0.25)'; ctx.fill();
-    ctx.lineWidth = 3 / z; ctx.strokeStyle = fertig ? '#3f8a47' : '#2f78c4'; ctx.stroke();
-    ctx.font = (q.r * 1.1 > 14 / z ? Math.min(28, q.r * 1.1) : 14 / z) + 'px ' + EMOJI_FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.lineWidth = (kind ? 5 : 3) / z; ctx.strokeStyle = fertig ? '#3f8a47' : '#2f78c4'; ctx.stroke();
+    const fs = kind ? 34 / z : (q.r * 1.1 > 14 / z ? Math.min(28, q.r * 1.1) : 14 / z);
+    ctx.font = fs + 'px ' + EMOJI_FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillStyle = '#000'; ctx.fillText(e.p.sym || '🌱', q.x, q.y);
-    const bx = q.x + r * 0.75, by = q.y - r * 0.75, br = 9 / z;
-    ctx.beginPath(); ctx.arc(bx, by, br, 0, Math.PI * 2); ctx.fillStyle = fertig ? '#3f8a47' : '#2f78c4'; ctx.fill();
-    ctx.font = '700 ' + (11 / z) + 'px Inter, sans-serif'; ctx.fillStyle = '#fff';
-    ctx.fillText(fertig ? '✓' : '💧', bx, by + 0.5 / z);
+    const bx = q.x + r * 0.75, by = q.y - r * 0.75, br = (kind ? 15 : 9) / z;
+    if (kind) {
+      ctx.font = (kind ? 24 : 12) / z + 'px ' + EMOJI_FONT;
+      ctx.fillText(fertig ? '⭐' : '💧', bx, by);
+    } else {
+      ctx.beginPath(); ctx.arc(bx, by, br, 0, Math.PI * 2); ctx.fillStyle = fertig ? '#3f8a47' : '#2f78c4'; ctx.fill();
+      ctx.font = '700 ' + (11 / z) + 'px Inter, sans-serif'; ctx.fillStyle = '#fff';
+      ctx.fillText(fertig ? '✓' : '💧', bx, by + 0.5 / z);
+    }
   });
   ctx.restore();
+}
+
+// ==================== MARKIERUNG SETZEN: TIER ODER NOTIZ ====================
+let markierPos = null;
+function markierWahlZeigen(pos, vorschlag) {
+  markierPos = { pos, vorschlag };
+  document.getElementById('markierWahl').style.display = 'flex';
+}
+function markierWahlSchliessen() { document.getElementById('markierWahl').style.display = 'none'; markierPos = null; }
+function markierWahl(art) {
+  const m = markierPos;
+  markierWahlSchliessen();
+  if (!m) return;
+  if (art === 'tier') beobachtungNeu(Object.assign({ pos: m.pos }, m.vorschlag || {}));
+  else notizNeu(m.pos);
+}
+
+// ==================== 📝 NOTIZ-PINS MIT ERINNERUNG ====================
+// gardens[id].notizPins = [{ id, x, y, icon, text, datum ('JJJJ-MM-TT'|''), jaehrlich, erledigt, erledigtJahr }]
+const NOTIZ_ICONS = ['📝', '🌷', '💧', '✂️', '🌱', '⚠️', '🔧', '🐛', '⭐', '🪣'];
+let notizEditId = null, notizEditIcon = '📝', notizEditPos = null;
+function notizPins() {
+  const g = gardens[currentGardenId];
+  if (!g) return [];
+  if (!Array.isArray(g.notizPins)) g.notizPins = [];
+  return g.notizPins;
+}
+function notizFaellig(n) {
+  if (!n || !n.datum) return false;
+  const heute = heuteISO();
+  if (n.jaehrlich) {
+    const j = heute.slice(0, 4);
+    return heute >= j + n.datum.slice(4) && String(n.erledigtJahr || '') !== j;
+  }
+  return heute >= n.datum && !n.erledigt;
+}
+function notizTerminText(n) {
+  if (!n.datum) return '';
+  const d = new Date(n.datum + 'T12:00');
+  return n.jaehrlich ? 'jedes Jahr am ' + d.toLocaleDateString('de-DE', { day: 'numeric', month: 'long' }) : d.toLocaleDateString('de-DE', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+function notizNeu(pos) {
+  notizEditId = null;
+  notizFormFuellen({ icon: '📝', text: '', datum: '', jaehrlich: false, x: pos.x, y: pos.y });
+}
+function notizBearbeiten(id) {
+  const n = notizPins().find(x => x.id === id);
+  if (!n) return;
+  notizEditId = id;
+  notizFormFuellen(n);
+}
+function notizFormFuellen(n) {
+  notizEditIcon = n.icon || '📝';
+  notizEditPos = { x: n.x, y: n.y };
+  document.getElementById('notizTitel').textContent = notizEditId ? '📝 Notiz bearbeiten' : '📝 Notiz an dieser Stelle';
+  document.getElementById('notizText').value = n.text || '';
+  document.getElementById('notizDatum').value = n.datum || '';
+  document.getElementById('notizJaehrlich').checked = !!n.jaehrlich;
+  notizIconsRendern();
+  document.getElementById('notizLoeschen').style.display = notizEditId ? '' : 'none';
+  document.getElementById('notizErledigt').style.display = notizEditId && notizFaellig(n) ? '' : 'none';
+  document.getElementById('notizModal').style.display = 'flex';
+  setTimeout(() => { try { if (!notizEditId) document.getElementById('notizText').focus(); } catch (e) {} }, 80);
+}
+function notizIconsRendern() {
+  document.getElementById('notizIcons').innerHTML = NOTIZ_ICONS.map(i => `<button type="button" class="saat-chip${i === notizEditIcon ? ' an' : ''}" onclick="notizEditIcon='${i}';notizIconsRendern()">${i}</button>`).join('');
+}
+function notizSchliessen() { document.getElementById('notizModal').style.display = 'none'; }
+function notizSpeichern() {
+  const text = document.getElementById('notizText').value.trim();
+  if (!text) { showTempStatus('Bitte kurz eintragen, worum es geht.', 3); document.getElementById('notizText').focus(); return; }
+  const daten = { icon: notizEditIcon, text, datum: document.getElementById('notizDatum').value || '', jaehrlich: document.getElementById('notizJaehrlich').checked, x: Math.round(notizEditPos.x), y: Math.round(notizEditPos.y) };
+  const liste = notizPins();
+  if (notizEditId) {
+    const n = liste.find(x => x.id === notizEditId);
+    if (!n) return;
+    if (n.datum !== daten.datum || n.jaehrlich !== daten.jaehrlich) { delete n.erledigt; delete n.erledigtJahr; }
+    Object.assign(n, daten);
+  } else liste.push(Object.assign({ id: 'pin_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5) }, daten));
+  saveData(); notizSchliessen(); draw();
+  showTempStatus(daten.datum ? `📝 Gespeichert – Erinnerung ${notizTerminText(daten)} unter „Heute“` : '📝 Notiz gespeichert', 4);
+  notizAnsichtenAktualisieren();
+}
+function notizLoeschen() {
+  const liste = notizPins(), i = liste.findIndex(x => x.id === notizEditId);
+  if (i === -1) return;
+  const weg = liste.splice(i, 1)[0];
+  saveData(); notizSchliessen(); draw(); notizAnsichtenAktualisieren();
+  showTempStatus('🗑 Notiz gelöscht', 6, { label: 'Rückgängig', aktion: () => { liste.splice(i, 0, weg); saveData(); draw(); notizAnsichtenAktualisieren(); } });
+}
+function notizAlsErledigt(id) {
+  const n = notizPins().find(x => x.id === (id || notizEditId));
+  if (!n) return;
+  if (n.jaehrlich) n.erledigtJahr = heuteISO().slice(0, 4); else n.erledigt = true;
+  saveData(); notizSchliessen(); draw(); notizAnsichtenAktualisieren();
+  showTempStatus('✓ Erledigt' + (n.jaehrlich ? ' – nächstes Jahr wird wieder erinnert' : ''), 4, { label: 'Rückgängig', aktion: () => { delete n.erledigt; delete n.erledigtJahr; saveData(); draw(); notizAnsichtenAktualisieren(); } });
+}
+function notizAnsichtenAktualisieren() {
+  try { if (document.getElementById('view-home')?.classList.contains('active')) renderHomeOverview(); } catch (e) {}
+}
+function notizOrtWaehlen() {
+  notizSchliessen();
+  if (!document.getElementById('view-garden')?.classList.contains('active')) showView('garden');
+  tierOrtZweck = 'notiz';
+  setMode('tierort');
+}
+function notizZeigen(id) {
+  const n = notizPins().find(x => x.id === id);
+  if (!n) return;
+  notizSchliessen();
+  showView('garden');
+  setTimeout(() => springeZuBeet(n), 120);
+}
+function notizHeuteHtml() {
+  const liste = notizPins().filter(notizFaellig);
+  if (!liste.length) return '';
+  const id = x => jsAttrStr(x.id).replace(/"/g, '&quot;');
+  return `<div class="heute-box"><div class="heute-titel">📝 Erinnerungen im Garten <span class="heute-zahl">${liste.length}</span></div>${liste.map(n => `
+    <div class="heute-aufgabe"><span class="heute-icon">${escapeHtml(n.icon || '📝')}</span>
+      <span class="heute-text"><span>${escapeHtml(n.text)}</span><span class="heute-unter">${escapeHtml(notizTerminText(n))}</span></span>
+      <button type="button" class="heute-knopf" onclick="notizZeigen(${id(n)})">🗺️ Wo?</button>
+      <button type="button" class="heute-mini" onclick="notizAlsErledigt(${id(n)})" title="Erledigt">✓</button></div>`).join('')}</div>`;
+}
+function notizPinListe() { return ebene('notizen') ? notizPins() : []; }
+function notizKopf(n) { const z = zoomFaktor(); return { x: n.x, y: n.y - 20 / z, r: 13 / z }; }
+function notizTreffer(x, y) {
+  const liste = notizPinListe();
+  for (let i = liste.length - 1; i >= 0; i--) {
+    const k = notizKopf(liste[i]);
+    if (Math.hypot(k.x - x, k.y - y) <= k.r * 1.3 || Math.hypot(liste[i].x - x, liste[i].y - y) <= k.r * 0.6) return liste[i];
+  }
+  return null;
+}
+function zeichneNotizPins() {
+  const liste = notizPinListe();
+  if (!liste.length) return;
+  const z = zoomFaktor();
+  ctx.save();
+  liste.forEach(n => {
+    const faellig = notizFaellig(n), k = notizKopf(n), farbe = faellig ? '#e67e22' : '#5b8bb5';
+    ctx.globalAlpha = (bluehMonat || mode === 'giessen' || zeitreiseJahre !== null) ? 0.35 : (n.erledigt ? 0.55 : 1);
+    ctx.shadowColor = 'rgba(0,0,0,0.3)'; ctx.shadowBlur = 5; ctx.shadowOffsetY = 1.5;
+    ctx.beginPath(); ctx.moveTo(n.x, n.y);
+    ctx.lineTo(k.x - k.r * 0.6, k.y + k.r * 0.7); ctx.lineTo(k.x + k.r * 0.6, k.y + k.r * 0.7); ctx.closePath();
+    ctx.fillStyle = farbe; ctx.fill();
+    ctx.beginPath(); ctx.arc(k.x, k.y, k.r, 0, Math.PI * 2); ctx.fillStyle = farbe; ctx.fill();
+    ctx.shadowColor = 'transparent';
+    ctx.beginPath(); ctx.arc(k.x, k.y, k.r * 0.78, 0, Math.PI * 2); ctx.fillStyle = '#fffaf0'; ctx.fill();
+    ctx.font = (14 / z) + 'px ' + EMOJI_FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#000';
+    ctx.fillText(n.icon || '📝', k.x, k.y + 1 / z);
+    if (faellig) { ctx.beginPath(); ctx.arc(k.x + k.r * 0.8, k.y - k.r * 0.8, 4.5 / z, 0, Math.PI * 2); ctx.fillStyle = '#c0392b'; ctx.fill(); }
+    if (ebene('beschriftung') && z >= 0.6) {
+      const t = n.text.length > 22 ? n.text.slice(0, 21) + '…' : n.text;
+      ctx.font = '600 ' + (10 / z) + 'px Inter, sans-serif';
+      const w = ctx.measureText(t).width + 10 / z, ty = k.y - k.r - 9 / z;
+      ctx.fillStyle = 'rgba(42,32,22,0.82)'; ctx.beginPath(); ctx.roundRect(k.x - w / 2, ty - 7 / z, w, 14 / z, 7 / z); ctx.fill();
+      ctx.fillStyle = '#fff'; ctx.fillText(t, k.x, ty + 0.5 / z);
+    }
+  });
+  ctx.restore();
+}
+
+// ==================== 🌷 ZWIEBEL-GEDÄCHTNIS ====================
+// Zwiebeln „ziehen ein“: nach der Blüte ist oberirdisch nichts mehr zu sehen – die Karte zeigt sie dann
+// blass mit gestricheltem Rand, und beim Pflanzen an dieser Stelle gibt es eine Warnung.
+function zwiebelRuht(name) {
+  if (!istZwiebelPflanze(name)) return false;
+  const b = typeof BLUETEZEIT !== 'undefined' && BLUETEZEIT[(name || '').trim()];
+  const m = new Date().getMonth() + 1;
+  if (!b) return m >= 7 || m <= 1;
+  const von = ((b[0] - 3 + 12) % 12) + 1, bis = (b[1] % 12) + 1; // ca. 2 Monate vor bis 1 Monat nach der Blüte sichtbar
+  const sichtbar = von <= bis ? (m >= von && m <= bis) : (m >= von || m <= bis);
+  return !sichtbar;
+}
+function zwiebelWarnung(x, y, ausser, neuerName) {
+  const treffer = [];
+  getCurrentBeds().forEach(bed => {
+    const rot = bed.rotation || 0;
+    (bed.plants || []).forEach(p => {
+      if (p === ausser || !istZwiebelPflanze(p.name)) return;
+      if (neuerName && (p.name || '').trim() === neuerName.trim()) return;
+      const cx = bed.x + rotX(p.rx, p.ry, rot), cy = bed.y + rotY(p.rx, p.ry, rot);
+      const r = (istGruppe(p) ? gruppenRadius(p) : Math.max(8, pflanzAbstandCm(p.name) / 2)) + 8;
+      if (Math.hypot(x - cx, y - cy) <= r || pflanzeTrifft(p, bed, x, y)) treffer.push(p);
+    });
+  });
+  getCurrentFreiPflanzen().forEach(p => {
+    if (p === ausser || !istZwiebelPflanze(p.name) || (neuerName && (p.name || '').trim() === neuerName.trim())) return;
+    const r = (istGruppe(p) ? gruppenRadius(p) : Math.max(8, pflanzAbstandCm(p.name) / 2)) + 8;
+    if (Math.hypot(x - p.x, y - p.y) <= r) treffer.push(p);
+  });
+  if (!treffer.length) return '';
+  const teile = treffer.map(p => { const n = parseInt(p.anzahl, 10) || 1; return (n > 1 ? n + ' ' : '') + (p.name || 'Zwiebel'); });
+  const ruht = treffer.some(p => zwiebelRuht(p.name));
+  return `🌷 Achtung: Hier liegen Zwiebeln (${[...new Set(teile)].join(', ')})${ruht ? ' – gerade eingezogen, also nicht zu sehen' : ''}. Vorsichtig graben!`;
+}
+
+// ==================== 🔄 FRUCHTFOLGE-AMPEL AUF DER KARTE ====================
+function fruchtfolgeStatus(bed) {
+  if (bed.kind === 'struktur') return null;
+  const einj = (bed.plants || []).filter(p => !isPerennial(p.name) && getFamily(p.name));
+  const hist = (bed.history || []).filter(e => !isPerennial(e.name) && getFamily(e.name));
+  if (!einj.length && !hist.length) return null;
+  if (einj.length && bedHasFruchtfolgeConflict(bed)) return 'rot';
+  if (einj.length && hist.length) return 'gruen';
+  if (!einj.length && hist.length) return 'idee';
+  return null;
+}
+function fruchtfolgeEcke(bed) {
+  let lx, ly;
+  if (bed.shape === 'circle') { lx = (bed.rx ?? bed.r ?? 60) * 0.71; ly = -(bed.ry ?? bed.r ?? 60) * 0.71; }
+  else if (bed.shape === 'freehand' && Array.isArray(bed.points) && bed.points.length) { lx = Math.max(...bed.points.map(p => p.x)); ly = Math.min(...bed.points.map(p => p.y)); }
+  else { lx = (bed.w || 100) / 2; ly = -(bed.h || 100) / 2; }
+  const rot = bed.rotation || 0;
+  return { x: bed.x + rotX(lx, ly, rot), y: bed.y + rotY(lx, ly, rot) };
+}
+const FF_FARBE = { rot: '#c0392b', gruen: '#3f8a47', idee: '#5b8bb5' };
+function zeichneFruchtfolgeAmpel() {
+  if (!ebene('fruchtfolge') || !ebene('beete') || bluehMonat || mode === 'giessen' || zeitreiseJahre !== null) return;
+  const z = zoomFaktor(), r = 9 / z;
+  ctx.save();
+  getCurrentBeds().forEach(bed => {
+    const s = fruchtfolgeStatus(bed);
+    if (!s || !bettSichtbar(bed)) return;
+    const e = fruchtfolgeEcke(bed);
+    ctx.beginPath(); ctx.arc(e.x, e.y, r, 0, Math.PI * 2);
+    ctx.fillStyle = FF_FARBE[s]; ctx.fill(); ctx.lineWidth = 2 / z; ctx.strokeStyle = '#fff'; ctx.stroke();
+    ctx.font = '700 ' + (10 / z) + 'px Inter, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#fff';
+    ctx.fillText(s === 'rot' ? '!' : s === 'gruen' ? '✓' : '?', e.x, e.y + 0.5 / z);
+  });
+  ctx.restore();
+}
+function fruchtfolgeTreffer(x, y) {
+  if (!ebene('fruchtfolge') || !ebene('beete') || bluehMonat || zeitreiseJahre !== null) return null;
+  const R = 13 / zoomFaktor();
+  const beete = getCurrentBeds();
+  for (let i = beete.length - 1; i >= 0; i--) {
+    const s = fruchtfolgeStatus(beete[i]);
+    if (!s || !bettSichtbar(beete[i])) continue;
+    const e = fruchtfolgeEcke(beete[i]);
+    if (Math.hypot(e.x - x, e.y - y) <= R) return beete[i];
+  }
+  return null;
+}
+function fruchtfolgeVorschlaege(bed) {
+  const jahr = new Date().getFullYear();
+  const kuerzlich = new Set();
+  (bed.history || []).forEach(e => { if (!isPerennial(e.name) && jahr - getYearOf(e) <= FRUCHTFOLGE_WARNING_YEARS) { const f = getFamily(e.name); if (f) kuerzlich.add(f); } });
+  (bed.plants || []).forEach(p => { if (!isPerennial(p.name)) { const f = getFamily(p.name); if (f) kuerzlich.add(f); } });
+  const gesehen = new Set(), out = [];
+  PLANTS.forEach(p => {
+    if (p.perennial || out.length >= 6) return;
+    const f = getFamily(p.name);
+    if (!f || kuerzlich.has(f) || gesehen.has(f)) return;
+    gesehen.add(f); out.push(p);
+  });
+  return { kuerzlich: [...kuerzlich], vorschlaege: out };
+}
+function fruchtfolgeErklaeren(bed) {
+  const s = fruchtfolgeStatus(bed);
+  const jahr = new Date().getFullYear();
+  let html = '';
+  if (s === 'rot') {
+    const fams = new Set((bed.plants || []).filter(p => !isPerennial(p.name)).map(p => getFamily(p.name)).filter(Boolean));
+    fams.forEach(fam => {
+      const p = (bed.plants || []).find(pl => getFamily(pl.name) === fam);
+      const w = p && getFruchtfolgeWarning(bed, p.name);
+      if (w) html += `<div class="ff-zeile rot">⚠️ <b>${escapeHtml(p.name)}</b> (${escapeHtml(fam)}): Diese Familie stand ${w.yearsAgo === 1 ? 'letztes Jahr' : 'vor ' + w.yearsAgo + ' Jahren'} schon hier. Gleiche Familien laugen den Boden einseitig aus und Krankheiten/Schädlinge bleiben im Boden – besser 3–4 Jahre Pause.</div>`;
+    });
+  } else if (s === 'gruen') html += `<div class="ff-zeile gruen">✓ Passt: Keine der Pflanzen hier gehört zu einer Familie, die in den letzten ${FRUCHTFOLGE_WARNING_YEARS} Jahren in diesem Beet stand.</div>`;
+  else html += `<div class="ff-zeile">Das Beet ist gerade frei von einjährigen Kulturen. Für die nächste Pflanzung:</div>`;
+  const hist = {};
+  (bed.history || []).forEach(e => { const y = getYearOf(e); if (jahr - y <= FRUCHTFOLGE_WARNING_YEARS && !isPerennial(e.name)) (hist[y] = hist[y] || new Set()).add(e.name); });
+  const jahre = Object.keys(hist).sort((a, b) => b - a);
+  if (jahre.length) html += `<div class="ff-hist">${jahre.map(y => `<div><b>${y}:</b> ${escapeHtml([...hist[y]].join(', '))}</div>`).join('')}</div>`;
+  const v = fruchtfolgeVorschlaege(bed);
+  if (v.vorschlaege.length && s !== 'gruen') html += `<div class="ff-titel">💡 Passt als Nächstes</div><div class="ff-chips">${v.vorschlaege.map(p => `<span class="bed-chip">${p.sym} ${escapeHtml(p.name)} <span class="ff-fam">${escapeHtml(getFamily(p.name))}</span></span>`).join('')}</div>`;
+  document.getElementById('ffTitel').textContent = '🔄 Fruchtfolge · ' + (bed.name || 'Beet');
+  document.getElementById('ffInhalt').innerHTML = html;
+  document.getElementById('ffModal').style.display = 'flex';
+}
+
+// ==================== ↔️ VORHER / NACHHER ====================
+let vergleichFotos = [];
+function vergleichFotosVon(obj) {
+  return (obj.fotos || []).filter(f => fotoQuelle(f)).map((f, i) => ({ f, i })).sort((a, b) => String(a.f.datum || '').localeCompare(String(b.f.datum || '')) || a.i - b.i).map(x => x.f);
+}
+function vergleichMoeglich(obj) { return vergleichFotosVon(obj).length >= 2; }
+function vergleichOeffnen(obj, titel) {
+  vergleichFotos = vergleichFotosVon(obj);
+  if (vergleichFotos.length < 2) { showTempStatus('Für den Vergleich braucht es mindestens 2 Fotos.', 3); return; }
+  const opt = (f, i) => `<option value="${i}">${f.datum ? new Date(f.datum + (f.datum.length === 10 ? 'T12:00' : '')).toLocaleDateString('de-DE', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Foto ' + (i + 1)}</option>`;
+  const html = vergleichFotos.map(opt).join('');
+  document.getElementById('vgVorher').innerHTML = html;
+  document.getElementById('vgNachher').innerHTML = html;
+  document.getElementById('vgVorher').value = '0';
+  document.getElementById('vgNachher').value = String(vergleichFotos.length - 1);
+  document.getElementById('vergleichTitel').textContent = '↔️ ' + (titel || 'Vorher / Nachher');
+  document.getElementById('vgRegler').value = 50;
+  document.getElementById('vergleichModal').style.display = 'flex';
+  vergleichRendern();
+}
+function vergleichRendern() {
+  const a = vergleichFotos[+document.getElementById('vgVorher').value], b = vergleichFotos[+document.getElementById('vgNachher').value];
+  if (!a || !b) return;
+  document.getElementById('vgVor').src = fotoQuelle(a);
+  document.getElementById('vgNach').src = fotoQuelle(b);
+  const s = document.getElementById('vgVorher'), t = document.getElementById('vgNachher');
+  document.getElementById('vgTagL').textContent = s.options[s.selectedIndex].text;
+  document.getElementById('vgTagR').textContent = t.options[t.selectedIndex].text;
+  vergleichRegler();
+}
+function vergleichRegler() {
+  const v = +document.getElementById('vgRegler').value;
+  document.getElementById('vgVorWrap').style.clipPath = `inset(0 ${100 - v}% 0 0)`;
+  document.getElementById('vgLinie').style.left = v + '%';
+}
+function vergleichSchliessen() { document.getElementById('vergleichModal').style.display = 'none'; }
+(function () {
+  const bild = document.getElementById('vgBild');
+  if (!bild) return;
+  const setzen = (e) => {
+    const r = bild.getBoundingClientRect(), p = (e.touches ? e.touches[0] : e);
+    document.getElementById('vgRegler').value = Math.max(0, Math.min(100, (p.clientX - r.left) / r.width * 100));
+    vergleichRegler();
+  };
+  let aktiv = false;
+  bild.addEventListener('pointerdown', e => { aktiv = true; setzen(e); try { bild.setPointerCapture(e.pointerId); } catch (x) {} });
+  bild.addEventListener('pointermove', e => { if (aktiv) setzen(e); });
+  bild.addEventListener('pointerup', () => { aktiv = false; });
+  bild.addEventListener('pointercancel', () => { aktiv = false; });
+})();
+function vergleichKachel(obj, titel) {
+  if (!vergleichMoeglich(obj)) return null;
+  const k = document.createElement('div');
+  k.className = 'pp-foto-add pp-foto-vergleich';
+  k.textContent = '↔️';
+  k.title = 'Vorher / Nachher vergleichen';
+  k.addEventListener('click', () => vergleichOeffnen(obj, titel));
+  return k;
 }
 
 // ==================== TIERE AUF DER KARTE ====================
@@ -7887,7 +8340,7 @@ function tierAufKarteStarten() {
 }
 function tierOrtHinweis() {
   const el = document.getElementById('zeichenHinweis'), t = el && el.querySelector('.zh-text');
-  if (t && mode === 'tierort') t.textContent = tierOrtZweck === 'modal' ? '🐾 Tippe auf die Stelle, wo das Tier war' : '🐾 Tippe, wo du ein Tier gesehen, einen Nistkasten aufgehängt oder ein Winterquartier entdeckt hast';
+  if (t && mode === 'tierort') t.textContent = tierOrtZweck === 'modal' ? '🐾 Tippe auf die Stelle, wo das Tier war' : tierOrtZweck === 'notiz' ? '📝 Tippe auf die neue Stelle für die Notiz' : '📍 Tippe auf die Stelle – danach wählst du: Tier oder Notiz';
 }
 function tierOrtTipp(x, y) {
   const zweck = tierOrtZweck;
@@ -7899,6 +8352,11 @@ function tierOrtTipp(x, y) {
     beobOrtRendern();
     return;
   }
+  if (zweck === 'notiz') {
+    notizEditPos = { x: Math.round(x), y: Math.round(y) };
+    document.getElementById('notizModal').style.display = 'flex';
+    return;
+  }
   // Steht dort eine Pflanze? → gleich vorschlagen
   let pflanze = '';
   const fp = hitTestFreiPflanze(x, y);
@@ -7906,13 +8364,14 @@ function tierOrtTipp(x, y) {
   else {
     for (const bed of getCurrentBeds()) for (const p of (bed.plants || [])) if (!pflanze && pflanzeTrifft(p, bed, x, y)) pflanze = p.name || '';
   }
-  beobachtungNeu({ pos: { x: Math.round(x), y: Math.round(y) }, pflanze, art: pflanze ? 'nektar' : 'sonst' });
+  markierWahlZeigen({ x: Math.round(x), y: Math.round(y) }, { pflanze, art: pflanze ? 'nektar' : 'sonst' });
 }
 function tierOrtAbbrechen() {
   const zweck = tierOrtZweck;
   tierOrtZweck = null;
   setMode('select');
   if (zweck === 'modal') document.getElementById('beobModal').style.display = 'flex';
+  if (zweck === 'notiz') document.getElementById('notizModal').style.display = 'flex';
 }
 function beobOrtRendern() {
   const box = document.getElementById('beobOrt');
@@ -8306,6 +8765,11 @@ function drawBed(bed, selected, nurPflanzen) {
     if (blueht) bluehHalo(plant.rx, plant.ry, istGruppe(plant) ? Math.min(gruppenRadius(plant), 40) : beetSymbolCm(plant) * 0.6, plant.name);
     ctx.save();
     if (blueht === false) ctx.globalAlpha = 0.3;
+    if (blueht === null && zwiebelRuht(plant.name)) { // eingezogen: blass mit gestricheltem Erd-Rand
+      const rr = istGruppe(plant) ? gruppenRadius(plant) : beetSymbolCm(plant) * 0.6, zz = zoomFaktor();
+      if (!hatTuffForm(plant)) { ctx.beginPath(); ctx.arc(plant.rx, plant.ry, rr, 0, Math.PI * 2); ctx.setLineDash([3 / zz, 3 / zz]); ctx.lineWidth = 1.5 / zz; ctx.strokeStyle = 'rgba(110,80,45,0.85)'; ctx.stroke(); ctx.setLineDash([]); }
+      ctx.globalAlpha = 0.45;
+    }
     let k = 1, ox = 9;
     if (istGruppe(plant)) {
       zeichnePflanzGruppe(plant.rx, plant.ry, plant, isSelected);
@@ -8395,7 +8859,7 @@ canvas.addEventListener('click', ()=>{});
 function ermittleCanvasZiel(x, y) {
   if (['circle','rect','tri','lshape','freehand','freitree','zone','tuffform'].includes(mode)) return true;
   if (TIPP_MODI.includes(mode)) return false; // Wischen verschiebt die Karte, Antippen setzt einen Punkt
-  if (mode === 'select' && (buendelTreffer(x, y) || tierMarkerTreffer(x, y))) return false; // Bündel: Wischen scrollt, Antippen öffnet die Auswahl
+  if (mode === 'select' && (buendelTreffer(x, y) || tierMarkerTreffer(x, y) || notizTreffer(x, y) || fruchtfolgeTreffer(x, y))) return false; // Bündel: Wischen scrollt, Antippen öffnet die Auswahl
   const fpHit = hitTestFreiPflanze(x, y);
   if (fpHit && !fpHit.locked) return true;
   const beete = getCurrentBeds();
@@ -8461,7 +8925,8 @@ function onDown(e) {
     setMode('select');
     openFreiPflanzePanel(neu);
     showTempStatus('✓ Platziert – Details ergänzen und speichern', 4);
-    setTimeout(() => kronenWarnungZeigen(neu), 4200);
+    const zwWarnN = zwiebelWarnung(x, y, neu, neu.name);
+    setTimeout(() => { if (zwWarnN) showTempStatus(zwWarnN, 7); else kronenWarnungZeigen(neu); }, 4200);
     return;
   }
   festTipp = null;
@@ -8471,6 +8936,10 @@ function onDown(e) {
     const festMerken = (daten) => { festTipp = Object.assign({ cx: pkt.clientX, cy: pkt.clientY, t: Date.now() }, daten); };
     const tierM = tierMarkerTreffer(x, y);
     if (tierM) { festMerken({ typ: 'tier', b: tierM }); return; }
+    const pin = notizTreffer(x, y);
+    if (pin) { festMerken({ typ: 'notiz', n: pin }); return; }
+    const ffBeet = fruchtfolgeTreffer(x, y);
+    if (ffBeet) { festMerken({ typ: 'ff', bed: ffBeet }); return; }
     const buendel = buendelTreffer(x, y);
     if (buendel) { festMerken({ typ: 'buendel', b: buendel }); return; }
     const fpFest = hitTestFreiPflanze(x, y);
@@ -8586,8 +9055,10 @@ function onDown(e) {
       const rx=dx*Math.cos(angle)-dy*Math.sin(angle);
       const ry=dx*Math.sin(angle)+dy*Math.cos(angle);
       pushUndo();
+      const zwWarn = zwiebelWarnung(x, y, null, selectedPlantName);
       hit.plants.push({sym:selectedPlantSym,name:selectedPlantName,variety:'',rx,ry,notes:'',date:'',location:'',pest:'',solution:''});
       saveData(); draw(); updateStatus();
+      if (zwWarn) { showTempStatus(zwWarn, 7); return; }
       const newIdx=hit.plants.length-1;
       if (selectedBed===hit) renderBedPlantList(hit, document.getElementById('bedPlantSearch')?.value||'');
       const mischConflict = plantHasConflict(hit,newIdx);
@@ -8710,6 +9181,8 @@ function festTippAuswerten(e) {
   festTippBehandelt = true;
   if (t.typ === 'buendel') { buendelAuswahlZeigen(t.b); return true; }
   if (t.typ === 'tier') { beobachtungBearbeiten(t.b.id); return true; }
+  if (t.typ === 'notiz') { notizBearbeiten(t.n.id); return true; }
+  if (t.typ === 'ff') { fruchtfolgeErklaeren(t.bed); return true; }
   if (t.typ === 'fp') { openFreiPflanzePanel(t.item); draw(); return true; }
   if (t.typ === 'pflanze') { selectedPlantOnCanvas = { bedId: t.bed.id, idx: t.idx }; openPlantPanel(t.bed, t.idx); draw(); return true; }
   if (t.typ === 'beet') { selectedBeds = [t.bed]; selectedBed = t.bed; showBedEditor(t.bed); hideBulkBar(); draw(); renderBedList(); return true; }
@@ -8771,7 +9244,8 @@ function onUp(e) {
     }
     saveData(); draw(); renderFreiPflanzenList();
     showTempStatus('✓ Verschoben', 2);
-    setTimeout(() => kronenWarnungZeigen(dfp.item), 2100);
+    const zwWarnF = zwiebelWarnung(dfp.item.x, dfp.item.y, dfp.item, dfp.item.name);
+    setTimeout(() => { if (zwWarnF) showTempStatus(zwWarnF, 7); else kronenWarnungZeigen(dfp.item); }, 2100);
     return;
   }
   if (dragPlant) {
@@ -8792,6 +9266,8 @@ function onUp(e) {
       if (!target.plants) target.plants=[];
       target.plants.push(dp.plant);
       showTempStatus(target===dp.bed ? '✓ Pflanze verschoben' : `✓ Pflanze zu „${target.name||'Beet'}" verschoben`, 3);
+      const zwWarnD = zwiebelWarnung(x, y, dp.plant, dp.plant.name);
+      if (zwWarnD) setTimeout(() => showTempStatus(zwWarnD, 7), 1600);
       const mischConflict = plantHasConflict(target, target.plants.length-1);
       const rotConflict = target!==dp.bed ? getFruchtfolgeWarning(target, dp.plant.name) : null;
       if (mischConflict && rotConflict) {
@@ -9077,7 +9553,7 @@ function zeichenHinweisZeigen(m) {
   const knopf = 'class="tool-btn" style="padding:5px 10px;font-size:0.72rem;white-space:nowrap"';
   if (m === 'messen') el.innerHTML = `<span class="zh-text" style="color:#fff;font-size:0.75rem"></span><button ${knopf} onclick="setMode('select')">✓ Fertig</button>`;
   else if (m === 'tuffform') el.innerHTML = `<span class="zh-text" style="color:#fff;font-size:0.75rem"></span><button ${knopf} onclick="tuffFormPunktZurueck()">↩ Punkt</button><button ${knopf} onclick="tuffFormFertig()">✓ Fertig</button><button class="tool-btn danger" style="padding:5px 10px;font-size:0.72rem" onclick="tuffFormAbbrechen()">✕</button>`;
-  else if (m === 'giessen') el.innerHTML = `<span class="zh-text" style="color:#fff;font-size:0.75rem"></span><button ${knopf} onclick="setMode('select')">✓ Fertig</button>`;
+  else if (m === 'giessen') el.innerHTML = `<span class="zh-text${giessKinderModus ? ' zh-kinder' : ''}" style="color:#fff;font-size:0.75rem"></span><button ${knopf} onclick="giessKinderUmschalten()" title="Kinder-Ansicht: große Symbole und Sterne">${giessKinderModus ? '👤 Normal' : '🧒 Kinder'}</button><button ${knopf} onclick="setMode('select')">✓</button>`;
   else if (m === 'tierort') el.innerHTML = `<span class="zh-text" style="color:#fff;font-size:0.75rem"></span><button class="tool-btn danger" style="padding:5px 10px;font-size:0.72rem" onclick="tierOrtAbbrechen()">✕</button>`;
   else el.innerHTML = `<span class="zh-text" style="color:#fff;font-size:0.75rem">✏️ ${texte[m]}</span><button class="tool-btn danger" style="padding:5px 10px;font-size:0.72rem" onclick="setMode('select')">✕ Abbrechen</button>`;
   el.style.display = 'flex';
@@ -9088,7 +9564,8 @@ function setMode(m) {
   if (mode==='messen' && m!=='messen') { messPunkte = []; messMaus = null; }
   if (mode==='tuffform' && m!=='tuffform') { tuffFormZiel = null; tuffFormPunkte = []; }
   if (mode==='giessen' && m!=='giessen') giessRundeListe = [];
-  if (mode==='tierort' && m!=='tierort' && tierOrtZweck === 'modal') { tierOrtZweck = null; document.getElementById('beobModal').style.display = 'flex'; }
+  if (mode==='tierort' && m!=='tierort' && (tierOrtZweck === 'modal' || tierOrtZweck === 'notiz')) { document.getElementById(tierOrtZweck === 'modal' ? 'beobModal' : 'notizModal').style.display = 'flex'; tierOrtZweck = null; }
+  if (mode==='giessen' && m!=='giessen') giessKinderModus = false;
   else if (m!=='tierort') tierOrtZweck = null;
   mode=m;
   document.getElementById('messBtn')?.classList.toggle('widget-aktiv', m === 'messen');
@@ -9101,7 +9578,7 @@ function setMode(m) {
   const map={circle:'btnCircle',rect:'btnRect',tri:'btnTri',lshape:'btnLshape',freehand:'btnFreehand',select:'btnSelect',plant:'btnPlant'};
   if(map[m]) document.getElementById(map[m])?.classList.add('active');
   wrap.className='canvas-wrap mode-'+m;
-  const labels={circle:'Kreis zeichnen',rect:'Rechteck zeichnen',tri:'Dreieck zeichnen',lshape:'L-Form zeichnen',freehand:'Freiform: Punkte anklicken, am Startpunkt schließen',select:'Auswählen / Verschieben',plant:`Pflanze setzen: ${selectedPlantSym}`,messen:'📏 Abstand messen',giessen:'💧 Gießrunde',tierort:'🐾 Tier eintragen',tuffform:'🌷 Form des Tuffs zeichnen',freitree:`🌳 Frei platzieren: ${selectedPlantSym} – auf die Fläche tippen (außerhalb eines Beets)`,zone:'📌 Bereich: Rechteck über die Karte ziehen'};
+  const labels={circle:'Kreis zeichnen',rect:'Rechteck zeichnen',tri:'Dreieck zeichnen',lshape:'L-Form zeichnen',freehand:'Freiform: Punkte anklicken, am Startpunkt schließen',select:'Auswählen / Verschieben',plant:`Pflanze setzen: ${selectedPlantSym}`,messen:'📏 Abstand messen',giessen:'💧 Gießrunde',tierort:'📍 Markierung setzen',tuffform:'🌷 Form des Tuffs zeichnen',freitree:`🌳 Frei platzieren: ${selectedPlantSym} – auf die Fläche tippen (außerhalb eines Beets)`,zone:'📌 Bereich: Rechteck über die Karte ziehen'};
   document.getElementById('statusMsg').textContent=labels[m]||m;
   document.getElementById('sb1').textContent='Modus: '+(labels[m]||m);
   document.getElementById('plantModeControls').style.display = (m==='plant') ? 'flex' : 'none';
@@ -9230,7 +9707,7 @@ function showTempStatus(text, seconds, knopf) {
   el.textContent = text;
   if (statusMsgTimer) clearTimeout(statusMsgTimer);
   statusMsgTimer = setTimeout(() => {
-    const labels={circle:'Kreis zeichnen',rect:'Rechteck zeichnen',tri:'Dreieck zeichnen',lshape:'L-Form zeichnen',freehand:'Freiform: Punkte anklicken, am Startpunkt schließen',select:'Auswählen / Verschieben',plant:`Pflanze setzen: ${selectedPlantSym}`,messen:'📏 Abstand messen',giessen:'💧 Gießrunde',tierort:'🐾 Tier eintragen',tuffform:'🌷 Form des Tuffs zeichnen',freitree:`🌳 Frei platzieren: ${selectedPlantSym}`};
+    const labels={circle:'Kreis zeichnen',rect:'Rechteck zeichnen',tri:'Dreieck zeichnen',lshape:'L-Form zeichnen',freehand:'Freiform: Punkte anklicken, am Startpunkt schließen',select:'Auswählen / Verschieben',plant:`Pflanze setzen: ${selectedPlantSym}`,messen:'📏 Abstand messen',giessen:'💧 Gießrunde',tierort:'📍 Markierung setzen',tuffform:'🌷 Form des Tuffs zeichnen',freitree:`🌳 Frei platzieren: ${selectedPlantSym}`};
     el.textContent = labels[mode]||'';
   }, (seconds||5)*1000);
 }
@@ -9565,7 +10042,8 @@ function sortedBedsWithIndex(beds) {
 }
 // ==================== BEET-FOTO (ein Bild vom ganzen Beet) ====================
 // Gleicher Aufbau wie bei Pflanzenfotos (bed.fotos), daher funktionieren 👪 Familie / 🔒 Nur ich,
-// Malstil und Cloud-Upload automatisch mit. Pro Beet gibt es genau ein Foto.
+// Malstil und Cloud-Upload automatisch mit. Neue Fotos kommen dazu (max. 10) – das neueste ist das Titelbild,
+// ältere bleiben für den Vorher/Nachher-Vergleich.
 let beetFotoBedId = null;
 function beetFotoBeet() { return getCurrentBeds().find(b => b.id === beetFotoBedId) || null; }
 function beetFotoOeffnen(bedId) {
@@ -9587,7 +10065,8 @@ function beetFotoModalRendern() {
     ? `<img src="${escapeHtml(fotoQuelle(foto))}" alt="" onclick="fotoLightboxOeffnen(this.src)" style="width:100%;max-height:50vh;object-fit:cover;border-radius:var(--radius-md);display:block;cursor:zoom-in;border:3px solid ${bed.color || '#7a9e72'}">`
     : `<div style="padding:28px 12px;text-align:center;border:2px dashed var(--parchment);border-radius:var(--radius-md);color:var(--bark);font-size:0.8rem">Noch kein Foto vom Beet.<br>Ein Bild vom ganzen Beet hilft, es in der Liste schneller wiederzuerkennen.</div>`;
   const knopf = (text, aktion, extra) => `<button type="button" class="btn-secondary" style="width:auto;flex:1 1 auto;margin:0;${extra || ''}" onclick="${aktion}">${text}</button>`;
-  const knoepfe = [knopf('📷 ' + (foto ? 'Foto ändern' : 'Foto hinzufügen'), "document.getElementById('beetFotoInput').click()")];
+  const knoepfe = [knopf('📷 ' + (foto ? 'Neues Foto' : 'Foto hinzufügen'), "document.getElementById('beetFotoInput').click()")];
+  if (vergleichMoeglich(bed)) knoepfe.push(knopf('↔️ Vorher/Nachher (' + vergleichFotosVon(bed).length + ')', 'vergleichOeffnen(beetFotoBeet(), (beetFotoBeet() || {}).name)'));
   let info = '';
   if (foto) {
     if (window.Malfilter && (foto.data || foto.photo)) knoepfe.push(knopf('🎨 Malstil', 'beetFotoMalen()'));
@@ -9619,10 +10098,9 @@ function handleBeetFoto(e) {
       c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
       pushUndo();
       ppFotosMigrieren(bed);
-      const alte = bed.fotos;
-      bed.fotos = [{ id: fotoNeueId(), data: c.toDataURL('image/jpeg', 0.72), datum: new Date().toISOString().slice(0, 10), geteilt: geteilt !== false }];
+      bed.fotos.push({ id: fotoNeueId(), data: c.toDataURL('image/jpeg', 0.72), datum: new Date().toISOString().slice(0, 10), geteilt: geteilt !== false });
       delete bed.fotoTitelbildId;
-      alte.forEach(fotoCloudLoeschen);
+      while (bed.fotos.length > 10) fotoCloudLoeschen(bed.fotos.shift());
       saveData();
       beetFotoAnsichtenAktualisieren();
       beetFotoOeffnen(bed.id);
@@ -9655,13 +10133,13 @@ function beetFotoTeilen() {
 }
 function beetFotoEntfernen() {
   const bed = beetFotoBeet();
-  if (!bed || !confirm('Foto von „' + (bed.name || 'Beet') + '“ entfernen?')) return;
+  if (!bed || !confirm('Aktuelles Foto von „' + (bed.name || 'Beet') + '“ entfernen?')) return;
   pushUndo();
   ppFotosMigrieren(bed);
-  const alte = bed.fotos;
-  bed.fotos = [];
+  const aktuell = ppFotoTitelbild(bed);
+  const i = aktuell ? bed.fotos.indexOf(aktuell) : -1;
+  if (i !== -1) fotoCloudLoeschen(bed.fotos.splice(i, 1)[0]);
   delete bed.fotoTitelbildId;
-  alte.forEach(fotoCloudLoeschen);
   saveData();
   beetFotoModalRendern();
   beetFotoAnsichtenAktualisieren();
@@ -10357,6 +10835,7 @@ function renderFreiPflanzePhoto(fp) {
   addTile.title = 'Foto hinzufügen';
   addTile.addEventListener('click', () => input.click());
   galerie.appendChild(addTile);
+  const vkF = vergleichKachel(fp, fp.name || 'Baum/Strauch'); if (vkF) galerie.appendChild(vkF);
 }
 function handleFreiPflanzePhoto(e) {
   const file = e.target.files && e.target.files[0];
@@ -10777,6 +11256,7 @@ function renderPlantPhoto(plant) {
   addTile.title = 'Foto hinzufügen';
   addTile.addEventListener('click', () => input.click());
   galerie.appendChild(addTile);
+  const vkP = vergleichKachel(plant, plant.name || 'Pflanze'); if (vkP) galerie.appendChild(vkP);
 }
 function handlePlantPhoto(e) {
   const file = e.target.files && e.target.files[0];
@@ -12513,7 +12993,7 @@ async function renderHomeOverview() {
   }
 
   if (!stats.length && !todayTasks.length && !expiringPantry.length && !seedsToSow.length) {
-    const koch = winterschutzHtml() + ernteKochenHtml() + saatgutFehltHtml();
+    const koch = notizHeuteHtml() + winterschutzHtml() + ernteKochenHtml() + saatgutFehltHtml();
     if (koch) { box.innerHTML = koch; return; }
     box.innerHTML = d.weather
       ? `<div class="empty-state" style="max-width:480px;margin:0 auto">✓ Heute nichts Dringendes – schau später wieder vorbei.</div>`
@@ -12521,7 +13001,7 @@ async function renderHomeOverview() {
     return;
   }
   const pillsHtml = stats.length ? `<div class="overview-grid">${stats.map(s => `<div class="overview-pill ov-${s.tone}"${s.onclick ? ` onclick="${s.onclick}"` : ''}>${s.icon} <span>${escapeHtml(s.label)}</span></div>`).join('')}</div>` : '';
-  box.innerHTML = pillsHtml + winterschutzHtml() + checklistHtml + ernteKochenHtml() + saatgutFehltHtml() + pantryHtml + seedHtml;
+  box.innerHTML = pillsHtml + notizHeuteHtml() + winterschutzHtml() + checklistHtml + ernteKochenHtml() + saatgutFehltHtml() + pantryHtml + seedHtml;
 }
 
 // ==================== SHOPS & DIENSTLEISTER ====================

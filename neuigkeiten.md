@@ -1,6 +1,13 @@
 # Neuigkeiten im Familienplaner
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 
+## 2026-11-13 | Notizen mit Erinnerung, Zwiebel-Gedächtnis, Fruchtfolge-Ampel & mehr
+- 📍 Markierung setzen: Auf die Karte tippen und wählen – 🐾 Tier oder 📝 Notiz. Notizen können ein Erinnerungsdatum haben (auch „jedes Jahr“) und erscheinen dann unter „Heute“.
+- 🌷 Zwiebel-Gedächtnis: Eingezogene Zwiebeln werden auf der Karte blass mit gestricheltem Rand gezeigt. Wer an so einer Stelle etwas pflanzt, bekommt eine Warnung.
+- 🔄 Fruchtfolge-Ampel: Gemüsebeete zeigen an der Ecke ✓ (passt), ! (gleiche Familie wie letztes Jahr) oder ? (frei – Vorschläge). Antippen erklärt es.
+- 🧒 Kinder-Gießrunde: In der Gießrunde auf „Kinder“ tippen – große Symbole, Tropfen als Fortschritt, und Lev/Malia bekommen Sterne für die Kinderecke.
+- ↔️ Vorher/Nachher: Bei Pflanzen, Bäumen und Beeten mit mindestens zwei Fotos lassen sich zwei Zeitpunkte mit einem Schieber vergleichen. Beet-Fotos werden dafür jetzt gesammelt statt ersetzt.
+
 ## 2026-11-13 | Gestochen scharf beim Reinzoomen
 - Symbole, Linien, Beschriftungen und Muster (Zaun, Dach, Pflaster …) werden beim Reinzoomen jetzt in voller Bildschirmauflösung gezeichnet statt hochskaliert – keine Pixel-Treppen mehr.
 
