@@ -1,6 +1,11 @@
 # Neuigkeiten im Familienplaner
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 
+## 2026-11-13 | Vorratskammer: Abgelaufenes oben, Kommazahlen bleiben ganz
+- ⏳ Abgelaufene Artikel stehen immer ganz oben – egal, wie sortiert ist.
+- 📝 „Mehrere auf einmal“: „1,5 kg Mehl, 2 Dosen Tomaten“ wird richtig zu zwei Artikeln (vorher wurde das Dezimal-Komma als Trenner gelesen).
+- 🛒 Vom Vorrat auf die Einkaufsliste: Artikel landen in der passenden Abteilung, aus dem Gefrierfach bei „Tiefkühl“.
+
 ## 2026-11-13 | Kinderecke: Sterne zum Zählen, weniger Eltern-Text
 - ⭐ Im Kleinkind-Modus stehen die Sterne bis zur Belohnung in Fünfer-Reihen – leicht zu zählen wie die Finger einer Hand.
 - 🦊 Hat ein Geschwisterkind eine Aufgabe übernommen, steht dort „Lev hat's gemacht“ statt eines Hakens. Und die eigene erledigte Aufgabe bleibt sichtbar, auch wenn danach schon das andere Kind dran ist.

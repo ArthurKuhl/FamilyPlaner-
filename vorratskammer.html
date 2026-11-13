@@ -783,6 +783,9 @@
       const rang = { leer: 0, mittel: 1, viel: 2, '': 1.5 };
       arr.sort((a, b) => (rang[a.bestand||''] - rang[b.bestand||'']) || a.name.localeCompare(b.name, 'de'));
     }
+    // Abgelaufenes immer ganz oben (stabile Sortierung: innerhalb bleibt die gewählte Reihenfolge)
+    const ab = (i) => { const t = tageBisVerfall(i); return t !== null && t < 0 ? 0 : 1; };
+    arr.sort((a, b) => ab(a) - ab(b));
     return arr;
   }
   const sortSelect = document.getElementById('sortAuswahl');
@@ -1110,12 +1113,13 @@
   }
 
   // ---------- ZUR EINKAUFSLISTE (mit Sync auf alle Geräte) ----------
-  function einkaufKategorieFuer(name) {
+  function einkaufKategorieFuer(name, lagerort) {
     const fav = laden('einkauf_favoriten', {}) || {};
     const f = fav[String(name).trim().toLowerCase()];
     if (f && f.kategorie) return f.kategorie;
     if (window.Lebensmittel && window.Lebensmittel.produktZuName) { const p = window.Lebensmittel.produktZuName(name); if (p && p.kategorie) return p.kategorie; }
-    return 'sonstiges';
+    if (lagerort === 'gefrierfach') return 'tiefkuehl';
+    return (window.EinkaufKategorie && window.EinkaufKategorie.schaetzen(name)) || 'sonstiges';
   }
   // Rückgabe: { liste, listeId, itemId } oder null (stand schon drauf)
   function zumEinkaufHinzufuegen(item, still) {
@@ -1129,7 +1133,7 @@
       if (!still) showTempStatus('„' + item.name + '" steht schon in „' + aktiv.name + '".');
       return null;
     }
-    const neu = { id: neueId('i'), name: item.name, menge: item.minAnzahl && hatAnzahl(item) ? String(Math.max(1, Number(item.minAnzahl) + 1 - Number(item.anzahl))) : '', einheit: item.einheit && item.minAnzahl ? item.einheit : '', kategorie: einkaufKategorieFuer(item.name), erledigt: false, hinzugefuegtVon: 'vorrat:' + item.name };
+    const neu = { id: neueId('i'), name: item.name, menge: item.minAnzahl && hatAnzahl(item) ? String(Math.max(1, Number(item.minAnzahl) + 1 - Number(item.anzahl))) : '', einheit: item.einheit && item.minAnzahl ? item.einheit : '', kategorie: einkaufKategorieFuer(item.name, item.lagerort), erledigt: false, hinzugefuegtVon: 'vorrat:' + item.name };
     aktiv.items.push(neu);
     speichern(KEY_EINKAUF_LISTEN, listen);
     if (window._einkaufSync) window._einkaufSync.melde();
@@ -1536,7 +1540,8 @@
   // ---------- 📝 Mehrere auf einmal ----------
   let mehrereOrt = '';
   function mehrereZerlegen(text) {
-    return String(text || '').split(/[\n,;]+/).map(t => t.trim()).filter(Boolean).map(t => {
+    // Trennen an Zeilenumbruch, Semikolon und Komma – aber nicht im Dezimal-Komma („1,5 kg“)
+    return String(text || '').split(/\n|;|,(?!\d)|(?<!\d),/).map(t => t.trim()).filter(Boolean).map(t => {
       let m = t.match(/^(\d+)\s*[x×]?\s+(Dosen?|Packungen?|Pck\.?|Gläser|Glas|Flaschen?|Beutel|Rollen?|Tuben?|Stück|Stk\.?|Portionen?|Tüten?|Kartons?|Becher)\s+(.+)$/i);
       if (m) return { name: m[3], anzahl: Number(m[1]), einheit: m[2] };
       m = t.match(/^(\d+(?:[.,]\d+)?)\s*(g|kg|ml|l)\s+(.+)$/i);
