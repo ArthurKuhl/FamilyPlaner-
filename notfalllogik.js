@@ -112,8 +112,10 @@
    * items: vorratskammer_items, personen: Anzahl, eigene: { katId: Menge } (eigene Angaben ersetzen die Schätzung)
    * → { personen, kategorien: [{ id, icon, text, einheit, menge, bedarfProTag, tage, eintraege: [...], eigen }],
    *     wasserTage, essenTage, kuehl: [...], geschaetzt } */
-  function reichweite(items, personen, eigene) {
+  // essenPersonen (optional): Kinder zählen beim Essen weniger, z. B. 4 Personen mit 2 Kleinkindern → 3
+  function reichweite(items, personen, eigene, essenPersonen) {
     personen = Math.max(1, Number(personen) || 1);
+    const essenP = Math.max(0.5, Number(essenPersonen) || personen);
     eigene = eigene || {};
     const proKat = {}, kuehl = [];
     KATEGORIEN.forEach(k => { proKat[k.id] = []; });
@@ -133,7 +135,7 @@
       const eigen = eigene[k.id] !== undefined && eigene[k.id] !== null && eigene[k.id] !== '' && !isNaN(Number(eigene[k.id]));
       const menge = eigen ? Math.max(0, Number(eigene[k.id])) : eintraege.reduce((s, e) => s + e.menge, 0);
       if (!eigen && eintraege.some(e => e.geschaetzt)) geschaetzt = true;
-      const bedarfProTag = k.m / 10 * personen;
+      const bedarfProTag = k.m / 10 * (k.id === 'wasser' ? personen : essenP);
       return { id: k.id, icon: k.icon, text: k.text, einheit: k.einheit, menge, bedarfProTag, tage: menge / bedarfProTag, eintraege, eigen };
     });
     const wasser = kategorien[0];
@@ -141,7 +143,7 @@
     return {
       personen, kategorien, kuehl, geschaetzt,
       wasserTage: Math.floor(wasser.tage + 1e-9),
-      essenTage: Math.floor(essenMenge / (ESSEN_PRO_TAG * personen) + 1e-9),
+      essenTage: Math.floor(essenMenge / (ESSEN_PRO_TAG * essenP) + 1e-9), essenPersonen: essenP,
       essenMenge,
     };
   }

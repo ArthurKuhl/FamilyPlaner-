@@ -189,6 +189,14 @@
     input[type=checkbox] { accent-color: #000; }
     .feld input, .feld textarea, .kontakt-zeile input { border: none; border-bottom: 1px solid #999; background: #fff; padding: 3px 0; }
   }
+  .dwd-ok { background: rgba(127,164,118,0.16); color: var(--soil); font-size: 0.76rem; padding: 7px 12px; border-radius: var(--radius-sm); margin-bottom: 10px; }
+  .dwd-warnung { border-left: 4px solid #e6c229; background: rgba(230,194,41,0.16); border-radius: var(--radius-sm); padding: 8px 10px; margin-bottom: 8px; font-size: 0.84rem; color: var(--soil); }
+  .dwd-warnung.s2 { border-color: #f08c00; background: rgba(240,140,0,0.16); }
+  .dwd-warnung.s3 { border-color: #e03131; background: rgba(224,49,49,0.15); }
+  .dwd-warnung.s4 { border-color: #9c36b5; background: rgba(156,54,181,0.17); }
+  .dwd-warnung b { display: block; }
+  .dwd-warnung span { font-size: 0.72rem; opacity: 0.85; }
+  #kurz .dwd-warnung { color: #fff; }
 </style>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
@@ -228,6 +236,7 @@
   <!-- ===================== SOFORT ===================== -->
   <section class="seite aktiv" id="seite-sofort">
     <div class="offline-hinweis kein-druck">📶 Diese Seite funktioniert auch ohne Internet – solange der Akku hält. Tipp: oben „🖨️ Drucken“ für die Notfallmappe.</div>
+    <div id="nfDwd" class="kein-druck"></div>
     <h2>🚨 Notrufnummern</h2>
     <div class="nummern">
       <a class="nummer" href="tel:112"><b>112</b><span>Feuerwehr &amp; Rettungsdienst</span></a>
@@ -792,6 +801,10 @@
   const ich = (() => { try { return localStorage.getItem('planer_geraetIdentitaet') || ''; } catch (e) { return ''; } })();
   function personenAusPlaner() { return Math.max(1, (window.PLANER_PERSONEN || []).filter(p => p.id !== 'familie').length || 1); }
   function personen() { return Math.max(1, Number(einst.personen) || personenAusPlaner()); }
+  function kinderIds() { const e = laden('kinder_einstellungen', {}) || {}; const ids = (window.PLANER_PERSONEN || []).map(p => p.id); return (Array.isArray(e.kinder) ? e.kinder : []).filter(id => ids.includes(id)); }
+  // Beim Essen zählen Kinder halb (BBK-Mengen gelten für Erwachsene), beim Wasser voll
+  function essenPersonen() { const n = personen(), k = Math.min(kinderIds().length, Math.max(0, n - 1)); return n - k * 0.5; }
+  function personenText() { const n = personen(), e = essenPersonen(); return n + (n === 1 ? ' Person' : ' Personen') + (e < n ? ' (Kinder beim Essen ½)' : ''); }
   function tage() { return [3, 5, 10].includes(Number(einst.tage)) ? Number(einst.tage) : 10; }
   function zahl(x, st) { return x.toLocaleString('de-DE', { maximumFractionDigits: st === undefined ? 1 : st }); }
 
@@ -883,7 +896,7 @@
   }
   function mengeText(p) {
     if (!p.m) return '';
-    const wert = p.m * personen() * tage() / 10;
+    const wert = p.m * (p.einheit === 'l' ? personen() : essenPersonen()) * tage() / 10;
     return p.einheit === 'l' ? zahl(Math.ceil(wert), 0) + ' l' : wert < 1 ? zahl(Math.round(wert * 1000), 0) + ' g' : zahl(wert, 1) + ' kg';
   }
   function renderChecklisten() {
@@ -1049,7 +1062,7 @@
 
   // ---------- 📊 Reichweite: für wie viele Tage reicht der Vorrat? ----------
   function stufe(t) { return t >= tage() ? 'gut' : t >= 3 ? 'mittel' : 'knapp'; }
-  function reichweiteBerechnen() { return NL ? NL.reichweite(laden('vorratskammer_items', []), personen(), einst.eigeneMengen || {}) : null; }
+  function reichweiteBerechnen() { return NL ? NL.reichweite(laden('vorratskammer_items', []), personen(), einst.eigeneMengen || {}, essenPersonen()) : null; }
   function renderReichweite() {
     const box = document.getElementById('reichweite');
     const r = reichweiteBerechnen();
@@ -1059,7 +1072,7 @@
     const knappste = r.kategorien.slice(1).slice().sort((a, b) => a.tage - b.tage)[0];
     const offen = box.querySelector('details') && box.querySelector('details').open;
     box.innerHTML = `<h3>📊 So lange reicht euer Vorrat</h3>
-      <div style="font-size:0.76rem;color:var(--bark)">Geschätzt aus der Vorratskammer für ${r.personen} ${r.personen === 1 ? 'Person' : 'Personen'} · Ziel: ${ziel} Tage</div>
+      <div style="font-size:0.76rem;color:var(--bark)">Geschätzt aus der Vorratskammer für ${escapeHtml(personenText())} · Ziel: ${ziel} Tage</div>
       <div class="rw-gross">${wert('💧', r.wasserTage, 'Wasser')}${wert('🍽️', r.essenTage, 'Essen')}</div>
       ${r.essenTage >= 1 && knappste && knappste.tage < Math.min(ziel, r.essenTage) ? `<div style="font-size:0.78rem">⚖️ Am knappsten: <b>${escapeHtml(knappste.text)}</b> (${Math.floor(knappste.tage)} ${Math.floor(knappste.tage) === 1 ? 'Tag' : 'Tage'})</div>` : ''}
       <details${offen ? ' open' : ''} style="margin-top:8px"><summary style="cursor:pointer;font-size:0.8rem;font-weight:700;color:var(--terracotta-text)">Aufschlüsselung &amp; eigene Angaben</summary>
@@ -1069,7 +1082,7 @@
           return `<div class="rw-zeile"><div class="rw-kopf">${k.icon} ${escapeHtml(k.text)}<span class="rw-tage ${stufe(t) === 'knapp' ? 'knapp' : ''}">${NL.mengeText(k.menge, k.einheit)} · ${t > 60 ? '60+' : t} ${t === 1 ? 'Tag' : 'Tage'}</span></div>
             <div class="rw-balken"><span class="${stufe(t)}" style="width:${pr}%"></span></div>
             <div class="rw-items">${k.eigen ? '✏️ eigene Angabe' : (namen || 'Nichts in der Vorratskammer gefunden')} · Bedarf ${NL.mengeText(k.bedarfProTag * ziel, k.einheit)} für ${ziel} Tage</div>
-            <label class="rw-eigen">✏️ Eigene Angabe <input type="number" min="0" step="0.1" inputmode="decimal" data-eigen="${k.id}" value="${k.eigen ? escapeHtml(String(einst.eigeneMengen[k.id])) : ''}" placeholder="auto"> ${k.einheit}</label></div>`;
+            <label class="rw-eigen">✏️ Eigene Angabe <input type="text" inputmode="decimal" autocomplete="off" data-eigen="${k.id}" value="${k.eigen ? escapeHtml(String(einst.eigeneMengen[k.id]).replace('.', ',')) : ''}" placeholder="auto"> ${k.einheit}</label></div>`;
         }).join('')}</div>
       </details>
       ${r.kuehl.length ? `<div class="info">❄️ Nicht mitgezählt: ${r.kuehl.length} ${r.kuehl.length === 1 ? 'Sache' : 'Sachen'} aus Kühlschrank und Gefrierfach – bei Stromausfall zuerst aufbrauchen (Kühlschrank ca. 4 Stunden, volle Gefriertruhe ca. 2 Tage).</div>` : ''}
@@ -1119,10 +1132,12 @@
   }
   function renderEhKurse() {
     const box = document.getElementById('ehKurse');
-    const leute = (window.PLANER_PERSONEN || []).filter(p => p.id !== 'familie');
+    const kinder = kinderIds();
+    const leute = (window.PLANER_PERSONEN || []).filter(p => p.id !== 'familie' && !kinder.includes(p.id));
     plan.ehKurse = plan.ehKurse || {};
     if (!leute.length) { box.innerHTML = '<div style="font-size:0.8rem;color:var(--bark)">Legt zuerst Personen an (👪 oben in der App).</div>'; return; }
-    box.innerHTML = leute.map(p => `<div class="eh-zeile"><b>${escapeHtml(p.label)}</b><input type="month" data-eh="${escapeHtml(p.id)}" value="${escapeHtml(plan.ehKurse[p.id] || '')}" aria-label="Letzter Erste-Hilfe-Kurs ${escapeHtml(p.label)}">${ehStatus(plan.ehKurse[p.id])}</div>`).join('');
+    box.innerHTML = leute.map(p => `<div class="eh-zeile"><b>${escapeHtml(p.label)}</b><input type="month" data-eh="${escapeHtml(p.id)}" value="${escapeHtml(plan.ehKurse[p.id] || '')}" aria-label="Letzter Erste-Hilfe-Kurs ${escapeHtml(p.label)}">${ehStatus(plan.ehKurse[p.id])}</div>`).join('') +
+      (kinder.length ? '<div style="font-size:0.74rem;color:var(--bark);margin-top:4px">🧒 ' + escapeHtml(kinder.map(personName).join(' und ')) + ': Kinderkurse gibt es ab dem Grundschulalter (z. B. „Erste Hilfe für Kinder“ beim DRK).</div>' : '');
     box.querySelectorAll('[data-eh]').forEach(inp => inp.addEventListener('change', () => {
       plan.ehKurse = plan.ehKurse || {};
       if (inp.value) plan.ehKurse[inp.dataset.eh] = inp.value; else delete plan.ehKurse[inp.dataset.eh];
@@ -1159,6 +1174,7 @@
         <a href="tel:116117"><b>116 117</b><span>Ärztl. Bereitschaft</span></a>
         <a href="tel:076119240"><b>Giftnotruf</b><span>0761 19240</span></a>
       </div>
+      <div id="kurzDwd">${dwdHtml(true)}</div>
       <button type="button" class="kurz-status" id="btnKurzStatus">🙋 Der Familie melden: „Mir geht's gut“</button>
       <div class="kurz-text" style="font-size:0.74rem;color:#8a8a8a">Ohne Netz wird die Nachricht gesendet, sobald wieder Verbindung da ist.</div>
       ${treff.length ? '<h4>Treffpunkte</h4>' + treff.map(x => kurzZeile(x[0], x[1])).join('') : ''}
@@ -1172,6 +1188,46 @@
       ${leer ? '<div class="kurz-text" style="margin-top:14px;color:#ffcc80">ℹ️ Noch kein Notfallplan eingetragen – unter „📋 Unser Plan“ Treffpunkte, Kontakte und „Wo ist was“ ausfüllen, dann steht es hier.</div>' : ''}`;
     document.getElementById('btnKurzStatus').addEventListener('click', () => navigiere('chat', 'status', ''));
   }
+  // 🚨 DWD-Warnungen (gleiche Orte und gleicher Zwischenspeicher wie in 📰 Nachrichten)
+  const DWD_STUFE = { 1: 'Wetterwarnung', 2: 'Markante Wetterwarnung', 3: 'Unwetterwarnung', 4: 'Extreme Unwetterwarnung' };
+  let dwdWarnungen = null;
+  function dwdBegriffe() { const d = laden('nachrichten_themen', null) || {}; return (Array.isArray(d.dwd) ? d.dwd : ['Pforzheim', 'Enzkreis', 'Calw']).filter(Boolean); }
+  function dwdGruppen(liste) {
+    const g = {};
+    (liste || []).filter(w => !w.end || w.end > Date.now()).forEach(w => { const k = w.event + '|' + w.start + '|' + w.end + '|' + w.level; (g[k] = g[k] || Object.assign({ regionen: [] }, w)).regionen.push(w.region); });
+    return Object.values(g).sort((a, b) => (b.level || 0) - (a.level || 0));
+  }
+  const dwdZeit = ms => ms ? new Date(ms).toLocaleString('de-DE', { weekday: 'short', day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+  function dwdHtml(kurz) {
+    if (dwdWarnungen === null) return '';
+    const g = dwdGruppen(dwdWarnungen);
+    if (!g.length) return kurz ? '' : '<div class="dwd-ok">✅ Keine Wetterwarnungen für ' + escapeHtml(dwdBegriffe().join(', ')) + ' (DWD)</div>';
+    return g.map(w => '<div class="dwd-warnung s' + Math.min(4, Math.max(1, w.level || 1)) + '"><b>🚨 ' + escapeHtml(w.headline || w.event || 'Warnung') + '</b><span>' + escapeHtml(DWD_STUFE[w.level] || '') + ' · ' + escapeHtml([...new Set(w.regionen)].join(', ')) + (w.end ? ' · bis ' + escapeHtml(dwdZeit(w.end)) : '') + '</span></div>').join('');
+  }
+  function dwdAnzeigen() { const box = document.getElementById('nfDwd'); if (box) box.innerHTML = dwdHtml(false); const k = document.getElementById('kurzDwd'); if (k) k.innerHTML = dwdHtml(true); }
+  function dwdLaden() {
+    const begriffe = dwdBegriffe().map(b => b.toLowerCase());
+    if (!begriffe.length) return;
+    const cache = laden('nachrichten_dwdCache', null);
+    if (cache && Array.isArray(cache.warnungen)) { dwdWarnungen = cache.warnungen; dwdAnzeigen(); if (Date.now() - cache.zeit < 15 * 60e3) return; }
+    if (!navigator.onLine) return;
+    window.warnWetter = { loadWarnings: (d) => {
+      const liste = [];
+      const alle = Object.assign({}, (d && d.warnings) || {});
+      Object.keys(alle).forEach(id => (alle[id] || []).forEach(w => {
+        const name = String(w.regionName || '').toLowerCase();
+        if (begriffe.some(b => name.includes(b))) liste.push({ region: w.regionName, event: w.event, headline: w.headline, description: w.description, level: w.level, start: w.start, end: w.end });
+      }));
+      liste.sort((a, b) => (b.level || 0) - (a.level || 0));
+      try { localStorage.setItem('nachrichten_dwdCache', JSON.stringify({ zeit: Date.now(), warnungen: liste, begriffe })); } catch (e) {}
+      dwdWarnungen = liste; dwdAnzeigen();
+    } };
+    const sc = document.createElement('script');
+    sc.src = 'https://www.dwd.de/DWD/warnungen/warnapp/json/warnings.json?' + Date.now();
+    sc.onload = () => sc.remove(); sc.onerror = () => sc.remove();
+    document.head.appendChild(sc);
+  }
+  dwdLaden();
   function kurzOeffnen() { renderKurz(); document.getElementById('kurz').hidden = false; document.getElementById('kurz').scrollTop = 0; document.getElementById('btnKurzZu').focus(); }
   function kurzZu() { document.getElementById('kurz').hidden = true; }
   document.getElementById('btnKurz').addEventListener('click', kurzOeffnen);

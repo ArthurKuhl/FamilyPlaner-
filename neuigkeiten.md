@@ -1,6 +1,12 @@
 # Neuigkeiten im Familienplaner
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 
+## 2026-11-13 | Notfall: Unwetterwarnungen direkt sichtbar
+- Aktuelle DWD-Warnungen für eure Orte (wie in 📰 Nachrichten eingestellt) stehen jetzt ganz oben auf „🚨 Sofort“ und in „⚡ Kurz“.
+- Vorrat: Kinder aus der Kinderecke zählen beim Essen halb, weil die BBK-Mengen für Erwachsene gelten. Beim Wasser zählen sie weiter voll. Mengen und „So lange reicht euer Vorrat“ sind dadurch realistischer.
+- Erste-Hilfe-Kurs: Kleine Kinder werden nicht mehr abgefragt, stattdessen gibt es einen Hinweis auf Kinderkurse.
+- „Eigene Angabe“ bei der Reichweite nimmt jetzt auch Komma an.
+
 ## 2026-11-13 | Nachrichten: kompakter, mit Ort
 - Unter „📰 Alle“ steht bei jeder Meldung der Ort bzw. das Thema („📍 Calw · SWR · vor 7 Std.“).
 - Die Knöpfe 🔖 👪 📤 stehen jetzt nebeneinander in der Zeile mit Quelle und Zeit. Dadurch passen deutlich mehr Meldungen auf den Bildschirm.
