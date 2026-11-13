@@ -129,7 +129,10 @@
   .mehr-hinweis { font-size: 0.74rem; color: var(--bark); margin: -6px 0 10px; }
   .schnell-input { width: 100%; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--parchment, #ddd); background: var(--white, #fff); color: var(--soil);
     font-family: 'Inter', sans-serif; font-size: 1rem; margin: 6px 0 12px; }
-  .modal .schnell-ziel { margin-bottom: 8px; }
+  .modal .schnell-ziel { margin-bottom: 8px; position: relative; }
+  .modal .schnell-ziel:not(.vorschlag) { opacity: 0.78; }
+  .modal .schnell-ziel.vorschlag { box-shadow: 0 0 0 3px var(--gold, #c99a3a); opacity: 1; }
+  .modal .schnell-ziel.vorschlag::after { content: '⏎ Vorschlag'; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 0.66rem; font-weight: 700; background: rgba(0,0,0,0.18); padding: 2px 7px; border-radius: 999px; }
   .schnell-zeile { display: flex; gap: 8px; align-items: center; margin: 6px 0 12px; }
   .schnell-zeile .schnell-input { margin: 0; flex: 1; min-width: 0; }
   .schnell-mikro { flex-shrink: 0; width: 46px; height: 46px; border-radius: 50%; border: none; background: var(--parchment, #ece0c7); font-size: 1.25rem; cursor: pointer; }
@@ -387,23 +390,6 @@
       <button class="btn btn-secondary" id="btnEinstZuPersonen" style="margin-bottom:14px;">👪 Personen verwalten</button>
 
       <div style="border-top:1px solid #e5ddc8;padding-top:14px;margin-bottom:16px;">
-        <div style="font-weight:700;color:var(--soil);margin-bottom:4px;">🔔 Erinnerungen aufs Handy</div>
-        <div style="font-size:0.72rem;color:var(--bark);margin-bottom:8px;">Kommen auch, wenn die App geschlossen ist. Gilt nur für dieses Gerät.</div>
-        <div id="pushBereich"></div>
-      </div>
-
-      <div style="border-top:1px solid #e5ddc8;padding-top:14px;margin-bottom:16px;">
-        <div style="font-weight:700;color:var(--soil);margin-bottom:4px;">🔒 Private Fotos sichern</div>
-        <div style="font-size:0.72rem;color:var(--bark);margin-bottom:8px;">„Nur ich“-Fotos liegen nur auf diesem Handy. Hier werden sie automatisch mit deinem eigenen Passwort verschlüsselt in der Cloud gesichert – niemand sonst kann sie öffnen, auch die Familie nicht.</div>
-        <div id="fotoSicherungBereich"></div>
-      </div>
-
-      <div style="border-top:1px solid #e5ddc8;padding-top:14px;margin-bottom:16px;">
-        <div style="font-weight:700;color:var(--soil);margin-bottom:8px;">🔀 Reihenfolge der Module</div>
-        <div id="reihenfolgeListe"></div>
-      </div>
-
-      <div style="border-top:1px solid #e5ddc8;padding-top:14px;margin-bottom:16px;">
         <div style="font-weight:700;color:var(--soil);margin-bottom:8px;">🎨 Darstellung</div>
         <div style="margin-bottom:10px;">
           <label style="font-size:0.8rem;color:var(--bark);display:block;margin-bottom:4px;">Hell/Dunkel-Modus</label>
@@ -438,8 +424,8 @@
         <select id="einstStartModul" style="width:100%;padding:9px 10px;border-radius:10px;border:1px solid #ddd;font-family:'Inter',sans-serif;font-size:0.85rem;"></select>
       </div>
 
-      <div style="border-top:1px solid #e5ddc8;padding-top:14px;">
-        <div style="font-weight:700;color:var(--soil);margin-bottom:8px;">🔔 Erinnerungen</div>
+      <div style="border-top:1px solid #e5ddc8;padding-top:14px;margin-bottom:16px;">
+        <div style="font-weight:700;color:var(--soil);margin-bottom:8px;">🔔 Erinnerungen in der App</div>
         <div class="einst-erinnerung-zeile" style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0ead9;">
           <span style="font-size:0.85rem;">💧 Wasser-Erinnerung (Gesundheit)</span>
           <input type="checkbox" id="einstErinnWasser" style="width:20px;height:20px;">
@@ -461,6 +447,23 @@
             <option value="9999">nie</option>
           </select>
         </div>
+      </div>
+
+      <div style="border-top:1px solid #e5ddc8;padding-top:14px;margin-bottom:16px;">
+        <div style="font-weight:700;color:var(--soil);margin-bottom:4px;">📲 Benachrichtigungen aufs Handy</div>
+        <div style="font-size:0.72rem;color:var(--bark);margin-bottom:8px;">Kommen auch, wenn die App geschlossen ist. Gilt nur für dieses Gerät.</div>
+        <div id="pushBereich"></div>
+      </div>
+
+      <div style="border-top:1px solid #e5ddc8;padding-top:14px;margin-bottom:16px;">
+        <div style="font-weight:700;color:var(--soil);margin-bottom:4px;">🔒 Private Fotos sichern</div>
+        <div style="font-size:0.72rem;color:var(--bark);margin-bottom:8px;">„Nur ich“-Fotos liegen nur auf diesem Handy. Hier werden sie automatisch mit deinem eigenen Passwort verschlüsselt in der Cloud gesichert – niemand sonst kann sie öffnen, auch die Familie nicht.</div>
+        <div id="fotoSicherungBereich"></div>
+      </div>
+
+      <div style="border-top:1px solid #e5ddc8;padding-top:14px;margin-bottom:16px;">
+        <details class="einst-reihe"><summary style="font-weight:700;color:var(--soil);cursor:pointer;margin-bottom:8px;">🔀 Reihenfolge &amp; Sichtbarkeit der Module</summary>
+        <div id="reihenfolgeListe"></div></details>
       </div>
 
       <button class="btn btn-secondary" id="btnEinstellungenSchliessen" style="margin-top:18px;">Schließen</button>
@@ -1432,6 +1435,7 @@
           let text = '';
           for (let i = 0; i < ev.results.length; i++) text += ev.results[i][0].transcript;
           inp.value = (vorher ? vorher + ' ' : '') + text.trim();
+          schnellVorschlagZeigen();
         };
         erkennung.onerror = (ev) => {
           hinweis.textContent = ev.error === 'not-allowed' || ev.error === 'service-not-allowed'
@@ -1446,6 +1450,24 @@
         try { erkennung.start(); } catch (e) { mikroStopp(); }
       });
     }
+    // Rät, wohin der Text gehört: Datum/Uhrzeit → Termin, Garten-Wörter → Garten, Wunsch → Wunschliste,
+    // längere Sätze/Ideen → Notiz, sonst Einkauf
+    function schnellZielRaten(text) {
+      const t = String(text || '').toLowerCase().trim();
+      if (!t) return null;
+      if (/\b(geerntet|ernte|gegossen|gießen|giessen|gesät|gepflanzt|gesehen|beobachtet|igel|vogel|schmetterling|biene|eichhörnchen)\b/.test(t)) return 'garten';
+      if (/\b(wunsch|wünscht|wuenscht|wünsche|geschenkidee)\b/.test(t)) return 'wunschliste';
+      if (/\b(\d{1,2}([:.]\d{2})?\s*uhr|\d{1,2}:\d{2}|heute|morgen|übermorgen|montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag|mo|di|mi|do|fr|nächste woche|termin|arzt|zahnarzt|kinderarzt|geburtstag|\d{1,2}\.\d{1,2}\.(\d{2,4})?)(?=\s|$|[,.!?])/.test(t)) return 'termine';
+      if (/\b(idee|ideen|merken|nicht vergessen|notiz)\b/.test(t) || t.split(/\s+/).length > 6) return 'notizblock';
+      return 'einkauf';
+    }
+    function schnellVorschlagZeigen() {
+      const knoepfe = [...document.querySelectorAll('#schnellZiele [data-schnell]')];
+      let ziel = schnellZielRaten(document.getElementById('schnellText').value);
+      if (ziel && !knoepfe.some(b => b.dataset.schnell === ziel)) ziel = null;
+      knoepfe.forEach(b => b.classList.toggle('vorschlag', !!ziel && b.dataset.schnell === ziel));
+    }
+    document.getElementById('schnellText').addEventListener('input', schnellVorschlagZeigen);
     function schnellAbschicken(modul) {
       const text = document.getElementById('schnellText').value.trim();
       schnellSchliessen();
@@ -1457,8 +1479,9 @@
     document.getElementById('schnellText').addEventListener('keydown', (e) => {
       if (e.key !== 'Enter') return;
       e.preventDefault();
-      const erstes = document.querySelector('#schnellZiele [data-schnell]');
-      if (erstes) erstes.click();
+      if (!e.target.value.trim()) return;
+      const ziel = document.querySelector('#schnellZiele .vorschlag') || document.querySelector('#schnellZiele [data-schnell]');
+      if (ziel) ziel.click();
     });
 
     // ============================================================

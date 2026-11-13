@@ -1,6 +1,10 @@
 # Neuigkeiten im Familienplaner
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 
+## 2026-11-13 | Schnell festhalten errät das Ziel
+- „＋ Schnell festhalten“ schlägt beim Tippen vor, wohin der Text gehört, und hebt den Knopf mit „⏎ Vorschlag“ hervor: „Zahnarzt Do 10 Uhr“ → Termin, „2 kg Tomaten geerntet“ → Garten, „Malia wünscht sich …“ → Wunschliste, längere Ideen → Notiz, sonst Einkauf. Enter nimmt den Vorschlag, statt immer auf der Einkaufsliste zu landen.
+- Einstellungen aufgeräumt: Darstellung und Start stehen oben, „Erinnerungen in der App“ und „Benachrichtigungen aufs Handy“ sind klar getrennt, und die lange Modul-Reihenfolge ist unten aufklappbar.
+
 ## 2026-11-13 | Übersicht: Termine der Woche, Wochenlimit
 - „⏰ Demnächst“ zeigt jetzt auch einzelne Termine der nächsten 7 Tage (z. B. „Di 17. · Kinderarzt Lev · 09:30“). Regelmäßige Termine wie wöchentliches Turnen bleiben draußen.
 - Bildschirmzeit: Die Kachel zeigt auch das Wochenlimit („Woche 2,2 von 2 Std. – Wochenlimit erreicht“). Kinder, die nur ein Wochenlimit haben, erscheinen jetzt auch.
