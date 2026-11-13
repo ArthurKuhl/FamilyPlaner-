@@ -233,7 +233,16 @@
   .termin-info { flex: 1; }
   .termin-titel { font-size: 0.88rem; font-weight: 600; margin-bottom: 2px; }
   .termin-meta { font-size: 0.72rem; color: var(--bark); display: flex; gap: 8px; flex-wrap: wrap; }
-  .wer-badge { display: inline-block; font-size: 0.62rem; font-weight: 700; padding: 1px 8px; border-radius: var(--radius-pill); color: var(--white); }
+  .wer-badge { display: inline-block; font-size: 0.62rem; font-weight: 700; padding: 1px 8px; border-radius: var(--radius-pill); color: #fff; text-shadow: 0 1px 1px rgba(0,0,0,0.25); }
+  html[data-dark="1"] .wer-badge { box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22); }
+  #calWoche { padding-bottom: 76px; }
+  /* Überschneidungen in der Woche: schmale Blöcke kompakt (Uhrzeit + Anfangsbuchstaben) */
+  .wo-block.eng { padding: 2px 0; font-size: 0.55rem; text-align: center; white-space: nowrap; text-overflow: clip; }
+  .wo-block.eng b { font-size: 0.62rem; letter-spacing: -0.03em; }
+  .wo-block.eng sup { font-size: 0.45rem; vertical-align: top; line-height: 1; }
+  /* Mehrtägige Termine: Folgetage in der Liste nur als schmale Zeile */
+  .fortsetzung-zeile { display: flex; align-items: center; gap: 8px; font-size: 0.74rem; color: var(--bark); padding: 5px 10px; margin: 2px 0 6px; border-left: 3px solid var(--parchment); border-radius: 6px; background: rgba(127,164,118,0.08); cursor: pointer; }
+  .fortsetzung-zeile b { color: var(--soil); font-weight: 600; }
 
   .empty-state { text-align: center; padding: 50px 20px; color: var(--soil); font-weight: 500; }
   .empty-state .em { font-size: 2.4rem; display: block; margin-bottom: 10px; }
@@ -1023,6 +1032,7 @@
       zeitlich.forEach(t => { const s = minuten(t.ev.startTime); const e = t.ev.endTime && t.ev.endTime > t.ev.startTime ? minuten(t.ev.endTime) : s + 60; vonH = Math.min(vonH, Math.floor(s / 60)); bisH = Math.max(bisH, Math.ceil(e / 60)); });
       bisH = Math.min(24, bisH);
       const PX = 40;
+      const spaltenBreite = Math.max(30, ((box.clientWidth || document.body.clientWidth || 360) - 34) / 7);
       const feiertage = {}; new Set(isos.map(i => i.slice(0, 4))).forEach(j => Object.assign(feiertage, feiertageSofort(Number(j))));
       let html = '<div class="wo-kopf"><div></div>' + tage.map((d, i) => {
         const iso = isos[i], fe = ferienAm(iso);
@@ -1051,7 +1061,9 @@
           return '<div class="wo-spalte' + (iso === heuteISO ? ' heute' : '') + '" data-tag="' + iso + '">' + linien + jetztLinie + tagT.map(x => {
             const top = (x.s - vonH * 60) / 60 * PX, h = Math.max(18, (x.e - x.s) / 60 * PX - 2);
             const w = 100 / x.breite;
-            return '<div class="wo-block" data-ev="' + x.t.ev.id + '" data-datum="' + x.t.datum + '" style="top:' + top + 'px;height:' + h + 'px;left:calc(' + (x.spur * w) + '% + 1px);width:calc(' + w + '% - 2px);background:' + farbeFuer(x.t.ev.wer) + '" title="' + escapeHtml(x.t.ev.startTime + ' ' + x.t.ev.title) + '"><b>' + escapeHtml(x.t.ev.startTime) + '</b>' + escapeHtml(x.t.ev.title) + '</div>';
+            const eng = spaltenBreite / x.breite < 46;
+            const titel = eng ? (String(x.t.ev.title || '').match(/^\p{Extended_Pictographic}/u) || [String(x.t.ev.title || '').slice(0, 3)])[0] : x.t.ev.title;
+            return '<div class="wo-block' + (eng ? ' eng' : '') + '" data-ev=""' + x.t.ev.id + '" data-datum="' + x.t.datum + '" style="top:' + top + 'px;height:' + h + 'px;left:calc(' + (x.spur * w) + '% + 1px);width:calc(' + w + '% - 2px);background:' + farbeFuer(x.t.ev.wer) + '" title="' + escapeHtml(x.t.ev.startTime + ' ' + x.t.ev.title) + '"><b>' + (eng ? escapeHtml(x.t.ev.startTime.slice(0, 2).replace(/^0/, '')) + (x.t.ev.startTime.slice(3, 5) !== '00' ? '<sup>' + escapeHtml(x.t.ev.startTime.slice(3, 5)) + '</sup>' : '') : escapeHtml(x.t.ev.startTime)) + '</b>' + escapeHtml(titel) + '</div>';
           }).join('') + '</div>';
         }).join('') + '</div>';
       box.innerHTML = html;
@@ -1101,7 +1113,15 @@
         const fe = ferienAm(datum);
         if (fe) titel.textContent += ' · 🏖️ ' + fe;
         if (abfuhrTage[datum]) { const z = document.createElement('div'); z.className = 'abfuhr-zeile'; z.textContent = abfuhrTage[datum].symbole + ' ' + abfuhrTage[datum].text; z.addEventListener('click', abfallOeffnen); gruppe.appendChild(z); }
-        gruppen[datum].forEach(t => gruppe.appendChild(terminCard(t.ev, t.datum, t)));
+        const ersterTag = toISO(von);
+        gruppen[datum].forEach(t => {
+          if (t.tagNr > 1 && t.tag !== ersterTag) {
+            const z = document.createElement('div'); z.className = 'fortsetzung-zeile'; z.style.borderLeftColor = farbeFuer(t.ev.wer);
+            z.innerHTML = '↔ <b>' + escapeHtml(t.ev.title) + '</b> <span>Tag ' + t.tagNr + ' von ' + t.tage + '</span>';
+            z.addEventListener('click', () => terminModalOeffnen(t.ev, t.datum));
+            gruppe.appendChild(z);
+          } else gruppe.appendChild(terminCard(t.ev, t.datum, t));
+        });
         inhalt.appendChild(gruppe);
       });
     }
@@ -1501,16 +1521,42 @@
       let m;
       // Ort: „bei …“ / „@ …“ / „in der …“ / „im …“ bis zum Ende (vorher Zeit/Datum am Ende abtrennen geht unten)
       // Uhrzeit (auch Spanne): 15:30, 15.30 Uhr, 15 Uhr, um 9, 15-16 Uhr, 9:00–10:30
-      m = rest.match(/\s(?:um\s+|von\s+)?(\d{1,2})(?:[:.](\d{2}))?\s*(?:uhr\s*)?(?:-|–|bis)\s*(\d{1,2})(?:[:.](\d{2}))?\s*(?:uhr|h)?(?=\s)/i);
-      if (m && Number(m[1]) < 24 && Number(m[3]) < 25) {
+      // Zeitraum: „20.–27.12.“, „vom 23.12. bis 2.1.“, „20.12.-3.1.27“ (vor der Uhrzeit, damit „20.-27.“ keine Uhrzeit wird)
+      m = rest.match(/\s(?:vom\s+|von\s+|ab\s+)?(\d{1,2})\.(?:(\d{1,2})\.)?(\d{2,4})?\s*(?:-|–|bis(?:\s+zum)?)\s*(\d{1,2})\.(\d{1,2})\.(\d{2,4})?(?=\s)/i);
+      if (m) {
+        const jE = m[6] ? Number(m[6].length === 2 ? '20' + m[6] : m[6]) : null;
+        const mS = m[2] ? Number(m[2]) : Number(m[5]);
+        let jS = m[3] ? Number(m[3].length === 2 ? '20' + m[3] : m[3]) : (jE || h.getFullYear());
+        let dS = new Date(jS, mS - 1, Number(m[1]));
+        if (!m[3] && !jE && dS < new Date(h.getFullYear(), h.getMonth(), h.getDate())) { jS++; dS = new Date(jS, mS - 1, Number(m[1])); }
+        let dE = new Date(jE || jS, Number(m[5]) - 1, Number(m[4]));
+        if (dE < dS) dE = new Date(dE.getFullYear() + 1, dE.getMonth(), dE.getDate());
+        if (dS.getDate() === Number(m[1]) && dE.getDate() === Number(m[4])) { e.datum = toISO(dS); e.endDatum = toISO(dE); weg(m[0]); }
+      }
+      // „halb 10“, „viertel nach 3“, „viertel vor 8“, „dreiviertel 5“, „viertel 10“ (= 9:15) – 1 bis 6 Uhr gilt als nachmittags
+      const nachm = (std) => (std >= 1 && std <= 6 ? std + 12 : std);
+      const zwei = (n) => String(n).padStart(2, '0');
+      if ((m = rest.match(/\s(?:um\s+)?(halb|viertel\s+nach|viertel\s+vor|dreiviertel|viertel)\s+(\d{1,2})(?:\s*uhr)?(?=\s)/i))) {
+        const art = m[1].toLowerCase().replace(/\s+/g, ' '), std = Number(m[2]);
+        if (std >= 1 && std <= 24) {
+          const [hh, mm] = art === 'halb' ? [std - 1, 30] : art === 'viertel nach' ? [std, 15] : (art === 'viertel vor' || art === 'dreiviertel') ? [std - 1, 45] : [std - 1, 15];
+          e.start = zwei(nachm(hh === 0 ? 12 : hh)) + ':' + zwei(mm); weg(m[0]);
+        }
+      }
+      m = e.start ? null : rest.match(/\s(?:um\s+|von\s+)?(\d{1,2})(?:[:.](\d{2}))?\s*(?:uhr\s*)?(?:-|–|bis)\s*(\d{1,2})(?:[:.](\d{2}))?\s*(?:uhr|h)?(?=\s)/i);
+      if (e.start) { /* schon erkannt */ }
+      else if (m && Number(m[1]) < 24 && Number(m[3]) < 25) {
         e.start = m[1].padStart(2, '0') + ':' + (m[2] || '00'); e.ende = m[3].padStart(2, '0') + ':' + (m[4] || '00'); weg(m[0]);
       } else {
         m = rest.match(/\s(?:um\s+)?(\d{1,2})[:.](\d{2})\s*(?:uhr|h)?(?=\s)/i) || rest.match(/\s(?:um\s+)?(\d{1,2})\s*(?:uhr|h)(?=\s)/i) || rest.match(/\sum\s+(\d{1,2})(?=\s)/i);
-        if (m && Number(m[1]) < 24) { e.start = m[1].padStart(2, '0') + ':' + (m[2] || '00'); weg(m[0]); }
+        if (m && Number(m[1]) < 24) {
+          const ohneMinuten = !m[2] && /\sum\s/i.test(m[0]) && !/uhr|h\b/i.test(m[0]);
+          e.start = (ohneMinuten ? zwei(nachm(Number(m[1]))) : m[1].padStart(2, '0')) + ':' + (m[2] || '00'); weg(m[0]);
+        }
       }
       // Datum
       const setze = (d) => { e.datum = toISO(d); };
-      if ((m = rest.match(/\s(\d{1,2})\.(\d{1,2})\.(\d{2,4})?(?=\s)/))) {
+      if (!e.datum && (m = rest.match(/\s(?:am\s+|ab\s+)?(\d{1,2})\.(\d{1,2})\.(\d{2,4})?(?=\s)/i))) {
         let j = m[3] ? Number(m[3].length === 2 ? '20' + m[3] : m[3]) : h.getFullYear();
         let d = new Date(j, Number(m[2]) - 1, Number(m[1]));
         if (!m[3] && d < h) d = new Date(j + 1, Number(m[2]) - 1, Number(m[1]));
@@ -1548,15 +1594,17 @@
         const re = new RegExp('\\s(?:für\\s+|mit\\s+)?' + w.label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?=[\\s,])', 'i');
         if (re.test(rest)) { e.wer = w.id; rest = rest.replace(re, ' '); }
       });
-      const titel = rest.replace(/\s+/g, ' ').replace(/^[\s,:-]+|[\s,:-]+$/g, '').trim();
+      const titel = rest.replace(/\s+/g, ' ').replace(/\s(am|um|ab)\s*$/i, ' ').replace(/^[\s,:-]+|[\s,:-]+$/g, '').trim();
       if (titel) e.titel = titel.charAt(0).toUpperCase() + titel.slice(1);
+      // 🎂 Geburtstage: ganztägig und jährlich
+      if (/geburtstag|🎂/i.test(e.titel || '') && !e.start && !e.wiederholung && !e.endDatum) e.wiederholung = 'jaehrlich';
       return e;
     }
     function schnellVorschau() {
       const e = schnellZerlegen(document.getElementById('fSchnell').value);
       const teile = [];
       if (e.titel) teile.push('📝 ' + e.titel);
-      if (e.datum) teile.push('📅 ' + kurzDatum(e.datum));
+      if (e.datum) teile.push('📅 ' + kurzDatum(e.datum) + (e.endDatum ? ' – ' + kurzDatum(e.endDatum) : ''));
       if (e.start) teile.push('🕐 ' + e.start + (e.ende ? '–' + e.ende : ''));
       if (e.wer) teile.push('👤 ' + labelFuer(e.wer));
       if (e.ort) teile.push('📍 ' + e.ort);
@@ -1567,6 +1615,7 @@
       const e = schnellZerlegen(document.getElementById('fSchnell').value);
       if (e.titel) document.getElementById('fTitel').value = e.titel;
       if (e.datum) document.getElementById('fDatum').value = e.datum;
+      document.getElementById('fEndDatum').value = e.endDatum || '';
       if (e.start) { document.getElementById('fGanztags').checked = false; document.getElementById('fStart').value = e.start; document.getElementById('fEnde').value = e.ende || ''; }
       else if (e.datum) document.getElementById('fGanztags').checked = true;
       if (e.ort) document.getElementById('fOrt').value = e.ort;

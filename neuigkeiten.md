@@ -1,6 +1,12 @@
 # Neuigkeiten im Familienplaner
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 
+## 2026-11-13 | Termine: Schnelleingabe versteht mehr, aufgeräumte Liste
+- ⚡ Schnell eintippen versteht jetzt Zeiträume („Urlaub 20.–27.12.“, „Kita zu 23.12. bis 2.1.“), „halb 10“, „viertel nach 3“, „viertel 10“, „dreiviertel 8“ – und „um 3“ wird 15 Uhr. Geburtstage werden automatisch jährlich.
+- ↔ Mehrtägige Termine stehen in der Liste nur noch einmal als Karte, die Folgetage als schmale Zeile.
+- ⧉ Wochenansicht: Termine zur gleichen Zeit werden kompakt gezeigt (Uhrzeit + Anfang des Titels), und der ＋-Knopf verdeckt keine späten Termine mehr.
+- 🌙 Personen-Chips sind im Dunkelmodus wieder gut lesbar.
+
 ## 2026-11-13 | Haushalt: Push am Morgen, fairere Rotation
 - 🔔 Neue Push-Erinnerung: morgens die heute offenen Haushaltsaufgaben („Nur meine“ oder „Meine und offene“ – in den Push-Einstellungen wählbar). Im Urlaubsmodus ruht sie.
 - 🔄 Rotation: Springt jemand ein, bleibt die eigentlich vorgesehene Person als Nächstes dran (vorher war dann der Einspringer gleich nochmal dran). Gilt auch beim Abhaken in der Übersicht und in der Kinderecke.
