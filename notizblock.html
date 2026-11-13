@@ -12,6 +12,7 @@
 <script src="personen.js"></script>
 <script src="sync.js"></script>
 <script src="fotospeicher.js"></script>
+<script src="lebensmittel.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap');
   :root {
@@ -106,6 +107,9 @@
   .notiz-grid .notiz-karte:active { transform: scale(0.98); }
   .notiz-karte .notiz-text { -webkit-line-clamp: 9; }
   .notiz-karte { word-break: break-word; }
+  .korb-knoepfe { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+  .korb-btn { border: 1px solid var(--parchment); background: var(--white); color: var(--soil); border-radius: var(--radius-pill); padding: 6px 10px; font-size: 0.74rem; font-weight: 700; cursor: pointer; }
+  .korb-btn.weg { color: var(--terracotta-text); border-color: transparent; background: transparent; }
   @media (min-width: 1000px) { .notiz-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); } }
   /* Farbige Zettel sind immer hell – Schrift darauf daher immer dunkel, auch im Dunkelmodus */
   .notiz-karte.farbig .notiz-titel, .notiz-karte.farbig .notiz-text, .notiz-karte.farbig .notiz-check-zeile { color: #3a2e22; }
@@ -693,11 +697,12 @@
         inhaltHtml +
         (chips.length ? '<div class="notiz-chips">' + chips.join('') + '</div>' : '') +
         (n.tags && n.tags.length ? '<div class="notiz-tag-reihe">' + n.tags.map(t => '<span class="notiz-tag">#' + escapeHtml(t) + '</span>').join('') + '</div>' : '') +
-        '<div class="notiz-datum">' + zeitpunktAnzeige(n.geaendert) + '</div>';
+        '<div class="notiz-datum">' + zeitpunktAnzeige(n.geaendert) + '</div>' +
+        (n.geloeschtAm ? '<div class="korb-knoepfe"><button type="button" class="korb-btn" data-korb="zurueck">♻️ Wiederherstellen</button><button type="button" class="korb-btn weg" data-korb="weg">Endgültig löschen</button></div>' : '');
       karte.addEventListener('click', (e) => {
         if (e.target.closest('a')) { e.stopPropagation(); return; }
         if (e.target.closest('.schnell-punkt')) { e.stopPropagation(); return; }
-        if (n.geloeschtAm) { korbAktion(n); return; }
+        if (n.geloeschtAm) { const k = e.target.closest('[data-korb]'); if (k) korbAktion(n, k.dataset.korb); return; }
         if (e.target.closest('.notiz-pin-btn')) {
           e.stopPropagation();
           n.angeheftet = !n.angeheftet;
@@ -810,8 +815,25 @@
     document.getElementById('feldText').style.display = typ === 'text' ? '' : 'none';
     document.getElementById('feldCheckliste').style.display = typ === 'checkliste' ? '' : 'none';
   }
-  document.getElementById('tabTypText').addEventListener('click', () => editTypAnwenden('text'));
-  document.getElementById('tabTypCheckliste').addEventListener('click', () => editTypAnwenden('checkliste'));
+  // Beim Umschalten nichts verlieren: Textzeilen werden Punkte und umgekehrt
+  function editTypWechseln(typ) {
+    if (typ === editTyp) return;
+    const box = document.getElementById('checklisteEditListe'), textFeld = document.getElementById('fText');
+    const punkte = Array.from(box.querySelectorAll('.checkliste-edit-zeile')).map(z => ({ text: z.querySelector('input[type="text"]').value.trim(), erledigt: z.querySelector('input[type="checkbox"]').checked })).filter(p => p.text);
+    if (typ === 'checkliste' && !punkte.length) {
+      box.innerHTML = '';
+      const zeilen = zeilenAusText(textFeld.value);
+      zeilen.forEach(z => box.appendChild(checkpunktZeileErstellen(z, false)));
+      if (zeilen.length) textFeld.value = '';
+    } else if (typ === 'text' && !textFeld.value.trim() && punkte.length) {
+      textFeld.value = punkte.map(p => '- ' + p.text).join('\n');
+      box.innerHTML = '';
+    }
+    editTypAnwenden(typ);
+    if (typ === 'checkliste' && !box.children.length) document.getElementById('btnCheckpunktHinzufuegen').click();
+  }
+  document.getElementById('tabTypText').addEventListener('click', () => editTypWechseln('text'));
+  document.getElementById('tabTypCheckliste').addEventListener('click', () => editTypWechseln('checkliste'));
 
   function checkpunktZeileErstellen(text, erledigt) {
     const zeile = document.createElement('div');
@@ -821,10 +843,46 @@
       '<input type="text" placeholder="Punkt ..." value="' + escapeHtml(text || '') + '">' +
       '<button type="button">✕</button>';
     zeile.querySelector('button').addEventListener('click', () => zeile.remove());
+    const feld = zeile.querySelector('input[type="text"]');
+    feld.setAttribute('enterkeyhint', 'next');
+    // Enter → nächster Punkt darunter; Löschtaste im leeren Punkt → Punkt entfernen
+    feld.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.isComposing) {
+        e.preventDefault();
+        if (!feld.value.trim() && zeile === zeile.parentNode.lastElementChild) return;
+        const neu = checkpunktZeileErstellen('', false);
+        zeile.after(neu); neu.querySelector('input[type="text"]').focus();
+      } else if (e.key === 'Backspace' && !feld.value) {
+        const vorher = zeile.previousElementSibling;
+        if (!vorher) return;
+        e.preventDefault();
+        zeile.remove();
+        const v = vorher.querySelector('input[type="text"]'); v.focus(); v.setSelectionRange(v.value.length, v.value.length);
+      }
+    });
+    // Mehrere Zeilen einfügen (z.B. aus WhatsApp) → jede Zeile ein Punkt
+    feld.addEventListener('paste', (e) => {
+      const t = (e.clipboardData || window.clipboardData) ? (e.clipboardData || window.clipboardData).getData('text') : '';
+      const zeilen = zeilenAusText(t);
+      if (zeilen.length < 2) return;
+      e.preventDefault();
+      const anfang = feld.value.slice(0, feld.selectionStart || 0) + zeilen[0];
+      feld.value = anfang;
+      let letzte = zeile;
+      zeilen.slice(1).forEach(z => { const neu = checkpunktZeileErstellen(z, false); letzte.after(neu); letzte = neu; });
+      letzte.querySelector('input[type="text"]').focus();
+    });
     return zeile;
   }
+  function zeilenAusText(t) {
+    return String(t || '').split(/\r?\n/).map(z => z.replace(/^\s*(?:[-•*▪◦·]|\d+[.)]|\[[ xX]?\]|[☐☑✓✔])\s*/, '').trim()).filter(Boolean);
+  }
   document.getElementById('btnCheckpunktHinzufuegen').addEventListener('click', () => {
-    document.getElementById('checklisteEditListe').appendChild(checkpunktZeileErstellen('', false));
+    const box = document.getElementById('checklisteEditListe');
+    const leer = Array.from(box.querySelectorAll('input[type="text"]')).find(i => !i.value.trim());
+    if (leer) { leer.focus(); return; }
+    const neu = checkpunktZeileErstellen('', false);
+    box.appendChild(neu); neu.querySelector('input[type="text"]').focus();
   });
 
   function editOeffnen(id) {
@@ -1056,11 +1114,11 @@
   }
 
   // ---------- 🗑️ Papierkorb ----------
-  function korbAktion(n) {
-    if (confirm('„' + (n.titel || 'Notiz') + '“ wiederherstellen?\n(Abbrechen = endgültig löschen fragen)')) {
-      delete n.geloeschtAm; notizenSpeichern(); renderTagFilter(); renderNotizen(); showTempStatus('♻️ Wiederhergestellt', 3); return;
+  function korbAktion(n, was) {
+    if (was === 'zurueck') {
+      delete n.geloeschtAm; notizenSpeichern(); renderTagFilter(); renderNotizen(); showTempStatus('♻️ „' + (n.titel || 'Notiz') + '“ ist wieder da', 3); return;
     }
-    if (!confirm('Endgültig löschen? Das lässt sich nicht rückgängig machen.')) return;
+    if (!confirm('„' + (n.titel || 'Notiz') + '“ endgültig löschen? Das lässt sich nicht rückgängig machen.')) return;
     const i = notizen.indexOf(n); if (i !== -1) notizen.splice(i, 1);
     (n.fotos || []).forEach(f => cloudFotoLoeschen(f));
     notizenSpeichern(); renderNotizen();
@@ -1237,11 +1295,20 @@
     if (!liste.items) liste.items = [];
     const fav = (() => { try { return JSON.parse(localStorage.getItem('einkauf_favoriten') || '{}') || {}; } catch (e) { return {}; } })();
     let neu = 0;
+    const EINHEIT = /^(g|gr|kg|ml|l|liter|stk\.?|stück|pck\.?|packung(en)?|pack|dose(n)?|flasche(n)?|bund|becher|glas|tüte(n)?)$/i;
     gewaehlt.forEach(t => {
-      const m = t.match(/^(\d+(?:[.,]\d+)?)\s*(g|kg|ml|l|Stk\.?|Pck\.?|x)?\s+(.+)$/i);
-      const name = (m ? m[3] : t).trim();
+      let x = String(t).trim().replace(/^(\d+(?:[.,]\d+)?)\s*[x×]\s*/i, '$1 ');
+      let menge = '', einheit = '', name = x;
+      const hinten = x.match(/^(.+?)\s+(?:[x×]\s*)?(\d+(?:[.,]\d+)?)\s*([a-zäöüß.]+)?\s*[x×]?$/i);
+      const vorne = x.match(/^(\d+(?:[.,]\d+)?)\s*([a-zäöüß.]+)?\s+(.+)$/i);
+      if (hinten && !/^\d/.test(hinten[1]) && (!hinten[3] || EINHEIT.test(hinten[3]))) { name = hinten[1]; menge = hinten[2]; einheit = hinten[3] || ''; }
+      else if (vorne) { menge = vorne[1]; if (vorne[2] && EINHEIT.test(vorne[2])) { einheit = vorne[2]; name = vorne[3]; } else name = (vorne[2] ? vorne[2] + ' ' : '') + vorne[3]; }
+      if (/^(stk\.?|stück)$/i.test(einheit)) einheit = '';
+      menge = menge.replace(',', '.'); name = name.trim();
       if (liste.items.some(i => !i.erledigt && String(i.name).trim().toLowerCase() === name.toLowerCase())) return;
-      liste.items.push({ id: neueId('i'), name, menge: m ? m[1] : '', einheit: m && m[2] ? m[2] : '', kategorie: (fav[name.toLowerCase()] || {}).kategorie || 'sonstiges', erledigt: false, hinzugefuegtVon: geraetPerson() || '' });
+      let kategorie = (fav[name.toLowerCase()] || {}).kategorie;
+      if (!kategorie) { try { kategorie = window.EinkaufKategorie ? window.EinkaufKategorie.schaetzen(name) : ''; } catch (e) {} }
+      liste.items.push({ id: neueId('i'), name, menge, einheit, kategorie: kategorie || 'sonstiges', erledigt: false, hinzugefuegtVon: geraetPerson() || '' });
       neu++;
     });
     if (fremdSpeichern('einkauf', 'einkauf_listen', listen)) showTempStatus('🛒 ' + neu + ' Artikel → „' + liste.name + '“' + (gewaehlt.length - neu ? ' (' + (gewaehlt.length - neu) + ' standen schon drauf)' : ''), 4);

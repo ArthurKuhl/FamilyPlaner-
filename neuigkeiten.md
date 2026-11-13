@@ -1,6 +1,12 @@
 # Neuigkeiten im Familienplaner
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 
+## 2026-11-13 | Notizblock: Checklisten schneller tippen
+- Checklisten: Enter legt direkt den nächsten Punkt an, die Löschtaste in einem leeren Punkt entfernt ihn. Fügst du mehrere Zeilen ein (z. B. aus WhatsApp), wird jede Zeile ein eigener Punkt.
+- Beim Umschalten zwischen 📝 Text und ☑️ Checkliste geht nichts mehr verloren: Aus den Zeilen werden Punkte und umgekehrt.
+- Papierkorb: jede Notiz hat jetzt die Knöpfe „♻️ Wiederherstellen“ und „Endgültig löschen“.
+- „Auf die Einkaufsliste“ sortiert die Artikel jetzt in die passende Abteilung (Milch → Kühlregal) und versteht „2x Milch“ und „Milch 1l“.
+
 ## 2026-11-13 | Fahrzeuge: Komma beim Tanken, Verbrauch je Füllung
 - Liter, Betrag, Preis, Kilometer und Kosten nehmen jetzt Komma und Punkt an („41,5“, „1,789“, „38.920 km“), auf jeder Handy-Tastatur.
 - Die Tankliste ist nach Monaten gegliedert, mit Monatssumme. Bei jeder Volltankung steht der Verbrauch dieser Füllung (z. B. „5,8 l/100 km“).
