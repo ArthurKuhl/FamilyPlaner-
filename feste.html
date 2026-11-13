@@ -125,10 +125,10 @@
   .zahl-input { width: 62px !important; text-align: center; }
 
   /* Ablauf */
-  .ablauf-zeile { display: grid; grid-template-columns: 96px 1fr auto; gap: 8px; align-items: start; padding: 9px 0; border-top: 1px solid var(--parchment); }
+  .ablauf-zeile { display: grid; grid-template-columns: 84px 1fr auto; gap: 8px; align-items: start; padding: 9px 0; border-top: 1px solid var(--parchment); }
   .ablauf-zeile:first-child { border-top: none; }
   .ablauf-zeile input[type=time] { width: 100%; padding: 6px 4px; border: 1px solid var(--parchment); border-radius: var(--radius-sm); background: var(--cream); color: var(--soil); font-size: 0.84rem; font-weight: 700; }
-  .ablauf-zeile .titel-input { width: 100%; padding: 6px 8px; border: 1px solid transparent; border-radius: var(--radius-sm); background: transparent; color: var(--soil); font-size: 0.88rem; font-weight: 600; }
+  .ablauf-zeile .titel-input { display: block; resize: none; overflow: hidden; font-family: inherit; line-height: 1.3; min-height: 0; width: 100%; padding: 6px 8px; border: 1px solid transparent; border-radius: var(--radius-sm); background: transparent; color: var(--soil); font-size: 0.88rem; font-weight: 600; }
   .ablauf-zeile .titel-input:focus { border-color: var(--parchment); background: var(--cream); }
   .ablauf-zeile .meta { display: flex; gap: 6px; align-items: center; font-size: 0.72rem; color: var(--bark); padding: 0 8px; flex-wrap: wrap; }
   .ablauf-zeile .meta input { width: 52px; padding: 3px 5px; border: 1px solid var(--parchment); border-radius: 6px; background: var(--cream); color: var(--soil); font-size: 0.74rem; }
@@ -321,7 +321,14 @@
   function minuten(t) { const m = /^(\d{1,2}):(\d{2})$/.exec(t || ''); return m ? Number(m[1]) * 60 + Number(m[2]) : null; }
   function uhrzeit(min) { min = ((min % 1440) + 1440) % 1440; return String(Math.floor(min / 60)).padStart(2, '0') + ':' + String(min % 60).padStart(2, '0'); }
   function euro(x) { return (Number(x) || 0).toLocaleString('de-DE', { style: 'currency', currency: 'EUR' }); }
-  function zahlAus(v) { const n = parseFloat(String(v).replace(',', '.')); return isNaN(n) ? 0 : n; }
+  function zahlAus(v) {
+    if (typeof v === 'number') return isFinite(v) ? v : 0;
+    let t = String(v == null ? '' : v).replace(/[^\d,.-]/g, '');
+    if (t.includes(',') && t.includes('.')) t = t.lastIndexOf(',') > t.lastIndexOf('.') ? t.replace(/\./g, '').replace(',', '.') : t.replace(/,/g, '');
+    else if (t.includes(',')) t = t.replace(',', '.');
+    else if (/^\d{1,3}(\.\d{3})+$/.test(t)) t = t.replace(/\./g, '');
+    const n = parseFloat(t); return isNaN(n) ? 0 : n;
+  }
   function countdownText(t) { return t === 0 ? 'heute' : t === 1 ? 'morgen' : t > 1 ? 'in ' + t + ' Tagen' : t === -1 ? 'gestern' : 'vor ' + (-t) + ' Tagen'; }
   function aktiv() { return feste.find(f => f.id === aktivId) || null; }
   function navigiere(modul, aktion, text, ziel) { try { parent.postMessage({ type: 'navigiere', modul, aktion: aktion || '', text: text || '', ziel: ziel || '' }, location.origin); } catch (e) {} }
@@ -329,6 +336,8 @@
   function speichernFeste() { speichern(KEY, feste); }
   let speicherTimer = null;
   function spaeterSpeichern() { clearTimeout(speicherTimer); speicherTimer = setTimeout(speichernFeste, 500); }
+  function familienKinder() { const e = laden('kinder_einstellungen', {}) || {}; return Array.isArray(e.kinder) ? e.kinder : []; }
+  function kinderText(n) { return n + (n === 1 ? ' Kind' : ' Kinder'); }
   function istKinderfest(f) { return f.art === 'kindergeburtstag'; }
 
   // Wer kommt? (abgesagte zählen nicht; eingeladene ohne Antwort zählen als „vielleicht“)
@@ -484,7 +493,7 @@
     const f = {
       id: neueId('fe'), art: neuArt, titel: $('nTitel').value.trim() || a.name, datum: $('nDatum').value, von: a.von, bis: a.bis, ort: '',
       fuer: $('nFuer').value, alter: Number($('nAlter').value) || null, motto: a.kinder ? neuMotto : '', notiz: '', erstellt: heuteISO(),
-      eigeneKinder: a.kinder ? 1 : 0, eigeneErw: a.kinder ? 2 : Math.max(1, personen().length),
+      eigeneKinder: a.kinder ? Math.max(1, familienKinder().length) : 0, eigeneErw: a.kinder ? 2 : Math.max(1, personen().length),
       gaeste: [], ablauf: a.ablauf.map(x => ({ id: neueId('a'), zeit: x[0], dauer: x[1], titel: x[2] })),
       aufgaben: a.aufgaben.map(x => ({ id: neueId('t'), text: x[1], tageVorher: x[0], wer: '', erledigt: false })),
       essen: a.essen.map(x => ({ id: neueId('e'), name: x[0], einheit: x[1], proKind: x[2], proErw: x[3] })),
@@ -711,7 +720,7 @@
           <div class="feld"><label for="eigK">Kinder</label><input type="number" id="eigK" min="0" max="20" class="zahl-input" value="${z.eigeneKinder}"></div>
           <div class="feld"><label for="eigE">Erwachsene</label><input type="number" id="eigE" min="0" max="50" class="zahl-input" value="${z.eigeneErw}"></div>
         </div>
-        <div class="klein">Insgesamt erwartet: <b>${z.gesamtKinder} Kinder</b> und <b>${z.gesamtErw} Erwachsene</b> (Abgesagte nicht mitgezählt). Damit rechnet auch 🍰 Essen.</div>
+        <div class="klein">Insgesamt erwartet: <b>${kinderText(z.gesamtKinder)}</b> und <b>${z.gesamtErw} ${z.gesamtErw === 1 ? 'Erwachsene/r' : 'Erwachsene'}</b> (Abgesagte nicht mitgezählt). Damit rechnet auch 🍰 Essen.</div>
       </div>
       ${kinder || (f.mitgebsel || []).length ? `<div class="karte">
         <h3>🎁 Mitgebsel<span class="rechts">${tueten} ${tueten === 1 ? 'Tüte' : 'Tüten'}</span></h3>
@@ -769,7 +778,7 @@
           const sp = x.spielId ? alleSpiele().find(s => s.id === x.spielId) : null;
           return `<div class="ablauf-zeile${ist ? ' ist-jetzt' : ''}${vorbei ? ' vorbei' : ''}" data-id="${esc(x.id)}">
             <input type="time" data-af="zeit" value="${esc(x.zeit || '')}" aria-label="Uhrzeit">
-            <div><input type="text" class="titel-input" data-af="titel" value="${esc(x.titel || '')}" aria-label="Programmpunkt">
+            <div><textarea rows="1" class="titel-input" data-af="titel" enterkeyhint="done" aria-label="Programmpunkt">${esc(x.titel || '')}</textarea>
               <div class="meta">⏳ <input type="number" min="0" max="600" data-af="dauer" value="${esc(x.dauer ?? '')}" aria-label="Dauer in Minuten"> Min.${ist ? ' · <b style="color:var(--fest)">● jetzt</b>' : ''}${sp ? ' · 🧺 ' + esc(sp.material) : ''}</div>
 </div>
             <div class="knoepfe"><button type="button" class="icon-btn" data-schieben="${esc(x.id)}" title="Diesen und alle späteren Punkte 15 Min. nach hinten schieben">+15</button><button type="button" class="weg-btn" data-weg="${esc(x.id)}" aria-label="Entfernen">✕</button></div>
@@ -779,6 +788,13 @@
       </div>
       ${materialListeHtml(f)}`;
     const box = $('ablaufListe');
+    // Lange Programmpunkte umbrechen statt abschneiden
+    const hoehe = (ta) => { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; };
+    box.querySelectorAll('textarea.titel-input').forEach(ta => {
+      hoehe(ta);
+      ta.addEventListener('input', () => { if (/\n/.test(ta.value)) ta.value = ta.value.replace(/\n+/g, ' '); hoehe(ta); });
+      ta.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); ta.blur(); } });
+    });
     box.querySelectorAll('[data-af]').forEach(inp => inp.addEventListener(inp.type === 'time' ? 'change' : 'input', () => {
       const x = f.ablauf.find(y => y.id === inp.closest('[data-id]').dataset.id);
       x[inp.dataset.af] = inp.dataset.af === 'dauer' ? (inp.value === '' ? '' : Math.max(0, Number(inp.value) || 0)) : inp.value;
@@ -1044,7 +1060,7 @@
     const sp = a.filter(x => x.spielId).map(x => alleSpiele().find(s => s.id === x.spielId)).filter(Boolean);
     const g = (f.gaeste || []).filter(x => x.status !== 'abgesagt');
     drucken(`<h1>${istKinderfest(f) && f.motto ? FD.motto(f.motto).em : FD.art(f.art).em} ${esc(f.titel || 'Fest')}</h1>
-      <p>${esc(datumLang(f.datum))}${f.von ? ', ' + esc(f.von) + (f.bis ? '–' + esc(f.bis) : '') + ' Uhr' : ''}${f.ort ? ' · ' + esc(f.ort) : ''} · ${z.gesamtKinder} Kinder, ${z.gesamtErw} Erwachsene</p>
+      <p>${esc(datumLang(f.datum))}${f.von ? ', ' + esc(f.von) + (f.bis ? '–' + esc(f.bis) : '') + ' Uhr' : ''}${f.ort ? ' · ' + esc(f.ort) : ''} · ${kinderText(z.gesamtKinder)}, ${z.gesamtErw} Erwachsene</p>
       ${a.length ? `<h2>⏱️ Ablauf</h2><table>${a.map(x => `<tr><td style="width:18mm"><b>${esc(x.zeit || '')}</b></td><td>${esc(x.titel || '')}</td><td style="width:20mm">${x.dauer ? esc(x.dauer) + ' Min.' : ''}</td></tr>`).join('')}</table>` : ''}
       ${sp.length ? `<h2>🎲 Spiele &amp; Material</h2><table>${sp.map(s => `<tr><td><b>${s.em} ${esc(s.name)}</b><br>${esc(s.text)}</td><td style="width:55mm">🧺 ${esc(s.material)}</td></tr>`).join('')}</table>` : ''}
       ${g.length ? `<h2>👥 Gäste</h2><table><tr><th>Name</th><th>Allergien</th><th>Bringt/holt ab</th><th>Telefon</th></tr>${g.map(x => `<tr><td>${esc(x.name)}${x.status === 'zugesagt' ? '' : ' (?)'}</td><td>${x.allergien ? '<b>⚠ ' + esc(x.allergien) + '</b>' : ''}</td><td>${esc(x.abholer || '')}</td><td>${esc(x.tel || '')}</td></tr>`).join('')}</table>` : ''}`);
@@ -1061,7 +1077,7 @@
     const allergien = (f.gaeste || []).filter(x => x.status !== 'abgesagt' && x.allergien);
     const rezepte = (laden('kochen_rezepte', []) || []).filter(r => r && r.titel).sort((a, b) => a.titel.localeCompare(b.titel, 'de'));
     $('inhalt').innerHTML = `
-      <div class="karte"><div class="klein">Gerechnet mit <b>${z.gesamtKinder} Kindern</b> und <b>${z.gesamtErw} Erwachsenen</b> (alle, die nicht abgesagt haben, plus eure Familie – unter 👥 Gäste einstellbar).</div></div>
+      <div class="karte"><div class="klein">Gerechnet mit <b>${z.gesamtKinder === 1 ? '1 Kind' : z.gesamtKinder + ' Kindern'}</b> und <b>${z.gesamtErw === 1 ? '1 Erwachsenen' : z.gesamtErw + ' Erwachsenen'}</b> (alle, die nicht abgesagt haben, plus eure Familie – unter 👥 Gäste einstellbar).</div></div>
       ${allergien.length ? `<div class="warn"><b>⚠ Beim Essen beachten:</b> ${allergien.map(x => esc(x.name) + ': ' + esc(x.allergien)).join(' · ')}</div>` : ''}
       <div class="karte">
         <h3>🍰 Essen &amp; Trinken</h3>
@@ -1103,9 +1119,9 @@
     $('inhalt').innerHTML = `
       <div class="karte">
         <h3>✅ Aufgaben<span class="rechts">${offen} offen</span></h3>
-        <div id="aufgabenListe">${mitDatum.map(({ a, datum }) => { const t = datum ? tageBis(datum) : null; const ueberfaellig = !a.erledigt && t !== null && t < 0;
+        <div id="aufgabenListe">${mitDatum.map(({ a, datum }) => { const t = datum ? tageBis(datum) : null; const zuSpaetAngelegt = !a.erledigt && t !== null && t < 0 && f.erstellt && datum < f.erstellt; const ueberfaellig = !a.erledigt && t !== null && t < 0 && !zuSpaetAngelegt;
           return `<div class="zeile${a.erledigt ? ' erledigt' : ''}" data-id="${esc(a.id)}"><input type="checkbox" data-af="erledigt" ${a.erledigt ? 'checked' : ''} aria-label="Erledigt">
-          <div class="haupt"><span>${esc(a.text)}</span><small style="${ueberfaellig ? 'color:var(--rot);font-weight:700' : ''}">${esc(wannText(a.tageVorher))}${datum ? ' · ' + esc(datumKurz(datum)) + (a.erledigt ? '' : ' (' + countdownText(t) + ')') : ''}${a.erledigt && a.erledigtVon ? ' · ✓ ' + esc(personName(a.erledigtVon)) : ''}</small></div>
+          <div class="haupt"><span>${esc(a.text)}</span><small style="${ueberfaellig ? 'color:var(--rot);font-weight:700' : zuSpaetAngelegt ? 'color:var(--terracotta-text,#b5562b);font-weight:700' : ''}">${zuSpaetAngelegt ? '⏩ jetzt erledigen · ' + esc(wannText(a.tageVorher)) : esc(wannText(a.tageVorher)) + (datum ? ' · ' + esc(datumKurz(datum)) + (a.erledigt ? '' : ' (' + countdownText(t) + ')') : '')}${a.erledigt && a.erledigtVon ? ' · ✓ ' + esc(personName(a.erledigtVon)) : ''}</small></div>
           <select data-af="wer" aria-label="Wer?" style="max-width:96px;padding:4px;border:1px solid var(--parchment);border-radius:6px;background:var(--cream);color:var(--soil);font-size:0.74rem"><option value="">👤 Wer?</option>${personenListe.map(p => `<option value="${esc(p.id)}"${p.id === a.wer ? ' selected' : ''}>${esc(p.label)}</option>`).join('')}</select>
           <button type="button" class="weg-btn" data-aweg="${esc(a.id)}" aria-label="Entfernen">✕</button></div>`; }).join('') || '<div class="klein">Keine Aufgaben.</div>'}</div>
         <div class="drei" style="margin-top:8px;grid-template-columns:1fr 140px auto"><input type="text" class="eingabe" id="auNeu" placeholder="＋ Aufgabe" enterkeyhint="done"><select class="eingabe" id="auWann">${WANN.map(([w, t]) => `<option value="${w}"${w === 3 ? ' selected' : ''}>${t}</option>`).join('')}</select><button type="button" class="btn btn-secondary btn-klein" id="btnAuNeu">＋</button></div>

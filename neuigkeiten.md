@@ -1,6 +1,12 @@
 # Neuigkeiten im Familienplaner
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 
+## 2026-11-13 | Feste: Ablauf lesbar, Geschwister mitgezählt
+- Ablauf: Lange Programmpunkte („Kuchen & Kerzen auspusten“) brechen jetzt in eine zweite Zeile um, statt abgeschnitten zu werden.
+- Neuer Kindergeburtstag: Bei „Von uns dabei“ werden alle Kinder aus der Kinderecke vorgeschlagen, also auch die Geschwister. „1 Kindern“ heißt jetzt richtig „1 Kind“.
+- Aufgaben, deren Termin beim Anlegen des Fests schon vorbei war, erscheinen als „⏩ jetzt erledigen“ in Orange statt rot als überfällig.
+- Budget: Beträge mit Tausenderpunkt („1.200“) werden richtig gelesen.
+
 ## 2026-11-13 | Ausflüge: kürzeres Formular, Packliste von der Karte
 - Hin- und Rückfahrt, Route und Karten-Link stecken jetzt im aufklappbaren Bereich „🚗 Fahrt & Route“. Er ist automatisch offen, wenn schon etwas eingetragen ist. Das Formular ist dadurch etwa ein Drittel kürzer.
 - Packliste: Ein Tipp auf „🎒 1 / 2 gepackt“ auf der Karte öffnet ein kleines Fenster zum Abhaken. Es wird sofort gespeichert.
