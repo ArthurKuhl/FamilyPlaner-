@@ -717,6 +717,21 @@
   .ebenen-menu .em-titel { font-weight: 700; font-size: 0.82rem; margin-bottom: 6px; }
   .ebenen-menu .em-zeile { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; padding: 5px 0; cursor: pointer; }
   .ebenen-menu .em-zeile input { width: 18px; height: 18px; accent-color: var(--moss); margin: 0; flex: 0 0 auto; }
+  #gartenZoomWidget > * { flex-shrink: 0; }
+  #gartenZoomWidget { scrollbar-width: none; }
+  .blueh-leiste .bl-arten { display: inline-flex; background: rgba(127,164,118,0.15); border-radius: 999px; padding: 2px; }
+  .blueh-leiste .bl-arten button { border: none; background: none; color: var(--soil); font: inherit; font-size: 0.74rem; font-weight: 700; padding: 3px 9px; border-radius: 999px; cursor: pointer; }
+  .blueh-leiste .bl-arten button.an { background: var(--white); box-shadow: 0 1px 4px rgba(0,0,0,0.18); }
+  .blueh-leiste.ernte .bl-balken { background: linear-gradient(#f0a020, #c46b41); }
+  .blueh-leiste.ernte .bl-m.aktiv { border-color: #d98a2b; background: rgba(240,160,32,0.14); }
+  .blueh-leiste input[type=range] { width: 100%; accent-color: var(--moss); margin: 4px 0 0; }
+  .blueh-leiste .zeit-skala { display: flex; justify-content: space-between; font-size: 0.6rem; color: var(--bark); }
+  .zeit-warn { color: var(--terracotta-text, #a8532e); }
+  .gift-hinweis { font-size: 0.76rem; padding: 9px 12px; border-radius: 9px; background: #fdf0e3; border-left: 4px solid #e67e22; color: #2c2415; margin-bottom: 8px; line-height: 1.4; }
+  .gift-hinweis.stark { background: #fbe6e3; border-left-color: #c0392b; }
+  .beob-ort { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .beob-ort .beob-ort-text { flex: 1 1 140px; font-size: 0.78rem; color: var(--bark); }
+  .beob-ort .btn-secondary { width: auto; padding: 6px 10px; font-size: 0.74rem; margin: 0; }
   .blueh-leiste { position: fixed; z-index: 88; background: var(--white); color: var(--soil); border: 1px solid var(--parchment); border-radius: 14px; box-shadow: 0 6px 20px rgba(0,0,0,0.25); padding: 8px 10px 10px; }
   .blueh-leiste .bl-kopf { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; margin-bottom: 6px; }
   .blueh-leiste .bl-monat { flex: 1; color: var(--terracotta-text, #a8532e); font-weight: 700; }
@@ -1069,7 +1084,10 @@
           <span id="nordWidgetPfeil" style="display:flex;flex-direction:column;align-items:center;transition:transform .3s;opacity:.45"><span style="font-size:0.55rem;font-weight:700;line-height:1">N</span><span style="font-size:0.95rem;line-height:1;color:#e05a4a">▲</span></span>
         </button>
         <button type="button" id="messBtn" class="widget-knopf" onclick="messenUmschalten()" title="Abstand messen" aria-label="Maßband">📏</button>
-        <button type="button" id="bluehBtn" class="widget-knopf" onclick="bluehUmschalten()" title="Blüh-Kalender: was blüht wann?" aria-label="Blüh-Zeitleiste">🌸</button>
+        <button type="button" id="bluehBtn" class="widget-knopf" onclick="bluehUmschalten()" title="Blüh- &amp; Ernte-Kalender" aria-label="Blüh- und Ernte-Kalender">🌸</button>
+        <button type="button" id="giessBtn" class="widget-knopf" onclick="giessRundeUmschalten()" title="Gießrunde: was muss heute gegossen werden?" aria-label="Gießrunde">💧</button>
+        <button type="button" id="zeitBtn" class="widget-knopf" onclick="zeitreiseUmschalten()" title="Zeitreise: wie groß werden die Bäume?" aria-label="Zeitreise">⏳</button>
+        <button type="button" id="tierBtn" class="widget-knopf" onclick="tierAufKarteStarten()" title="Tier, Nistkasten oder Winterquartier eintragen" aria-label="Tier auf der Karte eintragen">🐾</button>
         <button type="button" id="ebenenBtn" class="widget-knopf" onclick="ebenenMenuUmschalten(event)" title="Ebenen ein-/ausblenden" aria-label="Ebenen">🗂️</button>
       </div>
       <div id="ebenenMenu" class="ebenen-menu" style="display:none" onclick="event.stopPropagation()">
@@ -1078,9 +1096,15 @@
         <button type="button" class="btn-secondary" style="width:100%;margin-top:6px;font-size:0.72rem;padding:5px" onclick="ebenenAlleAn()">Alle einblenden</button>
       </div>
       <div id="bluehLeiste" class="blueh-leiste" style="display:none">
-        <div class="bl-kopf"><b>🌸 Blüh-Kalender</b><span id="bluehMonatName" class="bl-monat"></span><button type="button" class="bl-zu" onclick="bluehModusAus()" aria-label="Schließen">✕</button></div>
+        <div class="bl-kopf"><span class="bl-arten"><button type="button" id="kalArtBlueh" onclick="kalArtSetzen('blueh')">🌸 Blüte</button><button type="button" id="kalArtErnte" onclick="kalArtSetzen('ernte')">🧺 Ernte</button></span><span id="bluehMonatName" class="bl-monat"></span><button type="button" class="bl-zu" onclick="bluehModusAus()" aria-label="Schließen">✕</button></div>
         <div class="bl-monate" id="bluehMonate"></div>
         <div class="bl-text" id="bluehText"></div>
+      </div>
+      <div id="zeitLeiste" class="blueh-leiste" style="display:none">
+        <div class="bl-kopf"><b>⏳ Zeitreise</b><span id="zeitName" class="bl-monat"></span><button type="button" class="bl-zu" onclick="zeitreiseAus()" aria-label="Schließen">✕</button></div>
+        <input type="range" id="zeitRegler" min="0" max="20" step="1" value="5" oninput="zeitreiseSetzen(+this.value)" aria-label="Jahre in die Zukunft">
+        <div class="zeit-skala"><span>heute</span><span>5</span><span>10</span><span>15</span><span>20 Jahre</span></div>
+        <div class="bl-text" id="zeitText"></div>
       </div>
       <div id="plantTooltip" style="position:absolute;display:none;pointer-events:none;background:var(--soil);color:#fff;font-size:0.72rem;padding:4px 8px;border-radius:6px;z-index:80;white-space:nowrap;box-shadow:0 3px 10px rgba(0,0,0,0.3)"></div>
       <div id="freehandControls" style="position:absolute;bottom:14px;left:50%;transform:translateX(-50%);display:none;align-items:center;gap:8px;z-index:90;background:rgba(58,46,31,0.94);padding:8px 12px;border-radius:12px;box-shadow:0 3px 12px rgba(0,0,0,0.35)">
@@ -1536,6 +1560,10 @@
     <div class="form-row">
       <label>📷 Fotos (optional)</label>
       <div class="beob-foto-reihe" id="beobFotos"></div>
+    </div>
+    <div class="form-row">
+      <label>📍 Ort im Garten (optional)</label>
+      <div class="beob-ort" id="beobOrt"></div>
     </div>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="beobSchliessen()">Abbrechen</button>
@@ -3212,11 +3240,12 @@ function renderBedingungenHint(plantName, targetId) {
   if (!box) return;
   const b = pflanzenBedingungenFinden(plantName);
   const lexLink = (plantName || '').trim() ? '<button type="button" class="lex-panel-link" onclick="lexikonOeffnen(' + jsAttrStr(plantName.trim()).replace(/"/g, '&quot;') + ')">📖 Alles über ' + escapeHtml(plantName.trim()) + ' ›</button>' : '';
-  if (!b) { box.innerHTML = lexLink; box.style.display = lexLink ? 'block' : 'none'; return; }
+  const gift = giftHinweisHtml(plantName);
+  if (!b) { box.innerHTML = gift + lexLink; box.style.display = gift || lexLink ? 'block' : 'none'; return; }
   const [licht, wasser, naehr, boden, klima, vorbeugen] = b;
   const chip = (arr) => arr ? '<span class="bed-chip">' + arr[0] + ' ' + arr[1] + '</span>' : '';
   const plantDef = (typeof PLANTS !== 'undefined') ? PLANTS.find(p => p.name === plantName) : null;
-  box.innerHTML = '<div class="bedingungen-box">' +
+  box.innerHTML = gift + '<div class="bedingungen-box">' +
     '<div class="bedingungen-titel">🌱 Bevorzugt</div>' +
     '<div class="bed-chips">' + chip(BED_LICHT[licht]) + chip(BED_WASSER[wasser]) + chip(BED_NAEHR[naehr]) +
       (plantDef && plantDef.frostTender ? '<span class="bed-chip">❄️ Frostempfindlich</span>' : '') + '</div>' +
@@ -4121,7 +4150,7 @@ function giessFaelligkeit(plant, intervall, alter) {
 function giessTagebuchBeimAbhaken(id, jetztErledigt) {
   if (!/_water$/.test(id)) return;
   const t = careIdTeile(id);
-  const bed = getCurrentBeds().find(b => b.id === t.bedId);
+  const bed = getCurrentBeds().find(b => String(b.id) === t.bedId);
   const plant = bed && bed.plants && bed.plants[t.idx];
   if (!plant) return;
   const state = getCareDoneState();
@@ -6707,6 +6736,9 @@ function positioniereZoomWidget() {
   widget.style.display = 'flex';
   widget.style.top = Math.round(rect.top + 12) + 'px';
   widget.style.left = Math.round(rect.left + 12) + 'px';
+  const frei = Math.min(rect.bottom, window.innerHeight) - Math.max(rect.top, 0) - 24;
+  widget.style.maxHeight = Math.max(120, frei) + 'px';
+  widget.style.overflowY = 'auto';
 }
 window.addEventListener('resize', positioniereZoomWidget);
 window.addEventListener('orientationchange', () => setTimeout(positioniereZoomWidget, 200));
@@ -6773,6 +6805,9 @@ function draw() {
   zeichneSymbolBuendel();
   zeichneTuffFormVorschau();
   zeichneMessung();
+  zeichneGiftMarker();
+  zeichneTierMarker();
+  zeichneGiessRunde();
   if (freehandDrawing && freehandPoints.length) {
     ctx.save();
     ctx.strokeStyle = '#4f6f45'; ctx.lineWidth = 2; ctx.setLineDash([5,4]);
@@ -6932,7 +6967,7 @@ function zeichneSymbolBuendel() {
   const z = zoomFaktor();
   symbolBuendel.forEach(b => {
     const R = 17 / z;
-    const bluehend = bluehMonat ? b.items.find(m => bluehtIm(m.p.name, bluehMonat)) : null;
+    const bluehend = bluehMonat ? b.items.find(m => kalTrifft(m.p.name, bluehMonat)) : null;
     if (bluehend) bluehHalo(b.x, b.y, R, bluehend.p.name);
     ctx.save();
     if (bluehMonat && !bluehend) ctx.globalAlpha = 0.35;
@@ -7014,13 +7049,16 @@ function gruppeHinweisZeigen(p, pre) {
 const EBENEN = [
   ['hintergrund', '🗺️', 'Luftbild / Hintergrund'], ['strukturen', '🏠', 'Strukturen (Haus, Wege, Zaun …)'], ['beete', '🟫', 'Beete'],
   ['pflanzen', '🌱', 'Pflanzen'], ['kronen', '🌳', 'Kronenkreise der Bäume'], ['beschriftung', '🏷️', 'Beschriftungen'],
+  ['tiere', '🐾', 'Tiere & Nistplätze'], ['giftig', '⚠️', 'Giftig für Kinder markieren'],
 ];
+const EBENEN_STANDARD_AUS = ['giftig']; // diese Ebenen sind erst nach dem Einschalten sichtbar
 let ebenenAus = {};
 try { ebenenAus = JSON.parse(localStorage.getItem('garten_ebenen') || '{}') || {}; } catch (e) { ebenenAus = {}; }
-function ebene(k) { return !ebenenAus[k]; }
+function ebene(k) { return EBENEN_STANDARD_AUS.includes(k) ? ebenenAus[k] === false : !ebenenAus[k]; }
 function bettSichtbar(bed) { return ebene(bed.kind === 'struktur' ? 'strukturen' : 'beete'); }
 function ebeneUmschalten(k, an) {
-  if (an) delete ebenenAus[k]; else ebenenAus[k] = true;
+  if (EBENEN_STANDARD_AUS.includes(k)) { if (an) ebenenAus[k] = false; else delete ebenenAus[k]; }
+  else if (an) delete ebenenAus[k]; else ebenenAus[k] = true;
   try { localStorage.setItem('garten_ebenen', JSON.stringify(ebenenAus)); } catch (e) {}
   ebenenMenuRendern(); draw();
 }
@@ -7029,7 +7067,7 @@ function ebenenMenuRendern() {
   if (m) m.querySelector('.em-liste').innerHTML = EBENEN.map(([k, ic, txt]) =>
     `<label class="em-zeile"><input type="checkbox" ${ebene(k) ? 'checked' : ''} onchange="ebeneUmschalten('${k}', this.checked)"><span>${ic}</span><span>${txt}</span></label>`).join('');
   const btn = document.getElementById('ebenenBtn');
-  if (btn) btn.classList.toggle('widget-hinweis', Object.keys(ebenenAus).length > 0);
+  if (btn) btn.classList.toggle('widget-hinweis', Object.values(ebenenAus).some(v => v === true));
 }
 function ebenenMenuUmschalten(ev) {
   if (ev) ev.stopPropagation();
@@ -7045,7 +7083,7 @@ document.addEventListener('click', e => {
   const m = document.getElementById('ebenenMenu');
   if (m && m.style.display === 'block' && !m.contains(e.target) && e.target.id !== 'ebenenBtn') m.style.display = 'none';
 });
-function ebenenAlleAn() { ebenenAus = {}; try { localStorage.removeItem('garten_ebenen'); } catch (e) {} ebenenMenuRendern(); draw(); }
+function ebenenAlleAn() { ebenenAus = {}; EBENEN_STANDARD_AUS.forEach(k => { ebenenAus[k] = false; }); try { localStorage.setItem('garten_ebenen', JSON.stringify(ebenenAus)); } catch (e) {} ebenenMenuRendern(); draw(); }
 
 // Trifft (x, y) diese Pflanze? Berücksichtigt Ebenen, Gruppengröße und eigene Tuff-Formen.
 function pflanzeTrifft(p, bed, x, y) {
@@ -7308,12 +7346,13 @@ function bluehtIm(name, m) {
   return b[0] <= b[1] ? (m >= b[0] && m <= b[1]) : (m >= b[0] || m <= b[1]);
 }
 function bluehFarbe(name) {
+  if (kalArt === 'ernte') return '#f08c28';
   const n = (name || '').trim(), si = typeof STAUDEN_INFO !== 'undefined' && STAUDEN_INFO[n];
   const f = (si && si.farbe) || (typeof BLUEH_FARBEN !== 'undefined' && BLUEH_FARBEN[n]) || '#e86aa0';
   return /^#[0-9a-f]{6}$/i.test(f) ? f : '#e86aa0';
 }
 // null = Zeitleiste aus; true/false = blüht im gewählten Monat
-function bluehStatus(name) { return bluehMonat ? bluehtIm(name, bluehMonat) : null; }
+function bluehStatus(name) { return bluehMonat ? kalTrifft(name, bluehMonat) : null; }
 function bluehHalo(cx, cy, r, name) {
   const z = zoomFaktor(), R = Math.max(r * 1.7, 16 / z), f = bluehFarbe(name);
   const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, R);
@@ -7331,8 +7370,10 @@ function gartenPflanzenListe() {
 }
 function bluehUmschalten() {
   if (bluehMonat) { bluehModusAus(); return; }
+  if (zeitreiseJahre !== null) zeitreiseAus();
+  if (mode === 'giessen') setMode('select');
   bluehMonat = new Date().getMonth() + 1;
-  if (bluehMonat < 2 || bluehMonat > 10) bluehMonat = 3; // im Winter mit dem Frühling starten
+  if (kalArt === 'blueh' && (bluehMonat < 2 || bluehMonat > 10)) bluehMonat = 3; // im Winter mit dem Frühling starten
   document.getElementById('bluehLeiste').style.display = 'block';
   document.getElementById('bluehBtn')?.classList.add('widget-aktiv');
   bluehLeisteRendern(); positioniereZoomWidget(); draw();
@@ -7347,28 +7388,33 @@ function bluehMonatSetzen(m) { bluehMonat = m; bluehLeisteRendern(); draw(); }
 function bluehLeisteRendern() {
   const pflanzen = gartenPflanzenListe();
   const stueck = p => parseInt(p.anzahl, 10) || 1;
-  const proMonat = BLUEH_MONATE.map((_, i) => pflanzen.filter(p => bluehtIm(p.name, i + 1)).reduce((s, p) => s + stueck(p), 0));
+  const ernte = kalArt === 'ernte', wort = ernte ? 'erntereife' : 'blühende';
+  const proMonat = BLUEH_MONATE.map((_, i) => pflanzen.filter(p => kalTrifft(p.name, i + 1)).reduce((s, p) => s + stueck(p), 0));
   const max = Math.max(1, ...proMonat);
   document.getElementById('bluehMonate').innerHTML = BLUEH_MONATE.map((k, i) => {
-    const n = proMonat[i], leer = !n && i >= 1 && i <= 9;
-    return `<button type="button" class="bl-m${bluehMonat === i + 1 ? ' aktiv' : ''}${leer ? ' leer' : ''}" onclick="bluehMonatSetzen(${i + 1})" title="${BLUEH_MONATE_LANG[i]}: ${n} blühende Pflanzen"><span class="bl-saeule"><span class="bl-balken" style="height:${Math.round(n / max * 100)}%"></span></span><span class="bl-k">${k}</span></button>`;
+    const n = proMonat[i], leer = !n && (ernte ? i >= 5 && i <= 9 : i >= 1 && i <= 9);
+    return `<button type="button" class="bl-m${bluehMonat === i + 1 ? ' aktiv' : ''}${leer ? ' leer' : ''}" onclick="bluehMonatSetzen(${i + 1})" title="${BLUEH_MONATE_LANG[i]}: ${n} ${wort} Pflanzen"><span class="bl-saeule"><span class="bl-balken" style="height:${Math.round(n / max * 100)}%"></span></span><span class="bl-k">${k}</span></button>`;
   }).join('');
   document.getElementById('bluehMonatName').textContent = BLUEH_MONATE_LANG[bluehMonat - 1];
+  document.getElementById('bluehLeiste').classList.toggle('ernte', ernte);
+  document.getElementById('kalArtBlueh').classList.toggle('an', !ernte);
+  document.getElementById('kalArtErnte').classList.toggle('an', ernte);
   const bluehend = {};
-  pflanzen.filter(p => bluehtIm(p.name, bluehMonat)).forEach(p => { const n = (p.name || '').trim(); bluehend[n] = (bluehend[n] || 0) + stueck(p); });
+  pflanzen.filter(p => kalTrifft(p.name, bluehMonat)).forEach(p => { const n = (p.name || '').trim(); bluehend[n] = (bluehend[n] || 0) + stueck(p); });
   const namen = Object.keys(bluehend);
   let html = namen.length
-    ? '<b>Blüht:</b> ' + namen.map(n => escapeHtml(n) + (bluehend[n] > 1 ? ' <span class="bl-n">×' + bluehend[n] + '</span>' : '')).join(', ')
-    : '<b>Hier blüht noch nichts.</b>';
-  if (namen.length < 2 && bluehMonat >= 2 && bluehMonat <= 10 && typeof STAUDEN !== 'undefined') {
+    ? (ernte ? '<b>Erntereif:</b> ' : '<b>Blüht:</b> ') + namen.map(n => escapeHtml(n) + (bluehend[n] > 1 ? ' <span class="bl-n">×' + bluehend[n] + '</span>' : '')).join(', ')
+    : (ernte ? '<b>In diesem Monat gibt es nichts zu ernten.</b>' : '<b>Hier blüht noch nichts.</b>');
+  if (!ernte && namen.length < 2 && bluehMonat >= 2 && bluehMonat <= 10 && typeof STAUDEN !== 'undefined') {
     const vorhanden = new Set(pflanzen.map(p => (p.name || '').trim()));
     const ideen = STAUDEN.filter(s => s.heimisch && bluehtIm(s.name, bluehMonat) && !vorhanden.has(s.name)).slice(0, 4).map(s => s.sym + ' ' + s.name);
     if (ideen.length) html += '<br><span class="bl-idee">💡 Lücke für Bienen & Hummeln – passt z. B.: ' + escapeHtml(ideen.join(', ')) + '</span>';
   }
   document.getElementById('bluehText').innerHTML = html;
 }
-function bluehLeistePositionieren() {
-  const el = document.getElementById('bluehLeiste');
+function bluehLeistePositionieren() { ['bluehLeiste', 'zeitLeiste'].forEach(leistePositionieren); }
+function leistePositionieren(id) {
+  const el = document.getElementById(id);
   if (!el || el.style.display === 'none') return;
   const sichtbar = document.getElementById('view-garden')?.classList.contains('active');
   if (!sichtbar) { el.style.visibility = 'hidden'; return; }
@@ -7406,6 +7452,407 @@ function pflanzenZaehlen() {
   return { stueck, zwiebeln };
 }
 
+// ==================== KALENDER-ART: BLÜTE ODER ERNTE ====================
+let kalArt = 'blueh';
+const kalSchluesselCache = new Map();
+function erntetIm(name, m) {
+  const n = (name || '').trim();
+  if (!n || typeof HARVEST_WINDOW === 'undefined') return false;
+  if (!kalSchluesselCache.has(n)) kalSchluesselCache.set(n, pflanzenSchluesselFinden(n, HARVEST_WINDOW));
+  const k = kalSchluesselCache.get(n);
+  return k ? isInHarvestWindow(HARVEST_WINDOW[k], m) : false;
+}
+function kalTrifft(name, m) { return kalArt === 'ernte' ? erntetIm(name, m) : bluehtIm(name, m); }
+function kalArtSetzen(art) {
+  kalArt = art;
+  if (art === 'ernte' && bluehMonat) bluehMonat = new Date().getMonth() + 1;
+  bluehLeisteRendern(); draw();
+}
+
+// ==================== KINDERSICHER: GIFTIGE PFLANZEN ====================
+// stufe 2 = sehr giftig, 1 = giftig/reizend. Bewusst vorsichtig formuliert – Richtwerte, keine Vollständigkeit.
+const GIFTIG_KINDER = [
+  [/eibe|taxus/, 2, 'Fast alle Teile sehr giftig, auch die Samen im roten Fruchtfleisch'],
+  [/goldregen/, 2, 'Samen und Hülsen sehr giftig – sehen aus wie Erbsenschoten'],
+  [/eisenhut/, 2, 'Eine der giftigsten heimischen Pflanzen – schon Hautkontakt kann reizen'],
+  [/fingerhut|digitalis/, 2, 'Alle Teile sehr giftig (Herzgift)'],
+  [/herbstzeitlose/, 2, 'Alle Teile sehr giftig'],
+  [/seidelbast/, 2, 'Rote Beeren sehr giftig'],
+  [/oleander/, 2, 'Alle Teile sehr giftig'],
+  [/engelstrompete|brugmansia|stechapfel|tollkirsche/, 2, 'Alle Teile sehr giftig'],
+  [/rizinus|wunderbaum/, 2, 'Samen sehr giftig'],
+  [/maiglöckchen/, 2, 'Alle Teile giftig, besonders die roten Beeren'],
+  [/pfaffenhütchen|euonymus/, 2, 'Bunte Früchte sehr giftig'],
+  [/thuja|lebensbaum/, 2, 'Zweige und Zapfen giftig'],
+  [/aronstab/, 2, 'Rote Beeren giftig, Saft reizt'],
+  [/riesen-?bärenklau|herkulesstaude/, 2, 'Saft + Sonne = schwere Hautverbrennungen'],
+  [/kirschlorbeer/, 1, 'Blätter und Kerne giftig'],
+  [/liguster/, 1, 'Schwarze Beeren giftig'],
+  [/efeu/, 1, 'Beeren und Blätter giftig'],
+  [/buchs/, 1, 'Alle Teile giftig'],
+  [/rhododendron|azalee/, 1, 'Blätter und Blüten giftig'],
+  [/stechpalme|ilex/, 1, 'Rote Beeren giftig'],
+  [/blauregen|wisteria/, 1, 'Samen und Hülsen giftig'],
+  [/lupine/, 1, 'Samen giftig (Zierlupinen)'],
+  [/akelei/, 1, 'Alle Teile giftig'],
+  [/rittersporn/, 1, 'Alle Teile giftig'],
+  [/christrose|nieswurz|helleborus|lenzrose/, 1, 'Alle Teile giftig'],
+  [/schwertlilie|iris/, 1, 'Wurzelstock und Samen giftig'],
+  [/narzisse|osterglocke/, 1, 'Zwiebeln und Blätter giftig – Zwiebeln nicht mit Küchenzwiebeln verwechseln'],
+  [/hyazinthe/, 1, 'Zwiebeln giftig, Saft reizt die Haut'],
+  [/tulpe/, 1, 'Zwiebeln leicht giftig, Saft kann die Haut reizen'],
+  [/schneeglöckchen|märzenbecher|kaiserkrone/, 1, 'Zwiebeln giftig'],
+  [/wolfsmilch|euphorbia/, 1, 'Milchsaft reizt Haut und Augen'],
+  [/tränendes herz/, 1, 'Alle Teile giftig'],
+  [/pfingstrose/, 1, 'Leicht giftig, vor allem Samen'],
+  [/hortensie/, 1, 'Leicht giftig'],
+  [/schneebeere|knallerbse/, 1, 'Weiße Beeren leicht giftig'],
+  [/waldrebe|clematis|anemone|windröschen|küchenschelle|trollblume|hahnenfuß|sumpfdotter/, 1, 'Saft reizt Haut und Schleimhäute'],
+  [/^(busch|stangen|feuer|dicke |puff)?bohnen?$|^bohnen$/, 1, 'Rohe Bohnen und Samen giftig – nur gekocht essen'],
+  [/kartoffel/, 1, 'Grüne Knollen, Keime, Blätter und Beeren giftig'],
+  [/^tomate|^tomatillo/, 1, 'Blätter und unreife grüne Früchte leicht giftig'],
+  [/aubergine/, 1, 'Blätter und rohe unreife Früchte leicht giftig'],
+  [/physalis|andenbeere/, 1, 'Nur reife Früchte essbar, Blätter und grüne Beeren giftig'],
+  [/holunder/, 1, 'Rohe, unreife Beeren und Blätter giftig – nur gekocht essen'],
+  [/eberesche|vogelbeere/, 1, 'Rohe Beeren in größeren Mengen unverträglich'],
+];
+const giftCache = new Map();
+function giftInfo(name) {
+  const n = (name || '').trim().toLowerCase();
+  if (!n) return null;
+  if (giftCache.has(n)) return giftCache.get(n);
+  const t = GIFTIG_KINDER.find(([re]) => re.test(n));
+  const info = t ? { stufe: t[1], text: t[2] } : null;
+  giftCache.set(n, info);
+  return info;
+}
+function giftHinweisHtml(name) {
+  const g = giftInfo(name);
+  if (!g) return '';
+  return `<div class="gift-hinweis${g.stufe === 2 ? ' stark' : ''}">⚠️ <b>${g.stufe === 2 ? 'Sehr giftig' : 'Giftig'} für Kinder:</b> ${escapeHtml(g.text)}</div>`;
+}
+// Positionen aller sichtbaren Pflanzen in Garten-Koordinaten
+function pflanzenPositionen() {
+  const out = [];
+  if (!ebene('pflanzen')) return out;
+  getCurrentBeds().forEach(bed => {
+    if (!bettSichtbar(bed)) return;
+    const rot = bed.rotation || 0;
+    (bed.plants || []).forEach((p, idx) => out.push({ p, bed, idx, x: bed.x + rotX(p.rx, p.ry, rot), y: bed.y + rotY(p.rx, p.ry, rot), r: symbolRadius(p, false) }));
+  });
+  getCurrentFreiPflanzen().forEach(fp => out.push({ p: fp, bed: null, x: fp.x, y: fp.y, r: symbolRadius(fp, true) }));
+  return out;
+}
+function zeichneGiftMarker() {
+  if (!ebene('giftig')) return;
+  const z = zoomFaktor();
+  ctx.save();
+  pflanzenPositionen().forEach(e => {
+    const g = giftInfo(e.p.name);
+    if (!g) return;
+    const r = Math.min(e.r, 80) + 3 / z;
+    ctx.beginPath(); ctx.arc(e.x, e.y, r, 0, Math.PI * 2);
+    if (g.stufe === 1) ctx.setLineDash([5 / z, 4 / z]);
+    ctx.lineWidth = (g.stufe === 2 ? 3 : 2) / z; ctx.strokeStyle = g.stufe === 2 ? '#c0392b' : '#e67e22'; ctx.stroke(); ctx.setLineDash([]);
+    const bx = e.x + r * 0.72, by = e.y - r * 0.72, br = 8 / z;
+    ctx.beginPath(); ctx.arc(bx, by, br, 0, Math.PI * 2); ctx.fillStyle = g.stufe === 2 ? '#c0392b' : '#e67e22'; ctx.fill();
+    ctx.font = (10 / z) + 'px ' + EMOJI_FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#fff';
+    ctx.fillText('!', bx, by + 0.5 / z);
+  });
+  ctx.restore();
+}
+
+// ==================== KRONEN: WACHSTUM & ZEITREISE ====================
+let zeitreiseJahre = null; // null = aus, sonst 0…20
+function istBaumartig(fp, info) {
+  return info.quelle === 'saeule' || (info.d || 0) >= 300 || ['🌳', '🌲', '🌴'].includes(fp.sym) || /baum|walnuss|linde|eiche|buche|ahorn|birke/i.test(fp.name || '');
+}
+// Liefert die Kronen-Durchmesser (wie gezeichnet): jetzt bzw. in „plus“ Jahren, und ausgewachsen.
+function kronenWachstum(fp, plus) {
+  const info = kronenDurchmesser(fp);
+  if (!info.zeigen) return null;
+  const auto = info.eigen ? kronenDurchmesser(Object.assign({}, fp, { kroneD: 0 })) : info;
+  const autoEnd = auto.zeigen ? auto.d * 0.85 : 0;
+  const end = info.eigen ? Math.max(info.d, autoEnd) : info.d * 0.85;
+  const J = info.quelle === 'saeule' || auto.quelle === 'saeule' ? 5 : end >= 600 ? 15 : end >= 300 ? 10 : 5;
+  const f = a => Math.min(1, 0.2 + 0.8 * Math.max(0, a) / J);
+  let alter = null;
+  if (fp.datum) { const d = new Date(fp.datum + 'T00:00:00'); if (!isNaN(d.getTime())) alter = Math.max(0, (Date.now() - d.getTime()) / (365.25 * 86400000)); }
+  let jetzt, rest;
+  if (info.eigen) {
+    jetzt = info.d;
+    const a0 = alter != null ? alter : J * Math.max(0, (jetzt / end - 0.2) / 0.8);
+    rest = Math.max(2, J - a0);
+  } else if (alter == null) { jetzt = end; rest = 1; }
+  else { jetzt = end * f(alter); rest = Math.max(1, J - alter); }
+  const t = plus || 0;
+  const d = jetzt >= end ? jetzt : jetzt + (end - jetzt) * Math.min(1, t / rest);
+  return { d, jetzt, end, wachsend: jetzt < end * 0.95, ohneDatum: alter == null && !info.eigen, info };
+}
+function zeitreiseUmschalten() {
+  if (zeitreiseJahre !== null) { zeitreiseAus(); return; }
+  if (bluehMonat) bluehModusAus();
+  zeitreiseJahre = 5;
+  document.getElementById('zeitLeiste').style.display = 'block';
+  document.getElementById('zeitBtn')?.classList.add('widget-aktiv');
+  document.getElementById('zeitRegler').value = 5;
+  zeitLeisteRendern(); positioniereZoomWidget(); draw();
+}
+function zeitreiseAus() {
+  zeitreiseJahre = null;
+  document.getElementById('zeitLeiste').style.display = 'none';
+  document.getElementById('zeitBtn')?.classList.remove('widget-aktiv');
+  draw();
+}
+function zeitreiseSetzen(j) { zeitreiseJahre = j; zeitLeisteRendern(); draw(); }
+function zeitLeisteRendern() {
+  const j = zeitreiseJahre || 0, jahr = new Date().getFullYear() + j;
+  document.getElementById('zeitName').textContent = j === 0 ? 'Heute' : `in ${j} Jahr${j > 1 ? 'en' : ''} (${jahr})`;
+  const zeilen = [], ohne = [], konflikte = [];
+  getCurrentFreiPflanzen().forEach(fp => {
+    const w = kronenWachstum(fp, j);
+    if (!w || istGruppe(fp)) return;
+    if (w.ohneDatum) ohne.push(fp.name || 'Baum');
+    else if (w.wachsend) zeilen.push(`${fp.sym || '🌳'} ${escapeHtml(fp.name || 'Baum')}: ${messText(w.jetzt)} → <b>${messText(w.d)}</b>`);
+    kronenKonflikte(fp, j).forEach(k => konflikte.push(`${fp.sym || '🌳'} ${escapeHtml(k.text)}`));
+  });
+  let html = zeilen.length ? zeilen.join(' · ') : (ohne.length ? '' : 'Keine wachsenden Bäume gefunden.');
+  if (konflikte.length) html += `<br><span class="zeit-warn">⚠️ ${[...new Set(konflikte)].slice(0, 3).join('<br>⚠️ ')}</span>`;
+  if (ohne.length) html += `<br><span class="bl-n">${ohne.length} × ohne Pflanzdatum (${escapeHtml([...new Set(ohne)].slice(0, 3).join(', '))}) – wird ausgewachsen gezeigt. Datum im Pflanzen-Info eintragen.</span>`;
+  document.getElementById('zeitText').innerHTML = html;
+}
+
+// ==================== ABSTANDS-WARNUNG ====================
+// Richtwerte innerorts nach dem Nachbarrechtsgesetz Baden-Württemberg (vereinfacht).
+function grenzRichtwert(fp, info, end) {
+  if (info.quelle === 'saeule' || end <= 300) return 100;
+  if (end <= 800) return 150;
+  return 600;
+}
+function abstandPunktRechteck(px, py, b) {
+  const a = -(b.rotation || 0) * Math.PI / 180, c = Math.cos(a), s = Math.sin(a);
+  const ox = (px - b.x) * c - (py - b.y) * s, oy = (px - b.x) * s + (py - b.y) * c;
+  const dx = Math.max(0, Math.abs(ox) - (b.w || 100) / 2), dy = Math.max(0, Math.abs(oy) - (b.h || 100) / 2);
+  return Math.hypot(dx, dy);
+}
+// plus = null → ausgewachsene Krone („später“), sonst Krone in „plus“ Jahren
+function kronenKonflikte(fp, plus) {
+  const w = kronenWachstum(fp, plus == null ? 99 : plus);
+  if (!w || istGruppe(fp)) return [];
+  const r = w.d / 2, out = [], spaeter = plus == null && w.wachsend ? ' (ausgewachsen)' : '';
+  getCurrentFreiPflanzen().forEach(o => {
+    if (o === fp || istGruppe(o)) return;
+    const wo = kronenWachstum(o, plus == null ? 99 : plus);
+    if (!wo) return;
+    const dist = Math.hypot(o.x - fp.x, o.y - fp.y);
+    if (dist < (r + wo.d / 2) * 0.75) out.push({ art: 'krone', text: `Krone überschneidet sich mit ${o.name || 'Nachbarbaum'}${spaeter}` });
+  });
+  getCurrentBeds().forEach(b => {
+    if (b.kind !== 'struktur' || b.strukturTyp !== 'gebaeude') return;
+    const dist = b.shape === 'circle' ? Math.max(0, Math.hypot(fp.x - b.x, fp.y - b.y) - Math.max(b.rx || 60, b.ry || 60)) : abstandPunktRechteck(fp.x, fp.y, b);
+    if (dist < r * 0.9) out.push({ art: 'gebaeude', text: `Krone reicht bis an ${b.name || 'das Gebäude'}${spaeter} – nur ${messText(dist)} Abstand` });
+  });
+  const size = getGardenSizeM();
+  if (size && istBaumartig(fp, w.info)) {
+    const W = size.w * 100, H = size.h * 100;
+    const dmin = Math.min(fp.x, fp.y, W - fp.x, H - fp.y);
+    const soll = grenzRichtwert(fp, w.info, w.end);
+    if (dmin >= 0 && dmin < soll) out.push({ art: 'grenze', text: `Nur ${messText(dmin)} bis zur Grundstücksgrenze – Richtwert in BW (innerorts) ca. ${zahlDe(soll / 100)} m` });
+    else if (dmin >= 0 && dmin < r) out.push({ art: 'grenze', text: `Krone ragt${spaeter} ca. ${messText(r - dmin)} über die Grundstücksgrenze` });
+  }
+  return out;
+}
+function kronenWarnungZeigen(fp) {
+  const k = kronenKonflikte(fp, null);
+  if (k.length) showTempStatus('⚠️ ' + k[0].text + (k.length > 1 ? ` (+${k.length - 1} weitere)` : ''), 7);
+}
+
+// ==================== GIESSRUNDE ====================
+let giessRundeListe = [], giessRundeInfo = null;
+const giessVorherFrei = new Map();
+function giessFreiInfo(fp) {
+  const info = typeof CARE_INFO !== 'undefined' && CARE_INFO[lexKatalogName((fp.name || '').trim())];
+  if (!info || !info.waterDays) return null;
+  const m = new Date().getMonth() + 1;
+  if (m < 4 || m > 9) return null; // Gehölze außerhalb der Saison nicht in die Runde
+  let alter = null;
+  if (fp.datum) { const d = new Date(fp.datum + 'T00:00:00'); if (!isNaN(d.getTime())) alter = daysBetween(d, new Date(new Date().setHours(0, 0, 0, 0))); }
+  if (alter != null && alter > 730) return null; // eingewachsene Gehölze brauchen meist kein Gießen mehr
+  if (alter == null && !fp.lastWatered) return null;
+  return giessFaelligkeit(fp, info.waterDays, alter || 0);
+}
+async function giessRundeUmschalten() {
+  if (mode === 'giessen') { setMode('select'); return; }
+  if (bluehMonat) bluehModusAus();
+  if (zeitreiseJahre !== null) zeitreiseAus();
+  let daten = null;
+  try { daten = await computeCarePlanData(); } catch (e) { daten = null; }
+  const liste = [];
+  ((daten && daten.items) || []).forEach(it => {
+    if (it.kind !== 'water' || it.dueInDays !== 0 || it.skip) return;
+    const t = careIdTeile(it.id);
+    const bed = getCurrentBeds().find(b => String(b.id) === t.bedId);
+    const p = bed && bed.plants && bed.plants[t.idx];
+    if (p) liste.push({ typ: 'beet', id: it.id, bed, idx: t.idx, p });
+  });
+  getCurrentFreiPflanzen().forEach(fp => {
+    const g = giessFreiInfo(fp);
+    if (g && g.dueToday) liste.push({ typ: 'frei', fp, p: fp });
+  });
+  giessRundeListe = liste;
+  giessRundeInfo = { regen: daten && daten.recentRain >= 8 ? daten.recentRain : 0, heiss: !!(daten && daten.hotDry) };
+  setMode('giessen');
+}
+function giessErledigt(e) { return e.typ === 'beet' ? isCareTaskDone(e.id) : e.fp.lastWatered === heuteISO(); }
+function giessPos(e) {
+  if (e.typ === 'frei') return { x: e.fp.x, y: e.fp.y, r: symbolRadius(e.fp, true) };
+  const rot = e.bed.rotation || 0;
+  return { x: e.bed.x + rotX(e.p.rx, e.p.ry, rot), y: e.bed.y + rotY(e.p.rx, e.p.ry, rot), r: symbolRadius(e.p, false) };
+}
+function giessHinweis() {
+  const el = document.getElementById('zeichenHinweis'), t = el && el.querySelector('.zh-text');
+  if (!t || mode !== 'giessen') return;
+  const n = giessRundeListe.length, fertig = giessRundeListe.filter(giessErledigt).length;
+  if (!n) t.textContent = giessRundeInfo && giessRundeInfo.regen ? `🌧 ${Math.round(giessRundeInfo.regen)} mm Regen – heute muss nichts gegossen werden` : '💧 Heute ist nichts zum Gießen fällig 🎉';
+  else if (fertig === n) t.textContent = `💧 Alle ${n} gegossen – fertig! 🎉`;
+  else t.textContent = `💧 Gießrunde: ${fertig} von ${n} erledigt${giessRundeInfo && giessRundeInfo.heiss ? ' · ☀️ heiß' : ''} – Pflanze antippen zum Abhaken`;
+}
+function giessTipp(x, y) {
+  const z = zoomFaktor();
+  let best = null, bestD = Infinity;
+  giessRundeListe.forEach(e => {
+    const q = giessPos(e), d = Math.hypot(q.x - x, q.y - y);
+    if (d <= Math.max(q.r * 1.3, 24 / z) && d < bestD) { best = e; bestD = d; }
+  });
+  if (!best) return;
+  if (best.typ === 'beet') toggleCareTaskDone(best.id);
+  else {
+    const fp = best.fp;
+    if (fp.lastWatered === heuteISO()) { const v = giessVorherFrei.get(fp); if (v) fp.lastWatered = v; else delete fp.lastWatered; giessVorherFrei.delete(fp); }
+    else { giessVorherFrei.set(fp, fp.lastWatered || null); fp.lastWatered = heuteISO(); }
+    saveData();
+  }
+  giessHinweis(); draw();
+  const n = giessRundeListe.length;
+  if (n && giessRundeListe.every(giessErledigt)) showTempStatus('🎉 Gießrunde geschafft!', 3);
+}
+function zeichneGiessRunde() {
+  if (mode !== 'giessen') return;
+  const z = zoomFaktor();
+  ctx.save();
+  ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+  giessRundeListe.forEach(e => {
+    const q = giessPos(e), fertig = giessErledigt(e), r = Math.max(Math.min(q.r, 60) + 4 / z, 16 / z);
+    ctx.beginPath(); ctx.arc(q.x, q.y, r, 0, Math.PI * 2);
+    ctx.fillStyle = fertig ? 'rgba(76,150,80,0.28)' : 'rgba(70,140,210,0.25)'; ctx.fill();
+    ctx.lineWidth = 3 / z; ctx.strokeStyle = fertig ? '#3f8a47' : '#2f78c4'; ctx.stroke();
+    ctx.font = (q.r * 1.1 > 14 / z ? Math.min(28, q.r * 1.1) : 14 / z) + 'px ' + EMOJI_FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#000'; ctx.fillText(e.p.sym || '🌱', q.x, q.y);
+    const bx = q.x + r * 0.75, by = q.y - r * 0.75, br = 9 / z;
+    ctx.beginPath(); ctx.arc(bx, by, br, 0, Math.PI * 2); ctx.fillStyle = fertig ? '#3f8a47' : '#2f78c4'; ctx.fill();
+    ctx.font = '700 ' + (11 / z) + 'px Inter, sans-serif'; ctx.fillStyle = '#fff';
+    ctx.fillText(fertig ? '✓' : '💧', bx, by + 0.5 / z);
+  });
+  ctx.restore();
+}
+
+// ==================== TIERE AUF DER KARTE ====================
+let tierOrtZweck = null; // 'neu' | 'modal'
+let beobEditPos = null;
+const TIER_ART_FARBE = { nistkasten: '#8a5a2b', bau: '#5a4632', winter: '#4a86c5', wohnt: '#8a5a2b', eier: '#c9a227', raupe: '#6a9a3a' };
+function tierMarkerListe() {
+  if (!ebene('tiere')) return [];
+  return gartenBeobachtungen().filter(b => b.pos && isFinite(b.pos.x) && isFinite(b.pos.y));
+}
+function tierMarkerRadius() { return 15 / zoomFaktor(); }
+function tierMarkerTreffer(x, y) {
+  const R = tierMarkerRadius() * 1.15, liste = tierMarkerListe();
+  for (let i = liste.length - 1; i >= 0; i--) if (Math.hypot(liste[i].pos.x - x, liste[i].pos.y - y) <= R) return liste[i];
+  return null;
+}
+function zeichneTierMarker() {
+  const liste = tierMarkerListe();
+  if (!liste.length) return;
+  const z = zoomFaktor(), R = tierMarkerRadius(), heute = Date.now();
+  ctx.save();
+  liste.forEach(b => {
+    const dauerhaft = ['nistkasten', 'bau', 'winter', 'wohnt'].includes(b.art);
+    const alt = !dauerhaft && (heute - new Date(b.datum + 'T12:00').getTime()) > 365 * 86400000;
+    ctx.globalAlpha = (bluehMonat || mode === 'giessen' || zeitreiseJahre !== null) ? 0.35 : alt ? 0.6 : 1;
+    const { x, y } = b.pos, farbe = TIER_ART_FARBE[b.art] || '#4f7d3a';
+    ctx.shadowColor = 'rgba(0,0,0,0.3)'; ctx.shadowBlur = 5; ctx.shadowOffsetY = 1.5;
+    ctx.beginPath(); ctx.arc(x, y, R, 0, Math.PI * 2); ctx.fillStyle = '#fffaf0'; ctx.fill();
+    ctx.shadowColor = 'transparent';
+    ctx.lineWidth = 2.4 / z; ctx.strokeStyle = farbe; ctx.stroke();
+    ctx.font = (17 / z) + 'px ' + EMOJI_FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#000';
+    ctx.fillText(beobTierIcon(b), x, y + 1 / z);
+    const bx = x + R * 0.78, by = y + R * 0.78, br = 8 / z;
+    ctx.beginPath(); ctx.arc(bx, by, br, 0, Math.PI * 2); ctx.fillStyle = '#fff'; ctx.fill(); ctx.lineWidth = 1.2 / z; ctx.strokeStyle = farbe; ctx.stroke();
+    ctx.font = (10 / z) + 'px ' + EMOJI_FONT; ctx.fillText(beobArt(b.art).icon, bx, by + 0.5 / z);
+    if ((b.anzahl || 1) > 1) {
+      const t = '×' + b.anzahl; ctx.font = '700 ' + (9 / z) + 'px Inter, sans-serif';
+      const w = ctx.measureText(t).width + 6 / z, ax = x - R * 0.8 - w / 2, ay = y - R * 0.8;
+      ctx.fillStyle = farbe; ctx.beginPath(); ctx.roundRect(ax - w / 2 + w / 2 - w / 2, ay - 6 / z, w, 12 / z, 6 / z); ctx.fill();
+      ctx.fillStyle = '#fff'; ctx.fillText(t, ax, ay + 0.5 / z);
+    }
+  });
+  ctx.restore();
+}
+function tierAufKarteStarten() {
+  if (mode === 'tierort') { setMode('select'); return; }
+  tierOrtZweck = 'neu';
+  setMode('tierort');
+}
+function tierOrtHinweis() {
+  const el = document.getElementById('zeichenHinweis'), t = el && el.querySelector('.zh-text');
+  if (t && mode === 'tierort') t.textContent = tierOrtZweck === 'modal' ? '🐾 Tippe auf die Stelle, wo das Tier war' : '🐾 Tippe, wo du ein Tier gesehen, einen Nistkasten aufgehängt oder ein Winterquartier entdeckt hast';
+}
+function tierOrtTipp(x, y) {
+  const zweck = tierOrtZweck;
+  tierOrtZweck = null;
+  setMode('select');
+  if (zweck === 'modal') {
+    beobEditPos = { x: Math.round(x), y: Math.round(y) };
+    document.getElementById('beobModal').style.display = 'flex';
+    beobOrtRendern();
+    return;
+  }
+  // Steht dort eine Pflanze? → gleich vorschlagen
+  let pflanze = '';
+  const fp = hitTestFreiPflanze(x, y);
+  if (fp) pflanze = fp.name || '';
+  else {
+    for (const bed of getCurrentBeds()) for (const p of (bed.plants || [])) if (!pflanze && pflanzeTrifft(p, bed, x, y)) pflanze = p.name || '';
+  }
+  beobachtungNeu({ pos: { x: Math.round(x), y: Math.round(y) }, pflanze, art: pflanze ? 'nektar' : 'sonst' });
+}
+function tierOrtAbbrechen() {
+  const zweck = tierOrtZweck;
+  tierOrtZweck = null;
+  setMode('select');
+  if (zweck === 'modal') document.getElementById('beobModal').style.display = 'flex';
+}
+function beobOrtRendern() {
+  const box = document.getElementById('beobOrt');
+  if (!box) return;
+  box.innerHTML = beobEditPos
+    ? `<span class="beob-ort-text">📍 Auf der Karte eingetragen</span><button type="button" class="btn-secondary" onclick="beobOrtWaehlen()">Verschieben</button><button type="button" class="btn-secondary" onclick="beobOrtZeigen()">🗺️ Zeigen</button><button type="button" class="btn-secondary" onclick="beobEditPos=null;beobOrtRendern()" aria-label="Ort entfernen">✕</button>`
+    : `<span class="beob-ort-text">Noch nicht auf der Karte</span><button type="button" class="btn-secondary" onclick="beobOrtWaehlen()">📍 Auf Karte setzen</button>`;
+}
+function beobOrtWaehlen() {
+  document.getElementById('beobModal').style.display = 'none';
+  if (!document.getElementById('view-garden')?.classList.contains('active')) showView('garden');
+  tierOrtZweck = 'modal';
+  setMode('tierort');
+}
+function beobOrtZeigen() {
+  if (!beobEditPos) return;
+  const pos = beobEditPos;
+  beobSchliessen();
+  if (!document.getElementById('view-garden')?.classList.contains('active')) showView('garden');
+  setTimeout(() => springeZuBeet(pos), 80);
+}
+
 // ==================== KRONENGRÖSSE ====================
 // Eigener Wert (fp.kroneD) > Säulen-/Spindelform (schmal) > Pflanzabstand aus der Datenbank
 // (auch für Varianten wie „Birne“, „Säulenbirne“, „Birnenbaum“).
@@ -7433,6 +7880,12 @@ function kroneFeldFuellen(fp) {
     : k.quelle === 'saeule' ? 'Säulenform erkannt → schmale Krone (~70 cm). Für die echte Breite einfach eintragen.'
     : k.zeigen ? 'Automatisch aus der Pflanzendatenbank. Für die echte Breite einfach eintragen.'
     : 'Unbekannte Größe – trag die Kronenbreite ein, dann wird sie auf der Karte gezeigt.';
+  const w = kronenWachstum(fp, 0);
+  if (hin && w && w.wachsend) hin.textContent += ` Heute ca. ${messText(w.jetzt)}, ausgewachsen ca. ${messText(w.end)}.`;
+  if (hin) {
+    const k = kronenKonflikte(fp, null);
+    hin.innerHTML = escapeHtml(hin.textContent) + k.map(x => '<br><span class="zeit-warn">⚠️ ' + escapeHtml(x.text) + '</span>').join('');
+  }
 }
 
 function drawFreiPflanze(fp) {
@@ -7440,8 +7893,10 @@ function drawFreiPflanze(fp) {
   const z = zoomFaktor();
   // Bäume und große Sträucher: Krone in echter Größe (Plan-Ansicht gefüllt, Foto-Ansicht als gestrichelter Kreis)
   const kroneInfo = kronenDurchmesser(fp), kroneCm = kroneInfo.d;
-  if (kroneInfo.zeigen && !istGruppe(fp) && ebene('kronen') && !bluehMonat) {
-    const r = kroneInfo.eigen ? kroneCm / 2 : kroneCm / 2 * 0.85;
+  const wuchs = kroneInfo.zeigen && !istGruppe(fp) ? kronenWachstum(fp, zeitreiseJahre || 0) : null;
+  if (wuchs && ebene('kronen') && !bluehMonat) {
+    const r = wuchs.d / 2;
+    const konflikt = kronenKonflikte(fp, zeitreiseJahre === null ? null : zeitreiseJahre).length > 0;
     ctx.save();
     if (kartenStil() === 'plan') {
       const v = schattenVersatz(12);
@@ -7456,6 +7911,18 @@ function drawFreiPflanze(fp) {
       ctx.fillStyle = 'rgba(120,170,90,0.12)'; ctx.fill();
       ctx.setLineDash([7 / z, 5 / z]); ctx.lineWidth = 2.6 / z; ctx.strokeStyle = 'rgba(255,255,255,0.7)'; ctx.stroke();
       ctx.lineWidth = 1.3 / z; ctx.strokeStyle = 'rgba(47,85,35,0.9)'; ctx.stroke(); ctx.setLineDash([]);
+    }
+    // ausgewachsene Größe als feiner Ring, solange der Baum noch wächst
+    if (wuchs.d < wuchs.end * 0.95) {
+      ctx.beginPath(); ctx.arc(fp.x, fp.y, wuchs.end / 2, 0, Math.PI * 2);
+      ctx.setLineDash([2 / z, 5 / z]); ctx.lineWidth = 1.6 / z; ctx.strokeStyle = kartenStil() === 'plan' ? 'rgba(40,70,30,0.6)' : 'rgba(255,255,255,0.85)'; ctx.stroke(); ctx.setLineDash([]);
+    }
+    if (konflikt) {
+      ctx.beginPath(); ctx.arc(fp.x, fp.y, r, 0, Math.PI * 2);
+      ctx.setLineDash([9 / z, 5 / z]); ctx.lineWidth = 2.6 / z; ctx.strokeStyle = '#e67e22'; ctx.stroke(); ctx.setLineDash([]);
+      const by = fp.y - r, br = 9 / z;
+      ctx.beginPath(); ctx.arc(fp.x, by, br, 0, Math.PI * 2); ctx.fillStyle = '#e67e22'; ctx.fill();
+      ctx.font = '700 ' + (12 / z) + 'px Inter, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#fff'; ctx.fillText('!', fp.x, by + 0.5 / z);
     }
     ctx.restore();
   }
@@ -7841,8 +8308,8 @@ canvas.addEventListener('click', ()=>{});
 // stattdessen ganz normal die Fläche scrollen können (wichtig bei gezoomten/großen Gärten).
 function ermittleCanvasZiel(x, y) {
   if (['circle','rect','tri','lshape','freehand','freitree','zone','tuffform'].includes(mode)) return true;
-  if (mode === 'messen') return false; // Wischen verschiebt die Karte, Antippen setzt einen Messpunkt
-  if (mode === 'select' && buendelTreffer(x, y)) return false; // Bündel: Wischen scrollt, Antippen öffnet die Auswahl
+  if (TIPP_MODI.includes(mode)) return false; // Wischen verschiebt die Karte, Antippen setzt einen Punkt
+  if (mode === 'select' && (buendelTreffer(x, y) || tierMarkerTreffer(x, y))) return false; // Bündel: Wischen scrollt, Antippen öffnet die Auswahl
   const fpHit = hitTestFreiPflanze(x, y);
   if (fpHit && !fpHit.locked) return true;
   const beete = getCurrentBeds();
@@ -7888,7 +8355,7 @@ function rotY(rx,ry,deg){const a=deg*Math.PI/180;return rx*Math.sin(a)+ry*Math.c
 
 function onDown(e) {
   const {x,y} = getPos(e);
-  if (mode === 'messen') {
+  if (TIPP_MODI.includes(mode)) {
     const pk = (e.touches && e.touches[0]) || e;
     messStart = { cx: pk.clientX, cy: pk.clientY, x, y };
     return;
@@ -7908,6 +8375,7 @@ function onDown(e) {
     setMode('select');
     openFreiPflanzePanel(neu);
     showTempStatus('✓ Platziert – Details ergänzen und speichern', 4);
+    setTimeout(() => kronenWarnungZeigen(neu), 4200);
     return;
   }
   festTipp = null;
@@ -7915,6 +8383,8 @@ function onDown(e) {
     // Fixierte Elemente: nicht verschiebbar, aber ein kurzer Tipp öffnet die Infos (siehe onUp)
     const pkt = (e.touches && e.touches[0]) || e;
     const festMerken = (daten) => { festTipp = Object.assign({ cx: pkt.clientX, cy: pkt.clientY, t: Date.now() }, daten); };
+    const tierM = tierMarkerTreffer(x, y);
+    if (tierM) { festMerken({ typ: 'tier', b: tierM }); return; }
     const buendel = buendelTreffer(x, y);
     if (buendel) { festMerken({ typ: 'buendel', b: buendel }); return; }
     const fpFest = hitTestFreiPflanze(x, y);
@@ -8153,6 +8623,7 @@ function festTippAuswerten(e) {
   if (bewegt > 12 || Date.now() - t.t > 800) return false; // war Scrollen oder langes Halten, kein Tipp
   festTippBehandelt = true;
   if (t.typ === 'buendel') { buendelAuswahlZeigen(t.b); return true; }
+  if (t.typ === 'tier') { beobachtungBearbeiten(t.b.id); return true; }
   if (t.typ === 'fp') { openFreiPflanzePanel(t.item); draw(); return true; }
   if (t.typ === 'pflanze') { selectedPlantOnCanvas = { bedId: t.bed.id, idx: t.idx }; openPlantPanel(t.bed, t.idx); draw(); return true; }
   if (t.typ === 'beet') { selectedBeds = [t.bed]; selectedBed = t.bed; showBedEditor(t.bed); hideBulkBar(); draw(); renderBedList(); return true; }
@@ -8163,7 +8634,12 @@ function onUp(e) {
   if (messStart) {
     const ms = messStart; messStart = null;
     const pk = (e && e.changedTouches && e.changedTouches[0]) || e || {};
-    if (mode === 'messen' && Math.hypot((pk.clientX ?? ms.cx) - ms.cx, (pk.clientY ?? ms.cy) - ms.cy) <= 12) { messTipp(ms.x, ms.y); festTippBehandelt = true; } // kein Geister-Klick hinterher
+    if (TIPP_MODI.includes(mode) && Math.hypot((pk.clientX ?? ms.cx) - ms.cx, (pk.clientY ?? ms.cy) - ms.cy) <= 12) {
+      festTippBehandelt = true; // kein Geister-Klick hinterher
+      if (mode === 'messen') messTipp(ms.x, ms.y);
+      else if (mode === 'giessen') giessTipp(ms.x, ms.y);
+      else if (mode === 'tierort') tierOrtTipp(ms.x, ms.y);
+    }
     return;
   }
   if (dragPunkt) { dragPunkt = null; saveData(); renderBedList(); return; }
@@ -8209,6 +8685,7 @@ function onUp(e) {
     }
     saveData(); draw(); renderFreiPflanzenList();
     showTempStatus('✓ Verschoben', 2);
+    setTimeout(() => kronenWarnungZeigen(dfp.item), 2100);
     return;
   }
   if (dragPlant) {
@@ -8487,7 +8964,8 @@ function zoneLoeschen(zoneId) {
 }
 // Auf dem Handy liegt die Liste unter der Karte – zum Zeichnen schaltet die App vorübergehend
 // auf „nur Karte“ und danach zurück (ohne die gespeicherte Ansicht zu ändern).
-const ZEICHEN_MODI = ['circle','rect','tri','lshape','freehand','zone','freitree','messen','tuffform'];
+const ZEICHEN_MODI = ['circle','rect','tri','lshape','freehand','zone','freitree','messen','tuffform','giessen','tierort'];
+const TIPP_MODI = ['messen', 'giessen', 'tierort']; // Antippen = Aktion, Wischen = Karte verschieben
 let zeichenVorherAnsicht = null;
 function zeichenVollbild(an) {
   if (an) {
@@ -8503,7 +8981,7 @@ function zeichenHinweisZeigen(m) {
   let el = document.getElementById('zeichenHinweis');
   const texte = { circle: 'Tippe auf die Karte, um den Kreis zu platzieren', rect: 'Tippe auf die Karte, um das Rechteck zu platzieren', tri: 'Tippe auf die Karte, um das Dreieck zu platzieren',
     lshape: 'Tippe auf die Karte, um die L-Form zu platzieren', freehand: 'Tippe nacheinander die Eckpunkte – zum Schließen auf den roten Startpunkt', zone: 'Rechteck für den Bereich über die Karte ziehen', freitree: 'Tippe auf die Karte, um die Pflanze frei zu platzieren' };
-  texte.messen = ''; texte.tuffform = '';
+  texte.messen = ''; texte.tuffform = ''; texte.giessen = ''; texte.tierort = '';
   if (!(m in texte)) { if (el) el.style.display = 'none'; return; }
   if (!el) {
     el = document.createElement('div'); el.id = 'zeichenHinweis';
@@ -8513,16 +8991,23 @@ function zeichenHinweisZeigen(m) {
   const knopf = 'class="tool-btn" style="padding:5px 10px;font-size:0.72rem;white-space:nowrap"';
   if (m === 'messen') el.innerHTML = `<span class="zh-text" style="color:#fff;font-size:0.75rem"></span><button ${knopf} onclick="setMode('select')">✓ Fertig</button>`;
   else if (m === 'tuffform') el.innerHTML = `<span class="zh-text" style="color:#fff;font-size:0.75rem"></span><button ${knopf} onclick="tuffFormPunktZurueck()">↩ Punkt</button><button ${knopf} onclick="tuffFormFertig()">✓ Fertig</button><button class="tool-btn danger" style="padding:5px 10px;font-size:0.72rem" onclick="tuffFormAbbrechen()">✕</button>`;
+  else if (m === 'giessen') el.innerHTML = `<span class="zh-text" style="color:#fff;font-size:0.75rem"></span><button ${knopf} onclick="setMode('select')">✓ Fertig</button>`;
+  else if (m === 'tierort') el.innerHTML = `<span class="zh-text" style="color:#fff;font-size:0.75rem"></span><button class="tool-btn danger" style="padding:5px 10px;font-size:0.72rem" onclick="tierOrtAbbrechen()">✕</button>`;
   else el.innerHTML = `<span class="zh-text" style="color:#fff;font-size:0.75rem">✏️ ${texte[m]}</span><button class="tool-btn danger" style="padding:5px 10px;font-size:0.72rem" onclick="setMode('select')">✕ Abbrechen</button>`;
   el.style.display = 'flex';
-  if (m === 'messen') messHinweis(); else if (m === 'tuffform') tuffFormHinweis();
+  if (m === 'messen') messHinweis(); else if (m === 'tuffform') tuffFormHinweis(); else if (m === 'giessen') giessHinweis(); else if (m === 'tierort') tierOrtHinweis();
 }
 function setMode(m) {
   if (mode==='freehand' && m!=='freehand' && freehandDrawing) cancelFreehand();
   if (mode==='messen' && m!=='messen') { messPunkte = []; messMaus = null; }
   if (mode==='tuffform' && m!=='tuffform') { tuffFormZiel = null; tuffFormPunkte = []; }
+  if (mode==='giessen' && m!=='giessen') giessRundeListe = [];
+  if (mode==='tierort' && m!=='tierort' && tierOrtZweck === 'modal') { tierOrtZweck = null; document.getElementById('beobModal').style.display = 'flex'; }
+  else if (m!=='tierort') tierOrtZweck = null;
   mode=m;
   document.getElementById('messBtn')?.classList.toggle('widget-aktiv', m === 'messen');
+  document.getElementById('giessBtn')?.classList.toggle('widget-aktiv', m === 'giessen');
+  document.getElementById('tierBtn')?.classList.toggle('widget-aktiv', m === 'tierort');
   zeichenVollbild(ZEICHEN_MODI.includes(m));
   try { zeichenHinweisZeigen(m); } catch (e) {}
   hoverConflictBedId=null;
@@ -8530,7 +9015,7 @@ function setMode(m) {
   const map={circle:'btnCircle',rect:'btnRect',tri:'btnTri',lshape:'btnLshape',freehand:'btnFreehand',select:'btnSelect',plant:'btnPlant'};
   if(map[m]) document.getElementById(map[m])?.classList.add('active');
   wrap.className='canvas-wrap mode-'+m;
-  const labels={circle:'Kreis zeichnen',rect:'Rechteck zeichnen',tri:'Dreieck zeichnen',lshape:'L-Form zeichnen',freehand:'Freiform: Punkte anklicken, am Startpunkt schließen',select:'Auswählen / Verschieben',plant:`Pflanze setzen: ${selectedPlantSym}`,messen:'📏 Abstand messen',tuffform:'🌷 Form des Tuffs zeichnen',freitree:`🌳 Frei platzieren: ${selectedPlantSym} – auf die Fläche tippen (außerhalb eines Beets)`,zone:'📌 Bereich: Rechteck über die Karte ziehen'};
+  const labels={circle:'Kreis zeichnen',rect:'Rechteck zeichnen',tri:'Dreieck zeichnen',lshape:'L-Form zeichnen',freehand:'Freiform: Punkte anklicken, am Startpunkt schließen',select:'Auswählen / Verschieben',plant:`Pflanze setzen: ${selectedPlantSym}`,messen:'📏 Abstand messen',giessen:'💧 Gießrunde',tierort:'🐾 Tier eintragen',tuffform:'🌷 Form des Tuffs zeichnen',freitree:`🌳 Frei platzieren: ${selectedPlantSym} – auf die Fläche tippen (außerhalb eines Beets)`,zone:'📌 Bereich: Rechteck über die Karte ziehen'};
   document.getElementById('statusMsg').textContent=labels[m]||m;
   document.getElementById('sb1').textContent='Modus: '+(labels[m]||m);
   document.getElementById('plantModeControls').style.display = (m==='plant') ? 'flex' : 'none';
@@ -8659,7 +9144,7 @@ function showTempStatus(text, seconds, knopf) {
   el.textContent = text;
   if (statusMsgTimer) clearTimeout(statusMsgTimer);
   statusMsgTimer = setTimeout(() => {
-    const labels={circle:'Kreis zeichnen',rect:'Rechteck zeichnen',tri:'Dreieck zeichnen',lshape:'L-Form zeichnen',freehand:'Freiform: Punkte anklicken, am Startpunkt schließen',select:'Auswählen / Verschieben',plant:`Pflanze setzen: ${selectedPlantSym}`,messen:'📏 Abstand messen',tuffform:'🌷 Form des Tuffs zeichnen',freitree:`🌳 Frei platzieren: ${selectedPlantSym}`};
+    const labels={circle:'Kreis zeichnen',rect:'Rechteck zeichnen',tri:'Dreieck zeichnen',lshape:'L-Form zeichnen',freehand:'Freiform: Punkte anklicken, am Startpunkt schließen',select:'Auswählen / Verschieben',plant:`Pflanze setzen: ${selectedPlantSym}`,messen:'📏 Abstand messen',giessen:'💧 Gießrunde',tierort:'🐾 Tier eintragen',tuffform:'🌷 Form des Tuffs zeichnen',freitree:`🌳 Frei platzieren: ${selectedPlantSym}`};
     el.textContent = labels[mode]||'';
   }, (seconds||5)*1000);
 }
@@ -11791,7 +12276,7 @@ function heuteGruppeUmschalten(idsText) {
   localStorage.setItem('gartenplaner_careDone', JSON.stringify(state));
   // ⭐ für das Kind, dem das Beet zugeteilt ist (bzw. das selbst abhakt)
   const t0 = careIdTeile(ids[0]);
-  const bed = getCurrentBeds().find(b => b.id === t0.bedId);
+  const bed = getCurrentBeds().find(b => String(b.id) === t0.bedId);
   const kind = bed && istKind(bed.zustaendig) ? bed.zustaendig : (istKind(ich) ? ich : null);
   if (kind && (t0.art === 'water' || t0.art === 'fertilize' || t0.art === 'harvest')) {
     const verb = { water: 'gegossen', fertilize: 'gedüngt', harvest: 'geerntet' }[t0.art];
@@ -11806,7 +12291,7 @@ function heuteErnteEintragen(id) {
   const t = careIdTeile(id);
   showView('garden');
   setTimeout(() => {
-    const bed = getCurrentBeds().find(b => b.id === t.bedId);
+    const bed = getCurrentBeds().find(b => String(b.id) === t.bedId);
     if (!bed) return;
     openPlantPanel(bed, t.idx);
     if (typeof switchPPTab === 'function') switchPPTab('harvest');
@@ -11835,7 +12320,7 @@ function heuteAufgabenHtml(todayTasks) {
       const titel = g.art === 'harvest' ? `<strong>${escapeHtml(g.items[0].plant)}</strong> ernten` : `<strong>${escapeHtml(g.bed)}</strong> ${a.verb}`;
       const unter = g.art === 'harvest' ? escapeHtml(g.bed) + ' · ' + g.items[0].text.replace(/^🧺\s*/, '') : pflanzen + (g.items.some(i => /Regen|heiß/.test(i.text)) ? ' · ' + g.items.find(i => /Regen|heiß/.test(i.text)).text : '');
       const t0 = careIdTeile(g.items[0].id);
-      const bedObj = getCurrentBeds().find(b => b.id === t0.bedId) || {};
+      const bedObj = getCurrentBeds().find(b => String(b.id) === t0.bedId) || {};
       const personen = gartenPersonen();
       const zust = gartenPersonInfo(bedObj.zustaendig);
       const werErledigt = g.erledigt ? gartenPersonInfo(((getCareDoneState().wer) || {})[g.items[0].id]) : null;
@@ -12773,6 +13258,9 @@ const BEOB_ARTEN = [
   { id: 'samen', icon: '🌾', label: 'frisst Samen' },
   { id: 'wohnt', icon: '🏠', label: 'wohnt/versteckt sich' },
   { id: 'jagt', icon: '🎯', label: 'jagt Schädlinge' },
+  { id: 'nistkasten', icon: '🪺', label: 'Nistkasten/Nisthilfe' },
+  { id: 'bau', icon: '🕳️', label: 'Höhle/Bau' },
+  { id: 'winter', icon: '❄️', label: 'überwintert hier' },
   { id: 'sonst', icon: '✏️', label: 'Sonstiges' },
 ];
 const MONATE_KURZ = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
@@ -12811,7 +13299,7 @@ function beobDatumText(iso) { return new Date(iso + 'T12:00').toLocaleDateString
 function beobachtungNeu(vorgabe) {
   vorgabe = vorgabe || {};
   beobEditId = null;
-  beobFormFuellen({ datum: heuteISO(), anzahl: 1, art: vorgabe.art || 'nektar', tierId: vorgabe.tierId || null, tierName: vorgabe.tierName || '', pflanze: vorgabe.pflanze || '', notiz: '', fotos: [] });
+  beobFormFuellen({ datum: heuteISO(), anzahl: 1, art: vorgabe.art || 'nektar', tierId: vorgabe.tierId || null, tierName: vorgabe.tierName || '', pflanze: vorgabe.pflanze || '', notiz: '', fotos: [], pos: vorgabe.pos || null });
 }
 function beobachtungBearbeiten(id) {
   const b = gartenBeobachtungen().find(x => x.id === id);
@@ -12828,6 +13316,8 @@ function beobFormFuellen(b) {
   document.getElementById('beobNotiz').value = b.notiz || '';
   beobEditArt = b.art || 'nektar';
   beobEditFotos = (b.fotos || []).slice();
+  beobEditPos = b.pos ? { x: b.pos.x, y: b.pos.y } : null;
+  beobOrtRendern();
   // Vorschläge: alle Tiere der Liste + bisher frei eingetragene; Pflanzen aus dem Garten + bisherige
   const tiere = alleTiere().map(t => t.name).concat(gartenBeobachtungen().filter(x => !x.tierId && x.tierName).map(x => x.tierName));
   document.getElementById('beobTierListe').innerHTML = [...new Set(tiere)].map(n => `<option value="${escapeHtml(n)}">`).join('');
@@ -12904,6 +13394,7 @@ function beobSpeichern() {
     anzahl: Math.max(1, Math.round(Number(document.getElementById('beobAnzahl').value) || 1)),
     notiz: document.getElementById('beobNotiz').value.trim(), fotos: beobEditFotos.slice(),
   };
+  if (beobEditPos) daten.pos = { x: beobEditPos.x, y: beobEditPos.y };
   let ersteImJahr = false;
   if (beobEditId) {
     const b = liste.find(x => x.id === beobEditId);
@@ -12911,6 +13402,7 @@ function beobSpeichern() {
     (b.fotos || []).filter(f => !daten.fotos.includes(f)).forEach(fotoCloudLoeschen);
     if (b.tierId !== daten.tierId) { beobSichtungAnpassen(b.tierId, b.datum, false); beobSichtungAnpassen(daten.tierId, datum, true); }
     Object.assign(b, daten);
+    if (!beobEditPos) delete b.pos;
   } else {
     const key = daten.tierId ? 't:' + daten.tierId : 'f:' + beobNorm(daten.tierName);
     ersteImJahr = !liste.some(x => beobTierKey(x) === key && String(x.datum).slice(0, 4) === datum.slice(0, 4));
@@ -12939,6 +13431,7 @@ function beobLoeschen() {
 }
 // Alles neu zeichnen, was Beobachtungen zeigt
 function beobAnsichtenAktualisieren() {
+  try { draw(); } catch (e) {}
   const wrap = document.getElementById('tiereWrap');
   if (wrap && wrap.offsetParent) renderTiere();
   if (tierDetailId) tierDetailRendern();

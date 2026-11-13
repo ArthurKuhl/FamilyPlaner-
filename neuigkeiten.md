@@ -1,6 +1,15 @@
 # Neuigkeiten im Familienplaner
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 
+## 2026-11-13 | Tiere auf der Karte, Gießrunde, Zeitreise & Kindersicher
+- 🐾 Tiere auf der Karte: Tippe, wo du ein Tier gesehen, einen Nistkasten aufgehängt oder ein Winterquartier entdeckt hast. Neue Arten: 🪺 Nistkasten, 🕳️ Höhle/Bau, ❄️ überwintert hier. Auch bestehende Beobachtungen lassen sich unter „📍 Ort im Garten“ auf die Karte setzen.
+- 💧 Gießrunde: zeigt auf der Karte alles, was heute gegossen werden muss. Antippen hakt ab und trägt „gegossen“ ein.
+- ⏳ Zeitreise: Mit dem Regler siehst du, wie groß die Bäume in 5, 10 oder 20 Jahren werden (aus dem Pflanzdatum). Junge Bäume zeigen ihre spätere Größe als feinen Ring.
+- ⚠️ Abstands-Warnung: Kronen, die später ans Haus, an andere Bäume oder über die Grundstücksgrenze reichen, werden orange markiert – mit Richtwert für den Grenzabstand in BW.
+- 🧺 Ernte-Kalender: Im 🌸-Kalender umschalten zwischen Blüte und Ernte.
+- Kindersicher: Neue Ebene „Giftig für Kinder markieren“ (🗂️ Ebenen). Im Pflanzen-Info steht ein Warnhinweis bei giftigen Pflanzen.
+- Behoben: „Gegossen“ beim Abhaken im Pflegeplan wurde bei manchen Beeten nicht an der Pflanze gespeichert.
+
 ## 2026-11-13 | Baumkronen für jede Schreibweise & eigene Kronenbreite
 - Kronen werden jetzt auch angezeigt, wenn der Baum „Birne“, „Birnenbaum“ oder „Säulenbirne“ heißt.
 - Säulen- und Spindelobst (im Namen oder in der Sorte) bekommt automatisch eine schmale Krone von etwa 70 cm.
