@@ -110,8 +110,12 @@
 
   .news-eintrag img { background: var(--parchment); }
   .news-eintrag .neu-marke { font-size: 0.6rem; font-weight: 800; color: var(--terracotta-text); margin-right: 4px; }
-  .news-aktionen { display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; }
-  .news-aktionen button { background: none; border: none; font-size: 0.95rem; cursor: pointer; opacity: 0.55; padding: 2px; }
+  .news-aktionen { display: flex; flex-direction: row; gap: 2px; flex-shrink: 0; margin-left: auto; }
+  .news-meta { display: flex; align-items: center; gap: 6px; margin-top: 2px; }
+  .news-meta .datum { flex: 1; min-width: 0; margin-top: 0 !important; }
+  .news-eintrag .ort-label { font-weight: 700; color: var(--soil); }
+  .themen-vorschlaege { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 12px; }
+  .news-aktionen button { background: none; border: none; font-size: 0.9rem; cursor: pointer; opacity: 0.55; padding: 2px 4px; }
   .news-aktionen button.aktiv { opacity: 1; }
   .na-link { background: none; border: none; color: inherit; text-decoration: underline; cursor: pointer; padding: 0; font-size: inherit; }
   .quelle-label { font-weight: 700; }
@@ -582,17 +586,25 @@
       themenSpeichern(d); try { localStorage.removeItem('nachrichten_dwdCache'); } catch (e) {} dwdLaden(true);
     });
   }
+  const THEMEN_VORSCHLAEGE = ['Büchenbronn', 'Kita Pforzheim', 'Enzkreis', 'Dacia Jogger', 'Schwarzwald Ausflugstipps'];
   async function kategorieLaden(kat, erzwingen) {
     const el = document.getElementById(kat + 'Inhalt');
     const quellen = sichtbareQuellen(kat);
     if (!quellen.length) {
-      el.innerHTML = '<div class="leer-hinweis"><span class="em">' + (kat === 'themen' ? '⭐' : '🙈') + '</span>' + (kat === 'themen' ? 'Noch keine Themen. Unter „⚙️ Themen verwalten“ eigene Suchbegriffe eintragen, z.B. „Dacia Jogger“ oder „Kita Pforzheim“.' : 'Keine Quelle ausgewählt.') + '</div>';
+      el.innerHTML = '<div class="leer-hinweis"><span class="em">' + (kat === 'themen' ? '⭐' : '🙈') + '</span>' + (kat === 'themen' ? 'Noch keine Themen. Antippen zum Hinzufügen – oder unter „⚙️ Themen verwalten“ eigene Suchbegriffe eintragen.' +
+        '<div class="themen-vorschlaege">' + THEMEN_VORSCHLAEGE.map(t => '<button type="button" class="filter-chip" data-vorschlag="' + escapeHtml(t) + '">＋ ' + escapeHtml(t) + '</button>').join('') + '</div>' : 'Keine Quelle ausgewählt.') + '</div>';
+      el.querySelectorAll('[data-vorschlag]').forEach(b => b.addEventListener('click', () => {
+        const d = themenDaten();
+        if (!d.themen.some(x => x.label.toLowerCase() === b.dataset.vorschlag.toLowerCase())) d.themen.push({ id: neueId('th'), label: b.dataset.vorschlag, q: b.dataset.vorschlag });
+        themenSpeichern(d); einstellungenRendern(kat); quellenReiheRendern(kat); kategorieLaden(kat);
+        showTempStatus('⭐ „' + b.dataset.vorschlag + '“ hinzugefügt – weitere unter ⚙️ Themen verwalten', 4);
+      }));
       geladen[kat] = []; return;
     }
     const auswahl = aktiveQuelle[kat] === 'alle' ? quellen : quellen.filter(q => q.id === aktiveQuelle[kat]);
     if (!el.innerHTML || !geladen[kat]) el.innerHTML = '<div class="leer-hinweis">Lädt…</div>';
     const fehler = [];
-    const ergebnisse = await Promise.all(auswahl.map(q => quelleLaden(q, erzwingen).catch(e => { fehler.push({ q, e }); return []; })));
+    const ergebnisse = await Promise.all(auswahl.map(q => quelleLaden(q, erzwingen).then(l => (kat === 'regional' || kat === 'themen') ? l.map(i => Object.assign({}, i, { ort: q.label })) : l).catch(e => { fehler.push({ q, e }); return []; })));
     let items = [].concat(...ergebnisse);
     // Doppelte Meldungen (gleicher Link oder Titel) nur einmal
     const gesehen = new Set();
@@ -619,9 +631,9 @@
       const neu = letzterBesuch && zeitMs(i.pubDate) > letzterBesuch && !istGelesen(i.link);
       return '<div class="news-eintrag' + (istGelesen(i.link) ? ' gelesen' : '') + '">' + (i.thumbnail ? '<img src="' + escapeHtml(i.thumbnail) + '" alt="" loading="lazy" onerror="this.remove()">' : '') +
         '<div class="news-inhalt"><a href="' + escapeHtml(i.link) + '" target="_blank" rel="noopener noreferrer" data-idx="' + idx + '">' + (neu ? '<span class="neu-marke">🆕</span>' : '') + escapeHtml(i.title) + '</a>' +
-        '<div class="datum">' + (auswahl.length > 1 || i.quelle !== (auswahl[0] || {}).label ? '<span class="quelle-label">' + escapeHtml(i.quelle || '') + '</span> · ' : '') + escapeHtml(zeitText(i.pubDate)) + '</div></div>' +
+        '<div class="news-meta"><div class="datum">' + (i.ort && auswahl.length > 1 ? '<span class="ort-label">' + (kat === 'regional' ? '📍 ' : '⭐ ') + escapeHtml(i.ort) + '</span> · ' : '') + (auswahl.length > 1 || i.quelle !== (auswahl[0] || {}).label ? '<span class="quelle-label">' + escapeHtml(i.quelle || '') + '</span> · ' : '') + escapeHtml(zeitText(i.pubDate)) + '</div>' +
         '<div class="news-aktionen"><button type="button" class="na-btn' + (istGemerkt(i.link) ? ' aktiv' : '') + '" data-merk="' + idx + '" title="Merken">🔖</button>' +
-        '<button type="button" class="na-btn" data-tipp="' + idx + '" title="Als Familien-Lesetipp teilen">👪</button><button type="button" class="na-btn" data-teilen="' + idx + '" title="Teilen">📤</button></div></div>';
+        '<button type="button" class="na-btn" data-tipp="' + idx + '" title="Als Familien-Lesetipp teilen">👪</button><button type="button" class="na-btn" data-teilen="' + idx + '" title="Teilen">📤</button></div></div></div></div>';
     }).join('');
     html += '<div class="quelle-fuszeile">' + (auswahl.length > 1 ? auswahl.length + ' Quellen' : 'Quelle: ' + escapeHtml((auswahl[0] || {}).label || '')) + (fehler.length && alle.length ? ' · ⚠ ' + fehler.length + ' nicht erreichbar' : '') +
       ' · <button type="button" class="na-link" id="btnAktualisieren_' + kat + '">aktualisieren</button></div>';

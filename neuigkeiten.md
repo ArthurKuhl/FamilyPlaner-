@@ -1,6 +1,11 @@
 # Neuigkeiten im Familienplaner
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 
+## 2026-11-13 | Nachrichten: kompakter, mit Ort
+- Unter „📰 Alle“ steht bei jeder Meldung der Ort bzw. das Thema („📍 Calw · SWR · vor 7 Std.“).
+- Die Knöpfe 🔖 👪 📤 stehen jetzt nebeneinander in der Zeile mit Quelle und Zeit. Dadurch passen deutlich mehr Meldungen auf den Bildschirm.
+- „⭐ Themen“ zeigt am Anfang Vorschläge zum Antippen (Büchenbronn, Kita Pforzheim, Enzkreis …).
+
 ## 2026-11-13 | Chat: neue Nachrichten markiert
 - Beim Öffnen zeigt eine Linie „── 3 neue Nachrichten ──“, wo es weitergeht, und der Chat springt genau dorthin.
 - „🛒 Auf die Einkaufsliste“ aus einer Nachricht: Einleitungen wie „Ja:“ und Emojis fallen weg, „2x Milch“ wird als Menge erkannt, und die Artikel landen in der passenden Abteilung.
