@@ -1,6 +1,12 @@
 # Neuigkeiten im Familienplaner
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 
+## 2026-11-13 | Fahrzeuge: Komma beim Tanken, Verbrauch je Füllung
+- Liter, Betrag, Preis, Kilometer und Kosten nehmen jetzt Komma und Punkt an („41,5“, „1,789“, „38.920 km“), auf jeder Handy-Tastatur.
+- Die Tankliste ist nach Monaten gegliedert, mit Monatssumme. Bei jeder Volltankung steht der Verbrauch dieser Füllung (z. B. „5,8 l/100 km“).
+- Fahrrad und Anhänger: Verbrauch und Tankkosten werden nicht mehr angezeigt, und sie stehen nicht mehr in der Auswahl beim Tanken.
+- TÜV/HU hat jetzt das Symbol 🔍 statt eines grünen Häkchens, auch wenn er fällig ist.
+
 ## 2026-11-13 | Zähler: alle auf einmal ablesen, Zählerwechsel
 - Neu: „📋 Alle ablesen“. Ein Fenster für Strom, Gas, Wasser und alle anderen Zähler, mit einem gemeinsamen Datum. Leere Felder werden übersprungen.
 - Zählerwechsel: Beim Ablesen „🔄 Neuer Zähler eingebaut“ ankreuzen und den Endstand des alten Zählers eintragen. Verbrauch, Diagramm und Prognose laufen dann einfach weiter.

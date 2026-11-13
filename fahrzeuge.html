@@ -66,6 +66,10 @@
   .eintrag .e-icon { font-size: 1.3rem; }
   .eintrag .e-text { flex: 1; min-width: 0; font-size: 0.86rem; }
   .eintrag .e-text small { display: block; color: var(--bark); font-size: 0.72rem; margin-top: 1px; }
+  .monat-kopf { display: flex; justify-content: space-between; align-items: baseline; font-size: 0.74rem; font-weight: 700; color: var(--bark); text-transform: uppercase; letter-spacing: .03em; margin: 14px 4px 6px; }
+  .monat-kopf:first-child { margin-top: 2px; }
+  .monat-kopf b { text-transform: none; letter-spacing: 0; color: var(--soil); }
+  .verbrauch-tag { display: inline-block; font-size: 0.7rem; font-weight: 700; background: var(--parchment); color: var(--soil); border-radius: 6px; padding: 1px 6px; margin-left: 4px; vertical-align: 1px; }
   .eintrag .e-wert { font-weight: 700; font-size: 0.86rem; white-space: nowrap; }
   .leer { text-align: center; color: var(--bark); padding: 40px 16px; line-height: 1.5; }
   .leer .em { font-size: 2.4rem; display: block; margin-bottom: 8px; }
@@ -171,7 +175,7 @@
   </div>
   <div class="zeile">
     <div class="feld"><label>Kennzeichen</label><input type="text" id="fzKennzeichen" placeholder="PF-AB 123"></div>
-    <div class="feld"><label>Kilometerstand</label><input type="number" id="fzKm" inputmode="numeric" placeholder="z.B. 42000"></div>
+    <div class="feld"><label>Kilometerstand</label><input type="text" autocomplete="off" id="fzKm" inputmode="numeric" placeholder="z.B. 42000"></div>
   </div>
   <div class="zeile">
     <div class="feld"><label>TÜV/HU fällig</label><input type="month" id="fzTuev"></div>
@@ -179,7 +183,7 @@
   </div>
   <div class="zeile">
     <div class="feld"><label>Nächster Service (Datum)</label><input type="date" id="fzServiceDatum"></div>
-    <div class="feld"><label>… oder bei km</label><input type="number" id="fzServiceKm" inputmode="numeric" placeholder="z.B. 60000"></div>
+    <div class="feld"><label>… oder bei km</label><input type="text" autocomplete="off" id="fzServiceKm" inputmode="numeric" placeholder="z.B. 60000"></div>
   </div>
   <details class="abschnitt" id="fzSteckbrief"><summary>📋 Steckbrief & Pannenhilfe</summary><div class="inhalt">
     <div class="zeile">
@@ -219,13 +223,13 @@
   <div class="feld"><label>Fahrzeug</label><select id="tkFahrzeug"></select></div>
   <div class="zeile">
     <div class="feld"><label>Datum</label><input type="date" id="tkDatum"></div>
-    <div class="feld"><label>Kilometerstand</label><input type="number" id="tkKm" inputmode="numeric"></div>
+    <div class="feld"><label>Kilometerstand</label><input type="text" autocomplete="off" id="tkKm" inputmode="numeric"></div>
   </div>
   <p class="hinweis" id="tkKmHinweis" style="margin:-6px 0 8px"></p>
   <div class="zeile">
-    <div class="feld"><label>Liter</label><input type="number" id="tkLiter" step="0.01" inputmode="decimal"></div>
-    <div class="feld"><label>Betrag (€)</label><input type="number" id="tkBetrag" step="0.01" inputmode="decimal"></div>
-    <div class="feld"><label>€ / Liter</label><input type="number" id="tkPreis" step="0.001" inputmode="decimal"></div>
+    <div class="feld"><label>Liter</label><input type="text" autocomplete="off" id="tkLiter" inputmode="decimal"></div>
+    <div class="feld"><label>Betrag (€)</label><input type="text" autocomplete="off" id="tkBetrag" inputmode="decimal"></div>
+    <div class="feld"><label>€ / Liter</label><input type="text" autocomplete="off" id="tkPreis" inputmode="decimal"></div>
   </div>
   <p class="hinweis" style="margin:-6px 0 8px">Zwei der drei Werte reichen – der dritte wird ausgerechnet.</p>
   <label style="display:flex;gap:8px;align-items:center;font-size:0.85rem;"><input type="checkbox" id="tkVoll" checked> Vollgetankt (für die Verbrauchsberechnung)</label>
@@ -243,10 +247,10 @@
   <div class="feld"><label>Was wurde gemacht?</label><div class="opt-reihe" id="wsArten"></div></div>
   <div class="zeile">
     <div class="feld"><label>Datum</label><input type="date" id="wsDatum"></div>
-    <div class="feld"><label>Kilometerstand</label><input type="number" id="wsKm" inputmode="numeric"></div>
+    <div class="feld"><label>Kilometerstand</label><input type="text" autocomplete="off" id="wsKm" inputmode="numeric"></div>
   </div>
   <div class="zeile">
-    <div class="feld"><label>Kosten (€)</label><input type="number" id="wsKosten" step="0.01" inputmode="decimal"></div>
+    <div class="feld"><label>Kosten (€)</label><input type="text" autocomplete="off" id="wsKosten" inputmode="decimal"></div>
     <div class="feld"><label>Werkstatt</label><input type="text" id="wsWo" placeholder="optional"></div>
   </div>
   <div class="feld" id="wsErledigtBox"></div>
@@ -271,7 +275,7 @@
   const KEY_FZ = 'fahrzeuge_liste', KEY_TANKEN = 'fahrzeuge_tanken', KEY_WS = 'fahrzeuge_werkstatt';
   const TYP_ICON = { auto: '🚗', motorrad: '🏍️', wohnmobil: '🚐', anhaenger: '🛞', fahrrad: '🚲' };
   const FARBEN = ['#4f6f45', '#5b8bb5', '#c46b41', '#8a5c7a', '#c99a3a'];
-  const WS_ARTEN = [['inspektion', '🔧 Inspektion'], ['oel', '🛢️ Ölwechsel'], ['reifen', '🛞 Reifenwechsel'], ['tuev', '✅ TÜV/HU'], ['reparatur', '🔩 Reparatur'], ['sonstiges', '📝 Sonstiges']];
+  const WS_ARTEN = [['inspektion', '🔧 Inspektion'], ['oel', '🛢️ Ölwechsel'], ['reifen', '🛞 Reifenwechsel'], ['tuev', '🔍 TÜV/HU'], ['reparatur', '🔩 Reparatur'], ['sonstiges', '📝 Sonstiges']];
   function laden(k, f) { try { const r = localStorage.getItem(k); return r === null ? f : JSON.parse(r); } catch (e) { return f; } }
   function speichern(k, v, h) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} if (h || window._sync) (h || window._sync).melde(); }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
@@ -292,7 +296,17 @@
   }
   const fz = id => fahrzeuge.find(f => f.id === id);
   const isoVon = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-  const num = v => { const n = parseFloat(String(v == null ? '' : v).replace(',', '.')); return isFinite(n) ? n : 0; };
+  // Zahlen mit Komma oder Punkt („41,5“, „1.234,50“); km immer ganzzahlig („38.920“ = 38920)
+  const num = v => {
+    if (typeof v === 'number') return isFinite(v) ? v : 0;
+    let t = String(v == null ? '' : v).replace(/[^\d,.-]/g, '');
+    if (t.includes(',') && t.includes('.')) t = t.lastIndexOf(',') > t.lastIndexOf('.') ? t.replace(/\./g, '').replace(',', '.') : t.replace(/,/g, '');
+    else if (t.includes(',')) t = t.replace(',', '.');
+    const n = parseFloat(t); return isFinite(n) ? n : 0;
+  };
+  const kmLesen = v => { const t = String(v == null ? '' : v).split(',')[0].replace(/\D/g, ''); return t ? String(Number(t)) : ''; };
+  const kommaText = v => v === '' || v == null ? '' : String(v).replace('.', ',');
+  const tankbar = f => f && f.typ !== 'fahrrad' && f.typ !== 'anhaenger';
 
   // ---------- 🔧 Wartungsplan: Vorgaben ----------
   const WARTUNG_VORLAGEN = [
@@ -391,11 +405,11 @@
     const liste = [];
     if (f.typ !== 'fahrrad') {
       const m = monateBis(f.tuev);
-      if (m === null) liste.push({ art: 'ok', icon: '✅', text: 'TÜV/HU', klein: 'Datum noch nicht eingetragen', aktion: 'bearbeiten' });
+      if (m === null) liste.push({ art: 'ok', icon: '🔍', text: 'TÜV/HU', klein: 'Datum noch nicht eingetragen', aktion: 'bearbeiten' });
       else {
         const [j, mo] = f.tuev.split('-');
-        liste.push({ art: m < 0 ? 'faellig' : m <= 1 ? 'bald' : 'ok', icon: '✅', text: 'TÜV/HU ' + (m < 0 ? 'überfällig!' : m === 0 ? 'diesen Monat fällig' : m === 1 ? 'nächsten Monat fällig' : 'in ' + m + ' Monaten'),
-          klein: 'fällig ' + mo + '/' + j, termin: { titel: '✅ TÜV/HU ' + f.name + ' – Termin vereinbaren', datum: j + '-' + mo + '-01', tageVorher: 21 } });
+        liste.push({ art: m < 0 ? 'faellig' : m <= 1 ? 'bald' : 'ok', icon: '🔍', text: 'TÜV/HU ' + (m < 0 ? 'überfällig!' : m === 0 ? 'diesen Monat fällig' : m === 1 ? 'nächsten Monat fällig' : 'in ' + m + ' Monaten'),
+          klein: 'fällig ' + mo + '/' + j, termin: { titel: '🔍 TÜV/HU ' + f.name + ' – Termin vereinbaren', datum: j + '-' + mo + '-01', tageVorher: 21 } });
       }
     }
     if (f.serviceDatum || f.serviceKm) {
@@ -458,7 +472,7 @@
     t.forEach(x => {
       if (start === null) { if (x.voll) start = Number(x.km); return; }
       zwischen += Number(x.liter) || 0;
-      if (x.voll) { const km = Number(x.km) - start; if (km > 0 && km <= 2500) out.push({ datum: x.datum, wert: zwischen / km * 100, km }); start = Number(x.km); zwischen = 0; }
+      if (x.voll) { const km = Number(x.km) - start; if (km > 0 && km <= 2500) out.push({ id: x.id, datum: x.datum, wert: zwischen / km * 100, km }); start = Number(x.km); zwischen = 0; }
     });
     return out;
   }
@@ -486,10 +500,11 @@
   // ---------- Darstellung ----------
   function renderFilter() {
     const box = document.getElementById('fahrzeugFilter');
-    if (fahrzeuge.length < 2 || ansicht === 'uebersicht') { box.innerHTML = ''; return; }
-    if (filterFz !== 'alle' && !fz(filterFz)) filterFz = 'alle';
+    const auswahl = ansicht === 'tanken' ? fahrzeuge.filter(tankbar) : fahrzeuge;
+    if (auswahl.length < 2 || ansicht === 'uebersicht') { box.innerHTML = ''; if (ansicht !== 'uebersicht' && filterFz !== 'alle' && !auswahl.some(f => f.id === filterFz)) filterFz = 'alle'; return; }
+    if (filterFz !== 'alle' && !auswahl.some(f => f.id === filterFz)) filterFz = 'alle';
     box.innerHTML = '<button class="chip' + (filterFz === 'alle' ? ' active' : '') + '" data-f="alle">Alle</button>' +
-      fahrzeuge.map(f => '<button class="chip' + (filterFz === f.id ? ' active' : '') + '" data-f="' + esc(f.id) + '">' + (TYP_ICON[f.typ] || '🚗') + ' ' + esc(f.name) + '</button>').join('');
+      auswahl.map(f => '<button class="chip' + (filterFz === f.id ? ' active' : '') + '" data-f="' + esc(f.id) + '">' + (TYP_ICON[f.typ] || '🚗') + ' ' + esc(f.name) + '</button>').join('');
     box.querySelectorAll('[data-f]').forEach(b => b.addEventListener('click', () => { filterFz = b.dataset.f; render(); }));
   }
   function render() {
@@ -518,9 +533,9 @@
             (s.bezahlt ? '<button class="knopf-mini" data-bezahlt="' + esc(f.id) + ':' + esc(s.bezahlt) + '">Bezahlt</button>' : '') +
             (s.wartung ? '<button class="knopf-mini" data-wartung-erledigt="' + esc(f.id) + ':' + esc(s.wartung) + '">Erledigt</button>' : '') +
             '</div>').join('') + '</div>' + wartungZeile(f) + maengelHtml(f) + knoepfeHtml(f) +
-          '<div class="zahlen">' +
+          '<div class="zahlen">' + (tankbar(f) ?
             '<div class="zahl"><b>' + (v ? zahl(v, 1) + ' l' : '–') + '</b><span>Ø Verbrauch / 100 km</span></div>' +
-            '<div class="zahl"><b>' + euro(k.tk) + '</b><span>Tanken ' + new Date().getFullYear() + '</span></div>' +
+            '<div class="zahl"><b>' + euro(k.tk) + '</b><span>Tanken ' + new Date().getFullYear() + '</span></div>' : '') +
             '<div class="zahl"><b>' + euro(k.ws) + '</b><span>Werkstatt ' + new Date().getFullYear() + '</span></div>' +
           '</div>' + (f.notiz ? '<p class="hinweis" style="margin-top:8px">📝 ' + esc(f.notiz) + '</p>' : '') + '</div>';
       }).join('');
@@ -548,15 +563,31 @@
     const liste = (ansicht === 'tanken' ? tanken : werkstatt).filter(x => filterFz === 'alle' || x.fahrzeugId === filterFz)
       .slice().sort((a, b) => String(b.datum || '').localeCompare(String(a.datum || '')) || (Number(b.km) || 0) - (Number(a.km) || 0));
     if (!liste.length) { box.innerHTML = '<div class="leer"><span class="em">' + (ansicht === 'tanken' ? '⛽' : '🔧') + '</span>Noch keine Einträge.</div>'; return; }
+    const proFuellung = {};
+    if (ansicht === 'tanken') {
+      const ids = new Set(liste.map(x => x.fahrzeugId));
+      ids.forEach(fid => verbrauchsListe(fid).forEach(v => { proFuellung[v.id] = v.wert; }));
+    }
+    const MONATSNAMEN = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+    const monatSumme = {};
+    liste.forEach(x => { const m = String(x.datum || '').slice(0, 7); monatSumme[m] = (monatSumme[m] || 0) + num(ansicht === 'tanken' ? x.betrag : x.kosten); });
+    let letzterMonat = null;
     box.innerHTML = liste.map(x => {
       const f = fz(x.fahrzeugId) || { name: '?' };
+      const m = String(x.datum || '').slice(0, 7);
+      let kopf = '';
+      if (m !== letzterMonat) {
+        letzterMonat = m;
+        if (m) kopf = '<div class="monat-kopf"><span>' + MONATSNAMEN[Number(m.slice(5, 7)) - 1] + ' ' + m.slice(0, 4) + '</span>' + (monatSumme[m] > 0 ? '<b>' + euro(monatSumme[m]) + '</b>' : '') + '</div>';
+      }
       if (ansicht === 'tanken') {
         const preis = Number(x.liter) > 0 && Number(x.betrag) > 0 ? ' · ' + zahl(x.betrag / x.liter, 3) + ' €/l' : '';
-        return '<div class="eintrag" data-tk="' + esc(x.id) + '"><span class="e-icon">⛽</span><div class="e-text">' + zahl(x.liter, 2) + ' l' + (x.voll ? '' : ' (nicht voll)') +
+        const vb = proFuellung[x.id];
+        return kopf + '<div class="eintrag" data-tk="' + esc(x.id) + '"><span class="e-icon">⛽</span><div class="e-text">' + zahl(x.liter, 2) + ' l' + (x.voll ? '' : ' (nicht voll)') + (vb ? ' <span class="verbrauch-tag">' + vb.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' l/100 km</span>' : '') +
           '<small>' + datumText(x.datum) + (x.km ? ' · ' + zahl(x.km) + ' km' : '') + preis + (fahrzeuge.length > 1 ? ' · ' + esc(f.name) : '') + '</small></div><span class="e-wert">' + euro(x.betrag) + '</span></div>';
       }
       const art = (WS_ARTEN.find(a => a[0] === x.art) || WS_ARTEN[5])[1];
-      return '<div class="eintrag" data-ws="' + esc(x.id) + '"><span class="e-icon">' + art.split(' ')[0] + '</span><div class="e-text">' + esc(art.slice(art.indexOf(' ') + 1)) + (x.notiz ? ' – ' + esc(x.notiz) : '') +
+      return kopf + '<div class="eintrag" data-ws="' + esc(x.id) + '"><span class="e-icon">' + art.split(' ')[0] + '</span><div class="e-text">' + esc(art.slice(art.indexOf(' ') + 1)) + (x.notiz ? ' – ' + esc(x.notiz) : '') +
         '<small>' + datumText(x.datum) + (x.km ? ' · ' + zahl(x.km) + ' km' : '') + (x.wo ? ' · ' + esc(x.wo) : '') + (fahrzeuge.length > 1 ? ' · ' + esc(f.name) : '') + '</small></div><span class="e-wert">' + (x.kosten ? euro(x.kosten) : '') + '</span></div>';
     }).join('');
     box.querySelectorAll('[data-tk]').forEach(b => b.addEventListener('click', () => tankenOeffnen(b.dataset.tk)));
@@ -723,15 +754,15 @@
   document.querySelectorAll('.modal-bg').forEach(m => m.addEventListener('click', e => { if (e.target === m) zu(m.id); }));
   const wert = id => document.getElementById(id).value;
   const setze = (id, v) => { document.getElementById(id).value = v == null ? '' : v; };
-  function fahrzeugAuswahl(id, gewaehlt) {
-    document.getElementById(id).innerHTML = fahrzeuge.map(f => '<option value="' + esc(f.id) + '"' + (f.id === gewaehlt ? ' selected' : '') + '>' + (TYP_ICON[f.typ] || '🚗') + ' ' + esc(f.name) + '</option>').join('');
+  function fahrzeugAuswahl(id, gewaehlt, nurTankbar) {
+    document.getElementById(id).innerHTML = fahrzeuge.filter(f => !nurTankbar || tankbar(f) || f.id === gewaehlt).map(f => '<option value="' + esc(f.id) + '"' + (f.id === gewaehlt ? ' selected' : '') + '>' + (TYP_ICON[f.typ] || '🚗') + ' ' + esc(f.name) + '</option>').join('');
   }
 
   let fixEntwurf = [], wartEntwurf = [];
   function fixListeRendern() {
     const box = document.getElementById('fzFixListe');
     box.innerHTML = fixEntwurf.length ? fixEntwurf.map((x, i) => '<div class="zeilen-karte"><div class="zeilen-kopf"><input data-fx="' + i + '" data-feld="name" value="' + esc(x.name || FIX_ARTEN[x.art]) + '"><button type="button" class="weg" data-fx-weg="' + i + '" aria-label="Entfernen">✕</button></div>' +
-      '<div class="zeile"><div class="feld"><label>Betrag (€)</label><input type="number" step="0.01" inputmode="decimal" data-fx="' + i + '" data-feld="betrag" value="' + esc(x.betrag || '') + '"></div>' +
+      '<div class="zeile"><div class="feld"><label>Betrag (€)</label><input type="text" autocomplete="off" inputmode="decimal" data-fx="' + i + '" data-feld="betrag" value="' + esc(kommaText(x.betrag || '')) + '"></div>' +
       '<div class="feld"><label>Nächste Fälligkeit</label><input type="month" data-fx="' + i + '" data-feld="faellig" value="' + esc(x.faellig || '') + '"></div>' +
       '<div class="feld" style="flex:0 0 100px"><label>Abstand</label><select data-fx="' + i + '" data-feld="intervall">' + Object.keys(INTERVALLE).sort((a, b) => b - a).map(k => '<option value="' + k + '"' + (String(x.intervall || 12) === k ? ' selected' : '') + '>' + INTERVALLE[k] + '</option>').join('') + '</select></div></div></div>').join('')
       : '<p class="hinweis" style="margin:0 0 8px">Noch keine Fixkosten – z.B. KFZ-Steuer (Bescheid vom Zoll) und Versicherung.</p>';
@@ -747,10 +778,10 @@
   function wartListeRendern() {
     const box = document.getElementById('fzWartListe');
     box.innerHTML = wartEntwurf.map((w, i) => '<div class="zeilen-karte"><div class="zeilen-kopf"><input data-wt="' + i + '" data-feld="name" value="' + esc(w.name) + '"><button type="button" class="weg" data-wt-weg="' + i + '" aria-label="Entfernen">✕</button></div>' +
-      '<div class="zeile"><div class="feld"><label>alle … km</label><input type="number" inputmode="numeric" data-wt="' + i + '" data-feld="km" value="' + esc(w.km || '') + '"></div>' +
-      '<div class="feld"><label>alle … Monate</label><input type="number" inputmode="numeric" data-wt="' + i + '" data-feld="monate" value="' + esc(w.monate || '') + '"></div></div>' +
+      '<div class="zeile"><div class="feld"><label>alle … km</label><input type="text" autocomplete="off" inputmode="numeric" data-wt="' + i + '" data-feld="km" value="' + esc(w.km || '') + '"></div>' +
+      '<div class="feld"><label>alle … Monate</label><input type="text" autocomplete="off" inputmode="numeric" data-wt="' + i + '" data-feld="monate" value="' + esc(w.monate || '') + '"></div></div>' +
       '<div class="zeile"><div class="feld"><label>zuletzt am</label><input type="date" data-wt="' + i + '" data-feld="zuletztDatum" value="' + esc(w.zuletztDatum || '') + '"></div>' +
-      '<div class="feld"><label>bei km</label><input type="number" inputmode="numeric" data-wt="' + i + '" data-feld="zuletztKm" value="' + esc(w.zuletztKm || '') + '"></div></div></div>').join('');
+      '<div class="feld"><label>bei km</label><input type="text" autocomplete="off" inputmode="numeric" data-wt="' + i + '" data-feld="zuletztKm" value="' + esc(w.zuletztKm || '') + '"></div></div></div>').join('');
     box.querySelectorAll('[data-wt]').forEach(el => el.addEventListener('input', () => { wartEntwurf[Number(el.dataset.wt)][el.dataset.feld] = el.value; }));
     box.querySelectorAll('[data-wt-weg]').forEach(b => b.addEventListener('click', () => { wartEntwurf.splice(Number(b.dataset.wtWeg), 1); wartListeRendern(); }));
     const vor = WARTUNG_VORLAGEN.filter(v => !wartEntwurf.some(w => w.name === v.name));
@@ -783,13 +814,13 @@
   document.getElementById('fzSpeichern').addEventListener('click', () => {
     const name = wert('fzName').trim();
     if (!name) { document.getElementById('fzName').focus(); return; }
-    const daten = { name, typ: wert('fzTyp'), kennzeichen: wert('fzKennzeichen').trim().toUpperCase(), km: wert('fzKm'), tuev: wert('fzTuev'), reifen: wert('fzReifen'),
-      serviceDatum: wert('fzServiceDatum'), serviceKm: wert('fzServiceKm'), notiz: wert('fzNotiz').trim(),
+    const daten = { name, typ: wert('fzTyp'), kennzeichen: wert('fzKennzeichen').trim().toUpperCase(), km: kmLesen(wert('fzKm')), tuev: wert('fzTuev'), reifen: wert('fzReifen'),
+      serviceDatum: wert('fzServiceDatum'), serviceKm: kmLesen(wert('fzServiceKm')), notiz: wert('fzNotiz').trim(),
       reifengroesse: wert('fzReifengroesse').trim(), oel: wert('fzOel').trim(), fin: wert('fzFin').trim().toUpperCase(), vers: wert('fzVers').trim(), versNr: wert('fzVersNr').trim(),
       panne: wert('fzPanne').trim(), panneTel: wert('fzPanneTel').trim(),
       fixkosten: fixEntwurf.filter(x => (x.name || '').trim() || x.betrag || x.faellig).map(x => Object.assign({}, x, { name: String(x.name || '').trim(), intervall: Number(x.intervall) || 12 })),
-      wartung: wartEntwurf.filter(w => String(w.name || '').replace(/^\S+\s*/, '').trim() && (num(w.km) > 0 || num(w.monate) > 0))
-        .map(w => Object.assign({}, w, { name: String(w.name).trim(), km: num(w.km) || '', monate: num(w.monate) || '', zuletztKm: num(w.zuletztKm) || '' })) };
+      wartung: wartEntwurf.filter(w => String(w.name || '').replace(/^\S+\s*/, '').trim() && (Number(kmLesen(w.km)) > 0 || num(w.monate) > 0))
+        .map(w => Object.assign({}, w, { name: String(w.name).trim(), km: Number(kmLesen(w.km)) || '', monate: num(w.monate) || '', zuletztKm: Number(kmLesen(w.zuletztKm)) || '' })) };
     if (bearbeiteId) Object.assign(fz(bearbeiteId), daten); else fahrzeuge.push(Object.assign({ id: neueId('fz') }, daten));
     speichern(KEY_FZ, fahrzeuge); zu('modalFahrzeug'); render();
   });
@@ -807,10 +838,12 @@
     if (!fahrzeuge.length) { fahrzeugOeffnen(); return; }
     bearbeiteId = id || null;
     const t = id ? tanken.find(x => x.id === id) : {};
-    const standard = t.fahrzeugId || (filterFz !== 'alle' ? filterFz : fahrzeuge[0].id);
-    fahrzeugAuswahl('tkFahrzeug', standard);
-    setze('tkDatum', t.datum || heuteISO()); setze('tkKm', t.km); setze('tkLiter', t.liter); setze('tkBetrag', t.betrag);
-    setze('tkPreis', num(t.liter) > 0 && num(t.betrag) > 0 ? (num(t.betrag) / num(t.liter)).toFixed(3) : '');
+    const tb = fahrzeuge.filter(tankbar);
+    if (!id && !tb.length) { alert('Tanken gibt es nur für Auto, Motorrad und Wohnmobil.'); return; }
+    const standard = t.fahrzeugId || (filterFz !== 'alle' && tankbar(fz(filterFz)) ? filterFz : tb[0].id);
+    fahrzeugAuswahl('tkFahrzeug', standard, true);
+    setze('tkDatum', t.datum || heuteISO()); setze('tkKm', t.km); setze('tkLiter', kommaText(t.liter)); setze('tkBetrag', kommaText(t.betrag));
+    setze('tkPreis', num(t.liter) > 0 && num(t.betrag) > 0 ? kommaText((num(t.betrag) / num(t.liter)).toFixed(3)) : '');
     tkAuto = new Set(num(t.liter) > 0 && num(t.betrag) > 0 ? ['tkPreis'] : []);
     tkKmHinweis();
     document.getElementById('tkVoll').checked = id ? !!t.voll : true;
@@ -829,7 +862,7 @@
     if (ziel === 'tkBetrag' && L > 0 && P > 0) v = (L * P).toFixed(2);
     if (ziel === 'tkPreis' && L > 0 && B > 0) v = (B / L).toFixed(3);
     if (ziel === 'tkLiter' && B > 0 && P > 0) v = (B / P).toFixed(2);
-    if (v !== null) { setze(ziel, v); tkAuto.add(ziel); }
+    if (v !== null) { setze(ziel, kommaText(v)); tkAuto.add(ziel); }
   }
   ['tkLiter', 'tkBetrag', 'tkPreis'].forEach(id => document.getElementById(id).addEventListener('input', () => tkRechnen(id)));
   function letzteTankung(fid, ausser) {
@@ -839,7 +872,7 @@
     const l = letzteTankung(wert('tkFahrzeug'), bearbeiteId);
     const el = document.getElementById('tkKmHinweis');
     if (!l) { el.textContent = ''; return; }
-    const km = num(wert('tkKm'));
+    const km = Number(kmLesen(wert('tkKm')));
     el.innerHTML = 'Zuletzt ' + zahl(l.km) + ' km am ' + datumText(l.datum) + (km > num(l.km) ? ' · seitdem ' + zahl(km - num(l.km)) + ' km' : km && km < num(l.km) ? ' · <b style="color:var(--terracotta-text)">⚠ weniger als beim letzten Mal?</b>' : '');
   }
   document.getElementById('tkKm').addEventListener('input', tkKmHinweis);
@@ -848,9 +881,9 @@
     const liter = num(wert('tkLiter')), betrag = num(wert('tkBetrag'));
     if (!(liter > 0)) { document.getElementById('tkLiter').focus(); return; }
     const l = letzteTankung(wert('tkFahrzeug'), bearbeiteId);
-    if (l && num(wert('tkKm')) > 0 && num(wert('tkKm')) < num(l.km) && wert('tkDatum') >= (l.datum || '') &&
+    if (l && Number(kmLesen(wert('tkKm'))) > 0 && Number(kmLesen(wert('tkKm'))) < num(l.km) && wert('tkDatum') >= (l.datum || '') &&
       !confirm('Der Kilometerstand ist kleiner als bei der letzten Tankung (' + zahl(l.km) + ' km). Trotzdem speichern?')) return;
-    const daten = { fahrzeugId: wert('tkFahrzeug'), datum: wert('tkDatum') || heuteISO(), km: wert('tkKm'), liter, betrag: betrag > 0 ? betrag : 0, voll: document.getElementById('tkVoll').checked };
+    const daten = { fahrzeugId: wert('tkFahrzeug'), datum: wert('tkDatum') || heuteISO(), km: kmLesen(wert('tkKm')), liter, betrag: betrag > 0 ? betrag : 0, voll: document.getElementById('tkVoll').checked };
     let eintrag;
     if (bearbeiteId) { eintrag = tanken.find(x => x.id === bearbeiteId); Object.assign(eintrag, daten); }
     else { eintrag = Object.assign({ id: neueId('tk') }, daten); tanken.push(eintrag); }
@@ -866,7 +899,7 @@
   function wsArtenRendern() {
     document.getElementById('wsArten').innerHTML = WS_ARTEN.map(a => '<button type="button" class="chip' + (a[0] === wsArt ? ' active' : '') + '" data-art="' + a[0] + '">' + a[1] + '</button>').join('');
     document.querySelectorAll('#wsArten [data-art]').forEach(b => b.addEventListener('click', () => { wsArt = b.dataset.art; wsArtenRendern(); wsVorauswahl(); wsErledigtRendern(); }));
-    document.getElementById('wsHinweis').textContent = wsArt === 'tuev' ? '✅ Beim Speichern wird die nächste HU automatisch auf 2 Jahre später gesetzt.'
+    document.getElementById('wsHinweis').textContent = wsArt === 'tuev' ? '🔍 Beim Speichern wird die nächste HU automatisch auf 2 Jahre später gesetzt.'
       : wsArt === 'inspektion' ? '🔧 Beim Speichern wird der nächste Service auf 1 Jahr später gesetzt (im Fahrzeug anpassbar).' : '';
   }
   let wsWartung = [], wsMaengel = [];
@@ -894,7 +927,7 @@
     const w = id ? werkstatt.find(x => x.id === id) : (vorgabe || {});
     wsArt = w.art || 'inspektion';
     fahrzeugAuswahl('wsFahrzeug', w.fahrzeugId || (filterFz !== 'alle' ? filterFz : fahrzeuge[0].id));
-    setze('wsDatum', w.datum || heuteISO()); setze('wsKm', w.km); setze('wsKosten', w.kosten); setze('wsWo', w.wo); setze('wsNotiz', w.notiz);
+    setze('wsDatum', w.datum || heuteISO()); setze('wsKm', w.km); setze('wsKosten', kommaText(w.kosten)); setze('wsWo', w.wo); setze('wsNotiz', w.notiz);
     document.getElementById('wsLoeschen').style.display = id ? '' : 'none';
     wsWartung = Array.isArray(w.wartungIds) ? w.wartungIds.slice() : [];
     const fw = fz(w.fahrzeugId || wert('wsFahrzeug'));
@@ -905,8 +938,8 @@
     zeige('modalWerkstatt');
   }
   document.getElementById('wsSpeichern').addEventListener('click', () => {
-    const daten = { fahrzeugId: wert('wsFahrzeug'), art: wsArt, datum: wert('wsDatum') || heuteISO(), km: wert('wsKm'),
-      kosten: parseFloat(String(wert('wsKosten')).replace(',', '.')) || '', wo: wert('wsWo').trim(), notiz: wert('wsNotiz').trim() };
+    const daten = { fahrzeugId: wert('wsFahrzeug'), art: wsArt, datum: wert('wsDatum') || heuteISO(), km: kmLesen(wert('wsKm')),
+      kosten: num(wert('wsKosten')) || '', wo: wert('wsWo').trim(), notiz: wert('wsNotiz').trim() };
     daten.wartungIds = wsWartung.slice();
     let eintrag;
     if (bearbeiteId) { eintrag = werkstatt.find(x => x.id === bearbeiteId); Object.assign(eintrag, daten); }
