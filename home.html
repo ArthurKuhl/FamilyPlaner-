@@ -286,6 +286,7 @@
   .haushalt-zeile .hz-wer { font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-pill); color: var(--white); flex-shrink: 0; }
 
   .garten-kachel { border-top: 3px solid var(--moss); }
+  .garten-notiz { font-size: 0.8rem; margin-top: 6px; padding: 6px 9px; border-radius: 8px; background: rgba(230,126,34,0.12); border-left: 3px solid #e67e22; cursor: pointer; }
   .garten-hinweis { font-size: 0.8rem; color: var(--bark); line-height: 1.4; }
   .warnung-chip {
     display: inline-flex; align-items: center; gap: 5px; font-size: 0.72rem; font-weight: 700;
@@ -458,6 +459,7 @@
     </div>
     <div class="garten-hinweis" id="gartenHinweisText">Pflegeplan &amp; Tagesüberblick ansehen (Gieß-/Pflegeaufgaben, Wetterwarnungen)</div>
     <div id="gartenWarnungen"></div>
+    <div id="gartenNotizen"></div>
     <div class="garten-hinweis" id="gartenPflanzErnte" style="margin-top:6px;"></div>
   </div>
 
@@ -1374,7 +1376,29 @@
     }
   }
 
+  // 📝 Fällige Notiz-Erinnerungen von der Garten-Karte
+  function renderGartenNotizen() {
+    const box = document.getElementById('gartenNotizen');
+    if (!box) return;
+    const g = laden('gartenplaner_v3', null);
+    const heute = new Date(), j = String(heute.getFullYear());
+    const iso = j + '-' + String(heute.getMonth() + 1).padStart(2, '0') + '-' + String(heute.getDate()).padStart(2, '0');
+    const liste = [];
+    if (g && g.gardens) Object.values(g.gardens).forEach(gg => (gg.notizPins || []).forEach(n => {
+      if (!n || !n.datum) return;
+      const faellig = n.jaehrlich ? (iso >= j + n.datum.slice(4) && String(n.erledigtJahr || '') !== j) : (iso >= n.datum && !n.erledigt);
+      if (faellig) liste.push(n);
+    }));
+    const esc = (t) => String(t || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    box.innerHTML = liste.slice(0, 3).map(n => `<div class="garten-notiz" data-notiz="${esc(n.id)}">${esc(n.icon || '📝')} ${esc(n.text)}</div>`).join('') +
+      (liste.length > 3 ? `<div class="garten-hinweis">… und ${liste.length - 3} weitere</div>` : '');
+    box.querySelectorAll('[data-notiz]').forEach(el => el.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      try { window.parent.postMessage({ type: 'navigiere', modul: 'garten', aktion: 'notiz', text: el.dataset.notiz }, window.location.origin); } catch (e) {}
+    }));
+  }
   function renderGartenWarnungen() {
+    try { renderGartenNotizen(); } catch (e) {}
     const hinweise = laden('gartenplaner_wetterHinweise', null);
     const box = document.getElementById('gartenWarnungen');
     box.innerHTML = '';
@@ -2790,6 +2814,19 @@
     const topPflanze = Object.entries(proPflanze).sort((a, b) => b[1] - a[1])[0];
     if (ernten) punkte.push({ icon: '🧺', zahl: kg >= 1 ? kg.toLocaleString('de-DE', { maximumFractionDigits: 1 }) + ' kg' : String(ernten), text: kg >= 1 ? 'geerntet in ' + ernten + (ernten === 1 ? ' Ernte' : ' Ernten') : (ernten === 1 ? 'Ernte eingetragen' : 'Ernten eingetragen'), extra: topPflanze ? 'Spitzenreiter: ' + topPflanze[0] : '' });
     if (tiere) punkte.push({ icon: '🦔', zahl: String(tiere), text: tiere === 1 ? 'Tierart im Garten entdeckt' : 'Tierarten im Garten entdeckt' });
+    if (garten && garten.gardens) {
+      let beob = 0, neu = 0;
+      const proTier = {};
+      Object.values(garten.gardens).forEach(g => {
+        (g.beobachtungen || []).forEach(b => { if (!imJahr(b.datum)) return; beob += (b.anzahl || 1); const k = b.tierName || b.tierId || ''; if (k) proTier[k] = (proTier[k] || 0) + 1; });
+        (g.beds || []).forEach(b => (b.plants || []).forEach(p => { if (imJahr(p.date)) neu += (parseInt(p.anzahl, 10) || 1); }));
+        (g.freiPflanzen || []).forEach(p => { if (imJahr(p.datum)) neu += (parseInt(p.anzahl, 10) || 1); });
+      });
+      const topTier = Object.entries(proTier).sort((a, b) => b[1] - a[1])[0];
+      const tierName = (k) => k.charAt(0).toUpperCase() + k.slice(1).replace(/-/g, ' ');
+      if (beob) punkte.push({ icon: '🔎', zahl: String(beob), text: 'Tier-Beobachtungen notiert', extra: topTier ? 'Häufigster Gast: ' + tierName(topTier[0]) : '' });
+      if (neu) punkte.push({ icon: '🌱', zahl: String(neu), text: neu === 1 ? 'Pflanze neu gesetzt' : 'Pflanzen neu gesetzt' });
+    }
 
     // 🍳 Kochen
     const rezepte = lies('kochen_rezepte', []);

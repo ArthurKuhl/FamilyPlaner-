@@ -338,6 +338,7 @@
       <p>Exportiert alle Daten aus allen Bereichen (Garten, Termine, Einkauf, Kochen, Gesundheit, Gaming) als Datei – zusätzlich zur Cloud-Synchronisierung, als extra Sicherheitsnetz. Anders als die Cloud-Synchronisierung enthält diese Datei auch die Fotos aus dem Garten-Tagebuch.</p>
       <div class="status-text" id="backupErinnerungText" style="margin-bottom:10px;"></div>
       <div class="status-text" id="speicherStatus" style="margin-bottom:10px;"></div>
+      <button class="btn btn-secondary" id="btnCloudKopien" style="margin-bottom:10px;display:none;"></button>
       <button class="btn btn-secondary" id="btnFotosAnzeigen" style="margin-bottom:10px;">🖼 Größte Fotos aufräumen</button>
       <div id="fotoAufraeumListe" style="display:none;max-height:260px;overflow-y:auto;margin-bottom:10px;"></div>
       <button class="btn btn-primary" id="btnExport">⬇ Alle Daten exportieren</button>
@@ -1381,6 +1382,7 @@
       { modul: 'einkauf', text: '🛒 Auf die Einkaufsliste' },
       { modul: 'termine', text: '🗓️ Als Termin' },
       { modul: 'notizblock', text: '📝 Als Notiz' },
+      { modul: 'garten', text: '🌱 In den Garten (Ernte, Tier, gegossen …)' },
       { modul: 'wunschliste', text: '🎁 Auf die Wunschliste' },
       { modul: 'chat', text: '💬 In den Familien-Chat' },
     ];
@@ -1934,6 +1936,46 @@
       navigator.serviceWorker.addEventListener('controllerchange', () => setTimeout(frageVersionAb, 300));
     }
 
+    // ---------- ☁️ LOKALE KOPIEN VON FAMILIENFOTOS ----------
+    // Familienfotos liegen nach dem Hochladen in der Cloud (url) – die eingebettete Kopie (data) braucht
+    // dann nur noch Platz. Entfernt werden ausschließlich Fotos, die BEIDES haben; „Nur ich“-Fotos bleiben.
+    function cloudKopienDurchlaufen(entfernen) {
+      let zeichen = 0;
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (!key || BACKUP_AUSSCHLUSS.indexOf(key) !== -1) continue;
+        const raw = localStorage.getItem(key);
+        if (!raw || raw.indexOf('data:image') === -1 || raw.indexOf('"url"') === -1) continue;
+        let daten, geaendert = false;
+        try { daten = JSON.parse(raw); } catch (e) { continue; }
+        (function walk(node, tiefe) {
+          if (!node || typeof node !== 'object' || tiefe > 14) return;
+          if (Array.isArray(node)) { node.forEach(v => walk(v, tiefe + 1)); return; }
+          if (typeof node.data === 'string' && node.data.indexOf('data:image') === 0 && typeof node.url === 'string' && /^https:\/\//.test(node.url) && node.geteilt !== false) {
+            zeichen += node.data.length;
+            if (entfernen) { delete node.data; geaendert = true; }
+          }
+          Object.keys(node).forEach(k => walk(node[k], tiefe + 1));
+        })(daten, 0);
+        if (entfernen && geaendert) { try { localStorage.setItem(key, JSON.stringify(daten)); } catch (e) {} }
+      }
+      return (zeichen * 2) / (1024 * 1024);
+    }
+    function cloudKopienKnopfAktualisieren() {
+      const btn = document.getElementById('btnCloudKopien');
+      const mb = cloudKopienDurchlaufen(false);
+      btn.style.display = mb >= 0.05 ? '' : 'none';
+      btn.textContent = '☁️ Platz sparen: lokale Kopien von Familienfotos entfernen (~' + mb.toFixed(1) + ' MB)';
+    }
+    document.getElementById('btnCloudKopien').addEventListener('click', () => {
+      if (!confirm('Fotos, die schon für die Familie in der Cloud liegen, werden nur noch von dort geladen (einmal angesehen, bleiben sie auch offline verfügbar). „Nur ich“-Fotos bleiben unverändert. Fortfahren?')) return;
+      const mb = cloudKopienDurchlaufen(true);
+      zeigeSpeicherNutzung();
+      cloudKopienKnopfAktualisieren();
+      document.getElementById('backupStatus').textContent = '✓ ~' + mb.toFixed(1) + ' MB frei geworden.';
+      try { frame.src = frame.src; } catch (e) {} // geöffneten Bereich neu laden, damit er die alten Kopien nicht zurückschreibt
+    });
+
     // ---------- FOTOS FINDEN & AUFRÄUMEN ----------
     function modulNameFuerSchluessel(key) {
       if (key.startsWith('gartenplaner_')) return 'Garten';
@@ -2020,6 +2062,7 @@
       document.getElementById('backupStatus').textContent = '';
       backupErinnerungImModalAnzeigen();
       zeigeSpeicherNutzung();
+      cloudKopienKnopfAktualisieren();
       frageVersionAb();
       codeAnzeigenAktualisieren();
       geraetIdentitaetAuswahlBefuellen();

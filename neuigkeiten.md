@@ -1,6 +1,14 @@
 # Neuigkeiten im Familienplaner
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 
+## 2026-11-13 | Garten per Sprache, Erinnerungen aufs Handy, Platz sparen
+- 🎤 ＋ Schnell festhalten → „🌱 In den Garten“: Sätze wie „2 Kilo Tomaten geerntet“, „Tomaten gegossen“ oder „Igel am Komposthaufen gesehen“ werden erkannt und nach kurzer Rückfrage eingetragen. Alles andere wird eine Notiz auf der Karte.
+- 🔔 Notiz-Erinnerungen von der Garten-Karte kommen jetzt auch als Push-Nachricht aufs Handy (zur eingestellten Tageszeit).
+- 🏠 Fällige Garten-Notizen stehen auf der Übersicht in der Garten-Kachel.
+- 🎉 Familienjahr-Rückblick: zusätzlich Tier-Beobachtungen (mit häufigstem Gast) und neu gesetzte Pflanzen.
+- ☁️ Sichern & Wiederherstellen: neuer Knopf „Platz sparen“ – entfernt lokale Kopien von Familienfotos, die schon in der Cloud liegen.
+- Technik: Das Garten-Modul ist jetzt in mehrere Dateien aufgeteilt. Bei Updates muss nur noch der geänderte Teil neu geladen werden.
+
 ## 2026-11-13 | Notizen mit Erinnerung, Zwiebel-Gedächtnis, Fruchtfolge-Ampel & mehr
 - 📍 Markierung setzen: Auf die Karte tippen und wählen – 🐾 Tier oder 📝 Notiz. Notizen können ein Erinnerungsdatum haben (auch „jedes Jahr“) und erscheinen dann unter „Heute“.
 - 🌷 Zwiebel-Gedächtnis: Eingezogene Zwiebeln werden auf der Karte blass mit gestricheltem Rand gezeigt. Wer an so einer Stelle etwas pflanzt, bekommt eine Warnung.
