@@ -1,6 +1,12 @@
 # Neuigkeiten im Familienplaner
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 
+## 2026-11-13 | Geldgeschenke: für mehrere Kinder auf einmal
+- Bei „Für wen“ lassen sich jetzt mehrere Personen antippen, z. B. wenn Oma beiden Kindern etwas schenkt. Beim Speichern entsteht für jede Person ein eigener Eintrag mit demselben Betrag (auch Taschengeld und „Danke offen“).
+- Der Betrag nimmt jetzt Komma und Tausenderpunkt an („25,50“, „1.000“). Vorher wurde „1.000“ als 1 € gespeichert.
+- Von Mitte Dezember bis Anfang Januar ist „🎄 Weihnachten“ als Anlass vorausgewählt.
+- Die Reiter heißen kürzer „👤 Personen“ und „📈 Jahre“ und passen so auf eine Zeile.
+
 ## 2026-11-13 | Feste: Ablauf lesbar, Geschwister mitgezählt
 - Ablauf: Lange Programmpunkte („Kuchen & Kerzen auspusten“) brechen jetzt in eine zweite Zeile um, statt abgeschnitten zu werden.
 - Neuer Kindergeburtstag: Bei „Von uns dabei“ werden alle Kinder aus der Kinderecke vorgeschlagen, also auch die Geschwister. „1 Kindern“ heißt jetzt richtig „1 Kind“.

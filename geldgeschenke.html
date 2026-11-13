@@ -242,8 +242,8 @@
 <main>
   <div class="ansicht-tabs">
     <button class="ansicht-tab active" id="tabListe">📋 Liste</button>
-    <button class="ansicht-tab" id="tabUebersicht">👤 Übersicht nach Person</button>
-    <button class="ansicht-tab" id="tabJahresvergleich">📈 Jahresvergleich</button>
+    <button class="ansicht-tab" id="tabUebersicht" title="Übersicht nach Person">👤 Personen</button>
+    <button class="ansicht-tab" id="tabJahresvergleich" title="Jahresvergleich">📈 Jahre</button>
   </div>
 
   <div id="ansichtListe">
@@ -304,6 +304,7 @@
     <div class="feld">
       <label id="labelFuer">Für wen (Familienmitglied)?</label>
       <div class="opt-reihe" id="fuerPersonReihe"></div>
+      <div id="fuerMehrInfo" style="font-size:0.72rem;color:var(--bark);margin-top:4px;"></div>
     </div>
     <div class="feld">
       <label>Anlass</label>
@@ -316,7 +317,7 @@
     <div class="zeile" style="display:flex;gap:10px;">
       <div class="feld" style="flex:1;">
         <label for="fBetrag">Betrag (€)</label>
-        <input type="number" id="fBetrag" min="0" step="1" placeholder="z.B. 50">
+        <input type="text" id="fBetrag" inputmode="decimal" autocomplete="off" placeholder="z.B. 50">
       </div>
       <div class="feld" style="flex:1;">
         <label for="fDatum">Datum</label>
@@ -516,6 +517,15 @@
   const richtung = (g) => g.richtung === 'verschenkt' ? 'verschenkt' : 'bekommen'; // alte Einträge = bekommen
   const euro = (n) => (Number(n) || 0).toLocaleString('de-DE', { maximumFractionDigits: 2 }) + ' €';
   const norm = (t) => String(t || '').trim().toLowerCase();
+  // „1.000“, „25,50“, „1.234,50 €“ → Zahl
+  function betragLesen(v) {
+    let t = String(v == null ? '' : v).replace(/[^\d,.-]/g, '');
+    if (!t) return NaN;
+    if (t.includes(',') && t.includes('.')) t = t.lastIndexOf(',') > t.lastIndexOf('.') ? t.replace(/\./g, '').replace(',', '.') : t.replace(/,/g, '');
+    else if (t.includes(',')) t = t.replace(',', '.');
+    else if (/^\d{1,3}(\.\d{3})+$/.test(t)) t = t.replace(/\./g, '');
+    return Math.round(parseFloat(t) * 100) / 100;
+  }
   const VERWENDUNG = [
     { id: '', label: '– offen –' },
     { id: 'taschengeld', label: '💰 Ins Taschengeld' },
@@ -796,12 +806,16 @@
   // ---------- Neu / Bearbeiten ----------
   let editId = null;
   let gewaehltFuer = null;
+  let gewaehltFuerListe = []; // neu + bekommen: mehrere Personen auf einmal (z. B. beide Kinder)
+  const mehrfachWahl = () => !editId && gewaehltRichtung === 'bekommen';
   let gewaehltAnlass = 'geburtstag';
   let gewaehltRichtung = 'bekommen';
   let gewaehltVerwendung = '';
   function richtungAnwenden() {
     const raus = gewaehltRichtung === 'verschenkt';
     document.querySelectorAll('#richtungWahl [data-r]').forEach(b => b.classList.toggle('aktiv', b.dataset.r === gewaehltRichtung));
+    if (raus && gewaehltFuerListe.length > 1) { gewaehltFuerListe = gewaehltFuerListe.slice(0, 1); gewaehltFuer = gewaehltFuerListe[0]; }
+    fuerReiheRendern();
     document.getElementById('labelVon').textContent = raus ? 'An wen?' : 'Von wem?';
     document.getElementById('labelFuer').textContent = raus ? 'Wer aus der Familie schenkt? (optional)' : 'Für wen (Familienmitglied)?';
     document.getElementById('bekommenFelder').style.display = raus ? 'none' : '';
@@ -853,7 +867,7 @@
     document.getElementById('fBetrag').value = d.betrag || '';
     document.getElementById('fDatum').value = d.datum || heuteISO();
     document.getElementById('fNotiz').value = d.notiz || '';
-    gewaehltFuer = d.fuer; gewaehltAnlass = d.anlass || 'geburtstag';
+    gewaehltFuer = d.fuer; gewaehltFuerListe = d.fuer ? [d.fuer] : []; gewaehltAnlass = d.anlass || 'geburtstag';
     document.getElementById('fAnlassSonstiges').value = d.anlassSonstiges || '';
     document.getElementById('anlassSonstigesFeld').style.display = gewaehltAnlass === 'sonstiges' ? '' : 'none';
     fuerReiheRendern();
@@ -866,11 +880,22 @@
     PERSONEN().forEach(p => {
       const opt = document.createElement('button');
       opt.type = 'button';
-      opt.className = 'opt' + (gewaehltFuer === p.id ? ' aktiv' : '');
+      const an = mehrfachWahl() ? gewaehltFuerListe.includes(p.id) : gewaehltFuer === p.id;
+      opt.className = 'opt' + (an ? ' aktiv' : '');
       opt.textContent = p.label;
-      opt.addEventListener('click', () => { gewaehltFuer = (gewaehltRichtung === 'verschenkt' && gewaehltFuer === p.id) ? null : p.id; fuerReiheRendern(); });
+      opt.addEventListener('click', () => {
+        if (mehrfachWahl()) {
+          // „Familie“ schließt einzelne Personen aus und umgekehrt
+          if (p.id === 'familie') gewaehltFuerListe = gewaehltFuerListe.includes('familie') ? [] : ['familie'];
+          else { gewaehltFuerListe = gewaehltFuerListe.filter(x => x !== 'familie'); gewaehltFuerListe = gewaehltFuerListe.includes(p.id) ? gewaehltFuerListe.filter(x => x !== p.id) : gewaehltFuerListe.concat([p.id]); }
+          gewaehltFuer = gewaehltFuerListe[0] || null;
+        } else gewaehltFuer = (gewaehltRichtung === 'verschenkt' && gewaehltFuer === p.id) ? null : p.id;
+        fuerReiheRendern();
+      });
       box.appendChild(opt);
     });
+    const info = document.getElementById('fuerMehrInfo');
+    if (info) info.textContent = mehrfachWahl() ? (gewaehltFuerListe.length > 1 ? '➜ ' + gewaehltFuerListe.length + ' Einträge, für jede Person derselbe Betrag' : 'Tipp: Mehrere antippen, wenn z. B. beide Kinder etwas bekommen haben.') : '';
   }
   function anlassReiheRendern() {
     const box = document.getElementById('anlassReihe');
@@ -902,12 +927,13 @@
     document.getElementById('editTitelKopf').textContent = g ? 'Geldgeschenk bearbeiten' : 'Neues Geldgeschenk';
     document.getElementById('editId').value = editId || '';
     document.getElementById('fVon').value = g ? g.von : (vorgabe.von || '');
-    document.getElementById('fBetrag').value = g ? g.betrag : '';
+    document.getElementById('fBetrag').value = g ? String(g.betrag).replace('.', ',') : '';
     document.getElementById('fDatum').value = g ? g.datum : (vorgabe.datum || heuteISO());
     document.getElementById('fNotiz').value = g ? (g.notiz || '') : '';
     gewaehltRichtung = g ? richtung(g) : (vorgabe.richtung || (filterRichtung === 'verschenkt' ? 'verschenkt' : 'bekommen'));
     gewaehltFuer = g ? g.fuer : (gewaehltRichtung === 'verschenkt' ? null : (filterFuer !== 'alle' ? filterFuer : (PERSONEN()[0] ? PERSONEN()[0].id : null)));
-    gewaehltAnlass = g ? g.anlass : (vorgabe.anlass || 'geburtstag');
+    gewaehltFuerListe = gewaehltFuer ? [gewaehltFuer] : [];
+    gewaehltAnlass = g ? g.anlass : (vorgabe.anlass || (() => { const d = new Date(), m = d.getMonth() + 1, t = d.getDate(); return (m === 12 && t >= 15) || (m === 1 && t <= 6) ? 'weihnachten' : 'geburtstag'; })());
     gewaehltVerwendung = g && g.verwendung ? (g.verwendung.art || '') : '';
     document.getElementById('fVerwendungText').value = g && g.verwendung ? (g.verwendung.text || '') : '';
     document.getElementById('fDanke').checked = !!(g && g.danke !== false);
@@ -946,16 +972,20 @@
     const von = document.getElementById('fVon').value.trim();
     if (!von) { document.getElementById('fVon').focus(); return; }
     if (!gewaehltFuer && gewaehltRichtung === 'bekommen') { alert('Bitte auswählen, für wen das Geschenk war.'); return; }
+    const empfaenger = mehrfachWahl() && gewaehltFuerListe.length > 1 ? gewaehltFuerListe.slice() : [gewaehltFuer];
     let g = editId ? geschenke.find(x => x.id === editId) : null;
-    if (!g) {
+    const ohneKonto = [];
+    empfaenger.forEach((fuer, nr) => {
+    if (nr > 0 || !g) {
       g = { id: neueId('geld') };
       geschenke.push(g);
     }
+    gewaehltFuer = fuer;
     g.von = von;
     g.fuer = gewaehltFuer;
     g.anlass = gewaehltAnlass;
     g.anlassText = gewaehltAnlass === 'sonstiges' ? document.getElementById('fAnlassSonstiges').value.trim() : '';
-    g.betrag = parseFloat(document.getElementById('fBetrag').value) || 0;
+    g.betrag = betragLesen(document.getElementById('fBetrag').value) || 0;
     g.datum = document.getElementById('fDatum').value || heuteISO();
     g.notiz = document.getElementById('fNotiz').value.trim();
     g.richtung = gewaehltRichtung;
@@ -964,8 +994,11 @@
       const text = document.getElementById('fVerwendungText').value.trim();
       if (gewaehltVerwendung) g.verwendung = Object.assign({ art: gewaehltVerwendung }, text && gewaehltVerwendung !== 'taschengeld' ? { text } : {}); else delete g.verwendung;
     } else { delete g.danke; delete g.verwendung; g.fuer = gewaehltFuer || 'familie'; }
-    if (!taschengeldBuchen(g)) alert('Für ' + personLabel(g.fuer) + ' gibt es noch kein Taschengeld-Konto (💶 Finanzen → 💰 Taschengeld). Der Eintrag ist gespeichert, aber nicht gebucht.');
-    else if (g.verwendung && g.verwendung.art === 'taschengeld') showTempStatus('💰 ' + euro(g.betrag) + ' im Taschengeld von ' + personLabel(g.fuer) + ' gutgeschrieben', 4);
+    if (!taschengeldBuchen(g)) ohneKonto.push(personLabel(g.fuer));
+    });
+    if (ohneKonto.length) alert('Für ' + ohneKonto.join(' und ') + ' gibt es noch kein Taschengeld-Konto (💶 Finanzen → 💰 Taschengeld). Gespeichert, aber nicht gebucht.');
+    else if (g.verwendung && g.verwendung.art === 'taschengeld') showTempStatus('💰 ' + euro(g.betrag) + ' im Taschengeld von ' + empfaenger.map(personLabel).join(' und ') + ' gutgeschrieben', 4);
+    else if (empfaenger.length > 1) showTempStatus('🎁 ' + empfaenger.length + ' Einträge angelegt (' + empfaenger.map(personLabel).join(', ') + ')', 4);
     speichern(KEY_GESCHENKE, geschenke);
     document.getElementById('modalEdit').classList.remove('zeigen');
     entwurfUeberwachungStoppen(); entwurfLoeschen();
