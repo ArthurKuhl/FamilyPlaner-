@@ -988,3 +988,39 @@
   html[data-dark="1"] select, html[data-dark="1"] textarea { background-color: var(--white); color: var(--soil); border-color: var(--parchment); }
   html[data-dark="1"] .filter-chip:not(.active):not(.aktiv) { background-color: var(--white); color: var(--bark); border-color: var(--parchment); }
   html[data-dark="1"] .info-disclaimer { background: rgba(224,194,122,0.12); border-color: rgba(224,194,122,0.4); color: #e8d6a8; }
+
+/* 🩺 Pflanzen-Doktor (v508) */
+.doktor-start-btn { width: 100%; margin-bottom: 6px; }
+.doktor-start-hinweis { font-size: 0.72rem; color: var(--text-muted, var(--bark)); opacity: 0.8; margin-bottom: 12px; text-align: center; }
+.doktor-nachschlagen { margin-top: 10px; border: 1px solid var(--parchment); border-radius: 12px; padding: 8px 10px; background: var(--white); }
+.doktor-nachschlagen summary { cursor: pointer; font-size: 0.8rem; font-weight: 700; color: var(--bark); }
+.doktor-nachschlagen select { width: 100%; margin: 8px 0; }
+.doktor-modal { width: min(520px, 94vw); max-height: 90vh; overflow-y: auto; }
+.doktor-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.doktor-foto-reihe { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.doktor-foto-btn { cursor: pointer; font-size: 0.76rem; padding: 6px 12px; }
+.doktor-foto-mini { width: 44px; height: 44px; object-fit: cover; border-radius: 8px; border: 1px solid var(--parchment); vertical-align: middle; }
+#doktorPflanze.doktor-fest { background: var(--cream, var(--white)); font-weight: 700; }
+.doktor-leer { font-size: 0.78rem; color: var(--bark); opacity: 0.8; padding: 8px 2px; }
+.doktor-ergebnis-titel, .doktor-verlauf-titel { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: var(--moss); margin: 14px 0 6px; }
+.doktor-karte { border: 1.5px solid var(--parchment); border-radius: 14px; padding: 10px 12px; margin-bottom: 10px; background: var(--white); }
+.doktor-karte.erste { border-color: var(--moss); box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+.doktor-karte-kopf { display: flex; gap: 10px; align-items: center; margin-bottom: 6px; }
+.doktor-karte-kopf b { font-size: 0.92rem; color: var(--soil, var(--bark)); }
+.doktor-typ { font-size: 1.4rem; line-height: 1; flex: 0 0 auto; }
+.doktor-stufe { font-size: 0.7rem; color: var(--bark); opacity: 0.85; }
+.doktor-karte.erste .doktor-stufe { color: var(--moss); font-weight: 700; opacity: 1; }
+.doktor-abschnitt { font-size: 0.78rem; line-height: 1.45; color: var(--soil, var(--bark)); margin-top: 6px; }
+.doktor-abschnitt ul { margin: 3px 0 0; padding-left: 18px; }
+.doktor-abschnitt li { margin: 2px 0; }
+.doktor-vorbeugen { opacity: 0.85; }
+.doktor-warnung { font-size: 0.74rem; margin-top: 8px; padding: 6px 9px; border-radius: 9px; background: rgba(200, 110, 60, 0.12); color: var(--terracotta-text, #9a4a1f); }
+.doktor-aktion { display: flex; gap: 8px; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--parchment); }
+.doktor-aktion .btn-primary { width: auto; padding: 7px 14px; font-size: 0.8rem; }
+.doktor-check { font-size: 0.76rem; display: flex; align-items: center; gap: 5px; color: var(--bark); cursor: pointer; }
+.doktor-verlauf-zeile { display: flex; align-items: center; gap: 9px; padding: 6px 0; border-top: 1px solid var(--parchment); }
+.doktor-verlauf-zeile:first-of-type { border-top: 0; }
+.dv-text { flex: 1; display: flex; flex-direction: column; font-size: 0.78rem; color: var(--soil, var(--bark)); }
+.dv-text span { font-size: 0.68rem; opacity: 0.7; }
+.dv-btn { border: 1px solid var(--parchment); background: var(--white); border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-size: 0.8rem; }
+.doktor-sprung { position: sticky; bottom: 0; display: block; width: 100%; margin-top: 8px; padding: 10px 14px; border: 0; border-radius: var(--radius-pill, 999px); background: var(--moss); color: var(--on-moss, #fff); font-weight: 700; font-size: 0.8rem; cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,0.18); z-index: 2; }

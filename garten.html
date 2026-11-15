@@ -763,8 +763,8 @@
   <div class="pp-tabs">
     <div class="pp-tab active" onclick="switchPPTab('info')">📋 Info</div>
     <div class="pp-tab" onclick="switchPPTab('neighbors')">🤝 Nachbarn</div>
-    <div class="pp-tab" onclick="switchPPTab('symptoms')">🍂 Blätter & Früchte</div>
-    <div class="pp-tab" onclick="switchPPTab('pests')">🐛 Schädlinge</div>
+    <div class="pp-tab" onclick="switchPPTab('symptoms')">🩺 Doktor</div>
+    <div class="pp-tab" onclick="switchPPTab('pests')" style="display:none">🐛 Schädlinge</div>
     <div class="pp-tab" onclick="switchPPTab('harvest')" id="ppTabHarvest">🧺 Ernte</div>
     <div class="pp-tab" onclick="switchPPTab('preserve')">🥫 Verwertung</div>
     <div class="pp-tab" onclick="switchPPTab('bewertung')">⭐ Bewertung</div>
@@ -831,27 +831,27 @@
 
   <!-- PP TAB: Blatt-/Fruchtsymptome -->
   <div class="pp-tab-content" id="ppt-symptoms">
-    <div class="form-row" style="margin-bottom:10px">
-      <label>Symptom auswählen</label>
+    <button type="button" class="btn-primary doktor-start-btn" onclick="doktorOeffnen('pp')">🩺 Was hat meine Pflanze?</button>
+    <div class="doktor-start-hinweis">Antippen, was du siehst – der Doktor nennt die wahrscheinlichsten Ursachen und was hilft.</div>
+    <div id="ppDoktorVerlauf"></div>
+    <details class="doktor-nachschlagen">
+      <summary>🍂 Symptom nachschlagen</summary>
       <select id="symptomSel" onchange="showSymptom()">
         <option value="">– Was beobachtest du? –</option>
       </select>
-    </div>
-    <div id="symptomResult"></div>
-  </div>
-
-  <!-- PP TAB: Schädlinge -->
-  <div class="pp-tab-content" id="ppt-pests">
-    <div class="form-row" style="margin-bottom:10px">
-      <label>Schädling / Problem</label>
+      <div id="symptomResult"></div>
+    </details>
+    <details class="doktor-nachschlagen">
+      <summary>🐛 Schädling nachschlagen</summary>
       <select id="ppPest" onchange="showPest()">
         <option value="">– Was ist befallen? –</option>
       </select>
-    </div>
-    <div id="pestResult"></div>
+      <div id="pestResult"></div>
+    </details>
   </div>
 
-  <!-- PP TAB: Ertragstracking -->
+  <div class="pp-tab-content" id="ppt-pests"></div>
+
   <div class="pp-tab-content" id="ppt-harvest">
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:10px">
       <div class="form-row" style="flex:1;min-width:110px;margin-bottom:0">
@@ -1017,8 +1017,8 @@
   <div class="pp-body">
   <div class="pp-tabs">
     <div class="pp-tab active" onclick="switchFPTab('info')">📋 Info</div>
-    <div class="pp-tab" onclick="switchFPTab('symptoms')">🍂 Blätter &amp; Früchte</div>
-    <div class="pp-tab" onclick="switchFPTab('pests')">🐛 Schädlinge</div>
+    <div class="pp-tab" onclick="switchFPTab('symptoms')">🩺 Doktor</div>
+    <div class="pp-tab" onclick="switchFPTab('pests')" style="display:none">🐛 Schädlinge</div>
     <div class="pp-tab" onclick="switchFPTab('harvest')" id="fpTabHarvest">🧺 Ernte</div>
     <div class="pp-tab" onclick="switchFPTab('preserve')">🥫 Verwertung</div>
     <div class="pp-tab" onclick="switchFPTab('bewertung')">⭐ Bewertung</div>
@@ -1079,27 +1079,27 @@
 
   <!-- FP TAB: Blatt-/Fruchtsymptome -->
   <div class="pp-tab-content" id="fpt-symptoms">
-    <div class="form-row" style="margin-bottom:10px">
-      <label>Symptom auswählen</label>
+    <button type="button" class="btn-primary doktor-start-btn" onclick="doktorOeffnen('fp')">🩺 Was hat meine Pflanze?</button>
+    <div class="doktor-start-hinweis">Antippen, was du siehst – der Doktor nennt die wahrscheinlichsten Ursachen und was hilft.</div>
+    <div id="fpDoktorVerlauf"></div>
+    <details class="doktor-nachschlagen">
+      <summary>🍂 Symptom nachschlagen</summary>
       <select id="fpSymptomSel" onchange="showSymptom('fpSymptomSel','fpSymptomResult')">
         <option value="">– Was beobachtest du? –</option>
       </select>
-    </div>
-    <div id="fpSymptomResult"></div>
-  </div>
-
-  <!-- FP TAB: Schädlinge -->
-  <div class="pp-tab-content" id="fpt-pests">
-    <div class="form-row" style="margin-bottom:10px">
-      <label>Schädling / Problem</label>
+      <div id="fpSymptomResult"></div>
+    </details>
+    <details class="doktor-nachschlagen">
+      <summary>🐛 Schädling nachschlagen</summary>
       <select id="fpPest" onchange="showPest('fpPest','fpPestResult')">
         <option value="">– Was ist befallen? –</option>
       </select>
-    </div>
-    <div id="fpPestResult"></div>
+      <div id="fpPestResult"></div>
+    </details>
   </div>
 
-  <!-- FP TAB: Ertragstracking -->
+  <div class="pp-tab-content" id="fpt-pests"></div>
+
   <div class="pp-tab-content" id="fpt-harvest">
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:10px">
       <div class="form-row" style="flex:1;min-width:110px;margin-bottom:0">
@@ -1830,6 +1830,7 @@
 <script src="garten-karte.js"></script>
 <script src="garten-werkzeuge.js"></script>
 <script src="garten-wissen.js"></script>
+<script src="garten-doktor.js"></script>
 
 <script>
 (function() {

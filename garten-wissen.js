@@ -2778,7 +2778,7 @@ function hubLexikonListe(art) {
   let html = '';
   if (art === 'probleme') {
     html = `<div class="lex-kopf-pflanze"><span class="lex-sym gross">🩺</span><h2>Probleme &amp; Schädlinge</h2></div>` +
-      `<div class="lex-abschnitt">🍃 Was sehe ich an der Pflanze?</div><div class="lex-liste">${SYMPTOMS.map((x, i) => zeile('🩺', x.label, '', `lexInfo('symptom',${i})`)).join('')}${BLATTPROBLEME.map((x, i) => zeile(x.icon, x.titel, '', `lexInfo('blatt',${i})`)).join('')}</div>` +
+      `<button type="button" class="btn-primary doktor-start-btn" onclick="doktorOeffnen(null)">🩺 Pflanzen-Doktor: Ursache finden</button><div class="lex-abschnitt">🍃 Was sehe ich an der Pflanze?</div><div class="lex-liste">${SYMPTOMS.map((x, i) => zeile('🩺', x.label, '', `lexInfo('symptom',${i})`)).join('')}${BLATTPROBLEME.map((x, i) => zeile(x.icon, x.titel, '', `lexInfo('blatt',${i})`)).join('')}</div>` +
       `<div class="lex-abschnitt">🐛 Schädlinge</div><div class="lex-liste">${PESTS.map((x, i) => zeile('🐛', x.label, '', `lexInfo('pest',${i})`)).join('')}</div>`;
   } else if (art === 'mulch') {
     html = `<div class="lex-kopf-pflanze"><span class="lex-sym gross">🍂</span><h2>Mulch</h2></div><div class="lex-liste">${MULCH_ARTEN.map((x, i) => zeile('🍂', x.name, x.geeignet, `lexInfo('mulch',${i})`)).join('')}</div>`;
@@ -2828,7 +2828,8 @@ function hubRendern(bereich) {
       <button type="button" class="hub-suche" onclick="lexikonOeffnen()">🔍 <span>Pflanze, Thema oder Funktion suchen …</span></button>
       <div class="hub-titel">Pflanzen</div><div class="hub-grid">
         ${hubKachel('🌱', 'Pflanzen A–Z', 'Eine Seite pro Pflanze: Standort, Kalender, Nachbarn, Pflege, Verwertung', 'lexikonOeffnen()', { text: String(PLANTS.length), ruhig: true })}
-        ${hubKachel('🩺', 'Probleme & Schädlinge', 'Gelbe Blätter, Läuse, Schnecken – Ursache und was hilft', "hubLexikonListe('probleme')")}
+        ${hubKachel('🩺', 'Pflanzen-Doktor', 'Antippen, was du siehst – die wahrscheinlichsten Ursachen und was hilft', "doktorOeffnen(null)")}
+        ${hubKachel('📚', 'Probleme & Schädlinge', 'Gelbe Blätter, Läuse, Schnecken – Ursache und was hilft', "hubLexikonListe('probleme')")}
         ${hubKachel('🔍', 'Pflanze bestimmen', 'Unbekannte Pflanze per Foto erkennen (Pl@ntNet)', 'pflanzeBestimmenOeffnen(null)')}
         ${hubKachel('💡', 'Pflanzen-Ideen', 'Was passt für trockene, schattige oder nasse Ecken?', "openVarietyDB();switchVdbTab('ideen')")}
       </div>

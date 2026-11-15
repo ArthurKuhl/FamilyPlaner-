@@ -1,6 +1,13 @@
 # Neuigkeiten im Familienplaner
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 
+## 2026-11-15 | 🩺 Pflanzen-Doktor im Garten
+- Neu im Garten: der **Pflanzen-Doktor**. Bei jeder Pflanze gibt es jetzt den Reiter „🩺 Doktor“ – einfach antippen, wo und was du siehst (z. B. „Blätter · dunkle, wässrige Flecken“).
+- Du bekommst sofort die wahrscheinlichsten Ursachen: wie du sie sicher erkennst, was jetzt hilft (biologische Mittel zuerst) und wie du nächstes Jahr vorbeugst. Rund 45 Krankheiten, Schädlinge und Pflegefehler sind drin.
+- Kann es sich ausbreiten, steht ein Hinweis dabei: befallene Teile in den Restmüll, nicht auf den Kompost.
+- „✓ Das ist es“ merkt sich den Befund an der Pflanze – gern mit Foto. Auf Wunsch kommt ein 🩺-Pin auf die Karte, der dich in 7 Tagen ans Nachsehen erinnert.
+- Den Doktor findest du auch im Lexikon, dann auch ohne bestimmte Pflanze.
+
 ## 2026-11-15 | Aufgeräumteres Design in allen Bereichen
 - Meldungen wie „Gespeichert“ erscheinen bei offenem Fenster oberhalb der Knöpfe und verdecken „Speichern“ und „Abbrechen“ nicht mehr.
 - Dunkelmodus: Auswahlfelder, Eingabefelder, Knöpfe und Hinweiskästen sind in allen Bereichen dunkel. Keine hellen Flecken mehr, z. B. in den Einstellungen.
