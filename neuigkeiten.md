@@ -1,6 +1,13 @@
 # Neuigkeiten im Familienplaner
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 
+## 2026-11-15 | Aufgeräumteres Design in allen Bereichen
+- Meldungen wie „Gespeichert“ erscheinen bei offenem Fenster oberhalb der Knöpfe und verdecken „Speichern“ und „Abbrechen“ nicht mehr.
+- Dunkelmodus: Auswahlfelder, Eingabefelder, Knöpfe und Hinweiskästen sind in allen Bereichen dunkel. Keine hellen Flecken mehr, z. B. in den Einstellungen.
+- Medien und Gaming: Noch nicht bewertete Einträge zeigen keine leere Sternreihe mehr. Die farbigen Etiketten sind überall etwas größer und besser lesbar.
+- Übersicht: „Was ist neu“, „Community“, „Erfolge“ und „Anleitung“ sind kleine Kacheln zu zweit nebeneinander. Die Startseite wird dadurch deutlich kürzer.
+- Einheitliche Reiter: Der aktive Reiter ist überall grün, Orange bleibt für „＋ Neu“. Die Neu-Knöpfe haben überall dieselbe Größe.
+
 ## 2026-11-13 | Schnell festhalten errät das Ziel
 - „＋ Schnell festhalten“ schlägt beim Tippen vor, wohin der Text gehört, und hebt den Knopf mit „⏎ Vorschlag“ hervor: „Zahnarzt Do 10 Uhr“ → Termin, „2 kg Tomaten geerntet“ → Garten, „Malia wünscht sich …“ → Wunschliste, längere Ideen → Notiz, sonst Einkauf. Enter nimmt den Vorschlag, statt immer auf der Einkaufsliste zu landen.
 - Einstellungen aufgeräumt: Darstellung und Start stehen oben, „Erinnerungen in der App“ und „Benachrichtigungen aufs Handy“ sind klar getrennt, und die lange Modul-Reihenfolge ist unten aufklappbar.

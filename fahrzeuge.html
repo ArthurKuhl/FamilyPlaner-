@@ -146,6 +146,13 @@
   .legende i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
   .stat-klein { font-size: 0.72rem; color: var(--bark); margin-top: 3px; }
   .diagramm { width: 100%; height: auto; display: block; margin-top: 4px; }
+
+  /* 🌙 Dunkelmodus: native Felder, Knöpfe und Hinweiskästen nicht hell lassen (v507) */
+  html[data-dark="1"] { color-scheme: dark; }
+  html[data-dark="1"] input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=file]):not([type=button]):not([type=submit]),
+  html[data-dark="1"] select, html[data-dark="1"] textarea { background-color: var(--white); color: var(--soil); border-color: var(--parchment); }
+  html[data-dark="1"] .filter-chip:not(.active):not(.aktiv) { background-color: var(--white); color: var(--bark); border-color: var(--parchment); }
+  html[data-dark="1"] .info-disclaimer { background: rgba(224,194,122,0.12); border-color: rgba(224,194,122,0.4); color: #e8d6a8; }
 </style>
 </head>
 <body>

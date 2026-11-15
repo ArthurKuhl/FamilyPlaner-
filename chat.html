@@ -218,6 +218,13 @@
   #suchLeiste button { background: var(--parchment); color: var(--soil); border: none; border-radius: 50%; width: 34px; height: 34px; cursor: pointer; font-size: 0.85rem; flex-shrink: 0; }
   .blase.treffer { box-shadow: 0 0 0 2px rgba(201,154,58,0.7); }
   .blase.treffer-akt { box-shadow: 0 0 0 3px var(--gold); }
+
+  /* 🌙 Dunkelmodus: native Felder, Knöpfe und Hinweiskästen nicht hell lassen (v507) */
+  html[data-dark="1"] { color-scheme: dark; }
+  html[data-dark="1"] input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=file]):not([type=button]):not([type=submit]),
+  html[data-dark="1"] select, html[data-dark="1"] textarea { background-color: var(--white); color: var(--soil); border-color: var(--parchment); }
+  html[data-dark="1"] .filter-chip:not(.active):not(.aktiv) { background-color: var(--white); color: var(--bark); border-color: var(--parchment); }
+  html[data-dark="1"] .info-disclaimer { background: rgba(224,194,122,0.12); border-color: rgba(224,194,122,0.4); color: #e8d6a8; }
 </style>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>

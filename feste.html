@@ -39,7 +39,7 @@
   .titel-zeile { display: flex; align-items: center; gap: 6px; }
   .titel-zeile h1 { font-family: 'Playfair Display', serif; font-size: 1.15rem; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .kopf-btn { background: transparent; border: 1px solid #4a3a28; color: var(--sage); border-radius: var(--radius-pill); padding: 5px 11px; font-size: 0.76rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
-  .kopf-btn.voll { background: var(--terracotta); border-color: var(--terracotta); color: #fff; }
+  .kopf-btn.voll { background: var(--terracotta); border-color: var(--terracotta); color: #fff; font-size: 0.82rem; padding: 7px 15px; border: none; }
   .reiter { display: none; gap: 5px; overflow-x: auto; scrollbar-width: none; padding: 8px 0 2px; }
   .reiter.an { display: flex; }
   .reiter::-webkit-scrollbar { display: none; }
@@ -206,6 +206,13 @@
   .tabelle-code { display: grid; grid-template-columns: repeat(6, 1fr); gap: 1.5mm; font-size: 11pt; }
   .tabelle-code div { border: 1px solid #bbb; border-radius: 2mm; padding: 1mm 0.5mm; text-align: center; white-space: nowrap; font-size: 10pt; }
   .schatzkarte svg { width: 100%; height: auto; }
+
+  /* 🌙 Dunkelmodus: native Felder, Knöpfe und Hinweiskästen nicht hell lassen (v507) */
+  html[data-dark="1"] { color-scheme: dark; }
+  html[data-dark="1"] input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=file]):not([type=button]):not([type=submit]),
+  html[data-dark="1"] select, html[data-dark="1"] textarea { background-color: var(--white); color: var(--soil); border-color: var(--parchment); }
+  html[data-dark="1"] .filter-chip:not(.active):not(.aktiv) { background-color: var(--white); color: var(--bark); border-color: var(--parchment); }
+  html[data-dark="1"] .info-disclaimer { background: rgba(224,194,122,0.12); border-color: rgba(224,194,122,0.4); color: #e8d6a8; }
 </style>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
@@ -224,7 +231,7 @@
     <button type="button" class="kopf-btn" id="btnZurueck" style="display:none" aria-label="Zurück zur Übersicht">←</button>
     <h1 id="kopfTitel">🎉 Feste</h1>
     <button type="button" class="kopf-btn" id="btnSpieleSammlung">🎲 Spiele</button>
-    <button type="button" class="kopf-btn voll" id="btnNeu">＋ Neues Fest</button>
+    <button type="button" class="kopf-btn voll" id="btnNeu" title="Neues Fest anlegen">＋ Neu</button>
   </div>
   <nav class="reiter" id="reiter" role="tablist">
     <button type="button" data-tab="uebersicht">📋 Übersicht</button>
@@ -574,7 +581,7 @@
     const h = heuteISO();
     const kommend = sortiert.filter(f => !f.datum || f.datum >= h), vorbei = sortiert.filter(f => f.datum && f.datum < h).reverse();
     $('inhalt').innerHTML = (kommend.length ? '<h2>Geplant</h2>' + kommend.map(festKarte).join('') :
-      `<div class="leer">🎈 Noch kein Fest geplant.<br>Mit <b>＋ Neues Fest</b> legst du einen Kindergeburtstag, eine Feier oder ein Grillfest an – mit Gästeliste, Ablauf, Spielen, Schnitzeljagd, Einkauf und Aufgaben.</div>`) +
+      `<div class="leer">🎈 Noch kein Fest geplant.<br>Mit <b>＋ Neu</b> legst du einen Kindergeburtstag, eine Feier oder ein Grillfest an – mit Gästeliste, Ablauf, Spielen, Schnitzeljagd, Einkauf und Aufgaben.</div>`) +
       (vorbei.length ? '<h2 style="margin-top:18px">Schon gefeiert</h2>' + vorbei.map(festKarte).join('') : '') +
       `<div class="karte" style="margin-top:14px;cursor:pointer" id="kSpiele"><h3>🎲 Spiele-Sammlung<span class="rechts">${FD.SPIELE.length + eigeneSpiele.length} Spiele →</span></h3><div class="klein">Klassiker wie Topfschlagen und Stopptanz, Spiele zum Motto und ruhige Spiele für zwischendurch – nach Alter und drinnen/draußen filterbar.</div></div>`;
     $('inhalt').querySelectorAll('[data-oeffnen]').forEach(el => { el.addEventListener('click', () => oeffnen(el.dataset.oeffnen)); el.addEventListener('keydown', e => { if (e.key === 'Enter') oeffnen(el.dataset.oeffnen); }); });

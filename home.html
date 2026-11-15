@@ -64,7 +64,14 @@
     padding: 4px 10px; font: 600 0.76rem 'Inter', sans-serif; cursor: pointer; white-space: nowrap; }
   .heute-chip.wichtig { background: rgba(217,133,90,0.28); }
 
-  main { padding: 14px; max-width: 640px; margin: 0 auto; }
+  main { padding: 14px; max-width: 640px; margin: 0 auto; display: flex; flex-wrap: wrap; column-gap: 12px; align-items: flex-start; }
+  main > * { flex: 0 0 100%; min-width: 0; box-sizing: border-box; }
+  /* Kleine Info-Kacheln (Neuigkeiten, Community, Erfolge, Anleitung) stehen zu zweit nebeneinander */
+  main > .kachel.kachel-klein { flex: 1 1 calc(50% - 6px); padding: 11px 12px; align-self: stretch; }
+  .kachel-klein .kachel-kopf { margin-bottom: 4px; }
+  .kachel-klein .kachel-titel { font-size: 0.88rem; gap: 6px; }
+  .kachel-klein .kachel-pfeil { display: none; }
+  .kachel-klein .erfolg-kurz, .kachel-klein .klein-text { font-size: 0.74rem; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color: var(--bark); }
 
   /* ---- Kacheln anordnen (Reihenfolge + Ausblenden, geräte-lokal) ---- */
   .kachel.nutzer-versteckt { display: none !important; }
@@ -319,6 +326,13 @@
      Text auf Akzent-Knöpfen dunkel – außer bei „Schnee“, dort ist der Knopf selbst dunkel. */
   html[data-dark="1"] { --moss-text: var(--sage); --on-moss: #16140f; }
   html[data-dark="1"][data-farbschema="schnee"] { --on-moss: #f4f5f6; }
+
+  /* 🌙 Dunkelmodus: native Felder, Knöpfe und Hinweiskästen nicht hell lassen (v507) */
+  html[data-dark="1"] { color-scheme: dark; }
+  html[data-dark="1"] input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=file]):not([type=button]):not([type=submit]),
+  html[data-dark="1"] select, html[data-dark="1"] textarea { background-color: var(--white); color: var(--soil); border-color: var(--parchment); }
+  html[data-dark="1"] .filter-chip:not(.active):not(.aktiv) { background-color: var(--white); color: var(--bark); border-color: var(--parchment); }
+  html[data-dark="1"] .info-disclaimer { background: rgba(224,194,122,0.12); border-color: rgba(224,194,122,0.4); color: #e8d6a8; }
 </style>
 <script src="personen.js"></script>
 <!-- Firebase fehlte bisher – dadurch lief der Sync hier nie -->
@@ -513,7 +527,7 @@
     <div id="urlaubInfo"></div>
   </div>
 
-  <div class="kachel" id="kachelNeuigkeiten" style="cursor:pointer;display:none;">
+  <div class="kachel kachel-klein" id="kachelNeuigkeiten" style="cursor:pointer;display:none;">
     <div class="kachel-kopf">
       <div class="kachel-titel">🆕 Was ist neu</div>
       <span class="kachel-badge" id="badgeNeuigkeiten" style="display:none;">0</span>
@@ -521,7 +535,7 @@
     <div class="erfolg-kurz" id="neuigkeitenKurz"></div>
   </div>
 
-  <div class="kachel" id="kachelCommunity" style="cursor:pointer">
+  <div class="kachel kachel-klein" id="kachelCommunity" style="cursor:pointer">
     <div class="kachel-kopf">
       <div class="kachel-titel">💬 Community</div>
       <span class="kachel-badge" id="badgeCommunity" style="display:none;">0</span>
@@ -529,7 +543,7 @@
     <div class="erfolg-kurz" id="communityKurz">Wird geladen …</div>
   </div>
 
-  <div class="kachel" id="kachelErfolge" style="cursor:pointer;display:none;">
+  <div class="kachel kachel-klein" id="kachelErfolge" style="cursor:pointer;display:none;">
     <div class="kachel-kopf">
       <div class="kachel-titel">🏆 Erfolge</div>
       <span class="kachel-pfeil">→</span>
@@ -537,11 +551,11 @@
     <div class="erfolg-kurz" id="erfolgeKurz"></div>
   </div>
 
-  <div class="kachel" id="kachelAnleitung" style="cursor:pointer">
+  <div class="kachel kachel-klein" id="kachelAnleitung" style="cursor:pointer">
     <div class="kachel-kopf">
-      <div class="kachel-titel">📖 Anleitung – was kann die App?</div>
+      <div class="kachel-titel">📖 Anleitung</div>
     </div>
-    <div style="font-size:0.8rem;color:var(--bark);">Kurzüberblick über alle Module und ihre Funktionen</div>
+    <div class="klein-text">Was kann die App? Alle Bereiche im Überblick</div>
   </div>
 
   <div class="kachel" id="kachelFeedback" style="cursor:default">
@@ -662,7 +676,7 @@
     let el = document.getElementById('tempStatus');
     if (!el) { el = document.createElement('div'); el.id = 'tempStatus'; document.body.appendChild(el); }
     el.style.cssText =
-      'position:fixed;left:50%;bottom:24px;transform:translate(-50%,0);' +
+      'position:fixed;left:50%;bottom:' + (function () { /* über offenen Fenstern: Meldung oberhalb der Fenster-Knöpfe */ var ms = Array.prototype.filter.call(document.querySelectorAll('.modal-bg, .modal-overlay'), function (x) { var st = getComputedStyle(x); return st.display !== 'none' && st.visibility !== 'hidden'; }); var m = ms[ms.length - 1]; if (!m) return 24; var b = m.querySelector('.modal-btns, .modal-actions, .modal-knoepfe, .modal-buttons'); var r = (b || m.querySelector('.modal') || m).getBoundingClientRect(); var abst = Math.round(window.innerHeight - r.top + 10); return abst > 24 && abst < window.innerHeight * 0.75 ? abst : 24; })() + 'px;transform:translate(-50%,0);' +
       'background:#2a2016;color:#bcd196;padding:10px 18px;border-radius:22px;' +
       'font-size:0.85rem;font-weight:600;box-shadow:0 4px 14px rgba(0,0,0,0.25);' +
       'opacity:1;pointer-events:' + (optionen.rueckgaengig ? 'auto' : 'none') + ';transition:opacity .2s, transform .2s;z-index:9999;' +

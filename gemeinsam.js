@@ -79,7 +79,7 @@ function showTempStatus(text, sekunden, optionen) {
     document.body.appendChild(el);
   }
   el.style.cssText =
-    'position:fixed;left:50%;bottom:24px;transform:translate(-50%,0);' +
+    'position:fixed;left:50%;bottom:' + (function () { /* über offenen Fenstern: Meldung oberhalb der Fenster-Knöpfe */ var ms = Array.prototype.filter.call(document.querySelectorAll('.modal-bg, .modal-overlay'), function (x) { var st = getComputedStyle(x); return st.display !== 'none' && st.visibility !== 'hidden'; }); var m = ms[ms.length - 1]; if (!m) return 24; var b = m.querySelector('.modal-btns, .modal-actions, .modal-knoepfe, .modal-buttons'); var r = (b || m.querySelector('.modal') || m).getBoundingClientRect(); var abst = Math.round(window.innerHeight - r.top + 10); return abst > 24 && abst < window.innerHeight * 0.75 ? abst : 24; })() + 'px;transform:translate(-50%,0);' +
     'background:#2a2016;color:#bcd196;padding:10px 18px;border-radius:22px;' +
     'font-size:0.85rem;font-weight:600;box-shadow:0 4px 14px rgba(0,0,0,0.25);' +
     'opacity:1;pointer-events:' + (optionen.rueckgaengig ? 'auto' : 'none') + ';transition:opacity .2s, transform .2s;z-index:9999;' +

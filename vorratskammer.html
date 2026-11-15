@@ -235,6 +235,17 @@
      Text auf Akzent-Knöpfen dunkel – außer bei „Schnee“, dort ist der Knopf selbst dunkel. */
   html[data-dark="1"] { --moss-text: var(--sage); --on-moss: #16140f; }
   html[data-dark="1"][data-farbschema="schnee"] { --on-moss: #f4f5f6; }
+
+  /* 🌙 Dunkelmodus: native Felder, Knöpfe und Hinweiskästen nicht hell lassen (v507) */
+  html[data-dark="1"] { color-scheme: dark; }
+  html[data-dark="1"] input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=file]):not([type=button]):not([type=submit]),
+  html[data-dark="1"] select, html[data-dark="1"] textarea { background-color: var(--white); color: var(--soil); border-color: var(--parchment); }
+  html[data-dark="1"] .filter-chip:not(.active):not(.aktiv) { background-color: var(--white); color: var(--bark); border-color: var(--parchment); }
+  html[data-dark="1"] .info-disclaimer { background: rgba(224,194,122,0.12); border-color: rgba(224,194,122,0.4); color: #e8d6a8; }
+
+  /* Einheitliche Reiter (v507): Grün = wo bin ich, Orange bleibt für „＋ Neu“ */
+  main .ansicht-tab { background: var(--white); border-color: var(--parchment); color: var(--bark); }
+  .ansicht-tab.active, main .ansicht-tab.active { background: var(--moss); color: var(--on-moss, var(--leaf)); border-color: var(--moss); }
 </style>
 </head>
 <body>

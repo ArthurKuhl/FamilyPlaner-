@@ -40,7 +40,7 @@
   .titel-zeile { display: flex; align-items: center; gap: 6px; }
   .titel-zeile h1 { font-family: 'Playfair Display', serif; font-size: 1.15rem; flex: 1; }
   .kopf-btn { background: transparent; border: 1px solid #4a3a28; color: var(--sage); border-radius: var(--radius-pill); padding: 5px 11px; font-size: 0.76rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
-  .kopf-btn.voll { background: var(--terracotta); border-color: var(--terracotta); color: #fff; }
+  .kopf-btn.voll { background: var(--terracotta); border-color: var(--terracotta); color: #fff; font-size: 0.82rem; padding: 7px 15px; border: none; }
   main { padding: 14px; max-width: 760px; margin: 0 auto; }
   .karte { background: var(--white); border-radius: var(--radius-md); padding: 13px 14px; box-shadow: var(--shadow-soft); margin-bottom: 12px; border-left: 5px solid var(--zf, var(--moss)); }
   .z-kopf { display: flex; align-items: center; gap: 10px; }
@@ -103,6 +103,13 @@
   #bildGross { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 300; }
   #bildGross.zeigen { display: flex; }
   #bildGross img { max-width: 95vw; max-height: 90vh; }
+
+  /* 🌙 Dunkelmodus: native Felder, Knöpfe und Hinweiskästen nicht hell lassen (v507) */
+  html[data-dark="1"] { color-scheme: dark; }
+  html[data-dark="1"] input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=file]):not([type=button]):not([type=submit]),
+  html[data-dark="1"] select, html[data-dark="1"] textarea { background-color: var(--white); color: var(--soil); border-color: var(--parchment); }
+  html[data-dark="1"] .filter-chip:not(.active):not(.aktiv) { background-color: var(--white); color: var(--bark); border-color: var(--parchment); }
+  html[data-dark="1"] .info-disclaimer { background: rgba(224,194,122,0.12); border-color: rgba(224,194,122,0.4); color: #e8d6a8; }
 </style>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
