@@ -1,6 +1,9 @@
 # Neuigkeiten im Familienplaner
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 
+## 2026-11-15 | Kachel „Was ist neu“ zeigt mehr
+- Die Kachel „🆕 Was ist neu“ in der Übersicht zeigt jetzt die letzten drei Neuigkeiten mit Datum statt nur einer abgeschnittenen Zeile. Ungelesene haben einen Punkt.
+
 ## 2026-11-15 | 🪴 Drinnen & Balkon
 - Neu im Garten-Modul: der Bereich **„🪴 Drinnen“** für Zimmer-, Kübel- und Balkonpflanzen – als Liste, ganz ohne Karte.
 - Pflanze antippen oder eintippen (über 50 sind im Katalog, von Monstera bis Olivenbaum). Licht, Gießabstand für Sommer und Winter, Dünger-Zeiten und ein Pflegetipp kommen automatisch.
