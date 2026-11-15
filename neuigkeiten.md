@@ -1,6 +1,15 @@
 # Neuigkeiten im Familienplaner
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 
+## 2026-11-15 | 🪴 Drinnen & Balkon
+- Neu im Garten-Modul: der Bereich **„🪴 Drinnen“** für Zimmer-, Kübel- und Balkonpflanzen – als Liste, ganz ohne Karte.
+- Pflanze antippen oder eintippen (über 50 sind im Katalog, von Monstera bis Olivenbaum). Licht, Gießabstand für Sommer und Winter, Dünger-Zeiten und ein Pflegetipp kommen automatisch.
+- **Giftinfo für Kinder** bei jeder Pflanze. Oben steht ein Hinweis, wenn etwas Giftiges dabei ist.
+- Gießen und Düngen erscheinen unter „🏠 Heute“ und im Pflegeplan. Abhaken geht dort oder direkt mit 💧, mit „✓ Alle gegossen“ auch für alle auf einmal.
+- Mit Push-Erinnerung kommt morgens „🪴 Heute gießen: …“. Frostempfindliche Balkonpflanzen landen in der Frostwarnung („reinholen“).
+- Bei Hitze werden Balkonpflanzen früher gegossen, im Winter seltener. Einjährige Balkonblumen machen nach der Saison Pause.
+- Der 🩺 Pflanzen-Doktor funktioniert auch hier, gemerkte Befunde stehen bei der Pflanze.
+
 ## 2026-11-15 | 🩺 Pflanzen-Doktor im Garten
 - Neu im Garten: der **Pflanzen-Doktor**. Bei jeder Pflanze gibt es jetzt den Reiter „🩺 Doktor“ – einfach antippen, wo und was du siehst (z. B. „Blätter · dunkle, wässrige Flecken“).
 - Du bekommst sofort die wahrscheinlichsten Ursachen: wie du sie sicher erkennst, was jetzt hilft (biologische Mittel zuerst) und wie du nächstes Jahr vorbeugst. Rund 45 Krankheiten, Schädlinge und Pflegefehler sind drin.

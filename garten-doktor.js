@@ -331,6 +331,7 @@ function doktorPflanzeObjekt() {
       const bed = getCurrentBeds().find(b => b.id === doktorKontext.bedId);
       return bed && bed.plants[doktorKontext.idx] ? { obj: bed.plants[doktorKontext.idx], bed } : null;
     }
+    if (doktorKontext.art === 'zimmer') { const z = (typeof zimmerListe === 'function' ? zimmerListe() : []).find(x => x.id === doktorKontext.id); return z ? { obj: z } : null; }
     const fp = getCurrentFreiPflanzen().find(x => x.id === doktorKontext.id);
     return fp ? { obj: fp } : null;
   } catch (e) { return null; }
@@ -388,10 +389,11 @@ function doktorModalBauen() {
   document.body.appendChild(m);
 }
 
-function doktorOeffnen(quelle, pflanzenName) {
+function doktorOeffnen(quelle, pflanzenName, zimmerId) {
   doktorModalBauen();
   doktorWahl = new Set(); doktorOrte = new Set(); doktorFoto = null; doktorKontext = null;
   if (quelle === 'pp' && typeof activePlantBedId !== 'undefined' && activePlantBedId) doktorKontext = { art: 'beet', bedId: activePlantBedId.bedId, idx: activePlantBedId.idx };
+  else if (quelle === 'zi' && zimmerId) doktorKontext = { art: 'zimmer', id: zimmerId };
   else if (quelle === 'fp' && typeof activeFreiPflanzeId !== 'undefined' && activeFreiPflanzeId) doktorKontext = { art: 'frei', id: activeFreiPflanzeId };
   const p = doktorPflanzeObjekt();
   doktorPflanze = pflanzenName || (p && p.obj.name) || '';
@@ -454,7 +456,7 @@ function doktorErgebnis() {
       <div class="doktor-abschnitt"><b>Was jetzt hilft:</b><ul>${u.fix.map(f => `<li>${escapeHtml(f)}</li>`).join('')}</ul></div>
       ${u.ansteckend ? '<div class="doktor-warnung">⚠️ Kann sich ausbreiten: befallene Teile in den Restmüll, nicht auf den Kompost.</div>' : ''}
       <div class="doktor-abschnitt doktor-vorbeugen"><b>Fürs nächste Mal:</b> ${escapeHtml(u.vorbeugen)}</div>
-      ${kannSpeichern ? `<div class="doktor-aktion"><label class="doktor-check"><input type="checkbox" id="doktorNachsehen_${u.id}" checked> 🔔 In 7 Tagen nachsehen</label><button type="button" class="btn-primary" onclick="doktorSpeichern('${u.id}')">✓ Das ist es</button></div>` : ''}
+      ${kannSpeichern ? `<div class="doktor-aktion">${doktorKontext && doktorKontext.art === 'zimmer' ? '<span></span>' : `<label class="doktor-check"><input type="checkbox" id="doktorNachsehen_${u.id}" checked> 🔔 In 7 Tagen nachsehen</label>`}<button type="button" class="btn-primary" onclick="doktorSpeichern('${u.id}')">✓ Das ist es</button></div>` : ''}
     </div>`;
   }).join('');
 }
@@ -507,6 +509,7 @@ function doktorSpeichern(ursacheId) {
   try { notizAnsichtenAktualisieren(); } catch (e) {}
   doktorSchliessen();
   doktorVerlaufRendern();
+  if (doktorKontext.art === 'zimmer' && typeof zimmerNachDoktor === 'function') zimmerNachDoktor(pl.id);
   showTempStatus('🩺 Befund gemerkt' + pinText, 5);
 }
 

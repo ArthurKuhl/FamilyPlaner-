@@ -894,7 +894,7 @@ function heuteErnteEintragen(id) {
   }, 80);
 }
 function heuteAufgabenHtml(todayTasks) {
-  const ART = { water: { icon: '🚿', verb: 'gießen' }, fertilize: { icon: '🌿', verb: 'düngen' }, harvest: { icon: '🧺', verb: 'ernten' } };
+  const ART = { water: { icon: '🚿', verb: 'gießen' }, fertilize: { icon: '🌿', verb: 'düngen' }, harvest: { icon: '🧺', verb: 'ernten' }, traenke: { icon: '💦', verb: 'frisch füllen' }, zimmer: { icon: '🪴', verb: 'gießen' }, zimmerdueng: { icon: '🌿', verb: 'düngen' } };
   const gruppen = [], map = {};
   todayTasks.forEach(i => {
     const k = i.kind === 'harvest' ? i.id : i.kind + '|' + i.bed;
@@ -922,7 +922,7 @@ function heuteAufgabenHtml(todayTasks) {
       const ich = gartenIchBin();
       const werHtml = g.erledigt
         ? (werErledigt ? ` · von ${escapeHtml(werErledigt.label)}` : '')
-        : (personen.length ? `<select class="heute-wer${zust && zust.id === ich ? ' ich' : ''}" onchange="beetZustaendigSetzen('${t0.bedId}', this.value)" title="Wer kümmert sich um dieses Beet?" style="${zust && zust.farbe ? 'border-color:' + zust.farbe : ''}">
+        : (personen.length && bedObj.id != null ? `<select class="heute-wer${zust && zust.id === ich ? ' ich' : ''}" onchange="beetZustaendigSetzen('${t0.bedId}', this.value)" title="Wer kümmert sich um dieses Beet?" style="${zust && zust.farbe ? 'border-color:' + zust.farbe : ''}">
             <option value="">👤 wer?</option>${personen.map(p => `<option value="${escapeHtml(p.id)}"${zust && zust.id === p.id ? ' selected' : ''}>${escapeHtml(p.label)}${p.id === ich ? ' (ich)' : ''}${istKind(p.id) ? ' ⭐' : ''}</option>`).join('')}</select>` : '');
       return `<div class="heute-aufgabe${g.erledigt ? ' erledigt' : ''}${zust && zust.id === ich && !g.erledigt ? ' meins' : ''}">
         <button type="button" class="heute-haken${g.erledigt ? ' an' : ''}" onclick="heuteGruppeUmschalten('${ids}')" aria-label="${g.erledigt ? 'Wieder öffnen' : 'Erledigt'}">${g.erledigt ? '✓' : ''}</button>
@@ -949,6 +949,7 @@ async function renderHomeOverview() {
   const todayTasks = d.items.filter(i =>
     (i.kind === 'water' && i.urgent && !i.skip) ||
     (i.kind === 'traenke' && i.urgent) ||
+    ((i.kind === 'zimmer' || i.kind === 'zimmerdueng') && i.urgent) ||
     (i.kind === 'harvest' && i.urgent) ||
     (i.kind === 'fertilize')
   );
@@ -974,6 +975,8 @@ async function renderHomeOverview() {
   }
   if (waterToday > 0) stats.push({ icon: '🚿', label: `${waterToday}× heute gießen`, tone: 'water', onclick: '' });
   const traenkenHeute = openTasks.filter(i => i.kind === 'traenke').length;
+  const zimmerHeute = openTasks.filter(i => i.kind === 'zimmer').length;
+  if (zimmerHeute > 0) stats.push({ icon: '🪴', label: `${zimmerHeute}× drinnen/Balkon gießen`, tone: 'water', onclick: "showView('zimmer')" });
   if (traenkenHeute > 0) stats.push({ icon: '💦', label: `${traenkenHeute}× Tränke frisch füllen`, tone: 'water', onclick: '' });
   if (harvestReady > 0) stats.push({ icon: '🧺', label: `${harvestReady}× erntereif`, tone: 'harvest', onclick: '' });
   if (fertilizeDue > 0) stats.push({ icon: '🌿', label: `${fertilizeDue}× düngen fällig`, tone: 'fertilize', onclick: '' });
@@ -2811,6 +2814,9 @@ function hubRendern(bereich) {
         ${hubKachel('🌾', 'Jetzt pflanzen & ernten', 'Was in diesem Monat dran ist', 'openNowOverview()')}
         ${hubKachel('🔄', 'Fruchtfolge', 'Was stand in welchem Beet – Anbau-Historie', 'openRotationTimeline()')}
         ${hubKachel('🗺️', 'Plan für ' + jahresplanZieljahr(), 'Was kommt in welches Beet? Vorschläge nach Fruchtfolge', 'jahresplanOeffnen()', (() => { const n = getCurrentBeds().reduce((s, b) => s + (b.jahresplan && b.jahresplan.jahr === jahresplanZieljahr() ? b.jahresplan.pflanzen.length : 0), 0); return n ? { text: n + ' vorgemerkt', ruhig: true } : ([8, 9, 10, 11, 0, 1, 2].includes(new Date().getMonth()) ? { text: 'jetzt planen' } : null); })())}
+      </div>
+      <div class="hub-titel">Drinnen &amp; Balkon</div><div class="hub-grid">
+        ${hubKachel('🪴', 'Zimmer- & Balkonpflanzen', 'Gießplan, Dünger und Giftinfo für Pflanzen ohne Beet', "showView('zimmer')", (() => { try { const n = zimmerListe().length; return n ? { text: String(n), ruhig: true } : { text: 'neu' }; } catch (e) { return null; } })())}
       </div>
       <div class="hub-titel">Ernte &amp; Rückblick</div><div class="hub-grid">
         ${hubKachel('🧺', 'Erntebuch', 'Alle Ernten chronologisch, nach Jahr', 'openHarvestJournal()', ernten ? { text: ernten + '× ' + jahr, ruhig: true } : null)}

@@ -41,6 +41,7 @@
 <nav class="main-nav" role="tablist" aria-label="Bereiche">
   <button class="nav-btn active" data-view="home" role="tab" aria-selected="true" onclick="showView('home')">🏠 Heute</button>
   <button class="nav-btn" data-view="garden" role="tab" aria-selected="false" onclick="showView('garden')">🗺️ Mein Garten</button>
+  <button class="nav-btn" data-view="zimmer" role="tab" aria-selected="false" onclick="showView('zimmer')">🪴 Drinnen</button>
   <button class="nav-btn" data-view="planen" role="tab" aria-selected="false" onclick="showView('planen')">📅 Planen &amp; Ernten</button>
   <button class="nav-btn" data-view="lexikon" role="tab" aria-selected="false" onclick="showView('lexikon')">📖 Lexikon</button>
   <button class="nav-btn" data-view="mehr" role="tab" aria-selected="false" onclick="showView('mehr')">⚙️ Mehr</button>
@@ -59,6 +60,11 @@
         <div class="hc-icon">🗺️</div>
         <h3>Mein Garten</h3>
         <p>Karte und Liste deiner Beete, Pflanzen setzen, Pflanzeninfos und Fotos.</p>
+      </div>
+      <div class="home-card" onclick="showView('zimmer')" tabindex="0" role="button" onkeydown="if(event.key==='Enter'){this.click()}">
+        <div class="hc-icon">🪴</div>
+        <h3>Drinnen &amp; Balkon</h3>
+        <p>Zimmer-, Kübel- und Balkonpflanzen mit Gießplan, Giftinfo und Pflanzen-Doktor.</p>
       </div>
       <div class="home-card" onclick="showView('planen')" tabindex="0" role="button" onkeydown="if(event.key==='Enter'){this.click()}">
         <div class="hc-icon">📅</div>
@@ -1831,6 +1837,7 @@
 <script src="garten-werkzeuge.js"></script>
 <script src="garten-wissen.js"></script>
 <script src="garten-doktor.js"></script>
+<script src="garten-zimmer.js"></script>
 
 <script>
 (function() {

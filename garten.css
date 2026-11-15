@@ -1024,3 +1024,43 @@
 .dv-text span { font-size: 0.68rem; opacity: 0.7; }
 .dv-btn { border: 1px solid var(--parchment); background: var(--white); border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-size: 0.8rem; }
 .doktor-sprung { position: sticky; bottom: 0; display: block; width: 100%; margin-top: 8px; padding: 10px 14px; border: 0; border-radius: var(--radius-pill, 999px); background: var(--moss); color: var(--on-moss, #fff); font-weight: 700; font-size: 0.8rem; cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,0.18); z-index: 2; }
+
+/* 🪴 Drinnen & Balkon (v509) */
+.zimmer-wrap { max-width: 640px; margin: 0 auto; padding: 14px 14px 90px; }
+.zimmer-filter { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.zimmer-zahl { opacity: 0.65; font-weight: 600; margin-left: 2px; }
+.zimmer-heute { display: flex; align-items: center; gap: 10px; justify-content: space-between; flex-wrap: wrap; padding: 10px 12px; border-radius: 14px; background: var(--white); border: 1.5px solid var(--moss); font-size: 0.8rem; color: var(--soil, var(--bark)); margin-bottom: 10px; }
+.zimmer-heute .btn-primary { width: auto; padding: 7px 14px; font-size: 0.78rem; }
+.zimmer-heute.ruhig { border-color: var(--parchment); color: var(--bark); }
+.zimmer-gifthinweis { font-size: 0.76rem; padding: 7px 11px; border-radius: 11px; background: rgba(200, 110, 60, 0.12); color: var(--terracotta-text, #9a4a1f); margin-bottom: 10px; }
+.zimmer-liste { display: flex; flex-direction: column; gap: 8px; }
+.zimmer-karte { display: flex; align-items: center; gap: 6px; background: var(--white); border: 1.5px solid var(--parchment); border-radius: 14px; padding: 6px 8px 6px 4px; }
+.zimmer-karte.faellig { border-color: var(--moss); }
+.zimmer-karte.ruhe { opacity: 0.75; }
+.zimmer-kopf { flex: 1; display: flex; align-items: center; gap: 10px; background: none; border: 0; text-align: left; cursor: pointer; padding: 4px 6px; color: inherit; font: inherit; min-width: 0; }
+.zimmer-sym { font-size: 1.7rem; line-height: 1; flex: 0 0 auto; }
+.zimmer-info { display: flex; flex-direction: column; min-width: 0; }
+.zimmer-info b { font-size: 0.9rem; color: var(--soil, var(--bark)); }
+.zimmer-info small { font-size: 0.7rem; color: var(--bark); opacity: 0.85; }
+.zimmer-karte.faellig .zimmer-st { color: var(--moss); font-weight: 700; opacity: 1; }
+.zimmer-karte.ok .zimmer-st { color: var(--moss); }
+.zimmer-gift.giftig, .zimmer-gift.stark { color: var(--terracotta-text, #9a4a1f); font-weight: 700; }
+.zimmer-gift.leicht { color: #9a7a1f; }
+.zimmer-knoepfe { display: flex; gap: 5px; flex: 0 0 auto; }
+.zimmer-knoepfe button { width: 38px; height: 38px; border-radius: 50%; border: 1.5px solid var(--parchment); background: var(--white); cursor: pointer; font-size: 1rem; }
+.zimmer-knoepfe button.haupt { background: var(--moss); border-color: var(--moss); }
+.zimmer-neu { width: 100%; margin-top: 14px; }
+.zimmer-fuss { font-size: 0.7rem; color: var(--bark); opacity: 0.75; margin-top: 12px; line-height: 1.45; text-align: center; }
+.zimmer-leer { background: var(--white); border: 1.5px dashed var(--parchment); border-radius: 14px; padding: 12px; }
+.zimmer-leer-titel { font-size: 0.78rem; font-weight: 700; color: var(--bark); margin-bottom: 8px; }
+.zimmer-vorschlaege { display: flex; flex-wrap: wrap; gap: 6px; }
+.zimmer-modal { width: min(500px, 94vw); max-height: 90vh; overflow-y: auto; }
+.zimmer-ort-wahl { display: flex; gap: 6px; flex-wrap: wrap; }
+.zimmer-steckbrief { border: 1.5px solid var(--parchment); border-radius: 12px; padding: 10px 12px; margin-bottom: 12px; background: var(--white); font-size: 0.76rem; color: var(--soil, var(--bark)); }
+.zimmer-steckbrief.ruhig { opacity: 0.8; }
+.zs-kopf { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; margin-bottom: 6px; }
+.zs-kopf span { font-size: 1.4rem; }
+.zs-zeile { display: flex; gap: 10px; padding: 4px 0; border-top: 1px solid var(--parchment); }
+.zs-zeile span:first-child { flex: 0 0 82px; font-weight: 700; }
+.zs-tipp { margin-top: 6px; line-height: 1.45; }
+.zimmer-doktor-btn { width: 100%; margin: 4px 0 6px; }

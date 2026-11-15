@@ -1617,7 +1617,7 @@ function renderCarePlan(items, undated, weather, rainSoon, bedWaterStatus, hotDr
     return;
   }
   items.sort((a,b)=> (b.urgent?1:0) - (a.urgent?1:0));
-  const groups = { water: '🚿 Gießen', traenke: '💦 Wasserstellen', fertilize: '🌿 Düngen', harvest: '🧺 Ernte' };
+  const groups = { water: '🚿 Gießen', zimmer: '🪴 Drinnen &amp; Balkon gießen', zimmerdueng: '🪴 Drinnen &amp; Balkon düngen', traenke: '💦 Wasserstellen', fertilize: '🌿 Düngen', harvest: '🧺 Ernte' };
   let html = frostBanner + weatherBanner + bedBanner;
   for (const kind of Object.keys(groups)) {
     const list = items.filter(i=>i.kind===kind);
