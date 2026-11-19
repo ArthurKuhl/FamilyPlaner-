@@ -1,6 +1,15 @@
 # Neuigkeiten im Familienplaner
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 
+## 2026-11-19 | 📖 Medien: Cover-Kacheln wie beim Kindle
+Die Medien-Übersicht zeigt jetzt große Cover. Den Stand erkennst du auf einen Blick an kleinen Abzeichen:
+- Eckband **„Gelesen“** bzw. **„Gesehen“**, 📖 = lese ich gerade, 💭 = Wunschliste (Cover blasser), ⏸️ pausiert, ⏹️ abgebrochen (Cover grau)
+- Reihen liegen als **Bücherstapel** mit der Zahl der Bände; die Band-Nummer steht oben rechts auf dem Cover
+- Im geöffneten 📁-Ordner stellst du ein, ob die Reihe **⏳ noch erscheint** oder **📚 abgeschlossen** ist, und wie viele Bände sie hat. Fehlende Bände erscheinen als gestrichelte Platzhalter zum Antippen. ✅ heißt: Reihe komplett gelesen
+- 🤝 verliehen, 📅 nächste Folge, ＋1 für Manga-Band oder Folge
+- Seitenzahlen (aktuelle Seite und gesamt) trägst du im Eintrag ein
+- ⓘ erklärt alle Symbole, ☰ / ▦ wechselt zur ausführlichen Liste
+
 ## 2026-11-15 | Kachel „Was ist neu“ zeigt mehr
 - Die Kachel „🆕 Was ist neu“ in der Übersicht zeigt jetzt die letzten drei Neuigkeiten mit Datum statt nur einer abgeschnittenen Zeile. Ungelesene haben einen Punkt.
 

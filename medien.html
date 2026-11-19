@@ -233,6 +233,52 @@
   .zwei-felder { display: flex; gap: 8px; }
   .zwei-felder > :first-child { flex: 1; min-width: 0; }
   .zwei-felder > :last-child { flex: 0 0 82px; }
+
+  /* ---- Kachel-Ansicht im Kindle-Stil (v511) ---- */
+  .spiel-grid.kacheln { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 14px 10px; }
+  @media (min-width: 1000px) { .spiel-grid.kacheln { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 18px 14px; } }
+  .kachel { cursor: pointer; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+  .kachel-cover { position: relative; aspect-ratio: 2 / 3; border-radius: 6px; overflow: hidden; background: var(--parchment) center / cover no-repeat; box-shadow: 0 2px 6px rgba(42,32,22,0.28); }
+  .kc-bild { position: absolute; inset: 0; background: var(--parchment) center / cover no-repeat; }
+  .kc-bild.ohne-bild { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 10px; text-align: center; color: #fff; }
+  .kc-bild.ohne-bild .kc-icon { font-size: 1.7rem; }
+  .kc-bild.ohne-bild .kc-titel { font-size: 0.72rem; font-weight: 700; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; text-shadow: 0 1px 2px rgba(0,0,0,0.35); }
+  .kachel.blass .kc-bild { filter: saturate(0.35); opacity: 0.6; }
+  .kachel.grau .kc-bild { filter: grayscale(1); opacity: 0.45; }
+  .kachel-titel { font-size: 0.74rem; font-weight: 700; line-height: 1.2; color: var(--soil); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .kachel-unter { font-size: 0.64rem; color: var(--bark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: -3px; }
+  /* Abzeichen auf dem Cover */
+  .kb { position: absolute; z-index: 2; display: flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 5px; border-radius: 999px; background: rgba(255,253,248,0.94); color: #2a2016; font-size: 0.68rem; font-weight: 800; line-height: 1; box-shadow: 0 1px 3px rgba(0,0,0,0.35); }
+  .kb.ol { top: 5px; left: 5px; } .kb.or { top: 5px; right: 5px; }
+  .kb.ul { bottom: 5px; left: 5px; } .kb.ur { bottom: 5px; right: 5px; }
+  .kb.aktiv { background: #4f6f45; color: #fff; }
+  .kb.dringend { background: #a8532e; color: #fff; }
+  .kb.plus { border: none; cursor: pointer; font-family: inherit; background: #4f6f45; color: #fff; padding: 0 8px; height: 24px; }
+  .kb.komplett { background: #4f6f45; color: #fff; }
+  .kb.offen { background: #c99a3a; color: #fff; }
+  .k-band { position: absolute; z-index: 1; right: -30px; bottom: 16px; width: 120px; transform: rotate(-45deg); background: rgba(255,253,248,0.95); color: #2a2016; text-align: center; font-size: 0.6rem; font-weight: 800; letter-spacing: 0.02em; padding: 3px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.35); }
+  /* Reihe als Bücherstapel */
+  .kachel.stapel .kachel-cover { box-shadow: 0 2px 6px rgba(42,32,22,0.28); }
+  .kachel.stapel .stapel-box { position: relative; padding: 0 7px 7px 0; }
+  .kachel.stapel .stapel-box::before, .kachel.stapel .stapel-box::after { content: ''; position: absolute; border-radius: 6px; background: var(--white); border: 1.5px solid #a8916c; }
+  .kachel.stapel .stapel-box::before { background: var(--parchment); }
+  .kachel.stapel .stapel-box::before { inset: 7px 0 0 7px; }
+  .kachel.stapel .stapel-box::after { inset: 3.5px 3.5px 3.5px 3.5px; }
+  .kachel.stapel .kachel-cover { z-index: 1; }
+  /* Fehlender Band im geöffneten Ordner */
+  .kachel.fehlt .kachel-cover { background: transparent; border: 2px dashed var(--parchment); box-shadow: none; color: var(--bark); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 0.72rem; font-weight: 700; text-align: center; }
+  .kachel.fehlt .kachel-cover b { font-size: 1.4rem; color: var(--parchment); }
+  /* Reihen-Einstellung im geöffneten Ordner */
+  .reihe-einst { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; background: var(--white); border-radius: var(--radius-md); padding: 8px 12px; box-shadow: var(--shadow-soft); font-size: 0.76rem; color: var(--soil); }
+  .reihe-einst .re-chip { border: 1px solid var(--parchment); background: var(--cream); color: var(--soil); border-radius: 999px; padding: 5px 11px; font-size: 0.74rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .reihe-einst .re-chip.an { background: var(--moss); border-color: var(--moss); color: var(--on-moss, #fff); }
+  .reihe-einst input { width: 64px; padding: 5px 7px; border: 1px solid var(--parchment); border-radius: var(--radius-sm); background: var(--cream); color: var(--soil); font: inherit; }
+  /* Legende */
+  .legende-zeile { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--parchment); font-size: 0.8rem; color: var(--soil); }
+  .legende-zeile:last-child { border-bottom: none; }
+  .legende-zeile .lz-muster { position: relative; flex: 0 0 44px; height: 30px; border-radius: 5px; overflow: hidden; background: linear-gradient(135deg, #8a9a7a, #5a6a4c); }
+  .legende-zeile .lz-muster .kb { transform: scale(0.85); }
+  .legende-zeile .lz-muster .k-band { right: -40px; bottom: 6px; font-size: 0.5rem; }
   .karte-hinweis { font-size: 0.66rem; font-weight: 700; padding: 3px 8px; border-radius: 8px; background: rgba(91,139,181,0.15); color: var(--soil); }
   .karte-hinweis.dringend { background: rgba(196,107,65,0.2); color: var(--terracotta-text, #a8532e); }
   .ausleihe-zeile { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -286,6 +332,8 @@
   <div class="suchzeile" style="display:flex; align-items:center; gap:6px;">
     <input type="text" id="fSuche" placeholder="Titel suchen ..." style="flex:1;">
     <button class="filter-chip" id="btnSortRichtung" style="flex:0 0 auto;">🔤 A–Z</button>
+    <button class="filter-chip" id="btnAnsicht" style="flex:0 0 auto;" title="Ansicht wechseln">▦</button>
+    <button class="filter-chip" id="btnLegende" style="flex:0 0 auto;" title="Was bedeuten die Symbole?">ⓘ</button>
   </div>
   <div class="filter-reihe" id="personFilterReihe"></div>
   <div class="filter-reihe" id="statusFilterReihe" style="margin-top:5px;"></div>
@@ -452,6 +500,14 @@
   </div>
 </div>
 
+<div class="modal-bg" id="modalLegende">
+  <div class="modal" style="max-width:400px;">
+    <h2>ⓘ Was bedeuten die Symbole?</h2>
+    <div id="legendeInhalt"></div>
+    <div class="modal-btns"><button type="button" class="btn btn-secondary" id="btnLegendeZu">Schließen</button></div>
+  </div>
+</div>
+
 <div class="modal-bg" id="modalFilmabend">
   <div class="modal">
     <h2>🍿 Was schauen wir heute?</h2>
@@ -579,6 +635,8 @@
   const KEY_AKTIVE_PERSON = 'medien_personFilter';
   const KEY_TYP_FILTER = 'medien_typFilter';
   const KEY_SORT = 'medien_sortRichtung';
+  const KEY_REIHEN = 'medien_reihen';          // { reiheKey: { stand: 'offen'|'fertig', baende: n } }
+  const KEY_ANSICHT = 'medien_ansicht';        // 'kacheln' | 'liste' (nur dieses Gerät)
   const KEY_ZIELE = 'medien_ziele';            // { "2026": { personId: { lesen: n, schauen: n } } }
   const BILD_MAX_KANTE = (window.FotoSpeicher && window.FotoSpeicher.verfuegbar && window.FotoSpeicher.verfuegbar()) ? 720 : 360;
   const BILDER_WARNGRENZE = 850 * 1024;
@@ -622,7 +680,7 @@
       fort: { label: 'Band', a: 'Band', trenner: 'von', b: 'gesamt', art: 'bis' },
       kriterien: kriterien(['story','charaktere','zeichenstil','spannung','tempo','atmosphaere','worldbuilding','spass']) },
     { id: 'buch', label: 'Buch', icon: '📖', farbe: '#7d6339', gruppe: 'buch', lesen: true, wo: WO_LESEN_BUCH,
-      fort: { label: 'Seite', a: 'Seite', trenner: 'von', b: 'gesamt', art: 'bis' },
+      fort: { label: '📖 Seite (aktuell · gesamt)', a: 'Seite', trenner: 'von', b: 'gesamt', art: 'bis' },
       kriterien: kriterien(['story','charaktere','schreibstil','spannung','tempo','atmosphaere','worldbuilding','spass']) },
     { id: 'anime', label: 'Anime', icon: '🍥', farbe: '#b0578d', gruppe: 'anime', lesen: false, wo: WO_SCHAUEN,
       fort: { label: 'Staffel · Folge', a: 'Staffel', trenner: '·', b: 'Folge', art: 'staffel' },
@@ -690,6 +748,12 @@
 
   let eintraege = laden(KEY_EINTRAEGE, []);
   let bilder = laden(KEY_BILDER, {});
+  let reihenInfo = laden(KEY_REIHEN, {}) || {};
+  function speichernReihen() {
+    try { localStorage.setItem(KEY_REIHEN, JSON.stringify(reihenInfo)); } catch (e) {}
+    if (window._sync) window._sync.melde();
+  }
+  let ansicht = (function () { try { return localStorage.getItem(KEY_ANSICHT) || 'kacheln'; } catch (e) { return 'kacheln'; } })();
   let personFilter = localStorage.getItem(KEY_AKTIVE_PERSON) || 'alle';
   let typFilter = localStorage.getItem(KEY_TYP_FILTER) || 'alle';
   let statusFilter = 'alle';
@@ -804,7 +868,7 @@
     if (t.fort.art === 'bis') {
       if (a === null) return '';
       text = t.fort.a + ' ' + a + (b ? ' / ' + b : '');
-      if (b) balken = '<div class="fortschritt-balken"><div style="width:' + Math.min(100, Math.round(a / b * 100)) + '%"></div></div>';
+      if (b && e.typ !== 'buch') balken = '<div class="fortschritt-balken"><div style="width:' + Math.min(100, Math.round(a / b * 100)) + '%"></div></div>';
     } else {
       text = [a !== null ? 'Staffel ' + a : '', b !== null ? 'Folge ' + b + (e.info && e.info.folgen && !a ? ' / ' + e.info.folgen : '') : ''].filter(Boolean).join(' · ');
     }
@@ -884,7 +948,7 @@
     karte.style.borderTopColor = stat.farbe;
     const fort = fortschrittHtml(e);
     const plusFeld = plusEinsFeld(e);
-    const seiteKnopf = e.typ === 'buch' && e.status === 'aktiv';
+    const seiteKnopf = false; // Seiten werden im Eintrag selbst gepflegt (Wunsch v511)
     karte.innerHTML =
       (coverQuelle(e) ? '<div class="spiel-cover" style="background-image:url(\'' + escapeHtml(coverQuelle(e)).replace(/'/g, '%27') + '\')"></div>' : '') +
       '<div class="spiel-titel">' + (e.reihe && offeneReihe && e.reiheNr !== undefined && e.reiheNr !== '' ? '<span class="reihe-nr">' + escapeHtml(String(e.reiheNr)) + '</span>' : '') + escapeHtml(e.titel) + '</div>' +
@@ -969,22 +1033,182 @@
     karte.addEventListener('click', () => { offeneReihe = name; renderGrid(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
     return karte;
   }
+  // ---------- 🖼️ Kachel-Ansicht im Kindle-Stil (v511) ----------
+  function bandText(e) { return e.reiheNr !== undefined && e.reiheNr !== '' && e.reiheNr !== null ? String(e.reiheNr).replace('.', ',') : ''; }
+  function coverHtml(e, abzeichen) {
+    const t = typInfo(e.typ);
+    const q = coverQuelle(e);
+    if (q) return '<div class="kachel-cover"><div class="kc-bild" style="background-image:url(\'' + escapeHtml(q).replace(/'/g, '%27') + '\')"></div>' + abzeichen + '</div>';
+    return '<div class="kachel-cover"><div class="kc-bild ohne-bild" style="background:linear-gradient(160deg,' + t.farbe + ',' + t.farbe + 'aa);"><span class="kc-icon">' + t.icon + '</span><span class="kc-titel">' + escapeHtml(e.titel) + '</span></div>' + abzeichen + '</div>';
+  }
+  function kachelKarte(e) {
+    const t = typInfo(e.typ);
+    const stat = statusInfo(e.status, t.lesen);
+    let ab = '';
+    // oben links: Status (nicht bei „gelesen“ – dafür gibt es das Eckband)
+    if (e.status === 'aktiv') ab += '<span class="kb ol aktiv" title="' + stat.label + '">' + (t.lesen ? '📖' : '▶') + '</span>';
+    else if (e.status === 'wunschliste') ab += '<span class="kb ol" title="Wunschliste">💭</span>';
+    else if (e.status === 'pausiert') ab += '<span class="kb ol" title="Pausiert">⏸️</span>';
+    else if (e.status === 'abgebrochen') ab += '<span class="kb ol" title="Abgebrochen">⏹️</span>';
+    // oben rechts: Band-Nummer einer Reihe
+    const nr = e.typ === 'buch' && e.reihe ? bandText(e) : '';
+    if (nr) ab += '<span class="kb or" title="Band ' + escapeHtml(nr) + '">' + escapeHtml(nr) + '</span>';
+    // unten links: verliehen / ausgeliehen / nächste Folge
+    if (e.ausleihe && e.ausleihe.art) {
+      const dr = e.ausleihe.bis && tageBis(e.ausleihe.bis) <= 2;
+      ab += '<span class="kb ul' + (dr ? ' dringend' : '') + '" title="' + (e.ausleihe.art === 'verliehen' ? 'verliehen an ' : 'ausgeliehen von ') + escapeHtml(e.ausleihe.wer || '?') + '">' + (e.ausleihe.art === 'verliehen' ? '🤝' : '📚') + '</span>';
+    } else if (e.naechsteFolge && e.naechsteFolge.datum && tageBis(e.naechsteFolge.datum) >= 0 && e.status !== 'beendet' && e.status !== 'abgebrochen') {
+      ab += '<span class="kb ul" title="Nächste Folge ' + escapeHtml(kurzDatum(e.naechsteFolge.datum)) + '">📅</span>';
+    }
+    // unten rechts: ＋1 für Manga-Band / nächste Folge
+    const plusFeld = plusEinsFeld(e);
+    if (plusFeld) ab += '<button type="button" class="kb ur plus" title="' + (plusFeld === 'a' ? 'Nächster Band' : 'Nächste Folge') + '">＋1</button>';
+    // Eckband wie beim Kindle
+    if (e.status === 'beendet') ab += '<span class="k-band">' + (t.lesen ? 'Gelesen' : 'Gesehen') + '</span>';
+    const karte = document.createElement('div');
+    karte.className = 'kachel' + (e.status === 'wunschliste' ? ' blass' : e.status === 'abgebrochen' ? ' grau' : '');
+    const unter = (e.info && e.info.autor) || (e.reihe ? e.reihe : t.icon + ' ' + t.label);
+    karte.innerHTML = coverHtml(e, ab) + '<div class="kachel-titel">' + escapeHtml(e.titel) + '</div><div class="kachel-unter">' + escapeHtml(unter) + '</div>';
+    karte.addEventListener('click', () => editModalOeffnen(e));
+    const plusBtn = karte.querySelector('.plus');
+    if (plusBtn) plusBtn.addEventListener('click', (ev) => { ev.stopPropagation(); plusEins(e, plusFeld); });
+    return karte;
+  }
+  function plusEins(e, plusFeld) {
+    if (!e.fortschritt) e.fortschritt = { a: '', b: '' };
+    const vorher = e.fortschritt[plusFeld];
+    e.fortschritt[plusFeld] = String((zahl(vorher) || 0) + 1);
+    speichernEintraege();
+    renderGrid();
+    showTempStatus(e.titel + ': ' + (plusFeld === 'a' ? 'Band ' : 'Folge ') + e.fortschritt[plusFeld], 4, {
+      rueckgaengig: () => { e.fortschritt[plusFeld] = vorher; speichernEintraege(); renderGrid(); }
+    });
+  }
+  // Stand einer Reihe: wie viele gelesen, ob abgeschlossen
+  function reiheStand(name, buecher) {
+    const info = reihenInfo[reiheKey(name)] || {};
+    const gelesen = buecher.filter(b => b.status === 'beendet').length;
+    const ges = Math.max(info.baende || 0, buecher.length);
+    const allesGelesen = gelesen === buecher.length;
+    let symbol = '', titel = '';
+    if (info.stand === 'fertig') {
+      if (allesGelesen && buecher.length >= ges) { symbol = '✅'; titel = 'Reihe komplett gelesen'; }
+      else { symbol = '📚'; titel = 'Reihe fertig erschienen'; }
+    } else if (info.stand === 'offen') { symbol = '⏳'; titel = 'Reihe erscheint noch'; }
+    return { info, gelesen, ges, allesGelesen, symbol, titel };
+  }
+  function reiheKachel(name, buecher) {
+    const sortiert = buecher.slice().sort((a, b) => reiheNrZahl(a) - reiheNrZahl(b));
+    const st = reiheStand(name, buecher);
+    const aktiv = sortiert.find(b => b.status === 'aktiv');
+    const erstes = sortiert.find(b => coverQuelle(b)) || sortiert[0];
+    let ab = '<span class="kb ol" title="' + buecher.length + ' Bände erfasst">' + buecher.length + '</span>';
+    if (st.symbol) ab += '<span class="kb or ' + (st.info.stand === 'fertig' ? 'komplett' : 'offen') + '" title="' + st.titel + '">' + st.symbol + '</span>';
+    if (aktiv) ab += '<span class="kb ul aktiv" title="Lese ich: ' + escapeHtml(aktiv.titel) + '">📖</span>';
+    if (st.allesGelesen) ab += '<span class="k-band">Gelesen</span>';
+    const karte = document.createElement('div');
+    karte.className = 'kachel stapel';
+    const autoren = [...new Set(buecher.map(b => b.info && b.info.autor).filter(Boolean))];
+    karte.innerHTML = '<div class="stapel-box">' + coverHtml(Object.assign({}, erstes, { titel: name }), ab) + '</div>' +
+      '<div class="kachel-titel">📁 ' + escapeHtml(name) + '</div>' +
+      '<div class="kachel-unter">' + st.gelesen + ' von ' + st.ges + ' gelesen' + (autoren.length ? ' · ' + escapeHtml(autoren.join(', ')) : '') + '</div>';
+    karte.addEventListener('click', () => { offeneReihe = name; renderGrid(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+    return karte;
+  }
+  // Einstellung „abgeschlossen / erscheint noch“ im geöffneten Ordner
+  function reiheEinstellung(name) {
+    const k = reiheKey(name);
+    const info = reihenInfo[k] || {};
+    const box = document.createElement('div');
+    box.className = 'reihe-einst';
+    box.innerHTML = '<span>Reihe:</span>' +
+      '<button type="button" class="re-chip' + (info.stand === 'offen' ? ' an' : '') + '" data-stand="offen">⏳ erscheint noch</button>' +
+      '<button type="button" class="re-chip' + (info.stand === 'fertig' ? ' an' : '') + '" data-stand="fertig">📚 abgeschlossen</button>' +
+      '<label style="display:flex;align-items:center;gap:5px;margin-left:auto;">Bände gesamt <input type="number" min="1" inputmode="numeric" value="' + (info.baende || '') + '" placeholder="?"></label>';
+    box.querySelectorAll('.re-chip').forEach(btn => btn.addEventListener('click', () => {
+      const cur = reihenInfo[k] || {};
+      cur.stand = cur.stand === btn.dataset.stand ? undefined : btn.dataset.stand;
+      if (!cur.stand) delete cur.stand;
+      if (Object.keys(cur).length) reihenInfo[k] = cur; else delete reihenInfo[k];
+      speichernReihen(); renderGrid();
+    }));
+    box.querySelector('input').addEventListener('change', (ev) => {
+      const n = zahl(ev.target.value);
+      const cur = reihenInfo[k] || {};
+      if (n && n > 0) cur.baende = n; else delete cur.baende;
+      if (Object.keys(cur).length) reihenInfo[k] = cur; else delete reihenInfo[k];
+      speichernReihen(); renderGrid();
+    });
+    return box;
+  }
+  function fehltKachel(nr) {
+    const karte = document.createElement('div');
+    karte.className = 'kachel fehlt';
+    karte.innerHTML = '<div class="kachel-cover"><b>＋</b>Band ' + nr + '<br>fehlt noch</div><div class="kachel-titel" style="color:var(--bark);">Band ' + nr + '</div><div class="kachel-unter">antippen zum Erfassen</div>';
+    karte.addEventListener('click', () => { editModalOeffnen(null); document.getElementById('fReiheNr').value = nr; });
+    return karte;
+  }
+  function legendeOeffnen() {
+    const z = (muster, text) => '<div class="legende-zeile"><span class="lz-muster">' + muster + '</span><span>' + text + '</span></div>';
+    document.getElementById('legendeInhalt').innerHTML =
+      z('<span class="k-band">Gelesen</span>', '<b>Gelesen / Gesehen</b> – fertig') +
+      z('<span class="kb ol aktiv">📖</span>', '<b>Lese / schaue ich gerade</b>') +
+      z('<span class="kb ol">💭</span>', '<b>Wunschliste</b> – Cover etwas blasser') +
+      z('<span class="kb ol">⏸️</span>', '<b>Pausiert</b>') +
+      z('<span class="kb ol">⏹️</span>', '<b>Abgebrochen</b> – Cover grau') +
+      z('<span class="kb or">3</span>', '<b>Band-Nummer</b> in einer Reihe') +
+      z('<span class="kb ol">5</span>', 'Bei einem <b>📁 Reihen-Stapel</b>: so viele Bände sind erfasst') +
+      z('<span class="kb or komplett">✅</span>', '<b>Reihe komplett</b> – abgeschlossen und alles gelesen') +
+      z('<span class="kb or komplett">📚</span>', '<b>Reihe abgeschlossen</b> – es erscheint nichts mehr') +
+      z('<span class="kb or offen">⏳</span>', '<b>Reihe erscheint noch</b>') +
+      z('<span class="kb ul">🤝</span>', '<b>Verliehen</b> (📚 = ausgeliehen, rot = Rückgabe fällig)') +
+      z('<span class="kb ul">📅</span>', '<b>Nächste Folge</b> steht an') +
+      '<div class="spiel-info" style="margin-top:8px;">Ob eine Reihe abgeschlossen ist, stellst du im geöffneten 📁-Ordner oben ein. Mit ▦ / ☰ wechselst du zwischen Kacheln und ausführlicher Liste.</div>';
+    document.getElementById('modalLegende').classList.add('zeigen');
+  }
+  document.getElementById('btnLegende').addEventListener('click', legendeOeffnen);
+  document.getElementById('btnLegendeZu').addEventListener('click', () => document.getElementById('modalLegende').classList.remove('zeigen'));
+  document.getElementById('modalLegende').addEventListener('click', (ev) => { if (ev.target.id === 'modalLegende') ev.currentTarget.classList.remove('zeigen'); });
+  function renderAnsichtButton() {
+    const b = document.getElementById('btnAnsicht');
+    b.textContent = ansicht === 'kacheln' ? '☰' : '▦';
+    b.title = ansicht === 'kacheln' ? 'Ausführliche Liste zeigen' : 'Cover-Kacheln zeigen';
+  }
+  document.getElementById('btnAnsicht').addEventListener('click', () => {
+    ansicht = ansicht === 'kacheln' ? 'liste' : 'kacheln';
+    try { localStorage.setItem(KEY_ANSICHT, ansicht); } catch (e) {}
+    renderAnsichtButton(); renderGrid();
+  });
+
   function renderGrid() {
+    renderAnsichtButton();
+    const kachelModus = ansicht === 'kacheln';
+    const karteFuer = kachelModus ? kachelKarte : eintragKarte;
     const box = document.getElementById('eintragGrid');
+    box.classList.toggle('kacheln', kachelModus);
     box.innerHTML = '';
     let liste = gefilterteEintraege();
     if (offeneReihe) {
       // Geöffneter Ordner: nur die Bücher dieser Reihe, nach Band sortiert
       liste = liste.filter(e => reiheKey(e.reihe) === reiheKey(offeneReihe)).sort((a, b) => reiheNrZahl(a) - reiheNrZahl(b) || a.titel.localeCompare(b.titel));
+      if (!liste.length) { offeneReihe = null; renderGrid(); return; }
+      const alle = eintraege.filter(e => e.typ === 'buch' && reiheKey(e.reihe) === reiheKey(offeneReihe));
+      const st = reiheStand(offeneReihe, alle);
       const kopf = document.createElement('div');
       kopf.className = 'reihe-kopf';
-      const gelesen = liste.filter(e => e.status === 'beendet').length;
-      kopf.innerHTML = '<button type="button">← Zurück</button><b>📁 ' + escapeHtml(offeneReihe) + '</b><small>' + gelesen + ' von ' + liste.length + ' gelesen</small>';
+      kopf.innerHTML = '<button type="button">← Zurück</button><b>📁 ' + escapeHtml(offeneReihe) + '</b><small>' + (st.symbol ? st.symbol + ' ' : '') + st.gelesen + ' von ' + st.ges + ' gelesen</small>';
       kopf.querySelector('button').addEventListener('click', () => { offeneReihe = null; renderGrid(); });
       box.appendChild(kopf);
-      if (!liste.length) { offeneReihe = null; renderGrid(); return; }
+      box.appendChild(reiheEinstellung(offeneReihe));
       document.getElementById('leerHinweis').style.display = 'none';
-      liste.forEach(e => box.appendChild(eintragKarte(e)));
+      // Lücken (fehlende ganze Bände) als Platzhalter einreihen – nur ohne Status-/Personenfilter sinnvoll
+      const nummern = new Set(alle.map(e => reiheNrZahl(e)).filter(n => n !== 9999));
+      const maxNr = Math.max(st.info.baende || 0, ...[...nummern].map(Math.floor), 0);
+      const zeigeLuecken = kachelModus && statusFilter === 'alle' && nummern.size > 0 && maxNr <= 60;
+      let naechste = 1;
+      const luecken = (bis) => { if (!zeigeLuecken) return; for (; naechste < bis; naechste++) if (!nummern.has(naechste)) box.appendChild(fehltKachel(naechste)); };
+      liste.forEach(e => { const n = reiheNrZahl(e); if (n !== 9999) { luecken(Math.floor(n)); naechste = Math.max(naechste, Math.floor(n) + 1); } box.appendChild(karteFuer(e)); });
+      luecken(maxNr + 1);
       return;
     }
     document.getElementById('leerHinweis').style.display = liste.length ? 'none' : '';
@@ -1000,10 +1224,10 @@
       if (k && reihen[k] && reihen[k].length >= 2) {
         if (gezeigt.has(k)) return;
         gezeigt.add(k);
-        box.appendChild(reiheKarte(reihen[k][0].reihe.trim(), reihen[k]));
+        box.appendChild((kachelModus ? reiheKachel : reiheKarte)(reihen[k][0].reihe.trim(), reihen[k]));
         return;
       }
-      box.appendChild(eintragKarte(e));
+      box.appendChild(karteFuer(e));
     });
   }
   function renderAlles() { renderStats(); renderGrid(); }
@@ -1219,6 +1443,10 @@
       notiz: document.getElementById('fNotiz').value.trim(),
       erstelltAm: alt ? (alt.erstelltAm || new Date().toISOString()) : new Date().toISOString(),
     });
+    if (editTyp === 'buch' && editStatus === 'aktiv' && neu.fortschritt) {
+      const sa = zahl(neu.fortschritt.a), sb = zahl(neu.fortschritt.b);
+      if (sa !== null && sb && sa >= sb && confirm('Seite ' + sa + ' von ' + sb + ' – „' + titel + '“ fertig gelesen? 🏆')) { editStatus = 'beendet'; neu.status = 'beendet'; }
+    }
     if (t.lesen) { editInfo = Object.assign({}, editInfo || {}, { autor: document.getElementById('fAutor').value.trim() }); }
     if (editInfo && (editInfo.autor || editInfo.jahr || editInfo.folgen || editInfo.seiten || editInfo.baende)) neu.info = editInfo; else delete neu.info;
     const inhalt = document.getElementById('fInhalt').value.trim();
@@ -1540,8 +1768,8 @@
   if (window.PlanerSync) {
     window._sync = window.PlanerSync.starteSync({
       modul: 'medien',
-      keys: [KEY_EINTRAEGE, KEY_ZIELE],
-      onRemoteChange: function () { eintraege = laden(KEY_EINTRAEGE, eintraege); ziele = laden(KEY_ZIELE, ziele) || {}; renderAlles(); setTimeout(coverHochladen, 1500); },
+      keys: [KEY_EINTRAEGE, KEY_ZIELE, KEY_REIHEN],
+      onRemoteChange: function () { eintraege = laden(KEY_EINTRAEGE, eintraege); reihenInfo = laden(KEY_REIHEN, reihenInfo) || {}; ziele = laden(KEY_ZIELE, ziele) || {}; renderAlles(); setTimeout(coverHochladen, 1500); },
     });
     bilderSync = window.PlanerSync.starteSync({
       modul: 'medien_bilder',
