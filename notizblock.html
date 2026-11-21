@@ -244,6 +244,81 @@
   /* Einheitliche Reiter (v507): Grün = wo bin ich, Orange bleibt für „＋ Neu“ */
   main .ansicht-tab { background: var(--white); border-color: var(--parchment); color: var(--bark); }
   .ansicht-tab.active, main .ansicht-tab.active { background: var(--moss); color: var(--on-moss, var(--leaf)); border-color: var(--moss); }
+
+  /* ---- 📂 Projekte (v512) ---- */
+  .modus-tabs { margin: 4px 0 10px; }
+  .pj-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+  .pj-karte { background: var(--white); border-radius: var(--radius-md); box-shadow: var(--shadow-soft); padding: 14px 12px 12px; cursor: pointer; display: flex; flex-direction: column; gap: 5px; border-top: 5px solid var(--moss); min-height: 120px; }
+  .pj-karte .pj-icon { font-size: 1.8rem; line-height: 1; }
+  .pj-karte .pj-name { font-weight: 700; font-family: 'Playfair Display', serif; font-size: 1rem; color: var(--soil); }
+  .pj-karte .pj-beschr { font-size: 0.72rem; color: var(--bark); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .pj-karte.neu { border: 2px dashed var(--parchment); border-top-width: 2px; background: transparent; box-shadow: none; align-items: center; justify-content: center; text-align: center; color: var(--bark); font-weight: 700; font-size: 0.82rem; }
+  .pj-zaehler { display: flex; flex-wrap: wrap; gap: 4px; margin-top: auto; }
+  .pj-zaehler span { font-size: 0.64rem; font-weight: 700; padding: 2px 7px; border-radius: 999px; background: var(--cream); color: var(--soil); border: 1px solid var(--parchment); }
+  .pj-kopf { display: flex; align-items: center; gap: 8px; background: var(--white); border-radius: var(--radius-md); padding: 10px 12px; box-shadow: var(--shadow-soft); margin-bottom: 8px; border-left: 5px solid var(--moss); }
+  .pj-kopf .pj-kopf-titel { flex: 1; min-width: 0; }
+  .pj-kopf b { display: block; font-family: 'Playfair Display', serif; font-size: 1.05rem; color: var(--soil); }
+  .pj-kopf small { display: block; font-size: 0.7rem; color: var(--bark); }
+  .pj-knopf { border: 1px solid var(--parchment); background: var(--cream); color: var(--soil); border-radius: 999px; padding: 6px 11px; font-size: 0.76rem; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; }
+  .pj-knopf.haupt { background: var(--moss); border-color: var(--moss); color: var(--on-moss, #fff); }
+  .pj-schnell { display: flex; gap: 6px; margin-bottom: 10px; }
+  .pj-schnell input { flex: 1; min-width: 0; padding: 11px 12px; border: 1.5px solid var(--moss); border-radius: var(--radius-pill); background: var(--white); color: var(--soil); font-size: 0.9rem; font-family: inherit; }
+  .pj-schnell .pj-knopf { padding: 0 14px; font-size: 1rem; }
+  .pj-schnell .pj-knopf.aktiv { background: #c0392b; border-color: #c0392b; color: #fff; }
+  .pj-schritte { background: var(--white); border-radius: var(--radius-md); box-shadow: var(--shadow-soft); padding: 10px 12px; margin-bottom: 10px; }
+  .pj-schritte h3, .pj-abschnitt-kopf { font-size: 0.82rem; font-weight: 800; color: var(--soil); display: flex; align-items: center; gap: 6px; margin: 0 0 6px; }
+  .pj-schritte .pj-schritt { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 0.84rem; color: var(--soil); }
+  .pj-schritte .pj-schritt input { width: 18px; height: 18px; flex-shrink: 0; }
+  .pj-schritte .pj-schritt.erledigt span { text-decoration: line-through; opacity: 0.55; }
+  .pj-schritte .pj-schritt-neu { width: 100%; margin-top: 4px; padding: 7px 10px; border: 1px dashed var(--parchment); border-radius: var(--radius-sm); background: transparent; color: var(--soil); font-family: inherit; font-size: 0.82rem; }
+  .pj-status-filter { display: flex; gap: 5px; overflow-x: auto; scrollbar-width: none; margin-bottom: 10px; }
+  .pj-status-filter::-webkit-scrollbar { display: none; }
+  .pj-status-filter button { flex: 0 0 auto; border: 1px solid var(--parchment); background: var(--white); color: var(--bark); border-radius: 999px; padding: 5px 11px; font-size: 0.72rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .pj-status-filter button.an { background: var(--moss); border-color: var(--moss); color: var(--on-moss, #fff); }
+  .pj-abschnitt { margin-bottom: 14px; }
+  .pj-abschnitt-kopf { cursor: pointer; padding: 6px 2px; border-bottom: 2px solid var(--parchment); margin-bottom: 8px; font-size: 0.9rem; }
+  .pj-abschnitt-kopf .anz { font-size: 0.68rem; font-weight: 700; color: var(--bark); background: var(--parchment); border-radius: 999px; padding: 1px 7px; }
+  .pj-abschnitt-kopf .pfeil { margin-left: auto; color: var(--bark); font-size: 0.8rem; }
+  .pj-abschnitt-kopf .plus { border: none; background: var(--moss); color: var(--on-moss, #fff); width: 26px; height: 26px; border-radius: 50%; font-weight: 800; cursor: pointer; font-size: 0.95rem; line-height: 1; }
+  .pj-abschnitt.zu .pj-ideen { display: none; }
+  .pj-ideen { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  @media (min-width: 700px) { .pj-ideen { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  .pj-idee { position: relative; background: var(--white); border-radius: var(--radius-sm); box-shadow: var(--shadow-soft); padding: 10px 10px 8px; cursor: pointer; display: flex; flex-direction: column; gap: 4px; min-height: 64px; word-break: break-word; }
+  .pj-idee.farbig, .pj-idee.farbig .notiz-text, .pj-idee.farbig .pj-idee-titel { color: #3a2e22; }
+  .pj-idee.verworfen { opacity: 0.5; }
+  .pj-idee.verworfen .pj-idee-titel, .pj-idee.verworfen .notiz-text { text-decoration: line-through; }
+  .pj-idee-titel { font-weight: 700; font-size: 0.84rem; color: var(--soil); padding-right: 26px; }
+  .pj-idee .notiz-text { font-size: 0.76rem; -webkit-line-clamp: 4; }
+  .pj-idee > .pj-status-ab + .notiz-text { padding-right: 24px; }
+  .pj-idee .pj-status-ab { position: absolute; top: 6px; right: 6px; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.78rem; background: var(--cream); border: 1px solid var(--parchment); }
+  .pj-skizze-bild { width: 100%; max-height: 140px; object-fit: contain; image-rendering: pixelated; border-radius: 6px; background: repeating-conic-gradient(#e8e2d6 0% 25%, #fff 0% 50%) 50% / 12px 12px; }
+  .pj-status-wahl { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+  .pj-status-wahl button { border: 1px solid var(--parchment); background: var(--white); color: var(--bark); border-radius: 999px; padding: 5px 10px; font-size: 0.74rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .pj-status-wahl button.an { background: var(--moss); border-color: var(--moss); color: var(--on-moss, #fff); }
+  .pj-skizze-feld { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .pj-skizze-feld img { width: 72px; height: 72px; object-fit: contain; image-rendering: pixelated; border: 1px solid var(--parchment); border-radius: 6px; background: repeating-conic-gradient(#e8e2d6 0% 25%, #fff 0% 50%) 50% / 10px 10px; cursor: pointer; }
+  .nlink { color: var(--sky) !important; font-weight: 700; text-decoration: none !important; border-bottom: 1.5px dotted currentColor; cursor: pointer; word-break: normal !important; }
+  .nlink.fehlt { color: var(--terracotta-text) !important; }
+  .verweise { font-size: 0.74rem; color: var(--bark); margin: -4px 0 12px; }
+  .verweise button { border: none; background: none; color: var(--sky); font-weight: 700; cursor: pointer; padding: 0 2px; font-size: 0.74rem; font-family: inherit; }
+  /* Skizzenblock */
+  .sk-tabs { display: flex; gap: 6px; margin-bottom: 8px; }
+  .sk-leiste { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; margin-bottom: 8px; }
+  .sk-leiste .pj-knopf { padding: 5px 9px; }
+  .sk-leiste .pj-knopf.an { background: var(--moss); border-color: var(--moss); color: var(--on-moss, #fff); }
+  .sk-palette { display: grid; grid-template-columns: repeat(9, 1fr); gap: 4px; margin-bottom: 8px; }
+  .sk-farbe { aspect-ratio: 1; border-radius: 6px; border: 2px solid rgba(0,0,0,0.15); cursor: pointer; }
+  .sk-farbe.an { outline: 3px solid var(--soil); outline-offset: 1px; }
+  .sk-farbe.leer { background: repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 50% / 8px 8px; }
+  .sk-flaeche { display: block; margin: 0 auto; touch-action: none; border-radius: 6px; border: 1px solid var(--parchment); background: #fff; max-width: 100%; }
+  .link-liste { max-height: 50vh; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
+  .link-liste button { text-align: left; border: 1px solid var(--parchment); background: var(--white); color: var(--soil); border-radius: var(--radius-sm); padding: 8px 10px; font-size: 0.84rem; cursor: pointer; font-family: inherit; }
+  .link-liste button small { color: var(--bark); font-size: 0.7rem; margin-left: 4px; }
+  .export-text { width: 100%; min-height: 40vh; font-family: ui-monospace, Menlo, monospace; font-size: 0.74rem; padding: 10px; border: 1px solid var(--parchment); border-radius: var(--radius-sm); background: var(--white); color: var(--soil); }
+  .abschnitt-edit { display: flex; gap: 5px; align-items: center; margin-bottom: 5px; }
+  .abschnitt-edit input { padding: 7px 9px !important; }
+  .abschnitt-edit input.ic { flex: 0 0 52px; width: 52px !important; text-align: center; }
+  .abschnitt-edit button { flex: 0 0 auto; border: 1px solid var(--parchment); background: var(--white); color: var(--bark); border-radius: 8px; width: 32px; height: 34px; cursor: pointer; }
 </style>
 </head>
 <body>
@@ -284,11 +359,16 @@
     <button type="button" class="bereich-btn" id="btnBereichFamilie">👪 Familie</button>
     <button type="button" class="bereich-btn" id="btnBereichPrivat">🔒 Privat</button>
   </div>
+  <div class="ansicht-tabs modus-tabs" id="modusTabs">
+    <button type="button" class="ansicht-tab active" data-modus="notizen">📝 Notizen</button>
+    <button type="button" class="ansicht-tab" data-modus="projekte">📂 Projekte</button>
+  </div>
   <div class="privat-hinweis" id="privatHinweis" style="display:none;"></div>
   <input type="text" class="notiz-suche" id="notizSuche" placeholder="🔍 Notizen durchsuchen ...">
   <div class="ansicht-chips" id="ansichtChips"></div>
   <div class="filter-reihe" id="tagFilterReihe" style="margin-bottom:10px;"></div>
   <div class="notiz-grid" id="notizGrid"></div>
+  <div id="projektBereich" style="display:none;"></div>
   <div class="leer-hinweis" id="leerHinweis" style="display:none;">
     <span class="em">📝</span>
     Noch keine Notizen. Tippe auf „＋ Neu", um loszulegen.
@@ -345,7 +425,7 @@
       <input type="text" id="fTitel" placeholder="z.B. Einkaufsideen, Gedanken zum Urlaub ...">
     </div>
     <div class="feld" id="feldText">
-      <div class="label-zeile"><label for="fText">Text</label><button type="button" class="diktat-btn" id="btnDiktat" style="display:none;">🎤 Diktieren</button></div>
+      <div class="label-zeile"><label for="fText">Text</label><span style="display:flex;gap:5px;"><button type="button" class="diktat-btn" id="btnVerknuepfen" title="Auf eine andere Notiz verweisen">🔗 Verknüpfen</button><button type="button" class="diktat-btn" id="btnDiktat" style="display:none;">🎤 Diktieren</button></span></div>
       <textarea id="fText" rows="8" placeholder="Stichpunkte oder ganze Sätze … **fett**, - Aufzählung, Links und Telefonnummern werden antippbar"></textarea>
     </div>
     <div class="feld" id="feldCheckliste" style="display:none;">
@@ -356,6 +436,16 @@
         <button type="button" class="opt klein" id="btnErledigteLoeschen">🗑 Erledigte löschen</button>
       </div>
       <button type="button" class="zeile-hinzufuegen" id="btnCheckpunktHinzufuegen" style="background:none;border:1px dashed var(--bark);color:var(--bark);border-radius:var(--radius-pill);padding:7px 14px;font-size:0.78rem;font-weight:700;cursor:pointer;width:100%;">＋ Punkt hinzufügen</button>
+    </div>
+    <div class="feld" id="feldProjekt" style="display:none;">
+      <label>📂 Projekt &amp; Bereich</label>
+      <div class="zeile-2"><select id="fProjekt"></select><select id="fAbschnitt"></select></div>
+      <div class="pj-status-wahl" id="fStatusWahl"></div>
+    </div>
+    <div id="feldVerweise"></div>
+    <div class="feld">
+      <label>✏️ Skizze</label>
+      <div class="pj-skizze-feld" id="skizzeFeld"></div>
     </div>
     <div class="feld">
       <label for="fTags">Tags (optional, mit Komma trennen)</label>
@@ -388,6 +478,86 @@
   </div>
 </div>
 
+
+<!-- 📂 Projekt anlegen / bearbeiten (v512) -->
+<div class="modal-bg" id="modalProjekt">
+  <div class="modal" style="max-width:480px;">
+    <h2 id="pjModalKopf">📂 Neues Projekt</h2>
+    <div class="feld" id="pjVorlageFeld">
+      <label>Vorlage</label>
+      <div class="opt-reihe" id="pjVorlagen"></div>
+    </div>
+    <div class="feld">
+      <label for="pjName">Name</label>
+      <input type="text" id="pjName" placeholder="z.B. Farm-Spiel">
+    </div>
+    <div class="feld">
+      <label>Symbol</label>
+      <div class="opt-reihe" id="pjIcons"></div>
+    </div>
+    <div class="feld">
+      <label>Farbe</label>
+      <div class="farbe-punkt-reihe" id="pjFarben"></div>
+    </div>
+    <div class="feld">
+      <label for="pjBeschr">Kurzbeschreibung (optional)</label>
+      <textarea id="pjBeschr" rows="2" placeholder="Worum geht es? z.B. Gemütliches Pixel-Farmspiel, Richtung Stardew Valley"></textarea>
+    </div>
+    <div class="feld">
+      <label>Bereiche</label>
+      <div id="pjAbschnitte"></div>
+      <button type="button" class="opt klein" id="pjAbschnittPlus" style="width:100%;margin-top:2px;">＋ Bereich hinzufügen</button>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="pjAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="pjSpeichern">💾 Speichern</button>
+    </div>
+    <div class="modal-btns" id="pjLoeschZeile" style="display:none;">
+      <button class="btn btn-danger" id="pjLoeschen">Projekt löschen</button>
+    </div>
+  </div>
+</div>
+
+<!-- ✏️ Skizzenblock -->
+<div class="modal-bg" id="modalSkizze">
+  <div class="modal" style="max-width:460px;">
+    <h2>✏️ Skizze</h2>
+    <div class="sk-tabs ansicht-tabs">
+      <button type="button" class="ansicht-tab active" id="skTabPixel">👾 Pixel</button>
+      <button type="button" class="ansicht-tab" id="skTabFrei">✍️ Freihand</button>
+    </div>
+    <div class="sk-leiste" id="skLeiste"></div>
+    <div class="sk-palette" id="skPalette"></div>
+    <canvas class="sk-flaeche" id="skFlaeche"></canvas>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="skAbbrechen">Abbrechen</button>
+      <button class="btn btn-primary" id="skFertig">✓ Übernehmen</button>
+    </div>
+  </div>
+</div>
+
+<!-- 🔗 Verknüpfen -->
+<div class="modal-bg" id="modalLinkWahl">
+  <div class="modal" style="max-width:440px;">
+    <h2>🔗 Womit verknüpfen?</h2>
+    <div class="feld" style="margin-bottom:0;"><input type="text" id="linkSuche" placeholder="Titel suchen oder neuen Namen eingeben …"></div>
+    <div class="link-liste" id="linkListe"></div>
+    <div class="modal-btns"><button class="btn btn-secondary" id="linkAbbrechen">Abbrechen</button></div>
+  </div>
+</div>
+
+<!-- 📤 Export -->
+<div class="modal-bg" id="modalExport">
+  <div class="modal" style="max-width:560px;">
+    <h2>📤 Projekt als Text</h2>
+    <textarea class="export-text" id="exportText" readonly></textarea>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="exportZu">Schließen</button>
+      <button class="btn btn-secondary" id="exportKopieren">📋 Kopieren</button>
+      <button class="btn btn-primary" id="exportDatei">💾 Als Datei</button>
+    </div>
+  </div>
+</div>
 
 <script>
 (function () {
@@ -585,6 +755,7 @@
   }
   function bereichWechseln(neu) {
     bereich = neu;
+    offenesProjekt = null;
     try { localStorage.setItem(KEY_BEREICH, neu); } catch (e) {}
     bereichAnwenden();
   }
@@ -593,7 +764,7 @@
 
   function alleVorhandenenTags() {
     const set = new Set();
-    notizen.filter(n => !n.geloeschtAm).forEach(n => (n.tags || []).forEach(t => set.add(t)));
+    notizen.filter(n => !n.geloeschtAm && n.art !== 'projekt' && !istProjektNotiz(n)).forEach(n => (n.tags || []).forEach(t => set.add(t)));
     return Array.from(set).sort((a,b) => a.localeCompare(b, 'de'));
   }
   function renderTagFilter() {
@@ -617,7 +788,7 @@
 
   let ansicht = 'aktiv'; // aktiv | archiv | papierkorb
   function gefiltert() {
-    let liste = notizen.filter(n => ansicht === 'papierkorb' ? !!n.geloeschtAm : (!n.geloeschtAm && (ansicht === 'archiv' ? !!n.archiviert : !n.archiviert)));
+    let liste = notizen.filter(n => n.art !== 'projekt' && (ansicht === 'papierkorb' ? !!n.geloeschtAm : (!n.geloeschtAm && (ansicht === 'archiv' ? !!n.archiviert : !n.archiviert && !istProjektNotiz(n)))));
     if (aktiverTagFilter !== 'alle') liste = liste.filter(n => (n.tags || []).includes(aktiverTagFilter));
     if (suchtext) {
       const s = suchtext.toLowerCase();
@@ -631,13 +802,15 @@
   }
 
   // ✍️ Einfache Formatierung: **fett**, - Aufzählung, Links, Telefonnummern, E-Mail
-  function textFormatieren(text) {
+  function htmlZurueck(t) { return String(t).replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&'); }
+  function textFormatieren(text, vonId) {
     return String(text || '').split('\n').map(zeile => {
       let z = escapeHtml(zeile);
       z = z.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
       z = z.replace(/(https?:\/\/[^\s<]+[^\s<.,;:!?)])/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
       z = z.replace(/(^|[\s(])([\w.+-]+@[\w-]+\.[\w.-]+\w)/g, '$1<a href="mailto:$2">$2</a>');
       z = z.replace(/(^|[\s(:])((?:\+49|0)[\d][\d \/-]{5,}\d)(?=$|[\s),.;])/g, (m, vor, nr) => vor + '<a href="tel:' + nr.replace(/[^\d+]/g, '') + '">' + nr + '</a>');
+      z = z.replace(/\[\[([^\[\]]{1,80})\]\]/g, (m, t) => '<a class="nlink' + (linkZiel(htmlZurueck(t)) ? '' : ' fehlt') + '" data-link="' + t + '" data-von="' + (vonId || '') + '">' + t + '</a>');
       if (/^\s*[-•*]\s+/.test(zeile)) z = '<span class="li">• ' + z.replace(/^\s*[-•*]\s+/, '') + '</span>';
       return z;
     }).join('\n').replace(/<\/span>\n/g, '</span>').replace(/\n<span class="li">/g, '<span class="li">');
@@ -672,6 +845,12 @@
   }
 
   function renderNotizen() {
+    const pjAn = modus === 'projekte';
+    document.getElementById('projektBereich').style.display = pjAn ? '' : 'none';
+    document.getElementById('notizGrid').style.display = pjAn ? 'none' : '';
+    document.getElementById('tagFilterReihe').style.display = pjAn ? 'none' : '';
+    if (pjAn) { document.getElementById('leerHinweis').style.display = 'none'; projekteRendern(); return; }
+    modusAnwenden();
     ansichtChipsRendern();
     const box = document.getElementById('notizGrid');
     const leer = document.getElementById('leerHinweis');
@@ -696,7 +875,7 @@
             '<div class="notiz-check-zeile' + (p.erledigt ? ' erledigt' : '') + '"><input type="checkbox" data-notizid="' + n.id + '" data-idx="' + i + '"' + (p.erledigt ? ' checked' : '') + '><span>' + escapeHtml(p.text) + '</span></div>'
           ).join('') + (punkte.length > 10 ? '<div class="notiz-datum">+ ' + (punkte.length - 10) + ' weitere</div>' : '') +
           (ansicht === 'aktiv' ? '<input type="text" class="schnell-punkt" data-schnell="' + n.id + '" placeholder="＋ Punkt" enterkeyhint="done">' : '') + '</div>'
-        : '<div class="notiz-text">' + textFormatieren(n.text || '') + '</div>';
+        : '<div class="notiz-text">' + textFormatieren(n.text || '', n.id) + '</div>';
       const chips = [];
       if (n.erinnerung && n.erinnerung.datum) chips.push('<span class="notiz-chip' + (erinnerungVorbei(n.erinnerung) ? ' ueber' : '') + '">⏰ ' + escapeHtml(erinnerungText(n.erinnerung)) + '</span>');
       if ((n.fotos || []).length > 1) chips.push('<span class="notiz-chip">📷 ' + n.fotos.length + '</span>');
@@ -705,6 +884,7 @@
         '<button class="notiz-pin-btn' + (n.angeheftet ? ' aktiv' : '') + '" data-id="' + n.id + '" title="Anheften">📌</button>' +
         (n.titel ? '<div class="notiz-titel">' + escapeHtml(n.titel) + '</div>' : '') +
         ((n.fotos || []).length ? '<img class="notiz-foto" src="' + escapeHtml(fotoSrc(n.fotos[0])) + '" alt="" loading="lazy">' : '') +
+        (n.skizze ? '<img class="pj-skizze-bild" src="' + skizzeBild(n.skizze, 160) + '" alt="Skizze">' : '') +
         inhaltHtml +
         (chips.length ? '<div class="notiz-chips">' + chips.join('') + '</div>' : '') +
         (n.tags && n.tags.length ? '<div class="notiz-tag-reihe">' + n.tags.map(t => '<span class="notiz-tag">#' + escapeHtml(t) + '</span>').join('') + '</div>' : '') +
@@ -919,6 +1099,11 @@
     diktatStoppen();
     document.getElementById('fPrivatZeile').style.display = geraetPerson() ? 'flex' : 'none';
     document.getElementById('fPrivat').checked = bereich === 'privat';
+    editSkizze = n && n.skizze ? JSON.parse(JSON.stringify(n.skizze)) : null;
+    skizzeFeldRendern();
+    editProjektFelder(n);
+    verweiseRendern(n);
+    editKontext = null;
     document.getElementById('modalEdit').classList.add('zeigen');
     setTimeout(() => document.getElementById(editTyp === 'checkliste' ? 'fTitel' : 'fText').focus(), 50);
 
@@ -930,7 +1115,10 @@
     }
     entwurfUeberwachungStarten();
   }
-  document.getElementById('btnNeu').addEventListener('click', () => editOeffnen(null));
+  document.getElementById('btnNeu').addEventListener('click', () => {
+    if (modus === 'projekte') { if (offenesProjekt) { editKontext = { projekt: offenesProjekt, abschnitt: '' }; editOeffnen(null); } else projektModalOeffnen(null); return; }
+    editOeffnen(null);
+  });
   document.getElementById('btnEditAbbrechen').addEventListener('click', () => {
     diktatStoppen();
     document.getElementById('modalEdit').classList.remove('zeigen');
@@ -949,7 +1137,7 @@
       text: zeile.querySelector('input[type="text"]').value.trim(),
       erledigt: zeile.querySelector('input[type="checkbox"]').checked,
     })).filter(p => p.text);
-    if (editTyp === 'text' && !text) { document.getElementById('fText').focus(); return; }
+    if (editTyp === 'text' && !text && !editSkizze && !document.getElementById('fTitel').value.trim()) { document.getElementById('fText').focus(); return; }
     if (editTyp === 'checkliste' && !checkpunkte.length) { alert('Bitte mindestens einen Punkt eingeben.'); return; }
     const tags = document.getElementById('fTags').value.split(',').map(t => t.trim()).filter(Boolean);
     let n = editId ? notizen.find(x => x.id === editId) : null;
@@ -967,9 +1155,10 @@
     const entfernteFotos = (n.fotos || []).filter(f => !editFotos.some(x => x.id === f.id));
     entfernteFotos.forEach(f => cloudFotoLoeschen(f));
     if (editFotos.length) n.fotos = editFotos; else delete n.fotos;
+    projektFelderUebernehmen(n);
     const zielBereichVorab = (geraetPerson() && document.getElementById('fPrivat').checked) ? 'privat' : 'familie';
     erinnerungUebernehmen(n, document.getElementById('fErinnerungDatum').value, document.getElementById('fErinnerungZeit').value, zielBereichVorab === 'privat');
-    const zielBereich = (geraetPerson() && document.getElementById('fPrivat').checked) ? 'privat' : 'familie';
+    const zielBereich = istProjektNotiz(n) ? bereich : (geraetPerson() && document.getElementById('fPrivat').checked) ? 'privat' : 'familie';
     if (zielBereich !== bereich) {
       // Notiz wandert in den anderen Bereich
       const quelle = bereich === 'privat' ? privatNotizen : familienNotizen;
@@ -1337,6 +1526,576 @@
     document.getElementById('modalTermin').classList.remove('zeigen');
     if (fremdSpeichern('termine', 'termine_events_v1', events)) showTempStatus('📅 Termin am ' + new Date(datum + 'T12:00').toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'numeric' }) + ' eingetragen', 4);
   });
+
+
+  // ============================================================
+  // 📂 PROJEKTE (v512): Ordner mit Bereichen, Ideen mit Status,
+  // Schnell-Idee, Skizzen, [[Verknüpfungen]], Export.
+  // Projekte liegen als { art:'projekt' } in derselben Liste wie die
+  // Notizen (Familie bzw. Privat) – so gelten Sync und Privatsphäre automatisch.
+  // ============================================================
+  const PJ_STATUS = [
+    { id: 'idee', icon: '💭', label: 'Idee' },
+    { id: 'will', icon: '⭐', label: 'Will ich' },
+    { id: 'arbeit', icon: '🔨', label: 'In Arbeit' },
+    { id: 'fertig', icon: '✅', label: 'Umgesetzt' },
+    { id: 'verworfen', icon: '❌', label: 'Verworfen' },
+  ];
+  function pjStatus(id) { return PJ_STATUS.find(s => s.id === id) || PJ_STATUS[0]; }
+  const PJ_VORLAGEN = {
+    spiel: { label: '🎮 Spiel', icon: '🎮', abschnitte: [['💡', 'Ideen'], ['🎮', 'Spielmechanik'], ['🧑‍🌾', 'Figuren & Welt'], ['🎨', 'Grafik & Stil'], ['🎵', 'Sound'], ['❓', 'Offene Fragen'], ['📚', 'Lernen']] },
+    allgemein: { label: '🔨 Allgemein', icon: '📂', abschnitte: [['💡', 'Ideen'], ['📋', 'Planung'], ['🛒', 'Material'], ['❓', 'Offene Fragen']] },
+    leer: { label: '⬜ Leer', icon: '📁', abschnitte: [['💡', 'Ideen']] },
+  };
+  const PJ_ICONS = ['🎮', '🌾', '👾', '🗡️', '🏠', '🔨', '🌱', '✈️', '🎨', '📚', '💡', '📂'];
+  const PJ_FARBEN = ['#4f6f45', '#5b8bb5', '#c46b41', '#b0578d', '#c99a3a', '#7d6339', '#6b5b95'];
+  let modus = (() => { try { return localStorage.getItem('notizblock_modus') === 'projekte' ? 'projekte' : 'notizen'; } catch (e) { return 'notizen'; } })();
+  let offenesProjekt = null;   // id
+  let pjStatusFilter = 'alle';
+  const pjZu = {};             // eingeklappte Bereiche (nur Sitzung)
+  let editKontext = null;      // { projekt, abschnitt } für neue Notizen aus einem Projekt
+  let editSkizze = null;
+
+  function projekte() { return notizen.filter(n => n.art === 'projekt' && !n.geloeschtAm); }
+  function projektVon(id) { return id ? notizen.find(n => n.art === 'projekt' && n.id === id && !n.geloeschtAm) : null; }
+  function istProjektNotiz(n) { return !!(n.projekt && projektVon(n.projekt)); }
+  function projektNotizen(p) { return notizen.filter(n => n.art !== 'projekt' && n.projekt === p.id && !n.geloeschtAm && !n.archiviert); }
+  function ideenNotizen(p) { return projektNotizen(p).filter(n => n.abschnitt !== '_schritte'); }
+  function pjZaehler(p) {
+    const l = ideenNotizen(p);
+    return { gesamt: l.length, arbeit: l.filter(n => n.status === 'arbeit').length, fertig: l.filter(n => n.status === 'fertig').length, will: l.filter(n => n.status === 'will').length };
+  }
+  function notizTitel(n) { return n.titel || (n.typ === 'checkliste' ? ((n.checkliste || [])[0] || {}).text : String(n.text || '').split('\n')[0].replace(/\*\*/g, '')) || 'Notiz'; }
+  function modusAnwenden() {
+    document.querySelectorAll('#modusTabs [data-modus]').forEach(b => b.classList.toggle('active', b.dataset.modus === modus));
+    document.getElementById('notizSuche').placeholder = modus === 'projekte' ? (offenesProjekt ? '🔍 Im Projekt suchen ...' : '🔍 Projekte durchsuchen ...') : (bereich === 'privat' ? '🔍 Private Notizen durchsuchen ...' : '🔍 Notizen durchsuchen ...');
+  }
+  document.querySelectorAll('#modusTabs [data-modus]').forEach(b => b.addEventListener('click', () => {
+    modus = b.dataset.modus; offenesProjekt = null; pjStatusFilter = 'alle'; ansicht = 'aktiv';
+    try { localStorage.setItem('notizblock_modus', modus); } catch (e) {}
+    modusAnwenden(); renderTagFilter(); renderNotizen();
+  }));
+
+  // ---------- Übersicht aller Projekte ----------
+  function projekteRendern() {
+    modusAnwenden();
+    const box = document.getElementById('projektBereich');
+    document.getElementById('tagFilterReihe').innerHTML = '';
+    document.getElementById('ansichtChips').innerHTML = '';
+    if (offenesProjekt && projektVon(offenesProjekt)) { projektRendern(projektVon(offenesProjekt)); return; }
+    offenesProjekt = null;
+    const s = suchtext.toLowerCase();
+    const liste = projekte().filter(p => !s || (p.titel + ' ' + (p.beschreibung || '')).toLowerCase().includes(s))
+      .sort((a, b) => (b.geaendert || '') < (a.geaendert || '') ? -1 : 1);
+    let html = '<div class="pj-grid">';
+    liste.forEach(p => {
+      const z = pjZaehler(p);
+      html += '<div class="pj-karte" data-pj="' + p.id + '" style="border-top-color:' + escapeHtml(p.farbe || '#4f6f45') + '">' +
+        '<span class="pj-icon">' + escapeHtml(p.icon || '📂') + '</span><span class="pj-name">' + escapeHtml(p.titel) + '</span>' +
+        (p.beschreibung ? '<span class="pj-beschr">' + escapeHtml(p.beschreibung) + '</span>' : '') +
+        '<div class="pj-zaehler"><span>💡 ' + z.gesamt + '</span>' + (z.arbeit ? '<span>🔨 ' + z.arbeit + '</span>' : '') + (z.fertig ? '<span>✅ ' + z.fertig + '</span>' : '') + '</div></div>';
+    });
+    html += '<div class="pj-karte neu" data-pjneu="1"><span style="font-size:1.6rem;">＋</span>Neues Projekt</div></div>';
+    if (!projekte().length) html = '<div class="leer-hinweis" style="display:block;padding:24px 16px 14px;"><span class="em">📂</span>Projekte sammeln Ideen, Skizzen und Pläne an einem Ort – z.B. für ein Spiel, einen Umbau oder den Garten.' +
+      '<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px;"><button type="button" class="pj-knopf haupt" data-vorlage="spiel">🎮 Spiel-Projekt anlegen</button><button type="button" class="pj-knopf" data-vorlage="allgemein">📂 Anderes Projekt</button></div></div>';
+    box.innerHTML = html;
+    box.querySelectorAll('[data-pj]').forEach(k => k.addEventListener('click', () => { offenesProjekt = k.dataset.pj; pjStatusFilter = 'alle'; renderNotizen(); window.scrollTo({ top: 0 }); }));
+    box.querySelectorAll('[data-pjneu]').forEach(k => k.addEventListener('click', () => projektModalOeffnen(null)));
+    box.querySelectorAll('[data-vorlage]').forEach(k => k.addEventListener('click', () => projektModalOeffnen(null, k.dataset.vorlage)));
+  }
+
+  // ---------- Ein Projekt ----------
+  function schritteNotiz(p) { return notizen.find(n => n.projekt === p.id && n.abschnitt === '_schritte' && !n.geloeschtAm); }
+  function projektRendern(p) {
+    const box = document.getElementById('projektBereich');
+    const z = pjZaehler(p);
+    const s = suchtext.toLowerCase();
+    const alle = ideenNotizen(p);
+    const passt = n => (pjStatusFilter === 'alle' || (n.status || 'idee') === pjStatusFilter) &&
+      (!s || (notizTitel(n) + ' ' + (n.text || '') + ' ' + (n.checkliste || []).map(x => x.text).join(' ')).toLowerCase().includes(s));
+    const sn = schritteNotiz(p);
+    const schritte = sn ? (sn.checkliste || []) : [];
+    let html = '<div class="pj-kopf" style="border-left-color:' + escapeHtml(p.farbe || '#4f6f45') + '">' +
+      '<button type="button" class="pj-knopf" id="pjZurueck">←</button>' +
+      '<span style="font-size:1.6rem;">' + escapeHtml(p.icon || '📂') + '</span>' +
+      '<div class="pj-kopf-titel"><b>' + escapeHtml(p.titel) + '</b><small>' + z.gesamt + (z.gesamt === 1 ? ' Idee' : ' Ideen') + ' · ' + z.arbeit + ' in Arbeit · ' + z.fertig + ' umgesetzt</small></div>' +
+      '<button type="button" class="pj-knopf" id="pjExport" title="Als Text exportieren">📤</button>' +
+      '<button type="button" class="pj-knopf" id="pjBearbeiten" title="Projekt bearbeiten">⚙️</button></div>';
+    if (p.beschreibung) html += '<div class="spiel-info" style="font-size:0.78rem;color:var(--bark);margin:-2px 4px 8px;">' + escapeHtml(p.beschreibung) + '</div>';
+    html += '<div class="pj-schnell"><input type="text" id="pjSchnellText" placeholder="💡 Schnell eine Idee festhalten …" enterkeyhint="done">' +
+      (Spracherkennung ? '<button type="button" class="pj-knopf" id="pjSchnellDiktat" title="Diktieren">🎤</button>' : '') +
+      '<button type="button" class="pj-knopf haupt" id="pjSchnellOk">＋</button></div>';
+    html += '<div class="pj-schritte"><h3>🧭 Nächste Schritte' + (schritte.length ? ' <span class="anz" style="font-size:0.66rem;font-weight:700;color:var(--bark);">' + schritte.filter(x => x.erledigt).length + '/' + schritte.length + '</span>' : '') + '</h3>' +
+      schritte.map((x, i) => '<label class="pj-schritt' + (x.erledigt ? ' erledigt' : '') + '"><input type="checkbox" data-schritt="' + i + '"' + (x.erledigt ? ' checked' : '') + '><span>' + escapeHtml(x.text) + '</span></label>').join('') +
+      '<input type="text" class="pj-schritt-neu" id="pjSchrittNeu" placeholder="＋ nächster Schritt, z.B. Tutorial „erstes Spiel“ machen" enterkeyhint="done"></div>';
+    html += '<div class="pj-status-filter">' + [{ id: 'alle', icon: '', label: 'Alle' }].concat(PJ_STATUS).map(st =>
+      '<button type="button" data-stf="' + st.id + '" class="' + (pjStatusFilter === st.id ? 'an' : '') + '">' + (st.icon ? st.icon + ' ' : '') + st.label +
+      (st.id !== 'alle' ? ' ' + alle.filter(n => (n.status || 'idee') === st.id).length : '') + '</button>').join('') + '</div>';
+    const abschnitte = [{ id: '', icon: '📥', name: 'Unsortiert' }].concat(p.abschnitte || []);
+    const bekannt = new Set(abschnitte.map(a => a.id));
+    abschnitte.forEach(a => {
+      const ideen = alle.filter(n => (bekannt.has(n.abschnitt || '') ? (n.abschnitt || '') : '') === a.id).filter(passt)
+        .sort((x, y) => (x.angeheftet ? 0 : 1) - (y.angeheftet ? 0 : 1) || ((y.geaendert || '') < (x.geaendert || '') ? -1 : 1));
+      if (a.id === '' && !ideen.length) return;
+      if ((s || pjStatusFilter !== 'alle') && !ideen.length) return;
+      const key = p.id + '|' + a.id;
+      html += '<div class="pj-abschnitt' + (pjZu[key] ? ' zu' : '') + '" data-ab="' + escapeHtml(a.id) + '">' +
+        '<div class="pj-abschnitt-kopf" data-zu="' + escapeHtml(key) + '"><span>' + escapeHtml(a.icon || '•') + '</span><span>' + escapeHtml(a.name) + '</span><span class="anz">' + ideen.length + '</span>' +
+        '<span class="pfeil">' + (pjZu[key] ? '▸' : '▾') + '</span><button type="button" class="plus" data-plus="' + escapeHtml(a.id) + '" title="Neue Notiz in diesem Bereich">＋</button></div>' +
+        '<div class="pj-ideen">' + ideen.map(ideeKarteHtml).join('') + '</div></div>';
+    });
+    box.innerHTML = html;
+    // Ereignisse
+    box.querySelector('#pjZurueck').addEventListener('click', () => { offenesProjekt = null; renderNotizen(); });
+    box.querySelector('#pjBearbeiten').addEventListener('click', () => projektModalOeffnen(p));
+    box.querySelector('#pjExport').addEventListener('click', () => exportOeffnen(p));
+    const schnell = box.querySelector('#pjSchnellText');
+    const schnellOk = () => {
+      const t = schnell.value.trim(); if (!t) { schnell.focus(); return; }
+      const jetzt = new Date().toISOString();
+      notizen.push({ id: neueId('notiz'), erstellt: jetzt, geaendert: jetzt, angeheftet: false, typ: 'text', titel: '', text: t, checkliste: [], tags: [], farbe: NOTIZ_FARBEN[0], projekt: p.id, abschnitt: '', status: 'idee' });
+      p.geaendert = jetzt; notizenSpeichern(); renderNotizen();
+      showTempStatus('💡 Idee gemerkt – liegt unter „📥 Unsortiert“', 3);
+      const neu = document.getElementById('pjSchnellText'); if (neu) neu.focus();
+    };
+    schnell.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) schnellOk(); });
+    box.querySelector('#pjSchnellOk').addEventListener('click', schnellOk);
+    const sd = box.querySelector('#pjSchnellDiktat');
+    if (sd) sd.addEventListener('click', () => {
+      if (sd._d) { try { sd._d.stop(); } catch (e) {} return; }
+      const d = new Spracherkennung(); d.lang = 'de-DE'; d.interimResults = false; sd._d = d;
+      d.onresult = ev => { const t = ev.results[0][0].transcript.trim(); if (t) schnell.value = (schnell.value ? schnell.value + ' ' : '') + t.charAt(0).toUpperCase() + t.slice(1); };
+      d.onend = () => { sd._d = null; sd.classList.remove('aktiv'); };
+      d.onerror = () => { sd._d = null; sd.classList.remove('aktiv'); };
+      try { d.start(); sd.classList.add('aktiv'); } catch (e) { sd._d = null; }
+    });
+    box.querySelectorAll('[data-schritt]').forEach(cb => cb.addEventListener('change', () => {
+      const n = schritteNotiz(p); if (!n) return;
+      n.checkliste[+cb.dataset.schritt].erledigt = cb.checked; n.geaendert = new Date().toISOString();
+      notizenSpeichern(); renderNotizen();
+    }));
+    const sNeu = box.querySelector('#pjSchrittNeu');
+    sNeu.addEventListener('keydown', e => {
+      if (e.key !== 'Enter' || e.isComposing) return;
+      const t = sNeu.value.trim(); if (!t) return;
+      let n = schritteNotiz(p);
+      const jetzt = new Date().toISOString();
+      if (!n) { n = { id: neueId('notiz'), erstellt: jetzt, angeheftet: false, typ: 'checkliste', titel: '🧭 Nächste Schritte', text: '', checkliste: [], tags: [], farbe: NOTIZ_FARBEN[0], projekt: p.id, abschnitt: '_schritte' }; notizen.push(n); }
+      n.checkliste.push({ text: t, erledigt: false }); n.geaendert = jetzt;
+      notizenSpeichern(); renderNotizen();
+      const f = document.getElementById('pjSchrittNeu'); if (f) f.focus();
+    });
+    box.querySelectorAll('[data-stf]').forEach(b => b.addEventListener('click', () => { pjStatusFilter = b.dataset.stf; renderNotizen(); }));
+    box.querySelectorAll('[data-zu]').forEach(k => k.addEventListener('click', e => {
+      const plus = e.target.closest('[data-plus]');
+      if (plus) { editKontext = { projekt: p.id, abschnitt: plus.dataset.plus }; editOeffnen(null); return; }
+      pjZu[k.dataset.zu] = !pjZu[k.dataset.zu]; renderNotizen();
+    }));
+    box.querySelectorAll('[data-idee]').forEach(k => k.addEventListener('click', e => {
+      if (e.target.closest('a')) return;
+      editOeffnen(k.dataset.idee);
+    }));
+  }
+  function ideeKarteHtml(n) {
+    const st = pjStatus(n.status);
+    const farbig = n.farbe && n.farbe !== '#fffdf8';
+    const titel = n.titel ? '<div class="pj-idee-titel">' + escapeHtml(n.titel) + '</div>' : '';
+    const inhalt = n.typ === 'checkliste'
+      ? '<div class="notiz-text">' + (n.checkliste || []).slice(0, 5).map(x => (x.erledigt ? '☑ ' : '☐ ') + escapeHtml(x.text)).join('\n') + '</div>'
+      : (n.text ? '<div class="notiz-text">' + textFormatieren(n.text, n.id) + '</div>' : '');
+    const bild = n.skizze ? '<img class="pj-skizze-bild" src="' + skizzeBild(n.skizze, 160) + '" alt="Skizze">' : (n.fotos && n.fotos.length ? '<img class="pj-skizze-bild" style="object-fit:cover;image-rendering:auto;" src="' + escapeHtml(fotoSrc(n.fotos[0])) + '" alt="">' : '');
+    return '<div class="pj-idee' + (farbig ? ' farbig' : '') + (n.status === 'verworfen' ? ' verworfen' : '') + '" data-idee="' + n.id + '"' + (farbig ? ' style="background:' + escapeHtml(n.farbe) + '"' : '') + '>' +
+      '<span class="pj-status-ab" title="' + st.label + '">' + st.icon + '</span>' + titel + bild + inhalt +
+      (!n.titel && !n.text && !bild && n.typ !== 'checkliste' ? '<div class="pj-idee-titel">Notiz</div>' : '') + '</div>';
+  }
+
+  // ---------- Projekt anlegen / bearbeiten ----------
+  let pjEdit = null, pjIcon = '🎮', pjFarbe = PJ_FARBEN[0], pjVorlage = 'spiel';
+  function pjAbschnittZeile(a) {
+    const z = document.createElement('div');
+    z.className = 'abschnitt-edit';
+    z.dataset.id = a.id || '';
+    z.innerHTML = '<input type="text" class="ic" maxlength="4" value="' + escapeHtml(a.icon || '') + '"><input type="text" value="' + escapeHtml(a.name || '') + '" placeholder="Name des Bereichs">' +
+      '<button type="button" data-hoch title="nach oben">↑</button><button type="button" data-weg title="entfernen">✕</button>';
+    z.querySelector('[data-weg]').addEventListener('click', () => z.remove());
+    z.querySelector('[data-hoch]').addEventListener('click', () => { if (z.previousElementSibling) z.parentNode.insertBefore(z, z.previousElementSibling); });
+    return z;
+  }
+  function pjAbschnitteSetzen(liste) {
+    const box = document.getElementById('pjAbschnitte'); box.innerHTML = '';
+    liste.forEach(a => box.appendChild(pjAbschnittZeile(a)));
+  }
+  function pjAuswahlRendern() {
+    document.getElementById('pjIcons').innerHTML = PJ_ICONS.map(i => '<button type="button" class="opt' + (i === pjIcon ? ' aktiv' : '') + '" data-ic="' + i + '" style="font-size:1.1rem;padding:4px 9px;">' + i + '</button>').join('');
+    document.querySelectorAll('#pjIcons [data-ic]').forEach(b => b.addEventListener('click', () => { pjIcon = b.dataset.ic; pjAuswahlRendern(); }));
+    document.getElementById('pjFarben').innerHTML = PJ_FARBEN.map(f => '<div class="farbe-punkt' + (f === pjFarbe ? ' aktiv' : '') + '" data-f="' + f + '" style="background:' + f + '"></div>').join('');
+    document.querySelectorAll('#pjFarben [data-f]').forEach(b => b.addEventListener('click', () => { pjFarbe = b.dataset.f; pjAuswahlRendern(); }));
+    document.getElementById('pjVorlagen').innerHTML = Object.keys(PJ_VORLAGEN).map(k => '<button type="button" class="opt' + (k === pjVorlage ? ' aktiv' : '') + '" data-v="' + k + '">' + PJ_VORLAGEN[k].label + '</button>').join('');
+    document.querySelectorAll('#pjVorlagen [data-v]').forEach(b => b.addEventListener('click', () => {
+      pjVorlage = b.dataset.v; pjIcon = PJ_VORLAGEN[pjVorlage].icon;
+      pjAbschnitteSetzen(PJ_VORLAGEN[pjVorlage].abschnitte.map(([icon, name]) => ({ icon, name })));
+      pjAuswahlRendern();
+    }));
+  }
+  function projektModalOeffnen(p, vorlage) {
+    pjEdit = p || null;
+    pjVorlage = vorlage || 'spiel';
+    pjIcon = p ? (p.icon || '📂') : PJ_VORLAGEN[pjVorlage].icon;
+    pjFarbe = p ? (p.farbe || PJ_FARBEN[0]) : PJ_FARBEN[pjVorlage === 'spiel' ? 0 : 1];
+    document.getElementById('pjModalKopf').textContent = p ? '⚙️ Projekt bearbeiten' : '📂 Neues Projekt';
+    document.getElementById('pjVorlageFeld').style.display = p ? 'none' : '';
+    document.getElementById('pjLoeschZeile').style.display = p ? '' : 'none';
+    document.getElementById('pjName').value = p ? p.titel : '';
+    document.getElementById('pjBeschr').value = p ? (p.beschreibung || '') : '';
+    pjAbschnitteSetzen(p ? (p.abschnitte || []) : PJ_VORLAGEN[pjVorlage].abschnitte.map(([icon, name]) => ({ icon, name })));
+    pjAuswahlRendern();
+    document.getElementById('modalProjekt').classList.add('zeigen');
+    if (!p) setTimeout(() => document.getElementById('pjName').focus(), 60);
+  }
+  document.getElementById('pjAbschnittPlus').addEventListener('click', () => {
+    const z = pjAbschnittZeile({ icon: '📌', name: '' });
+    document.getElementById('pjAbschnitte').appendChild(z); z.querySelectorAll('input')[1].focus();
+  });
+  document.getElementById('pjAbbrechen').addEventListener('click', () => document.getElementById('modalProjekt').classList.remove('zeigen'));
+  document.getElementById('pjSpeichern').addEventListener('click', () => {
+    const name = document.getElementById('pjName').value.trim();
+    if (!name) { document.getElementById('pjName').focus(); return; }
+    const abschnitte = Array.from(document.querySelectorAll('#pjAbschnitte .abschnitt-edit')).map(z => {
+      const [ic, nm] = z.querySelectorAll('input');
+      return { id: z.dataset.id || neueId('ab'), icon: ic.value.trim() || '•', name: nm.value.trim() };
+    }).filter(a => a.name);
+    const jetzt = new Date().toISOString();
+    let p = pjEdit;
+    if (!p) { p = { id: neueId('prj'), art: 'projekt', erstellt: jetzt }; notizen.push(p); }
+    // Ideen aus entfernten Bereichen landen in „Unsortiert“
+    const ids = new Set(abschnitte.map(a => a.id));
+    if (pjEdit) notizen.forEach(n => { if (n.projekt === p.id && n.abschnitt && n.abschnitt !== '_schritte' && !ids.has(n.abschnitt)) n.abschnitt = ''; });
+    Object.assign(p, { titel: name, icon: pjIcon, farbe: pjFarbe, beschreibung: document.getElementById('pjBeschr').value.trim(), abschnitte, geaendert: jetzt });
+    notizenSpeichern();
+    document.getElementById('modalProjekt').classList.remove('zeigen');
+    offenesProjekt = p.id; renderNotizen();
+    if (!pjEdit) showTempStatus('📂 „' + name + '“ angelegt', 3);
+  });
+  document.getElementById('pjLoeschen').addEventListener('click', () => {
+    const p = pjEdit; if (!p) return;
+    const ihre = notizen.filter(n => n.projekt === p.id && !n.geloeschtAm);
+    if (!confirm('Projekt „' + p.titel + '“ löschen?' + (ihre.length ? ' Seine ' + ihre.length + ' Notizen kommen in den Papierkorb (30 Tage).' : ''))) return;
+    const jetzt = new Date().toISOString();
+    ihre.forEach(n => { n.geloeschtAm = jetzt; });
+    const i = notizen.indexOf(p); if (i !== -1) notizen.splice(i, 1);
+    notizenSpeichern();
+    document.getElementById('modalProjekt').classList.remove('zeigen');
+    offenesProjekt = null; renderNotizen();
+    showTempStatus('🗑️ Projekt gelöscht', 6, { rueckgaengig: () => { notizen.push(p); ihre.forEach(n => delete n.geloeschtAm); notizenSpeichern(); offenesProjekt = p.id; renderNotizen(); } });
+  });
+
+  // ---------- Felder im Notiz-Fenster ----------
+  function editProjektFelder(n) {
+    const feld = document.getElementById('feldProjekt');
+    const liste = projekte();
+    const pid = n ? (istProjektNotiz(n) ? n.projekt : '') : (editKontext ? editKontext.projekt : (modus === 'projekte' && offenesProjekt) || '');
+    const ab = n ? (n.abschnitt || '') : (editKontext ? editKontext.abschnitt : '');
+    feld.style.display = liste.length ? '' : 'none';
+    const sel = document.getElementById('fProjekt');
+    sel.innerHTML = '<option value="">– kein Projekt –</option>' + liste.map(p => '<option value="' + p.id + '">' + escapeHtml((p.icon || '📂') + ' ' + p.titel) + '</option>').join('');
+    sel.value = pid;
+    abschnittAuswahl(ab);
+    editStatus = n ? (n.status || 'idee') : 'idee';
+    statusWahlRendern();
+    if (n && n.abschnitt === '_schritte') feld.style.display = 'none';
+  }
+  let editStatus = 'idee';
+  function abschnittAuswahl(wert) {
+    const p = projektVon(document.getElementById('fProjekt').value);
+    const sel = document.getElementById('fAbschnitt');
+    sel.style.display = p ? '' : 'none';
+    document.getElementById('fStatusWahl').style.display = p ? '' : 'none';
+    document.getElementById('fPrivatZeile').style.display = p ? 'none' : (geraetPerson() ? 'flex' : 'none');
+    if (!p) return;
+    sel.innerHTML = '<option value="">📥 Unsortiert</option>' + (p.abschnitte || []).map(a => '<option value="' + a.id + '">' + escapeHtml((a.icon || '') + ' ' + a.name) + '</option>').join('');
+    sel.value = (p.abschnitte || []).some(a => a.id === wert) ? wert : '';
+  }
+  function statusWahlRendern() {
+    const box = document.getElementById('fStatusWahl');
+    box.innerHTML = PJ_STATUS.map(s => '<button type="button" data-st="' + s.id + '" class="' + (s.id === editStatus ? 'an' : '') + '">' + s.icon + ' ' + s.label + '</button>').join('');
+    box.querySelectorAll('[data-st]').forEach(b => b.addEventListener('click', () => { editStatus = b.dataset.st; statusWahlRendern(); }));
+  }
+  document.getElementById('fProjekt').addEventListener('change', () => abschnittAuswahl(''));
+  function projektFelderUebernehmen(n) {
+    if (n.abschnitt === '_schritte') return;
+    const p = projektVon(document.getElementById('fProjekt').value);
+    if (p && document.getElementById('feldProjekt').style.display !== 'none') {
+      n.projekt = p.id; n.abschnitt = document.getElementById('fAbschnitt').value; n.status = editStatus; p.geaendert = new Date().toISOString();
+    } else if (document.getElementById('feldProjekt').style.display !== 'none') { delete n.projekt; delete n.abschnitt; delete n.status; }
+    if (editSkizze) n.skizze = editSkizze; else delete n.skizze;
+  }
+  function skizzeFeldRendern() {
+    const box = document.getElementById('skizzeFeld');
+    box.innerHTML = editSkizze
+      ? '<img src="' + skizzeBild(editSkizze, 144) + '" alt="Skizze" id="skizzeVorschau"><button type="button" class="opt" id="btnSkizzeBearb">✏️ Bearbeiten</button><button type="button" class="opt" id="btnSkizzeWeg">✕ Entfernen</button>'
+      : '<button type="button" class="opt" id="btnSkizzePixel">👾 Pixel-Skizze</button><button type="button" class="opt" id="btnSkizzeFrei">✍️ Freihand</button>';
+    const on = (id, f) => { const b = document.getElementById(id); if (b) b.addEventListener('click', f); };
+    on('btnSkizzePixel', () => skizzeOeffnen({ art: 'pixel', n: 16, d: '.'.repeat(256) }));
+    on('btnSkizzeFrei', () => skizzeOeffnen({ art: 'frei', s: [] }));
+    on('btnSkizzeBearb', () => skizzeOeffnen(JSON.parse(JSON.stringify(editSkizze))));
+    on('skizzeVorschau', () => skizzeOeffnen(JSON.parse(JSON.stringify(editSkizze))));
+    on('btnSkizzeWeg', () => { editSkizze = null; skizzeFeldRendern(); });
+  }
+  // Verweise: welche Notizen zeigen mit [[…]] auf diese?
+  function verweiseRendern(n) {
+    const box = document.getElementById('feldVerweise');
+    if (!n || !notizTitel(n)) { box.innerHTML = ''; return; }
+    const t = notizTitel(n).toLowerCase();
+    const von = notizen.filter(x => x !== n && !x.geloeschtAm && x.art !== 'projekt' && linksIn(x).some(l => l.toLowerCase() === t));
+    box.innerHTML = von.length ? '<div class="verweise">↩️ Erwähnt in: ' + von.map(x => '<button type="button" data-zu="' + x.id + '">' + escapeHtml(notizTitel(x)) + '</button>').join(', ') + '</div>' : '';
+    box.querySelectorAll('[data-zu]').forEach(b => b.addEventListener('click', () => { schliesseEdit(); editOeffnen(b.dataset.zu); }));
+  }
+  function schliesseEdit() { document.getElementById('modalEdit').classList.remove('zeigen'); entwurfUeberwachungStoppen(); entwurfLoeschen(); diktatStoppen(); }
+
+  // ---------- 🔗 [[Verknüpfungen]] ----------
+  function linksIn(n) {
+    const quelle = (n.text || '') + '\n' + (n.checkliste || []).map(x => x.text).join('\n');
+    return Array.from(quelle.matchAll(/\[\[([^\[\]\n]{1,80})\]\]/g)).map(m => m[1].trim());
+  }
+  function linkZiel(name) {
+    const t = String(name).trim().toLowerCase();
+    return notizen.find(n => !n.geloeschtAm && n.art !== 'projekt' && notizTitel(n).toLowerCase() === t)
+      || notizen.find(n => !n.geloeschtAm && n.art === 'projekt' && n.titel.toLowerCase() === t) || null;
+  }
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest('.nlink'); if (!a) return;
+    e.preventDefault(); e.stopPropagation();
+    const ziel = linkZiel(a.dataset.link);
+    if (ziel && ziel.art === 'projekt') { modus = 'projekte'; offenesProjekt = ziel.id; try { localStorage.setItem('notizblock_modus', modus); } catch (x) {} renderNotizen(); window.scrollTo({ top: 0 }); return; }
+    if (ziel) { editOeffnen(ziel.id); return; }
+    if (!confirm('„' + a.dataset.link + '“ gibt es noch nicht. Jetzt als neue Notiz anlegen?')) return;
+    const quelle = notizen.find(n => n.id === a.dataset.von);
+    editKontext = quelle && istProjektNotiz(quelle) ? { projekt: quelle.projekt, abschnitt: quelle.abschnitt || '' } : null;
+    editOeffnen(null);
+    document.getElementById('fTitel').value = a.dataset.link;
+  }, true);
+  let linkFeld = null;
+  function linkWahlOeffnen() {
+    linkFeld = document.getElementById('fText');
+    document.getElementById('linkSuche').value = '';
+    linkListeRendern();
+    document.getElementById('modalLinkWahl').classList.add('zeigen');
+    setTimeout(() => document.getElementById('linkSuche').focus(), 60);
+  }
+  function linkListeRendern() {
+    const s = document.getElementById('linkSuche').value.trim();
+    const sl = s.toLowerCase();
+    const eigeneId = editId;
+    const ziele = [];
+    projekte().forEach(p => ziele.push({ titel: p.titel, info: '📂 Projekt' }));
+    notizen.filter(n => !n.geloeschtAm && n.art !== 'projekt' && n.id !== eigeneId && n.abschnitt !== '_schritte' && n.titel).forEach(n => {
+      const p = istProjektNotiz(n) ? projektVon(n.projekt) : null;
+      ziele.push({ titel: n.titel, info: p ? (p.icon || '📂') + ' ' + p.titel : '📝 Notiz' });
+    });
+    const treffer = ziele.filter(z => !sl || z.titel.toLowerCase().includes(sl)).slice(0, 40);
+    const box = document.getElementById('linkListe');
+    box.innerHTML = treffer.map(z => '<button type="button" data-t="' + escapeHtml(z.titel) + '">' + escapeHtml(z.titel) + '<small>' + escapeHtml(z.info) + '</small></button>').join('') +
+      (s && !ziele.some(z => z.titel.toLowerCase() === sl) ? '<button type="button" data-t="' + escapeHtml(s) + '">＋ „' + escapeHtml(s) + '“ <small>neu – später anlegen</small></button>' : '') +
+      (!treffer.length && !s ? '<div class="spiel-info" style="font-size:0.78rem;color:var(--bark);">Noch keine Notizen mit Titel. Tippe einfach einen Namen ein.</div>' : '');
+    box.querySelectorAll('[data-t]').forEach(b => b.addEventListener('click', () => {
+      const f = linkFeld, ins = '[[' + b.dataset.t + ']]';
+      const a = f.selectionStart != null ? f.selectionStart : f.value.length, e = f.selectionEnd != null ? f.selectionEnd : a;
+      f.value = f.value.slice(0, a) + ins + f.value.slice(e);
+      document.getElementById('modalLinkWahl').classList.remove('zeigen');
+      f.focus(); f.setSelectionRange(a + ins.length, a + ins.length);
+    }));
+  }
+  document.getElementById('linkSuche').addEventListener('input', linkListeRendern);
+  document.getElementById('linkAbbrechen').addEventListener('click', () => document.getElementById('modalLinkWahl').classList.remove('zeigen'));
+  document.getElementById('btnVerknuepfen').addEventListener('click', () => {
+    if (editTyp !== 'text') editTypWechseln('text');
+    linkWahlOeffnen();
+  });
+
+  // ---------- ✏️ Skizzenblock: Pixel (PICO-8-Farben) und Freihand ----------
+  const SK_FARBEN = ['#000000', '#1d2b53', '#7e2553', '#008751', '#ab5236', '#5f574f', '#c2c3c7', '#fff1e8', '#ff004d', '#ffa300', '#ffec27', '#00e436', '#29adff', '#83769c', '#ff77a8', '#ffccaa'];
+  const SK_ZEICHEN = '0123456789abcdef';
+  let sk = null, skFarbe = 0, skWerkzeug = 'stift', skBreite = 4, skVerlauf = [], skMalt = false, skCtx = null, skGroesse = 300;
+  function skizzeBild(s, px) {
+    const c = document.createElement('canvas');
+    if (s.art === 'pixel') {
+      c.width = c.height = s.n;
+      const g = c.getContext('2d');
+      for (let i = 0; i < s.n * s.n; i++) { const k = SK_ZEICHEN.indexOf(s.d[i]); if (k >= 0) { g.fillStyle = SK_FARBEN[k]; g.fillRect(i % s.n, Math.floor(i / s.n), 1, 1); } }
+    } else {
+      c.width = c.height = px || 160;
+      const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height);
+      freihandZeichnen(g, s, c.width);
+    }
+    return c.toDataURL('image/png');
+  }
+  function freihandZeichnen(g, s, w) {
+    g.lineCap = 'round'; g.lineJoin = 'round';
+    (s.s || []).forEach(st => {
+      g.strokeStyle = st.c; g.lineWidth = Math.max(1, st.w * w / 300);
+      g.beginPath();
+      for (let i = 0; i < st.p.length; i += 2) { const x = st.p[i] * w / 1000, y = st.p[i + 1] * w / 1000; if (i === 0) g.moveTo(x, y); else g.lineTo(x, y); }
+      if (st.p.length === 2) g.lineTo(st.p[0] * w / 1000 + 0.1, st.p[1] * w / 1000);
+      g.stroke();
+    });
+  }
+  function skizzeOeffnen(s) {
+    sk = s; skVerlauf = []; skWerkzeug = 'stift';
+    if (sk.art === 'frei' && skFarbe === 7) skFarbe = 0;
+    document.getElementById('modalSkizze').classList.add('zeigen');
+    skAufbauen();
+  }
+  function skAufbauen() {
+    document.getElementById('skTabPixel').classList.toggle('active', sk.art === 'pixel');
+    document.getElementById('skTabFrei').classList.toggle('active', sk.art === 'frei');
+    const leiste = document.getElementById('skLeiste');
+    leiste.innerHTML = sk.art === 'pixel'
+      ? '<button type="button" class="pj-knopf" data-w="stift">✏️</button><button type="button" class="pj-knopf" data-w="fuellen">🪣</button><button type="button" class="pj-knopf" data-w="radierer">🧽</button>' +
+        '<button type="button" class="pj-knopf" data-n="16">16×16</button><button type="button" class="pj-knopf" data-n="32">32×32</button>' +
+        '<button type="button" class="pj-knopf" data-a="zurueck">↶</button><button type="button" class="pj-knopf" data-a="leeren">🗑</button>'
+      : '<button type="button" class="pj-knopf" data-b="2">dünn</button><button type="button" class="pj-knopf" data-b="5">mittel</button><button type="button" class="pj-knopf" data-b="12">dick</button>' +
+        '<button type="button" class="pj-knopf" data-a="zurueck">↶</button><button type="button" class="pj-knopf" data-a="leeren">🗑</button>';
+    leiste.querySelectorAll('[data-w]').forEach(b => { b.classList.toggle('an', b.dataset.w === skWerkzeug); b.addEventListener('click', () => { skWerkzeug = b.dataset.w; skAufbauen(); }); });
+    leiste.querySelectorAll('[data-b]').forEach(b => { b.classList.toggle('an', +b.dataset.b === skBreite); b.addEventListener('click', () => { skBreite = +b.dataset.b; skAufbauen(); }); });
+    leiste.querySelectorAll('[data-n]').forEach(b => { b.classList.toggle('an', +b.dataset.n === sk.n); b.addEventListener('click', () => {
+      const n = +b.dataset.n; if (n === sk.n) return;
+      if (sk.d.replace(/\./g, '') && !confirm('Rastergröße ändern? Die Skizze wird dabei angepasst.')) return;
+      skVerlauf.push(JSON.stringify(sk));
+      const alt = sk, neu = [];
+      for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) neu.push(alt.d[Math.floor(y * alt.n / n) * alt.n + Math.floor(x * alt.n / n)] || '.');
+      sk = { art: 'pixel', n, d: neu.join('') }; skAufbauen();
+    }); });
+    leiste.querySelectorAll('[data-a]').forEach(b => b.addEventListener('click', () => {
+      if (b.dataset.a === 'zurueck') { if (skVerlauf.length) { sk = JSON.parse(skVerlauf.pop()); skAufbauen(); } return; }
+      if (!confirm('Skizze leeren?')) return;
+      skVerlauf.push(JSON.stringify(sk));
+      if (sk.art === 'pixel') sk.d = '.'.repeat(sk.n * sk.n); else sk.s = [];
+      skZeichnen();
+    }));
+    const pal = document.getElementById('skPalette');
+    pal.innerHTML = SK_FARBEN.map((f, i) => '<div class="sk-farbe' + (i === skFarbe ? ' an' : '') + '" data-i="' + i + '" style="background:' + f + '"></div>').join('') +
+      (sk.art === 'pixel' ? '<div class="sk-farbe leer' + (skWerkzeug === 'radierer' ? ' an' : '') + '" data-i="-1" title="Radierer"></div>' : '');
+    pal.querySelectorAll('[data-i]').forEach(d => d.addEventListener('click', () => {
+      const i = +d.dataset.i;
+      if (i < 0) skWerkzeug = 'radierer'; else { skFarbe = i; if (skWerkzeug === 'radierer') skWerkzeug = 'stift'; }
+      skAufbauen();
+    }));
+    const c = document.getElementById('skFlaeche');
+    skGroesse = Math.min(340, Math.floor(document.querySelector('#modalSkizze .modal').clientWidth - 40));
+    const dpr = window.devicePixelRatio || 1;
+    c.style.width = c.style.height = skGroesse + 'px';
+    c.width = c.height = Math.round(skGroesse * dpr);
+    skCtx = c.getContext('2d'); skCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    skZeichnen();
+  }
+  function skZeichnen() {
+    const g = skCtx, w = skGroesse;
+    g.clearRect(0, 0, w, w);
+    if (sk.art === 'pixel') {
+      const z = w / sk.n;
+      for (let y = 0; y < sk.n; y++) for (let x = 0; x < sk.n; x++) {
+        const k = SK_ZEICHEN.indexOf(sk.d[y * sk.n + x]);
+        g.fillStyle = k >= 0 ? SK_FARBEN[k] : ((x + y) % 2 ? '#f1ece2' : '#ffffff');
+        g.fillRect(x * z, y * z, z + 0.5, z + 0.5);
+      }
+      g.strokeStyle = 'rgba(0,0,0,0.08)'; g.lineWidth = 1;
+      for (let i = 1; i < sk.n; i++) { g.beginPath(); g.moveTo(i * z, 0); g.lineTo(i * z, w); g.moveTo(0, i * z); g.lineTo(w, i * z); g.stroke(); }
+    } else {
+      g.fillStyle = '#fff'; g.fillRect(0, 0, w, w);
+      freihandZeichnen(g, sk, w);
+    }
+  }
+  function skPunkt(ev) { const r = ev.target.getBoundingClientRect(); return [Math.max(0, Math.min(0.9999, (ev.clientX - r.left) / r.width)), Math.max(0, Math.min(0.9999, (ev.clientY - r.top) / r.height))]; }
+  function skPixelSetzen(fx, fy) {
+    const x = Math.floor(fx * sk.n), y = Math.floor(fy * sk.n), i = y * sk.n + x;
+    const zeichen = skWerkzeug === 'radierer' ? '.' : SK_ZEICHEN[skFarbe];
+    if (skWerkzeug === 'fuellen') {
+      const alt = sk.d[i]; if (alt === zeichen) return;
+      const d = sk.d.split(''), stapel = [i];
+      while (stapel.length) { const j = stapel.pop(); if (d[j] !== alt) continue; d[j] = zeichen; const jx = j % sk.n, jy = Math.floor(j / sk.n);
+        if (jx > 0) stapel.push(j - 1); if (jx < sk.n - 1) stapel.push(j + 1); if (jy > 0) stapel.push(j - sk.n); if (jy < sk.n - 1) stapel.push(j + sk.n); }
+      sk.d = d.join('');
+    } else if (sk.d[i] !== zeichen) sk.d = sk.d.slice(0, i) + zeichen + sk.d.slice(i + 1);
+    skZeichnen();
+  }
+  const skFl = document.getElementById('skFlaeche');
+  skFl.addEventListener('pointerdown', ev => {
+    ev.preventDefault(); skMalt = true;
+    try { skFl.setPointerCapture(ev.pointerId); } catch (e) {}
+    skVerlauf.push(JSON.stringify(sk)); if (skVerlauf.length > 40) skVerlauf.shift();
+    const [fx, fy] = skPunkt(ev);
+    if (sk.art === 'pixel') skPixelSetzen(fx, fy);
+    else { sk.s.push({ c: SK_FARBEN[skFarbe], w: skBreite, p: [Math.round(fx * 1000), Math.round(fy * 1000)] }); skZeichnen(); }
+  });
+  skFl.addEventListener('pointermove', ev => {
+    if (!skMalt) return;
+    const [fx, fy] = skPunkt(ev);
+    if (sk.art === 'pixel') { if (skWerkzeug !== 'fuellen') skPixelSetzen(fx, fy); return; }
+    const st = sk.s[sk.s.length - 1], x = Math.round(fx * 1000), y = Math.round(fy * 1000);
+    const lx = st.p[st.p.length - 2], ly = st.p[st.p.length - 1];
+    if (Math.abs(x - lx) + Math.abs(y - ly) < 6) return;
+    st.p.push(x, y); skZeichnen();
+  });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(t => skFl.addEventListener(t, () => { skMalt = false; }));
+  document.getElementById('skTabPixel').addEventListener('click', () => { if (sk.art === 'pixel') return; if ((sk.s || []).length && !confirm('Zu Pixel wechseln? Die Freihand-Skizze geht dabei verloren.')) return; sk = { art: 'pixel', n: 16, d: '.'.repeat(256) }; skVerlauf = []; skAufbauen(); });
+  document.getElementById('skTabFrei').addEventListener('click', () => { if (sk.art === 'frei') return; if (sk.d.replace(/\./g, '') && !confirm('Zu Freihand wechseln? Die Pixel-Skizze geht dabei verloren.')) return; sk = { art: 'frei', s: [] }; skVerlauf = []; skWerkzeug = 'stift'; skAufbauen(); });
+  document.getElementById('skAbbrechen').addEventListener('click', () => document.getElementById('modalSkizze').classList.remove('zeigen'));
+  document.getElementById('skFertig').addEventListener('click', () => {
+    const leer = sk.art === 'pixel' ? !sk.d.replace(/\./g, '') : !(sk.s || []).length;
+    if (sk.art === 'frei') { let pkt = 0; sk.s.forEach(s => pkt += s.p.length); if (pkt > 16000) { alert('Die Skizze ist sehr groß geworden. Bitte etwas vereinfachen (↶).'); return; } }
+    editSkizze = leer ? null : sk;
+    document.getElementById('modalSkizze').classList.remove('zeigen');
+    skizzeFeldRendern();
+  });
+
+  // ---------- 📤 Export als Markdown ----------
+  function projektMarkdown(p) {
+    const z = pjZaehler(p);
+    const zeilen = ['# ' + (p.icon || '') + ' ' + p.titel, ''];
+    if (p.beschreibung) zeilen.push(p.beschreibung, '');
+    zeilen.push('_' + z.gesamt + ' Ideen · ' + z.arbeit + ' in Arbeit · ' + z.fertig + ' umgesetzt · Stand ' + new Date().toLocaleDateString('de-DE') + '_', '');
+    const sn = schritteNotiz(p);
+    if (sn && (sn.checkliste || []).length) { zeilen.push('## 🧭 Nächste Schritte', ''); sn.checkliste.forEach(x => zeilen.push('- [' + (x.erledigt ? 'x' : ' ') + '] ' + x.text)); zeilen.push(''); }
+    const abschnitte = [{ id: '', icon: '📥', name: 'Unsortiert' }].concat(p.abschnitte || []);
+    const bekannt = new Set(abschnitte.map(a => a.id));
+    abschnitte.forEach(a => {
+      const ideen = ideenNotizen(p).filter(n => (bekannt.has(n.abschnitt || '') ? (n.abschnitt || '') : '') === a.id);
+      if (!ideen.length) return;
+      zeilen.push('## ' + (a.icon || '') + ' ' + a.name, '');
+      ideen.forEach(n => {
+        const st = pjStatus(n.status);
+        zeilen.push('### ' + st.icon + ' ' + (n.titel || notizTitel(n).slice(0, 60)) + '  (' + st.label + ')');
+        if (n.typ === 'checkliste') (n.checkliste || []).forEach(x => zeilen.push('- [' + (x.erledigt ? 'x' : ' ') + '] ' + x.text));
+        else if (n.text && n.text !== notizTitel(n) || (n.titel && n.text)) zeilen.push(n.text);
+        if (n.skizze) zeilen.push('_(' + (n.skizze.art === 'pixel' ? '👾 Pixel-Skizze ' + n.skizze.n + '×' + n.skizze.n : '✍️ Skizze') + ' – nur in der App)_');
+        if (n.tags && n.tags.length) zeilen.push(n.tags.map(t => '#' + t).join(' '));
+        zeilen.push('');
+      });
+    });
+    return zeilen.join('\n');
+  }
+  let exportProjekt = null;
+  function exportOeffnen(p) {
+    exportProjekt = p;
+    document.getElementById('exportText').value = projektMarkdown(p);
+    document.getElementById('modalExport').classList.add('zeigen');
+  }
+  document.getElementById('exportZu').addEventListener('click', () => document.getElementById('modalExport').classList.remove('zeigen'));
+  document.getElementById('exportKopieren').addEventListener('click', async () => {
+    const t = document.getElementById('exportText').value;
+    try { await navigator.clipboard.writeText(t); showTempStatus('📋 Kopiert', 2); }
+    catch (e) { const f = document.getElementById('exportText'); f.select(); try { document.execCommand('copy'); showTempStatus('📋 Kopiert', 2); } catch (x) { alert('Kopieren nicht möglich – bitte Text markieren.'); } }
+  });
+  document.getElementById('exportDatei').addEventListener('click', () => {
+    const p = exportProjekt; if (!p) return;
+    const name = (p.titel || 'projekt').toLowerCase().replace(/[äöüß]/g, c => ({ ä: 'ae', ö: 'oe', ü: 'ue', ß: 'ss' }[c])).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '.md';
+    const blob = new Blob([document.getElementById('exportText').value], { type: 'text/markdown;charset=utf-8' });
+    const datei = (() => { try { return new File([blob], name, { type: 'text/markdown' }); } catch (e) { return null; } })();
+    if (datei && navigator.canShare && navigator.canShare({ files: [datei] })) { navigator.share({ files: [datei], title: p.titel }).catch(() => {}); return; }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  });
+  ['modalProjekt', 'modalSkizze', 'modalLinkWahl', 'modalExport'].forEach(id => document.getElementById(id).addEventListener('click', (e) => { if (e.target.id === id) e.currentTarget.classList.remove('zeigen'); }));
 
   if (papierkorbAufraeumen(familienNotizen)) notizenSpeichern('familie');
   if (papierkorbAufraeumen(privatNotizen)) notizenSpeichern('privat');

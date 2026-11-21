@@ -1,6 +1,16 @@
 # Neuigkeiten im Familienplaner
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 
+## 2026-11-21 | 📂 Projekte im Notizblock
+Im Notizblock gibt es neben „📝 Notizen“ jetzt **„📂 Projekte“**: ein Ort für alle Ideen zu einem Vorhaben, z. B. ein Spiel, ein Umbau oder der Garten. Projekte gibt es für die Familie und privat.
+- **Vorlagen:** 🎮 Spiel (Ideen, Spielmechanik, Figuren & Welt, Grafik & Stil, Sound, Offene Fragen, Lernen), 🔨 Allgemein oder leer. Bereiche lassen sich umbenennen, ergänzen und sortieren
+- **Status je Idee:** 💭 Idee, ⭐ will ich, 🔨 in Arbeit, ✅ umgesetzt, ❌ verworfen. Er steht als Abzeichen auf der Karte, oben kannst du danach filtern
+- **💡 Schnell-Idee:** eine Zeile tippen oder 🎤 diktieren. Die Idee landet in „📥 Unsortiert“ und wird später einsortiert
+- **🧭 Nächste Schritte:** eine Checkliste oben im Projekt; die Übersicht zählt Ideen, „in Arbeit“ und „umgesetzt“
+- **✏️ Skizzen** in jeder Notiz: 👾 Pixel-Raster (16×16 oder 32×32, mit Füllen und Radierer) oder ✍️ Freihand mit dem Finger
+- **🔗 Verknüpfen:** `[[Name]]` verweist auf eine andere Notiz oder ein Projekt. Antippen springt hin; gibt es sie noch nicht, legst du sie direkt an. Jede Notiz zeigt, wo sie erwähnt wird
+- **📤 Export:** ein ganzes Projekt als Text (Markdown) kopieren oder als Datei teilen
+
 ## 2026-11-19 | 📖 Medien: Cover-Kacheln wie beim Kindle
 Die Medien-Übersicht zeigt jetzt große Cover. Den Stand erkennst du auf einen Blick an kleinen Abzeichen:
 - Eckband **„Gelesen“** bzw. **„Gesehen“**, 📖 = lese ich gerade, 💭 = Wunschliste (Cover blasser), ⏸️ pausiert, ⏹️ abgebrochen (Cover grau)
