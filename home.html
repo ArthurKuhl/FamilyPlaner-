@@ -63,6 +63,28 @@
   .heute-chip { display: inline-flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.09); color: var(--leaf); border: none; border-radius: 999px;
     padding: 4px 10px; font: 600 0.76rem 'Inter', sans-serif; cursor: pointer; white-space: nowrap; }
   .heute-chip.wichtig { background: rgba(217,133,90,0.28); }
+  /* 🗓️ Nächster Termin – Banner unter der Begrüßung (v513) */
+  .termin-banner { display: block; width: calc(100% - 28px); max-width: 612px; margin: 12px auto 0; padding: 0; border: none; background: none; font-family: inherit; text-align: left; cursor: pointer; }
+  .termin-banner:empty { display: none; }
+  .tb-haupt { display: flex; align-items: center; gap: 12px; background: var(--white); border-radius: var(--radius-md, 16px); border-left: 6px solid var(--moss); box-shadow: var(--shadow-soft, 0 2px 8px rgba(0,0,0,0.12)); padding: 12px 14px; }
+  .tb-zeit { flex: 0 0 auto; min-width: 58px; text-align: center; font-weight: 800; font-size: 1.15rem; color: var(--soil); line-height: 1.1; }
+  .tb-zeit small { display: block; font-size: 0.64rem; font-weight: 700; color: var(--bark); text-transform: uppercase; letter-spacing: 0.04em; margin-top: 2px; }
+  .tb-text { flex: 1; min-width: 0; }
+  .tb-titel { font-weight: 700; font-size: 1rem; color: var(--soil); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tb-meta { font-size: 0.76rem; color: var(--bark); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tb-wann { flex: 0 0 auto; font-size: 0.72rem; font-weight: 800; padding: 4px 9px; border-radius: 999px; background: var(--cream); color: var(--soil); border: 1px solid var(--parchment); white-space: nowrap; }
+  .tb-haupt.gleich { background: #fbe3cf; border-left-color: #d9852a; }
+  .tb-haupt.gleich .tb-wann { background: #d9852a; border-color: #d9852a; color: #fff; animation: tbPuls 1.6s ease-in-out infinite; }
+  .tb-haupt.laeuft .tb-wann { background: var(--moss); border-color: var(--moss); color: var(--on-moss, #fff); }
+  .tb-haupt.wichtig { background: #f8dcd6; border-left-color: #b83a2a; }
+  .tb-haupt.wichtig .tb-titel::before { content: '⭐ '; }
+  .tb-haupt.gleich .tb-titel, .tb-haupt.wichtig .tb-titel, .tb-haupt.gleich .tb-zeit, .tb-haupt.wichtig .tb-zeit { color: #3a2414; }
+  .tb-haupt.gleich .tb-meta, .tb-haupt.wichtig .tb-meta, .tb-haupt.gleich .tb-zeit small, .tb-haupt.wichtig .tb-zeit small { color: #6b4a33; }
+  .tb-vorab { display: flex; align-items: center; gap: 8px; margin-top: 6px; background: #f8dcd6; color: #3a2414; border-radius: var(--radius-sm, 10px); border-left: 6px solid #b83a2a; padding: 8px 12px; font-size: 0.82rem; font-weight: 600; }
+  .tb-vorab b { white-space: nowrap; color: #b83a2a; }
+  .tb-vorab span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  @keyframes tbPuls { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+  @media (prefers-reduced-motion: reduce) { .tb-haupt.gleich .tb-wann { animation: none; } }
 
   main { padding: 14px; max-width: 640px; margin: 0 auto; display: flex; flex-wrap: wrap; column-gap: 12px; align-items: flex-start; }
   main > * { flex: 0 0 100%; min-width: 0; box-sizing: border-box; }
@@ -372,6 +394,7 @@
     <button class="kopf-zahnrad" id="btnKopfEinstellungen" title="Einstellungen" aria-label="Einstellungen öffnen">⚙️</button>
   </div>
 </header>
+<button type="button" class="termin-banner" id="terminBanner" aria-label="Termine öffnen"></button>
 <button type="button" class="kopf-suche" id="btnKopfSuche">🔍 In allen Bereichen suchen …</button>
 <div class="anordnen-leiste-oben" id="anordnenLeiste">
   <div class="anordnen-hinweis">↕️ Kacheln anordnen: mit ▲ ▼ verschieben, mit 👁 ein- oder ausblenden. Gilt nur für dieses Gerät.</div>
@@ -1075,7 +1098,66 @@
     if (abends) html = '<div class="mini-abschnitt">Morgen</div>' + morgenTeil() + '<div class="mini-abschnitt">Heute</div>' + heuteTeil();
     else html = heuteTeil() + (morgige.length ? '<div class="mini-abschnitt">Morgen</div>' + morgenTeil() : '');
     document.getElementById('listeTermine').innerHTML = html;
+    window._termineHeuteOffen = offenHeute.length > 0;
+    renderTerminBanner();
   }
+  // 🗓️ Banner „Nächster Termin“ + angekündigte ⭐ wichtige Termine (v513)
+  function renderTerminBanner() {
+    const box = document.getElementById('terminBanner');
+    if (!box) return;
+    const versteckt = laden('planer_versteckteModule', []) || [];
+    if (versteckt.includes('termine')) { box.innerHTML = ''; return; }
+    const events = laden('termine_events_v1', []);
+    const h = heute(), heuteISO = toISODatum(h);
+    const morgenISO = toISODatum(new Date(h.getFullYear(), h.getMonth(), h.getDate() + 1));
+    const jetzt = new Date(), jetztMin = jetzt.getHours() * 60 + jetzt.getMinutes();
+    const min = t => { const m = /^(\d{1,2}):(\d{2})/.exec(t || ''); return m ? +m[1] * 60 + +m[2] : null; };
+    const ende = ev => { const s = min(ev.startTime), e = min(ev.endTime); return e !== null && e > s ? e : s + 60; };
+    const offen = termineAm(events, heuteISO).filter(ev => ev.allDay || !ev.startTime || ende(ev) > jetztMin);
+    // zuerst der nächste Termin mit Uhrzeit, ganztägige danach
+    const mitZeit = offen.filter(ev => !ev.allDay && ev.startTime), ganztags = offen.filter(ev => ev.allDay || !ev.startTime);
+    let ev = mitZeit[0] || ganztags[0], tag = 'heute', weitere = offen.length - 1;
+    if (!ev && jetzt.getHours() >= 17) { const m = termineAm(events, morgenISO); ev = m.find(e => !e.allDay && e.startTime) || m[0]; tag = 'morgen'; weitere = m.length - 1; }
+    let html = '';
+    if (ev) {
+      const s = min(ev.startTime);
+      let klasse = '', wann = '';
+      if (tag === 'morgen') wann = 'morgen';
+      else if (ev.allDay || s === null) wann = 'heute';
+      else if (s <= jetztMin) { klasse = ' laeuft'; wann = 'läuft gerade'; }
+      else {
+        const diff = s - jetztMin;
+        if (diff <= 60) { klasse = ' gleich'; wann = '⏰ in ' + diff + ' Min'; }
+        else wann = 'in ' + (diff < 120 ? '1 Std' : Math.floor(diff / 60) + ' Std');
+      }
+      if (ev.wichtig) klasse += ' wichtig';
+      const wer = Array.isArray(ev.wer) ? ev.wer[0] : ev.wer;
+      const person = (WER_OPTIONEN.find(w => w.id === wer) || {}).label;
+      const meta = [weitere > 0 ? '+' + weitere + ' weitere' : '', person && wer !== 'familie' ? person : '', ev.location ? '📍 ' + ev.location : ''].filter(Boolean).join(' · ');
+      html += '<div class="tb-haupt' + klasse + '" style="' + (klasse.includes('wichtig') || klasse.includes('gleich') ? '' : 'border-left-color:' + farbeFuerWer(wer)) + '">' +
+        '<div class="tb-zeit">' + (ev.allDay || s === null ? '📅' : escapeHtml(ev.startTime)) + '<small>' + (tag === 'morgen' ? 'Morgen' : ev.allDay || s === null ? 'Ganztags' : 'Uhr') + '</small></div>' +
+        '<div class="tb-text"><div class="tb-titel">' + escapeHtml(window.TerminLogik ? window.TerminLogik.titelMitAlter(ev, tag === 'morgen' ? morgenISO : heuteISO) : ev.title) + '</div>' + (meta ? '<div class="tb-meta">' + escapeHtml(meta) + '</div>' : '') + '</div>' +
+        '<span class="tb-wann">' + escapeHtml(wann) + '</span></div>';
+    }
+    // ⭐ Wichtige Termine schon einige Tage vorher ankündigen
+    const WT = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+    const vorab = [];
+    events.filter(e => e && e.wichtig && gehoertMir(e.wer) && !e.abfuhr && e !== ev).forEach(e => {
+      const tage = Math.min(14, Number(e.wichtig) || 3);
+      for (let t = tag === 'morgen' ? 2 : 1; t <= tage; t++) {
+        const d = new Date(h.getFullYear(), h.getMonth(), h.getDate() + t), iso = toISODatum(d);
+        const an = window.TerminLogik ? window.TerminLogik.startetAm(e, iso) : vorkommenHeute(e, iso);
+        if (an) { vorab.push({ e, t, d, iso }); break; }
+      }
+    });
+    vorab.sort((a, b) => a.t - b.t).slice(0, 3).forEach(v => {
+      const wann = v.t === 1 ? 'Morgen' : 'In ' + v.t + ' Tagen (' + WT[v.d.getDay()] + ')';
+      html += '<div class="tb-vorab"><b>⭐ ' + wann + ':</b><span>' + escapeHtml(window.TerminLogik ? window.TerminLogik.titelMitAlter(v.e, v.iso) : v.e.title) + (!v.e.allDay && v.e.startTime ? ' · ' + escapeHtml(v.e.startTime) : '') + '</span></div>';
+    });
+    box.innerHTML = html;
+  }
+  document.getElementById('terminBanner').addEventListener('click', () => navigiere('termine'));
+  setInterval(() => { if (!document.hidden) renderTerminBanner(); }, 60000);
   document.getElementById('kachelTermine').addEventListener('click', () => navigiere('termine'));
 
   // ============================================================
@@ -1185,8 +1267,15 @@
     const heuteISO = toISODatum(heute());
     const events = lies('termine_events_v1', []);
     if (sichtbar('termine')) {
-      const anzahl = events.filter(ev => gehoertMir(ev.wer) && vorkommenHeute(ev, heuteISO)).length;
-      if (anzahl) chips.push({ text: '🗓️ ' + anzahl + (anzahl === 1 ? ' Termin' : ' Termine'), ziel: 'termine' });
+      const heutige = termineAm(events, heuteISO);
+      const anzahl = heutige.length;
+      if (anzahl === 1) {
+        const ev = heutige[0], t = String(ev.title || 'Termin');
+        chips.push({ text: '🗓️ ' + (!ev.allDay && ev.startTime ? ev.startTime + ' ' : '') + (t.length > 24 ? t.slice(0, 23) + '…' : t) + (ev.allDay || !ev.startTime ? ' (ganztags)' : ''), ziel: 'termine', wichtig: !!ev.wichtig });
+      } else if (anzahl) {
+        const erste = heutige.find(ev => !ev.allDay && ev.startTime);
+        chips.push({ text: '🗓️ ' + anzahl + ' Termine' + (erste ? ' · ab ' + erste.startTime : ''), ziel: 'termine', wichtig: heutige.some(ev => ev.wichtig) });
+      }
       // Geburtstage in den nächsten 7 Tagen (jährlich wiederkehrend)
       const h = heute();
       events.filter(ev => /geburtstag|🎂/i.test(ev.title || '') && ev.date).forEach(ev => {
@@ -2732,7 +2821,12 @@
   // Gespeicherte Reihenfolge anwenden; Kacheln, die es damals noch nicht gab, an ihrer Standard-Position einfügen
   function reihenfolgeBerechnen() {
     const gespeichert = laden(KEY_REIHENFOLGE).filter(id => standardReihenfolge.includes(id));
-    if (!gespeichert.length) return standardReihenfolge.slice();
+    if (!gespeichert.length) {
+      // Ohne eigene Reihenfolge: stehen heute noch Termine an, kommt die Termine-Kachel nach oben (v513)
+      const std = standardReihenfolge.slice();
+      if (window._termineHeuteOffen && std.includes('kachelTermine')) { std.splice(std.indexOf('kachelTermine'), 1); std.unshift('kachelTermine'); }
+      return std;
+    }
     const ergebnis = gespeichert.slice();
     standardReihenfolge.forEach((id, i) => {
       if (ergebnis.includes(id)) return;

@@ -232,6 +232,8 @@
   .termin-zeit { font-size: 0.72rem; font-weight: 700; color: var(--bark); min-width: 44px; padding-top: 1px; }
   .termin-info { flex: 1; }
   .termin-titel { font-size: 0.88rem; font-weight: 600; margin-bottom: 2px; }
+  .termin-card.wichtig { box-shadow: 0 0 0 2px #b83a2a inset, var(--shadow-soft, none); }
+  .termin-card.wichtig .termin-titel::before { content: '⭐ '; }
   .termin-meta { font-size: 0.72rem; color: var(--bark); display: flex; gap: 8px; flex-wrap: wrap; }
   .wer-badge { display: inline-block; font-size: 0.62rem; font-weight: 700; padding: 1px 8px; border-radius: var(--radius-pill); color: #fff; text-shadow: 0 1px 1px rgba(0,0,0,0.25); }
   html[data-dark="1"] .wer-badge { box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22); }
@@ -515,6 +517,15 @@
         <div class="form-row" id="geburtsjahrRow" style="display:none;">
           <label for="fGeburtsjahr">Geburtsjahr (optional – zeigt das Alter)</label>
           <input type="number" id="fGeburtsjahr" min="1900" max="2100" placeholder="z. B. 2017" inputmode="numeric">
+        </div>
+        <div class="form-row">
+          <label for="fWichtig">⭐ Wichtig – auf der Übersicht vorher ankündigen</label>
+          <select id="fWichtig">
+            <option value="0">Nein</option>
+            <option value="1">Ja – 1 Tag vorher</option>
+            <option value="3">Ja – 3 Tage vorher</option>
+            <option value="7">Ja – 1 Woche vorher</option>
+          </select>
         </div>
         <div class="form-row">
           <label for="fErinnerung">Erinnerung</label>
@@ -1135,7 +1146,7 @@
 
     function terminCard(ev, datumISO, info) {
       const card = document.createElement('div');
-      card.className = 'termin-card';
+      card.className = 'termin-card' + (ev.wichtig ? ' wichtig' : '');
       card.style.borderLeftColor = farbeFuer(ev.wer);
       const dauer = TL.dauerTage(ev);
       const zeitHtml = dauer && info && info.tagNr > 1 ? 'Tag ' + info.tagNr + '/' + info.tage : (ev.allDay ? 'Ganztags' : escapeHtml(ev.startTime || '') + (ev.endTime && ev.endTime > ev.startTime ? '<br><span style="font-weight:500">–' + escapeHtml(ev.endTime) + '</span>' : ''));
@@ -1298,6 +1309,7 @@
         wiederholung: document.getElementById('fWiederholung').value,
         wiederholungBis: document.getElementById('fWiederholungBis').value,
         erinnerung: document.getElementById('fErinnerung').value,
+        wichtig: document.getElementById('fWichtig').value,
         wer: werBtn ? werBtn.dataset.wer : 'familie',
         endDatum: document.getElementById('fEndDatum').value,
         intervall: document.getElementById('fIntervall').value,
@@ -1335,6 +1347,7 @@
       document.getElementById('fIntervall').value = d.intervall || '1';
       document.getElementById('fGeburtsjahr').value = d.geburtsjahr || '';
       document.getElementById('fErinnerung').value = d.erinnerung || '0';
+      document.getElementById('fWichtig').value = d.wichtig || '0';
       werSelect.querySelectorAll('.opt').forEach(o => {
         const aktiv = o.dataset.wer === d.wer;
         o.classList.toggle('active', aktiv);
@@ -1376,6 +1389,7 @@
       document.getElementById('fWiederholungBis').value = ev && ev.recurrence ? (ev.recurrence.until||'') : '';
       document.getElementById('fIntervall').value = ev ? TL.intervall(ev) : 1;
       document.getElementById('fGeburtsjahr').value = ev && ev.geburtsjahr ? ev.geburtsjahr : '';
+      document.getElementById('fWichtig').value = ev && ev.wichtig ? String([1, 3, 7].includes(Number(ev.wichtig)) ? Number(ev.wichtig) : 3) : '0';
       const erOpt = ev ? (ev.erinnerungVorabend ? 'vorabend' : String(ev.erinnerung || 0)) : '0';
       document.getElementById('fErinnerung').value = erOpt;
       if (document.getElementById('fErinnerung').value !== erOpt) { // ungewöhnlicher Wert (z. B. aus anderen Modulen)
@@ -1667,6 +1681,8 @@
         recurrence: { freq, until: freq !== 'keine' ? (document.getElementById('fWiederholungBis').value || null) : null },
       };
       if (erWert === 'vorabend') e.erinnerungVorabend = true;
+      const wi = Number(document.getElementById('fWichtig').value) || 0;
+      if (wi) e.wichtig = wi;
       if (end && end > datum) e.endDate = end;
       const n = Math.max(1, Math.min(52, Math.floor(Number(document.getElementById('fIntervall').value) || 1)));
       if (freq !== 'keine' && freq !== 'werktags' && n > 1) e.recurrence.interval = n;
@@ -1676,7 +1692,7 @@
       return e;
     }
     // Felder, die nur zum Termin selbst gehören, aus dem Formular übernehmen (Rest – z. B. Herkunft aus anderen Modulen – bleibt)
-    const FORM_FELDER = ['title', 'date', 'endDate', 'allDay', 'startTime', 'endTime', 'wer', 'location', 'notes', 'erinnerung', 'erinnerungVorabend', 'recurrence', 'geburtsjahr'];
+    const FORM_FELDER = ['title', 'date', 'endDate', 'allDay', 'startTime', 'endTime', 'wer', 'location', 'notes', 'erinnerung', 'erinnerungVorabend', 'wichtig', 'recurrence', 'geburtsjahr'];
     function mitFormular(basis, form) {
       const neu = Object.assign({}, basis);
       FORM_FELDER.forEach(k => { if (form[k] === undefined) delete neu[k]; else neu[k] = form[k]; });

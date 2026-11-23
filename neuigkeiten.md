@@ -1,6 +1,12 @@
 # Neuigkeiten im Familienplaner
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 
+## 2026-11-23 | 🗓️ Termine auf der Übersicht besser sichtbar
+- Unter der Begrüßung zeigt ein **Banner den nächsten Termin** mit Uhrzeit, Ort, Person und „in 2 Std“. Ab 60 Minuten vorher wird es orange („⏰ in 25 Min“), während des Termins steht dort „läuft gerade“. Abends erscheint der erste Termin von morgen
+- Der Chip oben nennt jetzt den Termin selbst, z. B. „🗓️ 15:30 Zahnarzt“, bei mehreren „3 Termine · ab 9:00“
+- **⭐ Wichtig:** Im Termin-Formular lässt sich ein Termin als wichtig markieren. Er wird rot hervorgehoben und auf der Übersicht 1, 3 oder 7 Tage vorher angekündigt („⭐ In 3 Tagen (Do): Elternabend“). Im Kalender trägt er einen ⭐
+- Stehen heute noch Termine an, rückt die Kachel „Termine heute“ nach oben – solange du die Reihenfolge der Kacheln nicht selbst festgelegt hast
+
 ## 2026-11-21 | 📂 Projekte im Notizblock
 Im Notizblock gibt es neben „📝 Notizen“ jetzt **„📂 Projekte“**: ein Ort für alle Ideen zu einem Vorhaben, z. B. ein Spiel, ein Umbau oder der Garten. Projekte gibt es für die Familie und privat.
 - **Vorlagen:** 🎮 Spiel (Ideen, Spielmechanik, Figuren & Welt, Grafik & Stil, Sound, Offene Fragen, Lernen), 🔨 Allgemein oder leer. Bereiche lassen sich umbenennen, ergänzen und sortieren
