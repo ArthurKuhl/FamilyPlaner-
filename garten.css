@@ -1064,3 +1064,52 @@
 .zs-zeile span:first-child { flex: 0 0 82px; font-weight: 700; }
 .zs-tipp { margin-top: 6px; line-height: 1.45; }
 .zimmer-doktor-btn { width: 100%; margin: 4px 0 6px; }
+
+/* ---- 🩺 Garten-Check (v514) ---- */
+.gc-zurueck { border: none; background: none; color: var(--moss-text, var(--moss)); font-weight: 700; font-size: 0.82rem; cursor: pointer; padding: 0 0 6px; font-family: inherit; }
+.gc-karte { background: var(--white); border-radius: var(--radius-md, 14px); box-shadow: var(--shadow-soft); padding: 14px; margin-bottom: 12px; }
+.gc-gesamt { display: flex; align-items: center; gap: 16px; }
+.gc-gesamt-text { flex: 1; min-width: 0; }
+.gc-g-titel { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.05rem; color: var(--soil); margin-bottom: 6px; }
+.gc-g-zeile { font-size: 0.82rem; color: var(--soil); margin: 3px 0; }
+.gc-g-zeile small { color: var(--bark); }
+.gc-verlauf { color: var(--bark); }
+.gc-ring { flex-shrink: 0; display: block; }
+.gc-titel { font-weight: 800; font-size: 0.9rem; color: var(--soil); margin-bottom: 8px; }
+.gc-titel-zeile { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+.gc-titel-zeile .gc-titel { margin-bottom: 0; }
+.gc-karten-schalter { font-size: 0.74rem; color: var(--bark); display: flex; align-items: center; gap: 5px; cursor: pointer; }
+.gc-balken { display: grid; grid-template-columns: minmax(0, 9.5em) 1fr 2.2em; align-items: center; gap: 8px; margin: 6px 0; font-size: 0.8rem; color: var(--soil); }
+.gc-balken small { grid-column: 1 / -1; margin-top: -4px; font-size: 0.7rem; color: var(--bark); }
+.gc-balken.aus { grid-template-columns: minmax(0, 9.5em) 1fr; opacity: 0.6; }
+.gc-balken.aus small { grid-column: auto; margin: 0; }
+.gc-balken b { text-align: right; }
+.gc-b-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gc-b-spur { height: 8px; border-radius: 999px; background: var(--parchment); overflow: hidden; }
+.gc-b-spur span { display: block; height: 100%; border-radius: 999px; }
+.gc-baustelle { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-top: 1px solid var(--parchment); font-size: 0.84rem; color: var(--soil); }
+.gc-baustelle:first-of-type { border-top: none; }
+.gc-baustelle small { color: var(--bark); font-size: 0.72rem; }
+.gc-nr { flex: 0 0 24px; height: 24px; border-radius: 50%; background: var(--moss); color: var(--on-moss, #fff); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.78rem; }
+.gc-beet { border-top: 1px solid var(--parchment); }
+.gc-beet-kopf { width: 100%; display: flex; align-items: center; gap: 10px; background: none; border: none; padding: 8px 0; cursor: pointer; text-align: left; font-family: inherit; color: var(--soil); }
+.gc-beet-name { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.gc-beet-name b { font-size: 0.9rem; }
+.gc-beet-name small { font-size: 0.72rem; color: var(--bark); }
+.gc-pfeil { color: var(--bark); }
+.gc-beet-detail { padding: 0 0 12px 4px; }
+.gc-tipp { font-size: 0.8rem; color: var(--soil); background: var(--cream); border-radius: 8px; padding: 7px 10px; margin-top: 6px; }
+.gc-tipp small { color: var(--moss-text, var(--moss)); font-weight: 800; }
+.gc-knopf { margin-top: 8px; border: 1px solid var(--parchment); background: var(--cream); color: var(--soil); border-radius: 999px; padding: 6px 12px; font-size: 0.76rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+.gc-monate { display: grid; grid-template-columns: repeat(9, 1fr); gap: 3px; margin: 10px 0 4px; }
+.gc-monate span { text-align: center; font-size: 0.62rem; font-weight: 700; padding: 5px 0; border-radius: 5px; background: var(--parchment); color: var(--bark); }
+.gc-monate span.an { background: #d488a0; color: #fff; }
+.gc-tiere { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0; }
+.gc-tiere span { font-size: 0.7rem; background: var(--cream); border: 1px solid var(--parchment); border-radius: 999px; padding: 3px 8px; color: var(--soil); }
+.gc-unter { font-size: 0.76rem; font-weight: 800; color: var(--bark); margin: 12px 0 4px; text-transform: uppercase; letter-spacing: 0.03em; }
+.gc-haken { display: flex; align-items: center; gap: 8px; font-size: 0.84rem; color: var(--soil); padding: 4px 0; cursor: pointer; }
+.gc-haken input { width: 18px; height: 18px; }
+.gc-leer { font-size: 0.82rem; color: var(--bark); padding: 6px 0; }
+.gc-fuss { font-size: 0.72rem; color: var(--bark); padding: 4px 4px 20px; line-height: 1.45; }
+.gc-editor-chips { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0 2px; }
+.gc-editor-chips span { font-size: 0.72rem; font-weight: 700; background: var(--cream); border: 1px solid var(--parchment); border-radius: 999px; padding: 2px 8px; color: var(--soil); }

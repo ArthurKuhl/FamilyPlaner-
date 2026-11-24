@@ -1,6 +1,17 @@
 # Neuigkeiten im Familienplaner
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 
+## 2026-11-24 | 🩺 Garten-Check: Noten für Beete und Garten
+Unter 📅 Planen & Ernten → **Garten-Check** bekommt jedes Beet eine Note von 0 bis 100, mit Ampel und konkreten Tipps:
+- 🤝 **Mischkultur:** gute und ungünstige Nachbarn
+- 🔄 **Fruchtfolge:** gleiche Familie oder Starkzehrer zu früh wieder im Beet
+- ☀️ **Standort:** passen die Pflanzen zur Sonne am Beet?
+- 📏 **Platz:** zu dicht oder viel Fläche frei (im Winter zählt freie Fläche nicht)
+- 🐝 **Natur:** Pflanzen für Nützlinge und Bestäuber
+
+Dazu kommen die **3 wichtigsten Baustellen** mit Punktgewinn, der **🦋 Naturgarten-Wert** (Blühmonate Februar–Oktober, welche Tiere Futter finden, Wasser, Gehölze, Totholz, Nisthilfe, wilde Ecke zum Abhaken), eure ⭐-Bewertungen und ein **Verlauf pro Jahr**.
+Die Note steht auch im Beet-Editor. Über die Ebene „🩺 Garten-Check“ erscheint sie als Abzeichen auf der Karte. Kriterien ohne genug Daten werden weggelassen statt schlecht bewertet.
+
 ## 2026-11-23 | 🗓️ Termine auf der Übersicht besser sichtbar
 - Unter der Begrüßung zeigt ein **Banner den nächsten Termin** mit Uhrzeit, Ort, Person und „in 2 Std“. Ab 60 Minuten vorher wird es orange („⏰ in 25 Min“), während des Termins steht dort „läuft gerade“. Abends erscheint der erste Termin von morgen
 - Der Chip oben nennt jetzt den Termin selbst, z. B. „🗓️ 15:30 Zahnarzt“, bei mehreren „3 Termine · ab 9:00“

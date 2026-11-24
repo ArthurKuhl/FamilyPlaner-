@@ -2813,6 +2813,7 @@ function hubRendern(bereich) {
         ${hubKachel('📅', 'Pflegeplan', 'Gießen, Düngen, Ernten – mit Wetter und Frostwarnung', 'openCarePlan()', heute ? { text: heute + ' heute' } : { text: 'erledigt', ruhig: true })}
         ${hubKachel('🌾', 'Jetzt pflanzen & ernten', 'Was in diesem Monat dran ist', 'openNowOverview()')}
         ${hubKachel('🔄', 'Fruchtfolge', 'Was stand in welchem Beet – Anbau-Historie', 'openRotationTimeline()')}
+        ${hubKachel('🩺', 'Garten-Check', 'Wie gut passen Beete, Standort und Natur? Note mit Tipps', "showView('gartencheck')", (() => { try { const c = gartenCheck(); return c.gesamt !== null ? { text: c.gesamt + ' Punkte', ruhig: c.gesamt >= 70 } : null; } catch (e) { return null; } })())}
         ${hubKachel('🗺️', 'Plan für ' + jahresplanZieljahr(), 'Was kommt in welches Beet? Vorschläge nach Fruchtfolge', 'jahresplanOeffnen()', (() => { const n = getCurrentBeds().reduce((s, b) => s + (b.jahresplan && b.jahresplan.jahr === jahresplanZieljahr() ? b.jahresplan.pflanzen.length : 0), 0); return n ? { text: n + ' vorgemerkt', ruhig: true } : ([8, 9, 10, 11, 0, 1, 2].includes(new Date().getMonth()) ? { text: 'jetzt planen' } : null); })())}
       </div>
       <div class="hub-titel">Drinnen &amp; Balkon</div><div class="hub-grid">
