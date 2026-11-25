@@ -1,6 +1,11 @@
 # Neuigkeiten im Familienplaner
 # Neuer Eintrag: oben einfügen, Kopfzeile genau so:  ## JJJJ-MM-TT | Titel
 
+## 2026-11-25 | 🏡 Neues App-Symbol und schönerer Start
+- Neues App-Symbol: die Familie zu viert in einem Haus mit Herz unterm Dach, dazu Garten, Baum und Sonne
+- Der Startbildschirm ist jetzt in App-Blau statt Creme. Danach blendet die App weich ein, statt hart umzuschalten
+- Hinweis: Android übernimmt das neue Symbol manchmal erst nach einigen Tagen. Schneller geht es, wenn du die App vom Startbildschirm entfernst und über das Browser-Menü neu „Zum Startbildschirm hinzufügen“ wählst
+
 ## 2026-11-24 | 🩺 Garten-Check: Noten für Beete und Garten
 Unter 📅 Planen & Ernten → **Garten-Check** bekommt jedes Beet eine Note von 0 bis 100, mit Ampel und konkreten Tipps:
 - 🤝 **Mischkultur:** gute und ungünstige Nachbarn
